@@ -98,6 +98,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType.EnableDisable;
 
 /**
  * This class manages the "cache" of ResourceObjectShadows in the repository.
@@ -199,7 +200,8 @@ public class ShadowCache {
 	 *             problem processing schema or schema violation
 	 */
 	public ResourceObjectShadowType getShadow(String oid, ResourceObjectShadowType repositoryShadow,
-			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException {
+			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
+			SchemaException {
 
 		Validate.notNull(oid, "Object id must not be null.");
 
@@ -212,8 +214,8 @@ public class ShadowCache {
 		// for accessing the object by UCF.
 		// Later, the repository object may have a fully cached object from.
 		if (repositoryShadow == null) {
-			repositoryShadow = getRepositoryService()
-					.getObject(ResourceObjectShadowType.class, oid, null, parentResult);
+			repositoryShadow = getRepositoryService().getObject(ResourceObjectShadowType.class, oid, null,
+					parentResult);
 			LOGGER.trace("Found shadow object: {}", JAXBUtil.silentMarshalWrap(repositoryShadow));
 		}
 
@@ -223,7 +225,8 @@ public class ShadowCache {
 			throw new IllegalArgumentException("Provided OID is not equal to OID of repository shadow");
 		}
 
-		ResourceType resource = getResource(ResourceObjectShadowUtil.getResourceOid(repositoryShadow), parentResult);
+		ResourceType resource = getResource(ResourceObjectShadowUtil.getResourceOid(repositoryShadow),
+				parentResult);
 
 		LOGGER.trace("Getting fresh object from ucf.");
 		// Get the fresh object from UCF
@@ -231,7 +234,8 @@ public class ShadowCache {
 		Schema schema = getResourceSchema(resource, connector, parentResult);
 
 		QName objectClass = repositoryShadow.getObjectClass();
-		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema.findContainerDefinitionByType(objectClass);
+		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
+				.findContainerDefinitionByType(objectClass);
 
 		if (rod == null) {
 			// Unknown objectclass
@@ -244,7 +248,8 @@ public class ShadowCache {
 		}
 
 		// Let's get all the identifiers from the Shadow <attributes> part
-		Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(repositoryShadow.getAttributes().getAny());
+		Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(repositoryShadow.getAttributes()
+				.getAny());
 
 		if (identifiers == null || identifiers.isEmpty()) {
 			// No identifiers found
@@ -252,8 +257,8 @@ public class ShadowCache {
 					+ ObjectTypeUtil.toShortString(repositoryShadow) + " with respect to resource "
 					+ ObjectTypeUtil.toShortString(resource));
 			parentResult.recordFatalError(
-					"No identifiers found in the respository shadow " + ObjectTypeUtil.toShortString(repositoryShadow),
-					ex);
+					"No identifiers found in the respository shadow "
+							+ ObjectTypeUtil.toShortString(repositoryShadow), ex);
 			throw ex;
 		}
 
@@ -277,18 +282,19 @@ public class ShadowCache {
 
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException ex) {
 			// TODO: Discovery
-			parentResult
-					.recordFatalError(
-							"Object " + identifiers + "not found on the "
-									+ ObjectTypeUtil.toShortString(resource), ex);
+			parentResult.recordFatalError(
+					"Object " + identifiers + "not found on the " + ObjectTypeUtil.toShortString(resource),
+					ex);
 			throw new ObjectNotFoundException("Object " + identifiers + " not found on the Resource "
 					+ ObjectTypeUtil.toShortString(resource), ex);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
-			parentResult.recordFatalError("Error communicating with the connector. Reason: " + ex.getMessage(), ex);
+			parentResult.recordFatalError(
+					"Error communicating with the connector. Reason: " + ex.getMessage(), ex);
 			throw new CommunicationException("Error communicating with the connector", ex);
 		} catch (GenericFrameworkException ex) {
 			parentResult.recordFatalError("Generic error in connector. Reason: " + ex.getMessage(), ex);
-			throw new GenericConnectorException("Generic error in connector " + connector + ": " + ex.getMessage(), ex);
+			throw new GenericConnectorException("Generic error in connector " + connector + ": "
+					+ ex.getMessage(), ex);
 		}
 
 		if (LOGGER.isTraceEnabled()) {
@@ -297,12 +303,17 @@ public class ShadowCache {
 		}
 
 		if (repositoryShadow instanceof AccountShadowType) {
-			// convert resource activation attribute to the <activation> attribute
+			// convert resource activation attribute to the <activation>
+			// attribute
 			// of shadow
 			ActivationType activationType = determineActivation(resource, ro, parentResult);
-			((AccountShadowType) repositoryShadow).setActivation(activationType);
+			if (activationType != null){
+				LOGGER.debug("Determined activation: {}", activationType.isEnabled());
+				((AccountShadowType) repositoryShadow).setActivation(activationType);
+			} 
+			
 		}
-	
+
 		// Complete the shadow by adding attributes from the resource object
 		ResourceObjectShadowType resultShadow = assembleShadow(ro, repositoryShadow, parentResult);
 
@@ -316,17 +327,18 @@ public class ShadowCache {
 	/**
 	 * Get account activation state from the resource object.
 	 */
-	private ActivationType determineActivation(ResourceType resource, ResourceObject ro, OperationResult parentResult) {
+	private ActivationType determineActivation(ResourceType resource, ResourceObject ro,
+			OperationResult parentResult) {
 		if (hasResourceNativeActivationCapability(resource)) {
-			return convertFromNativeActivationAttributes(resource,ro,parentResult);
+			return convertFromNativeActivationAttributes(resource, ro, parentResult);
 		} else if (ResourceTypeUtil.hasActivationCapability(resource)) {
-			return convertFromSimulatedActivationAttributes(resource,ro,parentResult);
+			return convertFromSimulatedActivationAttributes(resource, ro, parentResult);
 		} else {
 			// No activation capability, nothing to do
 			return null;
 		}
 	}
-	
+
 	private ActivationType convertFromNativeActivationAttributes(ResourceType resource, ResourceObject ro,
 			OperationResult parentResult) {
 		return ro.getActivation();
@@ -334,9 +346,63 @@ public class ShadowCache {
 
 	private ActivationType convertFromSimulatedActivationAttributes(ResourceType resource, ResourceObject ro,
 			OperationResult parentResult) {
-		// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-		// Katka has to add the code
-		// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+		LOGGER.debug("Start converting activation type from simulated activation atribute");
+		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
+				ActivationCapabilityType.class);
+		List<String> disableValues = activationCapability.getEnableDisable().getDisableValue();
+		List<String> enableValues = activationCapability.getEnableDisable().getEnableValue();
+
+		ActivationType activationType = new ActivationType();
+
+		if (null != activationCapability) {
+			Property activationProperty = ro.findProperty(activationCapability.getEnableDisable()
+					.getAttribute());
+				if (activationProperty == null){
+					LOGGER.warn("No simulated activation attribute was defined for the account.");
+					return null;
+				}
+				Set<Object> activationValues = activationProperty.getValues();
+				LOGGER.debug("Detected simulated activation attribute with value {}",
+						activationProperty.getValues());
+				if (activationValues == null || activationValues.isEmpty()
+						|| activationValues.iterator().next() == null) {
+					if (enableValues.isEmpty()) {
+						activationType.setEnabled(true);
+						return activationType;
+					}
+
+					// No activation information.
+					// LOGGER.warn("The {} does not provide value for DISABLE attribute",
+					// ObjectTypeUtil.toShortString(resource));
+					// parentResult.recordPartialError("The "+ObjectTypeUtil.toShortString(resource)+" has native activation capability but noes not provide value for DISABLE attribute");
+				} else {
+					if (activationValues.size() > 1) {
+						LOGGER.warn(
+								"The {} provides {} values for DISABLE attribute, expecting just one value",
+								disableValues.size(), ObjectTypeUtil.toShortString(resource));
+						parentResult.recordPartialError("The " + ObjectTypeUtil.toShortString(resource)
+								+ " provides " + disableValues.size()
+								+ " values for DISABLE attribute, expecting just one value");
+					}
+					Object disableObj = activationValues.iterator().next();
+
+					for (String disable : disableValues) {
+						if (disable.equals(String.valueOf(disableObj))) {
+							activationType.setEnabled(false);
+							return activationType;
+						}
+					}
+
+					for (String enable : enableValues) {
+						if (enable.equals(String.valueOf(disableObj))) {
+							activationType.setEnabled(true);
+							return activationType;
+						}
+					}
+				}
+			}
+
+
 		return null;
 	}
 
@@ -414,9 +480,9 @@ public class ShadowCache {
 	 * @throws ObjectNotFoundException
 	 *             the connector object was not found
 	 */
-	public void listShadows(final ResourceType resource, final QName objectClass, final ShadowHandler handler,
-			final boolean readFromRepository, final OperationResult parentResult) throws CommunicationException,
-			ObjectNotFoundException, SchemaException {
+	public void listShadows(final ResourceType resource, final QName objectClass,
+			final ShadowHandler handler, final boolean readFromRepository, final OperationResult parentResult)
+			throws CommunicationException, ObjectNotFoundException, SchemaException {
 
 		Validate.notNull(objectClass);
 		if (resource == null) {
@@ -424,8 +490,8 @@ public class ShadowCache {
 			throw new IllegalArgumentException("Resource must not be null.");
 		}
 
-		LOGGER.trace("Start listing objects on resource with oid {} with object class {} ", resource.getOid(),
-				objectClass);
+		LOGGER.trace("Start listing objects on resource with oid {} with object class {} ",
+				resource.getOid(), objectClass);
 
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
@@ -461,8 +527,10 @@ public class ShadowCache {
 						shadow = lookupShadow(object, parentResult);
 					} catch (SchemaException e) {
 						// TODO: better error handling
-						LOGGER.error("Schema exception in resource object search on {} for {}: {}", new Object[] {
-								ObjectTypeUtil.toShortString(resource), objectClass, e.getMessage(), e });
+						LOGGER.error(
+								"Schema exception in resource object search on {} for {}: {}",
+								new Object[] { ObjectTypeUtil.toShortString(resource), objectClass,
+										e.getMessage(), e });
 						return false;
 					}
 				} else {
@@ -472,8 +540,10 @@ public class ShadowCache {
 
 					} catch (SchemaException e) {
 						// TODO: better error handling
-						LOGGER.error("Schema exception in resource object search on {} for {}: {}", new Object[] {
-								ObjectTypeUtil.toShortString(resource), objectClass, e.getMessage(), e });
+						LOGGER.error(
+								"Schema exception in resource object search on {} for {}: {}",
+								new Object[] { ObjectTypeUtil.toShortString(resource), objectClass,
+										e.getMessage(), e });
 						return false;
 					}
 				}
@@ -488,10 +558,10 @@ public class ShadowCache {
 			connector.search(resourceDef, resultHandler, parentResult);
 			LOGGER.trace("Finished listing obejcts.");
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
-			parentResult.recordFatalError(
-					"Error communicationg with the connector " + connector + ". Reason: " + e.getMessage(), e);
-			throw new CommunicationException("Error communicationg with the connector " + connector + ". Reason: "
-					+ e.getMessage(), e);
+			parentResult.recordFatalError("Error communicationg with the connector " + connector
+					+ ". Reason: " + e.getMessage(), e);
+			throw new CommunicationException("Error communicationg with the connector " + connector
+					+ ". Reason: " + e.getMessage(), e);
 		} catch (GenericFrameworkException e) {
 			parentResult.recordFatalError("Generic error in connector. Reason: " + e.getMessage(), e);
 			throw new GenericConnectorException("Generic error in connector. Reason: " + e.getMessage(), e);
@@ -543,13 +613,13 @@ public class ShadowCache {
 			addExecuteScriptOperation(additionalOperations, OperationTypeType.ADD, scripts, parentResult);
 
 			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug(
-						"Connector for resource {}\n ADD object:\n{}\n additional operations:\n{}",
+				LOGGER.debug("Connector for resource {}\n ADD object:\n{}\n additional operations:\n{}",
 						new Object[] { ObjectTypeUtil.toShortString(resource), resourceObject.debugDump(),
 								DebugUtil.debugDump(additionalOperations) });
 			}
 
-			resourceAttributesAfterAdd = connector.addObject(resourceObject, additionalOperations, parentResult);
+			resourceAttributesAfterAdd = connector.addObject(resourceObject, additionalOperations,
+					parentResult);
 
 			if (LOGGER.isDebugEnabled()) {
 				// TODO: reduce only to new/different attributes. Dump all
@@ -590,8 +660,8 @@ public class ShadowCache {
 
 	}
 
-	private void addExecuteScriptOperation(Set<Operation> operations, OperationTypeType type, ScriptsType scripts,
-			OperationResult result) {
+	private void addExecuteScriptOperation(Set<Operation> operations, OperationTypeType type,
+			ScriptsType scripts, OperationResult result) {
 		if (scripts == null) {
 			// No warning needed, this is quite normal
 			// result.recordWarning("Skiping creating script operation to execute. Scripts was not defined.");
@@ -606,8 +676,8 @@ public class ShadowCache {
 
 					for (ScriptArgumentType argument : script.getArgument()) {
 						JAXBElement<ValueConstructionType.Value> value = argument.getValue();
-						ExecuteScriptArgument arg = new ExecuteScriptArgument(argument.getName(), value.getValue()
-								.getContent());
+						ExecuteScriptArgument arg = new ExecuteScriptArgument(argument.getName(), value
+								.getValue().getContent());
 						scriptOperation.getArgument().add(arg);
 					}
 
@@ -646,8 +716,8 @@ public class ShadowCache {
 				resource = getResource(ResourceObjectShadowUtil.getResourceOid(accountShadow), parentResult);
 			}
 
-			LOGGER.debug("Deleting obejct {} from the resource {}.", ObjectTypeUtil.toShortString(objectType),
-					ObjectTypeUtil.toShortString(resource));
+			LOGGER.debug("Deleting obejct {} from the resource {}.",
+					ObjectTypeUtil.toShortString(objectType), ObjectTypeUtil.toShortString(resource));
 
 			ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
@@ -657,7 +727,8 @@ public class ShadowCache {
 					.findContainerDefinitionByType(accountShadow.getObjectClass());
 
 			LOGGER.debug("Getting object identifiers");
-			Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(accountShadow.getAttributes().getAny());
+			Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(accountShadow.getAttributes()
+					.getAny());
 			Set<Operation> additionalOperations = new HashSet<Operation>();
 
 			addExecuteScriptOperation(additionalOperations, OperationTypeType.DELETE, scripts, parentResult);
@@ -667,8 +738,9 @@ public class ShadowCache {
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug(
 							"Connector for resource {}\n DELETE object, object class {}, identified by:\n{}\n additional operations:\n{}",
-							new Object[] { ObjectTypeUtil.toShortString(resource), accountShadow.getObjectClass(),
-									DebugUtil.debugDump(identifiers), DebugUtil.debugDump(additionalOperations) });
+							new Object[] { ObjectTypeUtil.toShortString(resource),
+									accountShadow.getObjectClass(), DebugUtil.debugDump(identifiers),
+									DebugUtil.debugDump(additionalOperations) });
 				}
 
 				connector.deleteObject(rod, additionalOperations, identifiers, parentResult);
@@ -676,13 +748,14 @@ public class ShadowCache {
 				LOGGER.debug("Connector DELETE successful");
 
 			} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException ex) {
-				parentResult.recordFatalError("Can't delete object " + ObjectTypeUtil.toShortString(accountShadow)
-						+ ". Reason: " + ex.getMessage(), ex);
-				throw new ObjectNotFoundException("An error occured while deleting resource object " + accountShadow
-						+ "whith identifiers " + identifiers + ": " + ex.getMessage(), ex);
-			} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
 				parentResult.recordFatalError(
-						"Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
+						"Can't delete object " + ObjectTypeUtil.toShortString(accountShadow) + ". Reason: "
+								+ ex.getMessage(), ex);
+				throw new ObjectNotFoundException("An error occured while deleting resource object "
+						+ accountShadow + "whith identifiers " + identifiers + ": " + ex.getMessage(), ex);
+			} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+				parentResult.recordFatalError("Error communicating with the connector " + connector + ": "
+						+ ex.getMessage(), ex);
 				throw new CommunicationException("Error communitacing with the connector " + connector + ": "
 						+ ex.getMessage(), ex);
 			} catch (GenericFrameworkException ex) {
@@ -692,20 +765,23 @@ public class ShadowCache {
 
 			LOGGER.trace("Detele object with oid {} form repository.", accountShadow.getOid());
 			try {
-				getRepositoryService().deleteObject(AccountShadowType.class, accountShadow.getOid(), parentResult);
+				getRepositoryService().deleteObject(AccountShadowType.class, accountShadow.getOid(),
+						parentResult);
 			} catch (ObjectNotFoundException ex) {
-				parentResult.recordFatalError("Can't delete object " + ObjectTypeUtil.toShortString(accountShadow)
-						+ ". Reason: " + ex.getMessage(), ex);
-				throw new ObjectNotFoundException("An error occured while deleting resource object " + accountShadow
-						+ "whith identifiers " + identifiers + ": " + ex.getMessage(), ex);
+				parentResult.recordFatalError(
+						"Can't delete object " + ObjectTypeUtil.toShortString(accountShadow) + ". Reason: "
+								+ ex.getMessage(), ex);
+				throw new ObjectNotFoundException("An error occured while deleting resource object "
+						+ accountShadow + "whith identifiers " + identifiers + ": " + ex.getMessage(), ex);
 			}
 			parentResult.recordSuccess();
 		}
 	}
 
-	public void modifyShadow(ObjectType objectType, ResourceType resource, ObjectModificationType objectChange,
-			ScriptsType scripts, OperationResult parentResult) throws CommunicationException,
-			GenericFrameworkException, ObjectNotFoundException, SchemaException {
+	public void modifyShadow(ObjectType objectType, ResourceType resource,
+			ObjectModificationType objectChange, ScriptsType scripts, OperationResult parentResult)
+			throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
+			SchemaException {
 
 		Validate.notNull(objectType, "Object to modify must not be null.");
 		Validate.notNull(objectChange, "Object change must not be null.");
@@ -724,8 +800,8 @@ public class ShadowCache {
 
 			Schema schema = getResourceSchema(resource, connector, parentResult);
 
-			ResourceObjectDefinition rod = (ResourceObjectDefinition) schema.findContainerDefinitionByType(shadow
-					.getObjectClass());
+			ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
+					.findContainerDefinitionByType(shadow.getObjectClass());
 			Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(shadow.getAttributes().getAny());
 
 			Set<Operation> changes = getAttributeChanges(objectChange, rod);
@@ -736,8 +812,8 @@ public class ShadowCache {
 				// AccountShadowType accountShadow = (AccountShadowType) shadow;
 
 				// Look for password change
-				Password newPasswordStructure = ObjectTypeUtil.getPropertyNewValue(objectChange, "credentials",
-						"password", Password.class);
+				Password newPasswordStructure = ObjectTypeUtil.getPropertyNewValue(objectChange,
+						"credentials", "password", Password.class);
 				if (newPasswordStructure != null) {
 					ProtectedStringType newPasswordPS = newPasswordStructure.getProtectedString();
 					if (MiscUtil.isNullOrEmpty(newPasswordPS)) {
@@ -761,8 +837,8 @@ public class ShadowCache {
 					if (!hasResourceNativeActivationCapability(resource)) {
 						// if resource cannot do activation, resource should
 						// have specified policies to do that
-						AttributeModificationOperation activationAttribute = convertToActivationAttribute(resource,
-								enabled);
+						AttributeModificationOperation activationAttribute = convertToActivationAttribute(
+								resource, enabled);
 						changes.add(activationAttribute);
 					} else {
 						// if resource can do activation, pass it to the
@@ -797,15 +873,16 @@ public class ShadowCache {
 				parentResult.recordFatalError("Object to modify not found. Reason: " + ex.getMessage(), ex);
 				throw new ObjectNotFoundException("Object to modify not found. " + ex.getMessage(), ex);
 			} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
-				parentResult.recordFatalError(
-						"Error communicationg with the connector " + connector + ": " + ex.getMessage(), ex);
+				parentResult.recordFatalError("Error communicationg with the connector " + connector + ": "
+						+ ex.getMessage(), ex);
 				throw new CommunicationException("Error comminicationg with connector " + connector + ": "
 						+ ex.getMessage(), ex);
 			}
 
 			if (!sideEffectChanges.isEmpty()) {
 				// TODO: implement
-				throw new UnsupportedOperationException("Handling of side-effect changes is not yet supported");
+				throw new UnsupportedOperationException(
+						"Handling of side-effect changes is not yet supported");
 			}
 
 			parentResult.recordSuccess();
@@ -820,7 +897,8 @@ public class ShadowCache {
 		if (resource.getNativeCapabilities() != null) {
 			activationCapability = ResourceTypeUtil.getCapability(resource.getNativeCapabilities().getAny(),
 					ActivationCapabilityType.class);
-			LOGGER.trace("Activation capability of resource: {}", JAXBUtil.silentMarshalWrap(activationCapability));
+			LOGGER.trace("Activation capability of resource: {}",
+					JAXBUtil.silentMarshalWrap(activationCapability));
 		}
 		if (activationCapability == null) {
 			return false;
@@ -841,12 +919,22 @@ public class ShadowCache {
 					+ " does not have native or simulated activation/enableDisable capability");
 		}
 		if (activationCapability.getEnableDisable().getAttribute() == null) {
-			throw new SchemaException("Resource " + ObjectTypeUtil.toShortString(resource)
-					+ " does not have attribute specification for simulated activation/enableDisable capability");
+			throw new SchemaException(
+					"Resource "
+							+ ObjectTypeUtil.toShortString(resource)
+							+ " does not have attribute specification for simulated activation/enableDisable capability");
 		}
 		AttributeModificationOperation attributeChange = new AttributeModificationOperation();
-		Property property = new Property(activationCapability.getEnableDisable().getAttribute());
-		property.setValue(String.valueOf(!enabled));
+		EnableDisable enableDisable = activationCapability.getEnableDisable();
+		Property property = new Property(enableDisable.getAttribute());
+		String enableValue = enableDisable.getEnableValue().iterator().next();
+		String disableValue = enableDisable.getDisableValue().iterator().next();
+		if (enabled) {
+			property.setValue(enableValue);
+		} else {
+			property.setValue(disableValue);
+		}
+		// property.setValue(String.valueOf(!enabled));
 		attributeChange.setNewAttribute(property);
 		attributeChange.setChangeType(PropertyModificationTypeType.replace);
 		return attributeChange;
@@ -856,8 +944,8 @@ public class ShadowCache {
 
 		// === test INITIALIZATION ===
 
-		OperationResult initResult = parentResult.createSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION
-				.getOperation());
+		OperationResult initResult = parentResult
+				.createSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION.getOperation());
 		ConnectorInstance connector;
 		try {
 
@@ -883,8 +971,8 @@ public class ShadowCache {
 
 		// === test CONFIGURATION ===
 
-		OperationResult configResult = parentResult.createSubresult(ConnectorTestOperation.CONFIGURATION_VALIDATION
-				.getOperation());
+		OperationResult configResult = parentResult
+				.createSubresult(ConnectorTestOperation.CONFIGURATION_VALIDATION.getOperation());
 
 		try {
 			connector.configure(resourceType.getConfiguration(), configResult);
@@ -941,10 +1029,12 @@ public class ShadowCache {
 		try {
 			completeResource(resourceType, schema, schemaResult);
 		} catch (ObjectNotFoundException e) {
-			schemaResult.recordFatalError("Object not found (unexpected error, probably a bug): " + e.getMessage(), e);
+			schemaResult.recordFatalError(
+					"Object not found (unexpected error, probably a bug): " + e.getMessage(), e);
 			return;
 		} catch (SchemaException e) {
-			schemaResult.recordFatalError("Schema processing error (probably connector bug): " + e.getMessage(), e);
+			schemaResult.recordFatalError(
+					"Schema processing error (probably connector bug): " + e.getMessage(), e);
 			return;
 		} catch (CommunicationException e) {
 			schemaResult.recordFatalError("Communication error: " + e.getMessage(), e);
@@ -959,8 +1049,9 @@ public class ShadowCache {
 	}
 
 	public void searchObjectsIterative(final QName objectClass, final ResourceType resourceType,
-			final ShadowHandler handler, final DiscoveryHandler discoveryHandler, final OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, SchemaException {
+			final ShadowHandler handler, final DiscoveryHandler discoveryHandler,
+			final OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
+			SchemaException {
 
 		Validate.notNull(resourceType, "Resource must not be null.");
 		Validate.notNull(objectClass, "Object class must not be null.");
@@ -1013,7 +1104,8 @@ public class ShadowCache {
 						} catch (ObjectAlreadyExistsException e) {
 							// This should not happen. We haven't supplied an
 							// OID so is should not conflict
-							LOGGER.error("Unexpected repository behavior: Object already exists: {}", e.getMessage(), e);
+							LOGGER.error("Unexpected repository behavior: Object already exists: {}",
+									e.getMessage(), e);
 							// but still go on ...
 						}
 
@@ -1023,7 +1115,8 @@ public class ShadowCache {
 							discoveryHandler.discovered(shadow, parentResult);
 						}
 					} else {
-						LOGGER.trace("Found shadow object in the repository {}", DebugUtil.prettyPrint(shadow));
+						LOGGER.trace("Found shadow object in the repository {}",
+								DebugUtil.prettyPrint(shadow));
 					}
 
 				} catch (SchemaException e) {
@@ -1087,8 +1180,9 @@ public class ShadowCache {
 		return lastToken;
 	}
 
-	public List<Change> fetchChanges(ResourceType resourceType, Property lastToken, OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException {
+	public List<Change> fetchChanges(ResourceType resourceType, Property lastToken,
+			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
+			GenericFrameworkException, SchemaException {
 
 		Validate.notNull(resourceType, "Resource must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -1107,8 +1201,8 @@ public class ShadowCache {
 
 			for (Change change : changes) {
 				// search objects in repository
-				ResourceObjectShadowType newShadow = findOrCreateShadowFromChange(connector, resourceType, change,
-						parentResult);
+				ResourceObjectShadowType newShadow = findOrCreateShadowFromChange(connector, resourceType,
+						change, parentResult);
 				change.setOldShadow(newShadow);
 			}
 		} catch (SchemaException ex) {
@@ -1128,15 +1222,15 @@ public class ShadowCache {
 		return changes;
 	}
 
-	private ResourceObjectShadowType findOrCreateShadowFromChange(ConnectorInstance connector, ResourceType resource,
-			Change change, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-			CommunicationException, GenericFrameworkException {
+	private ResourceObjectShadowType findOrCreateShadowFromChange(ConnectorInstance connector,
+			ResourceType resource, Change change, OperationResult parentResult) throws SchemaException,
+			ObjectNotFoundException, CommunicationException, GenericFrameworkException {
 
 		List<AccountShadowType> accountList = searchAccountByUid(change.getIdentifiers(), parentResult);
 
 		if (accountList.size() > 1) {
-			parentResult.recordFatalError("Found more than one account with the identifier " + change.getIdentifiers()
-					+ ".");
+			parentResult.recordFatalError("Found more than one account with the identifier "
+					+ change.getIdentifiers() + ".");
 			throw new IllegalArgumentException("Found more than one account with the identifier "
 					+ change.getIdentifiers() + ".");
 		}
@@ -1156,7 +1250,8 @@ public class ShadowCache {
 			// corresponding account from repo now
 			if (change.getChange() instanceof ObjectChangeDeletionType) {
 				try {
-					getRepositoryService().deleteObject(AccountShadowType.class, newShadow.getOid(), parentResult);
+					getRepositoryService().deleteObject(AccountShadowType.class, newShadow.getOid(),
+							parentResult);
 				} catch (ObjectNotFoundException ex) {
 					parentResult.recordFatalError("Object with oid " + newShadow.getOid()
 							+ " not found in repo. Reason: " + ex.getMessage(), ex);
@@ -1193,11 +1288,11 @@ public class ShadowCache {
 
 		List<AccountShadowType> accountList = null;
 		try {
-			accountList = getRepositoryService().searchObjects(AccountShadowType.class, query, new PagingType(),
-					parentResult);
+			accountList = getRepositoryService().searchObjects(AccountShadowType.class, query,
+					new PagingType(), parentResult);
 		} catch (SchemaException ex) {
-			parentResult.recordFatalError("Failed to search account according to the identifiers: " + identifiers
-					+ ". Reason: " + ex.getMessage(), ex);
+			parentResult.recordFatalError("Failed to search account according to the identifiers: "
+					+ identifiers + ". Reason: " + ex.getMessage(), ex);
 			throw new SchemaException("Failed to search account according to the identifiers: " + identifiers
 					+ ". Reason: " + ex.getMessage(), ex);
 		}
@@ -1205,17 +1300,20 @@ public class ShadowCache {
 	}
 
 	private ResourceObjectShadowType createNewAccountFromChange(Change change, ResourceType resource,
-			ConnectorInstance connector, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-			CommunicationException, GenericFrameworkException {
+			ConnectorInstance connector, OperationResult parentResult) throws SchemaException,
+			ObjectNotFoundException, CommunicationException, GenericFrameworkException {
 
-		ResourceObject resourceObject = fetchResourceObject(change.getIdentifiers(), connector, resource, parentResult);
+		ResourceObject resourceObject = fetchResourceObject(change.getIdentifiers(), connector, resource,
+				parentResult);
 
 		ResourceObjectShadowType shadow = null;
 		try {
 			shadow = createShadow(resourceObject, resource, null);
 		} catch (SchemaException ex) {
-			parentResult.recordFatalError("Can't create account shadow from identifiers: " + change.getIdentifiers());
-			throw new SchemaException("Can't create account shadow from identifiers: " + change.getIdentifiers());
+			parentResult.recordFatalError("Can't create account shadow from identifiers: "
+					+ change.getIdentifiers());
+			throw new SchemaException("Can't create account shadow from identifiers: "
+					+ change.getIdentifiers());
 		}
 
 		try {
@@ -1229,32 +1327,35 @@ public class ShadowCache {
 		return shadow;
 	}
 
-	private ResourceObject fetchResourceObject(Set<ResourceObjectAttribute> identifiers, ConnectorInstance connector,
-			ResourceType resource, OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, GenericFrameworkException, SchemaException {
+	private ResourceObject fetchResourceObject(Set<ResourceObjectAttribute> identifiers,
+			ConnectorInstance connector, ResourceType resource, OperationResult parentResult)
+			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
+			SchemaException {
 
 		Set<ResourceObjectAttribute> roIdentifiers = new HashSet<ResourceObjectAttribute>();
 		for (Property p : identifiers) {
-			ResourceObjectAttribute roa = new ResourceObjectAttribute(p.getName(), p.getDefinition(), p.getValues());
+			ResourceObjectAttribute roa = new ResourceObjectAttribute(p.getName(), p.getDefinition(),
+					p.getValues());
 			roIdentifiers.add(roa);
 		}
 
 		try {
 			Schema schema = getResourceSchema(resource, connector, parentResult);
-			ResourceObjectDefinition rod = (ResourceObjectDefinition) schema.findContainerDefinitionByType(new QName(
-					resource.getNamespace(), "AccountObjectClass"));
-			ResourceObject resourceObject = connector.fetchObject(rod, roIdentifiers, true, null, parentResult);
+			ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
+					.findContainerDefinitionByType(new QName(resource.getNamespace(), "AccountObjectClass"));
+			ResourceObject resourceObject = connector.fetchObject(rod, roIdentifiers, true, null,
+					parentResult);
 			return resourceObject;
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException e) {
-			parentResult.recordFatalError(
-					"Object not found. Identifiers: " + roIdentifiers + ". Reason: " + e.getMessage(), e);
-			throw new ObjectNotFoundException("Object not found. Identifiers: " + roIdentifiers + ". Reason: "
+			parentResult.recordFatalError("Object not found. Identifiers: " + roIdentifiers + ". Reason: "
 					+ e.getMessage(), e);
+			throw new ObjectNotFoundException("Object not found. Identifiers: " + roIdentifiers
+					+ ". Reason: " + e.getMessage(), e);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
-			parentResult.recordFatalError(
-					"Error communication with the connector " + connector + ". Reason: " + e.getMessage(), e);
-			throw new CommunicationException("Error communication with the connector " + connector + ". Reason: "
-					+ e.getMessage(), e);
+			parentResult.recordFatalError("Error communication with the connector " + connector
+					+ ". Reason: " + e.getMessage(), e);
+			throw new CommunicationException("Error communication with the connector " + connector
+					+ ". Reason: " + e.getMessage(), e);
 		} catch (GenericFrameworkException e) {
 			parentResult.recordFatalError(
 					"Generic error in the connector " + connector + ". Reason: " + e.getMessage(), e);
@@ -1293,7 +1394,8 @@ public class ShadowCache {
 		// TODO: check for errors
 		List<ResourceObjectShadowType> results;
 
-		results = getRepositoryService().searchObjects(ResourceObjectShadowType.class, query, paging, parentResult);
+		results = getRepositoryService().searchObjects(ResourceObjectShadowType.class, query, paging,
+				parentResult);
 
 		if (results.size() == 0) {
 			return null;
@@ -1350,8 +1452,8 @@ public class ShadowCache {
 
 	// UTILITY METHODS
 
-	private Schema getResourceSchema(ResourceType resource, ConnectorInstance connector, OperationResult parentResult)
-			throws CommunicationException, SchemaException {
+	private Schema getResourceSchema(ResourceType resource, ConnectorInstance connector,
+			OperationResult parentResult) throws CommunicationException, SchemaException {
 
 		Schema schema = null;
 		try {
@@ -1403,13 +1505,14 @@ public class ShadowCache {
 	private void checkResourceObjectDefinition(ResourceObjectDefinition rod) throws SchemaException {
 		for (ItemDefinition def : rod.getDefinitions()) {
 			if (!(def instanceof ResourceObjectAttributeDefinition)) {
-				throw new SchemaException("Unexpected definition in resource schema object " + rod + ": " + def);
+				throw new SchemaException("Unexpected definition in resource schema object " + rod + ": "
+						+ def);
 			}
 		}
 	}
 
-	private ResourceType getResource(String oid, OperationResult parentResult) throws ObjectNotFoundException,
-			SchemaException, CommunicationException {
+	private ResourceType getResource(String oid, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, CommunicationException {
 		// TODO: add some caching
 		ResourceType resource = getRepositoryService().getObject(ResourceType.class, oid, null, parentResult);
 		return completeResource(resource, null, parentResult);
@@ -1426,8 +1529,8 @@ public class ShadowCache {
 	 * @throws SchemaException
 	 *             Object class definition was not found
 	 */
-	private ResourceObject convertResourceObjectFromXml(ResourceObjectShadowType resourceObjectShadow, Schema schema,
-			OperationResult parentResult) throws SchemaException {
+	private ResourceObject convertResourceObjectFromXml(ResourceObjectShadowType resourceObjectShadow,
+			Schema schema, OperationResult parentResult) throws SchemaException {
 		QName objectClass = resourceObjectShadow.getObjectClass();
 
 		Validate.notNull(objectClass, "Object class must not be null.");
@@ -1437,14 +1540,16 @@ public class ShadowCache {
 			LOGGER.trace("Shadow before conversion:\n{}", ObjectTypeUtil.dump(resourceObjectShadow));
 		}
 
-		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema.findContainerDefinitionByType(objectClass);
+		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
+				.findContainerDefinitionByType(objectClass);
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Shadow resource object definition:\n{}", rod.dump());
 		}
 
 		if (rod == null) {
-			parentResult.recordFatalError("Schema definition for object class " + objectClass + " was not found");
+			parentResult.recordFatalError("Schema definition for object class " + objectClass
+					+ " was not found");
 			throw new SchemaException("Schema definition for object class " + objectClass + " was not found");
 		}
 		ResourceObject resourceObject = rod.instantiate();
@@ -1511,8 +1616,8 @@ public class ShadowCache {
 				List<Object> eList = attr.serializeToJaxb(doc);
 				shadow.getAttributes().getAny().addAll(eList);
 			} catch (SchemaException e) {
-				throw new SchemaException("An error occured while serializing attribute " + attr + " to DOM: "
-						+ e.getMessage(), e);
+				throw new SchemaException("An error occured while serializing attribute " + attr
+						+ " to DOM: " + e.getMessage(), e);
 			}
 		}
 
@@ -1596,8 +1701,8 @@ public class ShadowCache {
 		return resourceObject.getNamingAttribute().getValue(String.class);
 	}
 
-	private Set<Operation> getAttributeChanges(ObjectModificationType objectChange, ResourceObjectDefinition rod)
-			throws SchemaException {
+	private Set<Operation> getAttributeChanges(ObjectModificationType objectChange,
+			ResourceObjectDefinition rod) throws SchemaException {
 		Set<Operation> changes = new HashSet<Operation>();
 		for (PropertyModificationType modification : objectChange.getPropertyModification()) {
 
@@ -1607,7 +1712,8 @@ public class ShadowCache {
 
 			if (modification.getPath().getTextContent().contains(SchemaConstants.I_ATTRIBUTES.getLocalPart())) {
 
-				Set<ResourceObjectAttribute> changedProperties = rod.parseAttributes(modification.getValue().getAny());
+				Set<ResourceObjectAttribute> changedProperties = rod.parseAttributes(modification.getValue()
+						.getAny());
 				for (Property p : changedProperties) {
 
 					AttributeModificationOperation attributeModification = new AttributeModificationOperation();
@@ -1749,8 +1855,8 @@ public class ShadowCache {
 		if (resource.getCapabilities() == null) {
 			return;
 		}
-		ActivationCapabilityType activationCapability = ResourceTypeUtil.getCapability(resource.getCapabilities()
-				.getAny(), ActivationCapabilityType.class);
+		ActivationCapabilityType activationCapability = ResourceTypeUtil.getCapability(resource
+				.getCapabilities().getAny(), ActivationCapabilityType.class);
 		if (activationCapability.getEnableDisable() != null) {
 			QName attributeName = activationCapability.getEnableDisable().getAttribute();
 			if (attributeName != null) {
@@ -1788,8 +1894,8 @@ public class ShadowCache {
 		}
 	}
 
-	private void addNativeCapabilities(ResourceType resource, ConnectorInstance connector, OperationResult result)
-			throws CommunicationException {
+	private void addNativeCapabilities(ResourceType resource, ConnectorInstance connector,
+			OperationResult result) throws CommunicationException {
 		Set<Object> capabilities = null;
 		try {
 
@@ -1798,7 +1904,8 @@ public class ShadowCache {
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
 			throw new CommunicationException("Cannot fetch resource schema: " + ex.getMessage(), ex);
 		} catch (GenericFrameworkException ex) {
-			throw new GenericConnectorException("Generic error in connector " + connector + ": " + ex.getMessage(), ex);
+			throw new GenericConnectorException("Generic error in connector " + connector + ": "
+					+ ex.getMessage(), ex);
 		}
 
 		CapabilitiesType capType = new CapabilitiesType();
