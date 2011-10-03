@@ -62,6 +62,7 @@ public class ImportController implements Serializable {
 	private String editor;
 	private boolean showFileUpload = false;
 	private boolean overwrite = false;
+	private boolean keepOid = false;
 	private boolean encryptProtected = true;
 	private boolean fetchResourceSchema = false;
 	private boolean referentialIntegrity = false;
@@ -70,8 +71,7 @@ public class ImportController implements Serializable {
 	private boolean validateDynamicSchema = true;
 	private boolean validateStaticSchema = true;
 	private int stopAfterErrors;
-	
-	
+
 	public int getStopAfterErrors() {
 		return stopAfterErrors;
 	}
@@ -156,6 +156,14 @@ public class ImportController implements Serializable {
 		return overwrite;
 	}
 
+	public boolean isKeepOid() {
+		return keepOid;
+	}
+
+	public void setKeepOid(boolean keepOid) {
+		this.keepOid = keepOid;
+	}
+
 	public void setOverwrite(boolean overwrite) {
 		this.overwrite = overwrite;
 	}
@@ -184,7 +192,6 @@ public class ImportController implements Serializable {
 				IOUtils.closeQuietly(stream);
 			}
 		}
-
 		return null;
 	}
 
@@ -217,19 +224,18 @@ public class ImportController implements Serializable {
 	}
 
 	private void clearController() {
+		editor = null;
 		showFileUpload = false;
 		overwrite = false;
-		encryptProtected = false;
-		
+		encryptProtected = true;
 		fetchResourceSchema = false;
 		referentialIntegrity = false;
 		summarizeErrors = false;
 		summarizeSucceses = true;
 		validateDynamicSchema = true;
 		validateStaticSchema = true;
-		stopAfterErrors=0;
-		
-		editor = null;
+		stopAfterErrors = 0;
+
 	}
 
 	private boolean uploadStream(InputStream input) {
@@ -246,7 +252,7 @@ public class ImportController implements Serializable {
 		options.setValidateDynamicSchema(validateDynamicSchema);
 		options.setValidateStaticSchema(validateStaticSchema);
 		options.setStopAfterErrors(stopAfterErrors);
-		
+
 		model.importObjectsFromStream(input, options, null, parentResult);
 
 		if (!parentResult.isSuccess()) {

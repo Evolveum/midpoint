@@ -48,6 +48,10 @@
 					#{msg['page.config.import.fetchResourceSchema']}
 					</ice:selectBooleanCheckbox>
 				</li>
+				<li><ice:selectBooleanCheckbox id="enableKeepOid" value="#{import.keepOid}">
+					#{msg['page.config.import.keepOid']}
+					</ice:selectBooleanCheckbox>
+				</li>
 				<li><ice:selectBooleanCheckbox id="enableOverwrite" value="#{import.overwrite}">
 					#{msg['page.config.import.overwrite']}
 					</ice:selectBooleanCheckbox>
@@ -93,9 +97,6 @@
 					</div>
 				</ice:panelGroup>
 
-				<ui:remove>
-					<!-- this button can't be used because ace:fileEntry needs standard full submit, not ajax submit -->
-				</ui:remove>
 				<idm:button id="uploadButton" value="#{msg['page.config.import.button.uploadObject']}" buttonType="positive"
 					action="#{import.upload}" img="/resources/images/add.png" partialSubmit="false" immediate="false"
 					rendered="#{not import.showFileUpload}" />
