@@ -77,3 +77,48 @@ body,table {
 /* 	border-bottom: 1px solid #cccccc;
 	border-right: 1px solid #cccccc; */
 }
+
+.yui-panel{
+	background-color: #D5D5D5;
+	border: 1px solid #267d99;
+	margin-top: 2px;
+	margin-left: 1px;
+	width: 170px;
+}
+
+.yui-panel .bd table{
+	margin: 5px;
+	width: 160px;
+}
+
+.yui-panel .bd table .calhead{
+	background-color: #267d99;
+	color: #fff;
+}
+
+.yui-panel .bd table .calweekdayrow{
+	background-color: #A8C6D0;
+	color: #000;
+}
+
+.yui-panel .bd table .calbody .selected{
+	background-color: #fff;
+}
+
+.yui-panel .ft {
+	width: 160px;
+	text-align: center;
+	margin: 5px;
+}
+
+.yui-panel .ft .yui-push-button{
+	margin: 0 5px 0 5px;
+	border: 1px solid #267d99;
+	background-color: #A8C6D0;
+	color: #fff;
+}
+
+.yui-panel .ft .yui-push-button-hover{
+	background-color: #fff;
+}
+
