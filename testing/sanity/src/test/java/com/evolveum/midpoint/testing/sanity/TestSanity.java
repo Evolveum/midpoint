@@ -1085,7 +1085,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertAttribute(modelShadow, resourceOpenDj, "l", "There there over the corner");
 		
 		assertNotNull("The account activation is null in the shadow", modelShadow.getActivation());
-		assertTrue("The account was not enabled in the shadow", modelShadow.getActivation().isEnabled());
+		assertFalse("The account was not disabled in the shadow", modelShadow.getActivation().isEnabled());
 
 		// Check if LDAP account was updated
 
@@ -1207,7 +1207,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertAttribute(modelShadow, resourceOpenDj, "l", "There there over the corner");
 		
 		assertNotNull("The account activation is null in the shadow", modelShadow.getActivation());
-		assertFalse("The account was not enabled in the shadow", modelShadow.getActivation().isEnabled());
+		assertTrue("The account was not enabled in the shadow", modelShadow.getActivation().isEnabled());
 
 		// Check if LDAP account was updated
 

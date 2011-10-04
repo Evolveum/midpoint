@@ -21,6 +21,7 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -307,11 +308,11 @@ public class ShadowCache {
 			// attribute
 			// of shadow
 			ActivationType activationType = determineActivation(resource, ro, parentResult);
-			if (activationType != null){
+			if (activationType != null) {
 				LOGGER.debug("Determined activation: {}", activationType.isEnabled());
 				((AccountShadowType) repositoryShadow).setActivation(activationType);
-			} 
-			
+			}
+
 		}
 
 		// Complete the shadow by adding attributes from the resource object
@@ -357,51 +358,46 @@ public class ShadowCache {
 		if (null != activationCapability) {
 			Property activationProperty = ro.findProperty(activationCapability.getEnableDisable()
 					.getAttribute());
-				if (activationProperty == null){
-					LOGGER.warn("No simulated activation attribute was defined for the account.");
-					return null;
+			if (activationProperty == null) {
+				LOGGER.warn("No simulated activation attribute was defined for the account.");
+				activationType.setEnabled(true);
+				return activationType;
+			}
+			Set<Object> activationValues = activationProperty.getValues();
+			LOGGER.debug("Detected simulated activation attribute with value {}",
+					activationProperty.getValues());
+			if (activationValues == null || activationValues.isEmpty()
+					|| activationValues.iterator().next() == null) {
+		
+//				 No activation information.
+				 LOGGER.warn("The {} does not provide value for DISABLE attribute",
+				 ObjectTypeUtil.toShortString(resource));
+				 parentResult.recordPartialError("The "+ObjectTypeUtil.toShortString(resource)+" has native activation capability but noes not provide value for DISABLE attribute");
+			} else {
+				if (activationValues.size() > 1) {
+					LOGGER.warn("The {} provides {} values for DISABLE attribute, expecting just one value",
+							disableValues.size(), ObjectTypeUtil.toShortString(resource));
+					parentResult.recordPartialError("The " + ObjectTypeUtil.toShortString(resource)
+							+ " provides " + disableValues.size()
+							+ " values for DISABLE attribute, expecting just one value");
 				}
-				Set<Object> activationValues = activationProperty.getValues();
-				LOGGER.debug("Detected simulated activation attribute with value {}",
-						activationProperty.getValues());
-				if (activationValues == null || activationValues.isEmpty()
-						|| activationValues.iterator().next() == null) {
-					if (enableValues.isEmpty()) {
+				Object disableObj = activationValues.iterator().next();
+
+				for (String disable : disableValues) {
+					if (disable.equals(String.valueOf(disableObj))) {
+						activationType.setEnabled(false);
+						return activationType;
+					}
+				}
+
+				for (String enable : enableValues) {
+					if ("".equals(enable) || enable.equals(String.valueOf(disableObj))) {
 						activationType.setEnabled(true);
 						return activationType;
 					}
-
-					// No activation information.
-					// LOGGER.warn("The {} does not provide value for DISABLE attribute",
-					// ObjectTypeUtil.toShortString(resource));
-					// parentResult.recordPartialError("The "+ObjectTypeUtil.toShortString(resource)+" has native activation capability but noes not provide value for DISABLE attribute");
-				} else {
-					if (activationValues.size() > 1) {
-						LOGGER.warn(
-								"The {} provides {} values for DISABLE attribute, expecting just one value",
-								disableValues.size(), ObjectTypeUtil.toShortString(resource));
-						parentResult.recordPartialError("The " + ObjectTypeUtil.toShortString(resource)
-								+ " provides " + disableValues.size()
-								+ " values for DISABLE attribute, expecting just one value");
-					}
-					Object disableObj = activationValues.iterator().next();
-
-					for (String disable : disableValues) {
-						if (disable.equals(String.valueOf(disableObj))) {
-							activationType.setEnabled(false);
-							return activationType;
-						}
-					}
-
-					for (String enable : enableValues) {
-						if (enable.equals(String.valueOf(disableObj))) {
-							activationType.setEnabled(true);
-							return activationType;
-						}
-					}
 				}
 			}
-
+		}
 
 		return null;
 	}
@@ -927,7 +923,17 @@ public class ShadowCache {
 		AttributeModificationOperation attributeChange = new AttributeModificationOperation();
 		EnableDisable enableDisable = activationCapability.getEnableDisable();
 		Property property = new Property(enableDisable.getAttribute());
-		String enableValue = enableDisable.getEnableValue().iterator().next();
+		List<String> enableValues = enableDisable.getEnableValue();
+
+		Iterator<String> i = enableValues.iterator();
+		String enableValue = i.next();
+		if ("".equals(enableValue)) {
+			if (enableValues.size() < 2) {
+				enableValue = "false";
+			} else {
+				enableValue = i.next();
+			}
+		}
 		String disableValue = enableDisable.getDisableValue().iterator().next();
 		if (enabled) {
 			property.setValue(enableValue);
