@@ -122,6 +122,7 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 					UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
 					userManager.delete(guiUserDto.getOid());
 				} catch (Exception ex) {
+					hideConfirmDelete();
 					LoggingUtils.logException(LOGGER, "Delete user failed", ex);
 					FacesUtils.addErrorMessage("Delete user failed: " + ex.getMessage());
 				}

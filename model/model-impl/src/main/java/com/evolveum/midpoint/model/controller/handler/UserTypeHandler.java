@@ -328,6 +328,10 @@ public class UserTypeHandler extends BasicHandler {
 			} catch (ConsistencyViolationException ex) {
 				// TODO: handle this
 				LoggingUtils.logException(LOGGER, "TODO handle ConsistencyViolationException", ex);
+			} catch (ObjectNotFoundException ex){
+				//Now if the account cannot be deleted, only partial result is recorded
+				//later, the account will be deleted or user re-created by reconciliation
+				result.recordPartialError("Couldn't delete account "+ account.getName()+".", ex);
 			}
 		}
 
@@ -341,6 +345,10 @@ public class UserTypeHandler extends BasicHandler {
 			} catch (ConsistencyViolationException ex) {
 				// TODO handle this
 				LoggingUtils.logException(LOGGER, "TODO handle ConsistencyViolationException", ex);
+			} catch (ObjectNotFoundException ex){
+				//Now if the account cannot be deleted, only partial result is recorded
+				//later, the account will be deleted or user re-created by reconciliation
+				result.recordPartialError("Couldn't delete account "+ accountRef.getOid()+".", ex);
 			}
 		}
 		user.getAccountRef().removeAll(refsToBeDeleted);
@@ -355,6 +363,7 @@ public class UserTypeHandler extends BasicHandler {
 		try {
 			getRepository().modifyObject(UserType.class, change, result);
 		} catch (ObjectNotFoundException ex) {
+//			result.recordPartialError("Could", cause)
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't update user {} after accounts was deleted", ex,
