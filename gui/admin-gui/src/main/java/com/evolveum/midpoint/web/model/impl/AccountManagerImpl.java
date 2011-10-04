@@ -48,6 +48,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -87,6 +89,12 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 		if (changedObject.getActivation() != null) {
 			changedObject.getXmlObject().setActivation(changedObject.getActivation());
 		}
+		
+		if (changedObject.getCredentials() != null ){
+			changedObject.getXmlObject().setCredentials(changedObject.getCredentials());
+			
+		}
+		
 		OperationResult result = new OperationResult(AccountManager.SUBMIT);
 		try {
 			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldObject.getXmlObject(),

@@ -1653,13 +1653,17 @@ public class ShadowCache {
 		for (Property p : identifiers) {
 			try {
 				List<Object> eList = p.serializeToJaxb(doc);
-				shadow.getAttributes().getAny().addAll(eList);
+				shadow.getAttributes().getAny().addAll(eList);		
 			} catch (SchemaException e) {
 				throw new SchemaException("An error occured while serializing property " + p + " to DOM: "
 						+ e.getMessage(), e);
 			}
 		}
 
+		if (shadow instanceof AccountShadowType){
+			((AccountShadowType) shadow).setCredentials(null);
+		}
+		
 		// Store shadow in the repository
 		String oid = null;
 		try {

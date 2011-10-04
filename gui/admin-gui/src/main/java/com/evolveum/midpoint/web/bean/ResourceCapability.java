@@ -31,8 +31,12 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import com.evolveum.midpoint.common.crypto.AESProtector;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
@@ -65,6 +69,10 @@ public class ResourceCapability implements Serializable {
 	private String password2;
 	private boolean oldAllowedIdmGuiAccess;
 	private boolean allowedIdmGuiAccess;
+//	@Autowired(required = true)
+//	private transient Protector protector;
+	
+	
 
 	@SuppressWarnings("rawtypes")
 	public void setAccount(AccountShadowDto account, CapabilitiesType capabilities) {
@@ -103,14 +111,27 @@ public class ResourceCapability implements Serializable {
 		if (StringUtils.isEmpty(password1) && (oldAllowedIdmGuiAccess == allowedIdmGuiAccess)) {
 			return null;
 		}
+		
+		if (StringUtils.isEmpty(password1)){
+			return null;
+		}
+		
+		//TODO: refactor this: the same mathod is in the GuiUserDto class -> encryptCredentials
 		CredentialsType credentials = new CredentialsType();
 		credentials.setAllowedIdmGuiAccess(allowedIdmGuiAccess);
-		Password password = new Password();
+		
+		CredentialsType.Password password = new CredentialsType.Password();
+		
+		
+		try{
+			Protector protector = new AESProtector();
+		password.setProtectedString(protector.encryptString(password1));
 		credentials.setPassword(password);
-		ProtectedStringType protectedString = new ProtectedStringType();		
-		password.setProtectedString(protectedString);
-		protectedString.setClearValue(password1);
-
+//		protectedString.setClearValue(password1);
+		} catch(Exception ex){
+//			LoggingUtils.logException(LOGGER, "Couldn't encrypt credentials", ex);
+			throw new SystemException(ex.getMessage(), ex);
+		}
 		return credentials;
 	}
 

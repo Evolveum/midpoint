@@ -88,8 +88,9 @@
 			<ice:inputSecret id="password1" value="#{cc.attrs.bean.password1}"
 				requiredMessage="#{msg['field.required']}"
 				disabled="#{not cc.attrs.editable}">
-				<f:validator validatorId="PasswordValidator" />
+				<ui:remove><f:validator validatorId="PasswordValidator" />
 				<f:attribute name="otherComponentId" value="password2" />
+				</ui:remove>
 			</ice:inputSecret>
 			<ice:message for="password1" errorClass="error" />
 
