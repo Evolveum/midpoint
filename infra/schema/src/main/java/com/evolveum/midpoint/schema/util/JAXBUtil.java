@@ -388,10 +388,6 @@ public final class JAXBUtil {
 
 	/**
 	 * Serializes DOM or JAXB element to string
-	 * 
-	 * @param element
-	 * @return
-	 * @throws JAXBException
 	 */
 	public static String serializeElementToString(Object element) throws JAXBException {
 		if (element == null) {
@@ -401,6 +397,23 @@ public final class JAXBUtil {
 			return DOMUtil.serializeDOMToString((Element) element);
 		} else {
 			return marshal(element);
+		}
+	}
+
+	/**
+	 * Serializes DOM or JAXB element to string, using specified elementName if needed.
+	 */
+	public static String serializeElementToString(Object element, QName elementName) throws JAXBException {
+		if (element == null) {
+			return null;
+		}
+		if (element instanceof Element) {
+			return DOMUtil.serializeDOMToString((Element) element);
+		} else if (element instanceof JAXBElement) {
+			return marshal(element);
+		} else {
+			JAXBElement<Object> jaxbElement = new JAXBElement<Object>(elementName, Object.class, element);
+			return marshal(jaxbElement);
 		}
 	}
 

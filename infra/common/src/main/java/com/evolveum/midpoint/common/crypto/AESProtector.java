@@ -31,6 +31,7 @@ import java.util.List;
 
 import javax.crypto.SecretKey;
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
@@ -44,6 +45,7 @@ import org.w3._2001._04.xmlenc.EncryptedDataType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -223,6 +225,13 @@ public class AESProtector implements Protector {
 		Validate.notNull(protectedString, "Protected stringmust not be null.");
 		EncryptedDataType encrypted = protectedString.getEncryptedData();
 		Validate.notNull(encrypted, "Encrypted data must not be null.");
+		
+		if (encrypted.getCipherData() == null 
+				|| ((encrypted.getCipherData().getCipherValue() == null ||  encrypted.getCipherData().getCipherValue().length == 0)
+						&& (encrypted.getCipherData().getCipherReference() == null || encrypted.getCipherData().getCipherReference().getURI() == null))) {
+			// The javax.crypto libraries don't handle this will, they throw NPE. Hence the check.
+			throw new IllegalArgumentException("CipherData element is missing or empty");
+		}
 
 		Document document;
 		try {
@@ -255,6 +264,12 @@ public class AESProtector implements Protector {
 		} catch (EncryptionException ex) {
 			throw ex;
 		} catch (Exception ex) {
+			LOGGER.error("Exception during decryption: {}",ex.getMessage(),ex);
+			try {
+				LOGGER.trace("The input was {}:\n{}",protectedString,JAXBUtil.serializeElementToString(protectedString,SchemaConstants.R_PROTECTED_STRING));
+			} catch (JAXBException e) {
+				LOGGER.trace("Error marshalling the input {}: {}",protectedString,e.getMessage());
+			}
 			throw new EncryptionException(ex.getMessage(), ex);
 		}
 
@@ -413,5 +428,17 @@ public class AESProtector implements Protector {
 		}
 
 		throw new EncryptionException("Key '" + digest + "' is not in keystore.");
+	}
+
+	@Override
+	public boolean isEncrypted(ProtectedStringType ps) {
+		if (ps == null) {
+			return false;
+		}
+		if (ps.getEncryptedData() == null) {
+			return false;
+		}
+		// TODO
+		return true;
 	}
 }

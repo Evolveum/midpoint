@@ -1986,7 +1986,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		if (ps == null) {
 			return null;
 		}
-		if (ps.getEncryptedData() == null) {
+		if (!protector.isEncrypted(ps)) {
 			if (ps.getClearValue() == null) {
 				return null;
 			}

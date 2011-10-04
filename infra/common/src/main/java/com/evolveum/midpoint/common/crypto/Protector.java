@@ -61,4 +61,9 @@ public interface Protector {
 	 */
 	void encrypt(ProtectedStringType ps) throws EncryptionException;
 
+	/**
+	 * Returns true if protected string contains encrypted data that seems valid.
+	 */
+	boolean isEncrypted(ProtectedStringType ps);
+
 }
