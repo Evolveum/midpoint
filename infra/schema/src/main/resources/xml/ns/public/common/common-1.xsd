@@ -2073,8 +2073,7 @@
 					<xsd:element name="credentials" type="tns:CredentialsType" minOccurs="0" maxOccurs="1">
 						<xsd:annotation>
 							<xsd:documentation>
-								The set of user's credentials (such as
-								passwords).
+								The set of user's credentials (such as passwords).
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
@@ -2082,7 +2081,7 @@
 					<xsd:element name="activation" type="tns:ActivationType" minOccurs="0" maxOccurs="1">
 						<xsd:annotation>
 							<xsd:documentation>
-								TODO
+								User's activation. e.g. enable/disable status, start and end dates, etc.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
@@ -2166,8 +2165,20 @@
 	<xsd:complexType name="CredentialsType">
 		<xsd:annotation>
 			<xsd:documentation>
-				TODO
-				This is not perfect.
+				This is a container type for various credentials types: passwords, public keys, one-time password
+				scheme identifiers, etc. However, we expect that password will be the most widely used credential
+				type and that's actually also the only supported type.
+				
+				The reason to "formalize" this structure is the ability to synchronize credentials. If the password
+				would be just an ordinary attribute, we cannot automatically synchronize user and account passwords.
+				Similarly as other credential types.
+				Note: marking password with a special attribute type will not be enough. There may be numerous passwords
+				with various meanings, we need to distinguish the "primary" one to synchronize. We also need to store
+				user password somewhere.
+				
+				This is not perfect. It may change in the future.
+				
+				TODO: support for "old password", e.g. some resource need it to change password.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:propertyContainer />
@@ -2293,25 +2304,15 @@
 	<xsd:complexType name="ActivationType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Types that defines activation properties of
-				several concepts.
-				It may apply to user, account,
-				assignement,
-				etc.
-				The
-				data in this type define if the described concept is active,
-				from
-				when it is active and until
-				when.
-				The "active" means
-				that it works. If
-				something is not active,
-				it should not work. E.g. inactive user
-				should not
-				be able to log in
-				or run any tasks,
-				the non-active role
-				should not be assigned, etc.
+				Type that defines activation properties. Determines whether something is active
+				(and working) or inactive (e.g. disabled).
+				 
+				It applies to several object types. It may apply to user, account, assignement, etc.
+				The data in this type define if the described concept is active, from when it is active
+				and until when. The "active" means that it works. If something is not active, it should
+				not work or not cause any effect. E.g. inactive user should not be able to log in or run
+				any tasks, the non-active role should not be assigned and if assigned it should not be
+				taken into account when computing the accounts.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:propertyContainer />
@@ -2321,75 +2322,42 @@
 			<xsd:element name="enabled" type="xsd:boolean" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Flag that indicates if the described concept is
-						active.
+						Flag that indicates if the described concept is active.
 
 						true => active, enabled
-						flase => inactive,
-						disabled
+						flase => inactive, disabled
 
-						This
-						defines the "administrative state", i.e. the
-						administrator's
-						decision. If set, this flag overrides
-						any
-						other constraints
-						in the
-						activation type.
-						E.g. if this is set to true and the object is not
-						yet
-						valid (according to
-						validFrom below), the user
-						should be
-						considered active. If set to false the user should be
-						considered
-						inactive
-						regardless of other settings.
+						This defines the "administrative state", i.e. the administrator's decision.
+						If set, this flag overrides any other constraints in the activation type.
+						E.g. if this is set to true and the object is not yet valid (according to
+						validFrom below), the user should be considered active. If set to false the
+						user should be considered inactive regardless of other settings.
 
-						Therefore
-						this flag does NOT
-						define an actual state of
-						the object. It is a kind of
-						"manual
-						override".
+						Therefore this flag does NOT define an actual state of
+						the object. It is a kind of "manual override".
 
-						If this flag is not present then
-						the other constraints
-						in the activation type should be
-						considered.
+						If this flag is not present then the other constraints in the activation type
+						should be considered.
 
-						If not present and
-						there are no other constraints in the
-						activation type or if there
-						is no activation
-						type at all
-						then the values is assumed to be true,
-						i.e. that the
-						described concept
-						is active (enabled).
+						If not present and there are no other constraints in the activation type or if there
+						is no activation type at all then the values is assumed to be true, i.e. that the
+						described concept is active (enabled).
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="validFrom" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
-						A date from which is should the object be
-						considered active.
-						Not applied if the "enabled" flag is
-						set to
-						any
-						value.
+						A date from which is should the object be considered active.
+						Not applied if the "enabled" flag is set to any value.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="validTo" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
-						A date to which is should the object be
-						considered active.
-						Not applied if the "enabled" flag is
-						set to any
-						value.
+						A date to which is should the object be considered active.
+						Not applied if the "enabled" flag is set to any value.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
