@@ -91,6 +91,7 @@ object.
 				<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
 				<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
 				<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
+				<icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
 			</icfcldap:configurationProperties>
 		
 			<!-- Generic ICF configuration -->
@@ -178,6 +179,13 @@ object.
 								<xsd:element maxOccurs="unbounded" minOccurs="0" name="givenName" type="xsd:string"/>
 								<xsd:element ref="icfs:uid"/>
 								<xsd:element ref="icfs:name"/>
+								<xsd:element minOccurs="0" name="ds-pwp-account-disabled" type="xsd:string">
+				                  <xsd:annotation>
+				                     <xsd:appinfo>
+				                        <c:ignore>true</c:ignore>
+				                     </xsd:appinfo>
+				                  </xsd:annotation>
+				               </xsd:element>								
 								<xsd:element maxOccurs="unbounded" minOccurs="0" name="teletexTerminalIdentifier" type="xsd:string"/>
 								<xsd:element maxOccurs="unbounded" minOccurs="0" name="st" type="xsd:string"/>
 								<xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string"/>
