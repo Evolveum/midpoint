@@ -82,6 +82,8 @@ object.
 				<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
 				<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
 				<icfcldap:uidAttribute>nsUniqueId</icfcldap:uidAttribute>
+				<icfcldap:accountOperationalAttributes>nsAccountLock</icfcldap:accountOperationalAttributes>
+
 			</icfcldap:configurationProperties>
 		
 			<!-- Generic ICF configuration -->
