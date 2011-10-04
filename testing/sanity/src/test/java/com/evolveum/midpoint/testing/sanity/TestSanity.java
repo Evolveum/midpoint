@@ -45,6 +45,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
@@ -85,6 +86,9 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
+import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.MiscUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -349,11 +353,13 @@ public class TestSanity extends AbstractIntegrationTest {
 	
 	/**
 	 * Checks if the resource is internally consistent, if it has everything it should have.
+	 * @throws SchemaException 
 	 */
-	private void checkOpenDjResource(ResourceType resource, String source) {
+	private void checkOpenDjResource(ResourceType resource, String source) throws SchemaException {
 		assertNotNull("Resource from "+source+" is null",resource);
 		assertNotNull("Resource from "+source+" has null configuration",resource.getConfiguration());
 		assertNotNull("Resource from "+source+" has null schema",resource.getSchema());
+		checkOpenDjSchema(resource, source);
 		assertNotNull("Resource from "+source+" has null schemahandling",resource.getSchemaHandling());
 		if (!source.equals("repository")) {
 			// This is generated on the fly in provisioning
@@ -363,6 +369,30 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertNotNull("Resource from "+source+" has null capabilities",resource.getCapabilities());
 		assertFalse("Resource from "+source+" has empty capabilities",resource.getCapabilities().getAny().isEmpty());
 		assertNotNull("Resource from "+source+" has null synchronization",resource.getSynchronization());
+	}
+
+	/**
+	 * @param resource
+	 * @param source
+	 * @throws SchemaException 
+	 */
+	private void checkOpenDjSchema(ResourceType resource, String source) throws SchemaException {
+		Schema schema = ResourceTypeUtil.getResourceSchema(resource);
+		ResourceObjectDefinition accountDefinition = schema.findAccountDefinition();
+		assertNotNull("Schema does not define any account (resource from "+source+")",accountDefinition);
+		Set<ResourceObjectAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
+		assertFalse("No account identifiers (resource from "+source+")", identifiers == null || identifiers.isEmpty());
+		// TODO: check for naming attributes and display names, etc
+		
+		ActivationCapabilityType capActivation = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
+		if (capActivation != null && capActivation.getEnableDisable() != null && capActivation.getEnableDisable().getAttribute() != null) {
+			// There is simulated activation capability, check if the attribute is in schema.
+			QName enableAttrName = capActivation.getEnableDisable().getAttribute();
+			ResourceObjectAttributeDefinition enableAttrDef = accountDefinition.findAttributeDefinition(enableAttrName);
+			display("Simulated activation attribute definition",enableAttrDef);
+			assertNotNull("No definition for enable attribute "+enableAttrName+" in account (resource from "+source+")",enableAttrDef);
+			assertTrue("Enable attribute "+enableAttrName+" is not ignored (resource from "+source+")", enableAttrDef.isIgnored());
+		}
 	}
 
 	/**
