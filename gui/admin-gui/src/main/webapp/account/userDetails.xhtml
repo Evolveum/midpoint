@@ -138,7 +138,7 @@
 								<idm:autoForm bean="#{userDetails.formObjects}" index="#{status.index}"
 									editable="#{userDetails.editMode}" />
 								<hr />
-								<comp:resourceCapability id="resourceCap" bean="#{item.resourceCapability}" editable="#{userDetails.editMode}" />
+								<comp:resourceCapability bean="#{item.resourceCapability}" editable="#{userDetails.editMode}" />
 							</ice:panelCollapsible>
 							<idm:button action="/account/userDetails" actionListener="#{userDetails.removeResourcePerformed}"
 								value="#{msg['page.account.detail.tab.accounts.button.delete']}" buttonType="negative"

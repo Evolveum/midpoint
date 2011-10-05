@@ -263,36 +263,52 @@ public class DebugViewController implements Serializable {
 			
 			StringBuilder builder;
 			// Display result as an interactive tree
-			for (OperationResult subresult : result.getSubresults()) {
-				if (!subresult.isSuccess()) {
-					builder = new StringBuilder();
-					builder.append(result.getStatus());
-					builder.append(": Object '");
-					builder.append(ObjectTypeUtil.toShortString(result.getContext(ObjectType.class, OperationResult.CONTEXT_OBJECT)));
-					builder.append("' is not valid, reason: ");
-					builder.append(result.getMessage());
-					builder.append(".");
-					if (result.getContext(String.class, OperationResult.CONTEXT_PROPERTY)!=null) {
-						builder.append(" Property: ");
-						builder.append(result.getContext(String.class, OperationResult.CONTEXT_PROPERTY));
-					}
-					FacesUtils.addErrorMessage(builder.toString());
-				}
-			}
-			if (!result.isAcceptable()) {
-				return null;
-			}
+//			for (OperationResult subresult : result.getSubresults()) {
+//				if (!subresult.isSuccess()) {
+//					builder = new StringBuilder();
+//					builder.append(result.getStatus());
+//					builder.append(": Object '");
+//					builder.append(ObjectTypeUtil.toShortString(result.getContext(ObjectType.class, OperationResult.CONTEXT_OBJECT)));
+//					builder.append("' is not valid, reason: ");
+//					builder.append(result.getMessage());
+//					builder.append(".");
+//					if (result.getContext(String.class, OperationResult.CONTEXT_PROPERTY)!=null) {
+//						builder.append(" Property: ");
+//						builder.append(result.getContext(String.class, OperationResult.CONTEXT_PROPERTY));
+//					}
+////					FacesUtils.addErrorMessage(builder.toString());
+//				}
+//			}
+
 		} catch (IOException ex) {
-			FacesUtils.addErrorMessage("Couldn't create object from xml.", ex);
-			// TODO: logging
-			return null;
+//			FacesUtils.addErrorMessage("Couldn't create object from xml.", ex);
+			LoggingUtils.logException(TRACE, "Couldn't create object from xml.", ex, new Object());
+//			return null;
 		}
 
 		if (objects.isEmpty()) {
-			FacesUtils.addErrorMessage("Couldn't create object from xml.");
+//			FacesUtils.addErrorMessage("Couldn't create object from xml.");
+			LoggingUtils.logException(TRACE, "Couldn't create object from xml.", new IllegalArgumentException(), new Object());
+			printResults(TRACE, result);
 			return null;
 		}
-
+		
+		printResults(TRACE, result);
+		
 		return objects.get(0);
+	}
+	
+	
+	protected void printResults(Trace logger, OperationResult result) {
+		if (result == null) {
+			return;
+		}
+		if (!result.isSuccess()) {
+			FacesUtils.addMessage(result);
+		}
+
+		if (logger.isDebugEnabled()) {
+			logger.debug(result.dump());
+		}
 	}
 }
