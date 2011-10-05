@@ -25,6 +25,7 @@ package com.evolveum.midpoint.web.jsf;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import java.util.Iterator;
 import java.util.List;
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
@@ -78,18 +79,17 @@ public class PasswordValidator implements Validator {
 	}
 
 	private UIInput findComponent(UIComponent parent, String id) {
+	
 		if (id.equals(parent.getId()) && (parent instanceof UIInput)) {
 			return (UIInput) parent;
 		}
 
-		List<UIComponent> children = parent.getChildren();
-		if (children != null && !children.isEmpty()) {
-			for (UIComponent child : children) {
+		for (Iterator<UIComponent> children = parent.getFacetsAndChildren();children.hasNext();){
+			UIComponent child = children.next();
 				UIInput input = findComponent(child, id);
 				if (input != null) {
 					return input;
 				}
-			}
 		}
 
 		return null;
