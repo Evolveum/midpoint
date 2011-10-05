@@ -60,4 +60,5 @@ description: Special LDAP acccount used by the IDM
 ou: Administrators
 userPassword: secret
 ds-privilege-name: unindexed-search
+ds-privilege-name: password-reset
 
