@@ -69,12 +69,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 @DependsOn(value="repositoryService")
 public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	
-	private static final String THREAD_NAME = "midpoint-task-scanner";
+	private static final String SCANNER_THREAD_NAME = "midpoint-task-scanner";
+	private static final String HEARTBEAT_THREAD_NAME = "midpoint-heartbeat";
 	private long JOIN_TIMEOUT = 5000;
 	
 	private Map<String,TaskHandler> handlers = new HashMap<String, TaskHandler>();
 	private Set<TaskRunner> runners = new CopyOnWriteArraySet<TaskRunner>();
 	private TaskScanner scannerThread;
+	private HeartbeatThread heartbeatThread;
 	/**
 	 * True if the service threads are running.
 	 * Is is true in a normal case. It is false is the threads were temporarily suspended.
@@ -99,14 +101,14 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	@PostConstruct
 	public void init() {
 		LOGGER.info("Task Manager initialization");
-		startScannerThread();
+		startInternalThreads();
 		LOGGER.info("Task Manager initialized");
 	}
 	
 	@PreDestroy
 	public void shutdown() {
 		LOGGER.info("Task Manager shutdown");
-		stopScannerThread();
+		stopInternalThreads();
 		finishAllTasks();
 		LOGGER.info("Task Manager shutdown finished");
 	}
@@ -326,10 +328,11 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		return handlers.get(uri);
 	}
 	
-	private void startScannerThread() {
+	private void startInternalThreads() {
+		// Scanner thread
 		if (scannerThread == null) {
 			scannerThread = new TaskScanner();
-			scannerThread.setName(THREAD_NAME);
+			scannerThread.setName(SCANNER_THREAD_NAME);
 			//Note: we need to be Spring Bean Factory Aware, because some repo implementations are in scope prototype
 			RepositoryService repoService = (RepositoryService) this.beanFactory.getBean("repositoryService");
 			scannerThread.setRepositoryService(repoService);
@@ -340,9 +343,21 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		} else {
 			scannerThread.start();
 		}
+
+		// Heartbeat thread
+		if (heartbeatThread == null) {
+			heartbeatThread = new HeartbeatThread(runners);
+			heartbeatThread.setName(HEARTBEAT_THREAD_NAME);
+		}
+		if (heartbeatThread.isAlive()) {
+			LOGGER.warn("Attempt to start heartbeat thread that is already running");
+		} else {
+			heartbeatThread.start();
+		}
 	}
 
-	private void stopScannerThread() {
+	private void stopInternalThreads() {
+		// Scanner thread
 		if (scannerThread == null) {
 			LOGGER.warn("Attempt to stop non-existing task scanner thread");
 		} else {
@@ -360,6 +375,26 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 			// Stopped thread cannot be started again. Therefore set it to null.
 			// New thread will be created on the next start attempt.
 			scannerThread = null;
+		}
+
+		// Heartbeat thread
+		if (heartbeatThread == null) {
+			LOGGER.warn("Attempt to stop non-existing heartbeat thread");
+		} else {
+			if (heartbeatThread.isAlive()) {
+				heartbeatThread.disable();
+				heartbeatThread.interrupt();
+				try {
+					heartbeatThread.join(JOIN_TIMEOUT);
+				} catch (InterruptedException ex) {
+					LOGGER.warn("Wait to thread join in heartbeat was interrupted");
+				}
+			} else {
+				LOGGER.warn("Attempt to stop a heartbeat thread that is not alive");
+			}
+			// Stopped thread cannot be started again. Therefore set it to null.
+			// New thread will be created on the next start attempt.
+			heartbeatThread = null;
 		}
 	}
 
@@ -478,7 +513,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	@Override
 	public void deactivateServiceThreads() {
 		LOGGER.warn("DEACTIVATING Task Manager service threads (RISK OF SYSTEM MALFUNCTION)");
-		stopScannerThread();
+		stopInternalThreads();
 		for (TaskRunner runner : runners) {
 			runner.shutdown();
 		}
@@ -488,7 +523,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	@Override
 	public void reactivateServiceThreads() {
 		LOGGER.info("Reactivating Task Manager service threads");
-		startScannerThread();
+		startInternalThreads();
 		// The scanner should find the runnable threads and reactivate runners
 		threadsRunning=true;
 	}

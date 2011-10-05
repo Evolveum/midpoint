@@ -476,7 +476,6 @@ public class TaskImpl implements Task {
 
 	@Override
 	public void recordRunFinish(TaskRunResult runResult, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		// TODO
 		progress = runResult.getProgress(); 
 		lastRunFinishTimestamp = System.currentTimeMillis();
 		// This is all we need to do for transient tasks
@@ -503,7 +502,31 @@ public class TaskImpl implements Task {
 		// TODO: Also save the OpResult
 	}
 	
-
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.task.api.Task#recordProgress(long, com.evolveum.midpoint.common.result.OperationResult)
+	 */
+	@Override
+	public void recordProgress(long progress, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		// This is all we need to do for transient tasks
+		if (!isPersistent()) {
+			return;
+		}
+		ObjectModificationType modification = new ObjectModificationType();
+		modification.setOid(oid);
+		PropertyModificationType progressModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_PROGRESS, progress);
+		modification.getPropertyModification().add(progressModification);
+		PropertyModificationType resultModification = null;
+		if (result!=null) {
+			resultModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_RESULT, result.createOperationResultType());
+		} else {
+			// Make sure we replace any stale result that may be stored there
+			resultModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_RESULT, null);
+		}
+		modification.getPropertyModification().add(resultModification);
+		repositoryService.modifyObject(TaskType.class, modification, parentResult);		
+		
+	}
+	
 	@Override
 	public void refresh(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = parentResult.createSubresult(Task.class.getName()+".refresh");
@@ -629,7 +652,5 @@ public class TaskImpl implements Task {
 			return false;
 		return true;
 	}
-	
-	
 
 }

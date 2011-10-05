@@ -201,7 +201,7 @@ public class TaskScanner extends Thread {
 					// Let's sleep a while to slow down the synch, to avoid
 					// overloading the system with sync polling
 
-					LOGGER.trace("Synchronization thread loop: going to sleep");
+					LOGGER.trace("Task scanner thread loop: going to sleep");
 
 					try {
 						Thread.sleep(sleepInterval - (System.currentTimeMillis() - lastLoopRun));

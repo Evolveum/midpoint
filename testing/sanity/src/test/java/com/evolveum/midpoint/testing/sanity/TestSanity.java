@@ -43,6 +43,7 @@ import java.io.FileNotFoundException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -1509,7 +1510,7 @@ public class TestSanity extends AbstractIntegrationTest {
 //				display("getObject result (wait loop)",resultHolder.value);
 				assertSuccess("getObject has failed", resultHolder.value);
 				Task task = taskManager.createTaskInstance((TaskType) objectHolder.value);
-				System.out.println("Import task status: "+task.getExecutionStatus());
+				System.out.println(new Date()+": Import task status: "+task.getExecutionStatus()+", progress: "+task.getProgress());
 				if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
 					// Task closed, wait finished
 					return true;

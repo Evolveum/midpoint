@@ -278,6 +278,12 @@ public interface Task extends Dumpable {
 	
 	public void recordRunStart(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
+	/**
+	 * Record progress of the task, storing it persistently if needed.
+	 * @throws SchemaException 
+	 * @throws ObjectNotFoundException 
+	 */
+	public void recordProgress(long progress, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
 	/**
 	 * Return human-readable representation of the task content.
@@ -319,4 +325,5 @@ public interface Task extends Dumpable {
 	 * @return true if the task can run
 	 */
 	public boolean canRun();
+
 }
