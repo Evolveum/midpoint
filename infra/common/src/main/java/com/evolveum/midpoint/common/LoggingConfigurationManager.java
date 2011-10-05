@@ -132,32 +132,38 @@ public class LoggingConfigurationManager {
 		sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 		sb.append("<configuration scan=\"false\" debug=\"true\">\n");
 
+		//find and configure ALL logger and bring it to top of turbo stack
+		for (SubSystemLoggerConfigurationType ss : config.getSubSystemLogger()) {
+			if ("ALL".contentEquals(ss.getComponent().name())) {
+				defineTurbo(sb, ss);
+			}
+		}
+
 		//Generate subsystem logging quickstep
 		for (SubSystemLoggerConfigurationType ss : config.getSubSystemLogger()) {
 			if (null == ss.getComponent() || null == ss.getLevel()) {
 				LOGGER.error("Subsystem ({}) or level ({})is null", ss.getComponent(), ss.getLevel());
 				continue;
 			}
-			sb.append("\t<turboFilter class=\"com.evolveum.midpoint.util.logging.MDCLevelTurboFilter\">\n");
-			sb.append("\t\t<MDCKey>subsystem</MDCKey>\n");
-			sb.append("\t\t<MDCValue>");
-			sb.append(ss.getComponent().name());
-			sb.append("</MDCValue>\n");
-			sb.append("\t\t<level>");
-			sb.append(ss.getLevel().name());
-			sb.append("</level>\n");
-			sb.append("\t\t<OnMatch>ACCEPT</OnMatch>\n");
-			sb.append("\t</turboFilter>\n");
+
+			//skip disabled subsystem logger
+			if ("OFF".equals(ss.getLevel().name())) {
+				continue;
+			}
+			
+			//All ready defined above
+			if ("ALL".contentEquals(ss.getComponent().name())) {
+				continue;
+			}			
+			defineTurbo(sb, ss);
 		}
 
 		//Generate appenders configuration
 		for (AppenderConfigurationType appender : config.getAppender()) {
 			if (appender instanceof FileAppenderConfigurationType) {
 				FileAppenderConfigurationType a = (FileAppenderConfigurationType) appender;
-				//TODO this is hack and need to be fixed.
-				String catalinaBase = System.getProperty("catalina.base");
-				String fileName = a.getFileName();//.replace("${catalina.base}", catalinaBase);
-				String filePattern = a.getFilePattern();//.replace("${catalina.base}", catalinaBase);
+				String fileName = a.getFileName();
+				String filePattern = a.getFilePattern();
 
 				sb.append("\t<appender name=\"");
 				sb.append(a.getName());
@@ -238,5 +244,18 @@ public class LoggingConfigurationManager {
 		}
 		sb.append("</configuration>");
 		return sb.toString();
+	}
+
+	private static void defineTurbo(StringBuilder sb, SubSystemLoggerConfigurationType ss) {
+		sb.append("\t<turboFilter class=\"com.evolveum.midpoint.util.logging.MDCLevelTurboFilter\">\n");
+		sb.append("\t\t<MDCKey>subsystem</MDCKey>\n");
+		sb.append("\t\t<MDCValue>");
+		sb.append(ss.getComponent().name());
+		sb.append("</MDCValue>\n");
+		sb.append("\t\t<level>");
+		sb.append(ss.getLevel().name());
+		sb.append("</level>\n");
+		sb.append("\t\t<OnMatch>ACCEPT</OnMatch>\n");
+		sb.append("\t</turboFilter>\n");
 	}
 }
