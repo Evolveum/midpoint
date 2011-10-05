@@ -59,7 +59,9 @@ public class PasswordValidator implements Validator {
 		String password1 = (String) value;
 
 		String otherComponentId = (String) component.getAttributes().get(OTHER_COMPONENT_ID);
-		UIInput comp = findComponent(context.getViewRoot(), otherComponentId);
+		String compClientId = component.getClientId();
+		compClientId = compClientId.replace(component.getId(), otherComponentId);
+		UIInput comp = findComponent(context.getViewRoot(), otherComponentId, compClientId);
 		if (comp == null) {
 			LOGGER.warn("Can't find component with name '{}', Component with password validator doesn't "
 					+ "have atttribute '{}' defined.", new Object[] { otherComponentId, OTHER_COMPONENT_ID });
@@ -78,15 +80,21 @@ public class PasswordValidator implements Validator {
 		return new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, summary, detail));
 	}
 
-	private UIInput findComponent(UIComponent parent, String id) {
+	private UIInput findComponent(UIComponent parent, String id, String compClientId) {
 	
-		if (id.equals(parent.getId()) && (parent instanceof UIInput)) {
+//		if (parent.getParent() != null){
+//			if (id.equals(parent.getId()) && compClientId.equals(parent.getClientId()) && (parent instanceof UIInput)){
+//				return (UIInput) parent;
+//			}
+//		}
+	
+		if (id.equals(parent.getId()) && compClientId.equals(parent.getClientId()) && (parent instanceof UIInput)) {
 			return (UIInput) parent;
 		}
 
 		for (Iterator<UIComponent> children = parent.getFacetsAndChildren();children.hasNext();){
 			UIComponent child = children.next();
-				UIInput input = findComponent(child, id);
+				UIInput input = findComponent(child, id, compClientId);
 				if (input != null) {
 					return input;
 				}
