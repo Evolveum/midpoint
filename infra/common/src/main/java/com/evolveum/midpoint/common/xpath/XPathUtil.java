@@ -41,6 +41,8 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import javax.xml.xpath.XPathVariableResolver;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -172,13 +174,18 @@ public class XPathUtil {
 
 				for (int j = i; j < segments.size(); j++) {
 					QName qname = segments.get(j).getQName();
+					String localPart = qname.getLocalPart();
+					//TODO: MID-397 - filter out all other possible illegal characters for DOM node name, that could be in the xpath
+					if (localPart.contains("[")) {
+						localPart = StringUtils.substring(localPart, 0, localPart.indexOf("["));
+					}
 					if (null == parentElement) {
 						parentElement = doc.createElementNS(
-								qname.getNamespaceURI(), qname.getLocalPart());
+								qname.getNamespaceURI(), localPart);
 						element = parentElement;
 					} else {
 						child = doc.createElementNS(qname.getNamespaceURI(),
-								qname.getLocalPart());
+								localPart);
 						element.appendChild(child);
 						element = child;
 					}
