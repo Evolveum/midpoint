@@ -45,6 +45,7 @@
     <familyName>Bond</familyName>
     <givenName>James</givenName>
     <honorificSuffix>007</honorificSuffix>
+    <eMailAddress></eMailAddress>
     <account oid="12345">
         <c:name>bond</c:name>
         <resource oid="333">

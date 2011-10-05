@@ -81,13 +81,20 @@ public class CalculateXmlDiff {
 		// add or replace node
 		String newObjectOid = Utils.getNodeOid(diff.getTestNodeDetail().getNode());
 		PropertyModificationTypeType changeType;
+		XPathHolder xpathHolder = new XPathHolder(diff.getTestNodeDetail().getXpathLocation());
 		// HACK: accountRef, resourceRef - special treatment, ignore its oid
-		if ((StringUtils.isEmpty(newObjectOid))
-				|| (StringUtils.contains(diff.getTestNodeDetail().getNode().getNodeName(), "Ref"))) {
+		if ( (StringUtils.isEmpty(newObjectOid))
+				|| (StringUtils.contains(diff.getTestNodeDetail().getNode().getNodeName(), "Ref")) ) {
 			changeType = PropertyModificationTypeType.add;
 		} else {
 			changeType = PropertyModificationTypeType.replace;
 		}
+		
+		//HACK: till we create new diff algorithm
+		if ((xpathHolder.toSegments().size()==2 && (xpathHolder.toSegments().get(1).getQName().getLocalPart().equals("eMailAddress")))) {
+			changeType = PropertyModificationTypeType.replace;
+		}
+		
 		return changeType;
 	}
 
@@ -319,7 +326,7 @@ public class CalculateXmlDiff {
 					// HAS_CHILD_NODES_ID should be treated separately, to
 					// generate correct diffs.
 
-					// adding deleting node - account, extension
+					// adding deleting node - account, extension, text node
 				case DifferenceConstants.CHILD_NODE_NOT_FOUND_ID:
 					// CHILD_NODE_NOT_FOUND_ID == presence of child node
 					if (StringUtils.isEmpty(diff.getTestNodeDetail().getXpathLocation())) { // delete

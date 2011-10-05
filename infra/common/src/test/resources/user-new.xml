@@ -43,6 +43,7 @@
     <fullName>James Bond 007</fullName>
     <givenName>James Jr.</givenName>
     <honorificSuffix>007</honorificSuffix>
+    <eMailAddress>xxx@sk.sk</eMailAddress>
     <account oid="12345">
         <c:name>bond new</c:name>
         <resource oid="333">

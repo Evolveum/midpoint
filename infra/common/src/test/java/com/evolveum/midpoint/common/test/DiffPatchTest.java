@@ -69,7 +69,7 @@ public class DiffPatchTest {
 		ObjectModificationType changes = CalculateXmlDiff.calculateChanges(new File(
 				"src/test/resources/user-old.xml"), new File("src/test/resources/user-new.xml"));
 		assertNotNull(changes);
-		assertEquals(6, changes.getPropertyModification().size());
+		assertEquals(7, changes.getPropertyModification().size());
 		assertEquals("007", changes.getOid());
 
 		String patchedXml = (new PatchXml()).applyDifferences(changes, new File(
