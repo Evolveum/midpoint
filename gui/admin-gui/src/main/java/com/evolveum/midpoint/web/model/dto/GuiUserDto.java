@@ -90,9 +90,9 @@ public class GuiUserDto extends UserDto implements Selectable {
 		this.password1 = password1;
 	}
 
-	public void encryptCredentials(Protector protector) throws EncryptionException {
+	public boolean encryptCredentials(Protector protector) throws EncryptionException {
 		if (StringUtils.isEmpty(password1)) {
-			return;
+			return false;
 		}
 
 		CredentialsType credentials = getXmlObject().getCredentials();
@@ -114,6 +114,7 @@ public class GuiUserDto extends UserDto implements Selectable {
 			LoggingUtils.logException(LOGGER, "Couldn't encrypt credentials", ex);
 			throw new SystemException(ex.getMessage(), ex);
 		}
+		return true;
 	}
 
 	public String getPassword2() {

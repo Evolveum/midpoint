@@ -40,6 +40,9 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -96,28 +99,57 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 		return list(paging, ObjectTypes.USER);
 	}
 
-	
 	@Override
 	public Set<PropertyChange> submit(GuiUserDto changedObject) {
 		Validate.notNull(changedObject, "User object must not be null.");
 
 		Set<PropertyChange> set = null;
 		UserDto oldUser = get(changedObject.getOid(), new PropertyReferenceListType());
-		
-		//we don't want user to have resolved all account
-		//only those which were added are needed to create appropriate link between user and account and to add account to the resource and repository
-		//in the case of delete account, in this step only unlink should be made..accounts are deleted in UserDetailsController using account manager
-		//in the case of modifying account, it is not needed to detect changes using user, this is also made in UserDetailsController using account manager
+
+		// we don't want user to have resolved all account
+		// only those which were added are needed to create appropriate link
+		// between user and account and to add account to the resource and
+		// repository
+		// in the case of delete account, in this step only unlink should be
+		// made..accounts are deleted in UserDetailsController using account
+		// manager
+		// in the case of modifying account, it is not needed to detect changes
+		// using user, this is also made in UserDetailsController using account
+		// manager
 		changedObject = unresolveNotAddedAccounts(changedObject);
-		
+
 		OperationResult result = new OperationResult(UserManager.SUBMIT);
 		try { // Call Web Service Operation
-			changedObject.encryptCredentials(protector);
+			
+			PropertyModificationType passwordChange = null;
+			//detect if the password was changed
+			if (changedObject.encryptCredentials(protector)) {
+				// if password was changed, create modification change
+				XPathHolder xpath = ObjectTypeUtil.createXPathHolder(SchemaConstants.I_CREDENTIALS);
+				passwordChange = ObjectTypeUtil.createPropertyModificationType(
+						PropertyModificationTypeType.replace, xpath, SchemaConstants.I_PASSWORD,
+						changedObject.getXmlObject().getCredentials().getPassword());
+				// now when modification change of password was made, clear
+				// credentials from changed user and also from old user to be not used by diff..
+				changedObject.getXmlObject().setCredentials(null);
+				oldUser.getXmlObject().setCredentials(null);
 
+			}
+			//detect other changes
 			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldUser.getXmlObject(),
 					changedObject.getXmlObject());
-			if (changes != null && changes.getOid() != null && changes.getPropertyModification().size() > 0) {
-				getModel().modifyObject(UserType.class, changes, result);
+			//process changes
+			if (changes != null) {
+				if (passwordChange != null) {
+					if (changes.getOid() == null) {
+						changes.setOid(changedObject.getXmlObject().getOid());
+					}
+					changes.getPropertyModification().add(passwordChange);
+				}
+				if (changes.getOid() != null && changes.getPropertyModification().size() > 0) {
+					getModel().modifyObject(UserType.class, changes, result);
+				}
+
 			}
 
 			if (null != changes) {
@@ -226,15 +258,15 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 				throw new IllegalArgumentException("Unknown change type '" + type + "'.");
 		}
 	}
-	
-	private GuiUserDto unresolveNotAddedAccounts(GuiUserDto changedObject){
+
+	private GuiUserDto unresolveNotAddedAccounts(GuiUserDto changedObject) {
 		changedObject.getXmlObject().getAccountRef().clear();
-		
+
 		for (Iterator<AccountShadowDto> i = changedObject.getAccount().iterator(); i.hasNext();) {
 			AccountShadowDto account = i.next();
-			if (account.isAdded()){
+			if (account.isAdded()) {
 				changedObject.getXmlObject().getAccount().add(account.getXmlObject());
-			} else{
+			} else {
 				changedObject.getXmlObject().getAccount().remove(account.getXmlObject());
 				ObjectReferenceType ort = new ObjectReferenceType();
 				ort.setOid(account.getOid());
@@ -244,5 +276,4 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 		return changedObject;
 	}
 
-	
 }
