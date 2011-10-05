@@ -22,6 +22,8 @@
 
 package com.evolveum.midpoint.web.model.dto;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
+
 
 /**
  * 
@@ -29,5 +31,10 @@ package com.evolveum.midpoint.web.model.dto;
  */
 public class GuiAccountShadowDto extends AccountShadowDto {
 
+	
 	private static final long serialVersionUID = -1664375917978879455L;
+	
+	
+	
+
 }

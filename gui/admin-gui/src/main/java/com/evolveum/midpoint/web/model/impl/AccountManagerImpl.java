@@ -31,7 +31,9 @@ import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -89,20 +91,40 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 		if (changedObject.getActivation() != null) {
 			changedObject.getXmlObject().setActivation(changedObject.getActivation());
 		}
-		
-		if (changedObject.getCredentials() != null ){
-			changedObject.getXmlObject().setCredentials(changedObject.getCredentials());
-			
-		}
-		
+
 		OperationResult result = new OperationResult(AccountManager.SUBMIT);
 		try {
+			PropertyModificationType passwordChange = null;
+			// detect if password was changed
+			if (changedObject.getCredentials() != null) {
+				// if password was changed, create modification change
+				XPathHolder xpath = ObjectTypeUtil.createXPathHolder(SchemaConstants.I_CREDENTIALS);
+				passwordChange = ObjectTypeUtil.createPropertyModificationType(
+						PropertyModificationTypeType.replace, xpath, SchemaConstants.I_PASSWORD,
+						changedObject.getCredentials().getPassword());
+				// now when modification change of password was made, clear
+				// credentials..
+				changedObject.setCredentials(null);
+			}
+
+			// detect other changes
 			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldObject.getXmlObject(),
 					changedObject.getXmlObject());
-			if (changes != null && changes.getOid() != null) {
-				LOGGER.debug("Modifying account submited in gui. {}",
-						ObjectTypeUtil.toShortString(changedObject.getXmlObject()));
-				getModel().modifyObject(AccountShadowType.class, changes, result);
+			// if there is a password change, add it to other changes and
+			// process it.
+
+			if (changes != null) {
+				if (passwordChange != null) {
+					if (changes.getOid() == null) {
+						changes.setOid(changedObject.getOid());
+					}
+					changes.getPropertyModification().add(passwordChange);
+				}
+				if (changes.getOid() != null) {
+					LOGGER.debug("Modifying account submited in gui. {}",
+							ObjectTypeUtil.toShortString(changedObject.getXmlObject()));
+					getModel().modifyObject(AccountShadowType.class, changes, result);
+				}
 			} else {
 				LOGGER.debug("No account changes detected.");
 			}
@@ -118,10 +140,10 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 			result.recordFatalError("Couldn't update account '" + changedObject.getName()
 					+ "', because it doesn't exists.", ex);
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't update account {}, reason: {}", ex,
-					new Object[] { changedObject.getName(), ex.getMessage() });
-			result.recordFatalError("Couldn't update account '" + changedObject.getName()
-					+ "', reason: " + ex.getMessage() + ".", ex);
+			LoggingUtils.logException(LOGGER, "Couldn't update account {}, reason: {}", ex, new Object[] {
+					changedObject.getName(), ex.getMessage() });
+			result.recordFatalError("Couldn't update account '" + changedObject.getName() + "', reason: "
+					+ ex.getMessage() + ".", ex);
 		}
 
 		result.computeStatus("Couldn't submit user '" + changedObject.getName() + "'.");

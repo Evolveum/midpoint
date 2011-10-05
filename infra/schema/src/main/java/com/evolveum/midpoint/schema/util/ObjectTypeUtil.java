@@ -40,6 +40,7 @@ import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType.Password;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -284,11 +285,20 @@ public class ObjectTypeUtil {
 	 */	
 	public static <T> T getPropertyNewValue(ObjectModificationType objectChange, String pathSegment,
 			String propertyName, Class<T> propertyClass) { 
-		XPathSegment xpathSegment = new XPathSegment(new QName(SchemaConstants.NS_C,pathSegment));
+//		XPathSegment xpathSegment = new XPathSegment(new QName(SchemaConstants.NS_C,pathSegment));
+//		List<XPathSegment> segmentlist = new ArrayList<XPathSegment>(1);
+//		segmentlist.add(xpathSegment);
+//		XPathHolder xpath = new XPathHolder(segmentlist);
+		XPathHolder xpath = createXPathHolder(new QName(SchemaConstants.NS_C,pathSegment));
+		return getPropertyNewValue(objectChange, xpath, new QName(SchemaConstants.NS_C,propertyName), propertyClass);
+	}
+	
+	public static XPathHolder createXPathHolder(QName property){
+		XPathSegment xpathSegment = new XPathSegment(property);
 		List<XPathSegment> segmentlist = new ArrayList<XPathSegment>(1);
 		segmentlist.add(xpathSegment);
 		XPathHolder xpath = new XPathHolder(segmentlist);
-		return getPropertyNewValue(objectChange, xpath, new QName(SchemaConstants.NS_C,propertyName), propertyClass);
+		return xpath;
 	}
 	
 	/**

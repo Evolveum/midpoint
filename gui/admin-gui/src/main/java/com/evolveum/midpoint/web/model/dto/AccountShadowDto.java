@@ -55,6 +55,8 @@ public class AccountShadowDto extends ResourceObjectShadowDto<AccountShadowType>
 		getXmlObject().setCredentials(credentials);
 	}
 
+	
+	
 	public void setActivation(ActivationType activation) {
 		getXmlObject().setActivation(activation);
 	}
@@ -66,4 +68,7 @@ public class AccountShadowDto extends ResourceObjectShadowDto<AccountShadowType>
 	public void setAdded(boolean added) {
 		this.added = added;
 	}
+	
+	
+	
 }

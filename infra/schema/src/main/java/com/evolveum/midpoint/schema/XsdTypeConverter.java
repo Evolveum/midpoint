@@ -46,6 +46,7 @@ import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 
 /**
  * Simple implementation that converts XSD primitive types to Java (and vice
@@ -100,6 +101,7 @@ public class XsdTypeConverter {
 				}
 			}
 		}
+		addMapping(CredentialsType.Password.class, JAXBUtil.getTypeQName(CredentialsType.Password.class), true);
 	}
 
 	private static void addMapping(Class javaClass, QName xsdType, boolean both) {

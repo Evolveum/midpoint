@@ -98,16 +98,18 @@ public class GuiUserDto extends UserDto implements Selectable {
 		CredentialsType credentials = getXmlObject().getCredentials();
 		if (credentials == null) {
 			credentials = new CredentialsType();
-			getXmlObject().setCredentials(credentials);
+			
 		}
 		CredentialsType.Password password = credentials.getPassword();
 		if (password == null) {
 			password = new CredentialsType.Password();
-			credentials.setPassword(password);
+			
 		}
 
 		try {
 			password.setProtectedString(protector.encryptString(password1));
+			credentials.setPassword(password);
+			getXmlObject().setCredentials(credentials);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't encrypt credentials", ex);
 			throw new SystemException(ex.getMessage(), ex);
