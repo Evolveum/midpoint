@@ -88,21 +88,21 @@ public class MidpointAspect {
 		String prev = null;
 		//Profiling start
 		long startTime = System.nanoTime();
-		
+
 		try {
 			//Marking MDC->Subsystem with current one subsystem and mark previous
 			prev = (String) MDC.get("subsystem");
 			MDC.put("subsystem", subsystem);
-			
+
 			//is profiling info is needed
 			if (LOGGER_PROFILING.isInfoEnabled()) {
 				LOGGER_PROFILING.info("#### Entry: {}->{}", getClassName(pjp), pjp.getSignature().getName());
 				//If debug enable get entry parameters and log them
-				if (LOGGER_PROFILING.isDebugEnabled()) {
+				if (LOGGER_PROFILING.isTraceEnabled()) {
 					final Object[] args = pjp.getArgs();
-					//				final String[] names = ((CodeSignature) pjp.getSignature()).getParameterNames();
-					//				@SuppressWarnings("unchecked")
-					//				final Class<CodeSignature>[] types = ((CodeSignature) pjp.getSignature()).getParameterTypes();
+					//	final String[] names = ((CodeSignature) pjp.getSignature()).getParameterNames();
+					//	@SuppressWarnings("unchecked")
+					//	final Class<CodeSignature>[] types = ((CodeSignature) pjp.getSignature()).getParameterTypes();
 					final StringBuffer sb = new StringBuffer();
 					sb.append("###### args: ");
 					sb.append("(");
@@ -114,7 +114,7 @@ public class MidpointAspect {
 							sb.append(", ");
 						}
 					}
-					LOGGER_PROFILING.debug(sb.toString());
+					LOGGER_PROFILING.trace(sb.toString());
 				}
 			}
 
@@ -126,30 +126,32 @@ public class MidpointAspect {
 
 		} finally {
 			//Restore previously marked subsystem executed before return
-			
+
 			if (LOGGER_PROFILING.isInfoEnabled()) {
 				StringBuilder sb = new StringBuilder();
 				sb.append("##### Exit: ");
 				sb.append(getClassName(pjp));
 				sb.append("->");
 				sb.append(pjp.getSignature().getName());
-				sb.append(" etime: ");
-				//Mark end of processing
-				long elapsed = System.nanoTime() - startTime;
-				sb.append((long) (elapsed / 1000000));
-				sb.append('.');
-				long mikros = (long) (elapsed / 1000) % 1000;
-				if (mikros < 100) {
-					sb.append('0');
-				}
-				if (mikros < 10) {
-					sb.append('0');
-				}
-				sb.append(mikros);
-				sb.append(" ms");
-				LOGGER_PROFILING.info(sb.toString());
 				if (LOGGER_PROFILING.isDebugEnabled()) {
-					LOGGER_PROFILING.debug("###### retval: {}", formatVal(retValue));
+					sb.append(" etime: ");
+					//Mark end of processing
+					long elapsed = System.nanoTime() - startTime;
+					sb.append((long) (elapsed / 1000000));
+					sb.append('.');
+					long mikros = (long) (elapsed / 1000) % 1000;
+					if (mikros < 100) {
+						sb.append('0');
+					}
+					if (mikros < 10) {
+						sb.append('0');
+					}
+					sb.append(mikros);
+					sb.append(" ms");
+				}
+				LOGGER_PROFILING.info(sb.toString());
+				if (LOGGER_PROFILING.isTraceEnabled()) {
+					LOGGER_PROFILING.trace("###### retval: {}", formatVal(retValue));
 				}
 			}
 			//Restore MDC
