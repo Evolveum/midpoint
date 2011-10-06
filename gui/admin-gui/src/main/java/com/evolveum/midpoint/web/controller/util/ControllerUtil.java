@@ -251,4 +251,17 @@ public class ControllerUtil {
 	public static Date parseCalendarToDate(XMLGregorianCalendar calendar) {
 		return calendar.toGregorianCalendar().getTime();
 	}
+	
+	public static void printResults(Trace logger, OperationResult result) {
+		if (result == null) {
+			return;
+		}
+		if (!result.isSuccess()) {
+			FacesUtils.addMessage(result);
+		} 
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug(result.dump());
+		}
+	}
 }

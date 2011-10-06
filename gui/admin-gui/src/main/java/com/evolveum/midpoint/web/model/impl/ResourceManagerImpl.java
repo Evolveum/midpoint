@@ -17,6 +17,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.model.dto.ConnectorHostDto;
@@ -95,7 +96,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 					+ resourceObjectShadowType.getClass() + "'.", ex);
 		}
 
-		printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result);
 
 		return resourceObjectShadowDtoList;
 	}
@@ -117,7 +118,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 			result = new OperationResult(ResourceManager.TEST_CONNECTION);
 		}
 
-		printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result);
 		return result;
 	}
 
@@ -146,7 +147,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 			result.recordFatalError(ex);
 		}
 
-		printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result);
 	}
 
 	@Override
@@ -174,7 +175,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 			result.computeStatus("Error while listing resource objects.", "");
 		}
 
-		printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result);
 
 		return collection;
 	}
@@ -217,7 +218,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 					"Some problem occured during connector hosts listing.");
 		}
 
-		printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result);
 
 		return collection;
 	}
@@ -237,6 +238,6 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 					+ "'.");
 		}
 
-		printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result);
 	}
 }

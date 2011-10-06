@@ -46,6 +46,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.ObjectBean;
 import com.evolveum.midpoint.web.controller.TemplateController;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.repo.RepositoryManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
@@ -289,26 +290,14 @@ public class DebugViewController implements Serializable {
 		if (objects.isEmpty()) {
 //			FacesUtils.addErrorMessage("Couldn't create object from xml.");
 			LoggingUtils.logException(TRACE, "Couldn't create object from xml.", new IllegalArgumentException(), new Object());
-			printResults(TRACE, result);
+			ControllerUtil.printResults(TRACE, result);
 			return null;
 		}
 		
-		printResults(TRACE, result);
+		ControllerUtil.printResults(TRACE, result);
 		
 		return objects.get(0);
 	}
 	
 	
-	protected void printResults(Trace logger, OperationResult result) {
-		if (result == null) {
-			return;
-		}
-		if (!result.isSuccess()) {
-			FacesUtils.addMessage(result);
-		}
-
-		if (logger.isDebugEnabled()) {
-			logger.debug(result.dump());
-		}
-	}
 }

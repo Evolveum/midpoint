@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.RoleManager;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.RoleDto;
@@ -98,7 +99,7 @@ public class RoleManagerImpl extends ObjectManagerImpl<RoleType, RoleDto> implem
 
 		// if role is new, operation result will be printed during add operation
 		if (!isNew) {
-			printResults(LOGGER, result);
+			ControllerUtil.printResults(LOGGER, result);
 		}
 
 		return new HashSet<PropertyChange>();

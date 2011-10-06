@@ -40,6 +40,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.ResourceCapability;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.AccountManager;
 import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
@@ -147,7 +148,7 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 		}
 
 		result.computeStatus("Couldn't submit user '" + changedObject.getName() + "'.");
-		printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result);
 		return new HashSet<PropertyChange>();
 	}
 

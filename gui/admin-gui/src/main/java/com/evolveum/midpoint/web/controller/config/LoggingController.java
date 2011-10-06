@@ -335,13 +335,20 @@ public class LoggingController implements Serializable {
 		OperationResult result = new OperationResult("Load Logging Configuration");
 		try {
 			loggingManager.updateConfiguration(logging, result);
+			result.recordSuccess();
+			
 		} catch (Exception ex) {
+			result.recordFatalError("Couldn't update logging configuration.", ex);
 			LoggingUtils.logException(LOGGER, "Couldn't update logging configuration", ex);
 		} finally {
 			result.computeStatus("Couldn't update logging configuration.");
-			if (!result.isSuccess()) {
-				FacesUtils.addMessage(result);
+			ControllerUtil.printResults(LOGGER, result);
+			if (result.isSuccess()){
+				FacesUtils.addSuccessMessage("Changes saved sucessfully");
 			}
+//			if (!result.isSuccess()) {
+//				FacesUtils.addMessage(result);
+//			}
 		}
 
 		initController();
@@ -362,7 +369,9 @@ public class LoggingController implements Serializable {
 		try {
 			LoggingConfigurationType logging = loggingManager.getConfiguration(result);
 			if (logging == null) {
-				FacesUtils.addMessage(result);
+				result.recordFatalError("Couldn't get logging configuration.");
+				LoggingUtils.logException(LOGGER, "Couldn't get logging configuration.", new IllegalStateException(), "");
+				ControllerUtil.printResults(LOGGER, result);
 				return PAGE_NAVIGATION;
 			}
 
@@ -371,7 +380,9 @@ public class LoggingController implements Serializable {
 
 			for (AppenderConfigurationType appender : logging.getAppender()) {
 				if (!(appender instanceof FileAppenderConfigurationType)) {
-					FacesUtils.addWarnMessage("Unknown appender '" + appender.getName() + "'.");
+					result.recordPartialError("Unknown appender '" + appender.getName() + "'.");
+					LoggingUtils.logException(LOGGER, "Unknown appender {}.", new IllegalStateException(), appender.getName());
+//					FacesUtils.addWarnMessage("Unknown appender '" + appender.getName() + "'.");
 					continue;
 				}
 				getAppenders().add(createAppenderListItem((FileAppenderConfigurationType) appender));
@@ -387,13 +398,13 @@ public class LoggingController implements Serializable {
 				getLoggers().add(createSubsystemLoggerListItem(id, logger));
 				id++;
 			}
+			result.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get logging configuration.", ex);
-			FacesUtils.addErrorMessage("Couldn't get logging configuration.", ex);
+			result.recordFatalError("Couldn't get logging configuration.");
+//			FacesUtils.addErrorMessage("Couldn't get logging configuration.", ex);
 		} finally {
-			if (!result.isSuccess()) {
-				FacesUtils.addMessage(result);
-			}
+			ControllerUtil.printResults(LOGGER, result);
 		}
 
 		return PAGE_NAVIGATION;

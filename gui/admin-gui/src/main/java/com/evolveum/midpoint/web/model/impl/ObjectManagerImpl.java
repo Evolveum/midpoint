@@ -36,6 +36,7 @@ import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.dto.ObjectDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
@@ -96,7 +97,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 			result.computeStatus("Couldn't get object '" + oid + "' from model.");
 		}
 
-		printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result);
 
 		return objectType;
 	}
@@ -121,7 +122,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 			result.computeStatus("Couldn't get object '" + oid + "' from model.");
 		}
 
-		printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result);
 
 		return object;
 	}
@@ -142,7 +143,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 			result.computeStatus("Couldn't delete object '" + oid + "' from model.");
 		}
 
-		printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result);
 	}
 
 	@Override
@@ -163,7 +164,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 			result.computeStatus("Couldn't add object '" + object.getName() + "' to model.");
 		}
 
-		printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result);
 
 		return oid;
 	}
@@ -187,7 +188,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 			result.computeStatus("Couldn't list '" + type + "' objects from model.");
 		}
 
-		printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result);
 		return collection;
 	}
 
@@ -212,18 +213,18 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 		return createObject(null);
 	}
 
-	protected void printResults(Trace logger, OperationResult result) {
-		if (result == null) {
-			return;
-		}
-		if (!result.isSuccess()) {
-			FacesUtils.addMessage(result);
-		}
-
-		if (logger.isDebugEnabled()) {
-			logger.debug(result.dump());
-		}
-	}
+//	protected void printResults(Trace logger, OperationResult result) {
+//		if (result == null) {
+//			return;
+//		}
+//		if (!result.isSuccess()) {
+//			FacesUtils.addMessage(result);
+//		}
+//
+//		if (logger.isDebugEnabled()) {
+//			logger.debug(result.dump());
+//		}
+//	}
 
 	private void isObjectTypeSupported(ObjectType object) {
 		Class<? extends ObjectType> type = getSupportedObjectClass();

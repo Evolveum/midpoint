@@ -46,6 +46,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.UserManager;
@@ -173,7 +174,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 		}
 
 		result.computeStatus("Couldn't submit user '" + changedObject.getName() + "'.");
-		printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result);
 
 		return set;
 	}
