@@ -55,6 +55,7 @@
 		<module>system-init</module>
 		<module>repo-test-util</module>
 		<module>repo-basex-impl</module>
+		<module>repo-cache</module>
 		<module>task-api</module>
 		<module>task-impl</module>
 	</modules>
