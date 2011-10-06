@@ -29,6 +29,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeMethod;
@@ -67,6 +68,7 @@ public class UserTypeHandlerTest extends AbstractTestNGSpringContextTests {
 	@Autowired(required = true)
 	private ModelController model;
 	@Autowired(required = true)
+	@Qualifier("cacheRepositoryService")
 	private RepositoryService repository;
 	@Autowired(required = true)
 	private ProvisioningService provisioning;

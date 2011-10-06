@@ -47,6 +47,7 @@ public class RepositoryFactory implements RuntimeConfiguration {
 	Configuration config;
 	RepositoryServiceFactory repositoryServiceFactory;
 	RepositoryService repositoryService;
+	RepositoryService cacheRepositoryService;
 	
 	public void init() {
 		loadConfiguration();
@@ -120,6 +121,21 @@ public class RepositoryFactory implements RuntimeConfiguration {
 			}
 		}
 		return repositoryService;
+	}
+
+	public synchronized RepositoryService getCacheRepositoryService() {
+		if (cacheRepositoryService == null) {
+			try {
+				ClassLoader classLoader = RepositoryFactory.class.getClassLoader();
+				//FIXME: create hammer factory factory solution also for RepositoryCache, if required
+		        Class<RepositoryService> repositoryCacheServiceClass = (Class<RepositoryService>) classLoader.loadClass("com.evolveum.midpoint.repo.cache.RepositoryCache");
+		        cacheRepositoryService = repositoryCacheServiceClass.getConstructor(RepositoryService.class).newInstance(getRepositoryService());
+			} catch (Exception e) {
+				LoggingUtils.logException(LOGGER, "Failed to get cache repository service. ExceptionClass = {}", e, e.getClass().getName());
+				throw new SystemException("Failed to get cache repository service", e);
+			}
+		}
+		return cacheRepositoryService;
 	}
 	
 	private void loadConfiguration() {

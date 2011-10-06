@@ -36,6 +36,7 @@ import javax.xml.bind.JAXBException;
 
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
@@ -65,6 +66,7 @@ public class ControllerListAccountShadowOwnerTest extends AbstractTestNGSpringCo
 	@Autowired(required = true)
 	private ModelController controller;
 	@Autowired(required = true)
+	@Qualifier("cacheRepositoryService")
 	private RepositoryService repository;
 	@Autowired(required = true)
 	private ProvisioningService provisioning;

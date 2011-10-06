@@ -37,6 +37,10 @@
 		class="com.evolveum.midpoint.repo.api.RepositoryService" depends-on="repositoryFactory" init-method="init"
 		destroy-method="close"></bean>
 
+	<bean name="cacheRepositoryService" factory-bean="repositoryFactory" factory-method="getCacheRepositoryService"
+		class="com.evolveum.midpoint.repo.api.RepositoryService" depends-on="repositoryFactory" init-method="init"
+		destroy-method="destroy"></bean>
+
 	<!--  Scan for components:
 		 	- protector (KeyStoreConfigurator)
 	 -->

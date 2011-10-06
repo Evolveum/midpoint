@@ -21,6 +21,7 @@ import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
@@ -46,6 +47,7 @@ public class ControllerModifyObjectTest extends AbstractTestNGSpringContextTests
 	@Autowired(required = true)
 	private ModelController controller;
 	@Autowired(required = true)
+	@Qualifier("cacheRepositoryService")
 	private RepositoryService repository;
 	@Autowired(required = true)
 	private ProvisioningService provisioning;

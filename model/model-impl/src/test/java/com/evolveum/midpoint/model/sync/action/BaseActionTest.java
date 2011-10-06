@@ -26,6 +26,7 @@ import java.io.File;
 import javax.xml.bind.JAXBElement;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.model.controller.ModelController;
@@ -54,6 +55,7 @@ public abstract class BaseActionTest extends AbstractTestNGSpringContextTests  {
 	@Autowired(required = true)
 	protected ProvisioningService provisioning;
 	@Autowired(required = true)
+	@Qualifier("cacheRepositoryService")	
 	protected RepositoryService repository;
 	@Autowired(required = true)
 	protected SchemaHandler schemaHandler;

@@ -22,8 +22,6 @@ package com.evolveum.midpoint.repo.cache;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultList;
@@ -52,10 +50,11 @@ public class RepositoryCache implements RepositoryService {
 
 	private static ThreadLocal<Map<String,ObjectType>> cacheInstance;
 	
-	@Autowired(required=true)
 	private RepositoryService repository;
 	
-	private RepositoryCache() {
+	public RepositoryCache(RepositoryService repository) {
+		super();
+		this.repository = repository;
 	}
 	
 	private static Map<String,ObjectType> getCache() {
@@ -65,6 +64,9 @@ public class RepositoryCache implements RepositoryService {
 			cacheInstance.set(inst);
 		}
 		return inst;
+	}
+	
+	public static void init() {
 	}
 	
 	public static void destroy() {

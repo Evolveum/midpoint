@@ -33,6 +33,7 @@ import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -104,6 +105,7 @@ public class ModelControllerImpl implements ModelController {
 	@Autowired(required = true)
 	private transient ProvisioningService provisioning;
 	@Autowired(required = true)
+	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService repository;
 	@Autowired(required = true)
 	private transient SchemaHandler schemaHandler;

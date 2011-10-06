@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -92,6 +93,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Autowired
 	private ShadowCache shadowCache;
 	@Autowired
+	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 	@Autowired
 	private ChangeNotificationDispatcher changeNotificationDispatcher;

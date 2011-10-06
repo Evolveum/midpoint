@@ -37,6 +37,7 @@ import javax.xml.bind.JAXBException;
 
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
@@ -68,6 +69,7 @@ public class ControllerGetObjectTest extends AbstractTestNGSpringContextTests  {
 	@Autowired(required = true)
 	private ModelController controller;
 	@Autowired(required = true)
+	@Qualifier("cacheRepositoryService")
 	private RepositoryService repository;
 
 	@BeforeMethod

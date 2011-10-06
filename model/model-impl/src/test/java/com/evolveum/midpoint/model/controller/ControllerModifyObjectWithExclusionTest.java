@@ -33,6 +33,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
@@ -74,6 +75,7 @@ public class ControllerModifyObjectWithExclusionTest extends AbstractTestNGSprin
 	@Autowired(required = true)
 	private ModelController controller;
 	@Autowired(required = true)
+	@Qualifier("cacheRepositoryService")
 	private RepositoryService repository;
 	@Autowired(required = true)
 	private ProvisioningService provisioning;
