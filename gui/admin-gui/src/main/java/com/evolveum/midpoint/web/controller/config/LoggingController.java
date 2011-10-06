@@ -67,6 +67,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SubSystemLoggerConfi
 public class LoggingController implements Serializable {
 
 	public static final String PAGE_NAVIGATION = "/config/logging?faces-redirect=true";
+	public static final String PAGE_BASICLOGGIN_NAVIGATION = "/config/basicLogging?faces-redirect=true";
 	public static final String PARAM_APPENDER_ID = "appenderName";
 	public static final String PARAM_LOGGER_ID = "loggerId";
 	private static final Trace LOGGER = TraceManager.getTrace(LoggingController.class);
@@ -77,8 +78,12 @@ public class LoggingController implements Serializable {
 	private LoggingLevelType rootLoggerLevel;
 	private String rootAppender;
 
+	private LoggingLevelType midpointLoggerLevel;
+	private String midpointAppender;
+
 	private List<BasicLoggerListItem> loggers;
 	private List<AppenderListItem> appenders;
+	private List<SubsystemLoggerListItem> subsystemLoggers;
 
 	private boolean selectAllLoggers = false;
 	private boolean selectAllAppenders = false;
@@ -89,7 +94,7 @@ public class LoggingController implements Serializable {
 			levels.add(new SelectItem(type.value()));
 		}
 
-//		Collections.sort(levels, new SelectItemComparator());
+		// Collections.sort(levels, new SelectItemComparator());
 
 		return levels;
 	}
@@ -132,6 +137,36 @@ public class LoggingController implements Serializable {
 	public void setRootAppender(String rootAppender) {
 		this.rootAppender = rootAppender;
 	}
+	
+	public void setMidpointLevelString(String midpointLoggerLevel) {
+		if (StringUtils.isEmpty(midpointLoggerLevel)) {
+			midpointLoggerLevel = null;
+		}
+		for (LoggingLevelType level : LoggingLevelType.values()) {
+			if (level.value().equals(midpointLoggerLevel)) {
+				this.midpointLoggerLevel = level;
+				break;
+			}
+		}
+	}
+
+	public String getMidpointLevelString() {
+		if (midpointLoggerLevel == null) {
+			return null;
+		}
+
+		return midpointLoggerLevel.value();
+	}
+
+	public String getMidpointAppender() {
+		return midpointAppender;
+	}
+
+	public void setMidpointAppender(String midpointAppender) {
+		this.midpointAppender = midpointAppender;
+	}
+	
+	
 
 	public List<AppenderListItem> getAppenders() {
 		if (appenders == null) {
@@ -285,6 +320,12 @@ public class LoggingController implements Serializable {
 			}
 		}
 
+		for (BasicLoggerListItem item : getSubsystemLoggers()) {
+			if (item.getId() == id) {
+				return item;
+			}
+		}
+
 		return null;
 	}
 
@@ -336,19 +377,19 @@ public class LoggingController implements Serializable {
 		try {
 			loggingManager.updateConfiguration(logging, result);
 			result.recordSuccess();
-			
+
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't update logging configuration.", ex);
 			LoggingUtils.logException(LOGGER, "Couldn't update logging configuration", ex);
 		} finally {
 			result.computeStatus("Couldn't update logging configuration.");
 			ControllerUtil.printResults(LOGGER, result);
-			if (result.isSuccess()){
+			if (result.isSuccess()) {
 				FacesUtils.addSuccessMessage("Changes saved sucessfully");
 			}
-//			if (!result.isSuccess()) {
-//				FacesUtils.addMessage(result);
-//			}
+			// if (!result.isSuccess()) {
+			// FacesUtils.addMessage(result);
+			// }
 		}
 
 		initController();
@@ -356,6 +397,69 @@ public class LoggingController implements Serializable {
 
 	public void cancelPerformed() {
 		initController();
+	}
+
+	public String initBasicLogging(){
+		OperationResult result = new OperationResult("Load Logging Configuration");
+		List<SubsystemLoggerListItem> subsystemItems = null;
+		int id = 0;
+		try {
+			LoggingConfigurationType logging = loggingManager.getConfiguration(result);
+			if (logging == null) {
+				result.recordFatalError("Couldn't get logging configuration.");
+				LoggingUtils.logException(LOGGER, "Couldn't get logging configuration.", new IllegalStateException(), "");
+				ControllerUtil.printResults(LOGGER, result);
+				return PAGE_NAVIGATION;
+			}
+			
+		
+			if (logging.getSubSystemLogger().isEmpty()){
+				for (LoggingComponentType loggingComp : LoggingComponentType.values()){
+					SubsystemLoggerListItem subsystemItem = new SubsystemLoggerListItem(id);
+					subsystemItem.setComponent(loggingComp);
+					subsystemItem.setAppenders(new ArrayList<String>());
+					subsystemItem.setLevel(null);
+					getSubsystemLoggers().add(subsystemItem);
+					id++;
+				}
+			}
+		
+			for (SubSystemLoggerConfigurationType logger : logging.getSubSystemLogger()) {
+//				subsystemItems = new ArrayList<SubsystemLoggerListItem>();
+				SubsystemLoggerListItem subsystemLoggerItem = createSubsystemLoggerListItem(id, logger);
+//				subsystemItems.add(subsystemLoggerItem);
+				id++;
+				if (subsystemLoggerItem.getComponent().equals(LoggingComponentType.ALL)){
+					midpointLoggerLevel = subsystemLoggerItem.getLevel();
+					midpointAppender = subsystemLoggerItem.getAppendersText();
+					break;
+				}
+				for (LoggingComponentType loggingComp : LoggingComponentType.values()){
+					
+					if (loggingComp.equals(subsystemLoggerItem.getComponent())){
+						getSubsystemLoggers().add(subsystemLoggerItem);
+						id ++;
+					} else {
+						SubsystemLoggerListItem subsystemItem = new SubsystemLoggerListItem(id);
+						subsystemItem.setComponent(loggingComp);
+						subsystemItem.setAppenders(new ArrayList<String>());
+						subsystemItem.setLevel(null);
+						getSubsystemLoggers().add(subsystemItem);
+						id++;
+					}
+				}
+			}		
+			
+		}catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get logging configuration.", ex);
+			result.recordFatalError("Couldn't get logging configuration.");
+//			FacesUtils.addErrorMessage("Couldn't get logging configuration.", ex);
+		} finally {
+			ControllerUtil.printResults(LOGGER, result);
+		}
+
+	
+		return PAGE_BASICLOGGIN_NAVIGATION;
 	}
 
 	public String initController() {
@@ -370,7 +474,8 @@ public class LoggingController implements Serializable {
 			LoggingConfigurationType logging = loggingManager.getConfiguration(result);
 			if (logging == null) {
 				result.recordFatalError("Couldn't get logging configuration.");
-				LoggingUtils.logException(LOGGER, "Couldn't get logging configuration.", new IllegalStateException(), "");
+				LoggingUtils.logException(LOGGER, "Couldn't get logging configuration.",
+						new IllegalStateException(), "");
 				ControllerUtil.printResults(LOGGER, result);
 				return PAGE_NAVIGATION;
 			}
@@ -381,8 +486,10 @@ public class LoggingController implements Serializable {
 			for (AppenderConfigurationType appender : logging.getAppender()) {
 				if (!(appender instanceof FileAppenderConfigurationType)) {
 					result.recordPartialError("Unknown appender '" + appender.getName() + "'.");
-					LoggingUtils.logException(LOGGER, "Unknown appender {}.", new IllegalStateException(), appender.getName());
-//					FacesUtils.addWarnMessage("Unknown appender '" + appender.getName() + "'.");
+					LoggingUtils.logException(LOGGER, "Unknown appender {}.", new IllegalStateException(),
+							appender.getName());
+					// FacesUtils.addWarnMessage("Unknown appender '" +
+					// appender.getName() + "'.");
 					continue;
 				}
 				getAppenders().add(createAppenderListItem((FileAppenderConfigurationType) appender));
@@ -395,14 +502,16 @@ public class LoggingController implements Serializable {
 			}
 
 			for (SubSystemLoggerConfigurationType logger : logging.getSubSystemLogger()) {
-				getLoggers().add(createSubsystemLoggerListItem(id, logger));
+				SubsystemLoggerListItem subsystemLoggerItem = createSubsystemLoggerListItem(id, logger);
+				getLoggers().add(subsystemLoggerItem);
 				id++;
 			}
 			result.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get logging configuration.", ex);
 			result.recordFatalError("Couldn't get logging configuration.");
-//			FacesUtils.addErrorMessage("Couldn't get logging configuration.", ex);
+			// FacesUtils.addErrorMessage("Couldn't get logging configuration.",
+			// ex);
 		} finally {
 			ControllerUtil.printResults(LOGGER, result);
 		}
@@ -510,7 +619,7 @@ public class LoggingController implements Serializable {
 		LoggingConfigurationType configuration = new LoggingConfigurationType();
 		configuration.setRootLoggerAppender(getRootAppender());
 		configuration.setRootLoggerLevel(rootLoggerLevel);
-		
+
 		for (AppenderListItem item : appenders) {
 			AppenderConfigurationType appender = createAppenderType(item);
 			configuration.getAppender().add(appender);
@@ -528,4 +637,16 @@ public class LoggingController implements Serializable {
 
 		return configuration;
 	}
+
+	public List<SubsystemLoggerListItem> getSubsystemLoggers() {
+		if (subsystemLoggers == null) {
+			subsystemLoggers = new ArrayList<SubsystemLoggerListItem>();
+		}
+		return subsystemLoggers;
+	}
+
+	public void setSubsystemLoggers(List<SubsystemLoggerListItem> subsystemLoggers) {
+		this.subsystemLoggers = subsystemLoggers;
+	}
+
 }
