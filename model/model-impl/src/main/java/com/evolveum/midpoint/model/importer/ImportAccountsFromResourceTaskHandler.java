@@ -186,8 +186,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 		ResourceType resource = null;
 		try {
 			
-			ObjectType object = task.getObject(opResult);
-			resource = (ResourceType)object;
+			resource = task.getObject(ResourceType.class, opResult);
 			
 		} catch (ObjectNotFoundException ex) {
 			String resourceOid = null;

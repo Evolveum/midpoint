@@ -64,6 +64,11 @@
 			<version>1.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-cache</artifactId>
+			<version>1.9-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 			<groupId>com.evolveum.midpoint.provisioning</groupId>
 			<artifactId>provisioning-api</artifactId>
 			<version>1.9-SNAPSHOT</version>

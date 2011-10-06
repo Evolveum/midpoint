@@ -48,6 +48,7 @@ import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandle
 import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.ResultArrayList;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -147,16 +148,20 @@ public class ModelControllerImpl implements ModelController {
 			subResult.recordSuccess();
 		} catch (ObjectAlreadyExistsException ex) {
 			subResult.recordFatalError("Object with name '" + object.getName() + "' already exists.", ex);
+			RepositoryCache.destroy();
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
 			subResult.recordFatalError(ex);
+			RepositoryCache.destroy();
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't add object", ex, object.getName());
 			subResult.recordFatalError(ex);
 			if (ex instanceof SystemException) {
+				RepositoryCache.destroy();
 				throw (SystemException) ex;
 			}
+			RepositoryCache.destroy();
 			throw new SystemException(ex.getMessage(), ex);
 		} finally {
 			subResult.computeStatus("Error occured during add object '" + object.getName() + "'.",
@@ -166,6 +171,7 @@ public class ModelControllerImpl implements ModelController {
 			}
 		}
 
+		RepositoryCache.destroy();
 		return oid;
 	}
 
@@ -214,6 +220,7 @@ public class ModelControllerImpl implements ModelController {
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list objects", ex);
 			subResult.recordFatalError("Couldn't list objects.", ex);
+			RepositoryCache.destroy();
 			throw new SystemException(ex.getMessage(), ex);
 		} finally {
 			if (LOGGER.isDebugEnabled()) {
@@ -228,6 +235,7 @@ public class ModelControllerImpl implements ModelController {
 
 		LOGGER.debug("Returning {} objects.", new Object[] { list.size() });
 
+		RepositoryCache.destroy();
 		return list;
 	}
 
@@ -284,6 +292,7 @@ public class ModelControllerImpl implements ModelController {
 			list.setTotalResultCount(0);
 		}
 
+		RepositoryCache.destroy();
 		return list;
 	}
 
@@ -291,6 +300,7 @@ public class ModelControllerImpl implements ModelController {
 	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType change,
 			OperationResult result) throws ObjectNotFoundException {
 		modifyObjectWithExclusion(type, change, null, result);
+		RepositoryCache.destroy();
 	}
 
 	@Override
@@ -354,6 +364,7 @@ public class ModelControllerImpl implements ModelController {
 		if (UserType.class.equals(clazz)) {
 			UserTypeHandler handler = new UserTypeHandler(this, provisioning, repository, schemaHandler);
 			handler.deleteObject(clazz, oid, subResult);
+			RepositoryCache.destroy();
 			return;
 		}
 
@@ -372,12 +383,14 @@ public class ModelControllerImpl implements ModelController {
 		} catch (ObjectNotFoundException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't delete object with oid {}", ex, oid);
 			subResult.recordFatalError("Couldn't find object with oid '" + oid + "'.", ex);
+			RepositoryCache.destroy();
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER,
 					"Couldn't delete object with oid {}, potential consistency violation", ex, oid);
 			subResult.recordFatalError("Couldn't delete object with oid '" + oid
 					+ "', potential consistency violation");
+			RepositoryCache.destroy();
 			throw new ConsistencyViolationException("Couldn't delete object with oid '" + oid
 					+ "', potential consistency violation", ex);
 		} finally {
@@ -385,6 +398,7 @@ public class ModelControllerImpl implements ModelController {
 				LOGGER.debug(subResult.dump(false));
 			}
 		}
+		RepositoryCache.destroy();
 	}
 
 	@Override
@@ -399,6 +413,7 @@ public class ModelControllerImpl implements ModelController {
 			LOGGER.trace(DebugUtil.prettyPrint(properties));
 		}
 
+		RepositoryCache.destroy();
 		throw new UnsupportedOperationException("Not implemented yet.");
 	}
 
@@ -419,7 +434,7 @@ public class ModelControllerImpl implements ModelController {
 		} catch (ObjectNotFoundException ex) {
 			LoggingUtils.logException(LOGGER, "Account with oid {} doesn't exists", ex, accountOid);
 			subResult.recordFatalError("Account with oid '" + accountOid + "' doesn't exists", ex);
-
+			RepositoryCache.destroy();
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
@@ -431,7 +446,7 @@ public class ModelControllerImpl implements ModelController {
 				LOGGER.debug(subResult.dump(false));
 			}
 		}
-
+		RepositoryCache.destroy();
 		return user;
 	}
 
@@ -453,6 +468,7 @@ public class ModelControllerImpl implements ModelController {
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
 			subResult.recordFatalError("Resource with oid '" + resourceOid + "' was not found.", ex);
+			RepositoryCache.destroy();
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list resource object shadows type "
@@ -470,7 +486,7 @@ public class ModelControllerImpl implements ModelController {
 			list = new ResultArrayList<T>();
 			list.setTotalResultCount(0);
 		}
-
+		RepositoryCache.destroy();
 		return list;
 	}
 
@@ -492,14 +508,30 @@ public class ModelControllerImpl implements ModelController {
 				paging);
 
 		ResultList<? extends ResourceObjectShadowType> list = null;
-		list = provisioning.listResourceObjects(resourceOid, objectClass, paging, subResult);
+		try {
+			
+			list = provisioning.listResourceObjects(resourceOid, objectClass, paging, subResult);
+			
+		} catch (SchemaException ex) {
+			RepositoryCache.destroy();
+			subResult.recordFatalError("Schema violation");
+			throw ex;
+		} catch (CommunicationException ex) {
+			RepositoryCache.destroy();
+			subResult.recordFatalError("Communication error");
+			throw ex;
+		} catch (ObjectNotFoundException ex) {
+			RepositoryCache.destroy();
+			subResult.recordFatalError("Object not found");
+			throw ex;
+		}
 		subResult.recordSuccess();
 
 		if (list == null) {
 			list = new ResultArrayList<ResourceObjectShadowType>();
 			list.setTotalResultCount(0);
 		}
-
+		RepositoryCache.destroy();
 		return list;
 	}
 
@@ -518,10 +550,13 @@ public class ModelControllerImpl implements ModelController {
 		try {
 			testResult = provisioning.testResource(resourceOid);
 		} catch (ObjectNotFoundException ex) {
+			RepositoryCache.destroy();
 			throw ex;
 		} catch (SystemException ex) {
+			RepositoryCache.destroy();
 			throw ex;
 		} catch (Exception ex) {
+			RepositoryCache.destroy();
 			throw new SystemException(ex.getMessage(), ex);
 		}
 
@@ -532,6 +567,7 @@ public class ModelControllerImpl implements ModelController {
 		} else {
 			LOGGER.debug("Operation sub result was null (Error occured).");
 		}
+		RepositoryCache.destroy();
 		return testResult;
 	}
 
@@ -552,7 +588,14 @@ public class ModelControllerImpl implements ModelController {
 
 		// Fetch resource definition from the repo/provisioning
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
-		ResourceType resource = getObject(ResourceType.class, resourceOid, resolve, result);
+		ResourceType resource = null;
+		try {
+			resource = getObject(ResourceType.class, resourceOid, resolve, result);
+		} catch (ObjectNotFoundException ex) {
+			result.recordFatalError("Object not found");
+			RepositoryCache.destroy();
+			throw ex;
+		}
 
 		importAccountsFromResourceTaskHandler.launch(resource, objectClass, task, result);
 
@@ -564,6 +607,7 @@ public class ModelControllerImpl implements ModelController {
 		} else {
 			result.recordSuccess();
 		}
+		RepositoryCache.destroy();
 	}
 
 	@Override
@@ -572,6 +616,7 @@ public class ModelControllerImpl implements ModelController {
 		// OperationResult result =
 		// parentResult.createSubresult(IMPORT_OBJECTS_FROM_FILE);
 		// TODO Auto-generated method stub
+		RepositoryCache.destroy();
 		throw new NotImplementedException();
 	}
 
@@ -581,6 +626,7 @@ public class ModelControllerImpl implements ModelController {
 		OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_STREAM);
 		objectImporter.importObjects(input, options, task, result, repository);
 		result.computeStatus("Couldn't import object from input stream.");
+		RepositoryCache.destroy();
 	}
 
 	@Override
@@ -594,7 +640,16 @@ public class ModelControllerImpl implements ModelController {
 		subResult.addParams(new String[] { "oid", "resolve", "class" }, oid, resolve, clazz);
 
 		BasicHandler handler = new BasicHandler(this, provisioning, repository, schemaHandler);
-		return handler.getObject(clazz, oid, resolve, subResult);
+		T object = null;
+		try {
+			object = handler.getObject(clazz, oid, resolve, subResult);
+		} catch (ObjectNotFoundException ex) {
+			subResult.recordFatalError("Object not found");
+			RepositoryCache.destroy();
+			throw ex;
+		}
+		RepositoryCache.destroy();
+		return object;
 	}
 
 	/*
@@ -614,9 +669,11 @@ public class ModelControllerImpl implements ModelController {
 			discoverConnectors = provisioning.discoverConnectors(hostType, result);
 		} catch (CommunicationException e) {
 			result.recordFatalError(e.getMessage(), e);
+			RepositoryCache.destroy();
 			throw e;
 		}
 		result.computeStatus("Connector discovery failed");
+		RepositoryCache.destroy();
 		return discoverConnectors;
 	}
 
@@ -852,5 +909,7 @@ public class ModelControllerImpl implements ModelController {
 		provisioning.postInit(result);
 
 		result.computeStatus("Error occured during post initialization process.");
+		
+		RepositoryCache.destroy();
 	}
 }

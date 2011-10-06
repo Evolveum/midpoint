@@ -48,7 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  */
 public class RepositoryCache implements RepositoryService {
 
-	private static ThreadLocal<Map<String,ObjectType>> cacheInstance;
+	private static ThreadLocal<Map<String,ObjectType>> cacheInstance = new ThreadLocal<Map<String,ObjectType>>();
 	
 	private RepositoryService repository;
 	

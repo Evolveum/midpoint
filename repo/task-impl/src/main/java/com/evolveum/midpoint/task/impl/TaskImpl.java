@@ -227,22 +227,27 @@ public class TaskImpl implements Task {
 	 * @see com.evolveum.midpoint.task.api.Task#getObject()
 	 */
 	@Override
-	public ObjectType getObject(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	public <T extends ObjectType> T getObject(Class<T> type, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = parentResult.createSubresult(Task.class.getName()+".getObject");
 		result.addContext(OperationResult.CONTEXT_OID, oid);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskImpl.class);
 		
 		if ( object!=null ) {
 			// There is an embedded object in the task
-			result.recordSuccess();
-			return object;
+			if (type.isAssignableFrom(object.getClass())) {
+				result.recordSuccess();
+				return (T) object;
+			} else {
+				throw new IllegalArgumentException("Requested object type "+type+", but the type of object in the task is "+object.getClass());
+			}
 		}
 		if (objectRef != null) {
 			// There is object reference. Let's try to resolve it
 			try {
-				ObjectType object = repositoryService.getObject(ObjectType.class, objectRef.getOid(), null, result);
+				// Note: storing this value in field, not local variable. It will be reused.
+				object = repositoryService.getObject(type, objectRef.getOid(), null, result);
 				result.recordSuccess();
-				return object;
+				return (T) object;
 			} catch (ObjectNotFoundException ex) {
 				result.recordFatalError("Object not found", ex);
 				throw ex;

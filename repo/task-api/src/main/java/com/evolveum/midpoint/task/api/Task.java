@@ -172,7 +172,7 @@ public interface Task extends Dumpable {
 	 * @throws SchemaException 
 	 * @throws ObjectNotFoundException 
 	 */
-	public ObjectType getObject(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+	public <T extends ObjectType> T getObject(Class<T> type, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 	
 	/**
 	 * Returns reference to the object that the task is associated with.
