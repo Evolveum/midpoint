@@ -29,6 +29,8 @@ import com.evolveum.midpoint.schema.exception.ConcurrencyException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
@@ -36,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableVal
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -49,8 +52,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 public class RepositoryCache implements RepositoryService {
 
 	private static ThreadLocal<Map<String,ObjectType>> cacheInstance = new ThreadLocal<Map<String,ObjectType>>();
+	private static ThreadLocal<Integer> cacheCount = new ThreadLocal<Integer>();
 	
 	private RepositoryService repository;
+	
+	private static final Trace LOGGER = TraceManager.getTrace(RepositoryCache.class);
 	
 	public RepositoryCache(RepositoryService repository) {
 		super();
@@ -60,6 +66,7 @@ public class RepositoryCache implements RepositoryService {
 	private static Map<String,ObjectType> getCache() {
 		Map<String,ObjectType> inst = cacheInstance.get();
 		if (inst == null) {
+			LOGGER.trace("Cache: creating for thread {}",Thread.currentThread().getName());
 			inst = new HashMap<String, ObjectType>();
 			cacheInstance.set(inst);
 		}
@@ -72,18 +79,51 @@ public class RepositoryCache implements RepositoryService {
 	public static void destroy() {
 		Map<String,ObjectType> inst = cacheInstance.get();
 		if (inst != null) {
+			LOGGER.trace("Cache: DESTROY for thread {}",Thread.currentThread().getName());
 			cacheInstance.set(null);
+		}
+	}
+	
+	public static void enter() {
+		Map<String,ObjectType> inst = cacheInstance.get();
+		Integer count = cacheCount.get();
+		LOGGER.trace("Cache: ENTER for thread {}, {}",Thread.currentThread().getName(), count);
+		if (inst == null) {
+			inst = new HashMap<String, ObjectType>();
+			cacheInstance.set(inst);
+		}
+		if (count == null) {
+			count = 0;
+		}
+		cacheCount.set(count+1);
+	}
+	
+	public static void exit() {
+		Integer count = cacheCount.get();
+		LOGGER.trace("Cache: EXIT for thread {}, {}",Thread.currentThread().getName(), count);
+		if (count == null || count == 0) {
+			LOGGER.error("Cache: Attempt to exit cache with count {}",count);
+		} else {
+			cacheCount.set(count-1);
+			if (count <= 1) {
+				destroy();
+			}
 		}
 	}
 
 	@Override
 	public <T extends ObjectType> T getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		if (type.equals(TaskType.class)) {
+			return repository.getObject(type, oid, resolve, parentResult);
+		}
 		Map<String, ObjectType> cache = getCache();
 		if (getCache().containsKey(oid)) {
 			// TODO: result?
+			LOGGER.trace("Cache: HIT {} ({})", oid, type.getSimpleName());
 			return (T) cache.get(oid);
 		}
+		LOGGER.trace("Cache: MISS {} ({})", oid, type.getSimpleName());
 		T object = repository.getObject(type, oid, resolve, parentResult);
 		cache.put(oid, object);
 		return object;

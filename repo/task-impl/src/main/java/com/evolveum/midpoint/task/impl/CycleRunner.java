@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.task.impl;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
@@ -62,6 +63,8 @@ public class CycleRunner extends TaskRunner {
 
 			while (task.canRun()) {
 				LOGGER.trace("CycleRunner loop: start");
+				
+				RepositoryCache.enter();
 
 				// This is NOT the result of the run itself. That can be found in the RunResult
 				// this is a result of the runner, used to record "overhead" things like recording the
@@ -109,6 +112,8 @@ public class CycleRunner extends TaskRunner {
 						LOGGER.error("Unable to record run finish: {}", ex.getMessage(), ex);
 					} // there are otherwise quite safe to ignore
 				}
+				
+				RepositoryCache.exit();
 				
 				// Determine how long we need to sleep and hit the bed
 				

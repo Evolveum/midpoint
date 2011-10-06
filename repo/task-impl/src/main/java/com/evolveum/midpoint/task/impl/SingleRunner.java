@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.task.impl;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
@@ -53,6 +54,8 @@ public class SingleRunner extends TaskRunner {
 		LOGGER.info("SingleRunner.run starting");
 
 		try {
+			
+			RepositoryCache.enter();
 			
 			// This is NOT the result of the run itself. That can be found in
 			// the RunResult
@@ -116,6 +119,8 @@ public class SingleRunner extends TaskRunner {
 			// This is supposed to run in a thread, so this kind of heavy artillery is needed. If throwable won't be
 			// caught here, nobody will catch it and it won't even get logged.
 			LOGGER.error("SingleRunner got critical exception, the task state cannot be saved: {}: {}",new Object[] { t.getClass().getName(),t.getMessage(),t});
+		} finally {
+			RepositoryCache.exit();
 		}
 	}
 

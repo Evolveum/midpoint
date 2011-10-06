@@ -128,6 +128,7 @@ public class ModelControllerImpl implements ModelController {
 		if (!(object instanceof ResourceObjectShadowType)) {
 			Validate.notEmpty(object.getName(), "Object name must not be null or empty.");
 		}
+		RepositoryCache.enter();
 		LOGGER.debug("Adding object {} with oid {} and name {}.", new Object[] {
 				object.getClass().getSimpleName(), object.getOid(), object.getName() });
 		if (LOGGER.isTraceEnabled()) {
@@ -148,20 +149,20 @@ public class ModelControllerImpl implements ModelController {
 			subResult.recordSuccess();
 		} catch (ObjectAlreadyExistsException ex) {
 			subResult.recordFatalError("Object with name '" + object.getName() + "' already exists.", ex);
-			RepositoryCache.destroy();
+			RepositoryCache.exit();
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
 			subResult.recordFatalError(ex);
-			RepositoryCache.destroy();
+			RepositoryCache.exit();
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't add object", ex, object.getName());
 			subResult.recordFatalError(ex);
 			if (ex instanceof SystemException) {
-				RepositoryCache.destroy();
+				RepositoryCache.exit();
 				throw (SystemException) ex;
 			}
-			RepositoryCache.destroy();
+			RepositoryCache.exit();
 			throw new SystemException(ex.getMessage(), ex);
 		} finally {
 			subResult.computeStatus("Error occured during add object '" + object.getName() + "'.",
@@ -171,7 +172,7 @@ public class ModelControllerImpl implements ModelController {
 			}
 		}
 
-		RepositoryCache.destroy();
+		RepositoryCache.exit();
 		return oid;
 	}
 
@@ -196,6 +197,7 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(objectType, "Object type must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
+		RepositoryCache.enter();
 		if (paging == null) {
 			LOGGER.debug("Listing objects of type {} (no paging).", objectType);
 		} else {
@@ -220,7 +222,7 @@ public class ModelControllerImpl implements ModelController {
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list objects", ex);
 			subResult.recordFatalError("Couldn't list objects.", ex);
-			RepositoryCache.destroy();
+			RepositoryCache.exit();
 			throw new SystemException(ex.getMessage(), ex);
 		} finally {
 			if (LOGGER.isDebugEnabled()) {
@@ -235,7 +237,7 @@ public class ModelControllerImpl implements ModelController {
 
 		LOGGER.debug("Returning {} objects.", new Object[] { list.size() });
 
-		RepositoryCache.destroy();
+		RepositoryCache.exit();
 		return list;
 	}
 
@@ -246,6 +248,7 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(query, "Query must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
+		RepositoryCache.enter();
 
 		if (paging == null) {
 			LOGGER.debug("Searching objects with null paging (query in TRACE).");
@@ -292,15 +295,16 @@ public class ModelControllerImpl implements ModelController {
 			list.setTotalResultCount(0);
 		}
 
-		RepositoryCache.destroy();
+		RepositoryCache.exit();
 		return list;
 	}
 
 	@Override
 	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType change,
 			OperationResult result) throws ObjectNotFoundException {
+		RepositoryCache.enter();
 		modifyObjectWithExclusion(type, change, null, result);
-		RepositoryCache.destroy();
+		RepositoryCache.exit();
 	}
 
 	@Override
@@ -310,6 +314,7 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(change, "Object modification must not be null.");
 		Validate.notEmpty(change.getOid(), "Change oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
+		RepositoryCache.enter();
 		LOGGER.debug("Modifying object with oid {} with exclusion account oid {} (change in TRACE).",
 				new Object[] { change.getOid(), accountOid });
 		if (LOGGER.isTraceEnabled()) {
@@ -357,6 +362,7 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(clazz, "Class must not be null.");
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
+		RepositoryCache.enter();
 		LOGGER.debug("Deleting object with oid {}.", new Object[] { oid });
 
 		OperationResult subResult = result.createSubresult(DELETE_OBJECT);
@@ -364,7 +370,7 @@ public class ModelControllerImpl implements ModelController {
 		if (UserType.class.equals(clazz)) {
 			UserTypeHandler handler = new UserTypeHandler(this, provisioning, repository, schemaHandler);
 			handler.deleteObject(clazz, oid, subResult);
-			RepositoryCache.destroy();
+			RepositoryCache.exit();
 			return;
 		}
 
@@ -383,14 +389,14 @@ public class ModelControllerImpl implements ModelController {
 		} catch (ObjectNotFoundException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't delete object with oid {}", ex, oid);
 			subResult.recordFatalError("Couldn't find object with oid '" + oid + "'.", ex);
-			RepositoryCache.destroy();
+			RepositoryCache.exit();
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER,
 					"Couldn't delete object with oid {}, potential consistency violation", ex, oid);
 			subResult.recordFatalError("Couldn't delete object with oid '" + oid
 					+ "', potential consistency violation");
-			RepositoryCache.destroy();
+			RepositoryCache.exit();
 			throw new ConsistencyViolationException("Couldn't delete object with oid '" + oid
 					+ "', potential consistency violation", ex);
 		} finally {
@@ -398,7 +404,7 @@ public class ModelControllerImpl implements ModelController {
 				LOGGER.debug(subResult.dump(false));
 			}
 		}
-		RepositoryCache.destroy();
+		RepositoryCache.exit();
 	}
 
 	@Override
@@ -407,13 +413,14 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(properties, "Property reference list must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
+		RepositoryCache.enter();
 		LOGGER.debug("Getting property available values for object with oid {} (properties in TRACE).",
 				new Object[] { oid });
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(DebugUtil.prettyPrint(properties));
 		}
 
-		RepositoryCache.destroy();
+		RepositoryCache.exit();
 		throw new UnsupportedOperationException("Not implemented yet.");
 	}
 
@@ -422,6 +429,7 @@ public class ModelControllerImpl implements ModelController {
 			throws ObjectNotFoundException {
 		Validate.notEmpty(accountOid, "Account oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
+		RepositoryCache.enter();
 		LOGGER.debug("Listing account shadow owner for account with oid {}.", new Object[] { accountOid });
 
 		OperationResult subResult = result.createSubresult(LIST_ACCOUNT_SHADOW_OWNER);
@@ -434,7 +442,7 @@ public class ModelControllerImpl implements ModelController {
 		} catch (ObjectNotFoundException ex) {
 			LoggingUtils.logException(LOGGER, "Account with oid {} doesn't exists", ex, accountOid);
 			subResult.recordFatalError("Account with oid '" + accountOid + "' doesn't exists", ex);
-			RepositoryCache.destroy();
+			RepositoryCache.exit();
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
@@ -446,7 +454,7 @@ public class ModelControllerImpl implements ModelController {
 				LOGGER.debug(subResult.dump(false));
 			}
 		}
-		RepositoryCache.destroy();
+		RepositoryCache.exit();
 		return user;
 	}
 
@@ -455,6 +463,7 @@ public class ModelControllerImpl implements ModelController {
 			Class<T> resourceObjectShadowType, OperationResult result) throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
+		RepositoryCache.enter();
 		LOGGER.debug("Listing resource object shadows \"{}\" for resource with oid {}.", new Object[] {
 				resourceObjectShadowType, resourceOid });
 
@@ -468,7 +477,7 @@ public class ModelControllerImpl implements ModelController {
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
 			subResult.recordFatalError("Resource with oid '" + resourceOid + "' was not found.", ex);
-			RepositoryCache.destroy();
+			RepositoryCache.exit();
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list resource object shadows type "
@@ -486,7 +495,7 @@ public class ModelControllerImpl implements ModelController {
 			list = new ResultArrayList<T>();
 			list.setTotalResultCount(0);
 		}
-		RepositoryCache.destroy();
+		RepositoryCache.exit();
 		return list;
 	}
 
@@ -498,6 +507,7 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(paging, "Paging must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
+		RepositoryCache.enter();
 		LOGGER.debug(
 				"Listing resource objects {} from resource, oid {}, from {} to {} ordered {} by {}.",
 				new Object[] { objectClass, resourceOid, paging.getOffset(), paging.getMaxSize(),
@@ -513,15 +523,15 @@ public class ModelControllerImpl implements ModelController {
 			list = provisioning.listResourceObjects(resourceOid, objectClass, paging, subResult);
 			
 		} catch (SchemaException ex) {
-			RepositoryCache.destroy();
+			RepositoryCache.exit();
 			subResult.recordFatalError("Schema violation");
 			throw ex;
 		} catch (CommunicationException ex) {
-			RepositoryCache.destroy();
+			RepositoryCache.exit();
 			subResult.recordFatalError("Communication error");
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
-			RepositoryCache.destroy();
+			RepositoryCache.exit();
 			subResult.recordFatalError("Object not found");
 			throw ex;
 		}
@@ -531,7 +541,7 @@ public class ModelControllerImpl implements ModelController {
 			list = new ResultArrayList<ResourceObjectShadowType>();
 			list.setTotalResultCount(0);
 		}
-		RepositoryCache.destroy();
+		RepositoryCache.exit();
 		return list;
 	}
 
@@ -544,19 +554,20 @@ public class ModelControllerImpl implements ModelController {
 	@Override
 	public OperationResult testResource(String resourceOid) throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
+		RepositoryCache.enter();
 		LOGGER.debug("Testing resource with oid {}.", new Object[] { resourceOid });
 
 		OperationResult testResult = null;
 		try {
 			testResult = provisioning.testResource(resourceOid);
 		} catch (ObjectNotFoundException ex) {
-			RepositoryCache.destroy();
+			RepositoryCache.exit();
 			throw ex;
 		} catch (SystemException ex) {
-			RepositoryCache.destroy();
+			RepositoryCache.exit();
 			throw ex;
 		} catch (Exception ex) {
-			RepositoryCache.destroy();
+			RepositoryCache.exit();
 			throw new SystemException(ex.getMessage(), ex);
 		}
 
@@ -567,7 +578,7 @@ public class ModelControllerImpl implements ModelController {
 		} else {
 			LOGGER.debug("Operation sub result was null (Error occured).");
 		}
-		RepositoryCache.destroy();
+		RepositoryCache.exit();
 		return testResult;
 	}
 
@@ -578,6 +589,7 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(objectClass, "Object class must not be null.");
 		Validate.notNull(task, "Task must not be null.");
+		RepositoryCache.enter();
 		LOGGER.debug("Launching import from resource with oid {} for object class {}.", new Object[] {
 				resourceOid, objectClass });
 
@@ -593,7 +605,7 @@ public class ModelControllerImpl implements ModelController {
 			resource = getObject(ResourceType.class, resourceOid, resolve, result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Object not found");
-			RepositoryCache.destroy();
+			RepositoryCache.exit();
 			throw ex;
 		}
 
@@ -607,7 +619,7 @@ public class ModelControllerImpl implements ModelController {
 		} else {
 			result.recordSuccess();
 		}
-		RepositoryCache.destroy();
+		RepositoryCache.exit();
 	}
 
 	@Override
@@ -616,17 +628,19 @@ public class ModelControllerImpl implements ModelController {
 		// OperationResult result =
 		// parentResult.createSubresult(IMPORT_OBJECTS_FROM_FILE);
 		// TODO Auto-generated method stub
-		RepositoryCache.destroy();
+		RepositoryCache.enter();
+		RepositoryCache.exit();
 		throw new NotImplementedException();
 	}
 
 	@Override
 	public void importObjectsFromStream(InputStream input, ImportOptionsType options, Task task,
 			OperationResult parentResult) {
+		RepositoryCache.enter();
 		OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_STREAM);
 		objectImporter.importObjects(input, options, task, result, repository);
 		result.computeStatus("Couldn't import object from input stream.");
-		RepositoryCache.destroy();
+		RepositoryCache.exit();
 	}
 
 	@Override
@@ -635,7 +649,8 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notEmpty(oid, "Object oid must not be null or empty.");
 		Validate.notNull(result, "Operation result must not be null.");
 		Validate.notNull(clazz, "Object class must not be null.");
-
+		RepositoryCache.enter();
+		
 		OperationResult subResult = result.createSubresult(GET_OBJECT);
 		subResult.addParams(new String[] { "oid", "resolve", "class" }, oid, resolve, clazz);
 
@@ -645,10 +660,10 @@ public class ModelControllerImpl implements ModelController {
 			object = handler.getObject(clazz, oid, resolve, subResult);
 		} catch (ObjectNotFoundException ex) {
 			subResult.recordFatalError("Object not found");
-			RepositoryCache.destroy();
+			RepositoryCache.exit();
 			throw ex;
 		}
-		RepositoryCache.destroy();
+		RepositoryCache.exit();
 		return object;
 	}
 
@@ -663,17 +678,18 @@ public class ModelControllerImpl implements ModelController {
 	@Override
 	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult)
 			throws CommunicationException {
+		RepositoryCache.enter();
 		OperationResult result = parentResult.createSubresult(DISCOVER_CONNECTORS);
 		Set<ConnectorType> discoverConnectors;
 		try {
 			discoverConnectors = provisioning.discoverConnectors(hostType, result);
 		} catch (CommunicationException e) {
 			result.recordFatalError(e.getMessage(), e);
-			RepositoryCache.destroy();
+			RepositoryCache.exit();
 			throw e;
 		}
 		result.computeStatus("Connector discovery failed");
-		RepositoryCache.destroy();
+		RepositoryCache.exit();
 		return discoverConnectors;
 	}
 
@@ -899,6 +915,7 @@ public class ModelControllerImpl implements ModelController {
 	 */
 	@Override
 	public void postInit(OperationResult parentResult) {
+		RepositoryCache.enter();
 		OperationResult result = parentResult.createSubresult(POST_INIT);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ModelControllerImpl.class);
 
@@ -910,6 +927,6 @@ public class ModelControllerImpl implements ModelController {
 
 		result.computeStatus("Error occured during post initialization process.");
 		
-		RepositoryCache.destroy();
+		RepositoryCache.exit();
 	}
 }
