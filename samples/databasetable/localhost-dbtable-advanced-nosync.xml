@@ -201,6 +201,7 @@ object.
 			<cap:activation>
 				<cap:enableDisable>
 					<cap:attribute>ri:disabled</cap:attribute>
+					<cap:enableValue></cap:enableValue>
 					<cap:enableValue>false</cap:enableValue>
 					<cap:disableValue>true</cap:disableValue>
 				</cap:enableDisable>
