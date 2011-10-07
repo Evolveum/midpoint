@@ -136,5 +136,20 @@
 			<version>1.9-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>log4j-over-slf4j</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.forgerock.openicf.framework</groupId>
+			<artifactId>icfl-over-slf4j</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>
