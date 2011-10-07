@@ -24,6 +24,7 @@ package com.evolveum.midpoint.util.aspect;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -36,6 +37,9 @@ import org.springframework.core.annotation.Order;
 @Aspect
 @Order(value = Ordered.HIGHEST_PRECEDENCE)
 public class MidpointAspect {
+
+	private static AtomicInteger idcounter = new AtomicInteger(0);
+	private static AtomicInteger subidcounter = new AtomicInteger(0);
 
 	//This logger provide profiling informations
 	private static final org.slf4j.Logger LOGGER_PROFILING = org.slf4j.LoggerFactory.getLogger("PROFILING");
@@ -86,17 +90,41 @@ public class MidpointAspect {
 	private Object markSubsystem(ProceedingJoinPoint pjp, String subsystem) throws Throwable {
 		Object retValue = null;
 		String prev = null;
+		int id = 0;
+		int d = 1;
 		//Profiling start
 		long startTime = System.nanoTime();
+
+		final StringBuilder infoLog = new StringBuilder("#### Entry: ");
 
 		try {
 			//Marking MDC->Subsystem with current one subsystem and mark previous
 			prev = (String) MDC.get("subsystem");
 			MDC.put("subsystem", subsystem);
 
+			if (LOGGER_PROFILING.isTraceEnabled()) {
+				id = idcounter.incrementAndGet();
+				infoLog.append(id);
+				//infoLog.append("/");
+
+				String depth = MDC.get("depth");
+				if (depth == null || depth.isEmpty()) {
+					d = 0;
+				} else {
+					d = Integer.parseInt(depth);
+				}
+				d++;
+				MDC.put("depth", Integer.toString(d));
+				for (int i = 0; i < d; i++) {
+					infoLog.append("   ");
+				}
+			}
+
 			//is profiling info is needed
 			if (LOGGER_PROFILING.isInfoEnabled()) {
-				LOGGER_PROFILING.info("#### Entry: {}->{}", getClassName(pjp), pjp.getSignature().getName());
+				infoLog.append(getClassName(pjp));
+				LOGGER_PROFILING.info("{}->{}", infoLog, pjp.getSignature().getName());
+
 				//If debug enable get entry parameters and log them
 				if (LOGGER_PROFILING.isTraceEnabled()) {
 					final Object[] args = pjp.getArgs();
@@ -125,14 +153,27 @@ public class MidpointAspect {
 			return retValue;
 
 		} finally {
-			//Restore previously marked subsystem executed before return
+			//Depth -1
+			if (LOGGER_PROFILING.isTraceEnabled()) {
+				d--;
+				MDC.put("depth", Integer.toString(d));
+			}
 
+			//Restore previously marked subsystem executed before return
 			if (LOGGER_PROFILING.isInfoEnabled()) {
 				StringBuilder sb = new StringBuilder();
 				sb.append("##### Exit: ");
+				sb.append(id);
+				//sb.append("/");
+				if (LOGGER_PROFILING.isTraceEnabled()) {
+					for (int i = 0; i < d + 1; i++) {
+						sb.append("   ");
+					}
+				}
 				sb.append(getClassName(pjp));
 				sb.append("->");
 				sb.append(pjp.getSignature().getName());
+
 				if (LOGGER_PROFILING.isDebugEnabled()) {
 					sb.append(" etime: ");
 					//Mark end of processing
@@ -149,6 +190,7 @@ public class MidpointAspect {
 					sb.append(mikros);
 					sb.append(" ms");
 				}
+
 				LOGGER_PROFILING.info(sb.toString());
 				if (LOGGER_PROFILING.isTraceEnabled()) {
 					LOGGER_PROFILING.trace("###### retval: {}", formatVal(retValue));
