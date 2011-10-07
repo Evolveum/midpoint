@@ -41,7 +41,11 @@ public class SecurityUtils implements Serializable {
 	private static final long serialVersionUID = 4319833095810269507L;
 
 	public boolean getIsUserLoggedIn() {
-		return isUserInRole("ROLE_USER") || isUserInRole("ROLE_ADMIN");
+		return isUserInRole("ROLE_USER");
+	}
+	
+	public boolean getIsAdminLoggedIn() {
+		return isUserInRole("ROLE_ADMIN") || isUserInRole("ROLE_USER");
 	}
 
 	private boolean isUserInRole(final String role) {
