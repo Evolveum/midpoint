@@ -33,18 +33,17 @@
 					<ice:outputLabel for="password"
 						value="#{msg['page.login.password']}" />
 					<ice:inputSecret id="password" value="#{loginController.password}"
-						required="true" requiredMessage="#{msg['field.required']}" action="#{loginController.login}" />
+						required="true" requiredMessage="#{msg['field.required']}" action="#{loginController.loginAdmin}" />
 					<h:message for="password" errorClass="error" />
 
 					<f:facet name="footer">
 						<div class="button-bar" style="text-align: center;">
-							<idm:button action="#{loginController.login}" id="loginButton"
+							<idm:button action="#{loginController.loginAdmin}" id="loginButton"
 								value="#{msg['page.login.button']}"
 								img="/resources/images/key.png" />
 						</div>
 					</f:facet>
 				</ice:panelGrid>
-				<div>ROLE_ADMIN: administrator/secret</div>
 			</ice:form>
 		</div>
 
@@ -57,12 +56,11 @@
 			jQuery("#loginButton").css("margin-left",
 					loginForm - loginButton);
 		</script>
-		<ui:remove>
 			<br />
 			<br />
 			<br />
-			<br />
-			<h3>For user</h3>
+			<ui:remove>
+			<h3>#{msg['page.login.title.user']}</h3>
 			<hr />
 			<div
 				style="position: inherit; width: auto; text-align: center; background-color: #E7EFF1; padding: 20px 0 20px 0;">
@@ -79,12 +77,12 @@
 						<ice:outputLabel for="password"
 							value="#{msg['page.login.password']}" />
 						<ice:inputSecret id="password" value="#{loginController.password}"
-							required="true" requiredMessage="#{msg['field.required']}" />
+							required="true" requiredMessage="#{msg['field.required']}" action="#{loginController.loginUser}"/>
 						<h:message for="password" errorClass="error" />
 
 						<f:facet name="footer">
 							<div class="button-bar" style="text-align: center;">
-								<idm:button action="#{loginController.login}" id="loginButton"
+								<idm:button action="#{loginController.loginUser}" id="loginButton"
 									value="#{msg['page.login.button']}"
 									img="/resources/images/key.png" />
 							</div>
@@ -93,7 +91,7 @@
 					<div>ROLE_USER: administrator/secret</div>
 				</ice:form>
 			</div>
-		</ui:remove>
+			</ui:remove>
 	</ui:define>
 
 </ui:composition>
