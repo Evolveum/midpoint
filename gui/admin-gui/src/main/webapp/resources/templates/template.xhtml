@@ -22,18 +22,22 @@
 	</h:head>
 
 	<h:body style="min-width:1270px;">
-		<!-- <div id="blackWindow"
-			style="left: 0px; top: 0px; width: 100%; height: 100%; background-color: black; z-index: 1000; position: absolute;"></div>
-		<span id="preloader"
-			style="background-image: url('resources/images/preLoader.gif'); width: 100px; height: 100px; z-index: 1001; position: absolute;"></span> -->
+		<div id="blackWindow"
+			style="width: 100%; height: 100%; background-color: black; position: fixed; z-index: 1000; display: none;">
+			<div
+				style="position: fixed; width: 100px; height: 100px; left: 50%; top: 50%; mergin-left: -50px; margin-top: -50px; color: white; font-size: 30px;">
+				Loading...
+				</div>
+		</div>
 		<div id="header">
 			<div id="login-box">
 				<span> <ice:outputLabel
 						value="#{msg['page.template.loggedInAs']}"
-						rendered="#{security.isUserLoggedIn}" /> <em>&nbsp; <ice:outputLabel
+						rendered="#{security.isAdminLoggedIn}" /> <em>&nbsp; <ice:outputLabel
 							value="#{security.shortUserName}"
-							rendered="#{security.isUserLoggedIn}" /> </em> </span> <span> <ice:form
-						rendered="#{not security.isUserLoggedIn}" style="display: inline;">			
+							rendered="#{security.isAdminLoggedIn}" /> </em> </span> <span> <ice:form
+						rendered="#{not security.isAdminLoggedIn}"
+						style="display: inline;">			
 	                    #{msg['page.template.language']}:
 
 						<ui:repeat value="#{lang.supportedLocales}" var="locale">
@@ -47,18 +51,18 @@
 						</ui:repeat>
 					</ice:form> </span>
 				<f:verbatim styleClass="delimiter"
-					rendered="#{security.isUserLoggedIn}">|</f:verbatim>
+					rendered="#{security.isAdminLoggedIn}">|</f:verbatim>
 				<span> <ice:outputLink id="logoutUserLink"
-						rendered="#{security.isUserLoggedIn}"
+						rendered="#{security.isAdminLoggedIn}"
 						value="#{facesContext.externalContext.requestContextPath}/j_spring_security_logout">
 						<span id="logoutUserLinkSpan">#{msg['page.template.logout']}</span>
 					</ice:outputLink> </span>
 
 				<f:verbatim styleClass="delimiter"
-					rendered="#{security.isUserLoggedIn}">|</f:verbatim>
+					rendered="#{security.isAdminLoggedIn}">|</f:verbatim>
 				<ice:outputLink id="topHelpLink"
 					value="#{facesContext.externalContext.requestContextPath}/help/index.iface"
-					rendered="#{security.isUserLoggedIn}">
+					rendered="#{security.isAdminLoggedIn}">
 					<span id="helpSpan">#{msg['page.template.help']}</span>
 				</ice:outputLink>
 				<ice:panelGroup style="padding-right: 10px; display: inline-block;">&nbsp;</ice:panelGroup>
@@ -71,7 +75,7 @@
 				</div>
 			</div>
 		</div>
-		<h:panelGroup rendered="#{security.isUserLoggedIn}" id="nav"
+		<h:panelGroup rendered="#{security.isAdminLoggedIn}" id="nav"
 			layout="block">
 			<div class="container">
 				<idm:topMenu selected="#{template.selectedTopId}">
