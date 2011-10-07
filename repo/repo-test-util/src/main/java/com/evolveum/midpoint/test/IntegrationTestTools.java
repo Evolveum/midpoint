@@ -244,6 +244,11 @@ public class IntegrationTestTools {
 		LOGGER.debug(DOMUtil.serializeDOMToString(element));
 	}
 
+	public static void display(String message) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
+	}
+	
 	public static void display(String message, SearchResultEntry response) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);

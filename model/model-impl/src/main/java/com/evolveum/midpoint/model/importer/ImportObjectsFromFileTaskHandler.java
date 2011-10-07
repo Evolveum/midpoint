@@ -31,6 +31,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -82,9 +83,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 	
 	public static final String HANDLER_URI = ImportConstants.IMPORT_URI_PREFIX + "/handler-objects-file-1";
-
-	@Autowired(required=true)
-	private RepositoryService repositoryService;
 	
 	@Autowired(required=true)
 	private TaskManager taskManager;

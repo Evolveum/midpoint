@@ -30,6 +30,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -127,6 +128,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCa
 public class ShadowCache {
 
 	@Autowired
+	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 	@Autowired
 	private ConnectorTypeManager connectorTypeManager;

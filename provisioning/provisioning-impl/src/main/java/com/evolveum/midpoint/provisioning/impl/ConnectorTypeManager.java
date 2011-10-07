@@ -28,6 +28,7 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -73,6 +74,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 @Component
 public class ConnectorTypeManager {
 	@Autowired
+	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 	@Autowired
 	private ConnectorFactory connectorFactory;

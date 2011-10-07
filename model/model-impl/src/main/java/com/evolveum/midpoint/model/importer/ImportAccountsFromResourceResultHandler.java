@@ -83,6 +83,7 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 	public boolean handle(ObjectType object, OperationResult parentResult) {
 		progress++;
 
+		long startTime = System.currentTimeMillis();
 		OperationResult result = parentResult.createSubresult(ImportAccountsFromResourceResultHandler.class
 				.getName() + ".handle");
 		result.addParam("object", object);
@@ -121,8 +122,10 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 
 			// Invoke the change notification
 			objectChangeListener.notifyChange(change, result);
+			long endTime = System.currentTimeMillis();
 			if (LOGGER.isInfoEnabled()) {
-				LOGGER.info("Imported object {} from resource {}",ObjectTypeUtil.toShortString(newShadow),ObjectTypeUtil.toShortString(resource));
+				LOGGER.info("Imported object {} from resource {} ({} ms)",new Object[]{ObjectTypeUtil.toShortString(newShadow),
+						ObjectTypeUtil.toShortString(resource), endTime - startTime});
 			}
 		} catch (Exception ex) {
 			errors++;

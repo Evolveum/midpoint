@@ -1537,6 +1537,10 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
 		
+		long importDuration = task.getLastRunFinishTimestamp() - task.getLastRunStartTimestamp();
+		double usersPerSec = (task.getProgress()*1000)/importDuration;
+		display("Imported "+task.getProgress()+" users in "+importDuration+" milliseconds ("+usersPerSec+" users/sec)");
+		
 		waitFor("Waiting for task to get released", new Checker() {
 			@Override
 			public boolean check() throws Exception {
