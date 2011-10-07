@@ -10,8 +10,7 @@
 
 	<ui:define name="title">#{msg['page.login.title']}</ui:define>
 	<ui:define name="sidebar">
-		<div
-			style="position: inherit; float: right; margin-right: 20px; background-image: url('/admin-gui/resources/images/verticalLogo.jpg'); width: 130px; height: 583px;"></div>
+		<div id="sidebarImage"></div>
 	</ui:define>
 
 	<ui:define name="content">
@@ -19,8 +18,7 @@
 
 		<h3>#{msg['page.login.title.admin']}</h3>
 		<hr />
-		<div id="loginDiv"
-			style="position: inherit; width: auto; text-align: center; background-color: #E7EFF1; padding: 20px 0 20px 0; height: 140px;">
+		<div class="loginDiv">
 			<ice:form id="loginFormAdmin" partialSubmit="false"
 				style="position: absolute; width: auto;">
 				<ice:panelGrid columns="3" cellpadding="5" cellspacing="5">
@@ -33,13 +31,14 @@
 					<ice:outputLabel for="password"
 						value="#{msg['page.login.password']}" />
 					<ice:inputSecret id="password" value="#{loginController.password}"
-						required="true" requiredMessage="#{msg['field.required']}" action="#{loginController.loginAdmin}" />
+						required="true" requiredMessage="#{msg['field.required']}"
+						action="#{loginController.loginAdmin}" />
 					<h:message for="password" errorClass="error" />
 
 					<f:facet name="footer">
 						<div class="button-bar" style="text-align: center;">
-							<idm:button action="#{loginController.loginAdmin}" id="loginButton"
-								value="#{msg['page.login.button']}"
+							<idm:button action="#{loginController.loginAdmin}"
+								id="loginButton" value="#{msg['page.login.button']}"
 								img="/resources/images/key.png" />
 						</div>
 					</f:facet>
@@ -48,23 +47,20 @@
 		</div>
 
 		<script type="text/javascript">
-			var centerOfLoginDiv = jQuery("#loginDiv").width() / 2;
+			var centerOfLoginDiv = jQuery(".loginDiv").width() / 2;
 			var loginForm = jQuery("#loginFormAdmin").width() / 2;
 			var loginButton = jQuery("#loginButton").width() / 2;
 			jQuery("#loginFormAdmin").css("margin-left",
 					centerOfLoginDiv - loginForm);
-			jQuery("#loginButton").css("margin-left",
-					loginForm - loginButton);
+			jQuery("#loginButton").css("margin-left", loginForm - loginButton);
 		</script>
-			<br />
-			<br />
-			<br />
-			<ui:remove>
+		<br />
+		<br />
+		<br />
+		<ui:remove>
 			<h3>#{msg['page.login.title.user']}</h3>
 			<hr />
-			<div
-				style="position: inherit; width: auto; text-align: center; background-color: #E7EFF1; padding: 20px 0 20px 0;">
-
+			<div class="loginDiv">
 				<ice:form id="loginFormUser" partialSubmit="false"
 					style="position: relative; margin-left: -120px; left: 50%; width: 240px;">
 					<ice:panelGrid columns="3" cellpadding="5" cellspacing="5">
@@ -77,13 +73,14 @@
 						<ice:outputLabel for="password"
 							value="#{msg['page.login.password']}" />
 						<ice:inputSecret id="password" value="#{loginController.password}"
-							required="true" requiredMessage="#{msg['field.required']}" action="#{loginController.loginUser}"/>
+							required="true" requiredMessage="#{msg['field.required']}"
+							action="#{loginController.loginUser}" />
 						<h:message for="password" errorClass="error" />
 
 						<f:facet name="footer">
 							<div class="button-bar" style="text-align: center;">
-								<idm:button action="#{loginController.loginUser}" id="loginButton"
-									value="#{msg['page.login.button']}"
+								<idm:button action="#{loginController.loginUser}"
+									id="loginButton" value="#{msg['page.login.button']}"
 									img="/resources/images/key.png" />
 							</div>
 						</f:facet>
@@ -91,7 +88,7 @@
 					<div>ROLE_USER: administrator/secret</div>
 				</ice:form>
 			</div>
-			</ui:remove>
+		</ui:remove>
 	</ui:define>
 
 </ui:composition>

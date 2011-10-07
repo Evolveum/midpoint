@@ -216,7 +216,9 @@ body {
 }
 
 #sidebar {
-	z-index: 10; margin-left : 20px; padding : 10px 0px;
+	z-index: 10;
+	margin-left: 20px;
+	padding: 10px 0px;
 	width: 15%;
 	height: 600px;
 	overflow: hidden;
@@ -258,9 +260,10 @@ body {
 	/* background: url("../images/images-selected.png") no-repeat 0 50%; */
 }
 
-#sidebar ul li a:hover{
+#sidebar ul li a:hover {
 	color: white;
 }
+
 #sidebar ul li a.selected {
 	color: #0f7798;
 }
@@ -566,4 +569,74 @@ button.positive,.buttons a.positive,.buttons input.positive {
 input[disabled],input[readonly],select[disabled],select[readonly],checkbox[disabled],checkbox[readonly],textarea[disabled],textarea[readonly]
 	{
 	background-color: #ccc;
+}
+
+#blackWindow {
+	width: 100%;
+	height: 100%;
+	background-color: black;
+	position: fixed;
+	z-index: 1000;
+	display: none;
+}
+
+#blackWindow div {
+	position: fixed;
+	width: 140px;
+	height: 60px;
+	left: 50%;
+	top: 50%;
+	mergin-left: -50px;
+	margin-top: -50px;
+	color: white;
+	font-size: 30px;
+	text-align: center;
+}
+
+#blackWindow div span {
+	font-size: 15px;
+}
+
+#navBar {
+	position: absolute;
+	width: auto;
+}
+
+#topHomeButtonLeft {
+	background-image:
+		url('/admin-gui/resources/images/buttonNormalLeftCut1.jpg');
+	position: absolute;
+	height: 47px;
+	width: 30px;
+	left: 0px;
+	top: 0px;
+}
+
+#topConfigurationButtonRight {
+	background-image:
+		url('/admin-gui/resources/images/buttonNormalRightCut1.jpg');
+	position: absolute;
+	height: 47px;
+	width: 30px;
+	margin-right: -30px;
+	right: 0px;
+	top: 0px;
+}
+
+#sidebarImage {
+	position: inherit;
+	float: right;
+	margin-right: 20px;
+	background-image: url('/admin-gui/resources/images/verticalLogo.jpg');
+	width: 130px;
+	height: 583px;
+}
+
+.loginDiv {
+	position: inherit;
+	width: auto;
+	text-align: center;
+	background-color: #E7EFF1;
+	padding: 20px 0 20px 0;
+	height: 140px;
 }
