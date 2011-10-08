@@ -17,7 +17,7 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 Igor Farinic                  -->
-<!-- Portions Copyrighted 2010 Peter Prochazka               -->
+<!-- Portions Copyrighted 2011 Peter Prochazka               -->
 <!--                                                         -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -60,7 +60,7 @@
 			<url>http://repo.evolveum.com/repo</url>
 		</repository>
 	</repositories>
-	<build>		
+	<build>
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
@@ -106,6 +106,21 @@
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>log4j-over-slf4j</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.forgerock.openicf.framework</groupId>
+			<artifactId>icfl-over-slf4j</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
