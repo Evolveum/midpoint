@@ -40,6 +40,7 @@ import org.testng.Assert;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.common.QueryUtil;
@@ -82,6 +83,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected static Unmarshaller unmarshaller;
 
 	@Autowired(required = true)
+	@Qualifier("cacheRepositoryService")
 	protected RepositoryService repositoryService;
 	protected static Set<Class> initializedClasses = new HashSet<Class>();
 

@@ -107,7 +107,7 @@ public class ModelControllerImpl implements ModelController {
 	private transient ProvisioningService provisioning;
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
-	private transient RepositoryService repository;
+	private transient RepositoryService cacheRepositoryService;
 	@Autowired(required = true)
 	private transient SchemaHandler schemaHandler;
 	@Autowired(required = true)
@@ -187,7 +187,7 @@ public class ModelControllerImpl implements ModelController {
 		}
 
 		OperationResult subResult = result.createSubresult(ADD_USER);
-		UserTypeHandler handler = new UserTypeHandler(this, provisioning, repository, schemaHandler);
+		UserTypeHandler handler = new UserTypeHandler(this, provisioning, cacheRepositoryService, schemaHandler);
 		return handler.addUser(user, userTemplate, subResult);
 	}
 
@@ -216,7 +216,7 @@ public class ModelControllerImpl implements ModelController {
 				list = provisioning.listObjects(objectType, paging, subResult);
 			} else {
 				LOGGER.debug("Listing objects from repository.");
-				list = repository.listObjects(objectType, paging, subResult);
+				list = cacheRepositoryService.listObjects(objectType, paging, subResult);
 			}
 			subResult.recordSuccess();
 		} catch (Exception ex) {
@@ -272,7 +272,7 @@ public class ModelControllerImpl implements ModelController {
 			if (searchInProvisioning) {
 				list = provisioning.searchObjects(type, query, paging, subResult);
 			} else {
-				list = repository.searchObjects(type, query, paging, subResult);
+				list = cacheRepositoryService.searchObjects(type, query, paging, subResult);
 			}
 			subResult.recordSuccess();
 		} catch (Exception ex) {
@@ -368,7 +368,7 @@ public class ModelControllerImpl implements ModelController {
 		OperationResult subResult = result.createSubresult(DELETE_OBJECT);
 		subResult.addParams(new String[] { "oid" }, oid);
 		if (UserType.class.equals(clazz)) {
-			UserTypeHandler handler = new UserTypeHandler(this, provisioning, repository, schemaHandler);
+			UserTypeHandler handler = new UserTypeHandler(this, provisioning, cacheRepositoryService, schemaHandler);
 			handler.deleteObject(clazz, oid, subResult);
 			RepositoryCache.exit();
 			return;
@@ -383,7 +383,7 @@ public class ModelControllerImpl implements ModelController {
 				ScriptsType scripts = getScripts(object, subResult);
 				provisioning.deleteObject(clazz, oid, scripts, subResult);
 			} else {
-				repository.deleteObject(clazz, oid, subResult);
+				cacheRepositoryService.deleteObject(clazz, oid, subResult);
 			}
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
@@ -437,7 +437,7 @@ public class ModelControllerImpl implements ModelController {
 
 		UserType user = null;
 		try {
-			user = repository.listAccountShadowOwner(accountOid, subResult);
+			user = cacheRepositoryService.listAccountShadowOwner(accountOid, subResult);
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
 			LoggingUtils.logException(LOGGER, "Account with oid {} doesn't exists", ex, accountOid);
@@ -473,7 +473,7 @@ public class ModelControllerImpl implements ModelController {
 
 		ResultList<T> list = null;
 		try {
-			list = repository.listResourceObjectShadows(resourceOid, resourceObjectShadowType, subResult);
+			list = cacheRepositoryService.listResourceObjectShadows(resourceOid, resourceObjectShadowType, subResult);
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
 			subResult.recordFatalError("Resource with oid '" + resourceOid + "' was not found.", ex);
@@ -638,7 +638,7 @@ public class ModelControllerImpl implements ModelController {
 			OperationResult parentResult) {
 		RepositoryCache.enter();
 		OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_STREAM);
-		objectImporter.importObjects(input, options, task, result, repository);
+		objectImporter.importObjects(input, options, task, result, cacheRepositoryService);
 		result.computeStatus("Couldn't import object from input stream.");
 		RepositoryCache.exit();
 	}
@@ -654,7 +654,7 @@ public class ModelControllerImpl implements ModelController {
 		OperationResult subResult = result.createSubresult(GET_OBJECT);
 		subResult.addParams(new String[] { "oid", "resolve", "class" }, oid, resolve, clazz);
 
-		BasicHandler handler = new BasicHandler(this, provisioning, repository, schemaHandler);
+		BasicHandler handler = new BasicHandler(this, provisioning, cacheRepositoryService, schemaHandler);
 		T object = null;
 		try {
 			object = handler.getObject(clazz, oid, resolve, subResult);
@@ -729,12 +729,12 @@ public class ModelControllerImpl implements ModelController {
 	private String addRepositoryObject(ObjectType object, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException {
 		if (object instanceof UserType) {
-			UserTypeHandler handler = new UserTypeHandler(this, provisioning, repository, schemaHandler);
+			UserTypeHandler handler = new UserTypeHandler(this, provisioning, cacheRepositoryService, schemaHandler);
 			return handler.addObject(object, result);
 		}
 
 		try {
-			return repository.addObject(object, result);
+			return cacheRepositoryService.addObject(object, result);
 		} catch (ObjectAlreadyExistsException ex) {
 			throw ex;
 		} catch (Exception ex) {
@@ -832,7 +832,7 @@ public class ModelControllerImpl implements ModelController {
 					object = (T) ((JAXBElement<ResourceObjectShadowType>) JAXBUtil
 							.unmarshal(xmlPatchedObject)).getValue();
 
-					ObjectModificationType newChange = new BasicHandler(this, provisioning, repository,
+					ObjectModificationType newChange = new BasicHandler(this, provisioning, cacheRepositoryService,
 							schemaHandler).processOutboundSchemaHandling(user,
 							(ResourceObjectShadowType) object, result);
 					if (newChange != null) {
@@ -893,12 +893,12 @@ public class ModelControllerImpl implements ModelController {
 			ObjectModificationType change, String accountOid, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
 		if (type.isAssignableFrom(UserType.class)) {
-			UserTypeHandler handler = new UserTypeHandler(this, provisioning, repository, schemaHandler);
+			UserTypeHandler handler = new UserTypeHandler(this, provisioning, cacheRepositoryService, schemaHandler);
 			handler.modifyObjectWithExclusion(type, change, accountOid, result);
 			return;
 		}
 
-		repository.modifyObject(type, change, result);
+		cacheRepositoryService.modifyObject(type, change, result);
 	}
 
 	private void modifyTaskWithExclusion(ObjectModificationType change, String accountOid,

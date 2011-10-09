@@ -94,7 +94,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	private ShadowCache shadowCache;
 	@Autowired
 	@Qualifier("cacheRepositoryService")
-	private RepositoryService repositoryService;
+	private RepositoryService cacheRepositoryService;
 	@Autowired
 	private ChangeNotificationDispatcher changeNotificationDispatcher;
 	@Autowired
@@ -118,8 +118,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	 * 
 	 * @return the value of repositoryService
 	 */
-	public RepositoryService getRepositoryService() {
-		return repositoryService;
+	public RepositoryService getCacheRepositoryService() {
+		return cacheRepositoryService;
 	}
 
 	/**
@@ -130,8 +130,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	 * @param repositoryService
 	 *            new value of repositoryService
 	 */
-	public void setRepositoryService(RepositoryService repositoryService) {
-		this.repositoryService = repositoryService;
+	public void setCacheRepositoryService(RepositoryService repositoryService) {
+		this.cacheRepositoryService = repositoryService;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -153,7 +153,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		ObjectType repositoryObject = null;
 
 		try {
-			repositoryObject = getRepositoryService().getObject(type, oid, resolve, result);
+			repositoryObject = getCacheRepositoryService().getObject(type, oid, resolve, result);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("**PROVISIONING: Got repository object {}", JAXBUtil.silentMarshalWrap(repositoryObject));
 			}
@@ -259,7 +259,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						ex);
 			}
 		} else {
-			oid = repositoryService.addObject(object, result);
+			oid = cacheRepositoryService.addObject(object, result);
 		}
 
 		LOGGER.debug("**PROVISIONING: Adding object finished.");
@@ -408,7 +408,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		} else {
 			// TODO: delegate to repository
-			objListType = getRepositoryService().listObjects(objectType, paging, parentResult);
+			objListType = getCacheRepositoryService().listObjects(objectType, paging, parentResult);
 
 		}
 
@@ -462,7 +462,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 
 		//getting object to modify
-		T objectType = getRepositoryService().getObject(type, objectChange.getOid(), new PropertyReferenceListType(),
+		T objectType = getCacheRepositoryService().getObject(type, objectChange.getOid(), new PropertyReferenceListType(),
 				parentResult);
 
 		LOGGER.debug("**PROVISIONING: Modifying object with oid {}", objectChange.getOid());
@@ -511,7 +511,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		ObjectType objectType = null;
 		try {
-			objectType = getRepositoryService().getObject(ObjectType.class, oid, new PropertyReferenceListType(),
+			objectType = getCacheRepositoryService().getObject(ObjectType.class, oid, new PropertyReferenceListType(),
 					parentResult);
 			LOGGER.debug("**PROVISIONING: Object from repository to delete: {}", JAXBUtil.silentMarshalWrap(objectType));
 		} catch (SchemaException e) {
@@ -568,7 +568,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		parentResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
 		try {
-			ResourceType objectType = getRepositoryService().getObject(ResourceType.class, resourceOid,
+			ResourceType objectType = getCacheRepositoryService().getObject(ResourceType.class, resourceOid,
 					new PropertyReferenceListType(), parentResult);
 
 			ResourceType resourceType = (ResourceType) objectType;
@@ -606,7 +606,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		ResourceType resource = null;
 		try {
-			resource = getRepositoryService().getObject(ResourceType.class, resourceOid,
+			resource = getCacheRepositoryService().getObject(ResourceType.class, resourceOid,
 					new PropertyReferenceListType(), result);
 
 		} catch (ObjectNotFoundException e) {
@@ -695,7 +695,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		ResourceType resource = null;
 		try {
-			resource = getRepositoryService().getObject(ResourceType.class, resourceOid,
+			resource = getCacheRepositoryService().getObject(ResourceType.class, resourceOid,
 					new PropertyReferenceListType(), result);
 
 		} catch (ObjectNotFoundException e) {

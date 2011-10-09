@@ -129,6 +129,7 @@ public class RepositoryFactory implements RuntimeConfiguration {
 				ClassLoader classLoader = RepositoryFactory.class.getClassLoader();
 				//FIXME: create hammer factory factory solution also for RepositoryCache, if required
 		        Class<RepositoryService> repositoryCacheServiceClass = (Class<RepositoryService>) classLoader.loadClass("com.evolveum.midpoint.repo.cache.RepositoryCache");
+		        //TODO: test
 		        cacheRepositoryService = repositoryCacheServiceClass.getConstructor(RepositoryService.class).newInstance(getRepositoryService());
 			} catch (Exception e) {
 				LoggingUtils.logException(LOGGER, "Failed to get cache repository service. ExceptionClass = {}", e, e.getClass().getName());
