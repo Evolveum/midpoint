@@ -38,6 +38,7 @@ import javax.xml.ws.Holder;
 
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
@@ -82,6 +83,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Autowired(required = true)
 	ProvisioningService provisioningService;
 	@Autowired(required = true)
+	@Qualifier("cacheRepositoryService")
 	RepositoryService repositoryService;
 
 	@BeforeMethod
