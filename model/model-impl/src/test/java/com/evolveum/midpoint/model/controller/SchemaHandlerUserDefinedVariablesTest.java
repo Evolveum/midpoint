@@ -33,6 +33,7 @@ import javax.xml.bind.JAXBElement;
 
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeMethod;
@@ -68,6 +69,7 @@ public class SchemaHandlerUserDefinedVariablesTest extends AbstractTestNGSpringC
 	@Autowired
 	private SchemaHandler schemaHandler;
 	@Autowired
+	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 
 	@BeforeMethod
