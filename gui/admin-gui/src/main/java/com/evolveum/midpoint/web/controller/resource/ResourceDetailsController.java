@@ -53,7 +53,7 @@ public class ResourceDetailsController implements Serializable {
 	private static final long serialVersionUID = 8325385127604325634L;
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceDetailsController.class);
 	@Autowired(required = true)
-	private ObjectTypeCatalog objectTypeCatalog;
+	private transient ObjectTypeCatalog objectTypeCatalog;
 	@Autowired(required = true)
 	private transient DebugViewController debugView;
 	@Autowired(required = true)

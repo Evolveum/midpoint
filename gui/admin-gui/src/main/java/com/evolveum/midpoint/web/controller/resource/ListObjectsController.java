@@ -78,7 +78,7 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 	private static final Trace LOGGER = TraceManager.getTrace(ListObjectsController.class);
 	private static final int MAX_COLUMNS = 6;
 	@Autowired(required = true)
-	private ObjectTypeCatalog objectTypeCatalog;
+	private transient ObjectTypeCatalog objectTypeCatalog;
 	private ResourceListItem resource;
 	private QName objectClass;
 	private List<String> columns;

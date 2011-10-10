@@ -369,14 +369,23 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			icfResult.recordSuccess();
 		} catch (Exception ex) {
-			// ICF interface does not specify exceptions or other error
 			// conditions.
 			// Therefore this kind of heavy artillery is necessary.
+			// ICF interface does not specify exceptions or other error
 			// TODO maybe we can try to catch at least some specific exceptions
-			icfResult.recordFatalError(ex);
-			result.recordFatalError("ICF invocation failed");
-			// This is fatal. No point in continuing.
-			throw new GenericFrameworkException(ex);
+			
+			//Note: MID-405 following exception is causing serialization problems
+			if (ex instanceof org.identityconnectors.framework.common.exceptions.ConnectorSecurityException && ex.getCause() != null && ex.getCause() instanceof javax.naming.OperationNotSupportedException) {
+				icfResult.recordFatalError("org.identityconnectors.framework.common.exceptions.ConnectorSecurityException/javax.naming.OperationNotSupportedException: " + ex.getMessage());
+				result.recordFatalError("ICF invocation failed");
+				// This is fatal. No point in continuing.
+				throw new GenericFrameworkException("org.identityconnectors.framework.common.exceptions.ConnectorSecurityException/javax.naming.OperationNotSupportedException: " + ex.getMessage());
+			} else {
+				icfResult.recordFatalError(ex);
+				result.recordFatalError("ICF invocation failed");
+				// This is fatal. No point in continuing.
+				throw new GenericFrameworkException(ex);
+			}
 		}
 
 		parseResourceSchema(icfSchema);

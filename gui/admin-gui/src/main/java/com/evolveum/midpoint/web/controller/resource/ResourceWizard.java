@@ -42,17 +42,17 @@ public class ResourceWizard extends Wizard {
 	static final String PAGE_NAVIGATION_BASE = "/resource/create";
 	private static final long serialVersionUID = -8327099988202610912L;
 	@Autowired(required = true)
-	private TemplateController template;
+	private transient TemplateController template;
 	@Autowired(required = true)
-	private ResourceCreateController create;
+	private transient ResourceCreateController create;
 	@Autowired(required = true)
-	private ResourceConfigurationController configuration;
+	private transient ResourceConfigurationController configuration;
 	@Autowired(required = true)
-	private SchemaReviewController schemaReview;
+	private transient SchemaReviewController schemaReview;
 	@Autowired(required = true)
-	private SchemaHandlingController schemaHandling;
+	private transient SchemaHandlingController schemaHandling;
 	@Autowired(required = true)
-	private ResourceSynchronizationController synchronization;
+	private transient ResourceSynchronizationController synchronization;
 
 	public ResourceWizard() {
 		super("/resource/index");

@@ -26,16 +26,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.ResourceListItem;
 import com.evolveum.midpoint.web.bean.TaskStatus;
 import com.evolveum.midpoint.web.controller.TemplateController;
-import com.evolveum.midpoint.web.controller.util.ControllerUtil;
-import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
-import com.evolveum.midpoint.web.model.ResourceManager;
-import com.evolveum.midpoint.web.util.FacesUtils;
 
 /**
  * 
@@ -50,8 +45,6 @@ public class ResourceImportController implements Serializable {
 	public static final String NAVIGATION_LEFT = "leftImportStatus";
 	private static final long serialVersionUID = 7495585784483264092L;
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceImportController.class);
-	@Autowired(required = true)
-	private ObjectTypeCatalog objectTypeCatalog;
 	@Autowired(required = true)
 	private transient TemplateController template;
 	private ResourceListItem resource;

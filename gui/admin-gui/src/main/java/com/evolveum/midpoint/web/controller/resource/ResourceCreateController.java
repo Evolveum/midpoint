@@ -47,9 +47,9 @@ public class ResourceCreateController extends WizardPage {
 
 	private static final long serialVersionUID = 8679302869048479599L;
 	@Autowired(required = true)
-	private ObjectTypeCatalog catalog;
+	private transient ObjectTypeCatalog catalog;
 	@Autowired(required = true)
-	private ResourceConfigurationController configurationController;
+	private transient ResourceConfigurationController configurationController;
 	private Collection<ConnectorDto> connectors;
 	private String name;
 	private String connectorType;
