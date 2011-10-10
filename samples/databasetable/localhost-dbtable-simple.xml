@@ -23,12 +23,11 @@
 
 <!--
 
-This file is an example of Resource definition. It defines an Solaris resource
-using an Identity Connector Framework Solaris connector.
+This file is an example of Resource definition. It defines an database table
+resource. The users are stored as rows in simple database table. The definition
+is using MySQL database driver.
 
-This resource definition contains also definition to enable synchronization and
-especially an expression that is using a lookup of value from an configuration
-object.
+See the content of the SQL files in this directory to see the table strucutre.
 
 -->
 
@@ -87,24 +86,9 @@ object.
 				<icscdbtable:changeLogColumn></icscdbtable:changeLogColumn>
 				<icscdbtable:datasource></icscdbtable:datasource>
 			</icscdbtable:configurationProperties>
-		
-			<!-- Generic ICF configuration -->
-
 
 		</c:configuration>
 
-        <!-- Resource Schema Handling definition.
-             This part defines how the schema defined above will be used by
-             midPoint. It defines expressions and limitations for individual
-             schema attributes.
-
-             The expressions that describe both inbound and outbound flow of
-             the attributes are defined in this section.
-
-             This is the part where most of the customization takes place.
-        -->
-
 	</c:resource>
-
 
 </c:objects>

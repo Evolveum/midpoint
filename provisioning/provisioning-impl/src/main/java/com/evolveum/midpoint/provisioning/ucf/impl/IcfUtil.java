@@ -4,6 +4,7 @@
 package com.evolveum.midpoint.provisioning.ucf.impl;
 
 import java.net.ConnectException;
+import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
 import java.util.Set;
 
@@ -136,9 +137,14 @@ class IcfUtil {
 		} else if (ex instanceof SQLSyntaxErrorException) {
 			// Buried deep in many exceptions, usually DB schema problems of
 			// DB-based connectors
-			Exception newEx = new SchemaException(createMessage("DB error", ex));
-			parentResult.recordFatalError("DB error: " + ex.getMessage(), newEx);
+			Exception newEx = new SchemaException(createMessage("DB syntax error", ex));
+			parentResult.recordFatalError("DB syntax error: " + ex.getMessage(), newEx);
 			return newEx;
+		} else if (ex instanceof SQLException) {
+			// Buried deep in many exceptions, usually DB connection problems
+			Exception newEx = new GenericFrameworkException(createMessage("DB error", ex));
+			parentResult.recordFatalError("DB error: " + ex.getMessage(), newEx);
+			return newEx;		
 		} else if (ex instanceof UnknownUidException) {
 			// Object not found
 			Exception newEx = new ObjectNotFoundException(createMessage(null,ex));

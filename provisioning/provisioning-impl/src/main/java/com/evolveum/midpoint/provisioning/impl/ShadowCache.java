@@ -1003,6 +1003,13 @@ public class ShadowCache {
 
 		// delegate the main part of the test to the connector
 		connector.test(parentResult);
+		
+		parentResult.computeStatus();
+		if (!parentResult.isAcceptable()) {
+			// No point in going on. Following tests will fail anyway, they will just produce misleading
+			// messages.
+			return;
+		}
 
 		// === test SCHEMA ===
 
