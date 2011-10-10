@@ -29,6 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
+import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
@@ -85,6 +86,10 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 			type = AssignmentBeanType.TARGET_REF;
 		}
 		return type;
+	}
+	
+	public String getTypeLocalizedString() {
+		return FacesUtils.translateKey(getType().getLocalizationKey());
 	}
 
 	public String getTypeString() {
