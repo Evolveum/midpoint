@@ -47,8 +47,8 @@ import org.w3c.dom.Element;
  */
 public class ExpressionCodeHolderTest {
 
-    private static final String FILENAME_EXPRESSION_1 = "src/test/resources/examples/expression-1.xml";
-    private static final String FILENAME_EXPRESSION_EXPLICIT_NS = "src/test/resources/examples/expression-explicit-ns.xml";
+    private static final String FILENAME_EXPRESSION_1 = "src/test/resources/schema/expression-1.xml";
+    private static final String FILENAME_EXPRESSION_EXPLICIT_NS = "src/test/resources/schema/expression-explicit-ns.xml";
 
     public ExpressionCodeHolderTest() {
     }

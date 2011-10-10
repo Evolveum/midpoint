@@ -62,7 +62,7 @@ import org.xml.sax.SAXException;
  */
 public class XPathTest {
 
-    private static final String FILENAME_CHANGETYPE = "src/test/resources/examples/changetype-1.xml";
+    private static final String FILENAME_CHANGETYPE = "src/test/resources/xpath/changetype-1.xml";
     private static final String FILENAME_STRANGECHARS = "src/test/resources/xpath/strange.txt";
 
     public XPathTest() {

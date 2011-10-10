@@ -20,51 +20,28 @@
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 
+<!-- WARNING: this file is not complaint with the schema.
+    It SHOULD NOT be used as an example. It is just for the XPath test. -->
 
-
-<c:query  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+<c:objectModification xsi:type="c:ObjectModificationType"
+   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+   xmlns='http://default.com/whatever'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
-   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+   xmlns:r='http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd'
+   xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
    xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
-   http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-1.xsd'
-   xmlns:foo="http://foo.com/">
+   http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-1.xsd
+   http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/resource/resource-schema-1.xsd'>
 
-   <!-- Query filter example -->
+   <c:oid>123456</c:oid>
 
-    <c:and>
-        <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#UserType"/>
-        <c:equal>
-            <c:path>c:extension</c:path>
-            <c:value>
-                <foo:bar>baz</foo:bar>
-            </c:value>
-        </c:equal>
-        <c:not>
-            <c:true>
-                <c:property>c:extension/foo:barbar</c:property>
-            </c:true>
-        </c:not>
-        <c:present>
-            <c:property>c:extension/foo:x</c:property>
-        </c:present>
-        <c:or>
-            <c:substring>
-                <c:property>c:extension/foo:y</c:property>
-                <c:value>a*b</c:value>
-            </c:substring>
-            <c:lessOrEqual>
-                <c:property>c:extention/foo:n</c:property>
-                <c:value>100</c:value>
-            </c:lessOrEqual>
-            <c:equal>
-                <c:path>c:extension</c:path>
-                <c:value>
-                    <foo:foofoo>
-                        <foo:foo foo="foo"><foo:foofoo/></foo:foo>
-                    </foo:foofoo>
-                </c:value>
-            </c:equal>
-        </c:or>
-    </c:and>
-    
-</c:query>
+   <c:propertyModification modificationType="replace" xmlns:bar="http://bar/">
+       <c:path xmlns:foo="http://foo/">/c:extension/piracy:ship</c:path>
+       <c:value>
+       <piracy:name>Black Pearl</piracy:name>
+       </c:value>
+   </c:propertyModification>
+
+</c:objectModification>

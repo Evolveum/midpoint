@@ -20,7 +20,9 @@
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 
-
+<!-- DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED -->
+<!--      Will be replaced with updated version later      -->
+<!-- DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED -->
 
 <i:objects  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'

@@ -33,7 +33,7 @@ public class TestSchemaRegistry {
 		assertNotNull(midPointSchema);
 		
 		// Try to use the schema to validate Jack
-		Document document = DOMUtil.parseFile("src/test/resources/examples/user-jack.xml");
+		Document document = DOMUtil.parseFile("src/test/resources/schema-registry/user-jack.xml");
 		Validator validator = midPointSchema.newValidator();
 		DOMResult validationResult = new DOMResult();
 		validator.validate(new DOMSource(document),validationResult);
