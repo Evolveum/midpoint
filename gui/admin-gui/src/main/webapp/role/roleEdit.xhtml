@@ -15,10 +15,10 @@
 	</ui:define>
 
 	<ui:define name="content">
-		<comp:browser okAction="#{roleEdit.okBrowseAction}" cancelAction="#{roleEdit.cancelBrowseAction}"
-			bean="#{roleEdit.browser}" show="#{roleEdit.showBrowser}" />
-		<comp:xmlEditor okAction="#{roleEdit.okEditorAction}" cancelAction="#{roleEdit.cancelEditAction}"
-			bean="#{roleEdit.editor}" show="#{roleEdit.showEditor}" />
+		<comp:browser okAction="#{roleEdit.assignmentEditor.okBrowseAction}" cancelAction="#{roleEdit.assignmentEditor.cancelBrowseAction}"
+			bean="#{roleEdit.assignmentEditor.browser}" show="#{roleEdit.assignmentEditor.showBrowser}" />
+		<comp:xmlEditor okAction="#{roleEdit.okEditorAction}" cancelAction="#{roleEdit.assignmentEditor.cancelEditAction}"
+			bean="#{roleEdit.assignmentEditor.editor}" show="#{roleEdit.assignmentEditor.showEditor}" />
 		<ice:form>
 			<ice:panelGrid columns="3" cellpadding="3" cellspacing="3">
 				<ice:outputLabel value="Name" />
@@ -30,42 +30,44 @@
 				<ice:message for="description" />
 			</ice:panelGrid>
 			<h3 style="margin-top: 10px;">Assignments</h3>
-			<ice:dataTable rows="20" value="#{roleEdit.role.assignments}" var="item"
+			<ice:dataTable rows="20" value="#{roleEdit.assignmentEditor.containsAssignment.assignments}" var="item"
 				columnWidths="auto, auto, auto, auto, auto, auto, auto" resizable="false">
 				<ice:column>
 					<f:facet name="header">
-						<ice:selectBooleanCheckbox id="selectAllCheckbox" value="#{roleEdit.selectAll}"
-							valueChangeListener="#{roleEdit.selectAllPerformed}" immediate="true" partialSubmit="true" />
+						<ice:selectBooleanCheckbox id="selectAllCheckbox" value="#{roleEdit.assignmentEditor.selectAll}"
+							valueChangeListener="#{roleEdit.assignmentEditor.selectAllPerformed}" immediate="true"
+							partialSubmit="true" />
 					</f:facet>
 					<ice:selectBooleanCheckbox id="selectCheckbox" value="#{item.selected}" partialSubmit="true"
-						immediate="true" valueChangeListener="#{roleEdit.selectPerformed}" />
+						immediate="true" valueChangeListener="#{roleEdit.assignmentEditor.selectPerformed}" />
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
 						<ice:outputLabel value="#{msg['page.role.roleEdit.table.assignmentType']}" />
 					</f:facet>
 					<ice:commandLink style="text-decoration: underline;" value="#{item.typeString}"
-						action="#{roleEdit.editAssignment}" rendered="#{not item.editing}" immediate="true">
+						action="#{roleEdit.assignmentEditor.editAssignment}" rendered="#{!(item.editing)}" immediate="true">
 						<f:param name="assignmentId" value="#{item.id}" />
 					</ice:commandLink>
-					<ice:selectOneMenu value="#{item.typeString}" rendered="#{item.editing}" immediate="true"
+					<ice:selectOneMenu value="#{item.typeString}" rendered="#{(item.editing)}" immediate="true"
 						partialSubmit="true">
-						<f:selectItems value="#{roleEdit.assignmentTypes}" />
+						<f:selectItems value="#{roleEdit.assignmentEditor.assignmentTypes}" />
 					</ice:selectOneMenu>
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
 						<ice:outputLabel value="#{msg['page.role.roleEdit.table.active']}" />
 					</f:facet>
-					<ice:selectBooleanCheckbox value="#{item.enabled}" disabled="#{not item.editing}" />
+					<ice:selectBooleanCheckbox value="#{item.enabled}" disabled="#{!(item.editing)}" />
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
 						<ice:outputLabel value="#{msg['page.role.roleEdit.table.object']}" />
 					</f:facet>
-					<ice:outputLabel value="#{item.objectString}" rendered="#{not item.editing}" />
+					<ice:outputLabel value="#{item.objectString}" rendered="#{!(item.editing)}" />
 					<ice:commandLink style="text-decoration: underline;" value="#{item.objectString}"
-						action="#{roleEdit.editAssignmentObject}" rendered="#{item.editing}" immediate="true">
+						action="#{roleEdit.assignmentEditor.editAssignmentObject}"
+						rendered="#{item.editing}" immediate="true">
 						<f:param name="assignmentId" value="#{item.id}" />
 					</ice:commandLink>
 				</ice:column>
@@ -73,17 +75,17 @@
 					<f:facet name="header">
 						<ice:outputLabel value="#{msg['page.role.roleEdit.table.useActivationDate']}" />
 					</f:facet>
-					<ice:selectBooleanCheckbox value="#{item.useActivationDate}" disabled="#{not item.editing}"
+					<ice:selectBooleanCheckbox value="#{item.useActivationDate}" disabled="#{!(item.editing)}"
 						immediate="true" partialSubmit="true" />
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
 						<ice:outputLabel value="#{msg['page.role.roleEdit.table.activeFrom']}" />
 					</f:facet>
-					<ice:outputLabel value="#{item.fromActivationString}" rendered="#{not item.editing}" />
-					<ice:selectInputDate value="#{item.fromActivation}" renderMonthAsDropdown="true"  renderAsPopup="true"
+					<ice:outputLabel value="#{item.fromActivationString}" rendered="#{!(item.editing)}" />
+					<ice:selectInputDate value="#{item.fromActivation}" renderMonthAsDropdown="true" renderAsPopup="true"
 						renderYearAsDropdown="true" renderWeekNumbers="true" rendered="#{item.editing}" renderInputField="true"
-						singleSubmit="false" disabled="#{not item.useActivationDate}">
+						singleSubmit="false" disabled="#{!(item.useActivationDate)}">
 						<f:convertDateTime pattern="MMM/dd/yyyy hh:mm a" />
 					</ice:selectInputDate>
 				</ice:column>
@@ -91,20 +93,20 @@
 					<f:facet name="header">
 						<ice:outputLabel value="#{msg['page.role.roleEdit.table.activeTo']}" />
 					</f:facet>
-					<ice:outputLabel value="#{item.toActivationString}" rendered="#{not item.editing}" />
-					<ice:selectInputDate value="#{item.toActivation}" renderMonthAsDropdown="true"  renderAsPopup="true"
+					<ice:outputLabel value="#{item.toActivationString}" rendered="#{!(item.editing)}" />
+					<ice:selectInputDate value="#{item.toActivation}" renderMonthAsDropdown="true" renderAsPopup="true"
 						renderYearAsDropdown="true" renderWeekNumbers="true" rendered="#{item.editing}" renderInputField="true"
-						singleSubmit="false" disabled="#{not item.useActivationDate}">
+						singleSubmit="false" disabled="#{!(item.useActivationDate)}">
 						<f:convertDateTime pattern="MMM/dd/yyyy hh:mm a" />
-					</ice:selectInputDate>				
+					</ice:selectInputDate>
 				</ice:column>
 			</ice:dataTable>
 
 			<div style="margin-bottom: 5px;">
-				<idm:button action="#{roleEdit.addAssignment}" value="#{msg['page.button.addAssignment']}"
+				<idm:button action="#{roleEdit.assignmentEditor.addAssignment}" value="#{msg['page.button.addAssignment']}"
 					img="/resources/images/door_in.png" immediate="true" buttonType="positive" />
 
-				<idm:button action="#{roleEdit.deleteAssignments}" buttonType="negative" immediate="true"
+				<idm:button action="#{roleEdit.assignmentEditor.deleteAssignments}" buttonType="negative" immediate="true"
 					value="#{msg['page.button.deleteAssignments']}" img="/resources/images/user_add.png" />
 			</div>
 
