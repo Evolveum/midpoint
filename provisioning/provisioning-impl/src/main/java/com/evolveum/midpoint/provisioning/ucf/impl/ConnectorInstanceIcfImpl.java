@@ -22,7 +22,6 @@ package com.evolveum.midpoint.provisioning.ucf.impl;
 import static com.evolveum.midpoint.provisioning.ucf.impl.IcfUtil.processIcfException;
 
 import java.lang.reflect.Array;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,7 +47,6 @@ import org.identityconnectors.framework.api.operations.ScriptOnConnectorApiOp;
 import org.identityconnectors.framework.api.operations.ScriptOnResourceApiOp;
 import org.identityconnectors.framework.api.operations.SyncApiOp;
 import org.identityconnectors.framework.api.operations.TestApiOp;
-import org.identityconnectors.framework.common.exceptions.ConnectorSecurityException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
@@ -373,18 +371,19 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// Therefore this kind of heavy artillery is necessary.
 			// ICF interface does not specify exceptions or other error
 			// TODO maybe we can try to catch at least some specific exceptions
-			
-			//Note: MID-405 following exception is causing serialization problems
-			if (ex instanceof org.identityconnectors.framework.common.exceptions.ConnectorSecurityException && ex.getCause() != null && ex.getCause() instanceof javax.naming.OperationNotSupportedException) {
-				icfResult.recordFatalError("org.identityconnectors.framework.common.exceptions.ConnectorSecurityException/javax.naming.OperationNotSupportedException: " + ex.getMessage());
-				result.recordFatalError("ICF invocation failed");
-				// This is fatal. No point in continuing.
-				throw new GenericFrameworkException("org.identityconnectors.framework.common.exceptions.ConnectorSecurityException/javax.naming.OperationNotSupportedException: " + ex.getMessage());
+			Exception midpointEx = processIcfException(ex, result);
+			result.recordFatalError("ICF invocation failed");
+
+			// Do some kind of acrobatics to do proper throwing of checked
+			// exception
+			if (midpointEx instanceof CommunicationException) {
+				throw (CommunicationException) midpointEx;
+			} else if (midpointEx instanceof GenericFrameworkException) {
+				throw (GenericFrameworkException) midpointEx;
+			} else if (midpointEx instanceof RuntimeException) {
+				throw (RuntimeException) midpointEx;
 			} else {
-				icfResult.recordFatalError(ex);
-				result.recordFatalError("ICF invocation failed");
-				// This is fatal. No point in continuing.
-				throw new GenericFrameworkException(ex);
+				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
 		}
 
