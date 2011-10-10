@@ -65,7 +65,7 @@ public class LoginController implements Serializable {
 		this.password = password;
 	}
 
-	public String login() {
+	public String loginAdmin() {
 		try {
 			Authentication request = new UsernamePasswordAuthenticationToken(this.getUserName(),
 					getPassword());
@@ -82,5 +82,24 @@ public class LoginController implements Serializable {
 		}
 
 		return "/index.xhml?faces-redirect=true";
+	}
+	
+	public String loginUser() {
+		try {
+			Authentication request = new UsernamePasswordAuthenticationToken(this.getUserName(),
+					getPassword());
+			Authentication result = authenticationManager.authenticate(request);
+			SecurityContextHolder.getContext().setAuthentication(result);
+		} catch (AuthenticationException ex) {
+			Object extra = ex.getExtraInformation();
+			if (extra instanceof Object[]) {
+				FacesUtils.addErrorMessage(FacesUtils.translateKey(ex.getMessage(), (Object[]) extra));
+			} else {
+				FacesUtils.addErrorMessage(FacesUtils.translateKey(ex.getMessage()));
+			}
+			return null;
+		}
+
+		return "/index_user.xhml?faces-redirect=true";
 	}
 }
