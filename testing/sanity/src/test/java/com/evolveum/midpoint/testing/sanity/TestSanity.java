@@ -1522,7 +1522,7 @@ public class TestSanity extends AbstractIntegrationTest {
 			public void timeout() {
 				// No reaction, the test will fail right after return from this
 			}
-		}, 45000);
+		}, 60000);
 
 		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
