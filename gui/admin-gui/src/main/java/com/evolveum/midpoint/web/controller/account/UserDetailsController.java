@@ -40,6 +40,8 @@ import org.springframework.stereotype.Controller;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import ch.qos.logback.core.pattern.util.AsIsEscapeUtil;
+
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -52,6 +54,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.AccountFormBean;
 import com.evolveum.midpoint.web.bean.ResourceCapability;
 import com.evolveum.midpoint.web.controller.TemplateController;
+import com.evolveum.midpoint.web.controller.util.AssignmentEditor;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.jsf.form.AttributeType;
 import com.evolveum.midpoint.web.jsf.form.FormAttribute;
@@ -68,6 +71,7 @@ import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
+import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SchemaFormParser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -90,6 +94,8 @@ public class UserDetailsController implements Serializable {
 	@Autowired(required = true)
 	private transient TemplateController template;
 	@Autowired(required = true)
+	private AssignmentEditor<UserDto> assignmentEditor;
+	@Autowired(required = true)
 	private ObjectTypeCatalog objectTypeCatalog;
 	@Autowired(required = true)
 	private Protector protector;
@@ -101,6 +107,10 @@ public class UserDetailsController implements Serializable {
 	private List<SelectItem> availableResourceList;
 	private List<String> selectedResourceList;
 	private String selectedTab = TAB_USER;
+
+	public AssignmentEditor<UserDto> getAssignmentEditor() {
+		return assignmentEditor;
+	}
 
 	public String getSelectedTab() {
 		return selectedTab;
@@ -171,6 +181,8 @@ public class UserDetailsController implements Serializable {
 				accountList = createFormBeanList(this.user.getAccount(), false);
 				getAvailableResourceList().clear();
 				availableResourceList = createResourceList(this.user.getAccount());
+				
+				assignmentEditor.initController(user);
 			}
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't create account list for user {}", ex, user.getName());
@@ -210,6 +222,10 @@ public class UserDetailsController implements Serializable {
 	 * accounts from accountList save user attributes from form
 	 */
 	public void savePerformed(ActionEvent evt) {
+		if (user != null) {
+			LOGGER.debug("Normalizing user assignments");
+			user.normalizeAssignments();
+		}
 		try {
 			UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
 			AccountManager accountManager = ControllerUtil.getAccountManager(objectTypeCatalog);

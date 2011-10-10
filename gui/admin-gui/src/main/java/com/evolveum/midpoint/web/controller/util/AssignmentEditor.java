@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.web.controller.role;
+package com.evolveum.midpoint.web.controller.util;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -26,7 +26,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.faces.event.ActionEvent;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 import javax.xml.bind.JAXBElement;
@@ -47,13 +46,9 @@ import com.evolveum.midpoint.web.bean.AssignmentBean;
 import com.evolveum.midpoint.web.bean.AssignmentBeanType;
 import com.evolveum.midpoint.web.bean.BrowserBean;
 import com.evolveum.midpoint.web.bean.XmlEditorBean;
-import com.evolveum.midpoint.web.controller.TemplateController;
-import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
-import com.evolveum.midpoint.web.model.RoleManager;
 import com.evolveum.midpoint.web.model.dto.ObjectDto;
-import com.evolveum.midpoint.web.model.dto.RoleDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
@@ -61,41 +56,40 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 
 /**
  * 
  * @author lazyman
  * 
  */
-@Controller("roleEdit")
+@Controller
 @Scope("session")
-public class RoleEditController implements Serializable {
+public class AssignmentEditor<T extends ContainsAssignment> implements Serializable {
 
-	public static final String PAGE_NAVIGATION = "/role/roleEdit?faces-redirect=true";
 	public static final String PARAM_ASSIGNMENT_ID = "assignmentId";
-	private static final long serialVersionUID = 6390559677870495118L;
-	private static final Trace LOGGER = TraceManager.getTrace(RoleEditController.class);
-	@Autowired(required = true)
-	private transient ObjectTypeCatalog catalog;
-	@Autowired(required = true)
-	private transient TemplateController template;
+	private static final long serialVersionUID = 6630275185138562511L;
+	private static final Trace LOGGER = TraceManager.getTrace(AssignmentEditor.class);
 	@Deprecated
 	@Autowired(required = true)
 	private transient ModelService model;
+	@Autowired(required = true)
+	private transient ObjectTypeCatalog catalog;
 	private BrowserBean<AssignmentBean> browser;
 	private XmlEditorBean<AssignmentBean> editor;
+	private ContainsAssignment containsAssignment;
 	private boolean showBrowser;
 	private boolean showEditor;
-	private boolean newRole = true;
-	private RoleDto role;
 	private boolean selectAll;
 
-	public RoleDto getRole() {
-		if (role == null) {
-			role = new RoleDto(new RoleType());
-		}
-		return role;
+	public void initController(ContainsAssignment containsAssignment) {
+		Validate.notNull(containsAssignment, "Contains assignment object must not be null.");
+		this.containsAssignment = containsAssignment;
+		showBrowser = false;
+		showEditor = false;
+		selectAll = false;
+
+		browser = null;
+		editor = null;
 	}
 
 	public boolean isShowEditor() {
@@ -139,53 +133,6 @@ public class RoleEditController implements Serializable {
 		return items;
 	}
 
-	/**
-	 * True if this controller is used for creating new role, false if we're
-	 * editing existing role
-	 */
-	public boolean isNewRole() {
-		return newRole;
-	}
-
-	void setNewRole(boolean newRole) {
-		this.newRole = newRole;
-	}
-
-	void setRole(RoleDto role) {
-		Validate.notNull(role, "Role must not be null.");
-		this.role = role;
-		newRole = false;
-		template.setSelectedLeftId("leftRoleEdit");
-	}
-
-	public String initController() {
-		role = new RoleDto(new RoleType());
-		newRole = true;
-		template.setSelectedLeftId("leftRoleCreate");
-
-		return PAGE_NAVIGATION;
-	}
-
-	public void save(ActionEvent evt) {
-		if (role == null) {
-			FacesUtils.addErrorMessage("Role must not be null.");
-			return;
-		}
-
-		try {
-			role.normalizeAssignments();
-			RoleManager manager = ControllerUtil.getRoleManager(catalog);
-			if (isNewRole()) {
-				manager.add(role);
-			} else {
-				manager.submit(getRole());
-			}
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't submit role {}", ex, role.getName());
-			FacesUtils.addErrorMessage("Couldn't submit role '" + role.getName() + "'.", ex);
-		}
-	}
-
 	public boolean isSelectAll() {
 		return selectAll;
 	}
@@ -195,16 +142,16 @@ public class RoleEditController implements Serializable {
 	}
 
 	public void selectAllPerformed(ValueChangeEvent event) {
-		ControllerUtil.selectAllPerformed(event, role.getAssignments());
+		ControllerUtil.selectAllPerformed(event, containsAssignment.getAssignments());
 	}
 
 	public void selectPerformed(ValueChangeEvent evt) {
-		this.selectAll = ControllerUtil.selectPerformed(evt, role.getAssignments());
+		this.selectAll = ControllerUtil.selectPerformed(evt, containsAssignment.getAssignments());
 	}
 
 	private int getNewId() {
 		int id = 0;
-		for (AssignmentBean bean : role.getAssignments()) {
+		for (AssignmentBean bean : containsAssignment.getAssignments()) {
 			if (bean.getId() > id) {
 				id = bean.getId();
 			}
@@ -213,13 +160,17 @@ public class RoleEditController implements Serializable {
 		return ++id;
 	}
 
+	public ContainsAssignment getContainsAssignment() {
+		return containsAssignment;
+	}
+
 	public void addAssignment() {
-		getRole().getAssignments().add(new AssignmentBean(getNewId(), new AssignmentType()));
+		getContainsAssignment().getAssignments().add(new AssignmentBean(getNewId(), new AssignmentType()));
 		selectAll = false;
 	}
 
 	public void deleteAssignments() {
-		Iterator<AssignmentBean> iterator = role.getAssignments().iterator();
+		Iterator<AssignmentBean> iterator = containsAssignment.getAssignments().iterator();
 		while (iterator.hasNext()) {
 			AssignmentBean bean = iterator.next();
 			if (bean.isSelected()) {
@@ -239,15 +190,18 @@ public class RoleEditController implements Serializable {
 		switch (bean.getType()) {
 			case TARGET:
 			case TARGET_REF:
-				browser.setObject(bean);
+				getBrowser().setObject(bean);
 				setShowBrowser(true);
 				break;
 			case ACCOUNT_CONSTRUCTION:
 				try {
 					AccountConstructionType construction = bean.getAccountConstruction();
-					String xml = JAXBUtil.marshalWrap(construction);
-					editor.setText(xml);
-					editor.setObject(bean);
+					String xml = null;
+					if (construction != null) {
+						xml = JAXBUtil.marshalWrap(construction);
+					}
+					getEditor().setText(xml);
+					getEditor().setObject(bean);
 					setShowEditor(true);
 				} catch (Exception ex) {
 					LoggingUtils.logException(LOGGER, "Couldn't parse account construction", ex);
@@ -260,7 +214,7 @@ public class RoleEditController implements Serializable {
 	 * called when user clicks on CANCEL button in object browser
 	 */
 	public void cancelBrowseAction() {
-		browser.cleanup();
+		getBrowser().cleanup();
 		setShowBrowser(false);
 	}
 
@@ -282,16 +236,16 @@ public class RoleEditController implements Serializable {
 		}
 
 		ObjectType object = objectDto.getXmlObject();
-		AssignmentBean bean = browser.getObject();
+		AssignmentBean bean = getBrowser().getObject();
 		switch (bean.getType()) {
 			case TARGET:
 				bean.setTarget(object);
-				browser.cleanup();
+				getBrowser().cleanup();
 				setShowBrowser(false);
 				break;
 			case TARGET_REF:
 				bean.setTargetRef(createObjectReference(object));
-				browser.cleanup();
+				getBrowser().cleanup();
 				setShowBrowser(false);
 		}
 	}
@@ -312,7 +266,7 @@ public class RoleEditController implements Serializable {
 
 		int beanId = Integer.parseInt(id);
 		AssignmentBean bean = null;
-		for (AssignmentBean assignmentBean : role.getAssignments()) {
+		for (AssignmentBean assignmentBean : containsAssignment.getAssignments()) {
 			if (assignmentBean.getId() == beanId) {
 				bean = assignmentBean;
 				break;
@@ -340,7 +294,7 @@ public class RoleEditController implements Serializable {
 	 */
 	@SuppressWarnings("unchecked")
 	public void okEditorAction() {
-		String text = editor.getText();
+		String text = getEditor().getText();
 		if (StringUtils.isEmpty(text)) {
 			return;
 		}
@@ -359,9 +313,9 @@ public class RoleEditController implements Serializable {
 			return;
 		}
 
-		AssignmentBean bean = editor.getObject();
+		AssignmentBean bean = getEditor().getObject();
 		bean.setAccountConstruction(construction);
-		editor.cleanup();
+		getEditor().cleanup();
 		setShowEditor(false);
 	}
 
@@ -369,7 +323,7 @@ public class RoleEditController implements Serializable {
 	 * called when user clicks on CANCEL button in xml editor
 	 */
 	public void cancelEditAction() {
-		editor.cleanup();
+		getEditor().cleanup();
 		setShowEditor(false);
 	}
 }

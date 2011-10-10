@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.web.bean.AssignmentBean;
+import com.evolveum.midpoint.web.controller.util.ContainsAssignment;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 
@@ -32,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
  * @author lazyman
  * 
  */
-public class RoleDto extends ExtensibleObjectDto<RoleType> {
+public class RoleDto extends ExtensibleObjectDto<RoleType> implements ContainsAssignment {
 
 	private static final long serialVersionUID = -6609121465638251441L;
 	private List<AssignmentBean> assignments;
@@ -56,6 +57,7 @@ public class RoleDto extends ExtensibleObjectDto<RoleType> {
 		}
 	}
 
+	@Override
 	public List<AssignmentBean> getAssignments() {
 		if (assignments == null) {
 			assignments = new ArrayList<AssignmentBean>();
@@ -73,7 +75,8 @@ public class RoleDto extends ExtensibleObjectDto<RoleType> {
 		}
 	}
 	
-	public void pushAssigmentBeansToRole() {
+	@Override
+	public void normalizeAssignments() {
 		List<AssignmentType> assignmentTypes = getXmlObject().getAssignment();
 		assignmentTypes.clear();
 		for (AssignmentBean bean : getAssignments()) {

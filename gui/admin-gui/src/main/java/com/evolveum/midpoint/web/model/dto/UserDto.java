@@ -25,7 +25,10 @@ package com.evolveum.midpoint.web.model.dto;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.bean.AssignmentBean;
+import com.evolveum.midpoint.web.controller.util.ContainsAssignment;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -33,16 +36,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * 
  * @author semancik
  */
-public class UserDto extends ExtensibleObjectDto<UserType> {
+public class UserDto extends ExtensibleObjectDto<UserType> implements ContainsAssignment {
 
 	private static final long serialVersionUID = 2178456879571587946L;
 	private List<AccountShadowDto> accountDtos;
+	private List<AssignmentBean> assignments;
 
 	public UserDto() {
 	}
 
-	public UserDto(UserType object) {
-		super(object);
+	public UserDto(UserType user) {
+		super(user);
+		if (user != null) {
+			createAssignments(user);
+		}
 	}
 
 	public String getFullName() {
@@ -108,7 +115,7 @@ public class UserDto extends ExtensibleObjectDto<UserType> {
 				accountDtos.add(new AccountShadowDto(account));
 			}
 		}
-		
+
 		return accountDtos;
 	}
 
@@ -137,5 +144,40 @@ public class UserDto extends ExtensibleObjectDto<UserType> {
 
 	public void setLocality(String value) {
 		getXmlObject().setLocality(value);
+	}
+
+	@Override
+	public void setXmlObject(UserType xmlObject) {
+		super.setXmlObject(xmlObject);
+		if (xmlObject != null) {
+			createAssignments(xmlObject);
+		}
+	}
+
+	@Override
+	public List<AssignmentBean> getAssignments() {
+		if (assignments == null) {
+			assignments = new ArrayList<AssignmentBean>();
+		}
+
+		return assignments;
+	}
+
+	@Override
+	public void normalizeAssignments() {
+		List<AssignmentType> assignmentTypes = getXmlObject().getAssignment();
+		assignmentTypes.clear();
+		for (AssignmentBean bean : getAssignments()) {
+			assignmentTypes.add(bean.getAssignment());
+		}
+	}
+
+	private void createAssignments(UserType user) {
+		getAssignments().clear();
+		int id = 0;
+		for (AssignmentType assignment : user.getAssignment()) {
+			getAssignments().add(new AssignmentBean(id, assignment));
+			id++;
+		}
 	}
 }
