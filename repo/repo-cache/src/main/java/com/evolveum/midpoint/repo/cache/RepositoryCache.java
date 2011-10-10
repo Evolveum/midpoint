@@ -114,7 +114,7 @@ public class RepositoryCache implements RepositoryService {
 	@Override
 	public <T extends ObjectType> T getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		if (!isCacheable(TaskType.class)) {
+		if (!isCacheable(type)) {
 			LOGGER.trace("Cache: PASS {} ({})", oid, type.getSimpleName());
 			return repository.getObject(type, oid, resolve, parentResult);
 		}
@@ -144,7 +144,10 @@ public class RepositoryCache implements RepositoryService {
 	public <T extends ObjectType> String addObject(T object, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException {
 		String oid = repository.addObject(object, parentResult);
-		getCache().put(oid,object);
+		// DON't cache it here. The object may not have proper "JAXB" form, e.g. some pieces may be
+		// DOM element instead of JAXB elements. Not to cache it is safer and the performance loss
+		// is acceptable.
+		//getCache().put(oid,object);
 		return oid;
 	}
 

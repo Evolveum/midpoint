@@ -1869,7 +1869,7 @@ public class ShadowCache {
 		}
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getCapability(resource
 				.getCapabilities().getAny(), ActivationCapabilityType.class);
-		if (activationCapability.getEnableDisable() != null) {
+		if (activationCapability != null && activationCapability.getEnableDisable() != null) {
 			QName attributeName = activationCapability.getEnableDisable().getAttribute();
 			if (attributeName != null) {
 				// The attribute used for enable/disable simulation should be

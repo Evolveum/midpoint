@@ -310,26 +310,30 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result);
 		
 		// THEN
+		display("Resource from provisioninig", resource);
 		CapabilitiesType nativeCapabilities = resource.getNativeCapabilities();
-		List<Object> capabilities = nativeCapabilities.getAny();
-        assertFalse("Empty capabilities returned",capabilities.isEmpty());
-        CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(capabilities, CredentialsCapabilityType.class);
+		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
+        assertFalse("Empty capabilities returned",nativeCapabilitiesList.isEmpty());
+        CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(nativeCapabilitiesList, CredentialsCapabilityType.class);
+        assertNotNull("credentials capability not found",capCred);
         assertNotNull("password capability not present",capCred.getPassword());
         // Connector cannot do activation, this should be null
-        ActivationCapabilityType capAct = ResourceTypeUtil.getCapability(capabilities, ActivationCapabilityType.class);
+        ActivationCapabilityType capAct = ResourceTypeUtil.getCapability(nativeCapabilitiesList, ActivationCapabilityType.class);
         assertNull("Found activation capability while not expecting it",capAct);
-        
-        capCred = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
-        assertNotNull("password capability not found",capCred.getPassword());
-        // Although connector does not support activation, the resource specifies a way how to simulate it.
-        // Therefore the following should succeed
-        capAct = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
-        assertNotNull("activation capability not found",capAct);
         
         List<Object> effectiveCapabilities = ResourceTypeUtil.listEffectiveCapabilities(resource);
         for (Object capability : effectiveCapabilities) {
         	System.out.println("Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
         }
+        
+        capCred = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
+        assertNotNull("credentials effective capability not found",capCred);
+        assertNotNull("password effective capability not found",capCred.getPassword());
+        // Although connector does not support activation, the resource specifies a way how to simulate it.
+        // Therefore the following should succeed
+        capAct = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
+        assertNotNull("activation capability not found",capAct);
+        
 	}
 	
 	

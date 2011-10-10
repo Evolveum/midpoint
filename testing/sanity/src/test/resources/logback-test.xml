@@ -33,7 +33,7 @@
 	<logger name="org.springframework" level="WARN" />
 	<logger name="com.evolveum.midpoint" level="INFO" />
 	<logger name="com.evolveum.midpoint.repo.cache" level="TRACE" />
-	<logger name="PROFILING" level="TRACE" />
+	<logger name="PROFILING" level="DEBUG" />
 	<root level="WARN">
 		<appender-ref ref="X" />
 	</root>

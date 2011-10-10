@@ -1253,7 +1253,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		OperationResult repoResult = new OperationResult("getObject");
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 		try {
-			repositoryService.getObject(ObjectType.class, USER_JACK_OID, resolve, repoResult);
+			repositoryService.getObject(UserType.class, USER_JACK_OID, resolve, repoResult);
 			AssertJUnit.fail("User still exists in repo after delete");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
@@ -1262,7 +1262,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		// Account shadow should be gone from the repository
 		repoResult = new OperationResult("getObject");
 		try {
-			repositoryService.getObject(ObjectType.class, accountShadowOidOpendj, resolve, repoResult);
+			repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, resolve, repoResult);
 			AssertJUnit.fail("Shadow still exists in repo after delete");
 		} catch (ObjectNotFoundException e) {
 			// This is expected, but check also the result
