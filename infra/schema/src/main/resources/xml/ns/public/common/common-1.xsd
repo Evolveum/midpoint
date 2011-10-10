@@ -5424,14 +5424,12 @@
 
 	<xsd:complexType name="EntryType">
 		<xsd:sequence>
-			<xsd:any processContents="lax">
+			<xsd:any processContents="lax" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						TODO
+						Value of the entry. If there is a object that can native XML representation, such representation should
+						be used. Otherwise the UnknownJavaObject can be used.
 					</xsd:documentation>
-					<xsd:appinfo>
-						<xjc:dom />
-					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:any>
 		</xsd:sequence>
@@ -5499,6 +5497,22 @@
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
+	
+	<xsd:complexType name="UnknownJavaObjectType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Type used to represent Java objects that are otherwise unknown to the system and cannot be
+				represented in "canonical" XML form. This must be used only in diagnostics messages intended
+				to be displayed to the human user. It must not be used in places indended for computer processing.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="class" type="xsd:string"/>
+			<xsd:element name="toString" type="xsd:string"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:element name="unknownJavaObject" type="tns:UnknownJavaObjectType"/>
 
 	<!-- Configuration types -->
 

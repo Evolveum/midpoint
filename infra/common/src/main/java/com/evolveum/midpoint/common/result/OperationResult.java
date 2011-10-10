@@ -31,16 +31,26 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.xml.bind.JAXBException;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.w3c.dom.Document;
 
 import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommonException;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.EntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LocalizedMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ParamsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UnknownJavaObjectType;
 
 /**
  * Nested Operation Result.
@@ -94,6 +104,8 @@ public class OperationResult implements Serializable, Dumpable {
 	private boolean summarizePartialErrors;
 	private boolean summarizeSuccesses;
 	private OperationResult summarizeTo;
+	
+	private static final Trace LOGGER = TraceManager.getTrace(OperationResult.class);
 
 	public OperationResult(String operation) {
 		this(operation, null, OperationResultStatus.UNKNOWN, 0, null, null, null, null, null);
@@ -773,6 +785,25 @@ public class OperationResult implements Serializable, Dumpable {
 				EntryType entryType = new EntryType();
 				entryType.setKey(entry.getKey());
 				if (entry.getValue() != null) {
+					Object entryValue = entry.getValue();
+					Document doc = DOMUtil.getDocument();
+					if (XsdTypeConverter.canConvert(entryValue.getClass())) {
+						try {
+							entryType.setAny(XsdTypeConverter.toXsdElement(entryValue, SchemaConstants.C_VALUE, doc));
+						} catch (JAXBException e) {
+							LOGGER.error("Cannot convert value {} to XML: {}",entryValue,e.getMessage());
+							UnknownJavaObjectType ujo = new UnknownJavaObjectType();
+							ujo.setClazz(entryValue.getClass().getName());
+							ujo.setToString(entryValue.toString());
+							entryType.setAny(new ObjectFactory().createUnknownJavaObject(ujo));
+						}
+					} else {
+						UnknownJavaObjectType ujo = new UnknownJavaObjectType();
+						ujo.setClazz(entryValue.getClass().getName());
+						ujo.setToString(entryValue.toString());
+						entryType.setAny(new ObjectFactory().createUnknownJavaObject(ujo));
+					}
+						
 					entry.setValue(entry.getValue().toString());
 				}
 

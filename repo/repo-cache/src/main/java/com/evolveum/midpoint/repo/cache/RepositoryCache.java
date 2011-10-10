@@ -114,7 +114,8 @@ public class RepositoryCache implements RepositoryService {
 	@Override
 	public <T extends ObjectType> T getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		if (type.equals(TaskType.class)) {
+		if (!isCacheable(TaskType.class)) {
+			LOGGER.trace("Cache: PASS {} ({})", oid, type.getSimpleName());
 			return repository.getObject(type, oid, resolve, parentResult);
 		}
 		Map<String, ObjectType> cache = getCache();
@@ -127,6 +128,16 @@ public class RepositoryCache implements RepositoryService {
 		T object = repository.getObject(type, oid, resolve, parentResult);
 		cache.put(oid, object);
 		return object;
+	}
+
+	private boolean isCacheable(Class<?> type) {
+		if (type.equals(TaskType.class)) {
+			return false;
+		}
+		if (ResourceObjectShadowType.class.isAssignableFrom(type)) {
+			return false;
+		}
+		return true;
 	}
 
 	@Override

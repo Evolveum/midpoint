@@ -114,7 +114,7 @@ public class XsdTypeConverter {
 	}
 
 	public static QName toXsdType(Class javaClass) {
-		QName xsdType = javaToXsdTypeMap.get(javaClass);
+		QName xsdType = getJavaToXsdMapping(javaClass);
 		if (xsdType == null) {
 			throw new IllegalArgumentException("No XSD mapping for Java type " + javaClass.getCanonicalName());
 		}
@@ -257,7 +257,10 @@ public class XsdTypeConverter {
 			// if no value is specified, do not create element
 			return null;
 		}
-		Class type = val.getClass();
+		Class type = getTypeFromClass(val.getClass());
+		if (type == null) {
+			throw new IllegalArgumentException("No type mapping for conversion: " + val.getClass() + "(element "+elementName+")");
+		}
 		if (JAXBUtil.isJaxbClass(type)) {
 			JAXBElement jaxbElement = new JAXBElement(elementName, type, val);
 			return jaxbElement;
@@ -307,8 +310,35 @@ public class XsdTypeConverter {
 		}
 	}
 
-	public static boolean canConvert(Class clazz) {
-		return javaToXsdTypeMap.get(clazz) != null;
+	private static QName getJavaToXsdMapping(Class<?> type) {
+		if (javaToXsdTypeMap.containsKey(type)) {
+			return javaToXsdTypeMap.get(type);
+		}
+		Class<?> superType = type.getSuperclass();
+		if (superType != null) {
+			return getJavaToXsdMapping(superType);
+		}
+		return null;
+	}
+	
+	/**
+	 * Returns the class in the type mapping.
+	 * The class supplied by the caller may be a subclass of what we have in the map.
+	 * This returns the class that in the mapping.
+	 */
+	private static Class<?> getTypeFromClass(Class<?> clazz) {
+		if (javaToXsdTypeMap.containsKey(clazz)) {
+			return clazz;
+		}
+		Class<?> superClazz = clazz.getSuperclass();
+		if (superClazz != null) {
+			return getTypeFromClass(superClazz);
+		}
+		return null;
+	}
+	
+	public static boolean canConvert(Class<?> clazz) {
+		return (getJavaToXsdMapping(clazz) != null);
 	}
 
 	public static XMLGregorianCalendar toXMLGregorianCalendar(long timeInMillis) {
