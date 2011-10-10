@@ -27,7 +27,7 @@
    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd">
 
-    <objectChange xsi:type="c:ObjectChangeModificationType">
+    <objectChange xsi:type="ObjectChangeModificationType">
         <objectModification>
             <oid>c0c010c0-d34d-b33f-f00d-222111111111</oid>
             <propertyModification modificationType="replace">
@@ -40,16 +40,20 @@
     <sourceChannel>
        http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-1#synchronization
     </sourceChannel>
-    <account oid="c0c010c0-d34d-b33f-f00d-222111111111">
+    <shadow xsi:type="AccountShadowType" oid="c0c010c0-d34d-b33f-f00d-222111111111">
         <name>jack</name>
         <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
         <objectClass>ri:AccountObjectClass</objectClass>
         <attributes>
         	<icfs:uid>12345678-d34d-b33f-f00d-999888777666</icfs:uid>
         </attributes>
-    </account>
+    </shadow>
     <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
         <name>OpenDJ LDAP directory</name>
-        <!-- .... -->
+        <connectorRef oid="c0c010c0-d34d-b33f-f00d-777788881121"/>
+        <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
+        <configuration>
+        	<!-- .... -->
+        </configuration>
     </resource>
 </change>
