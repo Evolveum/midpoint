@@ -202,7 +202,7 @@ public final class AutoFormFactory {
 
 	static UIComponent createFilledWithExpressionLabel(Application application, String name) {
 		HtmlOutputLabel label = (HtmlOutputLabel) createLabel(application, name);
-		label.setStyleClass("expression-field");
+		/*label.setStyleClass("expression-field");*/
 
 		return label;
 	}
