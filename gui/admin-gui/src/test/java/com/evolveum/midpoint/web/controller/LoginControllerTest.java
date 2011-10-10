@@ -57,6 +57,6 @@ public class LoginControllerTest extends AbstractTestNGSpringContextTests{
 		controller.setPassword("qwe123");
 		//TODO: remove ignore on test and fix it
 		//faces utils not working - FacesContext.getCurrentInstance() is null
-		assertNull(controller.login());
+		assertNull(controller.loginAdmin());
 	}
 }
