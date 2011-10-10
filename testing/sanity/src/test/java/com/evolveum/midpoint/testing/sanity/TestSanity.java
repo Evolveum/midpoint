@@ -1562,7 +1562,7 @@ public class TestSanity extends AbstractIntegrationTest {
 			public void timeout() {
 				Assert.fail("The task was not released after closing");
 			}
-		}, 1000);
+		}, 10000);
 
 		OperationResult taskResult = task.getResult();
 		AssertJUnit.assertNotNull("Task has no result", taskResult);
