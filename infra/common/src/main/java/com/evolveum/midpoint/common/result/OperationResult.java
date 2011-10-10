@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang.StringUtils;
@@ -39,6 +40,7 @@ import org.w3c.dom.Document;
 
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommonException;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -48,6 +50,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.EntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LocalizedMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ParamsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UnknownJavaObjectType;
@@ -782,32 +786,7 @@ public class OperationResult implements Serializable, Dumpable {
 			result.setParams(paramsType);
 
 			for (Entry<String, Object> entry : params) {
-				EntryType entryType = new EntryType();
-				entryType.setKey(entry.getKey());
-				if (entry.getValue() != null) {
-					Object entryValue = entry.getValue();
-					Document doc = DOMUtil.getDocument();
-					if (XsdTypeConverter.canConvert(entryValue.getClass())) {
-						try {
-							entryType.setAny(XsdTypeConverter.toXsdElement(entryValue, SchemaConstants.C_VALUE, doc));
-						} catch (JAXBException e) {
-							LOGGER.error("Cannot convert value {} to XML: {}",entryValue,e.getMessage());
-							UnknownJavaObjectType ujo = new UnknownJavaObjectType();
-							ujo.setClazz(entryValue.getClass().getName());
-							ujo.setToString(entryValue.toString());
-							entryType.setAny(new ObjectFactory().createUnknownJavaObject(ujo));
-						}
-					} else {
-						UnknownJavaObjectType ujo = new UnknownJavaObjectType();
-						ujo.setClazz(entryValue.getClass().getName());
-						ujo.setToString(entryValue.toString());
-						entryType.setAny(new ObjectFactory().createUnknownJavaObject(ujo));
-					}
-						
-					entry.setValue(entry.getValue().toString());
-				}
-
-				paramsType.getEntry().add(entryType);
+				paramsType.getEntry().add(createEntryElement(entry.getKey(),entry.getValue()));
 			}
 		}
 
@@ -818,4 +797,49 @@ public class OperationResult implements Serializable, Dumpable {
 		return result;
 	}
 
+	/**
+	 * @param entry
+	 * @return
+	 */
+	private EntryType createEntryElement(String key, Object value) {
+		EntryType entryType = new EntryType();
+		entryType.setKey(key);
+		if (value != null) {
+			Document doc = DOMUtil.getDocument();
+			if (value instanceof ObjectType && ((ObjectType)value).getOid() != null) {
+				// Store only reference on the OID. This is faster and getObject can be used to retrieve
+				// the object if needed. Although is does not provide 100% accuracy, it is a good tradeoff.
+				setObjectReferenceEntry(entryType, ((ObjectType)value));
+			} else if (XsdTypeConverter.canConvert(value.getClass())) {
+				try {
+					entryType.setAny(XsdTypeConverter.toXsdElement(value, SchemaConstants.C_VALUE, doc, true));
+				} catch (JAXBException e) {
+					LOGGER.error("Cannot convert value {} to XML: {}",value,e.getMessage());
+					setUnknownJavaObjectEntry(entryType, value);
+				}
+			} else {
+				setUnknownJavaObjectEntry(entryType, value);
+			}
+		}
+		return entryType;
+	}
+
+	private void setObjectReferenceEntry(EntryType entryType, ObjectType objectType) {
+		ObjectReferenceType objRefType = new ObjectReferenceType();
+		objRefType.setOid(objectType.getOid());
+		ObjectTypes type = ObjectTypes.getObjectType(objectType.getClass());
+		if (type != null) {
+			objRefType.setType(type.getTypeQName());
+		}
+		JAXBElement<ObjectReferenceType> element = new JAXBElement<ObjectReferenceType>(
+				SchemaConstants.C_OBJECT_REF, ObjectReferenceType.class, objRefType);
+		entryType.setAny(element);
+	}
+
+	private void setUnknownJavaObjectEntry(EntryType entryType, Object value) {
+		UnknownJavaObjectType ujo = new UnknownJavaObjectType();
+		ujo.setClazz(value.getClass().getName());
+		ujo.setToString(value.toString());
+		entryType.setAny(new ObjectFactory().createUnknownJavaObject(ujo));
+	}
 }

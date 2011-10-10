@@ -489,7 +489,7 @@
 
 	<xsd:element name="object" type="tns:ObjectType" />
 	<xsd:element name="genericObject" type="tns:GenericObjectType" substitutionGroup="tns:object" />
-
+	<xsd:element name="objectRef" type="tns:ObjectReferenceType" />
 
 	<!-- Property-related types -->
 
