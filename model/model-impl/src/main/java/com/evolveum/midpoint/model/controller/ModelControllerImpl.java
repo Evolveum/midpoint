@@ -319,10 +319,12 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(change, "Object modification must not be null.");
 		Validate.notEmpty(change.getOid(), "Change oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
+		
 		RepositoryCache.enter();
-		LOGGER.debug("Modifying object with oid {} with exclusion account oid {} (change in TRACE).",
-				new Object[] { change.getOid(), accountOid });
+		
 		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Modifying object with oid {} with exclusion account oid {}.",
+					new Object[] { change.getOid(), accountOid });
 			LOGGER.trace(JAXBUtil.silentMarshalWrap(change));
 		}
 
@@ -359,8 +361,8 @@ public class ModelControllerImpl implements ModelController {
 			throw new SystemException(message, ex);
 		} finally {
 			subResult.computeStatus("Couldn't update object with oid '" + change.getOid() + "'.");
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug(subResult.dump(false));
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(subResult.dump(false));
 			}
 		}
 		RepositoryCache.exit();

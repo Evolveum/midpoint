@@ -48,6 +48,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
@@ -80,6 +81,7 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
@@ -107,12 +109,16 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType.Value;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
@@ -171,6 +177,12 @@ public class TestSanity extends AbstractIntegrationTest {
 	private static final String USER_JACK_FILENAME = "src/test/resources/repo/user-jack.xml";
 	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	
+	private static final String USER_GUYBRUSH_FILENAME = "src/test/resources/repo/user-guybrush.xml";
+	private static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111222";
+	
+	private static final String ROLE_PIRATE_FILENAME = "src/test/resources/repo/role-pirate.xml";
+	private static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-987987987988";
+
 	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account.xml";
 	private static final String USER_JACK_LDAP_UID = "jack";
 	private static final String USER_JACK_LDAP_DN = "uid=" + USER_JACK_LDAP_UID
@@ -184,6 +196,8 @@ public class TestSanity extends AbstractIntegrationTest {
 	private static final String REQUEST_USER_MODIFY_ACTIVATION_DISABLE_FILENAME = "src/test/resources/request/user-modify-activation-disable.xml";
 	private static final String REQUEST_USER_MODIFY_ACTIVATION_ENABLE_FILENAME = "src/test/resources/request/user-modify-activation-enable.xml";
 
+	private static final String REQUEST_USER_MODIFY_ADD_ROLE_FILENAME = "src/test/resources/request/user-modify-add-role.xml";
+	
 	private static final String LDIF_WILL_FILENAME = "src/test/resources/request/will.ldif";
 	private static final String WILL_NAME = "wturner";
 	
@@ -238,6 +252,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, initResult);
 		addObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
+		addObjectFromFile(ROLE_PIRATE_FILENAME, initResult);
 	}
 
 	/**
@@ -270,11 +285,13 @@ public class TestSanity extends AbstractIntegrationTest {
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException, CommunicationException {
 		displayTestTile(this, "test000Integrity");
-		AssertJUnit.assertNotNull(modelWeb);
-		AssertJUnit.assertNotNull(modelService);
-		AssertJUnit.assertNotNull(repositoryService);
-		AssertJUnit.assertTrue(isSystemInitialized());
-		AssertJUnit.assertNotNull(taskManager);
+		assertNotNull(modelWeb);
+		assertNotNull(modelService);
+		assertNotNull(repositoryService);
+		assertTrue(isSystemInitialized());
+		assertNotNull(taskManager);
+		
+		assertCache();
 
 		OperationResult result = new OperationResult(TestSanity.class.getName() + ".test000Integrity");
 		
@@ -285,6 +302,8 @@ public class TestSanity extends AbstractIntegrationTest {
 		display("Imported OpenDJ resource (repository)",openDjResource);
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, openDjResource.getOid());
 		
+		assertCache();
+		
 		String ldapConnectorOid = openDjResource.getConnectorRef().getOid();
 		ConnectorType ldapConnector = repositoryService.getObject(ConnectorType.class, ldapConnectorOid, null, result);
 		display("LDAP Connector: ", ldapConnector);
@@ -294,6 +313,8 @@ public class TestSanity extends AbstractIntegrationTest {
 		ResourceType derbyResource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null,
 				result);
 		AssertJUnit.assertEquals(RESOURCE_DERBY_OID, derbyResource.getOid());
+		
+		assertCache();
 		
 		String dbConnectorOid = derbyResource.getConnectorRef().getOid();
 		ConnectorType dbConnector = repositoryService.getObject(ConnectorType.class, dbConnectorOid, null, result);
@@ -317,11 +338,15 @@ public class TestSanity extends AbstractIntegrationTest {
 		displayTestTile("test001TestConnectionOpenDJ");
 
 		// GIVEN
+		
+		assertCache();
 
 		// WHEN
 		OperationResultType result = modelWeb.testResource(RESOURCE_OPENDJ_OID);
 
 		// THEN
+		
+		assertCache();
 
 		System.out.println("testResource result:");
 		displayJaxb(result, SchemaConstants.C_RESULT);
@@ -332,6 +357,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		
 		resourceOpenDj = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, opResult);
 		
+		assertCache();
 		assertEquals(RESOURCE_OPENDJ_OID, resourceOpenDj.getOid());
 		display("Initialized OpenDJ resource (respository)", resourceOpenDj);
 		assertNotNull("Resource schema was not generated", resourceOpenDj.getSchema());
@@ -405,12 +431,15 @@ public class TestSanity extends AbstractIntegrationTest {
 		displayTestTile("test002TestConnectionDerby");
 
 		// GIVEN
+		
+		assertCache();
 
 		// WHEN
 		OperationResultType result = modelWeb.testResource(RESOURCE_DERBY_OID);
 
 		// THEN
 
+		assertCache();
 		System.out.println("testResource result:");
 		displayJaxb(result, SchemaConstants.C_RESULT);
 
@@ -420,6 +449,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		
 		resourceDerby = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, opResult);
 		
+		assertCache();
 		assertEquals(RESOURCE_DERBY_OID, resourceDerby.getOid());
 		display("Initialized Derby resource (respository)", resourceDerby);
 		assertNotNull("Resource schema was not generated", resourceDerby.getSchema());
@@ -447,6 +477,8 @@ public class TestSanity extends AbstractIntegrationTest {
 		displayTestTile("test004Capabilities");
 
 		// GIVEN
+		
+		assertCache();
 
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
 		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
@@ -456,11 +488,12 @@ public class TestSanity extends AbstractIntegrationTest {
 		modelWeb.getObject(ObjectTypes.RESOURCE.getObjectTypeUri(), RESOURCE_OPENDJ_OID,
 				resolve, objectHolder, resultHolder);
 		
-		// WHEN
 		ResourceType resource = (ResourceType) objectHolder.value;
 		
 		// THEN
 		display("Resource",resource);
+		
+		assertCache();
 		
 		CapabilitiesType nativeCapabilities = resource.getNativeCapabilities();
 		List<Object> capabilities = nativeCapabilities.getAny();
@@ -506,6 +539,8 @@ public class TestSanity extends AbstractIntegrationTest {
 		displayTestTile("test012AddUser");
 
 		// GIVEN
+		assertCache();
+		
 		UserType user = unmarshallJaxbFromFile(USER_JACK_FILENAME, UserType.class);
 		
 		// Encrypt Jack's password
@@ -522,6 +557,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// THEN
 
+		assertCache();
 		System.out.println("addObject result:");
 		displayJaxb(resultHolder.value, SchemaConstants.C_RESULT);
 		assertSuccess("addObject has failed", resultHolder.value);
@@ -553,6 +589,8 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// GIVEN
 
+		assertCache();
+		
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
 				REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME, ObjectModificationType.class);
 
@@ -560,6 +598,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
 
 		// THEN
+		assertCache();
 		displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
 		assertSuccess("modifyObject has failed", result);
 
@@ -633,6 +672,8 @@ public class TestSanity extends AbstractIntegrationTest {
 		
 		// Use getObject to test fetch of complete shadow
 
+		assertCache();
+		
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
 		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
 
@@ -641,6 +682,7 @@ public class TestSanity extends AbstractIntegrationTest {
 				resolve, objectHolder, resultHolder);
 
 		// THEN
+		assertCache();
 		displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
 		assertSuccess("getObject has failed", resultHolder.value);
 
@@ -673,6 +715,8 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// GIVEN
 
+		assertCache();
+		
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
 				REQUEST_USER_MODIFY_ADD_ACCOUNT_DERBY_FILENAME, ObjectModificationType.class);
 
@@ -680,6 +724,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
 
 		// THEN
+		assertCache();
 		displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
 		assertSuccess("modifyObject has failed", result);
 
@@ -760,6 +805,8 @@ public class TestSanity extends AbstractIntegrationTest {
 		
 		// Use getObject to test fetch of complete shadow
 
+		assertCache();
+		
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
 		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
 
@@ -768,6 +815,7 @@ public class TestSanity extends AbstractIntegrationTest {
 				resolve, objectHolder, resultHolder);
 
 		// THEN
+		assertCache();
 		displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
 		assertSuccess("getObject has failed", resultHolder.value);
 
@@ -796,6 +844,8 @@ public class TestSanity extends AbstractIntegrationTest {
 		displayTestTile("test020ModifyUser");
 		// GIVEN
 
+		assertCache();
+		
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
 				REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME, ObjectModificationType.class);
 
@@ -803,6 +853,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
 
 		// THEN
+		assertCache();
 		System.out.println("modifyObject result:");
 		displayJaxb(result, SchemaConstants.C_RESULT);
 		assertSuccess("modifyObject has failed", result);
@@ -890,11 +941,13 @@ public class TestSanity extends AbstractIntegrationTest {
 				REQUEST_USER_MODIFY_PASSWORD_FILENAME, ObjectModificationType.class);
 		
 		System.out.println("In modification: "+objectChange.getPropertyModification().get(0).getValue().getAny().get(0));
-
+		assertCache();
+		
 		// WHEN
 		OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
 
 		// THEN
+		assertCache();
 		System.out.println("modifyObject result:");
 		displayJaxb(result, SchemaConstants.C_RESULT);
 		assertSuccess("modifyObject has failed", result);
@@ -998,11 +1051,13 @@ public class TestSanity extends AbstractIntegrationTest {
 		System.out.println("ds-pwp-account-disabled before change: "+pwpAccountDisabled);
 		System.out.println();
 		assertNull(pwpAccountDisabled);
+		assertCache();
 
 		// WHEN
 		OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
 
 		// THEN
+		assertCache();
 		System.out.println("modifyObject result:");
 		displayJaxb(result, SchemaConstants.C_RESULT);
 		assertSuccess("modifyObject has failed", result);
@@ -1063,12 +1118,14 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
 		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+		assertCache();
 
 		// WHEN
 		modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidOpendj,
 				resolve, objectHolder, resultHolder);
 
 		// THEN
+		assertCache();
 		displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
 		assertSuccess("getObject has failed", resultHolder.value);
 
@@ -1120,11 +1177,13 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
 				REQUEST_USER_MODIFY_ACTIVATION_ENABLE_FILENAME, ObjectModificationType.class);
+		assertCache();
 		
 		// WHEN
 		OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
 
 		// THEN
+		assertCache();
 		System.out.println("modifyObject result:");
 		displayJaxb(result, SchemaConstants.C_RESULT);
 		assertSuccess("modifyObject has failed", result);
@@ -1185,12 +1244,14 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
 		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+		assertCache();
 
 		// WHEN
 		modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidOpendj,
 				resolve, objectHolder, resultHolder);
 
 		// THEN
+		assertCache();
 		displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
 		assertSuccess("getObject has failed", resultHolder.value);
 
@@ -1229,6 +1290,72 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertTrue("LDAP account was not enabled", (pwpAccountDisabled == null) || (pwpAccountDisabled.equals("false")));
 	}
 
+	@Test
+	public void test040RemoveDerbyAccountFromUser() throws FileNotFoundException, JAXBException, FaultMessage,
+			ObjectNotFoundException, SchemaException, DirectoryException, SQLException {
+		displayTestTile("test040RemoveDerbyAccountFromUser");
+
+		// GIVEN
+
+		ObjectModificationType objectChange = new ObjectModificationType();
+		objectChange.setOid(USER_JACK_OID);
+		PropertyModificationType modificationDeleteAccountRef = new PropertyModificationType();
+		modificationDeleteAccountRef.setModificationType(PropertyModificationTypeType.delete);
+		Value modificationValue = new Value();		
+		ObjectReferenceType accountRefToDelete = new ObjectReferenceType();
+		accountRefToDelete.setOid(accountShadowOidDerby);
+		JAXBElement<ObjectReferenceType> accountRefToDeleteElement = new JAXBElement<ObjectReferenceType>(SchemaConstants.I_ACCOUNT_REF,ObjectReferenceType.class,accountRefToDelete);
+		modificationValue.getAny().add(accountRefToDeleteElement);
+		modificationDeleteAccountRef.setValue(modificationValue);
+		objectChange.getPropertyModification().add(modificationDeleteAccountRef);
+		displayJaxb("modifyObject input", objectChange, new QName(SchemaConstants.NS_C,"change"));
+		assertCache();
+		
+		// WHEN
+		OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+
+		// THEN
+		assertCache();
+		displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
+		assertSuccess("modifyObject has failed", result);
+
+		// Check if user object was modified in the repo
+
+		OperationResult repoResult = new OperationResult("getObject");
+		PropertyReferenceListType resolve = new PropertyReferenceListType();
+
+		UserType repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID, resolve, repoResult);
+
+		repoResult.computeStatus();
+		displayJaxb("User (repository)", repoUser, new QName("user"));
+
+		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+		// only OpenDJ account should be left now
+		assertEquals(1, accountRefs.size());
+		ObjectReferenceType ref = accountRefs.get(0);
+		assertEquals(accountShadowOidOpendj,ref.getOid());
+		
+		// Check if shadow was also deleted
+		repoResult = new OperationResult("getObject");
+
+		try {
+			repositoryService.getObject(AccountShadowType.class, accountShadowOidDerby,
+				resolve, repoResult);
+			AssertJUnit.fail("Shadow was not deleted");
+		} catch (ObjectNotFoundException ex) {
+			display("Caught expected exception from getObject(shadow): "+ex);
+		}
+		
+		// check if account was deleted in DB Table
+		
+		Statement stmt = derbyController.getExecutedStatementWhereLoginName(USER_JACK_DERBY_LOGIN);
+		ResultSet rs = stmt.getResultSet();
+		
+		System.out.println("RS: "+rs);
+
+		assertFalse("Account was not deleted in database",rs.next());
+
+	}
 	
 	/**
 	 * The user should have an account now. Let's try to delete the user. The
@@ -1237,14 +1364,17 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * @throws JAXBException
 	 */
 	@Test
-	public void test090DeleteUser() throws SchemaException, FaultMessage, DirectoryException, JAXBException {
-		displayTestTile("test009DeleteUser");
+	public void test049DeleteUser() throws SchemaException, FaultMessage, DirectoryException, JAXBException {
+		displayTestTile("test049DeleteUser");
 		// GIVEN
 
+		assertCache();
+		
 		// WHEN
 		OperationResultType result = modelWeb.deleteObject(ObjectTypes.USER.getObjectTypeUri(), USER_JACK_OID);
 
 		// THEN
+		assertCache();
 		System.out.println("deleteObject result:");
 		displayJaxb(result, SchemaConstants.C_RESULT);
 		assertSuccess("deleteObject has failed", result);
@@ -1279,6 +1409,112 @@ public class TestSanity extends AbstractIntegrationTest {
 
 	}
 
+	/**
+	 * Attempt to add new user. It is only added to the repository, so check if
+	 * it is in the repository after the operation. 
+	 */
+	@Test
+	public void test050AssignRole() throws FileNotFoundException, JAXBException, FaultMessage,
+			ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
+		displayTestTile("test050AssignRole");
+
+		// GIVEN
+		UserType user = unmarshallJaxbFromFile(USER_GUYBRUSH_FILENAME, UserType.class);
+		
+		// Encrypt the password
+		protector.encrypt(user.getCredentials().getPassword().getProtectedString());
+
+		OperationResultType result = new OperationResultType();
+		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(result);
+		Holder<String> oidHolder = new Holder<String>();
+		assertCache();
+
+		modelWeb.addObject(user, oidHolder, resultHolder);
+
+		assertCache();
+		assertSuccess("addObject has failed", resultHolder.value);
+
+		ObjectModificationType objectChange = unmarshallJaxbFromFile(
+				REQUEST_USER_MODIFY_ADD_ROLE_FILENAME, ObjectModificationType.class);
+
+		// WHEN
+		result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+
+		// THEN
+		assertCache();
+		displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
+		assertSuccess("modifyObject has failed", result);
+
+		// Check if user object was modified in the repo
+
+		OperationResult repoResult = new OperationResult("getObject");
+		PropertyReferenceListType resolve = new PropertyReferenceListType();
+
+		UserType repoUser = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, resolve, repoResult);
+
+		repoResult.computeStatus();
+		displayJaxb("User (repository)", repoUser, new QName("user"));
+
+		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+		assertEquals(1, accountRefs.size());
+		ObjectReferenceType accountRef = accountRefs.get(0);
+		String accountShadowOidGuybrushOpendj = accountRef.getOid();
+		assertFalse(accountShadowOidGuybrushOpendj.isEmpty());
+
+		// Check if shadow was created in the repo
+
+		repoResult = new OperationResult("getObject");
+
+		AccountShadowType repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
+				resolve, repoResult);
+		repoResult.computeStatus();
+		assertSuccess("getObject has failed", repoResult);
+		displayJaxb("Shadow (repository)", repoShadow, new QName("shadow"));
+		assertNotNull(repoShadow);
+		assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
+
+		// check attributes in the shadow: should be only identifiers (ICF UID)
+		String uid = null;
+		boolean hasOthers = false;
+		List<Object> xmlAttributes = repoShadow.getAttributes().getAny();
+		for (Object element : xmlAttributes) {
+			if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
+				if (uid != null) {
+					AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
+				} else {
+					uid = ((Element)element).getTextContent();
+				}
+			} else {
+				hasOthers = true;
+			}
+		}
+
+		assertFalse(hasOthers);
+		assertNotNull(uid);
+
+		// check if account was created in LDAP
+
+		SearchResultEntry entry = openDJController.searchByEntryUuid(uid);
+		
+		display("LDAP account", entry);
+
+		OpenDJController.assertAttribute(entry, "uid", "guybrush");
+		OpenDJController.assertAttribute(entry, "givenName", "Guybrush");
+		OpenDJController.assertAttribute(entry, "sn", "Threepwood");
+		OpenDJController.assertAttribute(entry, "cn", "Guybrush Threepwood");
+		// The "l" attribute is assigned indirectly through schemaHandling and
+		// config object
+		OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
+
+		String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
+		assertNotNull("Pasword was not set on create", guybrushPassword);
+		
+		// TODO: attributes in role definition
+		// TODO: Derby
+	
+	}
+
+	
 	// Synchronization tests
 
 	/**
@@ -1450,10 +1686,12 @@ public class TestSanity extends AbstractIntegrationTest {
 		OperationResultType resultType = new OperationResultType();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
 		Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
+		assertCache();
 
 		modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, null,
 				listHolder, resultHolder);
 		
+		assertCache();
 		ObjectListType objects = listHolder.value;
 		assertSuccess("searchObjects has failed", resultHolder.value);
 		AssertJUnit.assertEquals("User not found (or found too many)", 1, objects.getObject().size());
@@ -1471,6 +1709,8 @@ public class TestSanity extends AbstractIntegrationTest {
 		displayTestTile("test200ImportFromResource");
 		// GIVEN
 
+		assertCache();
+		
 		OperationResult result = new OperationResult(TestSanity.class.getName()
 				+ ".test200ImportFromResource");
 
@@ -1479,6 +1719,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// THEN
 
+		assertCache();
 		System.out.println("importFromResource result:");
 		displayJaxb(taskType.getResult(), SchemaConstants.C_RESULT);
 		AssertJUnit.assertEquals("importFromResource has failed", OperationResultStatusType.IN_PROGRESS, taskType.getResult().getStatus());
@@ -1505,8 +1746,10 @@ public class TestSanity extends AbstractIntegrationTest {
 			public boolean check() throws Exception {
 				Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
 				Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+				assertCache();
 				modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), taskOid,
 						new PropertyReferenceListType(), objectHolder, resultHolder);
+				assertCache();
 //				display("getObject result (wait loop)",resultHolder.value);
 				assertSuccess("getObject has failed", resultHolder.value);
 				Task task = taskManager.createTaskInstance((TaskType) objectHolder.value);
@@ -1526,10 +1769,12 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+		assertCache();
 		
 		modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), task.getOid(),
 				new PropertyReferenceListType(), objectHolder, resultHolder);
 		
+		assertCache();
 		assertSuccess("getObject has failed", resultHolder.value);
 		task = taskManager.createTaskInstance((TaskType) objectHolder.value);
 
@@ -1546,8 +1791,10 @@ public class TestSanity extends AbstractIntegrationTest {
 			public boolean check() throws Exception {
 				Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
 				Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+				assertCache();
 				modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), taskOid,
 						new PropertyReferenceListType(), objectHolder, resultHolder);
+				assertCache();
 //				display("getObject result (wait loop)",resultHolder.value);
 				assertSuccess("getObject has failed", resultHolder.value);
 				Task task = taskManager.createTaskInstance((TaskType) objectHolder.value);
@@ -1593,10 +1840,12 @@ public class TestSanity extends AbstractIntegrationTest {
 		}
 		
 		Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
+		assertCache();
 		
 		modelWeb.listObjects(ObjectTypes.USER.getObjectTypeUri(), null,
 				listHolder, resultHolder);
 		
+		assertCache();
 		ObjectListType uobjects = listHolder.value;
 		assertSuccess("listObjects has failed", resultHolder.value);
 		AssertJUnit.assertFalse("No users created", uobjects.getObject().isEmpty());
@@ -1662,6 +1911,12 @@ public class TestSanity extends AbstractIntegrationTest {
 		Task task = taskManager.createTaskInstance();
 		FileInputStream stream = new FileInputStream(filename);
 		modelService.importObjectsFromStream(stream, MiscUtil.getDefaultImportOptions(), task, result);
+	}
+	
+	private void assertCache() {
+		if (RepositoryCache.exists()) {
+			AssertJUnit.fail("Cache exists! "+RepositoryCache.dump());
+		}
 	}
 
 }

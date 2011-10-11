@@ -98,7 +98,7 @@ public class UserTypeHandler extends BasicHandler {
 	public <T extends ObjectType> void modifyObjectWithExclusion(Class<T> type,
 			ObjectModificationType change, String accountOid, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
-		UserType user = (UserType) getObject(UserType.class, change.getOid(),
+		UserType user = getObject(UserType.class, change.getOid(),
 				new PropertyReferenceListType(), result);
 		// ADD and DELETE account changes
 		List<PropertyModificationType> accountChanges = getAccountChanges(change);
@@ -120,12 +120,12 @@ public class UserTypeHandler extends BasicHandler {
 		PropertyModificationType userActivationChanged = hasPropertyChanged(change,
 				SchemaConstants.ACTIVATION);
 		if (userActivationChanged != null) {
-			LOGGER.debug("User activation status changed, enabling/disabling accounts in next step.");
+			LOGGER.trace("User activation status changed, enabling/disabling accounts in next step.");
 		}
 		PropertyModificationType userCredentialsChanged = hasPropertyChanged(change,
 				SchemaConstants.I_CREDENTIALS);
 		if (userCredentialsChanged != null) {
-			LOGGER.debug("User credentials changed, updating accounts.");
+			LOGGER.trace("User credentials changed, updating accounts.");
 		}
 		// from now on we have updated user, next step is processing
 		// outbound for every existing account or enable/disable account if
@@ -397,7 +397,7 @@ public class UserTypeHandler extends BasicHandler {
 			String accountOid, OperationResult result) {
 
 		for (ObjectReferenceType accountRef : user.getAccountRef()) {
-			OperationResult subResult = result.createSubresult(ModelControllerImpl.UPDATE_ACCOUNT);
+			OperationResult subResult = result.createSubresult(ModelControllerImpl.CHANGE_ACCOUNT);
 			subResult.addParams(new String[] { "accountOid", "object", "accountRef" }, accountOid, user,
 					accountRef);
 			if (StringUtils.isNotEmpty(accountOid) && accountOid.equals(accountRef.getOid())) {
@@ -488,7 +488,7 @@ public class UserTypeHandler extends BasicHandler {
 			List<PropertyModificationType> accountChanges, UserType user, OperationResult result) {
 		List<PropertyModificationType> userChanges = new ArrayList<PropertyModificationType>();
 		for (PropertyModificationType change : accountChanges) {
-			OperationResult subResult = result.createSubresult(ModelController.PROCESS_ACCOUNT_FROM_CHANGES);
+			OperationResult subResult = result.createSubresult(ModelController.CHANGE_ACCOUNT);
 			Object node = change.getValue().getAny().get(0);
 			try {
 				switch (change.getModificationType()) {
@@ -497,6 +497,10 @@ public class UserTypeHandler extends BasicHandler {
 						break;
 					case delete:
 						userChanges.add(processDeleteAccountFromChanges(change, node, user, subResult));
+						break;
+					default:
+						LOGGER.error("Unexpected modification type "+change.getModificationType()+" while changing account, skipping it");
+						break;
 				}
 				subResult.recordSuccess();
 			} catch (Exception ex) {
@@ -506,6 +510,7 @@ public class UserTypeHandler extends BasicHandler {
 						+ "'.", ex);
 				LoggingUtils.logException(LOGGER, "Couldn't process {} account for user '{}'.", ex,
 						operation, user.getName());
+				// TODO: better error handling
 			} finally {
 				subResult.computeStatus();
 			}
@@ -517,9 +522,20 @@ public class UserTypeHandler extends BasicHandler {
 	private PropertyModificationType processDeleteAccountFromChanges(PropertyModificationType propertyChange,
 			Object node, UserType userBeforeChange, OperationResult result) throws JAXBException {
 
-		AccountShadowType account = XsdTypeConverter.toJavaValue(node, AccountShadowType.class);
+		ObjectReferenceType accountRef = null;
+		
+		if (SchemaConstants.I_ACCOUNT.equals(JAXBUtil.getElementQName(node))) {
+			AccountShadowType account = XsdTypeConverter.toJavaValue(node, AccountShadowType.class);
+			accountRef = ModelUtils.createReference(account.getOid(), ObjectTypes.ACCOUNT);
+		} else if (SchemaConstants.I_ACCOUNT_REF.equals(JAXBUtil.getElementQName(node))) {
+			accountRef = XsdTypeConverter.toJavaValue(node, ObjectReferenceType.class);
+		} else {
+			LOGGER.error("Unexpected element "+JAXBUtil.getElementQName(node)+" in account change");
+			throw new IllegalArgumentException("Unexpected element "+JAXBUtil.getElementQName(node)+" in account change");
+		}
 
-		ObjectReferenceType accountRef = ModelUtils.createReference(account.getOid(), ObjectTypes.ACCOUNT);
+		// TODO: delete account?
+		
 		PropertyModificationType deleteAccountRefChange = ObjectTypeUtil.createPropertyModificationType(
 				PropertyModificationTypeType.delete, null, SchemaConstants.I_ACCOUNT_REF, accountRef);
 
