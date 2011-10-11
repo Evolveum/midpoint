@@ -64,6 +64,13 @@ public class RepositoryCache implements RepositoryService {
 	}
 	
 	private static Map<String,ObjectType> getCache() {
+		// Don't instantiate unless the count in non-zero.
+		// Otherwise side-effects may happen (e.g. exit() never
+		// called will mean that the cache is not destroyed)
+		Integer count = cacheCount.get();
+		if (count == null || count == 0) {
+			return null;
+		}
 		Map<String,ObjectType> inst = cacheInstance.get();
 		if (inst == null) {
 			LOGGER.trace("Cache: creating for thread {}",Thread.currentThread().getName());
@@ -74,6 +81,10 @@ public class RepositoryCache implements RepositoryService {
 	}
 	
 	public static void init() {
+	}
+	
+	public static boolean exists() {
+		return cacheInstance.get()!=null;
 	}
 	
 	public static void destroy() {
@@ -110,6 +121,29 @@ public class RepositoryCache implements RepositoryService {
 			}
 		}
 	}
+	
+	public static String dump() {
+		StringBuilder sb = new StringBuilder("Cache ");
+		if (exists()) {
+			sb.append("exists ");
+		} else {
+			sb.append("doesn't exist ");
+		}
+		sb.append(", count ");
+		if (cacheCount.get() == null) {
+			sb.append("null");
+		} else {
+			sb.append(cacheCount.get());
+		}
+		sb.append(", ");
+		if (cacheInstance.get() == null) {
+			sb.append("null content");
+		} else {
+			sb.append(cacheInstance.get().entrySet().size());
+			sb.append(" entries");
+		}
+		return sb.toString();
+	}
 
 	@Override
 	public <T extends ObjectType> T getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
@@ -119,14 +153,20 @@ public class RepositoryCache implements RepositoryService {
 			return repository.getObject(type, oid, resolve, parentResult);
 		}
 		Map<String, ObjectType> cache = getCache();
-		if (getCache().containsKey(oid)) {
-			// TODO: result?
-			LOGGER.trace("Cache: HIT {} ({})", oid, type.getSimpleName());
-			return (T) cache.get(oid);
+		if (cache == null) {
+			LOGGER.trace("Cache: NULL {} ({})", oid, type.getSimpleName());
+		} else {
+			if (cache.containsKey(oid)) {
+				// TODO: result?
+				LOGGER.trace("Cache: HIT {} ({})", oid, type.getSimpleName());
+				return (T) cache.get(oid);
+			}
+			LOGGER.trace("Cache: MISS {} ({})", oid, type.getSimpleName());
 		}
-		LOGGER.trace("Cache: MISS {} ({})", oid, type.getSimpleName());
 		T object = repository.getObject(type, oid, resolve, parentResult);
-		cache.put(oid, object);
+		if (cache != null) {
+			cache.put(oid, object);
+		}
 		return object;
 	}
 
@@ -156,8 +196,11 @@ public class RepositoryCache implements RepositoryService {
 			OperationResult parentResult) {
 		// Cannot satisfy from cache, pass down to repository
 		ResultList<T> objects = repository.listObjects(type, paging, parentResult);
-		for (ObjectType object : objects) {
-			getCache().put(object.getOid(), object);
+		Map<String, ObjectType> cache = getCache();
+		if (cache != null) {
+			for (ObjectType object : objects) {
+				cache.put(object.getOid(), object);
+			}
 		}
 		return objects;
 	}
@@ -167,8 +210,11 @@ public class RepositoryCache implements RepositoryService {
 			PagingType paging, OperationResult parentResult) throws SchemaException {
 		// Cannot satisfy from cache, pass down to repository
 		ResultList<T> objects = repository.searchObjects(type, query, paging, parentResult);
-		for (ObjectType object : objects) {
-			getCache().put(object.getOid(), object);
+		Map<String, ObjectType> cache = getCache();
+		if (cache != null) {
+			for (ObjectType object : objects) {
+				cache.put(object.getOid(), object);
+			}
 		}
 		return objects;
 	}
@@ -179,14 +225,20 @@ public class RepositoryCache implements RepositoryService {
 		repository.modifyObject(type, objectChange, parentResult);
 		// this changes the object. We are too lazy to apply changes ourselves, so just invalidate
 		// the object in cache
-		getCache().remove(objectChange.getOid());
+		Map<String, ObjectType> cache = getCache();
+		if (cache != null) {
+			cache.remove(objectChange.getOid());
+		}
 	}
 
 	@Override
 	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult)
 			throws ObjectNotFoundException {
 		repository.deleteObject(type, oid, parentResult);
-		getCache().remove(oid);
+		Map<String, ObjectType> cache = getCache();
+		if (cache != null) {
+			cache.remove(oid);
+		}
 	}
 
 	@Override
@@ -212,13 +264,19 @@ public class RepositoryCache implements RepositoryService {
 	public void claimTask(String oid, OperationResult parentResult) throws ObjectNotFoundException,
 			ConcurrencyException, SchemaException {
 		repository.claimTask(oid, parentResult);
-		getCache().remove(oid);
+		Map<String, ObjectType> cache = getCache();
+		if (cache != null) {
+			cache.remove(oid);
+		}
 	}
 
 	@Override
 	public void releaseTask(String oid, OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException {
 		repository.releaseTask(oid, parentResult);
-		getCache().remove(oid);
+		Map<String, ObjectType> cache = getCache();
+		if (cache != null) {
+			cache.remove(oid);
+		}
 	}
 }

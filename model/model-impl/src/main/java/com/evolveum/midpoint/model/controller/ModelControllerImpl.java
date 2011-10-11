@@ -303,8 +303,13 @@ public class ModelControllerImpl implements ModelController {
 	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType change,
 			OperationResult result) throws ObjectNotFoundException {
 		RepositoryCache.enter();
-		modifyObjectWithExclusion(type, change, null, result);
-		RepositoryCache.exit();
+		try {
+			modifyObjectWithExclusion(type, change, null, result);
+		} catch (ObjectNotFoundException ex) {
+			throw ex;
+		} finally {
+			RepositoryCache.exit();
+		}
 	}
 
 	@Override
@@ -322,6 +327,7 @@ public class ModelControllerImpl implements ModelController {
 		}
 
 		if (change.getPropertyModification().isEmpty()) {
+			RepositoryCache.exit();
 			return;
 		}
 
@@ -339,14 +345,17 @@ public class ModelControllerImpl implements ModelController {
 		} catch (ObjectNotFoundException ex) {
 			subResult.recordFatalError("Coudln't update object with oid '" + change.getOid()
 					+ "', object was not found.", ex);
+			RepositoryCache.exit();
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't update object with oid {}", ex, change.getOid());
 			String message = "Couldn't update object with oid '" + change.getOid() + "': "+ex.getMessage();
 			subResult.recordFatalError(message, ex);
 			if (ex instanceof SystemException) {
+				RepositoryCache.exit();
 				throw (SystemException) ex;
 			}
+			RepositoryCache.exit();
 			throw new SystemException(message, ex);
 		} finally {
 			subResult.computeStatus("Couldn't update object with oid '" + change.getOid() + "'.");
@@ -354,6 +363,7 @@ public class ModelControllerImpl implements ModelController {
 				LOGGER.debug(subResult.dump(false));
 			}
 		}
+		RepositoryCache.exit();
 	}
 
 	@Override
