@@ -158,12 +158,10 @@ public class UserTypeHandler extends BasicHandler {
 			}
 
 			Object node = propertyChange.getValue().getAny().get(0);
-			if (!SchemaConstants.I_ACCOUNT.equals(JAXBUtil.getElementQName(node)) &&
-					!SchemaConstants.I_ACCOUNT_REF.equals(JAXBUtil.getElementQName(node))) {
+			if (!SchemaConstants.I_ACCOUNT.equals(JAXBUtil.getElementQName(node))) {
 				continue;
 			}
 			
-
 			modifications.add(propertyChange);
 		}
 
