@@ -45,7 +45,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.AppenderListItem;
 import com.evolveum.midpoint.web.bean.BasicLoggerListItem;
 import com.evolveum.midpoint.web.bean.LoggerListItem;
-import com.evolveum.midpoint.web.bean.ProfilingLevelType;
 import com.evolveum.midpoint.web.bean.SubsystemLoggerListItem;
 import com.evolveum.midpoint.web.component.LoggingManager;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
