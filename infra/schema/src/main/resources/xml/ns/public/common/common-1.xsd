@@ -2296,7 +2296,7 @@
 
 			</xsd:choice>
 
-			<xsd:element name="activation" type="tns:ActivationType" />
+			<xsd:element name="activation" type="tns:ActivationType" minOccurs="0"/>
 
 		</xsd:sequence>
 	</xsd:complexType>
