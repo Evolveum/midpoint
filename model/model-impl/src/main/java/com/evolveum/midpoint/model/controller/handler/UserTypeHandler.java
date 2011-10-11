@@ -40,6 +40,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ConsistencyViolationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -98,8 +99,7 @@ public class UserTypeHandler extends BasicHandler {
 	public <T extends ObjectType> void modifyObjectWithExclusion(Class<T> type,
 			ObjectModificationType change, String accountOid, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
-		UserType user = getObject(UserType.class, change.getOid(),
-				new PropertyReferenceListType(), result);
+		UserType user = getObject(UserType.class, change.getOid(), new PropertyReferenceListType(), result);
 		// ADD and DELETE account changes
 		List<PropertyModificationType> accountChanges = getAccountChanges(change);
 		// we remove account changes, then we save user object
@@ -158,9 +158,11 @@ public class UserTypeHandler extends BasicHandler {
 			}
 
 			Object node = propertyChange.getValue().getAny().get(0);
-			if (!SchemaConstants.I_ACCOUNT.equals(JAXBUtil.getElementQName(node))) {
+			if (!SchemaConstants.I_ACCOUNT.equals(JAXBUtil.getElementQName(node)) &&
+					!SchemaConstants.I_ACCOUNT_REF.equals(JAXBUtil.getElementQName(node))) {
 				continue;
 			}
+			
 
 			modifications.add(propertyChange);
 		}
@@ -328,10 +330,12 @@ public class UserTypeHandler extends BasicHandler {
 			} catch (ConsistencyViolationException ex) {
 				// TODO: handle this
 				LoggingUtils.logException(LOGGER, "TODO handle ConsistencyViolationException", ex);
-			} catch (ObjectNotFoundException ex){
-				//Now if the account cannot be deleted, only partial result is recorded
-				//later, the account will be deleted or user re-created by reconciliation
-				result.recordPartialError("Couldn't delete account "+ account.getName()+".", ex);
+			} catch (ObjectNotFoundException ex) {
+				// Now if the account cannot be deleted, only partial result is
+				// recorded
+				// later, the account will be deleted or user re-created by
+				// reconciliation
+				result.recordPartialError("Couldn't delete account " + account.getName() + ".", ex);
 			}
 		}
 
@@ -345,10 +349,12 @@ public class UserTypeHandler extends BasicHandler {
 			} catch (ConsistencyViolationException ex) {
 				// TODO handle this
 				LoggingUtils.logException(LOGGER, "TODO handle ConsistencyViolationException", ex);
-			} catch (ObjectNotFoundException ex){
-				//Now if the account cannot be deleted, only partial result is recorded
-				//later, the account will be deleted or user re-created by reconciliation
-				result.recordPartialError("Couldn't delete account "+ accountRef.getOid()+".", ex);
+			} catch (ObjectNotFoundException ex) {
+				// Now if the account cannot be deleted, only partial result is
+				// recorded
+				// later, the account will be deleted or user re-created by
+				// reconciliation
+				result.recordPartialError("Couldn't delete account " + accountRef.getOid() + ".", ex);
 			}
 		}
 		user.getAccountRef().removeAll(refsToBeDeleted);
@@ -363,7 +369,7 @@ public class UserTypeHandler extends BasicHandler {
 		try {
 			getRepository().modifyObject(UserType.class, change, result);
 		} catch (ObjectNotFoundException ex) {
-//			result.recordPartialError("Could", cause)
+			// result.recordPartialError("Could", cause)
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't update user {} after accounts was deleted", ex,
@@ -410,8 +416,9 @@ public class UserTypeHandler extends BasicHandler {
 				AccountShadowType account = getModelController().getObject(AccountShadowType.class,
 						accountRef.getOid(), ModelUtils.createPropertyReferenceListType("Resource"),
 						subResult);
-				
-				ResourceType resource = getProvisioning().getObject(ResourceType.class, ResourceObjectShadowUtil.getResourceOid(account), null, subResult);
+
+				ResourceType resource = getProvisioning().getObject(ResourceType.class,
+						ResourceObjectShadowUtil.getResourceOid(account), null, subResult);
 
 				ObjectModificationType accountChange = null;
 				try {
@@ -431,8 +438,9 @@ public class UserTypeHandler extends BasicHandler {
 					if (ResourceTypeUtil.hasActivationCapability(resource)) {
 						copyModification(userActivationChanged, accountChange);
 					} else {
-						LOGGER.debug("User {} activation changed, but resource {} does not have activation capability, skipping",
-								ObjectTypeUtil.toShortString(user), ObjectTypeUtil.toShortString(resource));  
+						LOGGER.debug(
+								"User {} activation changed, but resource {} does not have activation capability, skipping",
+								ObjectTypeUtil.toShortString(user), ObjectTypeUtil.toShortString(resource));
 					}
 				}
 
@@ -440,17 +448,18 @@ public class UserTypeHandler extends BasicHandler {
 					if (ResourceTypeUtil.hasCredentialsCapability(resource)) {
 						copyModification(userCredentials, accountChange);
 					} else {
-						LOGGER.debug("User {} credentials changed, but resource {} does not have credentials capability, skipping",
-								ObjectTypeUtil.toShortString(user), ObjectTypeUtil.toShortString(resource));  
+						LOGGER.debug(
+								"User {} credentials changed, but resource {} does not have credentials capability, skipping",
+								ObjectTypeUtil.toShortString(user), ObjectTypeUtil.toShortString(resource));
 					}
 				}
-				
+
 				if (!ObjectTypeUtil.isEmpty(accountChange)) {
-					
+
 					getModelController().modifyObjectWithExclusion(AccountShadowType.class, accountChange,
 							accountOid, subResult);
 				}
-				
+
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't update account {}", ex, accountRef.getOid());
 				subResult.recordFatalError(ex);
@@ -499,7 +508,8 @@ public class UserTypeHandler extends BasicHandler {
 						userChanges.add(processDeleteAccountFromChanges(change, node, user, subResult));
 						break;
 					default:
-						LOGGER.error("Unexpected modification type "+change.getModificationType()+" while changing account, skipping it");
+						LOGGER.error("Unexpected modification type " + change.getModificationType()
+								+ " while changing account, skipping it");
 						break;
 				}
 				subResult.recordSuccess();
@@ -520,22 +530,23 @@ public class UserTypeHandler extends BasicHandler {
 	}
 
 	private PropertyModificationType processDeleteAccountFromChanges(PropertyModificationType propertyChange,
-			Object node, UserType userBeforeChange, OperationResult result) throws JAXBException {
+			Object node, UserType userBeforeChange, OperationResult result) throws JAXBException,
+			ObjectNotFoundException, CommunicationException, SchemaException {
 
 		ObjectReferenceType accountRef = null;
-		
 		if (SchemaConstants.I_ACCOUNT.equals(JAXBUtil.getElementQName(node))) {
 			AccountShadowType account = XsdTypeConverter.toJavaValue(node, AccountShadowType.class);
 			accountRef = ModelUtils.createReference(account.getOid(), ObjectTypes.ACCOUNT);
 		} else if (SchemaConstants.I_ACCOUNT_REF.equals(JAXBUtil.getElementQName(node))) {
 			accountRef = XsdTypeConverter.toJavaValue(node, ObjectReferenceType.class);
 		} else {
-			LOGGER.error("Unexpected element "+JAXBUtil.getElementQName(node)+" in account change");
-			throw new IllegalArgumentException("Unexpected element "+JAXBUtil.getElementQName(node)+" in account change");
+			LOGGER.error("Unexpected element " + JAXBUtil.getElementQName(node) + " in account change");
+			throw new IllegalArgumentException("Unexpected element " + JAXBUtil.getElementQName(node)
+					+ " in account change");
 		}
 
-		// TODO: delete account?
-		
+		getProvisioning().deleteObject(AccountShadowType.class, accountRef.getOid(), null, result);
+
 		PropertyModificationType deleteAccountRefChange = ObjectTypeUtil.createPropertyModificationType(
 				PropertyModificationTypeType.delete, null, SchemaConstants.I_ACCOUNT_REF, accountRef);
 
