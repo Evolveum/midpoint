@@ -502,7 +502,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		Validate.notNull(oid, "Oid of object to delete must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
-		LOGGER.debug("**PROVISIONING: Start to delete object with oid {}", oid);
+		LOGGER.trace("**PROVISIONING: Start to delete object with oid {}", oid);
 
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".deleteObject");
 		result.addParam("oid", oid);
@@ -513,7 +513,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		try {
 			objectType = getCacheRepositoryService().getObject(ObjectType.class, oid, new PropertyReferenceListType(),
 					parentResult);
-			LOGGER.debug("**PROVISIONING: Object from repository to delete: {}", JAXBUtil.silentMarshalWrap(objectType));
+			LOGGER.trace("**PROVISIONING: Object from repository to delete: {}", JAXBUtil.silentMarshalWrap(objectType));
 		} catch (SchemaException e) {
 			result.recordFatalError("Can't get object with oid " + oid + " from repository. Reason:  " + e.getMessage()
 					+ " " + e);
@@ -521,28 +521,37 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 
 		//TODO:check also others shadow objects
-		if (!(objectType instanceof AccountShadowType)) {
-			result.recordFatalError("Object type must be one of the resource object shadow type.");
-			throw new IllegalArgumentException("Object type must be one of the resource object shadow type.");
-		}
+		if (objectType instanceof ResourceObjectShadowType) {
 
-		try {
-			getShadowCache().deleteShadow(objectType, scripts, null, parentResult);
-			result.recordSuccess();
-		} catch (CommunicationException e) {
-			result.recordFatalError(e.getMessage());
-			throw new CommunicationException(e.getMessage(), e);
-		} catch (GenericFrameworkException e) {
-			result.recordFatalError(e.getMessage());
-			throw new CommunicationException(e.getMessage(), e);
-		} catch (SchemaException e) {
-			result.recordFatalError(e.getMessage());
-			throw new SchemaException(e.getMessage(), e);
+			try {
+				getShadowCache().deleteShadow(objectType, scripts, null, parentResult);
+				result.recordSuccess();
+			} catch (CommunicationException e) {
+				result.recordFatalError(e.getMessage());
+				throw new CommunicationException(e.getMessage(), e);
+			} catch (GenericFrameworkException e) {
+				result.recordFatalError(e.getMessage());
+				throw new CommunicationException(e.getMessage(), e);
+			} catch (SchemaException e) {
+				result.recordFatalError(e.getMessage());
+				throw new SchemaException(e.getMessage(), e);
+			}
+			
+		} else {
+			
+			try {
+				
+				getCacheRepositoryService().deleteObject(type, oid, result);
+				
+			} catch (ObjectNotFoundException ex) {
+				result.recordFatalError(ex);
+				throw ex;
+			}
+			
 		}
+		LOGGER.trace("**PROVISIONING: Finished deleting object.");
 
 		result.recordSuccess();
-		LOGGER.debug("**PROVISIONING: Finished deleting object.");
-
 	}
 
 	@Override

@@ -282,7 +282,7 @@
 			<dependency>
 				<groupId>org.forgerock.openicf.connectors.file</groupId>
 				<artifactId>csvfile</artifactId>
-				<version>1.1.0.0-e1</version>
+				<version>1.1.0.0-e2</version>
 			</dependency>
 			<dependency>
 				<groupId>org.forgerock.openicf.connectors.ldap</groupId>

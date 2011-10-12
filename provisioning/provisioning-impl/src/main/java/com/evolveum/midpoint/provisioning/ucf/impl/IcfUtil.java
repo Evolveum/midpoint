@@ -3,6 +3,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl;
 
+import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
@@ -11,7 +12,14 @@ import java.util.Set;
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.directory.SchemaViolationException;
 
+import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
+import org.identityconnectors.framework.common.exceptions.ConfigurationException;
+import org.identityconnectors.framework.common.exceptions.ConnectionBrokenException;
+import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
+import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.exceptions.ConnectorSecurityException;
+import org.identityconnectors.framework.common.exceptions.InvalidCredentialException;
+import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
 
@@ -88,6 +96,46 @@ class IcfUtil {
 			Exception newEx = new SchemaException(createMessage("Schema violation (most likely)", ex));
 			parentResult.recordFatalError("Schema violation: "+ex.getMessage(), newEx);
 			return newEx;
+			
+		} else if (ex instanceof ConfigurationException) {
+			Exception newEx = new SchemaException(createMessage("Configuration error", ex));
+			parentResult.recordFatalError("Configuration error: "+ex.getMessage(), newEx);
+			return newEx;
+
+		} else if (ex instanceof AlreadyExistsException) {
+			Exception newEx = new ObjectAlreadyExistsException(createMessage(null, ex));
+			parentResult.recordFatalError("Object already exists: "+ex.getMessage(), newEx);
+			return newEx;
+
+		} else if (ex instanceof ConnectionBrokenException) {
+			Exception newEx = new CommunicationException(createMessage("Connection broken", ex));
+			parentResult.recordFatalError("Connection broken: "+ex.getMessage(), newEx);
+			return newEx;
+
+		} else if (ex instanceof ConnectionFailedException) {
+			Exception newEx = new CommunicationException(createMessage("Connection failed", ex));
+			parentResult.recordFatalError("Connection failed: "+ex.getMessage(), newEx);
+			return newEx;
+
+		} else if (ex instanceof ConnectorIOException) {
+			Exception newEx = new CommunicationException(createMessage("IO error", ex));
+			parentResult.recordFatalError("IO error: "+ex.getMessage(), newEx);
+			return newEx;
+
+		} else if (ex instanceof InvalidCredentialException) {
+			Exception newEx = new GenericFrameworkException(createMessage("Invalid credentials", ex));
+			parentResult.recordFatalError("Invalid credentials: "+ex.getMessage(), newEx);
+			return newEx;
+
+		} else if (ex instanceof OperationTimeoutException) {
+			Exception newEx = new CommunicationException(createMessage("Operation timed out", ex));
+			parentResult.recordFatalError("Operation timed out: "+ex.getMessage(), newEx);
+			return newEx;
+
+		} else if (ex instanceof UnknownUidException) {
+			Exception newEx = new ObjectNotFoundException(createMessage(null, ex));
+			parentResult.recordFatalError("Unknown UID: "+ex.getMessage(), newEx);
+			return newEx;
 
 		} else if (ex instanceof ConnectorSecurityException) {
 			// Note: connection refused is also packed inside
@@ -116,7 +164,11 @@ class IcfUtil {
 
 	private static Exception lookForKnownCause(Throwable ex,
 			Throwable originalException, OperationResult parentResult) {
-		if (ex instanceof NameAlreadyBoundException) {
+		if (ex instanceof FileNotFoundException) {
+			Exception newEx = new GenericFrameworkException(createMessage(null, originalException));
+			parentResult.recordFatalError("File not found: "+ex.getMessage(), newEx);
+			return newEx;
+		} else if (ex instanceof NameAlreadyBoundException) {
 			// This is thrown by LDAP connector and may be also throw by similar
 			// connectors
 			Exception newEx = new ObjectAlreadyExistsException(createMessage(null, originalException));
