@@ -1291,9 +1291,9 @@ public class TestSanity extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test040RemoveDerbyAccountFromUser() throws FileNotFoundException, JAXBException, FaultMessage,
+	public void test040UnlinkDerbyAccountFromUser() throws FileNotFoundException, JAXBException, FaultMessage,
 			ObjectNotFoundException, SchemaException, DirectoryException, SQLException {
-		displayTestTile("test040RemoveDerbyAccountFromUser");
+		displayTestTile("test040UnlinkDerbyAccountFromUser");
 
 		// GIVEN
 
@@ -1334,13 +1334,33 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertEquals(1, accountRefs.size());
 		ObjectReferenceType ref = accountRefs.get(0);
 		assertEquals(accountShadowOidOpendj,ref.getOid());
+
+	}
+	
+	@Test
+	public void test041DeleteDerbyAccount() throws FileNotFoundException, JAXBException, FaultMessage,
+			ObjectNotFoundException, SchemaException, DirectoryException, SQLException {
+		displayTestTile("test041DeleteDerbyAccount");
 		
-		// Check if shadow was also deleted
-		repoResult = new OperationResult("getObject");
+		// GIVEN
+
+		assertCache();
+		
+		// WHEN
+		OperationResultType result = modelWeb.deleteObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidDerby);
+
+		// THEN
+		assertCache();
+		System.out.println("deleteObject result:");
+		displayJaxb(result, SchemaConstants.C_RESULT);
+		assertSuccess("deleteObject has failed", result);
+		
+		// Check if shadow was deleted
+		OperationResult repoResult = new OperationResult("getObject");
 
 		try {
 			repositoryService.getObject(AccountShadowType.class, accountShadowOidDerby,
-				resolve, repoResult);
+				null, repoResult);
 			AssertJUnit.fail("Shadow was not deleted");
 		} catch (ObjectNotFoundException ex) {
 			display("Caught expected exception from getObject(shadow): "+ex);
