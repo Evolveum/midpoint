@@ -66,7 +66,7 @@
 			<ice:dataTable rows="20" value="#{logging.loggers}"
 				id="subsystemLoggerTable" var="item"
 				columnWidths="auto, 70px, 280px, 150px" resizable="false">
-				<ui:remove>
+				
 					<ice:column>
 						<f:facet name="header">
 							<ice:selectBooleanCheckbox id="selectAllCheckbox"
@@ -78,7 +78,7 @@
 							value="#{item.selected}" partialSubmit="true" immediate="true"
 							valueChangeListener="#{logging.selectLoggerPerformed}" />
 					</ice:column>
-				</ui:remove>
+				
 				<ice:column>
 					<f:facet name="header">
 						<ice:outputLabel value="#{msg['web.bean.loggerListItem.package']}" />
@@ -105,11 +105,11 @@
 						<ice:outputLabel
 							value="#{msg['web.bean.basicLoggerListItem.level']}" />
 					</f:facet>
-					<ice:outputText value="#{item.levelString}"
-						rendered="#{not item.editing}" />
-
-					<ice:selectOneMenu value="#{item.levelString}"
-						rendered="#{item.editing}">
+					<ui:remove>
+						<ice:outputText value="#{item.levelString}"
+							rendered="#{not item.editing}" />
+					</ui:remove>
+					<ice:selectOneMenu value="#{item.levelString}">
 						<f:param id="loggerId" name="loggerId" value="#{item.id}" />
 						<f:selectItems value="#{logging.levels}" />
 					</ice:selectOneMenu>
@@ -120,34 +120,41 @@
 						<ice:outputLabel
 							value="#{msg['web.bean.basicLoggerListItem.appender']}" />
 					</f:facet>
-					<ice:panelGroup>
-						<ui:repeat value="#{item.appenders}" var="app">
-							<ice:outputText value="#{app}" />
-							<ice:commandLink value="x"
-								action="#{logging.deleteLoggerAppender}" immediate="true"
-								partialSubmit="true" rendered="#{item.editing}"
-								style="font-weight: bold;">
-								<f:param name="appenderName" value="#{app}" />
-								<f:param name="loggerId" value="#{item.id}" />
-							</ice:commandLink>
-						</ui:repeat>
-					</ice:panelGroup>
+					<ui:remove>
+						<ice:panelGroup>
+							<ui:repeat value="#{item.appenders}" var="app">
+								<ice:outputText value="#{app}" />
+								<ice:commandLink value="x"
+									action="#{logging.deleteLoggerAppender}" immediate="true"
+									partialSubmit="true" rendered="#{item.editing}"
+									style="font-weight: bold;">
+									<f:param name="appenderName" value="#{app}" />
+									<f:param name="loggerId" value="#{item.id}" />
+								</ice:commandLink>
+							</ui:repeat>
+						</ice:panelGroup>
+					</ui:remove>
 					<ice:selectOneMenu
 						valueChangeListener="#{logging.addLoggerAppender}"
-						rendered="#{item.editing}" style="width: inherit;"
-						partialSubmit="true" immediate="true" id="loggerAppenderSelect">
+						style="width: inherit;" partialSubmit="true" immediate="true"
+						id="loggerAppenderSelect" value="#{item.appendersText}">
 						<f:param name="loggerId" value="#{item.id}" />
 						<f:selectItems value="#{logging.appenderNames}" />
 					</ice:selectOneMenu>
 				</ice:column>
 			</ice:dataTable>
-<ui:remove>
+
 			<h3>Log subsystem entry/exit</h3>
 			<ice:outputText value="Custom level: " />
 			<ice:selectOneMenu value="#{logging.selectedProfilingLevel}">
 				<f:selectItems value="#{logging.profilingLevels}" />
 			</ice:selectOneMenu>
-</ui:remove>
+			<ice:outputLabel
+					value="#{msg['page.config.logging.midpointAppender']}" />
+				<ice:selectOneMenu value="#{logging.midpointAppender}">
+					<f:selectItems value="#{logging.appenderNames}" />
+				</ice:selectOneMenu>
+
 			<ice:panelGroup rendered="#{logging.advancedView}">
 				<div class="button-bar" style="margin-bottom: 20px;">
 					<idm:button value="#{msg['page.button.addLogger']}"
@@ -270,10 +277,11 @@
 				<idm:button value="#{msg['page.button.save']}" buttonType="positive"
 					action="#{logging.savePerformed}" img="/resources/images/disk.png" />
 
-				<idm:button value="#{msg['page.button.back']}" buttonType="negative"
-					action="#{logging.cancelPerformed}"
-					img="/resources/images/door_in.png" />
-
+				<ui:remove>
+					<idm:button value="#{msg['page.button.back']}"
+						buttonType="negative" action="#{logging.cancelPerformed}"
+						img="/resources/images/door_in.png" />
+				</ui:remove>
 				<idm:button value="#{msg['page.button.reset']}"
 					buttonType="positive" action="#{logging.resetPerformed}"
 					img="/resources/images/door_in.png"

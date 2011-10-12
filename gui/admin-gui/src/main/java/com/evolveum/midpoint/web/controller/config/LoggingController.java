@@ -45,6 +45,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.AppenderListItem;
 import com.evolveum.midpoint.web.bean.BasicLoggerListItem;
 import com.evolveum.midpoint.web.bean.LoggerListItem;
+import com.evolveum.midpoint.web.bean.ProfilingLevelType;
 import com.evolveum.midpoint.web.bean.SubsystemLoggerListItem;
 import com.evolveum.midpoint.web.component.LoggingManager;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
@@ -68,7 +69,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SubSystemLoggerConfi
 public class LoggingController implements Serializable {
 
 	public static final String PAGE_NAVIGATION = "/config/logging?faces-redirect=true";
-//	public static final String PAGE_BASICLOGGIN_NAVIGATION = "/config/basicLogging?faces-redirect=true";
+	// public static final String PAGE_BASICLOGGIN_NAVIGATION =
+	// "/config/basicLogging?faces-redirect=true";
 	public static final String PARAM_APPENDER_ID = "appenderName";
 	public static final String PARAM_LOGGER_ID = "loggerId";
 	private static final Trace LOGGER = TraceManager.getTrace(LoggingController.class);
@@ -81,17 +83,19 @@ public class LoggingController implements Serializable {
 
 	private LoggingLevelType midpointLoggerLevel;
 	private String midpointAppender;
-	
-	
+
+	private BasicLoggerListItem profilingLogger = null;
+	private List<SelectItem> profilingLevels;
+	private String selectedProfilingLevel;
+
 	private List<BasicLoggerListItem> loggers;
 	private List<AppenderListItem> appenders;
 	private List<SubsystemLoggerListItem> subsystemLoggers;
 
 	private boolean advancedView = false;
-	
+
 	private boolean selectAllLoggers = false;
 	private boolean selectAllAppenders = false;
-	
 
 	public List<SelectItem> getLevels() {
 		List<SelectItem> levels = new ArrayList<SelectItem>();
@@ -390,7 +394,7 @@ public class LoggingController implements Serializable {
 		}
 
 		// initController();
-		initController();
+		initBasicLogging();
 	}
 
 	public void cancelPerformed() {
@@ -400,7 +404,7 @@ public class LoggingController implements Serializable {
 	public String initBasicLogging() {
 		getLoggers().clear();
 		getAppenders().clear();
-		
+
 		OperationResult result = new OperationResult("Load Logging Configuration");
 
 		int id = 0;
@@ -413,20 +417,6 @@ public class LoggingController implements Serializable {
 				ControllerUtil.printResults(LOGGER, result, null);
 				return PAGE_NAVIGATION;
 			}
-			//
-			// if (logging.getSubSystemLogger().isEmpty()) {
-			// for (LoggingComponentType loggingComp :
-			// LoggingComponentType.values()) {
-			// SubsystemLoggerListItem subsystemItem = new
-			// SubsystemLoggerListItem(id);
-			// subsystemItem.setComponent(loggingComp);
-			// subsystemItem.setAppenders(new ArrayList<String>());
-			// subsystemItem.setLevel(null);
-			// // getSubsystemLoggers().add(subsystemItem);
-			// getLoggers().add(subsystemItem);
-			// id++;
-			// }
-			// }
 
 			rootLoggerLevel = logging.getRootLoggerLevel();
 			rootAppender = logging.getRootLoggerAppender();
@@ -445,6 +435,30 @@ public class LoggingController implements Serializable {
 
 			List<SubsystemLoggerListItem> subsystemItems = new ArrayList<SubsystemLoggerListItem>();
 
+			List<ClassLoggerConfigurationType> classLoggerList = logging.getClassLogger();
+
+			for (ClassLoggerConfigurationType classLogger : classLoggerList) {
+				if ("PROFILING".equals(classLogger.getPackage())) {
+					profilingLogger = createLoggerListItem(id, classLogger);
+					id++;
+					break;
+				}
+				getLoggers().add(createLoggerListItem(id, classLogger));
+				id++;
+			}
+
+			if (profilingLogger == null) {
+				List<String> appenders = new ArrayList<String>();
+				appenders.add(rootAppender);
+				profilingLogger = new LoggerListItem(id);
+				profilingLogger.setAppenders(appenders);
+				profilingLogger.setAppendersText(rootAppender);
+				profilingLogger.setLevel(rootLoggerLevel);
+				((LoggerListItem) profilingLogger).setPackageName("PROFILING");
+				id++;
+			}
+			
+		
 			for (SubSystemLoggerConfigurationType logger : logging.getSubSystemLogger()) {
 				SubsystemLoggerListItem subsystemLoggerItem = createSubsystemLoggerListItem(id, logger);
 				// subsystemItems.add(subsystemLoggerItem);
@@ -452,7 +466,12 @@ public class LoggingController implements Serializable {
 				subsystemItems.add(subsystemLoggerItem);
 				if (subsystemLoggerItem.getComponent().equals(LoggingComponentType.ALL)) {
 					midpointLoggerLevel = subsystemLoggerItem.getLevel();
-					midpointAppender = subsystemLoggerItem.getAppendersText();
+					String subsystemAppender = subsystemLoggerItem.getAppendersText();
+					if (subsystemAppender != null) {
+						midpointAppender = subsystemAppender;
+					} else {
+						midpointAppender = rootAppender;
+					}
 					// continue;
 				}
 			}
@@ -466,7 +485,7 @@ public class LoggingController implements Serializable {
 		} finally {
 			ControllerUtil.printResults(LOGGER, result, null);
 		}
-//		initController();
+		// initController();
 
 		return PAGE_NAVIGATION;
 	}
@@ -477,11 +496,14 @@ public class LoggingController implements Serializable {
 
 			if (!loggingComp.equals(LoggingComponentType.ALL)) {
 				if (!isDefined(loggingComp, subsystemLoggers)) {
-
 					SubsystemLoggerListItem subsystemItem = new SubsystemLoggerListItem(id);
 					subsystemItem.setComponent(loggingComp);
-					subsystemItem.setAppenders(new ArrayList<String>());
-					subsystemItem.setLevel(null);
+					List<String> appenders = new ArrayList<String>();
+					appenders.add(rootAppender);
+					subsystemItem.setAppenders(appenders);
+					subsystemItem.setAppendersText(rootAppender);
+					subsystemItem.setLevel(rootLoggerLevel);
+					subsystemItem.setLevelString(rootLoggerLevel.value());
 					// getSubsystemLoggers().add(subsystemItem);
 					getLoggers().add(subsystemItem);
 					id++;
@@ -508,18 +530,16 @@ public class LoggingController implements Serializable {
 		return false;
 	}
 
-	public void changeView(ActionEvent evt){
+	public void changeView(ActionEvent evt) {
 		advancedView = !advancedView;
 	}
-	
-	
+
 	public String initController() {
 		getAppenders().clear();
 		getLoggers().clear();
 
 		selectAllAppenders = false;
 		selectAllLoggers = false;
-		
 
 		OperationResult result = new OperationResult("Load Logging Configuration");
 		try {
@@ -552,7 +572,6 @@ public class LoggingController implements Serializable {
 				getLoggers().add(createLoggerListItem(id, logger));
 				id++;
 			}
-
 
 			for (SubSystemLoggerConfigurationType logger : logging.getSubSystemLogger()) {
 				SubsystemLoggerListItem subsystemLoggerItem = createSubsystemLoggerListItem(id, logger);
@@ -673,14 +692,15 @@ public class LoggingController implements Serializable {
 		configuration.setRootLoggerAppender(getRootAppender());
 		configuration.setRootLoggerLevel(rootLoggerLevel);
 
-		
-
 		for (AppenderListItem item : appenders) {
 			AppenderConfigurationType appender = createAppenderType(item);
 			configuration.getAppender().add(appender);
 		}
 		for (BasicLoggerListItem item : loggers) {
 			if (item instanceof LoggerListItem) {
+				if (((LoggerListItem) item).getPackageName().equals("PROFILING")) {
+					continue;
+				}
 				ClassLoggerConfigurationType logger = createClassLogger((LoggerListItem) item, appenders);
 				configuration.getClassLogger().add(logger);
 			} else if (item instanceof SubsystemLoggerListItem) {
@@ -689,7 +709,11 @@ public class LoggingController implements Serializable {
 				configuration.getSubSystemLogger().add(logger);
 			}
 		}
-	
+
+		updateProfilingLogger(profilingLogger);
+		ClassLoggerConfigurationType logger = createClassLogger((LoggerListItem) profilingLogger, appenders);
+		configuration.getClassLogger().add(logger);
+
 		return configuration;
 	}
 
@@ -707,9 +731,51 @@ public class LoggingController implements Serializable {
 	public boolean isAdvancedView() {
 		return advancedView;
 	}
-	
+
 	public void setAdvancedView(boolean advancedView) {
 		this.advancedView = advancedView;
 	}
+
+	public BasicLoggerListItem getProfilingLogger() {
+		return profilingLogger;
+	}
+
+	public void setProfilingLogger(BasicLoggerListItem profilingLogger) {
+		this.profilingLogger = profilingLogger;
+	}
+
+	public List<SelectItem> getProfilingLevels() {
+		if (profilingLevels == null) {
+			profilingLevels = new ArrayList<SelectItem>();
+		}
+
+		for (ProfilingLevelType level : ProfilingLevelType.values()) {
+			SelectItem si = new SelectItem(level.getValue());
+			profilingLevels.add(si);
+		}
+
+		return profilingLevels;
+	}
+
+	public void setProfilingLevels(List<SelectItem> profilingLevels) {
+		this.profilingLevels = profilingLevels;
+	}
+
+	public String getSelectedProfilingLevel() {
+		if (profilingLogger != null && profilingLogger.getLevel() != null) {
+			selectedProfilingLevel = ProfilingLevelType.fromLoggerLevelType(profilingLogger.getLevel())
+					.getValue();
+		}
+		return selectedProfilingLevel;
+	}
+
+	public void setSelectedProfilingLevel(String selectedProfilingLevel) {
+		this.selectedProfilingLevel = selectedProfilingLevel;
+	}
+
+	private void updateProfilingLogger(BasicLoggerListItem profilingLogger) {
+		LoggingLevelType level = ProfilingLevelType.toLoggerLevelType(selectedProfilingLevel);
+		profilingLogger.setLevel(level);
+	}
+
 }
-	
