@@ -20,13 +20,20 @@
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
-    <system systemId="http://localhost:8080/repositoryService/RepositoryService?wsdl" uri="wsdl/xml/ns/private/repository/repositoryWrapper.wsdl"/>
-    <system systemId="http://localhost:8080/modelService/ModelService?wsdl" uri="wsdl/xml/ns/private/model/modelWrapper.wsdl"/>
-    <system systemId="http://localhost:8080/modelService/PasswordService?wsdl" uri="wsdl/xml/ns/private/model/passwordWrapper.wsdl"/>
-    <system systemId="http://localhost:8080/stagingService/StagingService?wsdl" uri="wsdl/xml/ns/private/model/stagingWrapper.wsdl"/>
-    <system systemId="http://localhost:8080/provisioningService/ProvisioningService?wsdl" uri="wsdl/xml/ns/private/provisioning/provisioningWrapper.wsdl"/>
-    <system systemId="http://localhost:8080/resourceObjectChangeListenerService/resourceObjectChangeListenerPort?wsdl" uri="wsdl/xml/ns/private/provisioning/resourceObjectChangeListenerWrapper.wsdl"/>
-    <system systemId="http://localhost:8080/cycleManagementService/CycleManagementService?wsdl" uri="wsdl/xml/ns/private/model/cycleManagementWrapper.wsdl"/>
-    <!--rewriteSystem systemIdStartString="http://midpoint.evolveum.com/xml/" rewritePrefix="main/resources/xml/"/-->
+	<public uri="http://localhost:8080/faultService?wsdl" publicId="../xml/ns/public/common/fault-1.wsdl"/>
+    <system uri="http://localhost:8080/faultService?wsdl" systemId="../xml/ns/public/common/fault-1.wsdl"/>
+
+	<public uri="http://localhost:8080/modelService?wsdl" publicId="../xml/ns/public/model/model-1.wsdl"/>
+	<system uri="http://localhost:8080/modelService?wsdl" systemId="../xml/ns/public/model/model-1.wsdl"/>
+	    
+<!--     <system systemId="http://localhost:8080/repositoryService/RepositoryService?wsdl" uri="wsdl/xml/ns/private/repository/repositoryWrapper.wsdl"/> -->
+<!--     <system systemId="http://localhost:8080/modelService/ModelService?wsdl" uri="wsdl/xml/ns/private/model/modelWrapper.wsdl"/> -->
+<!--     <system systemId="http://localhost:8080/modelService/PasswordService?wsdl" uri="wsdl/xml/ns/private/model/passwordWrapper.wsdl"/> -->
+<!--     <system systemId="http://localhost:8080/stagingService/StagingService?wsdl" uri="wsdl/xml/ns/private/model/stagingWrapper.wsdl"/> -->
+<!--     <system systemId="http://localhost:8080/provisioningService/ProvisioningService?wsdl" uri="wsdl/xml/ns/private/provisioning/provisioningWrapper.wsdl"/> -->
+<!--     <system systemId="http://localhost:8080/resourceObjectChangeListenerService/resourceObjectChangeListenerPort?wsdl" uri="wsdl/xml/ns/private/provisioning/resourceObjectChangeListenerWrapper.wsdl"/> -->
+<!--     <system systemId="http://localhost:8080/cycleManagementService/CycleManagementService?wsdl" uri="wsdl/xml/ns/private/model/cycleManagementWrapper.wsdl"/> -->
+    <rewriteSystem systemIdStartString="http://midpoint.evolveum.com/xml/" rewritePrefix="main/resources/xml/"/>
+    
     <nextCatalog catalog="catalog.xml"/>
 </catalog>

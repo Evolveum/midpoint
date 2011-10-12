@@ -125,6 +125,11 @@
 			<groupId>xml-resolver</groupId>
 			<artifactId>xml-resolver</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.ws.commons.schema</groupId>
+			<artifactId>XmlSchema</artifactId>
+			<version>1.4.7</version>
+		</dependency>
 		<!--  Testing dependecies  -->
 		<dependency>
 			<groupId>org.testng</groupId>
@@ -145,14 +150,17 @@
 						<phase>generate-sources</phase>
 						<configuration>
 							<sourceRoot>${project.build.directory}/generated/cxf</sourceRoot>
-							<wsdlRoot>${basedir}/src/main/resources/xml</wsdlRoot>
+							<wsdlRoot>${project.directory}/src/main/resources/xml</wsdlRoot>
 							<wsdlOptions>
 								<wsdlOption>
 									<wsdl>src/main/resources/xml/ns/private/model/modelWrapper.wsdl</wsdl>
+									<catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog.xml</catalog>
 									<extraargs>
 										<extraarg>-impl</extraarg>
 										<extraarg>-verbose</extraarg>
+										<extraarg>-validate</extraarg>
 										<extraarg>-xjc-Xts</extraarg>
+<!-- 										<extraargs>-version</extraargs> -->
 									</extraargs>
 								</wsdlOption>
 							</wsdlOptions>
@@ -166,17 +174,17 @@
 					<dependency>
 						<groupId>org.apache.cxf.xjcplugins</groupId>
 						<artifactId>cxf-xjc-ts</artifactId>
-						<version>${cxf.version}</version>
+						<version>${cxf-xjc.version}</version>
 					</dependency>
 				</dependencies>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.cxf</groupId>
 				<artifactId>cxf-xjc-plugin</artifactId>
-				<version>${cxf.version}</version>
+				<version>${cxf-xjc.version}</version>
 				<configuration>
 					<extensions>
-						<extension>org.apache.cxf.xjcplugins:cxf-xjc-dv:2.3.0</extension>
+						<extension>org.apache.cxf.xjcplugins:cxf-xjc-dv:${cxf-xjc.version}</extension>
 					</extensions>
 				</configuration>
 				<executions>
@@ -227,7 +235,7 @@
 							</xsdOptions>
 							<extensions>
 								<!--extension>org.apache.cxf.xjcplugins:cxf-xjc-dv:${cxf.version}</extension-->
-								<extension>org.apache.cxf.xjcplugins:cxf-xjc-ts:${cxf.version}</extension>
+								<extension>org.apache.cxf.xjcplugins:cxf-xjc-ts:${cxf-xjc.version}</extension>
 							</extensions>
 						</configuration>
 					</execution>

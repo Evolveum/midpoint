@@ -44,7 +44,8 @@
 		<basex.version>6.7.1</basex.version>
 		<commons.io.version>2.0.1</commons.io.version>
 		<commons.lang.version>2.6</commons.lang.version>
-		<cxf.version>2.4.0</cxf.version>
+		<cxf.version>2.4.3</cxf.version>
+		<cxf-xjc.version>2.4.0</cxf-xjc.version>
 		<dbunit.version>2.4.7</dbunit.version>
 		<el.version>2.2</el.version>
 		<icefaces.version>2.0.1</icefaces.version>
