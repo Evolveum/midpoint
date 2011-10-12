@@ -146,10 +146,5 @@
 			<artifactId>log4j-over-slf4j</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.forgerock.openicf.framework</groupId>
-			<artifactId>icfl-over-slf4j</artifactId>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
 </project>
