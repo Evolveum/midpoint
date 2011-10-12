@@ -102,10 +102,12 @@ public class MidpointAspect {
 			prev = (String) MDC.get("subsystem");
 			MDC.put("subsystem", subsystem);
 
-			if (LOGGER_PROFILING.isTraceEnabled()) {
+			if (LOGGER_PROFILING.isDebugEnabled()) {
 				id = idcounter.incrementAndGet();
 				infoLog.append(id);
-				//infoLog.append("/");
+			}
+
+			if (LOGGER_PROFILING.isTraceEnabled()) {
 
 				String depth = MDC.get("depth");
 				if (depth == null || depth.isEmpty()) {
@@ -163,7 +165,10 @@ public class MidpointAspect {
 			if (LOGGER_PROFILING.isInfoEnabled()) {
 				StringBuilder sb = new StringBuilder();
 				sb.append("##### Exit: ");
-				sb.append(id);
+				if (LOGGER_PROFILING.isDebugEnabled()) {
+					sb.append(id);
+					sb.append(" ");
+				}
 				//sb.append("/");
 				if (LOGGER_PROFILING.isTraceEnabled()) {
 					for (int i = 0; i < d + 1; i++) {
@@ -225,7 +230,7 @@ public class MidpointAspect {
 	public void entriesIntoModel() {
 	}
 
-	@Pointcut("execution(* com.evolveum.midpoint.web.controller.*(..))")
+	@Pointcut("execution(* com.evolveum.midpoint.web.controller..*.*(..))")
 	public void entriesIntoWeb() {
 	}
 
