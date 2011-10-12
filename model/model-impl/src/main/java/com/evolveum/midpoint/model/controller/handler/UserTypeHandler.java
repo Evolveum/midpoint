@@ -161,7 +161,7 @@ public class UserTypeHandler extends BasicHandler {
 			if (!SchemaConstants.I_ACCOUNT.equals(JAXBUtil.getElementQName(node))) {
 				continue;
 			}
-			
+
 			modifications.add(propertyChange);
 		}
 
@@ -304,8 +304,12 @@ public class UserTypeHandler extends BasicHandler {
 
 		AccountType accountHandling = ModelUtils.getAccountTypeFromHandling(account, resource);
 		boolean pushPasswordToAccount = false;
+		// check also if account that is processed to add doesn't have set
+		// different password as user -> account.getCredentials() in this case
+		// is not null..
 		if (accountHandling != null && accountHandling.getCredentials() != null
-				&& accountHandling.getCredentials().isOutboundPassword() != null) {
+				&& accountHandling.getCredentials().isOutboundPassword() != null
+				&& account.getCredentials() == null) {
 			pushPasswordToAccount = accountHandling.getCredentials().isOutboundPassword();
 		}
 		if (pushPasswordToAccount && user.getCredentials() != null
