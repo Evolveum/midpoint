@@ -69,13 +69,13 @@ public class RoleManagerImpl extends ObjectManagerImpl<RoleType, RoleDto> implem
 	}
 
 	@Override
-	public Set<PropertyChange> submit(RoleDto newRole) {
+	public Set<PropertyChange> submit(RoleDto newRole, OperationResult parentResult) {
 		boolean isNew = false;
 		if (StringUtils.isEmpty(newRole.getOid())) {
 			isNew = true;
 		}
 
-		OperationResult result = new OperationResult("Save role");
+		OperationResult result = parentResult.createSubresult("Save role");
 		try {
 			if (!isNew) {
 				RoleDto oldRole = get(newRole.getOid(), new PropertyReferenceListType());
@@ -99,7 +99,7 @@ public class RoleManagerImpl extends ObjectManagerImpl<RoleType, RoleDto> implem
 
 		// if role is new, operation result will be printed during add operation
 		if (!isNew) {
-			ControllerUtil.printResults(LOGGER, result);
+//			ControllerUtil.printResults(LOGGER, result);
 		}
 
 		return new HashSet<PropertyChange>();

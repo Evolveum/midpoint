@@ -97,7 +97,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 			result.computeStatus("Couldn't get object '" + oid + "' from model.");
 		}
 
-		ControllerUtil.printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result, null);
 
 		return objectType;
 	}
@@ -122,7 +122,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 			result.computeStatus("Couldn't get object '" + oid + "' from model.");
 		}
 
-		ControllerUtil.printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result, null);
 
 		return object;
 	}
@@ -143,7 +143,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 			result.computeStatus("Couldn't delete object '" + oid + "' from model.");
 		}
 
-		ControllerUtil.printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result, null);
 	}
 
 	@Override
@@ -164,7 +164,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 			result.computeStatus("Couldn't add object '" + object.getName() + "' to model.");
 		}
 
-		ControllerUtil.printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result, null);
 
 		return oid;
 	}
@@ -188,7 +188,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 			result.computeStatus("Couldn't list '" + type + "' objects from model.");
 		}
 
-		ControllerUtil.printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result, null);
 		return collection;
 	}
 

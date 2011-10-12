@@ -83,6 +83,7 @@ public class LoggingManager {
 		// TODO: save configuration
 		LoggingConfigurationType config = saveConfiguration(logging, result);
 		if (config == null) {
+			result.recordPartialError("System configuration is null, LOGGERs won't be updated.");
 			LOGGER.warn("System configuration is null, LOGGERs won't be updated.");
 			return;
 		}

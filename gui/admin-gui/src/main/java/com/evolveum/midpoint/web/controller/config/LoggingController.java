@@ -386,13 +386,7 @@ public class LoggingController implements Serializable {
 			LoggingUtils.logException(LOGGER, "Couldn't update logging configuration", ex);
 		} finally {
 			result.computeStatus("Couldn't update logging configuration.");
-			ControllerUtil.printResults(LOGGER, result);
-			if (result.isSuccess()) {
-				FacesUtils.addSuccessMessage("Changes saved sucessfully");
-			}
-			// if (!result.isSuccess()) {
-			// FacesUtils.addMessage(result);
-			// }
+			ControllerUtil.printResults(LOGGER, result, "Changes saved sucessfully.");
 		}
 
 		// initController();
@@ -416,7 +410,7 @@ public class LoggingController implements Serializable {
 				result.recordFatalError("Couldn't get logging configuration.");
 				LoggingUtils.logException(LOGGER, "Couldn't get logging configuration.",
 						new IllegalStateException(), "");
-				ControllerUtil.printResults(LOGGER, result);
+				ControllerUtil.printResults(LOGGER, result, null);
 				return PAGE_NAVIGATION;
 			}
 			//
@@ -470,7 +464,7 @@ public class LoggingController implements Serializable {
 			// FacesUtils.addErrorMessage("Couldn't get logging configuration.",
 			// ex);
 		} finally {
-			ControllerUtil.printResults(LOGGER, result);
+			ControllerUtil.printResults(LOGGER, result, null);
 		}
 //		initController();
 
@@ -534,7 +528,7 @@ public class LoggingController implements Serializable {
 				result.recordFatalError("Couldn't get logging configuration.");
 				LoggingUtils.logException(LOGGER, "Couldn't get logging configuration.",
 						new IllegalStateException(), "");
-				ControllerUtil.printResults(LOGGER, result);
+				ControllerUtil.printResults(LOGGER, result, null);
 				return PAGE_NAVIGATION;
 			}
 
@@ -572,7 +566,8 @@ public class LoggingController implements Serializable {
 			// FacesUtils.addErrorMessage("Couldn't get logging configuration.",
 			// ex);
 		} finally {
-			ControllerUtil.printResults(LOGGER, result);
+			result.computeStatus("Couldn't init logging configuration.");
+			ControllerUtil.printResults(LOGGER, result, "Changes saved sucessfully.");
 		}
 
 		return PAGE_NAVIGATION;
@@ -609,7 +604,6 @@ public class LoggingController implements Serializable {
 		item.setAppenders(logger.getAppender());
 		item.setLevel(logger.getLevel());
 		item.setPackageName(logger.getPackage());
-//		System.out.println("logger: "+ logger.get);
 		return item;
 	}
 

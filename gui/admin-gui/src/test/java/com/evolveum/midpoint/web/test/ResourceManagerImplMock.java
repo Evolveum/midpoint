@@ -87,7 +87,7 @@ public class ResourceManagerImplMock implements ResourceManager {
 	}
 
 	@Override
-	public Set<PropertyChange> submit(GuiResourceDto changedObject) {
+	public Set<PropertyChange> submit(GuiResourceDto changedObject, OperationResult result) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

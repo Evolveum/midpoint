@@ -30,6 +30,7 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -252,13 +253,15 @@ public class ControllerUtil {
 		return calendar.toGregorianCalendar().getTime();
 	}
 	
-	public static void printResults(Trace logger, OperationResult result) {
+	public static void printResults(Trace logger, OperationResult result, String successMessage) {
 		if (result == null) {
 			return;
 		}
 		if (!result.isSuccess()) {
 			FacesUtils.addMessage(result);
-		} 
+		} else if (StringUtils.isNotEmpty(successMessage)){
+			FacesUtils.addSuccessMessage(successMessage);
+		}
 		
 		if (logger.isDebugEnabled()) {
 			logger.debug(result.dump());

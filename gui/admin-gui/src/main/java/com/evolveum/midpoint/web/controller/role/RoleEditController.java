@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -121,6 +122,8 @@ public class RoleEditController implements Serializable {
 	}
 
 	public void save(ActionEvent evt) {
+		
+		OperationResult result = new OperationResult("Save Role Changes.");		
 		if (role == null) {
 			FacesUtils.addErrorMessage("Role must not be null.");
 			return;
@@ -132,11 +135,15 @@ public class RoleEditController implements Serializable {
 			if (isNewRole()) {
 				manager.add(role);
 			} else {
-				manager.submit(getRole());
+				manager.submit(getRole(), result);
 			}
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't submit role {}", ex, role.getName());
-			FacesUtils.addErrorMessage("Couldn't submit role '" + role.getName() + "'.", ex);
+//			FacesUtils.addErrorMessage("Couldn't submit role '" + role.getName() + "'.", ex);
+			result.recordFatalError("Couldn't submit role '" + role.getName() + "'.", ex);
+		} finally {
+			result.computeStatus();
+			ControllerUtil.printResults(LOGGER, result, "Role changes saved sucessfully.");
 		}
 	}
 }

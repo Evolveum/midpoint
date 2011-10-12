@@ -101,7 +101,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 	}
 
 	@Override
-	public Set<PropertyChange> submit(GuiUserDto changedObject) {
+	public Set<PropertyChange> submit(GuiUserDto changedObject, OperationResult parentResult) {
 		Validate.notNull(changedObject, "User object must not be null.");
 
 		Set<PropertyChange> set = null;
@@ -119,7 +119,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 		// manager
 		changedObject = unresolveNotAddedAccounts(changedObject);
 
-		OperationResult result = new OperationResult(UserManager.SUBMIT);
+		OperationResult result = parentResult.createSubresult(UserManager.SUBMIT);
 		try { // Call Web Service Operation
 			
 			PropertyModificationType passwordChange = null;
@@ -153,6 +153,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 
 			}
 
+			//TODO: probably, this is not needed more, test and remove this if isn't needed
 			if (null != changes) {
 				set = new HashSet<PropertyChange>();
 				// TODO: finish this
@@ -174,7 +175,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 		}
 
 		result.computeStatus("Couldn't submit user '" + changedObject.getName() + "'.");
-		ControllerUtil.printResults(LOGGER, result);
+//		ControllerUtil.printResults(LOGGER, result);
 
 		return set;
 	}

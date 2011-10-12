@@ -32,6 +32,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
@@ -93,7 +94,7 @@ public class UserManagerImplMock implements UserManager {
 	}
 
 	@Override
-	public Set<PropertyChange> submit(GuiUserDto changedObject) {
+	public Set<PropertyChange> submit(GuiUserDto changedObject, OperationResult result) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

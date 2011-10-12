@@ -51,7 +51,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 	}
 
 	@Override
-	public Set<PropertyChange> submit(GuiResourceDto changedObject) {
+	public Set<PropertyChange> submit(GuiResourceDto changedObject , OperationResult parentResult) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -96,7 +96,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 					+ resourceObjectShadowType.getClass() + "'.", ex);
 		}
 
-		ControllerUtil.printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result, null);
 
 		return resourceObjectShadowDtoList;
 	}
@@ -118,7 +118,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 			result = new OperationResult(ResourceManager.TEST_CONNECTION);
 		}
 
-		ControllerUtil.printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result, null);
 		return result;
 	}
 
@@ -147,7 +147,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 			result.recordFatalError(ex);
 		}
 
-		ControllerUtil.printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result, null);
 	}
 
 	@Override
@@ -175,7 +175,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 			result.computeStatus("Error while listing resource objects.", "");
 		}
 
-		ControllerUtil.printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result, null);
 
 		return collection;
 	}
@@ -218,7 +218,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 					"Some problem occured during connector hosts listing.");
 		}
 
-		ControllerUtil.printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result, null);
 
 		return collection;
 	}
@@ -238,6 +238,6 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 					+ "'.");
 		}
 
-		ControllerUtil.printResults(LOGGER, result);
+		ControllerUtil.printResults(LOGGER, result, null);
 	}
 }

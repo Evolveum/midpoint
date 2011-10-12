@@ -44,6 +44,7 @@ import ch.qos.logback.core.pattern.util.AsIsEscapeUtil;
 
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
@@ -222,11 +223,13 @@ public class UserDetailsController implements Serializable {
 	 * accounts from accountList save user attributes from form
 	 */
 	public void savePerformed(ActionEvent evt) {
+		OperationResult result = new OperationResult("Save User Changes");
 		if (user != null) {
 			LOGGER.debug("Normalizing user assignments");
 			user.normalizeAssignments();
 		}
 		try {
+			
 			UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
 			AccountManager accountManager = ControllerUtil.getAccountManager(objectTypeCatalog);
 
@@ -234,12 +237,12 @@ public class UserDetailsController implements Serializable {
 			List<AccountShadowType> accountsToDelete = processDeletedAccounts();
 			processUnlinkedAccounts();
 
-			LOGGER.debug("Submit user modified in GUI");
 			// we want submit only user changes (if the account was deleted-
 			// unlink account, if added - link and create account)
 			// modification of account attributes are submited later ->
 			// updateAccounts method
-			Set<PropertyChange> userChanges = userManager.submit(user);
+			LOGGER.debug("Submit user modified in GUI");
+			Set<PropertyChange> userChanges = userManager.submit(user, result);
 			LOGGER.debug("Modified user in GUI submitted ");
 
 			// now we need to delete accounts from repository and also from
@@ -249,50 +252,32 @@ public class UserDetailsController implements Serializable {
 				accountManager.delete(account.getOid());
 			}
 			LOGGER.debug("Finished processing of deleted accounts");
-
-			// if (userChanges != null) {
-			// if (userChanges.isEmpty()) {
-			// // account changes are processed as modification of account,
-			// // every account is processed separately
-			// LOGGER.debug("Start processing of modified accounts");
-			// for (AccountFormBean formBean : accountList) {
-			// if (formBean.isNew()) {
-			// continue;
-			// }
-			//
-			// AccountShadowDto modifiedAccountShadowDto =
-			// updateAccountAttributes(formBean);
-			// LOGGER.debug("Found modified account in GUI: {}",
-			// DebugUtil.prettyPrint(modifiedAccountShadowDto.getXmlObject()));
-			// LOGGER.debug("Submit account modified in GUI");
-			// accountManager.submit(modifiedAccountShadowDto);
-			// LOGGER.debug("Modified account in GUI submitted");
-			// }
-			// LOGGER.debug("Finished processing of modified accounts");
-			// } else {
-
-			updateAccounts(accountList);
-			// }
-
-			// action is done in clearController
-			// accountListDeleted.clear();
+			
+			//check if account was changed, if does, execute them..
+			updateAccounts(accountList, result);
+			
 			clearController();
-
-			FacesUtils.addSuccessMessage("Changes saved successfully.");
-			// } else {
-			// clearController();
-			// FacesUtils.addWarnMessage("Errors occured during save operation.");
-			// }
+			result.recordSuccess();
+//			FacesUtils.addSuccessMessage("Changes saved successfully.");
 		} catch (SchemaException ex) {
 			LOGGER.error("Dynamic form generator error", ex);
 			// TODO: What action should we fire in GUI if error occurs ???
 			String loginFailedMessage = FacesUtils.translateKey("save.failed");
-			FacesUtils.addErrorMessage(loginFailedMessage + " " + ex.toString());
+			result.recordFatalError(loginFailedMessage + " " + ex.toString());
+//			FacesUtils.addErrorMessage(loginFailedMessage + " " + ex.toString());
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Unknown error occured during save operation", ex);
-			FacesUtils.addErrorMessage("Unknown error occured during save operation, reason: "
+			result.recordFatalError("Unknown error occured during save operation, reason: "
 					+ ex.getMessage());
+//			FacesUtils.addErrorMessage("Unknown error occured during save operation, reason: "
+//					+ ex.getMessage());
+		} finally{
+			result.computeStatus("Failed to save changes.");
+			ControllerUtil.printResults(LOGGER, result, "Changes saved sucessfully.");
 		}
+		
+		
+		
 	}
 
 	private void processNewAccounts() throws SchemaException {
@@ -300,20 +285,13 @@ public class UserDetailsController implements Serializable {
 		LOGGER.debug("Start processing of new accounts");
 		for (AccountFormBean formBean : accountList) {
 			if (formBean.isNew()) {
-				// Note: we have to add new account directly to xmlObject
-				// add and delete of accounts will be process later by call
-				// to userManager.submit(user);
+				
 				AccountShadowDto newAccountShadow = updateAccountAttributes(formBean);
 				newAccountShadow.setAdded(true);
+				//add new account to the userDto accounts only
+				//later by calling user.submit, this added account will be checked, and only those which are new 
+				//will be used to detect chages..other will be transformed to the accounts ref..
 				user.getAccount().add(newAccountShadow);
-				// AccountShadowType newAccountShadowType =
-				// updateAccountAttributes(formBean).getXmlObject();
-				// LOGGER.debug("Found new account in GUI: {}",
-				// DebugUtil.prettyPrint(newAccountShadowType));
-				// ((UserType)
-				// user.getXmlObject()).getAccount().add(newAccountShadowType);
-
-				// user.getXmlObject().getAccountRef().add(ObjectTypeUtil.createObjectRef(newAccountShadowType));
 			}
 		}
 
@@ -364,7 +342,7 @@ public class UserDetailsController implements Serializable {
 		LOGGER.debug("Finished processing of deleted accounts");
 	}
 
-	private void updateAccounts(List<AccountFormBean> accountBeans) throws WebModelException {
+	private void updateAccounts(List<AccountFormBean> accountBeans, OperationResult result) throws WebModelException {
 		LOGGER.debug("Start processing accounts with outbound schema handling");
 		for (AccountFormBean bean : accountBeans) {
 			if (bean.isNew()) {
@@ -375,12 +353,14 @@ public class UserDetailsController implements Serializable {
 			try {
 				account = updateAccountAttributes(bean);
 			} catch (SchemaException ex) {
+				result.recordFatalError("Failed to update account attributes, reason: " + ex.getMessage()
+						+ ".", ex);
 				throw new WebModelException("Failed to update account attributes, reason: " + ex.getMessage()
 						+ ".", "Failed to update account attributes.", ex);
 			}
 
 			AccountManager accountManager = ControllerUtil.getAccountManager(objectTypeCatalog);
-			accountManager.submit(account);
+			accountManager.submit(account, result);
 		}
 		LOGGER.debug("Finished processing accounts with outbound schema handling");
 	}

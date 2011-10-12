@@ -63,7 +63,7 @@ public class SystemManagerImpl extends ObjectManagerImpl<SystemConfigurationType
 	}
 
 	@Override
-	public Set<PropertyChange> submit(SystemConfigurationDto changedObject) {
+	public Set<PropertyChange> submit(SystemConfigurationDto changedObject, OperationResult parentResult) {
 		throw new UnsupportedOperationException("Not implemented yet.");
 	}
 

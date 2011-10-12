@@ -213,26 +213,32 @@ public class DebugViewController implements Serializable {
 	}
 
 	public String savePerformed() {
+		
+		OperationResult result = new OperationResult("Save changes");
 		if (StringUtils.isEmpty(xml)) {
 			FacesUtils.addErrorMessage("Xml editor is empty.");
 			return null;
 		}
 
-		ObjectType newObject = getObjectFromXml(xml);
+		ObjectType newObject = getObjectFromXml(xml, result);
 		if (newObject == null) {
+			ControllerUtil.printResults(TRACE, result, "Changes saved sucessfully");
 			return null;
 		}
 
 		if (!repositoryManager.saveObject(newObject)) {
-			FacesUtils.addErrorMessage("Couln't update object '" + newObject.getName() + "'.");
+			result.recordFatalError("Couln't update object '" + newObject.getName() + "'.");
+//			FacesUtils.addErrorMessage("Couln't update object '" + newObject.getName() + "'.");
 		}
 
 		template.setSelectedLeftId("leftList");
+		result.recordSuccess();
+		ControllerUtil.printResults(TRACE, result, "Changes saved sucessfully.");
 
 		return DebugListController.PAGE_NAVIGATION;
 	}
 
-	private ObjectType getObjectFromXml(String xml) {
+	private ObjectType getObjectFromXml(String xml, OperationResult parentResult) {
 		final List<ObjectType> objects = new ArrayList<ObjectType>();
 		Validator validator = new Validator(new EventHandler() {
 
@@ -257,32 +263,14 @@ public class DebugViewController implements Serializable {
 			}
 		});
 		// TODO: fix operation names
-		OperationResult result = new OperationResult("Get Object from XML");
+		OperationResult result = parentResult.createSubresult("Get Object from XML");
 		try {
 			validator.validate(IOUtils.toInputStream(xml, "utf-8"), result, "processing object");
 			result.computeStatus("Object processing failed");
-			
-			StringBuilder builder;
-			// Display result as an interactive tree
-//			for (OperationResult subresult : result.getSubresults()) {
-//				if (!subresult.isSuccess()) {
-//					builder = new StringBuilder();
-//					builder.append(result.getStatus());
-//					builder.append(": Object '");
-//					builder.append(ObjectTypeUtil.toShortString(result.getContext(ObjectType.class, OperationResult.CONTEXT_OBJECT)));
-//					builder.append("' is not valid, reason: ");
-//					builder.append(result.getMessage());
-//					builder.append(".");
-//					if (result.getContext(String.class, OperationResult.CONTEXT_PROPERTY)!=null) {
-//						builder.append(" Property: ");
-//						builder.append(result.getContext(String.class, OperationResult.CONTEXT_PROPERTY));
-//					}
-////					FacesUtils.addErrorMessage(builder.toString());
-//				}
-//			}
-
+		
 		} catch (IOException ex) {
 //			FacesUtils.addErrorMessage("Couldn't create object from xml.", ex);
+			result.recordFatalError("Couldn't create object from xml.", ex);
 			LoggingUtils.logException(TRACE, "Couldn't create object from xml.", ex, new Object());
 //			return null;
 		}
@@ -290,11 +278,12 @@ public class DebugViewController implements Serializable {
 		if (objects.isEmpty()) {
 //			FacesUtils.addErrorMessage("Couldn't create object from xml.");
 			LoggingUtils.logException(TRACE, "Couldn't create object from xml.", new IllegalArgumentException(), new Object());
-			ControllerUtil.printResults(TRACE, result);
+			result.recordFatalError("Couldn't create object from xml.");
+//			ControllerUtil.printResults(TRACE, result, "");
 			return null;
 		}
 		
-		ControllerUtil.printResults(TRACE, result);
+//		ControllerUtil.printResults(TRACE, result);
 		
 		return objects.get(0);
 	}

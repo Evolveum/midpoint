@@ -84,7 +84,7 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 	}
 
 	@Override
-	public Set<PropertyChange> submit(AccountShadowDto changedObject) {
+	public Set<PropertyChange> submit(AccountShadowDto changedObject, OperationResult parentResult) {
 		Validate.notNull(changedObject, "Changed account must not be null.");
 
 		AccountShadowDto oldObject = get(changedObject.getOid(), Utils.getResolveResourceList());
@@ -93,7 +93,7 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 			changedObject.getXmlObject().setActivation(changedObject.getActivation());
 		}
 
-		OperationResult result = new OperationResult(AccountManager.SUBMIT);
+		OperationResult result = parentResult.createSubresult(AccountManager.SUBMIT);
 		try {
 			PropertyModificationType passwordChange = null;
 			// detect if password was changed
@@ -129,6 +129,7 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 			} else {
 				LOGGER.debug("No account changes detected.");
 			}
+			result.recordSuccess();
 		} catch (DiffException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't update account {}, error while diffing", ex,
 					changedObject.getName());
@@ -148,7 +149,7 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 		}
 
 		result.computeStatus("Couldn't submit user '" + changedObject.getName() + "'.");
-		ControllerUtil.printResults(LOGGER, result);
+//		ControllerUtil.printResults(LOGGER, result);
 		return new HashSet<PropertyChange>();
 	}
 
