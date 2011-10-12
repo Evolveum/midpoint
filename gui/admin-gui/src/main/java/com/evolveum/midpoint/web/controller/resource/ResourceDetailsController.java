@@ -90,7 +90,7 @@ public class ResourceDetailsController implements Serializable {
 			ControllerUtil.updateResourceState(resource.getState(), result);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't test resource {}", ex, resource.getName());
-			FacesUtils.addErrorMessage("Couldn't test resource '" + resource.getName() + "'.", ex);
+//			FacesUtils.addErrorMessage("Couldn't test resource '" + resource.getName() + "'.", ex);
 		}
 
 		return null;

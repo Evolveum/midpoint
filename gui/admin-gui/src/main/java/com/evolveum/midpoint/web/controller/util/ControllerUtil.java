@@ -229,9 +229,9 @@ public class ControllerUtil {
 				status = ResourceStatus.ERROR;
 		}
 
-		if (!resultFound.isSuccess() && !resultFound.isUnknown()) {
-			FacesUtils.addErrorMessage(resultFound.getMessage());
-		}
+//		if (!resultFound.isSuccess() && !resultFound.isUnknown()) {
+//			FacesUtils.addErrorMessage(resultFound.getMessage());
+//		}
 
 		return status;
 	}
