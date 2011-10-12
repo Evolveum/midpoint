@@ -24,13 +24,17 @@ function setToCenter() {
 	var centerOfWindow = jQuery("#top-nav").width() / 2;
 	var navBarHalfWidth = jQuery("#navBar").width() / 2;
 	jQuery("#navBar").css("margin-left", centerOfWindow - navBarHalfWidth);
-	
 
-		var centerOfLoginDiv = jQuery("#loginDiv").width() / 2;
-	var loginForm = jQuery("#loginFormAdmin").width() / 2;
-	jQuery("#loginFormAdmin").css("margin-left", centerOfLoginDiv - loginForm);
-	
-	
+	var centerOfLoginDiv = jQuery(".loginDiv").width() / 2;
+	var loginFormAdmin = jQuery("#loginFormAdmin").width() / 2;
+	var loginFormUser = jQuery("#loginFormUser").width() / 2;
+	var loginButton = jQuery("#loginButton").width() / 2;
+	jQuery("#loginFormAdmin").css("margin-left",
+			centerOfLoginDiv - loginFormAdmin);
+	jQuery("#loginFormUser").css("margin-left",
+			centerOfLoginDiv - loginFormUser);
+	jQuery("#loginButton").css("margin-left", loginForm - loginButton);
+
 }
 
 function displayMessageDetails(id, showImage, hideImage) {
@@ -72,24 +76,23 @@ function displayMessageCauseDetails(id) {
 /* //////////////////// jQuery ////////////////////////////// */
 jQuery(document).ready(function() {
 	jQuery.noConflict();
-	jQuery("#blackWindow").hide();
-	jQuery("#blackWindow").css("opacity", "0");
 	
-	/*jQuery("#blackWindow").css("opacity", "0.75");
-	jQuery("#blackWindow").show();
-	jQuery("#blackWindow").animate({opacity : 0}, 200, function(){
-		jQuery("#blackWindow").hide();
-		jQuery("#blackWindow").css("opacity", "0");
-	});*/
-	
-	jQuery("#navBar li").click(function(){
-		jQuery("#blackWindow").css("cursor","wait");
+	/*jQuery("#blackWindow").hide();
+	jQuery("#blackWindow").css("opacity", "0");*/
+
+	/*
+	 * jQuery("#blackWindow").css("opacity", "0.75");
+	 * jQuery("#blackWindow").show(); jQuery("#blackWindow").animate({opacity :
+	 * 0}, 200, function(){ jQuery("#blackWindow").hide();
+	 * jQuery("#blackWindow").css("opacity", "0"); });
+	 */
+/*
+	jQuery("#navBar li").click(function() {
+		jQuery("#blackWindow").css("cursor", "wait");
 		jQuery("#blackWindow").show();
 		jQuery("#blackWindow").css("opacity", "0.75");
-		//jQuery("#blackWindow").animate({opacity : 0.75}, 150);
-	});
-	
-	
+		// jQuery("#blackWindow").animate({opacity : 0.75}, 150);
+	});*/
 
 	highliteTableRows();
 

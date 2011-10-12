@@ -574,20 +574,21 @@ input[disabled],input[readonly],select[disabled],select[readonly],checkbox[disab
 #blackWindow {
 	width: 100%;
 	height: 100%;
-	background-color: black;
+	background-color: white;
 	position: fixed;
 	z-index: 1000;
 	display: none;
 }
 
 #blackWindow div {
+	background-color: black;
 	position: fixed;
 	width: 140px;
 	height: 60px;
 	left: 50%;
 	top: 50%;
-	mergin-left: -50px;
-	margin-top: -50px;
+	margin-left: -70px;
+	margin-top: -30px;
 	color: white;
 	font-size: 30px;
 	text-align: center;
