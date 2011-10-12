@@ -296,6 +296,8 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		ResourceObjectDefinition accountDefinition = parsedSchema.findAccountDefinition();
 		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDefinition.findAttributeDefinition(
 				new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"password")));
+		assertNull("The userPassword attribute sneaked into schema", accountDefinition.findAttributeDefinition(
+				new QName(resourceAfter.getNamespace(),"userPassword")));
 		
 	}
 	
