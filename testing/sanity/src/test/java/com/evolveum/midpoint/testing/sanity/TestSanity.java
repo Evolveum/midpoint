@@ -1290,6 +1290,10 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertTrue("LDAP account was not enabled", (pwpAccountDisabled == null) || (pwpAccountDisabled.equals("false")));
 	}
 
+	/**
+	 * Unlink account by removing the accountRef from the user.
+	 * The account will not be deleted, just the association to user will be broken. 
+	 */
 	@Test
 	public void test040UnlinkDerbyAccountFromUser() throws FileNotFoundException, JAXBException, FaultMessage,
 			ObjectNotFoundException, SchemaException, DirectoryException, SQLException {
@@ -1337,6 +1341,10 @@ public class TestSanity extends AbstractIntegrationTest {
 
 	}
 	
+	/**
+	 * Delete the shadow which will cause deletion of associated account.
+	 * The account was unlinked in the previous test, therefore no operation with user is needed. 
+	 */
 	@Test
 	public void test041DeleteDerbyAccount() throws FileNotFoundException, JAXBException, FaultMessage,
 			ObjectNotFoundException, SchemaException, DirectoryException, SQLException {
