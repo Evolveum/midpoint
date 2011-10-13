@@ -16,57 +16,25 @@
 	<ui:define name="content">
 		<br />
 
-		<h3>#{msg['page.login.title.admin']}</h3>
+
 		<hr />
 		<div class="loginDiv">
-			<ice:form id="loginFormAdmin" partialSubmit="false"
+			<ice:form id="loginForm" partialSubmit="false"
 				style="position: absolute; width: auto;">
 				<ice:panelGrid columns="3" cellpadding="5" cellspacing="5">
-					<ice:outputLabel for="adminName"
+					<ice:outputLabel for="name"
 						value="#{msg['page.login.username']}" />
-					<ice:inputText id="adminName" value="#{loginController.adminName}"
+					<ice:inputText id="name" value="#{loginController.userName}"
 						required="true" requiredMessage="#{msg['field.required']}" />
-					<h:message for="adminName" errorClass="error" />
+					<h:message for="name" errorClass="error" />
 
-					<ice:outputLabel for="adminPassword"
+					<ice:outputLabel for="password"
 						value="#{msg['page.login.password']}" />
-					<ice:inputSecret id="adminPassword" value="#{loginController.adminPassword}"
-						required="true" requiredMessage="#{msg['field.required']}"
-						action="#{loginController.loginAdmin}" />
-					<h:message for="adminPassword" errorClass="error" />
-
-					<f:facet name="footer">
-						<div class="button-bar" style="text-align: center;">
-							<idm:button action="#{loginController.loginAdmin}"
-								id="loginButton" value="#{msg['page.login.button']}"
-								img="/resources/images/key.png" />
-						</div>
-					</f:facet>
-				</ice:panelGrid>
-			</ice:form>
-		</div>
-
-		<br />
-		<br />
-		<br />
-		<h3>#{msg['page.login.title.user']}</h3>
-		<hr />
-		<div class="loginDiv">
-			<ice:form id="loginFormUser" partialSubmit="false"
-				style="position: absolute; width: auto;">
-				<ice:panelGrid columns="3" cellpadding="5" cellspacing="5">
-					<ice:outputLabel for="userName"
-						value="#{msg['page.login.username']}" />
-					<ice:inputText id="userName" value="#{loginController.userName}"
-						required="true" requiredMessage="#{msg['field.required']}" />
-					<h:message for="userName" errorClass="error" />
-
-					<ice:outputLabel for="userPassword"
-						value="#{msg['page.login.password']}" />
-					<ice:inputSecret id="userPassword" value="#{loginController.userPassword}"
-						required="true" requiredMessage="#{msg['field.required']}"
+					<ice:inputSecret id="password"
+						value="#{loginController.userPassword}" required="true"
+						requiredMessage="#{msg['field.required']}"
 						action="#{loginController.loginUser}" />
-					<h:message for="userPassword" errorClass="error" />
+					<h:message for="password" errorClass="error" />
 
 					<f:facet name="footer">
 						<div class="button-bar" style="text-align: center;">
@@ -77,20 +45,15 @@
 					</f:facet>
 				</ice:panelGrid>
 			</ice:form>
-
-			<script type="text/javascript">
-				var centerOfLoginDiv = jQuery(".loginDiv").width() / 2;
-				var loginFormAdmin = jQuery("#loginFormAdmin").width() / 2;
-				var loginFormUser = jQuery("#loginFormUser").width() / 2;
-				var loginButton = jQuery("#loginButton").width() / 2;
-				jQuery("#loginFormAdmin").css("margin-left",
-						centerOfLoginDiv - loginFormAdmin);
-				jQuery("#loginFormUser").css("margin-left",
-						centerOfLoginDiv - loginFormUser);
-				jQuery("#loginButton").css("margin-left",
-						loginForm - loginButton);
-			</script>
 		</div>
+		<script type="text/javascript">
+			var centerOfLoginDiv = jQuery(".loginDiv").width() / 2;
+			var loginForm = jQuery("#loginForm").width() / 2;
+			var loginButton = jQuery("#loginButton").width() / 2;
+			jQuery("#loginForm").css("margin-left",
+					centerOfLoginDiv - loginForm);
+			jQuery("#loginButton").css("margin-left", loginForm - loginButton);
+		</script>
 
 	</ui:define>
 

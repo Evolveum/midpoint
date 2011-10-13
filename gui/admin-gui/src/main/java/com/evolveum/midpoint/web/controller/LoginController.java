@@ -48,10 +48,7 @@ public class LoginController implements Serializable {
 	@Autowired(required = true)
 	private transient AuthenticationManager authenticationManager;
 	private String userName;
-	private String adminName;
-	private String adminPassword;
 	private String userPassword;
-
 	private SecurityUtils secUtils = new SecurityUtils();
 
 	public String getUserName() {
@@ -62,53 +59,12 @@ public class LoginController implements Serializable {
 		this.userName = userName;
 	}
 
-	public String getAdminName() {
-		return adminName;
-	}
-
-	public void setAdminName(String adminName) {
-		this.adminName = adminName;
-	}
-
-	public String getAdminPassword() {
-		return adminPassword;
-	}
-
-	public void setAdminPassword(String adminPassword) {
-		this.adminPassword = adminPassword;
-	}
-
 	public void setUserPassword(String userPassword) {
 		this.userPassword = userPassword;
 	}
 
 	public String getUserPassword() {
 		return userPassword;
-	}
-
-	public String loginAdmin() {
-		try {
-			Authentication request = new UsernamePasswordAuthenticationToken(this.getAdminName(),
-					getAdminPassword());
-			Authentication result = authenticationManager.authenticate(request);
-			SecurityContextHolder.getContext().setAuthentication(result);
-		} catch (AuthenticationException ex) {
-			Object extra = ex.getExtraInformation();
-			if (extra instanceof Object[]) {
-				FacesUtils.addErrorMessage(FacesUtils.translateKey(ex.getMessage(), (Object[]) extra));
-			} else {
-				FacesUtils.addErrorMessage(FacesUtils.translateKey(ex.getMessage()));
-			}
-			return null;
-		}
-
-		if (secUtils.getIsAdminLoggedIn()) {
-			return "/index.xhml?faces-redirect=true";
-		} else {
-			FacesUtils.addErrorMessage("You are not Administrator!");
-			return null;
-		}
-
 	}
 
 	public String loginUser() {
@@ -127,7 +83,10 @@ public class LoginController implements Serializable {
 			return null;
 		}
 
-		return "/user-gui/index.xhml?faces-redirect=true";
-
+		if (secUtils.getIsAdminLoggedIn()) {
+			return "/index.xhml?faces-redirect=true";
+		} else {
+			return "/user-gui/index.xhml?faces-redirect=true";
+		}
 	}
 }
