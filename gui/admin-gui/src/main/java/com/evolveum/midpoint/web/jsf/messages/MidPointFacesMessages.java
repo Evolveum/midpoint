@@ -217,7 +217,14 @@ public class MidPointFacesMessages extends HtmlMessages {
 		writer.startElement("li", null);
 		writer.writeAttribute("class", getOperationResultStatusClass(result.getStatus()), null);
 
-		writeMessageDetailBold(FacesUtils.translateKey("operation." + result.getOperation()), writer);
+		StringBuilder opTitleSb = new StringBuilder(FacesUtils.translateKey("operation." + result.getOperation()));
+		
+		if (result.getMessage() != null) {
+			opTitleSb.append(": ");
+			opTitleSb.append(result.getMessage());
+		}
+		
+		writeMessageDetailBold(opTitleSb.toString(), writer);
 
 		// message error details
 		writer.startElement("img", null);
@@ -242,7 +249,8 @@ public class MidPointFacesMessages extends HtmlMessages {
 		writer.writeAttribute("style", "display: none;", null);
 		writeMessageDetailNormal(result.getMessageCode(), writer);
 		writeMessageDetailNormal(getSummary(result), writer);
-		writeMessageDetailNormal("(" + result.getToken() + ")", writer);
+		// Do not display the token. It is not logged, therefore it has no information value now.
+		// writeMessageDetailNormal("(" + result.getToken() + ")", writer);
 		writeMessageDetailsParams(result.getParams(), writer);
 		writeMessageDetailsContext(result.getContext(), writer);
 		writeMessageDetailsDetails(result.getDetail(), writer);
