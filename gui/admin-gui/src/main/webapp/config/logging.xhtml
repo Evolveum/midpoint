@@ -101,8 +101,12 @@
 						</ui:remove>
 					</f:subview>
 					<f:subview rendered="#{not item.systemComponent}">
-					<ice:outputText value="#{item.packageName}" rendered="#{not item.editing}"/>
-							<ice:inputText value="#{item.packageName}" rendered="#{(item.editing)}" style="width:290px"/>
+					<ice:commandLink style="text-decoration: underline;" rendered="#{not item.editing}"
+							value="#{item.packageName}" action="#{logging.editLogger}">
+
+							<f:param name="loggerId" value="#{item.id}" />
+						</ice:commandLink>
+							<ice:inputText value="#{item.packageName}" rendered="#{item.editing}" style="width:inherit"/>
 							</f:subview>
 				</ice:column>
 				<ice:column>
