@@ -371,18 +371,21 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// Therefore this kind of heavy artillery is necessary.
 			// ICF interface does not specify exceptions or other error
 			// TODO maybe we can try to catch at least some specific exceptions
-			Exception midpointEx = processIcfException(ex, result);
-			result.recordFatalError("ICF invocation failed");
+			Exception midpointEx = processIcfException(ex, icfResult);
 
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
 			if (midpointEx instanceof CommunicationException) {
+				result.recordFatalError("ICF communication error: "+midpointEx.getMessage(),midpointEx);
 				throw (CommunicationException) midpointEx;
 			} else if (midpointEx instanceof GenericFrameworkException) {
+				result.recordFatalError("ICF error: "+midpointEx.getMessage(),midpointEx);
 				throw (GenericFrameworkException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
+				result.recordFatalError("ICF error: "+midpointEx.getMessage(),midpointEx);
 				throw (RuntimeException) midpointEx;
 			} else {
+				result.recordFatalError("Internal error: "+midpointEx.getMessage(),midpointEx);
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
 		}
@@ -402,7 +405,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		if (resourceSchema == null) {
 			// initialize the connector if it was not initialized yet
-			initialize(result);
+			try {
+				initialize(result);
+			} catch (CommunicationException ex) {
+				result.recordFatalError(ex);
+				throw ex;
+			} catch (GenericFrameworkException ex) {
+				result.recordFatalError(ex);
+				throw ex;
+			}
 		}
 
 		result.recordSuccess();
@@ -589,7 +600,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		if (capabilities == null) {
 			// initialize the connector if it was not initialized yet
-			initialize(result);
+			try {
+				initialize(result);
+			} catch (CommunicationException ex) {
+				result.recordFatalError(ex);
+				throw ex;
+			} catch (GenericFrameworkException ex) {
+				result.recordFatalError(ex);
+				throw ex;
+			}
 		}
 
 		result.recordSuccess();

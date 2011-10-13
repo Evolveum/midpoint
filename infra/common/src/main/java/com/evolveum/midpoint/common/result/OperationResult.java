@@ -258,8 +258,8 @@ public class OperationResult implements Serializable, Dumpable {
 	}
 	
 	public boolean isError() {
-		return (status != OperationResultStatus.FATAL_ERROR) ||
-					(status != OperationResultStatus.PARTIAL_ERROR);
+		return (status == OperationResultStatus.FATAL_ERROR) ||
+					(status == OperationResultStatus.PARTIAL_ERROR);
 	}
 
 

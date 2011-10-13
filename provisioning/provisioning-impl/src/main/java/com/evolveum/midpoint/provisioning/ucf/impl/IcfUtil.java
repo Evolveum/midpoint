@@ -165,24 +165,32 @@ class IcfUtil {
 	private static Exception lookForKnownCause(Throwable ex,
 			Throwable originalException, OperationResult parentResult) {
 		if (ex instanceof FileNotFoundException) {
-			Exception newEx = new GenericFrameworkException(createMessage(null, originalException));
+			Exception newEx = new GenericFrameworkException(createMessage(null, ex));
 			parentResult.recordFatalError("File not found: "+ex.getMessage(), newEx);
 			return newEx;
 		} else if (ex instanceof NameAlreadyBoundException) {
 			// This is thrown by LDAP connector and may be also throw by similar
 			// connectors
-			Exception newEx = new ObjectAlreadyExistsException(createMessage(null, originalException));
+			Exception newEx = new ObjectAlreadyExistsException(createMessage(null, ex));
 			parentResult.recordFatalError("Object already exists: "+ex.getMessage(), newEx);
+			return newEx;
+		} else if (ex instanceof javax.naming.CommunicationException) {
+			// This is thrown by LDAP connector and may be also throw by similar
+			// connectors
+			Exception newEx = new CommunicationException(createMessage("Communication error", ex));
+			parentResult.recordFatalError("Commnucation error: "+ex.getMessage(), newEx);
 			return newEx;
 		} else if (ex instanceof SchemaViolationException) {
 			// This is thrown by LDAP connector and may be also throw by similar
 			// connectors
-			Exception newEx = new SchemaException(createMessage(null,originalException)); 
+			Exception newEx = new SchemaException(createMessage("Schema violation", ex)); 
 			parentResult.recordFatalError("Schema violation: "+ex.getMessage(), newEx);
 			return newEx;
 		} else if (ex instanceof ConnectException) {
 			// Buried deep in many exceptions, usually connection refused or
 			// similar errors
+			// Note: needs to be after javax.naming.CommunicationException as the
+			//   javax.naming exception has more info (e.g. hostname)
 			Exception newEx = new CommunicationException(createMessage("Connect error", ex));
 			parentResult.recordFatalError("Connect error: " + ex.getMessage(), newEx);
 			return newEx;

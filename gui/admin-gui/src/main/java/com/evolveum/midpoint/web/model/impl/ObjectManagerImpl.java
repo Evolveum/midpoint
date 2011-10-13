@@ -94,7 +94,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 			result.recordFatalError(ex);
 			throw new SystemException("Couldn't get object with oid '" + oid + "'.", ex);
 		} finally {
-			result.computeStatus("Couldn't get object '" + oid + "' from model.");
+			result.computeStatus();
 		}
 
 		ControllerUtil.printResults(LOGGER, result, null);
@@ -119,7 +119,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 			LoggingUtils.logException(LOGGER, "Couldn't get object {} from model", ex, oid);
 			result.recordFatalError(ex);
 		} finally {
-			result.computeStatus("Couldn't get object '" + oid + "' from model.");
+			result.computeStatus();
 		}
 
 		ControllerUtil.printResults(LOGGER, result, null);
@@ -140,7 +140,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 			LoggingUtils.logException(LOGGER, "Couldn't delete object {} from model", ex, oid);
 			result.recordFatalError(ex);
 		} finally {
-			result.computeStatus("Couldn't delete object '" + oid + "' from model.");
+			result.computeStatus();
 		}
 
 		ControllerUtil.printResults(LOGGER, result, null);
@@ -161,7 +161,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 			LoggingUtils.logException(LOGGER, "Couldn't add object {} to model", ex, object.getName());
 			result.recordFatalError(ex);
 		} finally {
-			result.computeStatus("Couldn't add object '" + object.getName() + "' to model.");
+			result.computeStatus();
 		}
 
 		ControllerUtil.printResults(LOGGER, result, null);
@@ -185,7 +185,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 			LoggingUtils.logException(LOGGER, "Couldn't list {} objects from model", ex, type);
 			result.recordFatalError(ex);
 		} finally {
-			result.computeStatus("Couldn't list '" + type + "' objects from model.");
+			result.computeStatus();
 		}
 
 		ControllerUtil.printResults(LOGGER, result, null);

@@ -268,7 +268,7 @@ public class Validator {
 		}
 		
 		// Error count is sufficient. Detailed messages are in subresults
-		validatorResult.computeStatus(errors + " errors");
+		validatorResult.computeStatus(errors + " errors, " + (progress - errors) +" passed");
 
 	}
 

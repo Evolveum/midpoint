@@ -39,6 +39,8 @@ import com.evolveum.midpoint.model.controller.SchemaHandler;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.exception.CommonException;
+import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -246,13 +248,19 @@ public class BasicHandler {
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
 			throw ex;
+		} catch (CommonException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get object with oid {}", ex, oid);
+			// Add to result only a short version of the error, the details will be in subresults
+			result.recordFatalError(
+					"Couldn't get object with oid '" + oid + "': "+ex.getOperationResultMessage(), ex);
+			throw new SystemException("Couldn't get object with oid '" + oid + "'.", ex);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get object with oid {}, expected type was {}.", ex,
 					oid, clazz);
 			throw new SystemException("Couldn't get object with oid '" + oid + "'.", ex);
 		} finally {
-			result.computeStatus("Couldn't get object with oid '" + oid + "'.");
-			LOGGER.debug(result.dump());
+			result.computeStatus();
+			LOGGER.trace(result.dump());
 		}
 
 		return object;
@@ -297,6 +305,8 @@ public class BasicHandler {
 			return;
 		}
 
+		// TODO: error handling needs to be refactored
+		
 		List<ObjectReferenceType> refToBeDeleted = new ArrayList<ObjectReferenceType>();
 		for (ObjectReferenceType accountRef : user.getAccountRef()) {
 			OperationResult subResult = result.createSubresult(ModelControllerImpl.RESOLVE_USER_ATTRIBUTES);
@@ -307,11 +317,13 @@ public class BasicHandler {
 				user.getAccount().add(account);
 				refToBeDeleted.add(accountRef);
 				subResult.recordSuccess();
+			} catch (SystemException ex) {
+				// Already processed in getObject, nothing to do
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't resolve account with oid {}", ex,
 						accountRef.getOid());
 				subResult.recordFatalError(
-						"Couldn't resolve account with oid '" + accountRef.getOid() + "'.", ex);
+						"Couldn't resolve account with oid '" + accountRef.getOid() + "': "+ex.getMessage(), ex);
 			} finally {
 				subResult.computeStatus("Couldn't resolve account with oid '" + accountRef.getOid() + "'.");
 			}
