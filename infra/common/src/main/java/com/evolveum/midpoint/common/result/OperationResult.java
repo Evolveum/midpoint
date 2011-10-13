@@ -256,6 +256,12 @@ public class OperationResult implements Serializable, Dumpable {
 	public boolean isUnknown() {
 		return (status == OperationResultStatus.UNKNOWN);
 	}
+	
+	public boolean isError() {
+		return (status != OperationResultStatus.FATAL_ERROR) ||
+					(status != OperationResultStatus.PARTIAL_ERROR);
+	}
+
 
 	/**
 	 * Computes operation result status based on subtask status and sets an
@@ -265,24 +271,28 @@ public class OperationResult implements Serializable, Dumpable {
 	 *            error message
 	 */
 	public void computeStatus(String errorMessage) {
-		computeStatus(errorMessage, null);
+		computeStatus(errorMessage, errorMessage);
 	}
 
 	public void computeStatus(String errorMessage, String warnMessage) {
 		Validate.notEmpty(errorMessage, "Error message must not be null.");
 
+		// computeStatus sets a message if none is set,
+		// therefore we need to check before calling computeStatus
+		boolean noMessage = StringUtils.isEmpty(message);
 		computeStatus();
+		
 		switch (status) {
 			case FATAL_ERROR:
 			case PARTIAL_ERROR:
-				if (StringUtils.isEmpty(message)) {
+				if (noMessage) {
 					message = errorMessage;
 				}
 				break;
 			case UNKNOWN:
 			case WARNING:
 			case NOT_APPLICABLE:
-				if (StringUtils.isEmpty(message)) {
+				if (noMessage) {
 					if (StringUtils.isNotEmpty(warnMessage)) {
 						message = warnMessage;
 					} else {
@@ -355,9 +365,14 @@ public class OperationResult implements Serializable, Dumpable {
 		}
 	}
 
-	/**
-	 * 
-	 */
+	public void recomputeStatus() {
+		// Only recompute if there are subresults, otherwise keep original
+		// status
+		if (subresults != null && !subresults.isEmpty()) {
+			computeStatus();
+		}
+	}
+	
 	public void recomputeStatus(String message) {
 		// Only recompute if there are subresults, otherwise keep original
 		// status
@@ -366,9 +381,6 @@ public class OperationResult implements Serializable, Dumpable {
 		}
 	}
 
-	/**
-	 * 
-	 */
 	public void recomputeStatus(String errorMessage, String warningMessage) {
 		// Only recompute if there are subresults, otherwise keep original
 		// status
@@ -377,9 +389,6 @@ public class OperationResult implements Serializable, Dumpable {
 		}
 	}
 
-	/**
-	 * 
-	 */
 	public void recordSuccessIfUnknown() {
 		if (isUnknown()) {
 			recordSuccess();
@@ -842,4 +851,5 @@ public class OperationResult implements Serializable, Dumpable {
 		ujo.setToString(value.toString());
 		entryType.setAny(new ObjectFactory().createUnknownJavaObject(ujo));
 	}
+
 }

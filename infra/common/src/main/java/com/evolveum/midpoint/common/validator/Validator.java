@@ -195,8 +195,13 @@ public class Validator {
 				if (!stream.getName().equals(SchemaConstants.C_OBJECTS)) {
 					// This has to be an import file with a single objects. Try
 					// to process it.
-					EventResult cont = readFromStreamAndValidate(stream, objectResultOperationName,
+					OperationResult objectResult = validatorResult.createSubresult(objectResultOperationName);
+					progress++;
+					objectResult.addContext(OperationResult.CONTEXT_PROGRESS, progress);
+					
+					EventResult cont = readFromStreamAndValidate(stream, objectResult,
 							rootNamespaceDeclarations, validatorResult);
+					
 					if (!cont.isCont()) {
 						if (cont.getReason() != null) {
 							validatorResult.recordFatalError(cont.getReason());
@@ -216,14 +221,26 @@ public class Validator {
 			} else {
 				throw new SystemException("StAX Malfunction?");
 			}
+			
 			while (stream.hasNext()) {
 				eventType = stream.next();
 				if (eventType == XMLStreamConstants.START_ELEMENT) {
-					EventResult cont = readFromStreamAndValidate(stream, objectResultOperationName,
+					
+					OperationResult objectResult = validatorResult.createSubresult(objectResultOperationName);
+					progress++;
+					objectResult.addContext(OperationResult.CONTEXT_PROGRESS, progress);
+					
+					// Read and validate individual object from the stream
+					EventResult cont = readFromStreamAndValidate(stream, objectResult,
 							rootNamespaceDeclarations, validatorResult);
+					
+					if (objectResult.isError()) {
+						errors++;
+					}
+					
 					if (cont.isStop()) {
 						if (cont.getReason() != null) {
-							validatorResult.recordFatalError(cont.getReason());
+							validatorResult.recordFatalError("Processing has been stopped: "+cont.getReason());
 						} else {
 							validatorResult.recordFatalError("Processing has been stopped");
 						}
@@ -232,7 +249,6 @@ public class Validator {
 						return;
 					}
 					if (!cont.isCont()) {
-						errors++;
 						if (stopAfterErrors > 0 && errors >= stopAfterErrors) {
 							validatorResult.recordFatalError("Too many errors (" + errors + ")");
 							return;
@@ -250,17 +266,14 @@ public class Validator {
 			}
 			return;
 		}
-
-		validatorResult.computeStatus("Validation failed");
+		
+		// Error count is sufficient. Detailed messages are in subresults
+		validatorResult.computeStatus(errors + " errors");
 
 	}
 
-	private EventResult readFromStreamAndValidate(XMLStreamReader stream, String objectResultOperationName,
+	private EventResult readFromStreamAndValidate(XMLStreamReader stream, OperationResult objectResult,
 			Map<String, String> rootNamespaceDeclarations, OperationResult validatorResult) {
-
-		OperationResult objectResult = validatorResult.createSubresult(objectResultOperationName);
-		progress++;
-		objectResult.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 
 		try {
 			objectResult.addContext(START_LINE_NUMBER, stream.getLocation().getLineNumber());
@@ -296,7 +309,7 @@ public class Validator {
 				return EventResult.skipObject();
 			}
 
-			JAXBElement jaxbElement = (JAXBElement) createUnmarshaller(validatorResult).unmarshal(objectDoc);
+			JAXBElement<?> jaxbElement = (JAXBElement<?>) createUnmarshaller(validatorResult).unmarshal(objectDoc);
 			Object jaxbValue = jaxbElement.getValue();
 			ObjectType object = null;
 
@@ -318,7 +331,7 @@ public class Validator {
 					}
 				}
 
-				objectResult.recomputeStatus("Object processing has failed", "Validation warning");
+				objectResult.recomputeStatus();
 
 			} else {
 				if (!allowAnyType) {

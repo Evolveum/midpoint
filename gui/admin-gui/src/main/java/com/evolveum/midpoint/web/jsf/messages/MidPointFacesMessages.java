@@ -225,7 +225,7 @@ public class MidPointFacesMessages extends HtmlMessages {
 		writer.writeAttribute("id", "errorNumber" + errorNum, null);
 		writer.writeAttribute("unselectable", "on", null);
 		Resource show_details = context.getApplication().getResourceHandler()
-				.createResource("star.png", "images");
+				.createResource("add.png", "images");
 		writer.writeAttribute("src", show_details.getRequestPath(), null);
 		writer.writeAttribute("title",
 				FacesUtils.translateKey("web.jsf.messages.MidPointFacesMessages.details"), null);

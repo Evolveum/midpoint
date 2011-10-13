@@ -256,8 +256,7 @@ public class ImportController implements Serializable {
 		model.importObjectsFromStream(input, options, null, parentResult);
 
 		if (!parentResult.isSuccess()) {
-			parentResult.computeStatus("Failed to import objects form file. Reason: "
-					+ parentResult.getMessage());
+			parentResult.computeStatus();
 			FacesUtils.addMessage(parentResult);
 		}
 

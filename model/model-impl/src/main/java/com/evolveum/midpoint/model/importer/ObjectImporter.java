@@ -194,9 +194,11 @@ public class ObjectImporter {
 					result.recordSuccess();
 				} else {
 					// cannot delete, throw original exception
+					result.recordFatalError("Object already exists, cannot overwrite",e);
 					throw e;
 				}
 			} else {
+				result.recordFatalError("Object already exists",e);
 				throw e;
 			}
 		}
@@ -588,7 +590,7 @@ public class ObjectImporter {
 						continue;
 					}
 					if (returnType.equals(List.class)) {
-						List valueList = (List) fieldValue;
+						List<?> valueList = (List<?>) fieldValue;
 						for (Object value : valueList) {
 							if (value != null && JAXBUtil.isJaxbClass(value.getClass())) {
 								encryptValueInStaticPartAndRecurse(value,propName,objectType,result);

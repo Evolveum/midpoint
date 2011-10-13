@@ -130,7 +130,7 @@ public class XmlRepositoryService implements RepositoryService {
 			throws ObjectAlreadyExistsException, SchemaException {
 		String oid = null;
 		ClientQuery cq = null;
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".addObject");
+		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName() + ".addObject");
 		result.addParam("object", object);
 
 		EscapeStringBuilder query = new XQueryEscapeStringBuilder();
@@ -198,7 +198,7 @@ public class XmlRepositoryService implements RepositoryService {
 	public <T extends ObjectType> T getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".getObject");
+		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName() + ".getObject");
 		result.addParam("oid", oid);
 		result.addParam("resolve", resolve);
 
@@ -274,7 +274,7 @@ public class XmlRepositoryService implements RepositoryService {
 	@Override
 	public <T extends ObjectType> ResultList<T> listObjects(Class<T> objectType, PagingType paging,
 			OperationResult parentResult) {
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".listObjects");
+		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName() + ".listObjects");
 		result.addParam("objectType", objectType);
 		result.addParam("paging", paging);
 
@@ -295,7 +295,7 @@ public class XmlRepositoryService implements RepositoryService {
 	@Override
 	public <T extends ObjectType> ResultList<T> searchObjects(Class<T> clazz, QueryType query, PagingType paging,
 			OperationResult parentResult) throws SchemaException {
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".searchObjects");
+		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName() + ".searchObjects");
 		result.addParam("query", query);
 		result.addParam("paging", paging);
 
@@ -360,7 +360,7 @@ public class XmlRepositoryService implements RepositoryService {
 	@Override
 	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType objectChange,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".modifyObject");
+		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName() + ".modifyObject");
 		result.addParam("objectChange", objectChange);
 
 		validateObjectChange(objectChange);
@@ -402,7 +402,7 @@ public class XmlRepositoryService implements RepositoryService {
 	@Override
 	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult)
 			throws ObjectNotFoundException {
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".deleteObject");
+		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName() + ".deleteObject");
 		result.addParam("oid", oid);
 
 		validateOid(oid);
@@ -448,7 +448,7 @@ public class XmlRepositoryService implements RepositoryService {
 	@Override
 	public UserType listAccountShadowOwner(String accountOid, OperationResult parentResult)
 			throws ObjectNotFoundException {
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
+		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName()
 				+ ".listAccountShadowOwner");
 		result.addParam("accountOid", accountOid);
 
@@ -498,7 +498,7 @@ public class XmlRepositoryService implements RepositoryService {
 
 		// TODO: atomicity
 
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".claimTask");
+		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName() + ".claimTask");
 		result.addParam(OperationResult.PARAM_OID, oid);
 
 		// Check whether the task is claimed
@@ -525,7 +525,7 @@ public class XmlRepositoryService implements RepositoryService {
 	@Override
 	public void releaseTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".releaseTask");
+		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName() + ".releaseTask");
 		result.addParam(OperationResult.PARAM_OID, oid);
 
 		// Modify the status to claim the task.

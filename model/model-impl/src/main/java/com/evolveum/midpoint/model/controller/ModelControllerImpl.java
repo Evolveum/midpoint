@@ -650,7 +650,8 @@ public class ModelControllerImpl implements ModelController {
 		RepositoryCache.enter();
 		OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_STREAM);
 		objectImporter.importObjects(input, options, task, result, cacheRepositoryService);
-		result.computeStatus("Couldn't import object from input stream.");
+		// No need to compute status. The validator inside will do it.
+		//result.computeStatus("Couldn't import object from input stream.");
 		RepositoryCache.exit();
 	}
 
