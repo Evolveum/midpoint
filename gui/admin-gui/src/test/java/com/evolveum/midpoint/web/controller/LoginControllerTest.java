@@ -54,7 +54,9 @@ public class LoginControllerTest extends AbstractTestNGSpringContextTests{
 	@Test
 	public void nullUsername() {
 		controller.setUserName(null);
-		controller.setPassword("qwe123");
+		controller.setUserPassword("qwe123");
+		controller.setAdminName(null);
+		controller.setAdminPassword("qwe123");
 		//TODO: remove ignore on test and fix it
 		//faces utils not working - FacesContext.getCurrentInstance() is null
 		assertNull(controller.loginAdmin());
