@@ -40,8 +40,6 @@ import org.springframework.stereotype.Controller;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import ch.qos.logback.core.pattern.util.AsIsEscapeUtil;
-
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.result.OperationResult;

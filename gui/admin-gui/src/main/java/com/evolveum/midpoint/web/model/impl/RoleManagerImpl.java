@@ -60,7 +60,7 @@ public class RoleManagerImpl extends ObjectManagerImpl<RoleType, RoleDto> implem
 
 	@Override
 	protected RoleDto createObject(RoleType objectType) {
-		return new RoleDto(objectType);
+		return new RoleDto(objectType, getModel());
 	}
 
 	@Override

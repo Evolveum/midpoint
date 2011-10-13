@@ -10,7 +10,8 @@
 	<composite:attribute name="bean" type="com.evolveum.midpoint.web.bean.BrowserBean" required="true" />
 	<composite:attribute name="show" type="java.lang.Boolean" required="true" />
 	<composite:attribute name="okAction" method-signature="java.lang.String action()" required="true" />
-	<composite:attribute name="cancelAction" method-signature="java.lang.String action()" required="true" />	
+	<composite:attribute name="cancelAction" method-signature="java.lang.String action()" required="true" />
+	<composite:attribute name="allowTypeSearch" type="java.lang.Boolean" required="false" default="false"/>	
 </composite:interface>
 
 <composite:implementation>
@@ -31,7 +32,7 @@
 						</ice:panelGrid>
 					</ice:panelTab>
 					<ice:panelTab label="#{msg['page.composite.browser.type.title']}"
-						title="#{msg['page.composite.browser.type.description']}">
+						title="#{msg['page.composite.browser.type.description']}" rendered="#{cc.attrs.allowTypeSearch}">
 						<ice:panelGrid columns="3" cellspacing="5">
 							<ice:outputText value="#{msg['page.composite.browser.type']}" />
 							<ice:selectOneMenu style="width: auto;" value="#{cc.attrs.bean.type}">
@@ -72,6 +73,7 @@
 				<div class="button-bar">
 					<idm:button value="#{msg['page.button.cancel']}" buttonType="negative"
 						action="#{cc.attrs.cancelAction}" />
+						
 				</div>
 			</ice:form>
 		</f:facet>

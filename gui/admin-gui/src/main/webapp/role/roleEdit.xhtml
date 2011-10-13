@@ -16,7 +16,7 @@
 
 	<ui:define name="content">
 		<comp:browser okAction="#{roleEdit.assignmentEditor.okBrowseAction}" cancelAction="#{roleEdit.assignmentEditor.cancelBrowseAction}"
-			bean="#{roleEdit.assignmentEditor.browser}" show="#{roleEdit.assignmentEditor.showBrowser}" />
+			bean="#{roleEdit.assignmentEditor.browser}" show="#{roleEdit.assignmentEditor.showBrowser}" allowTypeSearch="false"/>
 		<comp:xmlEditor okAction="#{roleEdit.okEditorAction}" cancelAction="#{roleEdit.assignmentEditor.cancelEditAction}"
 			bean="#{roleEdit.assignmentEditor.editor}" show="#{roleEdit.assignmentEditor.showEditor}" />
 		<ice:form>
@@ -30,6 +30,51 @@
 				<ice:message for="description" />
 			</ice:panelGrid>
 			<h3 style="margin-top: 10px;">Assignments</h3>
+			<ice:dataTable rows="20"
+						value="#{userDetails.assignmentEditor.containsAssignment.assignments}"
+						var="item" columnWidths="auto, auto, auto" resizable="false">
+						<ice:column>
+							<f:facet name="header">
+								<ice:selectBooleanCheckbox id="selectAllCheckbox"
+									value="#{userDetails.assignmentEditor.selectAll}"
+									valueChangeListener="#{userDetails.assignmentEditor.selectAllPerformed}"
+									immediate="true" partialSubmit="true"
+									 />
+							</f:facet>
+							<ice:selectBooleanCheckbox id="selectCheckbox"
+								value="#{item.selected}" partialSubmit="true" immediate="true"
+								valueChangeListener="#{userDetails.assignmentEditor.selectPerformed}"
+								 />
+						</ice:column>
+						<ice:column>
+							<f:facet name="header">
+								<ice:outputLabel value="Type" />
+							</f:facet>
+							<ice:outputText value="#{item.objectTypeString}" />
+						</ice:column>
+						<ice:column>
+							<f:facet name="header">
+								<ice:outputLabel value="Name" />
+							</f:facet>
+							<ice:outputText value="#{item.objectString}" />
+						</ice:column>
+						<ice:column>
+							<f:facet name="header">
+								<ice:outputLabel value="Description" />
+							</f:facet>
+							<ice:outputText value="#{item.description}" />
+						</ice:column>
+					</ice:dataTable>
+					<idm:button
+						action="#{userDetails.assignmentEditor.showBrowserPerformed}"
+						buttonType="positive" immediate="true" value="Add role"
+						img="/resources/images/user_add.png" >
+					</idm:button>
+					<idm:button
+								action="#{userDetails.assignmentEditor.deleteAssignments}"
+								buttonType="negative" immediate="true"
+								value="#{msg['page.button.deleteAssignments']}" />
+								<ui:remove>
 			<ice:dataTable rows="20" value="#{roleEdit.assignmentEditor.containsAssignment.assignments}" var="item"
 				columnWidths="auto, auto, auto, auto, auto, auto, auto" resizable="false">
 				<ice:column>
@@ -109,7 +154,7 @@
 				<idm:button action="#{roleEdit.assignmentEditor.deleteAssignments}" buttonType="negative" immediate="true"
 					value="#{msg['page.button.deleteAssignments']}" img="/resources/images/user_add.png" />
 			</div>
-
+</ui:remove>
 			<div class="button-bar">
 				<idm:button action="#{roleList.initController}" value="#{msg['page.button.cancel']}"
 					img="/resources/images/door_in.png" id="cancelRoleCreate" immediate="true" />

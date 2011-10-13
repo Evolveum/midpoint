@@ -25,6 +25,7 @@ package com.evolveum.midpoint.web.model.dto;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.web.bean.AssignmentBean;
 import com.evolveum.midpoint.web.controller.util.ContainsAssignment;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -41,12 +42,14 @@ public class UserDto extends ExtensibleObjectDto<UserType> implements ContainsAs
 	private static final long serialVersionUID = 2178456879571587946L;
 	private List<AccountShadowDto> accountDtos;
 	private List<AssignmentBean> assignments;
+	private ModelService model;
 
 	public UserDto() {
 	}
 
-	public UserDto(UserType user) {
+	public UserDto(UserType user, ModelService model) {
 		super(user);
+		this.model = model;
 		if (user != null) {
 			createAssignments(user);
 		}
@@ -176,7 +179,7 @@ public class UserDto extends ExtensibleObjectDto<UserType> implements ContainsAs
 		getAssignments().clear();
 		int id = 0;
 		for (AssignmentType assignment : user.getAssignment()) {
-			getAssignments().add(new AssignmentBean(id, assignment));
+			getAssignments().add(new AssignmentBean(id, assignment, model));
 			id++;
 		}
 	}

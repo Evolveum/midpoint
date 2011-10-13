@@ -76,7 +76,7 @@ public class RoleEditController implements Serializable {
 
 	public RoleDto getRole() {
 		if (role == null) {
-			role = new RoleDto(new RoleType());
+			role = new RoleDto();
 			assignmentEditor.initController(role);
 		}
 		return role;
@@ -112,7 +112,7 @@ public class RoleEditController implements Serializable {
 	}
 
 	public String initController() {
-		role = new RoleDto(new RoleType());
+		role = new RoleDto();
 		assignmentEditor.initController(role);
 
 		newRole = true;

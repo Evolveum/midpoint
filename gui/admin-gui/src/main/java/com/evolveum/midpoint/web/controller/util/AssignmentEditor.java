@@ -81,6 +81,9 @@ public class AssignmentEditor<T extends ContainsAssignment> implements Serializa
 	private boolean showBrowser;
 	private boolean showEditor;
 	private boolean selectAll;
+	
+	private AssignmentBean newAssigment;
+	
 
 	public void initController(ContainsAssignment containsAssignment) {
 		Validate.notNull(containsAssignment, "Contains assignment object must not be null.");
@@ -166,7 +169,7 @@ public class AssignmentEditor<T extends ContainsAssignment> implements Serializa
 	}
 
 	public void addAssignment() {
-		getContainsAssignment().getAssignments().add(new AssignmentBean(getNewId(), new AssignmentType()));
+		getContainsAssignment().getAssignments().add(new AssignmentBean(getNewId(), new AssignmentType(), model));
 		selectAll = false;
 	}
 
@@ -211,6 +214,8 @@ public class AssignmentEditor<T extends ContainsAssignment> implements Serializa
 		}
 	}
 
+	
+	
 	/**
 	 * called when user clicks on CANCEL button in object browser
 	 */
@@ -238,6 +243,7 @@ public class AssignmentEditor<T extends ContainsAssignment> implements Serializa
 
 		ObjectType object = objectDto.getXmlObject();
 		AssignmentBean bean = getBrowser().getObject();
+		containsAssignment.getAssignments().add(bean);
 		switch (bean.getType()) {
 			case TARGET:
 				bean.setTarget(object);
@@ -326,5 +332,14 @@ public class AssignmentEditor<T extends ContainsAssignment> implements Serializa
 	public void cancelEditAction() {
 		getEditor().cleanup();
 		setShowEditor(false);
+	}
+	
+	public void showBrowserPerformed(){
+		AssignmentBean bean = new AssignmentBean(getNewId(), new AssignmentType(),model);
+		getBrowser().setType("RoleType");
+		getBrowser().searchByType();
+		getBrowser().setObject(bean);
+		
+		setShowBrowser(true);
 	}
 }

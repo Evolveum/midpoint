@@ -28,6 +28,10 @@ import java.util.Date;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
@@ -35,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 
 /**
  * 
@@ -50,17 +55,21 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 	private boolean enabled = true;
 	private boolean useActivationDate = false;
 	private AssignmentType assignment;
+	private ModelService model;
+	
 
 	public int getId() {
 		return id;
 	}
 
-	public AssignmentBean(int id, AssignmentType assignment) {
+	public AssignmentBean(int id, AssignmentType assignment, ModelService model) {
 		Validate.notNull(assignment, "Assignment must not be null.");
 		this.id = id;
 		this.assignment = assignment;
+		this.model = model;
 		type = getType(assignment);
 	}
+	
 
 	private AssignmentBeanType getType(AssignmentType assignment) {
 		AssignmentBeanType type = AssignmentBeanType.TARGET_REF;
@@ -174,7 +183,42 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 		return activation;
 	}
 
-	public String getObjectString() {
+	public String getObjectTypeString() {
+		StringBuilder builder = new StringBuilder();
+		switch (getType()) {
+			case ACCOUNT_CONSTRUCTION:
+				AccountConstructionType construction = assignment.getAccountConstruction();
+				if (construction != null) {
+					builder.append("type: ");
+					builder.append(construction.getType());
+				}
+				break;
+			case TARGET:
+				ObjectType object = assignment.getTarget();
+				if (object != null) {
+					builder.append(object.getClass().getSimpleName());
+//					builder.append(", oid: ");
+//					builder.append(object.getOid());
+				}
+				break;
+			case TARGET_REF:
+				ObjectReferenceType objectRef = assignment.getTargetRef();
+				if (objectRef != null) {
+					builder.append(objectRef.getType().getLocalPart());
+//					builder.append(", oid: ");
+//					builder.append(objectRef.getOid());
+				}
+				break;
+		}
+
+		if (builder.length() == 0) {
+			builder.append("Undefined");
+		}
+
+		return builder.toString();
+	}
+
+	public String getObjectString() throws ObjectNotFoundException{
 		StringBuilder builder = new StringBuilder();
 		switch (getType()) {
 			case ACCOUNT_CONSTRUCTION:
@@ -195,7 +239,8 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 			case TARGET_REF:
 				ObjectReferenceType objectRef = assignment.getTargetRef();
 				if (objectRef != null) {
-					builder.append(objectRef.getType().getLocalPart());
+					ObjectType objType = model.getObject(ObjectTypes.getObjectTypeClass(objectRef.getType().getLocalPart()), objectRef.getOid(), new PropertyReferenceListType(), new OperationResult("Get object"));
+					builder.append(objType.getName());
 					builder.append(", oid: ");
 					builder.append(objectRef.getOid());
 				}
@@ -208,7 +253,30 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 
 		return builder.toString();
 	}
+	
+	public String getDescription(){
+		StringBuilder builder = new StringBuilder();
+		switch (getType()) {
+			case TARGET:
+				ObjectType object = assignment.getTarget();
+				if (object != null) {
+					builder.append(object.getDescription());
+				}
+				break;
+			case TARGET_REF:
+				ObjectReferenceType objectRef = assignment.getTargetRef();
+				if (objectRef != null) {
+					builder.append(objectRef.getDescription());
+				}
+				break;
+		}
+		if (builder.length() == 0) {
+			builder.append("Undefined");
+		}
 
+		return builder.toString();
+	}
+	
 	public Date getToActivation() {
 		if (assignment.getActivation() == null) {
 			return new Date();

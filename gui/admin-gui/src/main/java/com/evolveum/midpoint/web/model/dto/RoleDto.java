@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.model.dto;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.web.bean.AssignmentBean;
 import com.evolveum.midpoint.web.controller.util.ContainsAssignment;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
@@ -37,12 +38,14 @@ public class RoleDto extends ExtensibleObjectDto<RoleType> implements ContainsAs
 
 	private static final long serialVersionUID = -6609121465638251441L;
 	private List<AssignmentBean> assignments;
+	private ModelService model;
 
 	public RoleDto() {
 	}
 
-	public RoleDto(RoleType role) {
+	public RoleDto(RoleType role, ModelService model) {
 		super(role);
+		this.model = model;
 		if (role != null) {
 			createAssignments(role);
 		}
@@ -70,7 +73,7 @@ public class RoleDto extends ExtensibleObjectDto<RoleType> implements ContainsAs
 		getAssignments().clear();
 		int id = 0;
 		for (AssignmentType assignment : role.getAssignment()) {
-			getAssignments().add(new AssignmentBean(id, assignment));
+			getAssignments().add(new AssignmentBean(id, assignment, model));
 			id++;
 		}
 	}

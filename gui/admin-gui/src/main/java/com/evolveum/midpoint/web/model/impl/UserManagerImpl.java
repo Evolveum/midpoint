@@ -92,7 +92,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 
 	@Override
 	protected GuiUserDto createObject(UserType objectType) {
-		return new GuiUserDto(objectType);
+		return new GuiUserDto(objectType, getModel());
 	}
 
 	@Override
