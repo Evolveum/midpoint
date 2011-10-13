@@ -76,23 +76,6 @@ function displayMessageCauseDetails(id) {
 /* //////////////////// jQuery ////////////////////////////// */
 jQuery(document).ready(function() {
 	jQuery.noConflict();
-	
-	/*jQuery("#blackWindow").hide();
-	jQuery("#blackWindow").css("opacity", "0");*/
-
-	/*
-	 * jQuery("#blackWindow").css("opacity", "0.75");
-	 * jQuery("#blackWindow").show(); jQuery("#blackWindow").animate({opacity :
-	 * 0}, 200, function(){ jQuery("#blackWindow").hide();
-	 * jQuery("#blackWindow").css("opacity", "0"); });
-	 */
-/*
-	jQuery("#navBar li").click(function() {
-		jQuery("#blackWindow").css("cursor", "wait");
-		jQuery("#blackWindow").show();
-		jQuery("#blackWindow").css("opacity", "0.75");
-		// jQuery("#blackWindow").animate({opacity : 0.75}, 150);
-	});*/
 
 	highliteTableRows();
 
