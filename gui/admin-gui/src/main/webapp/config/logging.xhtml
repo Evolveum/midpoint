@@ -66,27 +66,28 @@
 			<ice:dataTable rows="20" value="#{logging.loggers}"
 				id="subsystemLoggerTable" var="item"
 				columnWidths="auto, 300px, 70px" resizable="false">
-				
-					<ice:column>
-						<f:facet name="header">
-							<ice:selectBooleanCheckbox id="selectAllCheckbox"
-								value="#{logging.selectAllLoggers}"
-								valueChangeListener="#{logging.selectAllLoggersPerformed}"
-								immediate="true" partialSubmit="true" />
-						</f:facet>
-						<ice:selectBooleanCheckbox id="selectCheckbox"
-							value="#{item.selected}" partialSubmit="true" immediate="true"
-							valueChangeListener="#{logging.selectLoggerPerformed}" />
-					</ice:column>
-				
+
+				<ice:column>
+					<f:facet name="header">
+						<ice:selectBooleanCheckbox id="selectAllCheckbox"
+							value="#{logging.selectAllLoggers}"
+							valueChangeListener="#{logging.selectAllLoggersPerformed}"
+							immediate="true" partialSubmit="true" />
+					</f:facet>
+					<ice:selectBooleanCheckbox id="selectCheckbox"
+						value="#{item.selected}" partialSubmit="true" immediate="true"
+						valueChangeListener="#{logging.selectLoggerPerformed}" />
+				</ice:column>
+
 				<ice:column>
 					<f:facet name="header">
 						<ice:outputLabel value="#{msg['web.bean.loggerListItem.package']}" />
 					</f:facet>
 					<f:subview rendered="#{item.systemComponent}">
 						<ui:remove>
-							<ice:outputText value="#{item.componentString}" rendered="#{item.systemComponent}"/>
-							
+							<ice:outputText value="#{item.componentString}"
+								rendered="#{item.systemComponent}" />
+
 						</ui:remove>
 						<ice:commandLink style="text-decoration: underline;"
 							value="#{item.componentString}" action="#{logging.editLogger}">
@@ -101,13 +102,15 @@
 						</ui:remove>
 					</f:subview>
 					<f:subview rendered="#{not item.systemComponent}">
-					<ice:commandLink style="text-decoration: underline;" rendered="#{not item.editing}"
-							value="#{item.packageName}" action="#{logging.editLogger}">
+						<ice:commandLink style="text-decoration: underline;"
+							rendered="#{not item.editing}" value="#{item.packageName}"
+							action="#{logging.editLogger}">
 
 							<f:param name="loggerId" value="#{item.id}" />
 						</ice:commandLink>
-							<ice:inputText value="#{item.packageName}" rendered="#{item.editing}" style="width:inherit"/>
-							</f:subview>
+						<ice:inputText value="#{item.packageName}"
+							rendered="#{item.editing}" style="width:inherit" />
+					</f:subview>
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
@@ -154,15 +157,15 @@
 			</ice:dataTable>
 
 			<h3>Log subsystem entry/exit</h3>
-			<ice:outputText value="Custom level: " />
+			<ice:outputText value="Level: " />
 			<ice:selectOneMenu value="#{logging.selectedProfilingLevel}">
 				<f:selectItems value="#{logging.profilingLevels}" />
 			</ice:selectOneMenu>
 			<ice:outputLabel
-					value="#{msg['page.config.logging.midpointAppender']}" />
-				<ice:selectOneMenu value="#{logging.midpointAppender}">
-					<f:selectItems value="#{logging.appenderNames}" />
-				</ice:selectOneMenu>
+				value="#{msg['web.bean.basicLoggerListItem.appender']}" />
+			<ice:selectOneMenu value="#{logging.midpointAppender}">
+				<f:selectItems value="#{logging.appenderNames}" />
+			</ice:selectOneMenu>
 
 			<ice:panelGroup rendered="#{logging.advancedView}">
 				<div class="button-bar" style="margin-bottom: 20px;">
@@ -170,10 +173,11 @@
 						buttonType="positive" action="#{logging.addLogger}"
 						img="/resources/images/report_add.png" />
 
-					<idm:button value="#{msg['page.button.addSubsystem']}"
-						buttonType="positive" action="#{logging.addSubsystemLogger}"
-						img="/resources/images/report_add.png" />
-
+					<ui:remove>
+						<idm:button value="#{msg['page.button.addSubsystem']}"
+							buttonType="positive" action="#{logging.addSubsystemLogger}"
+							img="/resources/images/report_add.png" />
+					</ui:remove>
 					<idm:button value="#{msg['page.button.deleteLogger']}"
 						buttonType="negative" action="#{logging.deleteLoggers}"
 						img="/resources/images/report_delete.png" />

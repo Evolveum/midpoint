@@ -745,10 +745,9 @@ public class LoggingController implements Serializable {
 	}
 
 	public List<SelectItem> getProfilingLevels() {
-		if (profilingLevels == null) {
+		
 			profilingLevels = new ArrayList<SelectItem>();
-		}
-
+	
 		for (ProfilingLevelType level : ProfilingLevelType.values()) {
 			SelectItem si = new SelectItem(level.getValue());
 			profilingLevels.add(si);
