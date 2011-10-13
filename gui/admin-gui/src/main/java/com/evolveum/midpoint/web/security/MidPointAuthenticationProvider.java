@@ -102,15 +102,20 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 
 		if (user != null) {
 			grantedAuthorities = new ArrayList<GrantedAuthority>();
-			grantedAuthorities.add(new GrantedAuthorityImpl("ROLE_USER"));
 
-			// List<Role> roles = new ArrayList<Role>(0);
-			// //user.getAssociatedRoles();
-			// for (Role role : roles) {
-			// GrantedAuthority authority = new
-			// SimpleGrantedAuthority(role.getRoleName());
-			// grantedAuthorities.add(authority);
-			// }
+			if (user.getName().contains("administrator")) {
+				grantedAuthorities.add(new GrantedAuthorityImpl("ROLE_ADMIN"));
+			} else {
+				grantedAuthorities.add(new GrantedAuthorityImpl("ROLE_USER"));
+			}
+			
+			/*List<Role> roles = new ArrayList<Role>(0);
+			//user.getAssociatedRoles();
+			for (Role role : roles) {
+			GrantedAuthority authority = new
+			SimpleGrantedAuthority(role.getRoleName());
+			grantedAuthorities.add(authority);
+			}*/
 		} else {
 			throw new BadCredentialsException("web.security.provider.invalid");
 		}

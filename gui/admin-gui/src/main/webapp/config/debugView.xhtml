@@ -38,7 +38,7 @@
 
 		<hr />
 
-		<ice:form rendered="#{debugView.viewEditable}">
+		<ice:form id="viewForm" rendered="#{debugView.viewEditable}">
 			<ui:remove>
 				<ice:inputTextarea id="textAreaDebugView" style="width: 967px; height: 350px;" value="#{debugView.xml}"
 					readonly="#{not debugView.editable}" />

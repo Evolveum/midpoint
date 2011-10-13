@@ -570,33 +570,6 @@ input[disabled],input[readonly],select[disabled],select[readonly],checkbox[disab
 	background-color: #ccc;
 }
 
-#blackWindow {
-	width: 100%;
-	height: 100%;
-	background-color: white;
-	position: fixed;
-	z-index: 1000;
-	display: none;
-}
-
-#blackWindow div {
-	background-color: black;
-	position: fixed;
-	width: 140px;
-	height: 60px;
-	left: 50%;
-	top: 50%;
-	margin-left: -70px;
-	margin-top: -30px;
-	color: white;
-	font-size: 30px;
-	text-align: center;
-}
-
-#blackWindow div span {
-	font-size: 15px;
-}
-
 #navBar {
 	position: absolute;
 	width: auto;

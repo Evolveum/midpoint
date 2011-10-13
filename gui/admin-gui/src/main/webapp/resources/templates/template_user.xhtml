@@ -26,11 +26,10 @@
 			<div id="login-box">
 				<span> <ice:outputLabel
 						value="#{msg['page.template.loggedInAs']}"
-						rendered="#{security.isAdminLoggedIn}" /> <em>&nbsp; <ice:outputLabel
+						rendered="#{security.isUserLoggedIn}" /> <em>&nbsp; <ice:outputLabel
 							value="#{security.shortUserName}"
-							rendered="#{security.isAdminLoggedIn}" /> </em> </span> <span> <ice:form
-						rendered="#{not security.isAdminLoggedIn}"
-						style="display: inline;">			
+							rendered="#{security.isUserLoggedIn}" /> </em> </span> <span> <ice:form
+						rendered="#{not security.isUserLoggedIn}" style="display: inline;">			
 	                    #{msg['page.template.language']}:
 
 						<ui:repeat value="#{lang.supportedLocales}" var="locale">
@@ -44,18 +43,18 @@
 						</ui:repeat>
 					</ice:form> </span>
 				<f:verbatim styleClass="delimiter"
-					rendered="#{security.isAdminLoggedIn}">|</f:verbatim>
+					rendered="#{security.isUserLoggedIn}">|</f:verbatim>
 				<span> <ice:outputLink id="logoutUserLink"
-						rendered="#{security.isAdminLoggedIn}"
+						rendered="#{security.isUserLoggedIn}"
 						value="#{facesContext.externalContext.requestContextPath}/j_spring_security_logout">
 						<span id="logoutUserLinkSpan">#{msg['page.template.logout']}</span>
 					</ice:outputLink> </span>
 
 				<f:verbatim styleClass="delimiter"
-					rendered="#{security.isAdminLoggedIn}">|</f:verbatim>
+					rendered="#{security.isUserLoggedIn}">|</f:verbatim>
 				<ice:outputLink id="topHelpLink"
 					value="#{facesContext.externalContext.requestContextPath}/help/index.iface"
-					rendered="#{security.isAdminLoggedIn}">
+					rendered="#{security.isUserLoggedIn}">
 					<span id="helpSpan">#{msg['page.template.help']}</span>
 				</ice:outputLink>
 				<ice:panelGroup style="padding-right: 10px; display: inline-block;">&nbsp;</ice:panelGroup>
@@ -66,48 +65,24 @@
 				</div>
 			</div>
 		</div>
-		<h:panelGroup rendered="#{security.isAdminLoggedIn}" id="nav"
+		<h:panelGroup rendered="#{security.isUserLoggedIn}" id="nav"
 			layout="block">
 			<div class="container">
+			<ice:outputConnectionStatus />
 				<idm:topMenu selected="#{template.selectedTopId}">
 					<div id="navBar">
 						<div id="topHomeButtonLeft"></div>
 						<idm:topMenuItem id="topHome" style="margin-left: 30px;"
-							action="/index?faces-redirect=true"
+							action="/user-gui/index?faces-redirect=true"
 							name="#{msg['page.template.top.home']}"
 							description="#{msg['page.template.top.description.home']}" />
 
-						<idm:topMenuItem id="topAccounts"
-							action="#{userList.fillTableList}"
-							name="#{msg['page.template.top.accounts']}"
-							description="#{msg['page.template.top.description.accounts']}" />
-						<ui:remove>
-							<idm:topMenuItem id="topWorkItems"
-								action="/work/index?faces-redirect=true"
-								name="#{msg['page.template.top.workitems']}"
-								description="#{msg['page.template.top.description.workitems']}" />
-						</ui:remove>
-						<idm:topMenuItem id="topRoles" action="#{roleList.initController}"
-							name="#{msg['page.template.top.roles']}"
-							description="#{msg['page.template.top.description.roles']}" />
-						<idm:topMenuItem id="topResources"
-							action="#{resourceList.listFirst}"
-							name="#{msg['page.template.top.resources']}"
-							description="#{msg['page.template.top.description.resources']}" />
-						<idm:topMenuItem id="topServerTasks"
-							action="#{taskList.listFirst}"
-							name="#{msg['page.template.top.servertasks']}"
-							description="#{msg['page.template.top.description.servertasks']}" />
-						<ui:remove>
-							<idm:topMenuItem id="topReports"
-								action="/report/index?faces-redirect=true"
-								name="#{msg['page.template.top.reports']}"
-								description="#{msg['page.template.top.description.reports']}" />
-						</ui:remove>
-						<idm:topMenuItem id="topConfiguration"
-							action="/config/index?faces-redirect=true"
-							name="#{msg['page.template.top.configuration']}"
-							description="#{msg['page.template.top.description.configuration']}" />
+						<idm:topMenuItem id="topSearch"
+							action="/user-gui/search/index?faces-redirect=true" name="Search"
+							description="Search user" />
+
+						<idm:topMenuItem id="topProfile" action="#{userProfile.fillUser}"
+							name="Profile" description="User profile" />
 
 						<div id="topConfigurationButtonRight"></div>
 					</div>
@@ -117,10 +92,9 @@
 						jQuery("#navBar").css("margin-left",
 								centerOfWindow - navBarHalfWidth);
 					</script>
-					<ice:outputConnectionStatus />
 				</idm:topMenu>
-				
 			</div>
+
 		</h:panelGroup>
 		<ui:remove>
 			<div id="breadcrumbs">
@@ -148,17 +122,17 @@
 					</ui:insert>
 					<div class="clear-menu"></div>
 				</div>
-					<div id="content">
-						<div id="wrapper">
-							<h2>
-								<ui:insert name="title">Welcome</ui:insert>
-							</h2>
-							<idm:messages id="messages" errorClass="messages-error"
-								infoClass="messages-info" fatalClass="message-fatal"
-								warnClass="messages-warn" />
-							<ui:insert name="content">sample content</ui:insert>
-						</div>
+				<div id="content">
+					<div id="wrapper">
+						<h2>
+							<ui:insert name="title">Welcome</ui:insert>
+						</h2>
+						<idm:messages id="messages" errorClass="messages-error"
+							infoClass="messages-info" fatalClass="message-fatal"
+							warnClass="messages-warn" />
+						<ui:insert name="content">sample content</ui:insert>
 					</div>
+				</div>
 			</div>
 		</div>
 		<div class="clear"></div>

@@ -41,11 +41,11 @@ public class SecurityUtils implements Serializable {
 	private static final long serialVersionUID = 4319833095810269507L;
 
 	public boolean getIsUserLoggedIn() {
-		return isUserInRole("ROLE_USER");
+		return isUserInRole("ROLE_USER") || isUserInRole("ROLE_ADMIN");
 	}
-	
+
 	public boolean getIsAdminLoggedIn() {
-		return isUserInRole("ROLE_ADMIN") || isUserInRole("ROLE_USER");
+		return isUserInRole("ROLE_ADMIN");
 	}
 
 	private boolean isUserInRole(final String role) {
@@ -63,7 +63,7 @@ public class SecurityUtils implements Serializable {
 		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
 		if (principal == null) {
-			return "Not Logged in";
+			
 		}
 
 		if (principal instanceof PrincipalUser) {
@@ -75,6 +75,19 @@ public class SecurityUtils implements Serializable {
 			return user.getName();
 		}
 
+		return principal.toString();
+	}
+
+	public String getUserOid() {
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+		if (principal == null) {
+			return "Not Logged in";
+		}
+		if (principal instanceof PrincipalUser) {
+			PrincipalUser user = (PrincipalUser) principal;
+			return user.getOid();
+		}
 		return principal.toString();
 	}
 }

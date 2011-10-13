@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.web.controller;
 
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.FacesUtils;
 
 import java.io.Serializable;
@@ -47,7 +48,11 @@ public class LoginController implements Serializable {
 	@Autowired(required = true)
 	private transient AuthenticationManager authenticationManager;
 	private String userName;
-	private String password;
+	private String adminName;
+	private String adminPassword;
+	private String userPassword;
+
+	private SecurityUtils secUtils = new SecurityUtils();
 
 	public String getUserName() {
 		return userName;
@@ -57,18 +62,34 @@ public class LoginController implements Serializable {
 		this.userName = userName;
 	}
 
-	public String getPassword() {
-		return password;
+	public String getAdminName() {
+		return adminName;
 	}
 
-	public void setPassword(String password) {
-		this.password = password;
+	public void setAdminName(String adminName) {
+		this.adminName = adminName;
+	}
+
+	public String getAdminPassword() {
+		return adminPassword;
+	}
+
+	public void setAdminPassword(String adminPassword) {
+		this.adminPassword = adminPassword;
+	}
+
+	public void setUserPassword(String userPassword) {
+		this.userPassword = userPassword;
+	}
+
+	public String getUserPassword() {
+		return userPassword;
 	}
 
 	public String loginAdmin() {
 		try {
-			Authentication request = new UsernamePasswordAuthenticationToken(this.getUserName(),
-					getPassword());
+			Authentication request = new UsernamePasswordAuthenticationToken(this.getAdminName(),
+					getAdminPassword());
 			Authentication result = authenticationManager.authenticate(request);
 			SecurityContextHolder.getContext().setAuthentication(result);
 		} catch (AuthenticationException ex) {
@@ -81,13 +102,19 @@ public class LoginController implements Serializable {
 			return null;
 		}
 
-		return "/index.xhml?faces-redirect=true";
+		if (secUtils.getIsAdminLoggedIn()) {
+			return "/index.xhml?faces-redirect=true";
+		} else {
+			FacesUtils.addErrorMessage("You are not Administrator!");
+			return null;
+		}
+
 	}
-	
+
 	public String loginUser() {
 		try {
 			Authentication request = new UsernamePasswordAuthenticationToken(this.getUserName(),
-					getPassword());
+					getUserPassword());
 			Authentication result = authenticationManager.authenticate(request);
 			SecurityContextHolder.getContext().setAuthentication(result);
 		} catch (AuthenticationException ex) {
@@ -100,6 +127,7 @@ public class LoginController implements Serializable {
 			return null;
 		}
 
-		return "/index_user.xhml?faces-redirect=true";
+		return "/user-gui/index.xhml?faces-redirect=true";
+
 	}
 }
