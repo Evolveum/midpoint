@@ -129,15 +129,12 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 		LOGGER.debug("Launching import from resource with oid {} and object class {}.", new Object[] {
 				resourceOid, objectClass });
 
-		OperationResult result = new OperationResult(ResourceManager.IMPORT_FROM_RESOURCE);
-		TaskType taskType = new TaskType();
-		taskType.setResult(result.createOperationResultType());
-
-		Task task = getTaskManager().createTaskInstance();
+		Task task = getTaskManager().createTaskInstance(ResourceManager.IMPORT_FROM_RESOURCE);
+		OperationResult result = task.getResult();
 		try {
+			
 			getModel().importAccountsFromResource(resourceOid, objectClass, task, result);
-
-			result = OperationResult.createOperationResult(taskType.getResult());
+			
 			result.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't launch import on resource {} and object class {}",

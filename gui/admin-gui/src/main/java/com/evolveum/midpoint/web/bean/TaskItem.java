@@ -75,7 +75,11 @@ public class TaskItem implements Serializable {
 				.getExecutionStatus());
 		this.exclusivityStatus = TaskItemExclusivityStatus.fromTask(task
 				.getExclusivityStatus());
-		this.scheduleInterval = task.getSchedule().getInterval().longValue();
+		if (task.getSchedule() != null && task.getSchedule().getInterval() != null) {
+			this.scheduleInterval = task.getSchedule().getInterval().longValue();
+		} else {
+			this.scheduleInterval = null;
+		}
 
 		this.progress = task.getProgress();
 		if (task.getResult() != null) {
@@ -106,7 +110,11 @@ public class TaskItem implements Serializable {
 		this.exclusivityStatus = TaskItemExclusivityStatus
 				.fromTask(TaskExclusivityStatus.fromTaskType(task
 						.getExclusivityStatus()));
-		this.scheduleInterval = task.getSchedule().getInterval().longValue();
+		if (task.getSchedule() != null && task.getSchedule().getInterval() != null) {
+			this.scheduleInterval = task.getSchedule().getInterval().longValue();
+		} else {
+			this.scheduleInterval = null;
+		}
 		if (task.getProgress() != null) {
 			this.progress = task.getProgress().longValue();
 		}

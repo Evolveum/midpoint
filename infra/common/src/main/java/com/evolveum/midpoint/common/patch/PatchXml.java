@@ -199,9 +199,9 @@ public class PatchXml extends XPathUtil {
         //setup JAXP 
         xpath = setupXPath();
 
-        LOGGER.debug("Iterate through relative changes and apply them");
+        LOGGER.trace("Iterate through relative changes and apply them");
         for (PropertyModificationType change : changes.getPropertyModification()) {
-            LOGGER.debug("Apply change: changeType = {}, changePath = {}", new Object[]{change.getModificationType(), (null == change.getPath()) ? null : change.getPath().getTextContent()});
+            LOGGER.trace("Apply change: changeType = {}, changePath = {}", new Object[]{change.getModificationType(), (null == change.getPath()) ? null : change.getPath().getTextContent()});
             if (change.getValue().getAny().isEmpty() || change.getModificationType() == null) {
                 LOGGER.warn("Skipping property modification, empty value list or undefined modification type.");
                 continue;
@@ -213,9 +213,9 @@ public class PatchXml extends XPathUtil {
 				throw new IllegalStateException("Unexpected JAXB problem: "+e.getMessage(),e);
 			}
             applyDifference(objectDoc, change);
-            LOGGER.debug("Finished application of change: changeType = {}, changePath = {}", new Object[]{change.getModificationType(), (null == change.getPath()) ? null : change.getPath().getTextContent()});
+            LOGGER.trace("Finished application of change: changeType = {}, changePath = {}", new Object[]{change.getModificationType(), (null == change.getPath()) ? null : change.getPath().getTextContent()});
         }
-        LOGGER.debug("Finished iteration through relative changes");
+        LOGGER.trace("Finished iteration through relative changes");
         return serializePatchedXml(objectDoc);
     }
 
