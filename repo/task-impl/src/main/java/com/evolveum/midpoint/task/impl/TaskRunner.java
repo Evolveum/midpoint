@@ -59,8 +59,17 @@ public abstract class TaskRunner implements Runnable {
 	 */
 	@Override
 	public abstract void run();
+	
+	protected void runStart() {
+		LOGGER.info("Task "+task+" run starting ("+this.getClass().getSimpleName()+")");
+	}
+
+	protected void runFinish() {
+		LOGGER.info("Task "+task+" run finished ("+this.getClass().getSimpleName()+")");
+	}
 
 	public void shutdown() {
+		LOGGER.info("Task "+task+" shutting down ("+this.getClass().getSimpleName()+")");
 		task.shutdown();
 		// In case that the thread was sleeping ...
 		thread.interrupt();
@@ -79,7 +88,10 @@ public abstract class TaskRunner implements Runnable {
 		try {
 			task.recordProgress(progress, result);
 		} catch (ObjectNotFoundException e) {
-			LOGGER.error("Error saving progress to task "+task+": Object not found: "+e.getMessage(),e);
+			LOGGER.error("Error saving progress to task "+task+": Object not found: "+e.getMessage()+", the task will be stopped",e);
+			// The task object in repo is gone. Therefore this task should not run any more.
+			// Therefore commit sepukku
+			taskManager.shutdownRunner(this);
 		} catch (SchemaException e) {
 			LOGGER.error("Error saving progress to task "+task+": Schema violation: "+e.getMessage(),e);
 		}

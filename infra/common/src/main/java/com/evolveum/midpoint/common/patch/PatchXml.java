@@ -114,9 +114,9 @@ public class PatchXml extends XPathUtil {
                 }
                 //following checks are only for change types replace and delete
                 if (null == nodes || nodes.getLength() == 0) {
-                    LOGGER.warn("No matches for XPath {}", xpathUtil.getXPath());
+                    LOGGER.trace("No matches for XPath {}", xpathUtil.getXPath());
                     if (PropertyModificationTypeType.replace.equals(change.getModificationType())) {
-                        LOGGER.warn("Will create nodes defined by XPath {}", xpathUtil.getXPath());
+                        LOGGER.trace("Will create nodes defined by XPath {}", xpathUtil.getXPath());
                         //we will create xml tags defined by xpath
                         XPathUtil.createNodesDefinedByXPath(doc, xpathUtil);
                         try {
@@ -127,7 +127,7 @@ public class PatchXml extends XPathUtil {
                     }
                 }
                 if (nodes.getLength() > 1) {
-                    LOGGER.warn("XPath {} matches more than one node ({}). It is ok, for multi value nodes", xpathUtil.getXPath(), nodes.getLength());
+                    LOGGER.trace("XPath {} matches more than one node ({}). It is ok, for multi value nodes", xpathUtil.getXPath(), nodes.getLength());
                 }
 
                 for (int i = 0; i < nodes.getLength(); i++) {
@@ -203,7 +203,7 @@ public class PatchXml extends XPathUtil {
         for (PropertyModificationType change : changes.getPropertyModification()) {
             LOGGER.trace("Apply change: changeType = {}, changePath = {}", new Object[]{change.getModificationType(), (null == change.getPath()) ? null : change.getPath().getTextContent()});
             if (change.getValue().getAny().isEmpty() || change.getModificationType() == null) {
-                LOGGER.warn("Skipping property modification, empty value list or undefined modification type.");
+                LOGGER.trace("Skipping property modification, empty value list or undefined modification type.");
                 continue;
             }
             try {

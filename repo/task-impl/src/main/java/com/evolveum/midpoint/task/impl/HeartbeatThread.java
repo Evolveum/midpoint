@@ -22,6 +22,8 @@ package com.evolveum.midpoint.task.impl;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.MDC;
+
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -51,6 +53,8 @@ public class HeartbeatThread extends Thread {
 	@Override
 	public void run() {
 		try {
+			MDC.put("subsystem", "TASKMANAGER");
+			
 			LOGGER.info("Heartbeat thread starting (enabled:{})", enabled);
 			while (enabled) {
 				LOGGER.trace("Heartbeat thread loop: start");

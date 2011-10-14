@@ -338,7 +338,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 			//also if no changes was detected, update token
 			if (changes.isEmpty()) {
-				LOGGER.debug("No changes to synchronize on "+ObjectTypeUtil.toShortString(resourceType));
+				LOGGER.trace("No changes to synchronize on "+ObjectTypeUtil.toShortString(resourceType));
 				PropertyModification modificatedToken = getTokenModification(tokenProperty);
 				modifications.add(modificatedToken);
 			}

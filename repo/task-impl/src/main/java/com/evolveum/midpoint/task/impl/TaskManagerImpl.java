@@ -117,17 +117,20 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		//we will wait for all tasks to finish correctly till we proceed with shutdown procedure
 		LOGGER.info("Wait for Task Manager's tasks finish");
 		for (TaskRunner runner : runners) {
-			runner.shutdown();
-		}
-		for (TaskRunner runner : runners) {
-			try {
-				runner.thread.join();
-			} catch (InterruptedException e) {
-				// Safe to ignore. 
-				LOGGER.trace("TaskManager waiting for join task threads got InterruptedException: " + e);
-			}
+			shutdownRunner(runner);
 		}
 		LOGGER.info("All Task Manager's tasks finished");
+	}
+	
+	void shutdownRunner(TaskRunner runner) {
+		runner.shutdown();
+		try {
+			runner.thread.join();
+			runners.remove(runner);
+		} catch (InterruptedException e) {
+			// Safe to ignore. 
+			LOGGER.trace("TaskManager waiting for join task threads got InterruptedException: " + e);
+		}
 	}
 	
 	/* (non-Javadoc)

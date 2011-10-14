@@ -104,7 +104,7 @@ public class ObjectImporter {
 			
 			@Override
 			public EventResult postMarshall(ObjectType object, Element objectElement, OperationResult objectResult) {
-				LOGGER.debug("Starting import of object {}", ObjectTypeUtil.toShortString(object));
+				LOGGER.debug("Importing object {}", ObjectTypeUtil.toShortString(object));
 
 				if (objectResult.isAcceptable()) {					
 					resolveReferences(object, repository, objectResult);
@@ -417,7 +417,7 @@ public class ObjectImporter {
 				// resolve it.
 				String propName = parseGetterPropName(method);
 				if (propName!=null) {
-					LOGGER.debug("Found reference property {}, method {}", propName, method.getName());
+					LOGGER.trace("Found reference property {}, method {}", propName, method.getName());
 					try {
 						Object returnVal = method.invoke(object);
 						ObjectReferenceType ref = (ObjectReferenceType) returnVal;
@@ -442,7 +442,7 @@ public class ObjectImporter {
 								+ " due to InvocationTargetException", e);
 						return;
 					}
-					LOGGER.debug("Reference {} processed", propName);
+					LOGGER.trace("Reference {} processed", propName);
 				}
 			}
 		}
@@ -510,7 +510,7 @@ public class ObjectImporter {
 			return;
 		}
 		// No OID and we have filter. Let's check the filter a bit
-		LOGGER.debug("Resolving using filter {}", DOMUtil.serializeDOMToString(filter));
+		LOGGER.trace("Resolving using filter {}", DOMUtil.serializeDOMToString(filter));
 		NodeList childNodes = filter.getChildNodes();
 		if (childNodes.getLength() == 0) {
 			result.recordFatalError("OID not specified and filter is empty for property " + propName);

@@ -22,6 +22,7 @@ package com.evolveum.midpoint.task.impl;
 
 import java.util.List;
 
+import org.slf4j.MDC;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -93,6 +94,8 @@ public class TaskScanner extends Thread {
 	@Override
 	public void run() {
 		try {
+			MDC.put("subsystem", "TASKMANAGER");
+			
 			LOGGER.info("Task scanner starting (enabled:{})", enabled);
 			while (enabled) {
 				LOGGER.trace("Task scanner loop: start");

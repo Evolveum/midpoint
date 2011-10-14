@@ -237,7 +237,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 */
 	public Schema generateConnectorSchema() {
 
-		LOGGER.debug("Generating configuration schema for {}", this);
+		LOGGER.trace("Generating configuration schema for {}", this);
 		APIConfiguration defaultAPIConfiguration = cinfo.createDefaultAPIConfiguration();
 		ConfigurationProperties icfConfigurationProperties = defaultAPIConfiguration.getConfigurationProperties();
 
@@ -1168,7 +1168,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		SyncToken syncToken = null;
 		try {
 			syncToken = getSyncToken(lastToken);
-			LOGGER.debug("Sync token created from the property last token: {}", syncToken.getValue());
+			LOGGER.trace("Sync token created from the property last token: {}", syncToken.getValue());
 		} catch (SchemaException ex) {
 			subresult.recordFatalError(ex.getMessage(), ex);
 			throw new SchemaException(ex.getMessage(), ex);
@@ -1647,7 +1647,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			try {
 				elements = attr.serializeToJaxb(doc);
 				for (Object e : elements) {
-					LOGGER.debug("Atribute to modify value: {}", JAXBUtil.getTextContentDump(e));
+					LOGGER.trace("Atribute to modify value: {}", JAXBUtil.getTextContentDump(e));
 				}
 				PropertyModificationType.Value value = new PropertyModificationType.Value();
 				value.getAny().addAll(elements);
@@ -1730,7 +1730,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (op instanceof ExecuteScriptOperation) {
 
 				ExecuteScriptOperation executeOp = (ExecuteScriptOperation) op;
-				LOGGER.debug("Find execute script operation: {}", DebugUtil.prettyPrint(executeOp));
+				LOGGER.trace("Find execute script operation: {}", DebugUtil.prettyPrint(executeOp));
 				// execute operation in the right order..
 				if (order.equals(executeOp.getScriptOrder())) {
 					executeScript(executeOp);

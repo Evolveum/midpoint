@@ -51,7 +51,7 @@ public class SingleRunner extends TaskRunner {
 	 */
 	@Override
 	public void run() {
-		LOGGER.info("SingleRunner.run starting");
+		runStart();
 
 		try {
 			
@@ -104,7 +104,12 @@ public class SingleRunner extends TaskRunner {
 					// Run finished. So let's close the task
 					task.close(runnerRunOpResult);
 				} catch (ObjectNotFoundException ex) {
-					LOGGER.error("Unable to record run finish and close the task: {}", ex.getMessage(), ex);
+					LOGGER.error("Unable to record run finish: {}", ex.getMessage(), ex);
+					// The task object in repo is gone. Therefore this task should not run any more.
+					// Therefore commit sepukku
+					taskManager.shutdownRunner(this);
+					RepositoryCache.exit();
+					return;
 				} catch (SchemaException ex) {
 					LOGGER.error("Unable to record run finish and close the task: {}", ex.getMessage(), ex);
 				} // there are otherwise quite safe to ignore
@@ -113,7 +118,7 @@ public class SingleRunner extends TaskRunner {
 			// Call back task manager to clean up things
 			taskManager.finishRunnableTask(this,task, runnerRunOpResult);
 
-			LOGGER.info("SingleRunner.run stopping");
+			runFinish();
 
 		} catch (Throwable t) {
 			// This is supposed to run in a thread, so this kind of heavy artillery is needed. If throwable won't be

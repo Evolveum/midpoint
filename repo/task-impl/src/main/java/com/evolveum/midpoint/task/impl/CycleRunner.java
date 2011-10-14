@@ -55,7 +55,7 @@ public class CycleRunner extends TaskRunner {
 	 */
 	@Override
 	public void run() {
-		LOGGER.info("CycleRunner.run starting");
+		runStart();
 
 		OperationResult cycleRunnerOpResult = new OperationResult(CycleRunner.class.getName() + ".run");
 		
@@ -108,9 +108,15 @@ public class CycleRunner extends TaskRunner {
 						task.recordRunFinish(runResult, cycleRunnerRunOpResult);
 					} catch (ObjectNotFoundException ex) {
 						LOGGER.error("Unable to record run finish: {}", ex.getMessage(), ex);
+						// The task object in repo is gone. Therefore this task should not run any more.
+						// Therefore commit sepukku
+						taskManager.shutdownRunner(this);
+						RepositoryCache.exit();
+						return;
 					} catch (SchemaException ex) {
 						LOGGER.error("Unable to record run finish: {}", ex.getMessage(), ex);
-					} // there are otherwise quite safe to ignore
+					}
+					// this is otherwise quite safe to ignore
 				}
 				
 				RepositoryCache.exit();
@@ -129,14 +135,22 @@ public class CycleRunner extends TaskRunner {
 				}
 
 				// TODO: refresh task definition somehow
-				task.refresh(cycleRunnerOpResult);
+				try {
+					task.refresh(cycleRunnerOpResult);
+				} catch (ObjectNotFoundException ex) {
+					LOGGER.error("Error saving progress to task "+task+": Object not found: "+ex.getMessage(),ex);
+					// The task object in repo is gone. Therefore this task should not run any more.
+					// Therefore commit sepukku
+					taskManager.shutdownRunner(this);
+					return;
+				}
 				LOGGER.trace("CycleRunner loop: end");
 			}
 
 			// Call back task manager to clean up things
 			taskManager.finishRunnableTask(this,task,cycleRunnerOpResult);
 			
-			LOGGER.info("CycleRunner.run stopping");
+			runFinish();
 		} catch (Throwable t) {
 			// This is supposed to run in a thread, so this kind of heavy artillery is needed. If throwable won't be
 			// caught here, nobody will catch it and it won't even get logged.
