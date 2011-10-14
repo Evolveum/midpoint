@@ -128,7 +128,7 @@ public class ModelControllerImpl implements ModelController {
 			Validate.notEmpty(object.getName(), "Object name must not be null or empty.");
 		}
 		RepositoryCache.enter();
-		LOGGER.debug("Adding object {} with oid {} and name {}.", new Object[] {
+		LOGGER.trace("Adding object {} with oid {} and name {}.", new Object[] {
 				object.getClass().getSimpleName(), object.getOid(), object.getName() });
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(JAXBUtil.silentMarshalWrap(object));
@@ -166,8 +166,8 @@ public class ModelControllerImpl implements ModelController {
 		} finally {
 			subResult.computeStatus("Error occured during add object '" + object.getName() + "'.",
 					"Warning occured during add object '" + object.getName() + "'.");
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug(subResult.dump(false));
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(subResult.dump(false));
 			}
 		}
 
@@ -198,9 +198,9 @@ public class ModelControllerImpl implements ModelController {
 		ModelUtils.validatePaging(paging);
 		RepositoryCache.enter();
 		if (paging == null) {
-			LOGGER.debug("Listing objects of type {} (no paging).", objectType);
+			LOGGER.trace("Listing objects of type {} (no paging).", objectType);
 		} else {
-			LOGGER.debug(
+			LOGGER.trace(
 					"Listing objects of type {} offset {} count {} ordered {} by {}.",
 					new Object[] { objectType, paging.getOffset(), paging.getMaxSize(),
 							paging.getOrderDirection(), paging.getOrderBy() });
@@ -211,10 +211,10 @@ public class ModelControllerImpl implements ModelController {
 		ResultList<T> list = null;
 		try {
 			if (ObjectTypes.isObjectTypeManagedByProvisioning(objectType)) {
-				LOGGER.debug("Listing objects from provisioning.");
+				LOGGER.trace("Listing objects from provisioning.");
 				list = provisioning.listObjects(objectType, paging, subResult);
 			} else {
-				LOGGER.debug("Listing objects from repository.");
+				LOGGER.trace("Listing objects from repository.");
 				list = cacheRepositoryService.listObjects(objectType, paging, subResult);
 			}
 			subResult.recordSuccess();
@@ -224,8 +224,8 @@ public class ModelControllerImpl implements ModelController {
 			RepositoryCache.exit();
 			throw new SystemException(ex.getMessage(), ex);
 		} finally {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug(subResult.dump(false));
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(subResult.dump(false));
 			}
 		}
 
@@ -234,7 +234,7 @@ public class ModelControllerImpl implements ModelController {
 			list.setTotalResultCount(0);
 		}
 
-		LOGGER.debug("Returning {} objects.", new Object[] { list.size() });
+		LOGGER.trace("Returning {} objects.", new Object[] { list.size() });
 
 		RepositoryCache.exit();
 		return list;
@@ -250,9 +250,9 @@ public class ModelControllerImpl implements ModelController {
 		RepositoryCache.enter();
 
 		if (paging == null) {
-			LOGGER.debug("Searching objects with null paging (query in TRACE).");
+			LOGGER.trace("Searching objects with null paging (query in TRACE).");
 		} else {
-			LOGGER.debug("Searching objects from {} to {} ordered {} by {} (query in TRACE).",
+			LOGGER.trace("Searching objects from {} to {} ordered {} by {} (query in TRACE).",
 					new Object[] { paging.getOffset(), paging.getMaxSize(), paging.getOrderDirection(),
 							paging.getOrderBy() });
 		}
@@ -284,8 +284,8 @@ public class ModelControllerImpl implements ModelController {
 			LoggingUtils.logException(LOGGER, message, ex);
 			subResult.recordFatalError(message, ex);
 		} finally {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug(subResult.dump(false));
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(subResult.dump(false));
 			}
 		}
 
@@ -374,7 +374,7 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 		RepositoryCache.enter();
-		LOGGER.debug("Deleting object with oid {}.", new Object[] { oid });
+		LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
 
 		OperationResult subResult = result.createSubresult(DELETE_OBJECT);
 		subResult.addParams(new String[] { "oid" }, oid);
@@ -411,8 +411,8 @@ public class ModelControllerImpl implements ModelController {
 			throw new ConsistencyViolationException("Couldn't delete object with oid '" + oid
 					+ "', potential consistency violation", ex);
 		} finally {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug(subResult.dump(false));
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(subResult.dump(false));
 			}
 		}
 		RepositoryCache.exit();
@@ -425,7 +425,7 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(properties, "Property reference list must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		RepositoryCache.enter();
-		LOGGER.debug("Getting property available values for object with oid {} (properties in TRACE).",
+		LOGGER.trace("Getting property available values for object with oid {} (properties in TRACE).",
 				new Object[] { oid });
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(DebugUtil.prettyPrint(properties));
@@ -441,7 +441,7 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notEmpty(accountOid, "Account oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 		RepositoryCache.enter();
-		LOGGER.debug("Listing account shadow owner for account with oid {}.", new Object[] { accountOid });
+		LOGGER.trace("Listing account shadow owner for account with oid {}.", new Object[] { accountOid });
 
 		OperationResult subResult = result.createSubresult(LIST_ACCOUNT_SHADOW_OWNER);
 		subResult.addParams(new String[] { "accountOid" }, accountOid);
@@ -461,8 +461,8 @@ public class ModelControllerImpl implements ModelController {
 			subResult.recordFatalError("Couldn't list account shadow owner for account with oid '"
 					+ accountOid + "'.", ex);
 		} finally {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug(subResult.dump(false));
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(subResult.dump(false));
 			}
 		}
 		RepositoryCache.exit();
@@ -475,7 +475,7 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 		RepositoryCache.enter();
-		LOGGER.debug("Listing resource object shadows \"{}\" for resource with oid {}.", new Object[] {
+		LOGGER.trace("Listing resource object shadows \"{}\" for resource with oid {}.", new Object[] {
 				resourceObjectShadowType, resourceOid });
 
 		OperationResult subResult = result.createSubresult(LIST_RESOURCE_OBJECT_SHADOWS);
@@ -497,8 +497,8 @@ public class ModelControllerImpl implements ModelController {
 					"Couldn't list resource object shadows type '" + resourceObjectShadowType
 							+ "' from repository for resource, oid '" + resourceOid + "'.", ex);
 		} finally {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug(subResult.dump(false));
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(subResult.dump(false));
 			}
 		}
 
@@ -519,7 +519,7 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
 		RepositoryCache.enter();
-		LOGGER.debug(
+		LOGGER.trace(
 				"Listing resource objects {} from resource, oid {}, from {} to {} ordered {} by {}.",
 				new Object[] { objectClass, resourceOid, paging.getOffset(), paging.getMaxSize(),
 						paging.getOrderDirection(), paging.getOrderDirection() });
@@ -566,28 +566,32 @@ public class ModelControllerImpl implements ModelController {
 	public OperationResult testResource(String resourceOid) throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		RepositoryCache.enter();
-		LOGGER.debug("Testing resource with oid {}.", new Object[] { resourceOid });
+		LOGGER.trace("Testing resource OID: {}", new Object[] { resourceOid });
 
 		OperationResult testResult = null;
 		try {
 			testResult = provisioning.testResource(resourceOid);
 		} catch (ObjectNotFoundException ex) {
+			LOGGER.error("Error testing resource OID: {}: Object not found: {} ", new Object[]{resourceOid, ex.getMessage(), ex});
 			RepositoryCache.exit();
 			throw ex;
 		} catch (SystemException ex) {
+			LOGGER.error("Error testing resource OID: {}: Object not found: {} ", new Object[]{resourceOid, ex.getMessage(), ex});
 			RepositoryCache.exit();
 			throw ex;
 		} catch (Exception ex) {
+			LOGGER.error("Error testing resource OID: {}: {} ", new Object[]{resourceOid, ex.getMessage(), ex});
 			RepositoryCache.exit();
 			throw new SystemException(ex.getMessage(), ex);
 		}
 
 		if (testResult != null) {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug(testResult.dump(false));
+			LOGGER.debug("Finished testing resource OID: {}, result: {} ", resourceOid, testResult.getStatus());
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Test result:\n{}",testResult.dump(false));
 			}
 		} else {
-			LOGGER.debug("Operation sub result was null (Error occured).");
+			LOGGER.error("Test resource returned null result");
 		}
 		RepositoryCache.exit();
 		return testResult;
@@ -601,7 +605,7 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(objectClass, "Object class must not be null.");
 		Validate.notNull(task, "Task must not be null.");
 		RepositoryCache.enter();
-		LOGGER.debug("Launching import from resource with oid {} for object class {}.", new Object[] {
+		LOGGER.trace("Launching import from resource with oid {} for object class {}.", new Object[] {
 				resourceOid, objectClass });
 
 		OperationResult result = parentResult.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE);
@@ -825,8 +829,8 @@ public class ModelControllerImpl implements ModelController {
 			UserType user = null;
 			try {
 				user = listAccountShadowOwner(object.getOid(), result);
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Found owner {} for account shadow {}", ObjectTypeUtil.toShortString(user),
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Found owner {} for account shadow {}", ObjectTypeUtil.toShortString(user),
 							ObjectTypeUtil.toShortString(object));
 				}
 			} catch (ObjectNotFoundException ex) {

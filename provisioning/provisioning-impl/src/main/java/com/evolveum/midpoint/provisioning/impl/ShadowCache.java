@@ -349,7 +349,7 @@ public class ShadowCache {
 
 	private ActivationType convertFromSimulatedActivationAttributes(ResourceType resource, ResourceObject ro,
 			OperationResult parentResult) {
-		LOGGER.debug("Start converting activation type from simulated activation atribute");
+		LOGGER.trace("Start converting activation type from simulated activation atribute");
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
 		List<String> disableValues = activationCapability.getEnableDisable().getDisableValue();
@@ -361,7 +361,7 @@ public class ShadowCache {
 			Property activationProperty = ro.findProperty(activationCapability.getEnableDisable()
 					.getAttribute());
 			if (activationProperty == null) {
-				LOGGER.warn("No simulated activation attribute was defined for the account.");
+				LOGGER.debug("No simulated activation attribute was defined for the account.");
 				activationType.setEnabled(true);
 				return activationType;
 			}

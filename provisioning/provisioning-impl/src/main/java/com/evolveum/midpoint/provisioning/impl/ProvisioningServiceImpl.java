@@ -142,7 +142,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		Validate.notNull(oid, "Oid of object to get must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
-		LOGGER.debug("**PROVISIONING: Getting object with oid {}", oid);
+		LOGGER.trace("**PROVISIONING: Getting object with oid {}", oid);
 
 		// Result type for this operation
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".getObject");
@@ -196,7 +196,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// TODO: object resolving
 
 			result.recordSuccess();
-			LOGGER.debug("**PROVISIONING: Get object finished.");
+			LOGGER.trace("**PROVISIONING: Get object finished.");
 			return (T) shadow;
 
 		} else if (repositoryObject instanceof ResourceType) {
@@ -231,7 +231,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		Validate.notNull(object, "Object to add must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
-		LOGGER.debug("**PROVISIONING: Start to add object {}", object);
+		LOGGER.trace("**PROVISIONING: Start to add object {}", object);
 
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".addObject");
 		result.addParam("object", object);
@@ -262,7 +262,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			oid = cacheRepositoryService.addObject(object, result);
 		}
 
-		LOGGER.debug("**PROVISIONING: Adding object finished.");
+		LOGGER.trace("**PROVISIONING: Adding object finished.");
 		return oid;
 	}
 
@@ -292,7 +292,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		ResourceType resourceType = (ResourceType) resourceObjectType;
 
-		LOGGER.debug("**PROVISIONING: Start synchronization of resource {} ", DebugUtil.prettyPrint(resourceType));
+		LOGGER.trace("**PROVISIONING: Start synchronization of resource {} ", DebugUtil.prettyPrint(resourceType));
 
 		// getting token form task
 		Property tokenProperty = null;
@@ -314,7 +314,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		List<PropertyModification> modifications = new ArrayList<PropertyModification>();
 		List<Change> changes = null;
 		try {
-			LOGGER.debug("Calling shadow cache to fetch changes.");
+			LOGGER.trace("Calling shadow cache to fetch changes.");
 			changes = getShadowCache().fetchChanges(resourceType, tokenProperty, result);
 
 			//for each change from the connector create change description
@@ -338,7 +338,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 			//also if no changes was detected, update token
 			if (changes.isEmpty()) {
-				LOGGER.warn("No changes found.");
+				LOGGER.debug("No changes to synchronize on "+ObjectTypeUtil.toShortString(resourceType));
 				PropertyModification modificatedToken = getTokenModification(tokenProperty);
 				modifications.add(modificatedToken);
 			}
@@ -369,7 +369,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		Validate.notNull(objectType, "Object type to list must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
-		LOGGER.debug("**PROVISIONING: Start listing objects of type {}", objectType);
+		LOGGER.trace("**PROVISIONING: Start listing objects of type {}", objectType);
 		// Result type for this operation
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".listObjects");
 		result.addParam("objectType", objectType);
@@ -412,7 +412,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		}
 
-		LOGGER.debug("**PROVISIONING: Finished listing object.");
+		LOGGER.trace("**PROVISIONING: Finished listing object.");
 		result.recordSuccess();
 		return objListType;
 
@@ -451,7 +451,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("scripts", scripts);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		LOGGER.debug("**PROVISIONING: Start to modify object.");
+		LOGGER.trace("**PROVISIONING: Start to modify object.");
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("*PROVISIONING: Object change: {}", JAXBUtil.silentMarshalWrap(objectChange));
 		}
@@ -465,7 +465,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		T objectType = getCacheRepositoryService().getObject(type, objectChange.getOid(), new PropertyReferenceListType(),
 				parentResult);
 
-		LOGGER.debug("**PROVISIONING: Modifying object with oid {}", objectChange.getOid());
+		LOGGER.trace("**PROVISIONING: Modifying object with oid {}", objectChange.getOid());
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("**PROVISIONING: Object to modify: {}.", JAXBUtil.silentMarshalWrap(objectType));
 		}
@@ -490,7 +490,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throw e;
 		}
 
-		LOGGER.debug("Finished modifying of object with oid {}", objectType.getOid());
+		LOGGER.trace("Finished modifying of object with oid {}", objectType.getOid());
 		// TODO Auto-generated method stub
 	}
 
@@ -570,17 +570,18 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		Validate.notNull(resourceOid, "Resource OID to test is null.");
 
-		LOGGER.debug("Start testing resource with oid {} ", resourceOid);
+		LOGGER.trace("Start testing resource with oid {} ", resourceOid);
 
 		OperationResult parentResult = new OperationResult(TEST_CONNECTION_OPERATION);
 		parentResult.addParam("resourceOid", resourceOid);
 		parentResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
+		ResourceType resourceType = null;
 		try {
 			ResourceType objectType = getCacheRepositoryService().getObject(ResourceType.class, resourceOid,
 					new PropertyReferenceListType(), parentResult);
 
-			ResourceType resourceType = (ResourceType) objectType;
+			resourceType = (ResourceType) objectType;
 			getShadowCache().testConnection(resourceType, parentResult);
 
 		} catch (ObjectNotFoundException ex) {
@@ -590,7 +591,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 		parentResult.computeStatus("Test resource has failed");
 
-		LOGGER.debug("Finished testing resource with oid {} ", resourceOid);
+		LOGGER.trace("Finished testing {}, result: {} ", ObjectTypeUtil.toShortString(resourceType), parentResult.getStatus());
 		return parentResult;
 	}
 
@@ -649,7 +650,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		Validate.notNull(query, "Search query must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
-		LOGGER.debug("Start to search object. Query {}", JAXBUtil.silentMarshalWrap(query));
+		LOGGER.trace("Start to search object. Query {}", JAXBUtil.silentMarshalWrap(query));
 
 		final OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".searchObjectsIterative");
@@ -679,11 +680,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 							Node value = equealList.item(j).getFirstChild();
 							if (QNameUtil.compareQName(SchemaConstants.I_RESOURCE_REF, value)) {
 								resourceOid = value.getAttributes().getNamedItem("oid").getNodeValue();
-								LOGGER.debug("**PROVISIONING: Search objects on resource with oid {}", resourceOid);
+								LOGGER.trace("**PROVISIONING: Search objects on resource with oid {}", resourceOid);
 
 							} else if (QNameUtil.compareQName(SchemaConstants.I_OBJECT_CLASS, value)) {
 								objectClass = DOMUtil.getQNameValue((Element) value);
-								LOGGER.debug("**PROVISIONING: Object class to search: {}", objectClass);
+								LOGGER.trace("**PROVISIONING: Object class to search: {}", objectClass);
 								if (objectClass == null) {
 									result.recordFatalError("Object class was not defined.");
 									throw new IllegalArgumentException("Object class was not defined.");
