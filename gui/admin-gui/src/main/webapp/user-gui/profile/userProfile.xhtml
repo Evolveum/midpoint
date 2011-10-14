@@ -44,8 +44,8 @@
 				style="position: absolute; color: #454545; font-size: 17px; margin-top: 100px; margin-left: 50px;"><b>Photo</b>
 			</span>
 		</div>
-		<ice:form id="user-profile" style="position: absolute;">
-			<div style="margin-left: 170px; padding: 1px 0 10px 0;">
+		<ice:form id="user-profile" style="position: absolute; margin-left: 170px; ">
+			<div style="padding: 1px 0 10px 0;">
 				<idm:button action="#{userProfile.profileBackPerformed}"
 					value="#{msg['page.account.detail.button.back']}"
 					rendered="#{userProfile.editMode}" immediate="true"
@@ -63,7 +63,7 @@
 					value="#{msg['page.account.detail.button.save']}"
 					img="/resources/images/user.png" rendered="#{userProfile.editMode}" />
 			</div>
-			<ice:panelGrid style="margin-left: 170px;" columns="2"
+			<ice:panelGrid columns="2"
 				cellpadding="6" cellspacing="6" id="userProfileGrid">
 
 				<ice:outputText
