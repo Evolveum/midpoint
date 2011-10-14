@@ -128,6 +128,9 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 
 	@Override
 	protected String listObjects() {
+		rowModel = null;
+		columnModel = null;
+		
 		if (resource == null) {
 			FacesUtils.addErrorMessage("Resource was not defined.");
 			return null;
