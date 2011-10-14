@@ -593,11 +593,9 @@ object.
 				<equal>
 					<path>.</path>
 					<valueExpression>
-						<ref>c:name</ref>
+						<ref>name</ref>
 						<code>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-							declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
-							$i:account/i:attributes/dj:uid
+							$account/attributes/ri:uid
 						</code>
 		        	</valueExpression>
 				</equal>
