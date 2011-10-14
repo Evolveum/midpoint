@@ -329,11 +329,13 @@ public class UserDetailsController implements Serializable {
 			String oidToDelete = formBean.getAccount().getOid();
 			LOGGER.debug("Following account is marked as candidate for unlink in GUI: {}",
 					DebugUtil.prettyPrint(formBean.getAccount().getXmlObject()));
-			List<AccountShadowType> accounts = user.getXmlObject().getAccount();
-			for (Iterator<AccountShadowType> i = accounts.iterator(); i.hasNext();) {
-				AccountShadowType account = i.next();
+			List<AccountShadowDto> accountsDto = user.getAccount();
+			for (Iterator<AccountShadowDto> i = accountsDto.iterator(); i.hasNext();) {
+				AccountShadowDto account = i.next();
 				if (StringUtils.equals(oidToDelete, account.getOid())) {
 					i.remove();
+					user.getXmlObject().getAccount().remove(account.getXmlObject());
+					break;
 				}
 			}
 		}
