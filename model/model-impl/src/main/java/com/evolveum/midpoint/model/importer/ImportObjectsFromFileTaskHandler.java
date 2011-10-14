@@ -206,7 +206,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 	
 	
 	@Override
-	public long heartbeat(Task task) {
+	public Long heartbeat(Task task) {
 		// Delegate heartbeat to the result handler
 		//TODO: return getHandler(task).heartbeat();
 		throw new NotImplementedException();

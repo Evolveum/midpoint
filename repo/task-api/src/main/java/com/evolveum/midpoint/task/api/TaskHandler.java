@@ -27,7 +27,7 @@ public interface TaskHandler {
 	
 	public TaskRunResult run(Task task);
 	
-	public long heartbeat(Task task);
+	public Long heartbeat(Task task);
 	
 	// TODO: fix signature
 	public void refreshStatus(Task task);

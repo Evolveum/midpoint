@@ -83,17 +83,21 @@ public abstract class TaskRunner implements Runnable {
 			LOGGER.warn("Attempt to heartbeat a task that is not running ("+task.getExecutionStatus()+") " + task);
 		}
 		
-		long progress = handler.heartbeat(task);
+		Long progress = handler.heartbeat(task);
 		
-		try {
-			task.recordProgress(progress, result);
-		} catch (ObjectNotFoundException e) {
-			LOGGER.error("Error saving progress to task "+task+": Object not found: "+e.getMessage()+", the task will be stopped",e);
-			// The task object in repo is gone. Therefore this task should not run any more.
-			// Therefore commit sepukku
-			taskManager.shutdownRunner(this);
-		} catch (SchemaException e) {
-			LOGGER.error("Error saving progress to task "+task+": Schema violation: "+e.getMessage(),e);
+		if (progress != null) {
+			try {
+				
+				task.recordProgress(progress, result);
+				
+			} catch (ObjectNotFoundException e) {
+				LOGGER.error("Error saving progress to task "+task+": Object not found: "+e.getMessage()+", the task will be stopped",e);
+				// The task object in repo is gone. Therefore this task should not run any more.
+				// Therefore commit sepukku
+				taskManager.shutdownRunner(this);
+			} catch (SchemaException e) {
+				LOGGER.error("Error saving progress to task "+task+": Schema violation: "+e.getMessage(),e);
+			}			
 		}
 	}
 

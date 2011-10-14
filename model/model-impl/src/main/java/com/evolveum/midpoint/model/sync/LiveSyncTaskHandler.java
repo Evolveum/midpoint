@@ -135,9 +135,9 @@ public class LiveSyncTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public long heartbeat(Task task) {
+	public Long heartbeat(Task task) {
 		// TODO Auto-generated method stub
-		return 0;
+		return 0L;
 	}
 
 	@Override

@@ -319,9 +319,14 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public long heartbeat(Task task) {
+	public Long heartbeat(Task task) {
 		// Delegate heartbeat to the result handler
-		return getHandler(task).heartbeat();
+		if (getHandler(task) != null) {
+			return getHandler(task).heartbeat();
+		} else {
+			// most likely a race condition.
+			return null;
+		}
 	}
 
 	@Override

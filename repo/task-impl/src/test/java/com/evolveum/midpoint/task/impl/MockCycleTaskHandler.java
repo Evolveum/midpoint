@@ -66,9 +66,9 @@ public class MockCycleTaskHandler implements TaskHandler {
 	 * @see com.evolveum.midpoint.task.api.TaskHandler#heartbeat(com.evolveum.midpoint.task.api.Task)
 	 */
 	@Override
-	public long heartbeat(Task task) {
+	public Long heartbeat(Task task) {
 		// TODO Auto-generated method stub
-		return 0;
+		return 0L;
 	}
 
 	/* (non-Javadoc)
