@@ -69,8 +69,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SubSystemLoggerConfi
 public class LoggingController implements Serializable {
 
 	public static final String PAGE_NAVIGATION = "/config/logging?faces-redirect=true";
-	// public static final String PAGE_BASICLOGGIN_NAVIGATION =
-	// "/config/basicLogging?faces-redirect=true";
 	public static final String PARAM_APPENDER_ID = "appenderName";
 	public static final String PARAM_LOGGER_ID = "loggerId";
 	private static final Trace LOGGER = TraceManager.getTrace(LoggingController.class);
@@ -82,8 +80,6 @@ public class LoggingController implements Serializable {
 	private String rootAppender;
 
 	private SubsystemLoggerListItem midpointLogger;
-	private LoggingLevelType midpointLoggerLevel;
-	private String midpointAppender;
 
 	private BasicLoggerListItem profilingLogger = null;
 	private List<SelectItem> profilingLevels;
@@ -146,34 +142,6 @@ public class LoggingController implements Serializable {
 
 	public void setRootAppender(String rootAppender) {
 		this.rootAppender = rootAppender;
-	}
-
-	public void setMidpointLevelString(String midpointLoggerLevel) {
-		if (StringUtils.isEmpty(midpointLoggerLevel)) {
-			midpointLoggerLevel = null;
-		}
-		for (LoggingLevelType level : LoggingLevelType.values()) {
-			if (level.value().equals(midpointLoggerLevel)) {
-				this.midpointLoggerLevel = level;
-				break;
-			}
-		}
-	}
-
-	public String getMidpointLevelString() {
-		if (midpointLoggerLevel == null) {
-			return null;
-		}
-
-		return midpointLoggerLevel.value();
-	}
-
-	public String getMidpointAppender() {
-		return midpointAppender;
-	}
-
-	public void setMidpointAppender(String midpointAppender) {
-		this.midpointAppender = midpointAppender;
 	}
 
 	public List<AppenderListItem> getAppenders() {
@@ -371,7 +339,7 @@ public class LoggingController implements Serializable {
 			return;
 		}
 		String value = (String) event.getNewValue();
-		if (StringUtils.isBlank(value)){
+		if (StringUtils.isBlank(value)) {
 			return;
 		}
 		BasicLoggerListItem logger = getLogger(parameter.getValue().toString());
@@ -396,22 +364,23 @@ public class LoggingController implements Serializable {
 			result.computeStatus("Couldn't update logging configuration.");
 			ControllerUtil.printResults(LOGGER, result, "Changes saved sucessfully.");
 		}
-
-		// initController();
-		initBasicLogging();
+		initController();
 	}
 
 	public void cancelPerformed() {
 		initController();
 	}
 
-	public String initBasicLogging() {
+	public String initController() {
 		getLoggers().clear();
 		getAppenders().clear();
 
+		selectAllAppenders = false;
+		selectAllLoggers = false;
+		
 		OperationResult result = new OperationResult("Load Logging Configuration");
 
-		int id = 0;
+		
 		try {
 			LoggingConfigurationType logging = loggingManager.getConfiguration(result);
 			if (logging == null) {
@@ -430,77 +399,21 @@ public class LoggingController implements Serializable {
 					result.recordPartialError("Unknown appender '" + appender.getName() + "'.");
 					LoggingUtils.logException(LOGGER, "Unknown appender {}.", new IllegalStateException(),
 							appender.getName());
-					// FacesUtils.addWarnMessage("Unknown appender '" +
-					// appender.getName() + "'.");
 					continue;
 				}
 				getAppenders().add(createAppenderListItem((FileAppenderConfigurationType) appender));
 			}
 
-			List<SubsystemLoggerListItem> subsystemItems = new ArrayList<SubsystemLoggerListItem>();
+			
 
-			List<ClassLoggerConfigurationType> classLoggerList = logging.getClassLogger();
-
-			for (ClassLoggerConfigurationType classLogger : classLoggerList) {
-				if ("PROFILING".equals(classLogger.getPackage())) {
-					profilingLogger = createLoggerListItem(id, classLogger);
-					id++;
-					break;
-				}
-				getLoggers().add(createLoggerListItem(id, classLogger));
-				id++;
-			}
-
-			if (profilingLogger == null) {
-				List<String> appenders = new ArrayList<String>();
-				appenders.add(rootAppender);
-				profilingLogger = new LoggerListItem(id);
-				profilingLogger.setAppenders(appenders);
-				profilingLogger.setAppendersText(rootAppender);
-				profilingLogger.setLevel(rootLoggerLevel);
-				((LoggerListItem) profilingLogger).setPackageName("PROFILING");
-				id++;
-			}
-
-			for (SubSystemLoggerConfigurationType logger : logging.getSubSystemLogger()) {
-				SubsystemLoggerListItem subsystemLoggerItem = createSubsystemLoggerListItem(id, logger);
-				// subsystemItems.add(subsystemLoggerItem);
-				id++;
-				subsystemItems.add(subsystemLoggerItem);
-				if (subsystemLoggerItem.getComponent().equals(LoggingComponentType.ALL)) {
-					midpointLogger = subsystemLoggerItem;
-				
-					// midpointLoggerLevel = subsystemLoggerItem.getLevel();
-					// String subsystemAppender =
-					// subsystemLoggerItem.getAppendersText();
-					//
-					// if (subsystemAppender != null) {
-					// midpointAppender = subsystemAppender;
-					// } else {
-					// midpointAppender = rootAppender;
-					// }
-					// continue;
-
-					id++;
-				}
-			}
-
-			if (midpointLogger == null) {
-				midpointLogger = new SubsystemLoggerListItem(id);
-//				midpointLogger.setAppenders(getAppenders());
-				midpointLogger.setAppendersText(rootAppender);
-				midpointLogger.setLevel(rootLoggerLevel);
-				midpointLogger.setComponent(LoggingComponentType.ALL);
-				
-
-				id++;
-			}
-
-			createSubsystemLogerList(subsystemItems, id);
+			//create loggers list
+			createLoggerList(logging);
+			
+			
 			result.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get logging configuration.", ex);
-			result.recordFatalError("Couldn't get logging configuration. Reason: "+ ex.getMessage(), ex);
+			result.recordFatalError("Couldn't get logging configuration. Reason: " + ex.getMessage(), ex);
 			// FacesUtils.addErrorMessage("Couldn't get logging configuration.",
 			// ex);
 		} finally {
@@ -511,21 +424,69 @@ public class LoggingController implements Serializable {
 		return PAGE_NAVIGATION;
 	}
 
+	private void createLoggerList(LoggingConfigurationType logging) {
+		int id = 0;
+		List<SubsystemLoggerListItem> subsystemItems = new ArrayList<SubsystemLoggerListItem>();
+		
+		// create logger item for each defined class or package..if defined
+		// logger is for profiling (aspect) create special case
+		for (ClassLoggerConfigurationType classLogger : logging.getClassLogger()) {
+			if ("PROFILING".equals(classLogger.getPackage())) {
+				profilingLogger = createLoggerListItem(id, classLogger);
+				id++;
+				break;
+			}
+			getLoggers().add(createLoggerListItem(id, classLogger));
+			id++;
+		}
+
+		// check if profiling logger is defined in default configuration..if
+		// not, create new one with root logger properties
+		if (profilingLogger == null) {
+			profilingLogger = createLoggerListItem(id, null);
+			((LoggerListItem) profilingLogger).setPackageName("PROFILING");
+			id++;
+		}
+
+		// create subsystem logger item for each of subsystem
+		// for component logger ALL, create special case
+		for (SubSystemLoggerConfigurationType logger : logging.getSubSystemLogger()) {
+			SubsystemLoggerListItem subsystemLoggerItem = createSubsystemLoggerListItem(id, logger);
+			// subsystemItems.add(subsystemLoggerItem);
+			id++;
+			subsystemItems.add(subsystemLoggerItem);
+			if (subsystemLoggerItem.getComponent().equals(LoggingComponentType.ALL)) {
+				midpointLogger = subsystemLoggerItem;
+				id++;
+			}
+		}
+
+		// check if ALL component logger has been configured, if not, create
+		// new default configuration with root logger properties
+		if (midpointLogger == null) {
+			midpointLogger = createDefaultSubsystemLoggerListItem(id, LoggingComponentType.ALL);
+			id++;
+		}
+
+		// check configuration of all subsystem loggers, if the logger for
+		// certain subsystem is defined, use this configuration, otherwise
+		// create new default configuration using root logger properties
+		createSubsystemLogerList(subsystemItems, id);
+		
+	}
+
 	private void createSubsystemLogerList(List<SubsystemLoggerListItem> subsystemLoggers, int id) {
 
 		for (LoggingComponentType loggingComp : LoggingComponentType.values()) {
 
+			// if logger component is all, skip..this is a special case and is
+			// processed independently
 			if (!loggingComp.equals(LoggingComponentType.ALL)) {
+				//if logger for component was defined, used this config
 				if (!isDefined(loggingComp, subsystemLoggers)) {
-					SubsystemLoggerListItem subsystemItem = new SubsystemLoggerListItem(id);
-					subsystemItem.setComponent(loggingComp);
-					List<String> appenders = new ArrayList<String>();
-					appenders.add(rootAppender);
-					subsystemItem.setAppenders(appenders);
-					subsystemItem.setAppendersText(rootAppender);
-					subsystemItem.setLevel(rootLoggerLevel);
-					subsystemItem.setLevelString(rootLoggerLevel.value());
-					// getSubsystemLoggers().add(subsystemItem);
+					//else create new
+					SubsystemLoggerListItem subsystemItem = createDefaultSubsystemLoggerListItem(id,
+							loggingComp);
 					getLoggers().add(subsystemItem);
 					id++;
 				}
@@ -555,63 +516,63 @@ public class LoggingController implements Serializable {
 		advancedView = !advancedView;
 	}
 
-	public String initController() {
-		getAppenders().clear();
-		getLoggers().clear();
-
-		selectAllAppenders = false;
-		selectAllLoggers = false;
-
-		OperationResult result = new OperationResult("Load Logging Configuration");
-		try {
-			LoggingConfigurationType logging = loggingManager.getConfiguration(result);
-			if (logging == null) {
-				result.recordFatalError("Couldn't get logging configuration.");
-				LoggingUtils.logException(LOGGER, "Couldn't get logging configuration.",
-						new IllegalStateException(), "");
-				ControllerUtil.printResults(LOGGER, result, null);
-				return PAGE_NAVIGATION;
-			}
-
-			rootLoggerLevel = logging.getRootLoggerLevel();
-			rootAppender = logging.getRootLoggerAppender();
-
-			for (AppenderConfigurationType appender : logging.getAppender()) {
-				if (!(appender instanceof FileAppenderConfigurationType)) {
-					result.recordPartialError("Unknown appender '" + appender.getName() + "'.");
-					LoggingUtils.logException(LOGGER, "Unknown appender {}.", new IllegalStateException(),
-							appender.getName());
-					// FacesUtils.addWarnMessage("Unknown appender '" +
-					// appender.getName() + "'.");
-					continue;
-				}
-				getAppenders().add(createAppenderListItem((FileAppenderConfigurationType) appender));
-			}
-
-			int id = 0;
-			for (ClassLoggerConfigurationType logger : logging.getClassLogger()) {
-				getLoggers().add(createLoggerListItem(id, logger));
-				id++;
-			}
-
-			for (SubSystemLoggerConfigurationType logger : logging.getSubSystemLogger()) {
-				SubsystemLoggerListItem subsystemLoggerItem = createSubsystemLoggerListItem(id, logger);
-				getLoggers().add(subsystemLoggerItem);
-				id++;
-			}
-			result.recordSuccess();
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get logging configuration.", ex);
-			result.recordFatalError("Couldn't get logging configuration. Reason: " + ex.getMessage(), ex);
-			// FacesUtils.addErrorMessage("Couldn't get logging configuration.",
-			// ex);
-		} finally {
-			result.computeStatus("Couldn't init logging configuration.");
-			ControllerUtil.printResults(LOGGER, result, "Changes saved sucessfully.");
-		}
-
-		return PAGE_NAVIGATION;
-	}
+//	public String initController() {
+//		getAppenders().clear();
+//		getLoggers().clear();
+//
+//		selectAllAppenders = false;
+//		selectAllLoggers = false;
+//
+//		OperationResult result = new OperationResult("Load Logging Configuration");
+//		try {
+//			LoggingConfigurationType logging = loggingManager.getConfiguration(result);
+//			if (logging == null) {
+//				result.recordFatalError("Couldn't get logging configuration.");
+//				LoggingUtils.logException(LOGGER, "Couldn't get logging configuration.",
+//						new IllegalStateException(), "");
+//				ControllerUtil.printResults(LOGGER, result, null);
+//				return PAGE_NAVIGATION;
+//			}
+//
+//			rootLoggerLevel = logging.getRootLoggerLevel();
+//			rootAppender = logging.getRootLoggerAppender();
+//
+//			for (AppenderConfigurationType appender : logging.getAppender()) {
+//				if (!(appender instanceof FileAppenderConfigurationType)) {
+//					result.recordPartialError("Unknown appender '" + appender.getName() + "'.");
+//					LoggingUtils.logException(LOGGER, "Unknown appender {}.", new IllegalStateException(),
+//							appender.getName());
+//					// FacesUtils.addWarnMessage("Unknown appender '" +
+//					// appender.getName() + "'.");
+//					continue;
+//				}
+//				getAppenders().add(createAppenderListItem((FileAppenderConfigurationType) appender));
+//			}
+//
+//			int id = 0;
+//			for (ClassLoggerConfigurationType logger : logging.getClassLogger()) {
+//				getLoggers().add(createLoggerListItem(id, logger));
+//				id++;
+//			}
+//
+//			for (SubSystemLoggerConfigurationType logger : logging.getSubSystemLogger()) {
+//				SubsystemLoggerListItem subsystemLoggerItem = createSubsystemLoggerListItem(id, logger);
+//				getLoggers().add(subsystemLoggerItem);
+//				id++;
+//			}
+//			result.recordSuccess();
+//		} catch (Exception ex) {
+//			LoggingUtils.logException(LOGGER, "Couldn't get logging configuration.", ex);
+//			result.recordFatalError("Couldn't get logging configuration. Reason: " + ex.getMessage(), ex);
+//			// FacesUtils.addErrorMessage("Couldn't get logging configuration.",
+//			// ex);
+//		} finally {
+//			result.computeStatus("Couldn't init logging configuration.");
+//			ControllerUtil.printResults(LOGGER, result, "Changes saved sucessfully.");
+//		}
+//
+//		return PAGE_NAVIGATION;
+//	}
 
 	private AppenderListItem createAppenderListItem(FileAppenderConfigurationType appender) {
 		AppenderListItem item = new AppenderListItem();
@@ -641,9 +602,16 @@ public class LoggingController implements Serializable {
 
 	private LoggerListItem createLoggerListItem(int id, ClassLoggerConfigurationType logger) {
 		LoggerListItem item = new LoggerListItem(id);
-		item.setAppenders(logger.getAppender());
-		item.setLevel(logger.getLevel());
-		item.setPackageName(logger.getPackage());
+		if (logger == null) {
+			List<String> appenders = new ArrayList<String>();
+			appenders.add(rootAppender);
+			item.setAppenders(appenders);
+			item.setLevel(rootLoggerLevel);
+		} else {
+			item.setAppenders(logger.getAppender());
+			item.setLevel(logger.getLevel());
+			item.setPackageName(logger.getPackage());
+		}
 		return item;
 	}
 
@@ -683,6 +651,17 @@ public class LoggingController implements Serializable {
 		return appenderNames;
 	}
 
+	private SubsystemLoggerListItem createDefaultSubsystemLoggerListItem(int id,
+			LoggingComponentType component) {
+		SubsystemLoggerListItem item = new SubsystemLoggerListItem(id);
+		item.setLevel(rootLoggerLevel);
+		item.setComponent(component);
+		List<String> appenders = new ArrayList<String>();
+		appenders.add(rootAppender);
+		item.setAppenders(appenders);
+		return item;
+	}
+
 	private SubsystemLoggerListItem createSubsystemLoggerListItem(int id,
 			SubSystemLoggerConfigurationType logger) {
 		SubsystemLoggerListItem item = new SubsystemLoggerListItem(id);
@@ -712,8 +691,7 @@ public class LoggingController implements Serializable {
 		LoggingConfigurationType configuration = new LoggingConfigurationType();
 		configuration.setRootLoggerAppender(getRootAppender());
 		configuration.setRootLoggerLevel(rootLoggerLevel);
-
-		// updateMidpointLogger(midpointLogger);
+	
 		loggers.add(midpointLogger);
 
 		for (AppenderListItem item : appenders) {
@@ -808,11 +786,4 @@ public class LoggingController implements Serializable {
 	public void setMidpointLogger(SubsystemLoggerListItem midpointLogger) {
 		this.midpointLogger = midpointLogger;
 	}
-
-	// private void updateMidpointLogger(SubsystemLoggerListItem midpointLogger)
-	// {
-	// midpointLogger.setLevel(midpointLoggerLevel);
-	// midpointLogger.setAppendersText(midpointAppender);
-	// }
-
 }
