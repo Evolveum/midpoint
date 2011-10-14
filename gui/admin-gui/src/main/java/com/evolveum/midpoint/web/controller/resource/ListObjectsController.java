@@ -96,6 +96,10 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 	public void setResource(ResourceListItem resource) {
 		this.resource = resource;
 	}
+	
+	public ResourceListItem getResource() {
+		return resource;
+	}
 
 	public DataModel<ResourceObjectBean> getRowModel() {
 		if (rowModel == null) {
