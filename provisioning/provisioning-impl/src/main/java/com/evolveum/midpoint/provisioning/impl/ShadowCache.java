@@ -311,7 +311,7 @@ public class ShadowCache {
 			// of shadow
 			ActivationType activationType = determineActivation(resource, ro, parentResult);
 			if (activationType != null) {
-				LOGGER.debug("Determined activation: {}", activationType.isEnabled());
+				LOGGER.trace("Determined activation: {}", activationType.isEnabled());
 				((AccountShadowType) repositoryShadow).setActivation(activationType);
 			}
 
@@ -366,7 +366,7 @@ public class ShadowCache {
 				return activationType;
 			}
 			Set<Object> activationValues = activationProperty.getValues();
-			LOGGER.debug("Detected simulated activation attribute with value {}",
+			LOGGER.trace("Detected simulated activation attribute with value {}",
 					activationProperty.getValues());
 			if (activationValues == null || activationValues.isEmpty()
 					|| activationValues.iterator().next() == null) {
@@ -714,7 +714,7 @@ public class ShadowCache {
 				resource = getResource(ResourceObjectShadowUtil.getResourceOid(accountShadow), parentResult);
 			}
 
-			LOGGER.debug("Deleting obejct {} from the resource {}.",
+			LOGGER.trace("Deleting obeject {} from the resource {}.",
 					ObjectTypeUtil.toShortString(objectType), ObjectTypeUtil.toShortString(resource));
 
 			ConnectorInstance connector = getConnectorInstance(resource, parentResult);
@@ -724,7 +724,7 @@ public class ShadowCache {
 			ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
 					.findContainerDefinitionByType(accountShadow.getObjectClass());
 
-			LOGGER.debug("Getting object identifiers");
+			LOGGER.trace("Getting object identifiers");
 			Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(accountShadow.getAttributes()
 					.getAny());
 			Set<Operation> additionalOperations = new HashSet<Operation>();
@@ -1072,7 +1072,7 @@ public class ShadowCache {
 		Validate.notNull(objectClass, "Object class must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
-		LOGGER.debug("Searching objects iterative with obejct class {}, resource: {}.", objectClass,
+		LOGGER.trace("Searching objects iterative with obejct class {}, resource: {}.", objectClass,
 				ObjectTypeUtil.toShortString(resourceType));
 
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);

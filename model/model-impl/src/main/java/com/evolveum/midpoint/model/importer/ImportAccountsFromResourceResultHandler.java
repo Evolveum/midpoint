@@ -116,7 +116,7 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 		// not existed before, so we will not provide it.
 
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Going to call notification with new object: " + DebugUtil.prettyPrint(newShadow));
+			LOGGER.trace("Going to call notification with new object: " + DebugUtil.prettyPrint(newShadow));
 		}
 		try {
 

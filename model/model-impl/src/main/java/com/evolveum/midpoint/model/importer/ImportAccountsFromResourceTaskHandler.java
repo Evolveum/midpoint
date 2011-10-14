@@ -172,7 +172,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 	@Override
 	public TaskRunResult run(Task task) {
 		
-		LOGGER.debug("Import from resource run (task {})",task);
+		LOGGER.trace("Import from resource run (task {})",task);
 		
 		// This is an operation result for the entire import task. Therefore use the constant for
 		// operation name.
@@ -291,7 +291,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 		
 		LOGGER.info("Finished import from resource {}, importing object class {}. Processed {} objects, {} errors",
 				new Object[]{ ObjectTypeUtil.toShortString(resource), objectclass, handler.getProgress(), handler.getErrors() });
-		LOGGER.debug("Import from resource run finished (task {}, run result {})",task,runResult);
+		LOGGER.trace("Import from resource run finished (task {}, run result {})",task,runResult);
 		
 		return runResult;
 	}

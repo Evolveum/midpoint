@@ -52,6 +52,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -114,19 +115,19 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			ResourceType resource = change.getResource();
 			if (resource == null) {
 				String message = "Resource definition not found in change.";
-				LOGGER.debug(message);
+				LOGGER.error(message);
 				subResult.recordFatalError(message);
 				return;
 			}
-			LOGGER.debug("Resource definition found in change.");
+			LOGGER.trace("Resource definition found in change.");
 
 			if (!isSynchronizationEnabled(resource.getSynchronization())) {
-				String message = "Synchronization is not enabled.";
+				String message = "Synchronization is not enabled for "+ObjectTypeUtil.toShortString(resource)+" ignoring change from channel "+change.getSourceChannel();
 				LOGGER.debug(message);
 				subResult.recordStatus(OperationResultStatus.SUCCESS, message);
 				return;
 			}
-			LOGGER.debug("Synchronization is enabled.");
+			LOGGER.trace("Synchronization is enabled.");
 
 			ResourceObjectShadowType objectShadow = change.getShadow();
 			if (objectShadow == null && (change.getObjectChange() instanceof ObjectChangeAdditionType)) {
@@ -142,16 +143,17 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 			ResourceObjectShadowType objectShadowAfterChange = getObjectAfterChange(objectShadow,
 					change.getObjectChange());
-			LOGGER.debug("Resource object shadow after change resolved. (Object in log on TRACE level)");
+			
 			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Resource object shadow after change resolved.");
 				LOGGER.trace(JAXBUtil.silentMarshalWrap(objectShadowAfterChange));
 			}
 			SynchronizationSituation situation = checkSituation(change, objectShadowAfterChange, subResult);
 
 			notifyChange(change, situation, resource, objectShadowAfterChange, subResult);
 		} finally {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug(subResult.dump());
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(subResult.dump());
 			}
 		}
 	}
@@ -167,7 +169,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	@SuppressWarnings("unchecked")
 	private ResourceObjectShadowType getObjectAfterChange(ResourceObjectShadowType objectShadow,
 			ObjectChangeType change) {
-		LOGGER.debug("Resolving resource object shadow after change.");
+		LOGGER.trace("Resolving resource object shadow after change.");
 		if (change instanceof ObjectChangeAdditionType) {
 			ObjectChangeAdditionType objectAddition = (ObjectChangeAdditionType) change;
 			ObjectType object = objectAddition.getObject();
@@ -289,10 +291,10 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				synchronization.getCorrelation(), result);
 		if (synchronization.getConfirmation() == null) {
 			if (resourceShadow != null) {
-				LOGGER.debug("CONFIRMATION: No expression for oid {}, accepting all results of correlation",
-						new Object[] { resourceShadow.getOid() });
+				LOGGER.debug("CONFIRMATION: No expression for {}, accepting all results of correlation",
+						new Object[] { ObjectTypeUtil.toShortString(resourceShadow) });
 			} else {
-				LOGGER.debug("CONFIRMATION: No expression for new resource object, accepting all results of correlation");
+				LOGGER.debug("CONFIRMATION: No expression for [new resource object], accepting all results of correlation");
 			}
 		} else {
 			LOGGER.debug("CONFIRMATION: Checking users from correlation with confirmation rule.");
@@ -454,7 +456,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		}
 		Element filter = updateFilterWithAccountValues(resourceShadow, element, result);
 		if (filter == null) {
-			LOGGER.debug("Couldn't create search filter from correlation rule.");
+			LOGGER.error("Couldn't create search filter from correlation rule.");
 			return null;
 		}
 		List<UserType> users = null;
@@ -553,8 +555,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 							valueExpression, result);
 
 					if (StringUtils.isEmpty(expressionResult)) {
-						LOGGER.debug("Expression result from search filter expression was null or empty (trying "
-								+ "to create filter with empty name attribute, while transforming search filter).");
+						LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",valueExpression);
 						return null;
 					}
 					// TODO: log more context

@@ -61,15 +61,15 @@ public abstract class TaskRunner implements Runnable {
 	public abstract void run();
 	
 	protected void runStart() {
-		LOGGER.info("Task "+task+" run starting ("+this.getClass().getSimpleName()+")");
+		LOGGER.info("Task run STARTING "+task+" ("+this.getClass().getSimpleName()+")");
 	}
 
 	protected void runFinish() {
-		LOGGER.info("Task "+task+" run finished ("+this.getClass().getSimpleName()+")");
+		LOGGER.info("Task run FINISHED "+task+" ("+this.getClass().getSimpleName()+")");
 	}
 
 	public void shutdown() {
-		LOGGER.info("Task "+task+" shutting down ("+this.getClass().getSimpleName()+")");
+		LOGGER.info("Task SHUTDOWN "+task+" ("+this.getClass().getSimpleName()+")");
 		task.shutdown();
 		// In case that the thread was sleeping ...
 		thread.interrupt();
