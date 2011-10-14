@@ -52,13 +52,13 @@
 			<ice:panelGroup>
 				<ice:outputLabel
 					value="#{msg['page.config.logging.midpointLogger']}" />
-				<ice:selectOneMenu id="level" value="#{logging.midpointLevelString}"
+				<ice:selectOneMenu id="level" value="#{logging.midpointLogger.levelString}"
 					style="margin-bottom: 20px;">
 					<f:selectItems value="#{logging.levels}" />
 				</ice:selectOneMenu>
 				<ice:outputLabel
 					value="#{msg['page.config.logging.midpointAppender']}" />
-				<ice:selectOneMenu value="#{logging.midpointAppender}">
+				<ice:selectOneMenu value="#{logging.midpointLogger.appendersText}">
 					<f:selectItems value="#{logging.appenderNames}" />
 				</ice:selectOneMenu>
 			</ice:panelGroup>

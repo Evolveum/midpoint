@@ -81,6 +81,7 @@ public class LoggingController implements Serializable {
 	private LoggingLevelType rootLoggerLevel;
 	private String rootAppender;
 
+	private SubsystemLoggerListItem midpointLogger;
 	private LoggingLevelType midpointLoggerLevel;
 	private String midpointAppender;
 
@@ -370,6 +371,9 @@ public class LoggingController implements Serializable {
 			return;
 		}
 		String value = (String) event.getNewValue();
+		if (StringUtils.isBlank(value)){
+			return;
+		}
 		BasicLoggerListItem logger = getLogger(parameter.getValue().toString());
 		if (logger == null) {
 			FacesUtils.addWarnMessage("Couldn't get logger by internal id.");
@@ -457,29 +461,46 @@ public class LoggingController implements Serializable {
 				((LoggerListItem) profilingLogger).setPackageName("PROFILING");
 				id++;
 			}
-			
-		
+
 			for (SubSystemLoggerConfigurationType logger : logging.getSubSystemLogger()) {
 				SubsystemLoggerListItem subsystemLoggerItem = createSubsystemLoggerListItem(id, logger);
 				// subsystemItems.add(subsystemLoggerItem);
 				id++;
 				subsystemItems.add(subsystemLoggerItem);
 				if (subsystemLoggerItem.getComponent().equals(LoggingComponentType.ALL)) {
-					midpointLoggerLevel = subsystemLoggerItem.getLevel();
-					String subsystemAppender = subsystemLoggerItem.getAppendersText();
-					if (subsystemAppender != null) {
-						midpointAppender = subsystemAppender;
-					} else {
-						midpointAppender = rootAppender;
-					}
+					midpointLogger = subsystemLoggerItem;
+				
+					// midpointLoggerLevel = subsystemLoggerItem.getLevel();
+					// String subsystemAppender =
+					// subsystemLoggerItem.getAppendersText();
+					//
+					// if (subsystemAppender != null) {
+					// midpointAppender = subsystemAppender;
+					// } else {
+					// midpointAppender = rootAppender;
+					// }
 					// continue;
+
+					id++;
 				}
 			}
+
+			if (midpointLogger == null) {
+				midpointLogger = new SubsystemLoggerListItem(id);
+//				midpointLogger.setAppenders(getAppenders());
+				midpointLogger.setAppendersText(rootAppender);
+				midpointLogger.setLevel(rootLoggerLevel);
+				midpointLogger.setComponent(LoggingComponentType.ALL);
+				
+
+				id++;
+			}
+
 			createSubsystemLogerList(subsystemItems, id);
 			result.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get logging configuration.", ex);
-			result.recordFatalError("Couldn't get logging configuration.");
+			result.recordFatalError("Couldn't get logging configuration. Reason: "+ ex.getMessage(), ex);
 			// FacesUtils.addErrorMessage("Couldn't get logging configuration.",
 			// ex);
 		} finally {
@@ -692,6 +713,9 @@ public class LoggingController implements Serializable {
 		configuration.setRootLoggerAppender(getRootAppender());
 		configuration.setRootLoggerLevel(rootLoggerLevel);
 
+		// updateMidpointLogger(midpointLogger);
+		loggers.add(midpointLogger);
+
 		for (AppenderListItem item : appenders) {
 			AppenderConfigurationType appender = createAppenderType(item);
 			configuration.getAppender().add(appender);
@@ -745,9 +769,9 @@ public class LoggingController implements Serializable {
 	}
 
 	public List<SelectItem> getProfilingLevels() {
-		
-			profilingLevels = new ArrayList<SelectItem>();
-	
+
+		profilingLevels = new ArrayList<SelectItem>();
+
 		for (ProfilingLevelType level : ProfilingLevelType.values()) {
 			SelectItem si = new SelectItem(level.getValue());
 			profilingLevels.add(si);
@@ -776,5 +800,19 @@ public class LoggingController implements Serializable {
 		LoggingLevelType level = ProfilingLevelType.toLoggerLevelType(selectedProfilingLevel);
 		profilingLogger.setLevel(level);
 	}
+
+	public SubsystemLoggerListItem getMidpointLogger() {
+		return midpointLogger;
+	}
+
+	public void setMidpointLogger(SubsystemLoggerListItem midpointLogger) {
+		this.midpointLogger = midpointLogger;
+	}
+
+	// private void updateMidpointLogger(SubsystemLoggerListItem midpointLogger)
+	// {
+	// midpointLogger.setLevel(midpointLoggerLevel);
+	// midpointLogger.setAppendersText(midpointAppender);
+	// }
 
 }
