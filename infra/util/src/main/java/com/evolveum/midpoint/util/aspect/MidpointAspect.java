@@ -92,6 +92,8 @@ public class MidpointAspect {
 		String prev = null;
 		int id = 0;
 		int d = 1;
+		boolean exc = false;
+		String excName = null;
 		//Profiling start
 		long startTime = System.nanoTime();
 
@@ -149,8 +151,14 @@ public class MidpointAspect {
 			}
 
 			//Process original call
+			try {
 			retValue = pjp.proceed();
-
+			
+			} catch (Exception e) {
+				excName = e.getClass().getName();
+				exc = true;
+				throw e;
+			}
 			//Return original response
 			return retValue;
 
@@ -198,7 +206,11 @@ public class MidpointAspect {
 
 				LOGGER_PROFILING.info(sb.toString());
 				if (LOGGER_PROFILING.isTraceEnabled()) {
-					LOGGER_PROFILING.trace("###### retval: {}", formatVal(retValue));
+					if (exc) {
+						LOGGER_PROFILING.trace("###### return exception: {}", excName );
+					} else {
+						LOGGER_PROFILING.trace("###### retval: {}", formatVal(retValue));
+					}
 				}
 			}
 			//Restore MDC
