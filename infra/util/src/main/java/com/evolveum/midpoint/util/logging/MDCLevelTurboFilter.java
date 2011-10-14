@@ -67,7 +67,19 @@ public class MDCLevelTurboFilter extends TurboFilter {
 		if (level.isGreaterOrEqual(borderLevel())) {
 			//Second test MDCvalue match current MDC->key => value 
 			if (mdcValue.equals(MDC.get(mdcKey))) {
-				return onMatch;
+				//if midpoint clas then process
+				if (logger.getName().contains("com.evolveum.midpoint")) {
+					return onMatch;
+				// if PROFILING then skip
+				} else if ("PROFILING".equals(logger.getName())) {
+					return FilterReply.NEUTRAL;
+				// if external class then move to TRACE 
+				} else {
+					if (level.isGreaterOrEqual(Level.DEBUG)) {
+						level = Level.TRACE;
+					}
+				}
+				
 			} else {
 				return onMismatch;
 			}
