@@ -15,7 +15,10 @@
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
+ * 
  * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2011 Katarina Valalikova
+ * Portions Copyrighted 2011 Peter Prochazka
  */
 
 package com.evolveum.midpoint.provisioning.ucf.impl;
@@ -58,9 +61,9 @@ public class Slf4jConnectorLogger implements LogSpi {
 			}
 		} else if (Level.INFO.equals(level)) {
 			if (null == ex) {
-				LOGGER.info(m, "method: {} msg:{}", method, message);
+				LOGGER.debug(m, "method: {} msg:{}", method, message);
 			} else {
-				LOGGER.info(m, "method: {} msg:{}", new Object[] { method, message }, ex);
+				LOGGER.debug(m, "method: {} msg:{}", new Object[] { method, message }, ex);
 			}
 		} else if (Level.WARN.equals(level)) {
 			if (null == ex) {
