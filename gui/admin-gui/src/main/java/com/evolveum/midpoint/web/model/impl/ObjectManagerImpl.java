@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -57,9 +58,15 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectManagerImpl.class);
 	@Autowired(required = true)
 	private transient ModelService model;
+	@Autowired(required = true)
+	private transient TaskManager taskManager;
 
 	protected ModelService getModel() {
 		return model;
+	}
+	
+	protected TaskManager getTaskManager() {
+		return taskManager;
 	}
 
 	@Override
