@@ -36,9 +36,35 @@
 	</ui:define>
 
 	<ui:define name="content">
-		<ice:form id="user-profile">
-			<ice:panelGrid columns="2" cellpadding="7" cellspacing="7"
-				id="userProfileGrid">
+		<hr />
+		<br />
+		<div
+			style="position: absolute; background-color: #C6C6C6; width: 150px; height: 210px; border: 1px solid #767676;">
+			<span
+				style="position: absolute; color: #454545; font-size: 17px; margin-top: 100px; margin-left: 50px;"><b>Photo</b>
+			</span>
+		</div>
+		<ice:form id="user-profile" style="position: absolute;">
+			<div style="margin-left: 170px; padding: 1px 0 10px 0;">
+				<idm:button action="#{userProfile.profileBackPerformed}"
+					value="#{msg['page.account.detail.button.back']}"
+					rendered="#{userProfile.editMode}" immediate="true"
+					img="/resources/images/door_in.png" />
+
+				<idm:button actionListener="#{userProfile.startEditMode}"
+					value="#{msg['page.account.detail.button.edit']}" id="editButton"
+					img="/resources/images/user_edit.png"
+					rendered="#{!userProfile.editMode}" immediate="true"
+					action="/profile/userProfile" />
+
+				<idm:button action="#{userProfile.fillUser}"
+					actionListener="#{userProfile.saveProfilePerformed}"
+					id="saveButton" buttonType="positive"
+					value="#{msg['page.account.detail.button.save']}"
+					img="/resources/images/user.png" rendered="#{userProfile.editMode}" />
+			</div>
+			<ice:panelGrid style="margin-left: 170px;" columns="2"
+				cellpadding="6" cellspacing="6" id="userProfileGrid">
 
 				<ice:outputText
 					value="#{msg['page.account.detail.tab.user.givenName']}" />
@@ -65,11 +91,13 @@
 					value="#{userProfile.user.fullName}"
 					rendered="#{userProfile.editMode}" />
 
-				<ice:outputText value="#{msg['page.account.detail.tab.user.name']}" />
-				<ice:outputText id="name" value="#{userProfile.user.name}"
-					rendered="#{!userProfile.editMode}" />
-				<ice:inputText id="nameText" value="#{userProfile.user.name}"
-					rendered="#{userProfile.editMode}" />
+				<ui:remove>
+					<ice:outputText value="#{msg['page.account.detail.tab.user.name']}" />
+					<ice:outputText id="name" value="#{userProfile.user.name}"
+						rendered="#{!userProfile.editMode}" />
+					<ice:inputText id="nameText" value="#{userProfile.user.name}"
+						rendered="#{userProfile.editMode}" />
+				</ui:remove>
 
 				<ice:outputLabel
 					value="#{msg['page.account.detail.tab.user.email']}" />
@@ -87,28 +115,30 @@
 					rendered="#{userProfile.editMode}" />
 			</ice:panelGrid>
 
-			<div class="button-bar">
-				<idm:button action="#{userProfile.profileBackPerformed}"
+		</ice:form>
+
+		<ice:form id="user-password"
+			style="position: absolute; margin-top: 230px;">
+			<div>
+				<idm:button action="#{userProfile.passwordBackPerformed}"
 					value="#{msg['page.account.detail.button.back']}"
-					rendered="#{userProfile.editMode}" immediate="true"
+					rendered="#{userProfile.editPasswordMode}" immediate="true"
 					img="/resources/images/door_in.png" />
 
-				<idm:button actionListener="#{userProfile.startEditMode}"
-					value="#{msg['page.account.detail.button.edit']}" id="editButton"
+				<idm:button actionListener="#{userProfile.startEditPasswordMode}"
+					value="Change password" id="editButton"
 					img="/resources/images/user_edit.png"
-					rendered="#{!userProfile.editMode}" immediate="true"
+					rendered="#{!userProfile.editPasswordMode}" immediate="true"
 					action="/profile/userProfile" />
 
 				<idm:button action="#{userProfile.fillUser}"
-					actionListener="#{userProfile.saveProfilePerformed}" id="saveButton"
-					buttonType="positive"
-					value="#{msg['page.account.detail.button.save']}"
-					img="/resources/images/user.png" rendered="#{userProfile.editMode}" />
+					actionListener="#{userProfile.savePasswordPerformed}"
+					id="savePaswordButton" buttonType="positive" value="Change"
+					img="/resources/images/user.png"
+					rendered="#{userProfile.editPasswordMode}" />
 			</div>
-		</ice:form>
-		<br />
-		<ice:form id="user-password">
-			<ice:panelGrid columns="2" cellpadding="7" cellspacing="7"
+
+			<ice:panelGrid columns="2" cellpadding="6" cellspacing="6" style=""
 				id="userPasswordGrid">
 
 				<ice:outputLabel
@@ -135,27 +165,19 @@
 				</ice:panelGroup>
 			</ice:panelGrid>
 
-			<div class="button-bar">
-				<idm:button action="#{userProfile.passwordBackPerformed}"
-					value="#{msg['page.account.detail.button.back']}"
-					rendered="#{userProfile.editPasswordMode}" immediate="true"
-					img="/resources/images/door_in.png" />
-					
-				<idm:button actionListener="#{userProfile.startEditPasswordMode}"
-					value="Change password" id="editButton"
-					img="/resources/images/user_edit.png"
-					rendered="#{!userProfile.editPasswordMode}" immediate="true"
-					action="/profile/userProfile" />
-
-				<idm:button action="#{userProfile.fillUser}"
-					actionListener="#{userProfile.savePasswordPerformed}"
-					id="savePaswordButton" buttonType="positive" value="Change"
-					img="/resources/images/user.png"
-					rendered="#{userProfile.editPasswordMode}" />
-			</div>
-
-
 		</ice:form>
 
+		<ice:form style="margin-top:330px;">
+			<hr />
+			<br />
+			<ice:panelTabSet id="icePnlTbSet" style="width: 100%;">
+				<ice:panelTab label="News">
+					<ice:outputText value="Some news in this tab..." />
+				</ice:panelTab>
+				<ice:panelTab label="Account and Role list">
+					<ice:outputText value="List of accounts and roles..." />
+				</ice:panelTab>
+			</ice:panelTabSet>
+		</ice:form>
 	</ui:define>
 </ui:composition>
