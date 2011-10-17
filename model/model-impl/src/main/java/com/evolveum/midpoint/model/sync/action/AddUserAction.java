@@ -19,7 +19,6 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  * Portions Copyrighted 2010 Forgerock
  */
-
 package com.evolveum.midpoint.model.sync.action;
 
 import java.util.List;
@@ -44,6 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 /**
  * 
  * @author Vilo Repan
+ * 
  */
 public class AddUserAction extends BaseAction {
 

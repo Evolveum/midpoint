@@ -120,16 +120,28 @@ public class ModelControllerImpl implements ModelController {
 	private transient ObjectImporter objectImporter;
 
 	@Override
-	public <T extends ObjectType> String addObject(T object, OperationResult result) throws ObjectAlreadyExistsException,
-			ObjectNotFoundException {
+	public <T extends ObjectType> String addObject(T object, OperationResult parentResult)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+		RepositoryCache.enter();
+		try {
+			return addObjectWithExclusion(object, null, parentResult);
+		} finally {
+			RepositoryCache.exit();
+		}
+	}
+
+	@Override
+	public <T extends ObjectType> String addObjectWithExclusion(T object, String accountOid,
+			OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException,
+			SchemaException {
 		Validate.notNull(object, "Object must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		if (!(object instanceof ResourceObjectShadowType)) {
 			Validate.notEmpty(object.getName(), "Object name must not be null or empty.");
 		}
 		RepositoryCache.enter();
-		LOGGER.trace("Adding object {} with oid {} and name {}.", new Object[] {
-				object.getClass().getSimpleName(), object.getOid(), object.getName() });
+		LOGGER.trace("Adding object {} with oid {} and name {} with exclusion to account '{}'.", new Object[] {
+				object.getClass().getSimpleName(), object.getOid(), object.getName(), accountOid });
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(JAXBUtil.silentMarshalWrap(object));
 		}
@@ -186,7 +198,8 @@ public class ModelControllerImpl implements ModelController {
 		}
 
 		OperationResult subResult = result.createSubresult(ADD_USER);
-		UserTypeHandler handler = new UserTypeHandler(this, provisioning, cacheRepositoryService, schemaHandler);
+		UserTypeHandler handler = new UserTypeHandler(this, provisioning, cacheRepositoryService,
+				schemaHandler);
 		return handler.addUser(user, userTemplate, subResult);
 	}
 
@@ -241,8 +254,8 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public <T extends ObjectType> ResultList<T> searchObjects(Class<T> type, QueryType query, PagingType paging,
-			OperationResult result) throws SchemaException, ObjectNotFoundException {
+	public <T extends ObjectType> ResultList<T> searchObjects(Class<T> type, QueryType query,
+			PagingType paging, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(query, "Query must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
@@ -304,8 +317,6 @@ public class ModelControllerImpl implements ModelController {
 		RepositoryCache.enter();
 		try {
 			modifyObjectWithExclusion(type, change, null, result);
-		} catch (ObjectNotFoundException ex) {
-			throw ex;
 		} finally {
 			RepositoryCache.exit();
 		}
@@ -318,9 +329,9 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(change, "Object modification must not be null.");
 		Validate.notEmpty(change.getOid(), "Change oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
-		
+
 		RepositoryCache.enter();
-		
+
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Modifying object with oid {} with exclusion account oid {}.",
 					new Object[] { change.getOid(), accountOid });
@@ -350,7 +361,7 @@ public class ModelControllerImpl implements ModelController {
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't update object with oid {}", ex, change.getOid());
-			String message = "Couldn't update object with oid '" + change.getOid() + "': "+ex.getMessage();
+			String message = "Couldn't update object with oid '" + change.getOid() + "': " + ex.getMessage();
 			subResult.recordFatalError(message, ex);
 			if (ex instanceof SystemException) {
 				RepositoryCache.exit();
@@ -379,7 +390,8 @@ public class ModelControllerImpl implements ModelController {
 		OperationResult subResult = result.createSubresult(DELETE_OBJECT);
 		subResult.addParams(new String[] { "oid" }, oid);
 		if (UserType.class.equals(clazz)) {
-			UserTypeHandler handler = new UserTypeHandler(this, provisioning, cacheRepositoryService, schemaHandler);
+			UserTypeHandler handler = new UserTypeHandler(this, provisioning, cacheRepositoryService,
+					schemaHandler);
 			handler.deleteObject(clazz, oid, subResult);
 			RepositoryCache.exit();
 			return;
@@ -484,7 +496,8 @@ public class ModelControllerImpl implements ModelController {
 
 		ResultList<T> list = null;
 		try {
-			list = cacheRepositoryService.listResourceObjectShadows(resourceOid, resourceObjectShadowType, subResult);
+			list = cacheRepositoryService.listResourceObjectShadows(resourceOid, resourceObjectShadowType,
+					subResult);
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
 			subResult.recordFatalError("Resource with oid '" + resourceOid + "' was not found.", ex);
@@ -511,8 +524,9 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public ResultList<? extends ResourceObjectShadowType> listResourceObjects(String resourceOid, QName objectClass, PagingType paging,
-			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException {
+	public ResultList<? extends ResourceObjectShadowType> listResourceObjects(String resourceOid,
+			QName objectClass, PagingType paging, OperationResult result) throws SchemaException,
+			ObjectNotFoundException, CommunicationException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(objectClass, "Object type must not be null.");
 		Validate.notNull(paging, "Paging must not be null.");
@@ -530,9 +544,9 @@ public class ModelControllerImpl implements ModelController {
 
 		ResultList<? extends ResourceObjectShadowType> list = null;
 		try {
-			
+
 			list = provisioning.listResourceObjects(resourceOid, objectClass, paging, subResult);
-			
+
 		} catch (SchemaException ex) {
 			RepositoryCache.exit();
 			subResult.recordFatalError("Schema violation");
@@ -572,23 +586,27 @@ public class ModelControllerImpl implements ModelController {
 		try {
 			testResult = provisioning.testResource(resourceOid);
 		} catch (ObjectNotFoundException ex) {
-			LOGGER.error("Error testing resource OID: {}: Object not found: {} ", new Object[]{resourceOid, ex.getMessage(), ex});
+			LOGGER.error("Error testing resource OID: {}: Object not found: {} ", new Object[] { resourceOid,
+					ex.getMessage(), ex });
 			RepositoryCache.exit();
 			throw ex;
 		} catch (SystemException ex) {
-			LOGGER.error("Error testing resource OID: {}: Object not found: {} ", new Object[]{resourceOid, ex.getMessage(), ex});
+			LOGGER.error("Error testing resource OID: {}: Object not found: {} ", new Object[] { resourceOid,
+					ex.getMessage(), ex });
 			RepositoryCache.exit();
 			throw ex;
 		} catch (Exception ex) {
-			LOGGER.error("Error testing resource OID: {}: {} ", new Object[]{resourceOid, ex.getMessage(), ex});
+			LOGGER.error("Error testing resource OID: {}: {} ", new Object[] { resourceOid, ex.getMessage(),
+					ex });
 			RepositoryCache.exit();
 			throw new SystemException(ex.getMessage(), ex);
 		}
 
 		if (testResult != null) {
-			LOGGER.debug("Finished testing resource OID: {}, result: {} ", resourceOid, testResult.getStatus());
+			LOGGER.debug("Finished testing resource OID: {}, result: {} ", resourceOid,
+					testResult.getStatus());
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Test result:\n{}",testResult.dump(false));
+				LOGGER.trace("Test result:\n{}", testResult.dump(false));
 			}
 		} else {
 			LOGGER.error("Test resource returned null result");
@@ -655,7 +673,7 @@ public class ModelControllerImpl implements ModelController {
 		OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_STREAM);
 		objectImporter.importObjects(input, options, task, result, cacheRepositoryService);
 		// No need to compute status. The validator inside will do it.
-		//result.computeStatus("Couldn't import object from input stream.");
+		// result.computeStatus("Couldn't import object from input stream.");
 		RepositoryCache.exit();
 	}
 
@@ -666,7 +684,7 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(result, "Operation result must not be null.");
 		Validate.notNull(clazz, "Object class must not be null.");
 		RepositoryCache.enter();
-		
+
 		OperationResult subResult = result.createSubresult(GET_OBJECT);
 		subResult.addParams(new String[] { "oid", "resolve", "class" }, oid, resolve, clazz);
 
@@ -745,7 +763,8 @@ public class ModelControllerImpl implements ModelController {
 	private String addRepositoryObject(ObjectType object, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException {
 		if (object instanceof UserType) {
-			UserTypeHandler handler = new UserTypeHandler(this, provisioning, cacheRepositoryService, schemaHandler);
+			UserTypeHandler handler = new UserTypeHandler(this, provisioning, cacheRepositoryService,
+					schemaHandler);
 			return handler.addObject(object, result);
 		}
 
@@ -848,8 +867,8 @@ public class ModelControllerImpl implements ModelController {
 					object = (T) ((JAXBElement<ResourceObjectShadowType>) JAXBUtil
 							.unmarshal(xmlPatchedObject)).getValue();
 
-					ObjectModificationType newChange = new BasicHandler(this, provisioning, cacheRepositoryService,
-							schemaHandler).processOutboundSchemaHandling(user,
+					ObjectModificationType newChange = new BasicHandler(this, provisioning,
+							cacheRepositoryService, schemaHandler).processOutboundSchemaHandling(user,
 							(ResourceObjectShadowType) object, result);
 					if (newChange != null) {
 
@@ -909,7 +928,8 @@ public class ModelControllerImpl implements ModelController {
 			ObjectModificationType change, String accountOid, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
 		if (type.isAssignableFrom(UserType.class)) {
-			UserTypeHandler handler = new UserTypeHandler(this, provisioning, cacheRepositoryService, schemaHandler);
+			UserTypeHandler handler = new UserTypeHandler(this, provisioning, cacheRepositoryService,
+					schemaHandler);
 			handler.modifyObjectWithExclusion(type, change, accountOid, result);
 			return;
 		}
@@ -942,7 +962,7 @@ public class ModelControllerImpl implements ModelController {
 		provisioning.postInit(result);
 
 		result.computeStatus("Error occured during post initialization process.");
-		
+
 		RepositoryCache.exit();
 	}
 }
