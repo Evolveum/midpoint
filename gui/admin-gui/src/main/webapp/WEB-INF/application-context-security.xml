@@ -41,7 +41,10 @@
 		<intercept-url pattern="/login.iface" access="permitAll" />
 		<intercept-url pattern="/maintenance.iface" access="permitAll" />
 		<intercept-url pattern="/error.iface" access="permitAll" />
-		<intercept-url pattern="/**" access="isAuthenticated()" />
+		<intercept-url pattern="/user-gui/login.iface" access="permitAll" />
+		<intercept-url pattern="/user-gui/**" access="hasAnyRole('ROLE_USER','ROLE_ADMIN')" />
+		<intercept-url pattern="/**" access="hasRole('ROLE_ADMIN')" />
+		<intercept-url pattern="/user-gui/**" access="isAuthenticated()" />
 
 		<form-login login-processing-url="/j_spring_security_check" login-page="/login.iface"
 			authentication-failure-url="/login.iface" />

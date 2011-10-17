@@ -49,6 +49,8 @@ public class LoginController implements Serializable {
 	private transient AuthenticationManager authenticationManager;
 	private String userName;
 	private String userPassword;
+	private String adminName;
+	private String adminPassword;
 	private SecurityUtils secUtils = new SecurityUtils();
 
 	public String getUserName() {
@@ -66,6 +68,22 @@ public class LoginController implements Serializable {
 	public String getUserPassword() {
 		return userPassword;
 	}
+	
+	public String getAdminName() {
+		return adminName;
+	}
+
+	public void setAdminName(String adminName) {
+		this.adminName = adminName;
+	}
+
+	public String getAdminPassword() {
+		return adminPassword;
+	}
+
+	public void setAdminPassword(String adminPassword) {
+		this.adminPassword = adminPassword;
+	}
 
 	public String loginUser() {
 		try {
@@ -82,11 +100,29 @@ public class LoginController implements Serializable {
 			}
 			return null;
 		}
+		return "/user-gui/index.xhml?faces-redirect=true";
+	}
 
+	public String loginAdmin() {
+		try {
+			Authentication request = new UsernamePasswordAuthenticationToken(this.getAdminName(),
+					getAdminPassword());
+			Authentication result = authenticationManager.authenticate(request);
+			SecurityContextHolder.getContext().setAuthentication(result);
+		} catch (AuthenticationException ex) {
+			Object extra = ex.getExtraInformation();
+			if (extra instanceof Object[]) {
+				FacesUtils.addErrorMessage(FacesUtils.translateKey(ex.getMessage(), (Object[]) extra));
+			} else {
+				FacesUtils.addErrorMessage(FacesUtils.translateKey(ex.getMessage()));
+			}
+			return null;
+		}
 		if (secUtils.getIsAdminLoggedIn()) {
 			return "/index.xhml?faces-redirect=true";
 		} else {
-			return "/user-gui/index.xhml?faces-redirect=true";
+			FacesUtils.addErrorMessage("You haven't permission to login like administrator.");
+			return null;
 		}
 	}
 }

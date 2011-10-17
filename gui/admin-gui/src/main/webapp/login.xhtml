@@ -24,21 +24,21 @@
 				<ice:panelGrid columns="3" cellpadding="5" cellspacing="5">
 					<ice:outputLabel for="name"
 						value="#{msg['page.login.username']}" />
-					<ice:inputText id="name" value="#{loginController.userName}"
+					<ice:inputText id="name" value="#{loginController.adminName}"
 						required="true" requiredMessage="#{msg['field.required']}" />
 					<h:message for="name" errorClass="error" />
 
 					<ice:outputLabel for="password"
 						value="#{msg['page.login.password']}" />
 					<ice:inputSecret id="password"
-						value="#{loginController.userPassword}" required="true"
+						value="#{loginController.adminPassword}" required="true"
 						requiredMessage="#{msg['field.required']}"
-						action="#{loginController.loginUser}" />
+						action="#{loginController.loginAdmin}" />
 					<h:message for="password" errorClass="error" />
 
 					<f:facet name="footer">
 						<div class="button-bar" style="text-align: center;">
-							<idm:button action="#{loginController.loginUser}"
+							<idm:button action="#{loginController.loginAdmin}"
 								id="loginButton" value="#{msg['page.login.button']}"
 								img="/resources/images/key.png" />
 						</div>
