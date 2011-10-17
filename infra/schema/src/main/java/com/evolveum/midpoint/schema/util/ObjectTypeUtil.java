@@ -40,6 +40,7 @@ import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType.Password;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -180,7 +181,7 @@ public class ObjectTypeUtil {
 		StringBuilder builder = new StringBuilder();
 		ObjectTypes objectTypeType = ObjectTypes.getObjectType(object.getClass());
 		if (objectTypeType != null) {
-			objectTypeType.getQName().getLocalPart();
+			builder.append(objectTypeType.getQName().getLocalPart());
 		} else {
 			builder.append(object.getClass().getSimpleName());
 		}
@@ -192,6 +193,26 @@ public class ObjectTypeUtil {
 
 		return builder.toString();
 	}
+	
+	public static String toShortString(AssignmentType assignment) {
+		if (assignment == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("Assignment(");
+		if (assignment.getAccountConstruction() != null) {
+			sb.append("account");
+			// TODO
+		}
+		if (assignment.getTarget() != null) {
+			sb.append(toShortString(assignment.getTarget()));
+		}
+		if (assignment.getTargetRef() != null) {
+			sb.append(toShortString(assignment.getTargetRef()));
+		}
+		sb.append(")");
+		return sb.toString();
+	}
+
 
 	public static String dump(ObjectType object) {
 		StringBuilder sb = new StringBuilder();
@@ -378,6 +399,25 @@ public class ObjectTypeUtil {
 		return null;
 	}
 
+	public static boolean isModificationOf(PropertyModificationType modification, QName elementName) {
+		return isModificationOf(modification, elementName, null);
+	}
+	
+	public static boolean isModificationOf(PropertyModificationType modification, QName elementName, XPathHolder path) {
+
+		if (path == null && XPathHolder.isDefault(modification.getPath())) {
+			return (elementName.equals(ObjectTypeUtil.getElementName(modification)));
+		}
+		if (path == null) {
+			return false;
+		}
+		XPathHolder modPath = new XPathHolder(modification.getPath());
+		if (path.equals(modPath)) {
+			return (elementName.equals(ObjectTypeUtil.getElementName(modification)));
+		}
+		return false;
+	}
+	
 	public static QName getElementName(PropertyModificationType propertyModification) {
 		if (propertyModification.getValue() == null) {
 			throw new IllegalArgumentException("Modification without value element");
@@ -392,5 +432,5 @@ public class ObjectTypeUtil {
 		return (objectModification.getPropertyModification() == null) || 
 				objectModification.getPropertyModification().isEmpty();
 	}
-
+	
 }

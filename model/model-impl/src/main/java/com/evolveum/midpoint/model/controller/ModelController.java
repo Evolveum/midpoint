@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.model.controller;
 
+import java.util.Collection;
+
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
@@ -45,18 +47,8 @@ public interface ModelController extends ModelService {
 	String MODIFY_OBJECT_WITH_EXCLUSION = CLASS_NAME_WITH_DOT + "modifyObjectWithExclusion";
 	String CHANGE_ACCOUNT = CLASS_NAME_WITH_DOT + "changeAccount";
 
-	/**
-	 * TODO: document
-	 * 
-	 * @param <T>
-	 * @param type
-	 * @param change
-	 * @param accountOid
-	 * @param result
-	 * @throws ObjectNotFoundException
-	 */
 	<T extends ObjectType> void modifyObjectWithExclusion(Class<T> type, ObjectModificationType change,
-			String accountOid, OperationResult result) throws ObjectNotFoundException;
+			Collection<String> excludedResourceOids, OperationResult result) throws ObjectNotFoundException;
 
 	/**
 	 * TODO: document

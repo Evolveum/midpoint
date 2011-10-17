@@ -141,6 +141,9 @@ public class Utils {
 	}
 
 	public static boolean haveToResolve(String propertyName, PropertyReferenceListType resolve) {
+		if (resolve == null) {
+			return false;
+		}
 		for (PropertyReferenceType property : resolve.getProperty()) {
 			XPathHolder xpath = new XPathHolder(property.getProperty());
 			List<XPathSegment> segments = xpath.toSegments();

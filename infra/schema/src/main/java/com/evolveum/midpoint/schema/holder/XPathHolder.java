@@ -493,5 +493,16 @@ public class XPathHolder {
 		}
 		return segments.subList(i, this.segments.size());
 	}
+
+	public static boolean isDefault(Element pathElement) {
+		if (pathElement == null) {
+			return true;
+		}
+		XPathHolder xpath = new XPathHolder(pathElement);
+		if (xpath.isEmpty()) {
+			return true;
+		}
+		return false;
+	}
 	
 }

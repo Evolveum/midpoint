@@ -55,6 +55,7 @@ import com.evolveum.midpoint.schema.namespace.PrefixMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
@@ -626,6 +627,37 @@ public final class JAXBUtil {
 		}
 
 		return DOMUtil.compareElement(ae, be);
+	}
+
+	public static <T> T fromElement(Object element, Class<T> type) {
+		
+		if (element == null) {
+			return null;
+		}
+		
+		if (type.isAssignableFrom(element.getClass())) {
+			return (T) element;
+		}
+		
+		if (element instanceof JAXBElement) {
+			if (((JAXBElement) element).getValue() == null) {
+				return null;
+			}
+			if (type.isAssignableFrom(((JAXBElement) element).getValue().getClass())) {
+				return (T) ((JAXBElement) element).getValue();
+			}
+		}
+		
+		if (element instanceof Element) {
+			try {
+				JAXBElement<T> unmarshalledElement = unmarshal((Element)element, type);
+				return unmarshalledElement.getValue();
+			} catch (JAXBException e) {
+				throw new IllegalArgumentException("Unmarshall failed: " + e.getMessage(),e);
+			}
+		}
+		
+		throw new IllegalArgumentException("Unknown element type "+element.getClass().getName());
 	}
 
 }

@@ -91,6 +91,7 @@ public abstract class SchemaConstants {
 	public static final QName I_SCHEMA_HANDLING = new QName(NS_C, "schemaHandling");
 	public static final QName I_USER_TYPE = new QName(NS_C, "UserType");
 	public static final QName I_USER = new QName(NS_C, "user");
+	public static final QName C_ASSIGNMENT = new QName(NS_C, "assignment");
 	public static final QName I_USER_TEMPLATE_TYPE = new QName(NS_C, "UserTemplateType");
 	public static final QName I_GENERIC_OBJECT_TYPE = new QName(NS_C, "GenericObjectType");
 	public static final QName I_GENERIC_OBJECT = new QName(NS_C, "genericObject");

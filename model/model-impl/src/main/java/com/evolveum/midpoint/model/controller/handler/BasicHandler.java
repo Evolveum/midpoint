@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.model.controller.handler;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.model.controller.SchemaHandler;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommonException;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
@@ -46,15 +48,19 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -63,6 +69,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.PasswordCapabilityType;
 
 /**
  * 
@@ -137,7 +145,7 @@ public class BasicHandler {
 	}
 
 	protected UserType processUserTemplateForUser(UserType user, UserTemplateType userTemplate,
-			OperationResult result) {
+			Collection<String> excludedResourceOids, OperationResult result) {
 		OperationResult subResult = result.createSubresult(ModelControllerImpl.PROCESS_USER_TEMPLATE);
 		subResult.addParams(new String[] { "user", "userTemplate" }, user, userTemplate);
 		if (userTemplate == null) {
@@ -152,76 +160,155 @@ public class BasicHandler {
 					"Couldn't process property construction from template {} on user {}", ex,
 					userTemplate.getName(), user.getName());
 		}
-		processUserTemplateAccountConstruction(user, userTemplate, subResult);
+		processUserTemplateAccountConstruction(user, userTemplate, excludedResourceOids, subResult);
 		subResult.computeStatus("Couldn't finish process user template.");
 
+		// The user is now polluted with both accountRef and account elements. Get rid of the accounts, leave just accountRefs.
+		user.getAccount().clear();
+		
 		return user;
 	}
 
 	private void processUserTemplateAccountConstruction(UserType user, UserTemplateType userTemplate,
-			OperationResult result) {
+			Collection<String> excludedResourceOids, OperationResult result) {
 		for (AccountConstructionType construction : userTemplate.getAccountConstruction()) {
-			OperationResult subResult = result.createSubresult(ModelControllerImpl.CREATE_ACCOUNT);
-			subResult.addParams(new String[] { "user", "userTemplate" }, user, userTemplate);
-			try {
-				processAccountConstructionForUser(user, construction, subResult);
-			} catch (Exception ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't process account construction '{}' for user {}",
-						ex, construction.getType(), user.getName());
-				subResult.recordFatalError("Something went terribly wrong.", ex);
-				result.recordWarning("Couldn't process account construction '" + construction.getType()
-						+ "'.", ex);
-			} finally {
-				subResult.computeStatus("Couldn't process account construction '" + construction.getType()
-						+ "'.");
+			processAccountConstruction(user, construction, userTemplate, excludedResourceOids, result);
+		}
+	}
+
+	protected ObjectReferenceType processAccountConstruction(UserType user, AccountConstructionType construction, 
+			ObjectType containingObject, Collection<String> excludedResourceOids, OperationResult result) {
+		
+		ObjectReferenceType resourceRef = construction.getResourceRef();
+		
+		if (excludedResourceOids != null && excludedResourceOids.contains(resourceRef.getOid())) {
+			LOGGER.trace("Resource "+resourceRef.getOid()+" excluded, skipping");
+			return null;
+		}
+		
+		for (AccountShadowType account: user.getAccount()) {
+			if (account.getResourceRef().getOid().equals(resourceRef.getOid())) {
+				LOGGER.trace("Account on resource "+resourceRef.getOid()+" already exists for "+ObjectTypeUtil.toShortString(user));
+				return null;
 			}
 		}
-	}
-
-	protected void processAccountConstruction(UserType user, AccountConstructionType construction,
-			OperationResult result) {
+		
 		OperationResult subResult = result.createSubresult(ModelControllerImpl.CREATE_ACCOUNT);
 		subResult.addParams(new String[] { "user" }, user);
+		subResult.addParam("exclusions", excludedResourceOids);
+		
+		ResourceType resource;
 		try {
-			processAccountConstructionForUser(user, construction, subResult);
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't process account construction '{}' for user {}", ex,
-					construction.getType(), user.getName());
-			subResult.recordFatalError("Something went terribly wrong.", ex);
-			result.recordWarning("Couldn't process account construction '" + construction.getType() + "'.",
-					ex);
-		} finally {
-			subResult
-					.computeStatus("Couldn't process account construction '" + construction.getType() + "'.");
+			resource = getObject(ResourceType.class, resourceRef.getOid(),
+					new PropertyReferenceListType(), result);
+		} catch (ObjectNotFoundException e) {
+			LoggingUtils.logException(LOGGER, "Cannot find resource (OID:{}) in account construction in {}", e,
+					resourceRef.getOid(), ObjectTypeUtil.toShortString(containingObject));
+			subResult.recordFatalError("Cannot find resource (OID:"+resourceRef.getOid()+") in account construction in " + 
+					ObjectTypeUtil.toShortString(containingObject), e);
+			return null;
 		}
-	}
-
-	@SuppressWarnings("unchecked")
-	private void processAccountConstructionForUser(UserType user, AccountConstructionType construction,
-			OperationResult result) throws ObjectNotFoundException, PatchException, JAXBException,
-			ObjectAlreadyExistsException, SchemaException {
-		ObjectReferenceType resourceRef = construction.getResourceRef();
-		ResourceType resource = getObject(ResourceType.class, resourceRef.getOid(),
-				new PropertyReferenceListType(), result);
 
 		AccountType accountType = ModelUtils.getAccountTypeFromHandling(construction.getType(), resource);
 
 		AccountShadowType account = new AccountShadowType();
 		account.setAttributes(new ResourceObjectShadowType.Attributes());
 		account.setObjectClass(accountType.getObjectClass());
-		account.setName(resource.getName() + "-" + user.getName());
+		// Should work without this, provisioning should create it
+//		account.setName(resource.getName() + "-" + user.getName());
 		account.setResourceRef(resourceRef);
 		account.setActivation(user.getActivation());
+		
+		try {
+			
+			pushPasswordFromUserToAccount(user, account, result);
+			
+		} catch (ObjectNotFoundException e) {
+			LoggingUtils.logException(LOGGER, "Cannot find resource (OID:{}) in account construction in {}", e,
+					account.getResourceRef().getOid(), ObjectTypeUtil.toShortString(containingObject));
+			subResult.recordFatalError("Cannot find resource (OID:"+account.getResourceRef().getOid()+") in account construction in " + 
+					ObjectTypeUtil.toShortString(containingObject), e);
+			return null;
+		}
 
 		ObjectModificationType changes = processOutboundSchemaHandling(user, account, result);
 		if (changes != null) {
 			PatchXml patchXml = new PatchXml();
-			String accountXml = patchXml.applyDifferences(changes, account);
-			account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(accountXml)).getValue();
+			String accountXml;
+			try {
+				accountXml = patchXml.applyDifferences(changes, account);
+			} catch (PatchException e) {
+				LoggingUtils.logException(LOGGER, "Cannot apply changes while processing account construction in {}", e,
+						ObjectTypeUtil.toShortString(containingObject));
+				subResult.recordFatalError("Cannot apply changes while processing account construction in " + 
+						ObjectTypeUtil.toShortString(containingObject), e);
+				return null;
+			}
+			try {
+				account = JAXBUtil.unmarshal(AccountShadowType.class, accountXml).getValue();
+			} catch (JAXBException e) {
+				LoggingUtils.logException(LOGGER, "Error after aplying changes while processing account construction in {}", e,
+						ObjectTypeUtil.toShortString(containingObject));
+				subResult.recordFatalError("Cannot apply changes while processing account construction in " + 
+						ObjectTypeUtil.toShortString(containingObject), e);
+				return null;
+			}
 		}
 
-		String accountOid = getModelController().addObject(account, result);
-		user.getAccountRef().add(ModelUtils.createReference(accountOid, ObjectTypes.ACCOUNT));
+		String accountOid;
+		try {
+			accountOid = getModelController().addObject(account, result);
+		} catch (ObjectAlreadyExistsException e) {
+			LoggingUtils.logException(LOGGER, "Error creating account based on account construction in {}", e,
+					ObjectTypeUtil.toShortString(containingObject));
+			subResult.recordFatalError("Error creating account based on account construction in " + 
+					ObjectTypeUtil.toShortString(containingObject), e);
+			return null;
+		} catch (ObjectNotFoundException e) {
+			LoggingUtils.logException(LOGGER, "Error creating account based on account construction in {}", e,
+					ObjectTypeUtil.toShortString(containingObject));
+			subResult.recordFatalError("Error creating account based on account construction in " + 
+					ObjectTypeUtil.toShortString(containingObject), e);
+			return null;
+		} catch (SchemaException e) {
+			LoggingUtils.logException(LOGGER, "Error creating account based on account construction in {}", e,
+					ObjectTypeUtil.toShortString(containingObject));
+			subResult.recordFatalError("Error creating account based on account construction in " + 
+					ObjectTypeUtil.toShortString(containingObject), e);
+			return null;
+		}
+
+		ObjectReferenceType accountRef = ModelUtils.createReference(accountOid, ObjectTypes.ACCOUNT);
+		// Adding the account in the temporary copy of the user, so other
+		// invocations of this method will see the accounts and won't create it again
+		user.getAccount().add(account);
+		user.getAccountRef().add(accountRef);
+		
+		ObjectModificationType userModification = new ObjectModificationType();
+		userModification.setOid(user.getOid());
+		userModification.getPropertyModification().add(
+				ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.add, null,
+						SchemaConstants.I_ACCOUNT_REF, accountRef));
+		try {
+		
+			getRepository().modifyObject(UserType.class, userModification, result);
+			
+		} catch (ObjectNotFoundException e) {
+			LoggingUtils.logException(LOGGER, "Error linking account based on account construction in {}", e,
+					ObjectTypeUtil.toShortString(containingObject));
+			subResult.recordFatalError("Error creating account based on account construction in " + 
+					ObjectTypeUtil.toShortString(containingObject), e);
+			return null;
+		} catch (SchemaException e) {
+			LoggingUtils.logException(LOGGER, "Error linking account based on account construction in {}", e,
+					ObjectTypeUtil.toShortString(containingObject));
+			subResult.recordFatalError("Error creating account based on account construction in " + 
+					ObjectTypeUtil.toShortString(containingObject), e);
+			return null;
+		}
+		
+		subResult.recordSuccess();
+		return accountRef;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -360,4 +447,43 @@ public class BasicHandler {
 			subResult.computeStatus("Couldn't resolve resource with oid '" + reference.getOid() + "'.");
 		}
 	}
+
+	/**
+	 * MID-72, MID-73 password push from user to account
+	 */
+	protected void pushPasswordFromUserToAccount(UserType user, AccountShadowType account, OperationResult result)
+			throws ObjectNotFoundException {
+				ResourceType resource = resolveResource(account, result);
+				// checking resource password capabilities for password push to account
+				CredentialsCapabilityType credentialsCapability = ResourceTypeUtil.getEffectiveCapability(resource,
+						CredentialsCapabilityType.class);
+				if (credentialsCapability == null) {
+					return;
+				}
+			
+				PasswordCapabilityType passwordCapability = credentialsCapability.getPassword();
+				if (passwordCapability == null) {
+					return;
+				}
+			
+				AccountType accountHandling = ModelUtils.getAccountTypeFromHandling(account, resource);
+				boolean pushPasswordToAccount = false;
+				// check also if account that is processed to add doesn't have set
+				// different password as user -> account.getCredentials() in this case
+				// is not null..
+				if (accountHandling != null && accountHandling.getCredentials() != null
+						&& accountHandling.getCredentials().isOutboundPassword() != null
+						&& account.getCredentials() == null) {
+					pushPasswordToAccount = accountHandling.getCredentials().isOutboundPassword();
+				}
+				if (pushPasswordToAccount && user.getCredentials() != null
+						&& user.getCredentials().getPassword() != null) {
+					CredentialsType credentials = account.getCredentials();
+					if (credentials == null) {
+						credentials = new CredentialsType();
+						account.setCredentials(credentials);
+					}
+					credentials.setPassword(user.getCredentials().getPassword());
+				}
+			}
 }

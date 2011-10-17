@@ -32,7 +32,6 @@
    http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd ../ns/public/resource/idconnector/resource-schema-1.xsd
    http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd ../ns/public/resource/idconnector/configuration-1.xsd'>
  
-	<c:name>Localhost OpenDJ-bond</c:name>	
 	<c:resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType" />
 	<c:objectClass>ri:Account</c:objectClass>
 	<c:attributes>

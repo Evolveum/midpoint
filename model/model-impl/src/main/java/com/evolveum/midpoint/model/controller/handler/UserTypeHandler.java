@@ -21,7 +21,10 @@
 package com.evolveum.midpoint.model.controller.handler;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -31,6 +34,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.model.Delta;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.controller.ModelControllerImpl;
 import com.evolveum.midpoint.model.controller.ModelUtils;
@@ -58,7 +62,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -67,14 +70,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModification
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.AccountType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.PasswordCapabilityType;
 
 /**
+ * 
+ * THIS NEEDS TO BE SERIOUSLY REFACTORED!
  * 
  * @author lazyman
  * 
@@ -96,24 +98,27 @@ public class UserTypeHandler extends BasicHandler {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T extends ObjectType> void modifyObjectWithExclusion(Class<T> type,
-			ObjectModificationType change, String accountOid, OperationResult result)
+	public <T extends ObjectType> void modifyObject(Class<T> type,
+			ObjectModificationType change, Collection<String> excludedResourceOids, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
-		UserType user = getObject(UserType.class, change.getOid(), new PropertyReferenceListType(), result);
+		LOGGER.trace("UserTypeHandler: modifyObjectWithExclusion: {}",change);
+		UserType userBefore = getObject(UserType.class, change.getOid(), new PropertyReferenceListType(), result);
 		// ADD and DELETE account changes
 		List<PropertyModificationType> accountChanges = getAccountChanges(change);
 		// we remove account changes, then we save user object
 		change.getPropertyModification().removeAll(accountChanges);
+		
+		UserType userAfter = userBefore;
 		if (!change.getPropertyModification().isEmpty()) {
 			// not only account was added/deleted, other attributes has changed
 			getRepository().modifyObject(UserType.class, change, result);
 
 			try {
 				PatchXml patchXml = new PatchXml();
-				String u = patchXml.applyDifferences(change, user);
-				user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(u)).getValue();
+				String u = patchXml.applyDifferences(change, userBefore);
+				userAfter = ((JAXBElement<UserType>) JAXBUtil.unmarshal(u)).getValue();
 			} catch (Exception ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't patch user {}", ex, user.getName());
+				LoggingUtils.logException(LOGGER, "Couldn't patch user {}", ex, userAfter.getName());
 			}
 		}
 
@@ -130,20 +135,21 @@ public class UserTypeHandler extends BasicHandler {
 		// from now on we have updated user, next step is processing
 		// outbound for every existing account or enable/disable account if
 		// needed
-		modifyAccountsAfterUserWithExclusion(user, userActivationChanged, userCredentialsChanged, accountOid,
+		modifyAccountsAfterUserWithExclusion(userAfter, userActivationChanged, userCredentialsChanged, excludedResourceOids,
 				result);
 
 		// process add and delete accounts
-		List<PropertyModificationType> userChanges = processAddDeleteAccountFromChanges(accountChanges, user,
+		List<PropertyModificationType> userAccountChanges = processAddDeleteAccountFromChanges(accountChanges, userAfter,
 				result);
-		if (userChanges.isEmpty()) {
-			return;
+		if (!userAccountChanges.isEmpty()) {			
+			// update user by adding and removing accountRef elements
+			change = new ObjectModificationType();
+			change.setOid(userAfter.getOid());
+			change.getPropertyModification().addAll(userAccountChanges);
+			getRepository().modifyObject(UserType.class, change, result);
 		}
-		// update user by adding and removing accountRef elements
-		change = new ObjectModificationType();
-		change.setOid(user.getOid());
-		change.getPropertyModification().addAll(userChanges);
-		getRepository().modifyObject(UserType.class, change, result);
+		
+		processModifyAssignments(userBefore, change, excludedResourceOids, result);
 	}
 
 	private List<PropertyModificationType> getAccountChanges(ObjectModificationType change) {
@@ -168,13 +174,12 @@ public class UserTypeHandler extends BasicHandler {
 		return modifications;
 	}
 
-	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult result)
+	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, Collection<String> excludedResourceOids, OperationResult result)
 			throws ObjectNotFoundException, ConsistencyViolationException {
 		try {
-			UserType user = getObject(UserType.class, oid,
-					ModelUtils.createPropertyReferenceListType("account", "resource"), result);
-			processAssignments(user, user.getAssignment(), result, AssignOperation.DELETE);
-			deleteUserAccounts((UserType) user, result);
+			UserType user = getObject(UserType.class, oid, null, result);
+			processDeleteAssignments(user, user.getAssignment(), excludedResourceOids, result);
+			deleteUserAccounts(user, result);
 
 			getRepository().deleteObject(UserType.class, oid, result);
 			result.recordSuccess();
@@ -196,7 +201,7 @@ public class UserTypeHandler extends BasicHandler {
 		}
 	}
 
-	public String addObject(ObjectType object, OperationResult result) throws ObjectAlreadyExistsException,
+	public String addObject(ObjectType object, Collection<String> excludedResourceOids, OperationResult result) throws ObjectAlreadyExistsException,
 			ObjectNotFoundException {
 		if (!(object instanceof UserType)) {
 			throw new IllegalArgumentException("Can't add '" + object.getName() + "', type '"
@@ -204,10 +209,10 @@ public class UserTypeHandler extends BasicHandler {
 					+ "'.");
 		}
 
-		return addUser((UserType) object, null, result);
+		return addUser((UserType) object, null, excludedResourceOids, result);
 	}
 
-	public String addUser(UserType user, UserTemplateType userTemplate, OperationResult result)
+	public String addUser(UserType user, UserTemplateType userTemplate, Collection<String> excludedResourceOids, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException {
 		if (userTemplate == null) {
 			SystemConfigurationType systemConfiguration = getSystemConfiguration(result);
@@ -228,9 +233,9 @@ public class UserTypeHandler extends BasicHandler {
 			// TODO: process add account should be removed, we have to use only
 			// assignments and there should be account if needed
 			processAddAccountFromUser(user, result);
-			processAssignments(user, user.getAssignment(), result, AssignOperation.ADD);
+			processAddAssignments(user, user.getAssignment(), excludedResourceOids, result);
 
-			user = processUserTemplateForUser(user, userTemplate, result);
+			user = processUserTemplateForUser(user, userTemplate, excludedResourceOids, result);
 			oid = getRepository().addObject(user, result);
 			result.recordSuccess();
 		} catch (ObjectAlreadyExistsException ex) {
@@ -282,45 +287,6 @@ public class UserTypeHandler extends BasicHandler {
 			}
 		}
 		user.getAccount().removeAll(accountsToDelete);
-	}
-
-	/**
-	 * MID-72, MID-73 password push from user to account
-	 */
-	private void pushPasswordFromUserToAccount(UserType user, AccountShadowType account,
-			OperationResult result) throws ObjectNotFoundException {
-		ResourceType resource = resolveResource(account, result);
-		// checking resource password capabilities for password push to account
-		CredentialsCapabilityType credentialsCapability = ResourceTypeUtil.getEffectiveCapability(resource,
-				CredentialsCapabilityType.class);
-		if (credentialsCapability == null) {
-			return;
-		}
-
-		PasswordCapabilityType passwordCapability = credentialsCapability.getPassword();
-		if (passwordCapability == null) {
-			return;
-		}
-
-		AccountType accountHandling = ModelUtils.getAccountTypeFromHandling(account, resource);
-		boolean pushPasswordToAccount = false;
-		// check also if account that is processed to add doesn't have set
-		// different password as user -> account.getCredentials() in this case
-		// is not null..
-		if (accountHandling != null && accountHandling.getCredentials() != null
-				&& accountHandling.getCredentials().isOutboundPassword() != null
-				&& account.getCredentials() == null) {
-			pushPasswordToAccount = accountHandling.getCredentials().isOutboundPassword();
-		}
-		if (pushPasswordToAccount && user.getCredentials() != null
-				&& user.getCredentials().getPassword() != null) {
-			CredentialsType credentials = account.getCredentials();
-			if (credentials == null) {
-				credentials = new CredentialsType();
-				account.setCredentials(credentials);
-			}
-			credentials.setPassword(user.getCredentials().getPassword());
-		}
 	}
 
 	private void deleteUserAccounts(UserType user, OperationResult result) throws ObjectNotFoundException {
@@ -402,13 +368,17 @@ public class UserTypeHandler extends BasicHandler {
 
 	private void modifyAccountsAfterUserWithExclusion(UserType user,
 			PropertyModificationType userActivationChanged, PropertyModificationType userCredentials,
-			String accountOid, OperationResult result) {
+			Collection<String> excludedResourceOids, OperationResult result) {
 
+		if (user.getAccountRef() == null) {
+			return;
+		}
+		
 		for (ObjectReferenceType accountRef : user.getAccountRef()) {
 			OperationResult subResult = result.createSubresult(ModelControllerImpl.CHANGE_ACCOUNT);
-			subResult.addParams(new String[] { "accountOid", "object", "accountRef" }, accountOid, user,
+			subResult.addParams(new String[] { "accountOid", "object", "accountRef" }, excludedResourceOids, user,
 					accountRef);
-			if (StringUtils.isNotEmpty(accountOid) && accountOid.equals(accountRef.getOid())) {
+			if (excludedResourceOids != null && excludedResourceOids.contains(accountRef.getOid())) {
 				subResult.computeStatus("Account excluded during modification, skipped.");
 				// preventing cycles while updating resource object shadows
 				continue;
@@ -459,7 +429,7 @@ public class UserTypeHandler extends BasicHandler {
 				if (!ObjectTypeUtil.isEmpty(accountChange)) {
 
 					getModelController().modifyObjectWithExclusion(AccountShadowType.class, accountChange,
-							accountOid, subResult);
+							excludedResourceOids, subResult);
 				}
 
 			} catch (Exception ex) {
@@ -578,70 +548,219 @@ public class UserTypeHandler extends BasicHandler {
 		return addAccountRefChange;
 	}
 
-	private void processAssignments(UserType user, List<AssignmentType> assignments, OperationResult result,
-			AssignOperation operation) {
-		LOGGER.debug("Processing assignments ({}) for user {}, operation: {}.",
-				new Object[] { assignments.size(), user.getName(), operation });
-
+	private void processAddAssignments(UserType user, List<AssignmentType> assignments, Collection<String> excludedResourceOids, 
+			OperationResult result) {
+		Set<Delta<AssignmentType>> assignmentDeltas = new HashSet<Delta<AssignmentType>>();
+		Delta<AssignmentType> delta = new Delta<AssignmentType>(Delta.DeltaType.ADD);
+		assignmentDeltas.add(delta);
 		for (AssignmentType assignment : assignments) {
-			OperationResult subResult = result.createSubresult("Process assignment");
-			if (AssignOperation.ADD.equals(operation)
-					&& !ModelUtils.isActivationEnabled(assignment.getActivation())) {
-				continue;
-			}
+			delta.add(assignment);
+		}
+		synchronizeUser(user, assignmentDeltas, excludedResourceOids, result);
+	}
+	
+	private void processModifyAssignments(UserType user, ObjectModificationType change, Collection<String> excludedResourceOids,
+			OperationResult result) {
+		
+		Set<Delta<AssignmentType>> assignmentDeltas = new HashSet<Delta<AssignmentType>>();
+		Delta<AssignmentType> deleteDelta = new Delta<AssignmentType>(Delta.DeltaType.DELETE);
+		assignmentDeltas.add(deleteDelta);
+		Delta<AssignmentType> addDelta = new Delta<AssignmentType>(Delta.DeltaType.ADD);
+		assignmentDeltas.add(addDelta);
 
-			try {
-				if (AssignOperation.ADD.equals(operation) && assignment.getAccountConstruction() != null) {
-					processAccountConstruction(user, assignment.getAccountConstruction(), subResult);
-				} else if (assignment.getTarget() != null) {
-					assignTarget(user, assignment.getTarget(), subResult, operation);
-				} else if (assignment.getTargetRef() != null) {
-					assignTargetRef(user, assignment.getTargetRef(), subResult, operation);
+		for (PropertyModificationType modification : change.getPropertyModification()) {
+			LOGGER.trace("Processing modification {}", modification);
+			if (ObjectTypeUtil.isModificationOf(modification,SchemaConstants.C_ASSIGNMENT)) {
+				for(Object element : modification.getValue().getAny()) {
+					
+					AssignmentType assignment = JAXBUtil.fromElement(element, AssignmentType.class);
+					
+					LOGGER.trace("Processing {}", ObjectTypeUtil.toShortString(assignment));
+					
+					if (modification.getModificationType() == PropertyModificationTypeType.add) {
+						addDelta.add(assignment);
+					} else if (modification.getModificationType() == PropertyModificationTypeType.add) {
+						deleteDelta.add(assignment);
+					} else if (modification.getModificationType() == PropertyModificationTypeType.replace) {
+						// TODO FIXME: this is nor really correct
+						addDelta.add(assignment);
+					}
+				}	
+			}
+			
+		}
+		
+		synchronizeUser(user, assignmentDeltas, excludedResourceOids, result);		
+	}
+
+	private void processDeleteAssignments(UserType user, List<AssignmentType> assignments, Collection<String> excludedResourceOids,
+			OperationResult result) {
+		Set<Delta<AssignmentType>> assignmentDeltas = new HashSet<Delta<AssignmentType>>();
+		Delta<AssignmentType> delta = new Delta<AssignmentType>(Delta.DeltaType.DELETE);
+		assignmentDeltas.add(delta);
+		for (AssignmentType assignment : assignments) {
+			delta.add(assignment);
+		}
+		synchronizeUser(user, assignmentDeltas, excludedResourceOids, result);
+	}
+
+	/**
+	 * Synchronize what user should have and what he has.
+	 * @param excludedResourceOids 
+	 */
+	private void synchronizeUser(UserType user, Set<Delta<AssignmentType>> assignmentDeltas, Collection<String> excludedResourceOids, OperationResult result) {
+		LOGGER.trace("synchronizeUser {} deltas {}.",
+				new Object[] { ObjectTypeUtil.toShortString(user), assignmentDeltas });
+		
+		resolveAllAccounts(user, result);
+
+		for (AssignmentType assignment : user.getAssignment()) {
+			
+			applyAssignment(user, assignment, user, excludedResourceOids, result);
+			
+		}
+
+		for (Delta<AssignmentType> delta : assignmentDeltas) {
+			
+			if (delta.getType() == Delta.DeltaType.ADD) {
+				for (AssignmentType assignment : delta.getChange()) {
+					applyAssignment(user, assignment, user, excludedResourceOids, result);
 				}
+			}
+			
+		}
+		
+		// The user is now polluted with both accountRef and account elements. Get rid of the accounts, leave just accountRefs.
+		user.getAccount().clear();
+		
+	}
+		
+	private void resolveAllAccounts(UserType user, OperationResult result) {
+		
+		for (ObjectReferenceType accountRef : user.getAccountRef()) {
+			resolveAccount(user, accountRef, result);
+		}
+	}
+	
+	private void resolveAccount(UserType user, ObjectReferenceType accountRef, OperationResult result) {
+		for (AccountShadowType account: user.getAccount()) {
+			if (accountRef.getOid().equals(account.getOid())) {
+				// Already resolved
+				return;
+			}
+		}
+		
+		try {
+			AccountShadowType account = getRepository().getObject(AccountShadowType.class, accountRef.getOid(), null, result);
+			user.getAccount().add(account);
+		} catch (ObjectNotFoundException e) {
+			LoggingUtils.logException(LOGGER, "Couldn't resolve account reference {} in {}", e,
+					ObjectTypeUtil.toShortString(accountRef), ObjectTypeUtil.toShortString(user));
+		} catch (SchemaException e) {
+			LoggingUtils.logException(LOGGER, "Couldn't resolve account reference {} in {}", e,
+					ObjectTypeUtil.toShortString(accountRef), ObjectTypeUtil.toShortString(user));
+		}
+		// TODO: better error handling
+	}
+
+	private void applyAssignment(UserType user, AssignmentType assignment, ObjectType containingObject, Collection<String> excludedResourceOids, OperationResult result) {
+
+		LOGGER.trace("Applying {} ({})",ObjectTypeUtil.toShortString(assignment),ObjectTypeUtil.toShortString(user));
+		
+		OperationResult subResult = result.createSubresult("Apply assignment");
+		subResult.addParam("user", user);
+		subResult.addParam("assignment", assignment);
+		subResult.addParam("exclusions", excludedResourceOids);
+		
+		if (!ModelUtils.isActivationEnabled(assignment.getActivation())) {
+			// This assignment is not active, skip it
+			LOGGER.debug("Skipping inactive {} in {}",ObjectTypeUtil.toShortString(assignment),ObjectTypeUtil.toShortString(containingObject));
+			return;
+		}			
+		
+		try {
+			
+			if (assignment.getAccountConstruction() != null) {
+				
+				processAccountConstruction(user, assignment.getAccountConstruction(), containingObject, excludedResourceOids, subResult);
+				
+			} else if (assignment.getTarget() != null) {
+				
+				applyAssignmentTarget(user, assignment, assignment.getTarget(), excludedResourceOids, subResult);
+				
+			} else if (assignment.getTargetRef() != null) {
+				
+				applyAssignmentTarget(user, assignment, assignment.getTargetRef(), excludedResourceOids, subResult);
+				
+			} else {
+				
+				LOGGER.warn("Empty assignment in "+ObjectTypeUtil.toShortString(containingObject));
+				
+			}
+			
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't process {} in {}", ex,
+					ObjectTypeUtil.toShortString(assignment), ObjectTypeUtil.toShortString(containingObject));
+			subResult.recordFatalError(ex.getMessage());
+		} finally {
+			subResult.computeStatus();
+		}
+	}
+	
+	private void applyAssignmentTarget(UserType user, AssignmentType assignment,
+			ObjectReferenceType targetRef, Collection<String> excludedResourceOids, OperationResult result) throws ObjectNotFoundException {
+		
+		// Target is referenced, need to fetch it
+		Class<? extends ObjectType> clazz = ObjectType.class;
+		if (assignment.getTargetRef().getType() != null) {
+			clazz = ObjectTypes.getObjectTypeFromTypeQName(assignment.getTargetRef().getType()).getClassDefinition();
+		}
+		ObjectType target = getObject(clazz, assignment.getTargetRef().getOid(), new PropertyReferenceListType(), result);
+		applyAssignmentTarget(user, assignment, target, excludedResourceOids, result);
+		
+	}
+
+	private void applyAssignmentTarget(UserType user, AssignmentType assignment, ObjectType target,
+			Collection<String> excludedResourceOids, OperationResult result) {
+		
+		if (target instanceof RoleType) {
+			
+			applyRoleAssignment(user, (RoleType) target, excludedResourceOids, result);
+			
+//		} else if (target instanceof AccountShadowType) {
+//			
+//			assignAccount(user, (AccountShadowType) target, result);
+
+		} else {
+			LOGGER.error("Unexpected assignment type "+target.getClass().getName()+", skipping it");
+			result.recordPartialError("Unexpected assignment type "+target.getClass().getName()+", skipping it");
+			return;
+		}
+		
+	}
+
+	private void applyRoleAssignment(UserType user, RoleType role, Collection<String> excludedResourceOids, OperationResult result) {
+		LOGGER.debug("Applying {} ({})",
+				new Object[] { ObjectTypeUtil.toShortString(role), ObjectTypeUtil.toShortString(user) });
+		
+		OperationResult subResult = result.createSubresult("Apply role");
+		subResult.addParam(OperationResult.PARAM_OBJECT, role);
+		subResult.addParam("exclusions", excludedResourceOids);
+		
+		for (AssignmentType assignment : role.getAssignment()) {
+			try {
+				applyAssignment(user, assignment, role, excludedResourceOids, subResult);
 			} catch (Exception ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't process assignment number {} on user {}", ex,
-						assignments.indexOf(assignment), user.getName());
-				subResult.recordFatalError(ex.getMessage());
+				LoggingUtils.logException(LOGGER, "Couldn't process role '{}' assignments ({})", ex,
+						role.getName(), role.getAssignment().size());
 			} finally {
-				subResult.computeStatus();
+				subResult.computeStatus("Couldn't process assignment for role '" + role.getName() + "'.",
+						"Some minor problem occured while processing assignment for role '" + role.getName()
+								+ "'.");
 			}
 		}
 	}
 
-	private void assignTargetRef(UserType user, ObjectReferenceType targetRef, OperationResult result,
-			AssignOperation operation) throws ObjectNotFoundException {
-		Class<? extends ObjectType> clazz = ObjectType.class;
-		if (targetRef.getType() != null) {
-			clazz = ObjectTypes.getObjectTypeFromTypeQName(targetRef.getType()).getClassDefinition();
-		}
-		ObjectType object = getObject(clazz, targetRef.getOid(), new PropertyReferenceListType(), result);
-		assignTarget(user, object, result, operation);
-	}
-
-	private void assignTarget(UserType user, ObjectType target, OperationResult result,
-			AssignOperation operation) {
-		if (target instanceof RoleType) {
-			assignRole(user, (RoleType) target, result, operation);
-		} else if (target instanceof AccountShadowType) {
-			assignAccount(user, (AccountShadowType) target, result, operation);
-		}
-	}
-
-	private void assignRole(UserType user, RoleType role, OperationResult result, AssignOperation operation) {
-		LOGGER.debug("Processing role {} assignment for user {}.",
-				new Object[] { role.getName(), user.getName() });
-		OperationResult subResult = result.createSubresult("Assign role");
-		try {
-			processAssignments(user, role.getAssignment(), subResult, operation);
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't process role '{}' assignments ({})", ex,
-					role.getName(), role.getAssignment().size());
-		} finally {
-			subResult.computeStatus("Couldn't process assignment for role '" + role.getName() + "'.",
-					"Some minor problem occured while processing assignment for role '" + role.getName()
-							+ "'.");
-		}
-	}
 
 	/**
 	 * Method takes {@link AccountShadowType} from assignment. In case of

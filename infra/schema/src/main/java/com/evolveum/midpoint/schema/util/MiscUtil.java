@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
@@ -110,6 +111,12 @@ public class MiscUtil {
 			credentials.setPassword(credPass);
 		}
 		credPass.setProtectedString(password);
+	}
+
+	public static Collection<String> toCollection(String entry) {
+		List<String> list = new ArrayList<String>(1);
+		list.add(entry);
+		return list;
 	}
 
 }

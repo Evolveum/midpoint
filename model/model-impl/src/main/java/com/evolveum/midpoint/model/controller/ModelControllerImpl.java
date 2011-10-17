@@ -23,6 +23,7 @@ package com.evolveum.midpoint.model.controller;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -200,7 +201,7 @@ public class ModelControllerImpl implements ModelController {
 		OperationResult subResult = result.createSubresult(ADD_USER);
 		UserTypeHandler handler = new UserTypeHandler(this, provisioning, cacheRepositoryService,
 				schemaHandler);
-		return handler.addUser(user, userTemplate, subResult);
+		return handler.addUser(user, userTemplate, null, subResult);
 	}
 
 	@Override
@@ -324,7 +325,7 @@ public class ModelControllerImpl implements ModelController {
 
 	@Override
 	public <T extends ObjectType> void modifyObjectWithExclusion(Class<T> type,
-			ObjectModificationType change, String accountOid, OperationResult result)
+			ObjectModificationType change, Collection<String> excludedResourceOids, OperationResult result)
 			throws ObjectNotFoundException {
 		Validate.notNull(change, "Object modification must not be null.");
 		Validate.notEmpty(change.getOid(), "Change oid must not be null or empty.");
@@ -333,8 +334,8 @@ public class ModelControllerImpl implements ModelController {
 		RepositoryCache.enter();
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Modifying object with oid {} with exclusion account oid {}.",
-					new Object[] { change.getOid(), accountOid });
+			LOGGER.trace("Modifying object with oid {} with exclusions {}.",
+					new Object[] { change.getOid(), excludedResourceOids });
 			LOGGER.trace(JAXBUtil.silentMarshalWrap(change));
 		}
 
@@ -344,14 +345,14 @@ public class ModelControllerImpl implements ModelController {
 		}
 
 		OperationResult subResult = result.createSubresult(MODIFY_OBJECT_WITH_EXCLUSION);
-		subResult.addParams(new String[] { "change", "accountOid" }, change, accountOid);
+		subResult.addParams(new String[] { "change", "exclusion" }, change, excludedResourceOids);
 		try {
 			if (type.isAssignableFrom(TaskType.class)) {
-				modifyTaskWithExclusion(change, accountOid, subResult);
+				modifyTaskWithExclusion(change, excludedResourceOids, subResult);
 			} else if (ObjectTypes.isClassManagedByProvisioning(type)) {
-				modifyProvisioningObjectWithExclusion(type, change, accountOid, subResult);
+				modifyProvisioningObjectWithExclusion(type, change, excludedResourceOids, subResult);
 			} else {
-				modifyRepositoryObjectWithExclusion(type, change, accountOid, subResult);
+				modifyRepositoryObjectWithExclusion(type, change, excludedResourceOids, subResult);
 			}
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
@@ -372,7 +373,7 @@ public class ModelControllerImpl implements ModelController {
 		} finally {
 			subResult.computeStatus("Couldn't update object with oid '" + change.getOid() + "'.");
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace(subResult.dump(false));
+				LOGGER.trace("modifyObjectWithExclusion result\n{}",subResult.dump(false));
 			}
 		}
 		RepositoryCache.exit();
@@ -392,7 +393,7 @@ public class ModelControllerImpl implements ModelController {
 		if (UserType.class.equals(clazz)) {
 			UserTypeHandler handler = new UserTypeHandler(this, provisioning, cacheRepositoryService,
 					schemaHandler);
-			handler.deleteObject(clazz, oid, subResult);
+			handler.deleteObject(clazz, oid, null, subResult);
 			RepositoryCache.exit();
 			return;
 		}
@@ -765,7 +766,7 @@ public class ModelControllerImpl implements ModelController {
 		if (object instanceof UserType) {
 			UserTypeHandler handler = new UserTypeHandler(this, provisioning, cacheRepositoryService,
 					schemaHandler);
-			return handler.addObject(object, result);
+			return handler.addObject(object, null, result);
 		}
 
 		try {
@@ -837,7 +838,7 @@ public class ModelControllerImpl implements ModelController {
 
 	@SuppressWarnings("unchecked")
 	private <T extends ObjectType> void modifyProvisioningObjectWithExclusion(Class<T> type,
-			ObjectModificationType change, String accountOid, OperationResult result)
+			ObjectModificationType change, Collection<String> excludedResourceOids, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException {
 		T object = getObject(type, change.getOid(), new PropertyReferenceListType(), result);
 
@@ -925,19 +926,19 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	private <T extends ObjectType> void modifyRepositoryObjectWithExclusion(Class<T> type,
-			ObjectModificationType change, String accountOid, OperationResult result)
+			ObjectModificationType change, Collection<String> excludedResourceOids, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
 		if (type.isAssignableFrom(UserType.class)) {
 			UserTypeHandler handler = new UserTypeHandler(this, provisioning, cacheRepositoryService,
 					schemaHandler);
-			handler.modifyObjectWithExclusion(type, change, accountOid, result);
+			handler.modifyObject(type, change, excludedResourceOids, result);
 			return;
 		}
 
 		cacheRepositoryService.modifyObject(type, change, result);
 	}
 
-	private void modifyTaskWithExclusion(ObjectModificationType change, String accountOid,
+	private void modifyTaskWithExclusion(ObjectModificationType change, Collection<String> excludedResourceOids,
 			OperationResult result) throws ObjectNotFoundException, SchemaException {
 		taskManager.modifyTask(change, result);
 	}
