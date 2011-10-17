@@ -121,7 +121,7 @@ public class LoginController implements Serializable {
 		if (secUtils.getIsAdminLoggedIn()) {
 			return "/index.xhml?faces-redirect=true";
 		} else {
-			FacesUtils.addErrorMessage("You haven't permission to login like administrator.");
+			FacesUtils.addErrorMessage("You haven't permission to login as administrator.");
 			return null;
 		}
 	}
