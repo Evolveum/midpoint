@@ -132,10 +132,11 @@ body,table {
 #progressIndicator{
 	position: fixed;
 	background-image: url("../images/progressIndicator.png");
-	top: 75px;
+	top: 35px;
 	right: 0px;
 	height: 80px;
 	width: 70px;
+	z-index: 100;
 }
 
 .iceOutConStat {
