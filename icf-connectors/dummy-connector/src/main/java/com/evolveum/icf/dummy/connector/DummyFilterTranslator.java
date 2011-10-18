@@ -40,7 +40,7 @@ public class DummyFilterTranslator implements FilterTranslator<String> {
 	public List<String> translate(Filter filter) {
 		log.info("translate::begin");
 		
-		log.info("translate::filter: {0}",filter.toString());
+		log.info("translate::filter: {0}",filter == null ? "null" : filter.toString());
 		
 		log.info("translate::end");
 		return new ArrayList<String>();

@@ -143,7 +143,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		Validate.notNull(oid, "Oid of object to get must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
-		LOGGER.trace("**PROVISIONING: Getting object with oid {}", oid);
+//		LOGGER.trace("**PROVISIONING: Getting object with oid {}", oid);
 
 		// Result type for this operation
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".getObject");
@@ -155,15 +155,15 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		try {
 			repositoryObject = getCacheRepositoryService().getObject(type, oid, resolve, result);
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("**PROVISIONING: Got repository object {}", JAXBUtil.silentMarshalWrap(repositoryObject));
-			}
+//			if (LOGGER.isTraceEnabled()) {
+//				LOGGER.trace("**PROVISIONING: Got repository object {}", JAXBUtil.silentMarshalWrap(repositoryObject));
+//			}
 		} catch (ObjectNotFoundException e) {
-			LOGGER.error("**PROVISIONING: Can't get obejct with oid {}. Reason {}", oid, e);
+			LOGGER.error("Can't get obejct with oid {}. Reason {}", oid, e);
 			result.recordFatalError("Can't get object with oid " + oid + ". Reason: " + e.getMessage(), e);
 			throw e;
 		} catch (SchemaException ex) {
-			LOGGER.error("**PROVISIONING: Can't get obejct with oid {}. Reason {}", oid, ex);
+			LOGGER.error("Can't get obejct with oid {}. Reason {}", oid, ex);
 			result.recordFatalError("Can't get object with oid " + oid + ". Reason: " + ex.getMessage(), ex);
 			throw ex;
 		}
@@ -177,19 +177,19 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			ResourceObjectShadowType shadow = null;
 			try {
 				shadow = getShadowCache().getShadow(oid, (ResourceObjectShadowType) repositoryObject, result);
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("**PROVISIONING: Got shadow object {}", JAXBUtil.silentMarshalWrap(shadow));
-				}
+//				if (LOGGER.isTraceEnabled()) {
+//					LOGGER.trace("**PROVISIONING: Got shadow object {}", JAXBUtil.silentMarshalWrap(shadow));
+//				}
 			} catch (ObjectNotFoundException e) {
-				LOGGER.error("**PROVISIONING: Can't get obejct with oid {}. Reason {}", oid, e);
+				LOGGER.error("Can't get obejct with oid {}. Reason {}", oid, e);
 				result.recordFatalError(e);
 				throw e;
 			} catch (CommunicationException e) {
-				LOGGER.error("**PROVISIONING: Can't get obejct with oid {}. Reason {}", oid, e);
+				LOGGER.error("Can't get obejct with oid {}. Reason {}", oid, e);
 				result.recordFatalError(e);
 				throw e;
 			} catch (SchemaException e) {
-				LOGGER.error("**PROVISIONING: Can't get obejct with oid {}. Reason {}", oid, e);
+				LOGGER.error("Can't get obejct with oid {}. Reason {}", oid, e);
 				result.recordFatalError(e);
 				throw e;
 			}
@@ -197,7 +197,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// TODO: object resolving
 
 			result.recordSuccess();
-			LOGGER.trace("**PROVISIONING: Get object finished.");
+//			LOGGER.trace("Get object finished.");
 			return (T) shadow;
 
 		} else if (repositoryObject instanceof ResourceType) {

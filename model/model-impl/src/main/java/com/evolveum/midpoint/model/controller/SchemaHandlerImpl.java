@@ -150,6 +150,10 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			return user;
 		}
 
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Shadow before inbound processing:\n{}",ObjectTypeUtil.dump(resourceObjectShadow));
+		}
+		
 		Map<QName, Variable> variables = ExpressionHandlerImpl.getDefaultXPathVariables(user,
 				resourceObjectShadow, resource);
 		for (AttributeDescriptionType attribute : accountType.getAttribute()) {
@@ -171,6 +175,10 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			user = jaxbUser.getValue();
 		} catch (JAXBException ex) {
 			throw new SchemaException(ex.getMessage(), ex);
+		}
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("User after inbound processing:\n{}",ObjectTypeUtil.dump(user));
 		}
 
 		subResult.recordSuccess();
@@ -590,8 +598,8 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			QName userPropertyQName;
 			if (matchedNodes.getLength() == 0) {
 				// if the value does not exists
-				LOGGER.debug(
-						"No nodes were matched by xpath {} in context of namespaces {} and variables {}",
+				LOGGER.trace(
+						"No nodes were matched by xpath {} in context of namespaces {} and variables {}, creating the node",
 						new Object[] { xpathType.getXPath(), xpathType.getNamespaceMap(), variables });
 				// if no matches found, then we will search for the parent of
 				// the element and add new node to it
@@ -625,6 +633,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 						}
 					}
 				} catch (XPathExpressionException ex) {
+					subResult.recordFatalError(ex);
 					throw new SchemaException(ex.getMessage(), ex);
 				}
 				parentNode = matchedNodes.item(0);
@@ -650,8 +659,8 @@ public class SchemaHandlerImpl implements SchemaHandler {
 					Validate.notNull(domUser, "null value assigned to domUser");
 				}
 				LOGGER.debug(
-						"INBOUND: expression [attribute:{}] =(new)=> [user:{},path:{}] {}",
-						new Object[] { attribute.getName(), DebugUtil.prettyPrint(user), xpathType,
+						"INBOUND: {} =(new)=> {} : {} = {}",
+						new Object[] { attribute.getRef(), DebugUtil.prettyPrint(user), xpathType,
 								DebugUtil.prettyPrint(newNodes) });
 
 			} else {
@@ -668,18 +677,19 @@ public class SchemaHandlerImpl implements SchemaHandler {
 				// IV. set modified user
 				domUser = parentNode.getOwnerDocument().getDocumentElement();// getFirstChild();
 				LOGGER.debug(
-						"INBOUND: expression [attribute:{}] =(replace)=> [user:{}, path:{}] {}",
-						new Object[] { attribute.getName(), DebugUtil.prettyPrint(user), xpathType,
+						"INBOUND: expression {} =(replace)=> {} : {} = {}",
+						new Object[] { attribute.getRef(), DebugUtil.prettyPrint(user), xpathType,
 								DebugUtil.prettyPrint(newNodes) });
 				Validate.notNull(domUser, "null value assigned to domUser");
 			}
 
+			subResult.recordSuccess();
 		}
 		LOGGER.trace("Finished inbound processing of attribute handling for attribute '{}'", attributeName);
 		// if (null != domUser) {
 		// domUser.normalize();
 		// }
-
+		
 		return domUser;
 	}
 

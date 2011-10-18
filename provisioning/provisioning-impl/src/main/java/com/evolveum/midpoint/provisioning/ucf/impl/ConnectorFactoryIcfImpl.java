@@ -100,6 +100,8 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	public static final QName ICFS_NAME = new QName(NS_ICF_SCHEMA, "name");
 	public static final QName ICFS_UID = new QName(NS_ICF_SCHEMA, "uid");
 	public static final QName ICFS_ACCOUNT = new QName(NS_ICF_SCHEMA, "account");
+	public static final String ACCOUNT_OBJECT_CLASS_LOCAL_NAME = "AccountObjectClass";
+	public static final String GROUP_OBJECT_CLASS_LOCAL_NAME = "GroupObjectClass";
 
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME = "configurationProperties";
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME = "ConfigurationPropertiesType";

@@ -1090,6 +1090,13 @@ public class ShadowCache {
 
 		ResourceObjectDefinition resourceDef = (ResourceObjectDefinition) schema
 				.findContainerDefinitionByType(objectClass);
+		
+		if (resourceDef == null) {
+			String message = "Object class "+objectClass+" is not defined in schema of "+ObjectTypeUtil.toShortString(resourceType);
+			LOGGER.error(message);
+			parentResult.recordFatalError(message);
+			throw new SchemaException(message);
+		}
 
 		ResultHandler resultHandler = new ResultHandler() {
 
@@ -1257,10 +1264,11 @@ public class ShadowCache {
 		List<AccountShadowType> accountList = searchAccountByUid(change.getIdentifiers(), parentResult);
 
 		if (accountList.size() > 1) {
-			parentResult.recordFatalError("Found more than one account with the identifier "
-					+ change.getIdentifiers() + ".");
-			throw new IllegalArgumentException("Found more than one account with the identifier "
-					+ change.getIdentifiers() + ".");
+			String message = "Found more than one account with the identifier "
+				+ change.getIdentifiers() + ".";
+			LOGGER.error(message);
+			parentResult.recordFatalError(message);
+			throw new IllegalArgumentException(message);
 		}
 
 		ResourceObjectShadowType newShadow = null;
@@ -1429,11 +1437,14 @@ public class ShadowCache {
 
 		results = getRepositoryService().searchObjects(ResourceObjectShadowType.class, query, paging,
 				parentResult);
+		
+		LOGGER.trace("lookupShadow found {} objects",results.size());
 
 		if (results.size() == 0) {
 			return null;
 		}
 		if (results.size() > 1) {
+			LOGGER.error("More than one shadows found for " + resourceObject);
 			// TODO: Better error handling later
 			throw new IllegalStateException("More than one shadows found for " + resourceObject);
 		}
@@ -1457,10 +1468,12 @@ public class ShadowCache {
 		Set<Object> idValues = identifier.getValues();
 		// Only one value is supported for an identifier
 		if (idValues.size() > 1) {
+			LOGGER.error("More than one identifier value is not supported");
 			// TODO: This should probably be switched to checked exception later
 			throw new IllegalArgumentException("More than one identifier value is not supported");
 		}
 		if (idValues.size() < 1) {
+			LOGGER.error("The identifier has no value");
 			// TODO: This should probably be switched to checked exception later
 			throw new IllegalArgumentException("The identifier has no value");
 		}
@@ -1478,7 +1491,7 @@ public class ShadowCache {
 		QueryType query = new QueryType();
 		query.setFilter(filter);
 
-		System.out.println("created query " + DOMUtil.printDom(filter));
+		LOGGER.trace("created query " + DOMUtil.printDom(filter));
 
 		return query;
 	}

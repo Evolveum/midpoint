@@ -13,6 +13,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -25,13 +26,16 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.EnhancedResourceType;
@@ -57,7 +61,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadata;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
@@ -413,29 +420,75 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				+ ".test011GetAccount");
 
 		// WHEN
-		AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
+		AccountShadowType shadow = provisioningService.getObject(AccountShadowType.class,
 				ACCOUNT_NEW_OID, null, result);
 
 		// THEN
-		display("Retrieved account shadow", accountType);
+		display("Retrieved account shadow", shadow);
 
-		assertNotNull("No dummy account", accountType);
-		assertEquals(
-				"Will Turner",
-				ResourceObjectShadowUtil.getSingleStringAttributeValue(accountType,
+		assertNotNull("No dummy account", shadow);
+		
+		checkShadow(shadow);
+	}
+	
+	@Test
+	public void test012SeachIterative() throws SchemaException, ObjectNotFoundException, CommunicationException {
+		displayTestTile("test012SeachIterative");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+				+ ".test012SeachIterative");
+		
+		QueryType query = new QueryType();
+		Document doc = DOMUtil.getDocument();
+		query.setFilter(QueryUtil.createAndFilter(doc,
+				QueryUtil.createEqualRefFilter(doc, null, SchemaConstants.I_RESOURCE_REF, RESOURCE_DUMMY_OID),
+				QueryUtil.createEqualFilter(doc, null, SchemaConstants.I_OBJECT_CLASS, new QName(resource.getNamespace(),ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME)),
+				QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, "will")));
+		
+		final List<ObjectType> foundObjects = new ArrayList<ObjectType>();
+		ResultHandler handler = new ResultHandler() {
+			
+			@Override
+			public boolean handle(ObjectType object, OperationResult parentResult) {
+				foundObjects.add(object);
+				return true;
+			}
+		};
+		
+		// WHEN
+		provisioningService.searchObjectsIterative(query, null, handler , result);
+		
+		// THEN
+		
+		assertEquals(1,foundObjects.size());
+		
+		AccountShadowType shadow = (AccountShadowType) foundObjects.get(0);
+		display("Found object",shadow);
+		checkShadow(shadow);
+	}
+		
+	private void checkShadow(AccountShadowType shadow) {
+		assertNotNull("no OID",shadow.getOid());
+		assertNotNull("no name",shadow.getName());
+		Attributes attrs = shadow.getAttributes();
+		assertNotNull("no attributes",attrs);
+		assertFalse("empty attributes",attrs.getAny().isEmpty());
+		assertNotNull("no ICF UID",ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow, ConnectorFactoryIcfImpl.ICFS_UID));
+		assertNotNull("no ICF NAME",ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow, ConnectorFactoryIcfImpl.ICFS_NAME));
+		assertEquals("Will Turner",
+				ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow,
 						new QName(resource.getNamespace(), "fullname")));
 
-		// TODO: check
 	}
 
 	@Test
-	public void test012EnableAccount() throws FileNotFoundException, JAXBException, ObjectNotFoundException,
+	public void test021EnableAccount() throws FileNotFoundException, JAXBException, ObjectNotFoundException,
 			SchemaException, CommunicationException {
-		displayTestTile("test012DisableAccount");
+		displayTestTile("test021EnableAccount");
 		// GIVEN
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test012DisableAccount");
+				+ ".test021EnableAccount");
 
 		AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
 				ACCOUNT_NEW_OID, null, result);
@@ -462,13 +515,13 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test013DisableAccount() throws FileNotFoundException, JAXBException, ObjectNotFoundException,
+	public void test022DisableAccount() throws FileNotFoundException, JAXBException, ObjectNotFoundException,
 			SchemaException, CommunicationException {
-		displayTestTile("test012EnableAccount");
+		displayTestTile("test022EnableAccount");
 		// GIVEN
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test012EnableAccount");
+				+ ".test022EnableAccount");
 
 		AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
 				ACCOUNT_NEW_OID, null, result);
@@ -495,12 +548,12 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test14AddScript() throws FileNotFoundException, JAXBException, ObjectAlreadyExistsException,
+	public void test31AddScript() throws FileNotFoundException, JAXBException, ObjectAlreadyExistsException,
 			SchemaException, CommunicationException, ObjectNotFoundException {
-		displayTestTile("test14AddScript");
+		displayTestTile("test31AddScript");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test14AddScript");
+				+ ".test31AddScript");
 
 		AccountShadowType account = unmarshallJaxbFromFile(FILENAME_ACCOUNT_SCRIPT, AccountShadowType.class);
 
@@ -548,13 +601,13 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test15ModifyScript() {
-
+	public void test32ModifyScript() {
+		// TODO
 	}
 
 	@Test
-	public void test16DeleteScript() {
-
+	public void test33DeleteScript() {
+		// TODO
 	}
 
 }

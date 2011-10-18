@@ -30,6 +30,7 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.MiscUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -67,6 +68,10 @@ public class AddUserAction extends BaseAction {
 
 				user = getSchemaHandler().processInboundHandling(user, shadowAfterChange, subResult);
 
+				if (user.getName() == null) {
+					LOGGER.warn("Inbound expressions haven't generated 'name' property for user created from "+ObjectTypeUtil.toShortString(shadowAfterChange));
+				}
+				
 				UserTemplateType userTemplate = null;
 				String userTemplateOid = getUserTemplateOid();
 				if (StringUtils.isNotEmpty(userTemplateOid)) {

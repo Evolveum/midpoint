@@ -281,7 +281,7 @@
 					<c:target>
 						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 						$i:user/i:name
-                        </c:target>
+                    </c:target>
 				</c:inbound>
 			</c:attribute>
 

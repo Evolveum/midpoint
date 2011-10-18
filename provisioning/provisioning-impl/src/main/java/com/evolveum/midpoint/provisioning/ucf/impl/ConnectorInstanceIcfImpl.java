@@ -141,8 +141,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.TestConnecti
  */
 public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
-	private static final String ACCOUNT_OBJECTCLASS_LOCALNAME = "AccountObjectClass";
-	private static final String GROUP_OBJECTCLASS_LOCALNAME = "GroupObjectClass";
 	private static final String CUSTOM_OBJECTCLASS_PREFIX = "Custom";
 	private static final String CUSTOM_OBJECTCLASS_SUFFIX = "ObjectClass";
 
@@ -1252,16 +1250,21 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	@Override
 	public void search(final ResourceObjectDefinition objectClass, final ResultHandler handler,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException {
-
+		
 		// Result type for this operation
 		final OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName() + ".search");
 		result.addParam("objectClass", objectClass);
 		result.addContext("connector", connectorType);
 
-		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
 		if (objectClass == null) {
+			result.recordFatalError("Object class not defined");
+			throw new IllegalArgumentException("objectClass not defined");
+		}
+		
+		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
+		if (icfObjectClass == null) {
 			IllegalArgumentException ex = new IllegalArgumentException("Unable to detemine object class from QName "
-					+ objectClass + " while attempting to searcg objects by "
+					+ objectClass + " while attempting to search objects by "
 					+ ObjectTypeUtil.toShortString(connectorType));
 			result.recordFatalError("Unable to detemine object class", ex);
 			throw ex;
@@ -1367,10 +1370,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 */
 	private QName objectClassToQname(String icfObjectClassString) {
 		if (ObjectClass.ACCOUNT_NAME.equals(icfObjectClassString)) {
-			return new QName(getSchemaNamespace(), ACCOUNT_OBJECTCLASS_LOCALNAME,
+			return new QName(getSchemaNamespace(), ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME,
 					ConnectorFactoryIcfImpl.NS_ICF_SCHEMA_PREFIX);
 		} else if (ObjectClass.GROUP_NAME.equals(icfObjectClassString)) {
-			return new QName(getSchemaNamespace(), GROUP_OBJECTCLASS_LOCALNAME,
+			return new QName(getSchemaNamespace(), ConnectorFactoryIcfImpl.GROUP_OBJECT_CLASS_LOCAL_NAME,
 					ConnectorFactoryIcfImpl.NS_ICF_SCHEMA_PREFIX);
 		} else {
 			return new QName(getSchemaNamespace(), CUSTOM_OBJECTCLASS_PREFIX + icfObjectClassString
@@ -1394,9 +1397,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					+ ", expected: " + getSchemaNamespace());
 		}
 		String lname = qnameObjectClass.getLocalPart();
-		if (ACCOUNT_OBJECTCLASS_LOCALNAME.equals(lname)) {
+		if (ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME.equals(lname)) {
 			return ObjectClass.ACCOUNT;
-		} else if (GROUP_OBJECTCLASS_LOCALNAME.equals(lname)) {
+		} else if (ConnectorFactoryIcfImpl.GROUP_OBJECT_CLASS_LOCAL_NAME.equals(lname)) {
 			return ObjectClass.GROUP;
 		} else if (lname.startsWith(CUSTOM_OBJECTCLASS_PREFIX) && lname.endsWith(CUSTOM_OBJECTCLASS_SUFFIX)) {
 			String icfObjectClassName = lname.substring(CUSTOM_OBJECTCLASS_PREFIX.length(), lname.length()

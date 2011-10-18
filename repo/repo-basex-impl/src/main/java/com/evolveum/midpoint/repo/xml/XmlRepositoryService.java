@@ -133,6 +133,12 @@ public class XmlRepositoryService implements RepositoryService {
 		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName() + ".addObject");
 		result.addParam("object", object);
 
+		if (object.getName() == null) {
+			String message="Attempt to add object without name";
+			result.recordFatalError(message);
+			throw new SchemaException(message);
+		}
+		
 		EscapeStringBuilder query = new XQueryEscapeStringBuilder();
 		String origOid = null;
 		try {
@@ -573,7 +579,13 @@ public class XmlRepositoryService implements RepositoryService {
 			// FIXME: possible problems with object type checking. Now it is
 			// simple string checking, because import schema is not
 			// supported by basex database
-			query.append("$x/@xsi:type=\"").append(objectType).append("\"");
+			query.append("($x/@xsi:type=\"").append(objectType).append("\"");
+			if (objectType.equals(ObjectTypes.RESOURCE_OBJECT_SHADOW.getValue())) {
+				// HACK. This is the only type in schema that has subtype. Therefore append
+				// also the subtype in the "or" statement
+				query.append(" or $x/@xsi:type=\"").append(ObjectTypes.ACCOUNT.getValue()).append("\"");
+			}
+			query.append(")");
 		}
 		if (filters != null) {
 			int pos = 0;
