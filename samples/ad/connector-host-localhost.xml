@@ -17,17 +17,20 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2011 Ivan Noris                    -->
+<!-- Portions Copyrighted 2011 Peter Prochazka               -->
 <!--                                                         -->
 
-<connectorHost oid="91919191-76e0-59e2-86d6-44cc44cc44cc"
+<connectorHost oid="91919191-76e0-59e2-86d6-44cc44cc44cc" 
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
-								  
+
+	<!--  -->
 	<name>ICF Connector server on localhost:8759</name>
-	<hostname>localhost</hostname>
-	<port>8759</port>
-	<sharedSecret>secret</sharedSecret>
+	<hostname>localhost</hostname> 			<!-- hostname/IP where is remote connector server installed -->
+	<port>8759</port>						<!-- port where is remote connector server installed -->
+	<sharedSecret>secret</sharedSecret>		<!-- shared secret between midPoint and remote connector server-->
 </connectorHost>
