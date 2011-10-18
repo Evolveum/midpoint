@@ -93,14 +93,12 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 		try {
 			UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
 
-			LOGGER.info("userSelectionListener start");
 			PropertyReferenceListType resolve = new PropertyReferenceListType();
 			resolve.getProperty().add(Utils.fillPropertyReference("Account"));
 			resolve.getProperty().add(Utils.fillPropertyReference("Resource"));
 
 			user = (GuiUserDto) userManager.get(userOid, resolve);
-			LOGGER.info("userSelectionListener end");
-
+	
 			userDetailsController.setUser(user);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Can't select user, unknown error occured", ex);
