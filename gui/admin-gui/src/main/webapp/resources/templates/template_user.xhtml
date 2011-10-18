@@ -67,8 +67,10 @@
 		</div>
 		<h:panelGroup rendered="#{security.isUserLoggedIn}" id="nav"
 			layout="block">
+			<div id="progressIndicator">
+				<ice:outputConnectionStatus />
+			</div>
 			<div class="container">
-			<ice:outputConnectionStatus />
 				<idm:topMenu selected="#{template.selectedTopId}">
 					<div id="navBar">
 						<div id="topHomeButtonLeft"></div>

@@ -68,6 +68,10 @@
 		</div>
 		<h:panelGroup rendered="#{security.isAdminLoggedIn}" id="nav"
 			layout="block">
+			<div id="progressIndicator">
+				<ice:outputConnectionStatus />
+			</div>
+
 			<div class="container">
 				<idm:topMenu selected="#{template.selectedTopId}">
 					<div id="navBar">
@@ -117,9 +121,8 @@
 						jQuery("#navBar").css("margin-left",
 								centerOfWindow - navBarHalfWidth);
 					</script>
-					<ice:outputConnectionStatus />
 				</idm:topMenu>
-				
+
 			</div>
 		</h:panelGroup>
 		<ui:remove>
@@ -148,17 +151,17 @@
 					</ui:insert>
 					<div class="clear-menu"></div>
 				</div>
-					<div id="content">
-						<div id="wrapper">
-							<h2>
-								<ui:insert name="title">Welcome</ui:insert>
-							</h2>
-							<idm:messages id="messages" errorClass="messages-error"
-								infoClass="messages-info" fatalClass="message-fatal"
-								warnClass="messages-warn" />
-							<ui:insert name="content">sample content</ui:insert>
-						</div>
+				<div id="content">
+					<div id="wrapper">
+						<h2>
+							<ui:insert name="title">Welcome</ui:insert>
+						</h2>
+						<idm:messages id="messages" errorClass="messages-error"
+							infoClass="messages-info" fatalClass="message-fatal"
+							warnClass="messages-warn" />
+						<ui:insert name="content">sample content</ui:insert>
 					</div>
+				</div>
 			</div>
 		</div>
 		<div class="clear"></div>

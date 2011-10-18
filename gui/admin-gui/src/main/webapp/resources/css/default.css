@@ -129,14 +129,24 @@ body,table {
 	background-color: #fff;
 }
 
+#progressIndicator{
+	position: fixed;
+	background-image: url("../images/progressIndicator.png");
+	top: 75px;
+	right: 0px;
+	height: 80px;
+	width: 70px;
+}
+
 .iceOutConStat {
+	position: absolute;
+	right: 12px;
+	top: 10px;
 	margin: 0px;
 	border: none;
 	font-size: 0px;
-	position: absolute;
-	right: 50px;
-	height: 45px;
-	width: 45px;
+	height: 38px;
+	width: 38px;
 }
 
 .iceOutConStatInactv {
@@ -144,8 +154,8 @@ body,table {
 	background-image: url("../images/preloaderNormal.gif");
 	background-position: 0px 0px;
 	background-repeat: no-repeat;
-	width: 45px;
-	height: 45px;
+	width: 38px;
+	height: 38px;
 }
 
 .iceOutConStatActv {
@@ -153,8 +163,8 @@ body,table {
 	background-image: url("../images/preloaderActive.gif");
 	background-position: 0px 0px;
 	background-repeat: no-repeat;
-	width: 45px;
-	height: 45px;
+	width: 38px;
+	height: 38px;
 }
 
 .iceOutConStatCaution {
@@ -162,8 +172,8 @@ body,table {
 	background-image: url("../images/preloaderCaution.gif");
 	background-position: 0px 0px;
 	background-repeat: no-repeat;
-	width: 45px;
-	height: 45px;
+	width: 38px;
+	height: 38px;
 }
 
 .iceOutConStatDisconnect {
@@ -171,6 +181,6 @@ body,table {
 	background-image: url("../images/preloaderDisconnect.gif");
 	background-position: 0px 0px;
 	background-repeat: no-repeat;
-	width: 45px;
-	height: 45px;
+	width: 38px;
+	height: 38px;
 }
