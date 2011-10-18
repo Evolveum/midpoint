@@ -30,12 +30,9 @@ This resource definition contains only the very basic definitions for midPoint t
 
 -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-	xmlns:my="http://myself.me/schemas/whatever"
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" xmlns:my="http://myself.me/schemas/whatever"
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
 
 	<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef">
@@ -46,13 +43,13 @@ This resource definition contains only the very basic definitions for midPoint t
      	<!-- Reference to the ICF AD connector. OID is "virtual" for now. -->
 		<connectorRef type="ConnectorType">
 			<and>
-		        <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
-		        <equal>
-		          <value>
-		              <connectorType>Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector</connectorType>
-		          </value>
-		        </equal>
-		      </and>
+				<type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType" />
+				<equal>
+					<value>
+						<connectorType>Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector</connectorType>
+					</value>
+				</equal>
+			</and>
 		</connectorRef>
 
         <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
@@ -62,20 +59,20 @@ This resource definition contains only the very basic definitions for midPoint t
              such as hostnames and passwords -->
 		<configuration
 			xmlns:icfcad="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/ActiveDirectory.Connector/Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
+			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
 
             <!-- Configuration specific for the LDAP connector -->
-		    <icfcad:configurationProperties>
-                    	<icfcad:DirectoryAdminName>administrator</icfcad:DirectoryAdminName>
-	                <icfcad:DirectoryAdminPassword>secret</icfcad:DirectoryAdminPassword>
-	                <icfcad:ObjectClass>User</icfcad:ObjectClass>
-	                <icfcad:Container>cn=Users,dc=example,dc=com</icfcad:Container>
-	                <icfcad:CreateHomeDirectory>true</icfcad:CreateHomeDirectory>
-	                <icfcad:LDAPHostName>localhost</icfcad:LDAPHostName>
-	                <icfcad:SearchChildDomains>false</icfcad:SearchChildDomains>
-	                <icfcad:DomainName>example.com</icfcad:DomainName>
-		    </icfcad:configurationProperties>
-		
+			<icfcad:configurationProperties>
+				<icfcad:DirectoryAdminName>administrator</icfcad:DirectoryAdminName>
+				<icfcad:DirectoryAdminPassword>secret</icfcad:DirectoryAdminPassword>
+				<icfcad:ObjectClass>User</icfcad:ObjectClass>
+				<icfcad:Container>cn=Users,dc=example,dc=com</icfcad:Container>
+				<icfcad:CreateHomeDirectory>true</icfcad:CreateHomeDirectory>
+				<icfcad:LDAPHostName>localhost</icfcad:LDAPHostName>
+				<icfcad:SearchChildDomains>false</icfcad:SearchChildDomains>
+				<icfcad:DomainName>example.com</icfcad:DomainName>
+			</icfcad:configurationProperties>
+
 		</configuration>
 
         <!-- Resource schema definition.
@@ -101,47 +98,47 @@ This resource definition contains only the very basic definitions for midPoint t
              
         -->
 
-        <schemaHandling>
-            <accountType default="true">
-                <name>Default Account</name>
-                <objectClass>ri:AccountObjectClass</objectClass>
-                <attribute ref="icfs:name">
-                    <name>Distinguished Name</name>
+		<schemaHandling>
+			<accountType default="true">
+				<name>Default Account</name>
+				<objectClass>ri:AccountObjectClass</objectClass>
+				<attribute ref="icfs:name">
+					<name>Distinguished Name</name>
 
-                    <access>create</access>
-                    <access>read</access>
+					<access>create</access>
+					<access>read</access>
 
-                    <outbound default="true">
-                        <valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+					<outbound default="true">
+						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+							<code>
+								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+								concat('cn=', $i:user/i:name, ',cn=Users,dc=example,dc=com')
+							</code>
+						</valueExpression>
+					</outbound>
+				</attribute>
+				<attribute ref="ri:description">
+					<outbound default="true">
+						<value>Created by IDM</value>
+					</outbound>
+				</attribute>
+			</accountType>
+		</schemaHandling>
+		<scripts>
+			<script>
+				<operation>modify</operation>
+				<order>after</order>
+				<host>resource</host>
+				<language>Shell</language>
+				<argument>
+					<value>jbond</value>
+					<name>HOMEDIR</name>
+				</argument>
 				<code>
-                            		declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            		concat('cn=', $i:user/i:name, ',cn=Users,dc=example,dc=com')
-				</code>
-                        </valueExpression>
-                    </outbound>
-                </attribute>
-                <attribute ref="ri:description">
-                    <outbound default="true">
-                        <value>Created by IDM</value>
-                    </outbound>
-                </attribute>
-            </accountType>
-        </schemaHandling>
-	<scripts>
-		<script>
-		<operation>modify</operation>
-		<order>after</order>	
-<host>resource</host>
-<language>Shell</language>	
-		<argument>
-		    <value>jbond</value>
-		    <name>HOMEDIR</name>
-		</argument>
-		<code>
 echo "after modify," >> C:\a.txt
 exit
 		</code>
-		</script>
+			</script>
 <!--
 		<script>
 		<operation>modify</operation>
@@ -187,7 +184,7 @@ echo "before create," >> C:\a.txt
 exit
 		</code>
 		</script>-->
-	</scripts>
+		</scripts>
 	</resource>
 
 </objects>
