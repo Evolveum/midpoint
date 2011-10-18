@@ -62,6 +62,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
@@ -319,6 +320,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			//for each change from the connector create change description
 			for (Change change : changes) {
+				if (change.getChange() instanceof ObjectChangeDeletionType && change.getOldShadow() == null){
+					Property newToken = change.getToken();
+					PropertyModification modificatedToken = getTokenModification(newToken);
+					modifications.add(modificatedToken);
+					processedChanges++;
+					continue;
+				}
 
 				ResourceObjectShadowChangeDescriptionType shadowChangeDescription = createResourceShadowChangeDescription(
 						change, resourceType);

@@ -370,11 +370,14 @@ public class ShadowCache {
 					activationProperty.getValues());
 			if (activationValues == null || activationValues.isEmpty()
 					|| activationValues.iterator().next() == null) {
-		
-//				 No activation information.
-				 LOGGER.warn("The {} does not provide value for DISABLE attribute",
-				 ObjectTypeUtil.toShortString(resource));
-				 parentResult.recordPartialError("The "+ObjectTypeUtil.toShortString(resource)+" has native activation capability but noes not provide value for DISABLE attribute");
+
+				// No activation information.
+				LOGGER.warn("The {} does not provide value for DISABLE attribute",
+						ObjectTypeUtil.toShortString(resource));
+				parentResult
+						.recordPartialError("The "
+								+ ObjectTypeUtil.toShortString(resource)
+								+ " has native activation capability but noes not provide value for DISABLE attribute");
 			} else {
 				if (activationValues.size() > 1) {
 					LOGGER.warn("The {} provides {} values for DISABLE attribute, expecting just one value",
@@ -1003,10 +1006,11 @@ public class ShadowCache {
 
 		// delegate the main part of the test to the connector
 		connector.test(parentResult);
-		
+
 		parentResult.computeStatus();
 		if (!parentResult.isAcceptable()) {
-			// No point in going on. Following tests will fail anyway, they will just produce misleading
+			// No point in going on. Following tests will fail anyway, they will
+			// just produce misleading
 			// messages.
 			return;
 		}
@@ -1214,21 +1218,30 @@ public class ShadowCache {
 		try {
 			changes = connector.fetchChanges(objectClass, lastToken, parentResult);
 
-			for (Change change : changes) {
+			for (Iterator<Change> i = changes.iterator(); i.hasNext();) {
 				// search objects in repository
-				ResourceObjectShadowType newShadow = findOrCreateShadowFromChange(connector, resourceType,
-						change, parentResult);
-				change.setOldShadow(newShadow);
+				Change change = i.next();
+				try {
+					ResourceObjectShadowType newShadow = findOrCreateShadowFromChange(connector,
+							resourceType, change, parentResult);
+					change.setOldShadow(newShadow);
+				} catch (ObjectNotFoundException ex) {
+					parentResult
+							.recordPartialError("Couldn't find object defined in change. Skipping processing this change.");
+					i.remove();
+				}
+
 			}
+
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError("Schema error: " + ex.getMessage(), ex);
 			throw new SchemaException("Schema error: " + ex.getMessage(), ex);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
 			parentResult.recordFatalError("Communication error: " + ex.getMessage(), ex);
 			throw new CommunicationException("Communication error: " + ex.getMessage(), ex);
-		} catch (ObjectNotFoundException ex) {
-			parentResult.recordFatalError("Object not found. Reason: " + ex.getMessage(), ex);
-			throw new ObjectNotFoundException("Object not found. Reason: " + ex.getMessage(), ex);
+//		} catch (ObjectNotFoundException ex) {
+//			parentResult.recordFatalError("Object not found. Reason: " + ex.getMessage(), ex);
+//			throw new ObjectNotFoundException("Object not found. Reason: " + ex.getMessage(), ex);
 		} catch (GenericFrameworkException ex) {
 			parentResult.recordFatalError("Generic error: " + ex.getMessage(), ex);
 			throw new GenericFrameworkException("Generic error: " + ex.getMessage(), ex);
@@ -1255,7 +1268,11 @@ public class ShadowCache {
 		if (accountList.isEmpty()) {
 
 			if (!(change.getChange() instanceof ObjectChangeDeletionType)) {
-				newShadow = createNewAccountFromChange(change, resource, connector, parentResult);
+				try {
+					newShadow = createNewAccountFromChange(change, resource, connector, parentResult);
+				} catch (ObjectNotFoundException ex) {
+					throw ex;
+				}
 				LOGGER.trace("Create account shadow object: {}", ObjectTypeUtil.toShortString(newShadow));
 			}
 			// if exist, set the old shadow to the change
@@ -1318,8 +1335,9 @@ public class ShadowCache {
 			ConnectorInstance connector, OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, GenericFrameworkException {
 
-		ResourceObject resourceObject = fetchResourceObject(change.getIdentifiers(), connector, resource,
-				parentResult);
+		ResourceObject resourceObject = null;
+
+		resourceObject = fetchResourceObject(change.getIdentifiers(), connector, resource, parentResult);
 
 		ResourceObjectShadowType shadow = null;
 		try {
@@ -1662,17 +1680,17 @@ public class ShadowCache {
 		for (Property p : identifiers) {
 			try {
 				List<Object> eList = p.serializeToJaxb(doc);
-				shadow.getAttributes().getAny().addAll(eList);		
+				shadow.getAttributes().getAny().addAll(eList);
 			} catch (SchemaException e) {
 				throw new SchemaException("An error occured while serializing property " + p + " to DOM: "
 						+ e.getMessage(), e);
 			}
 		}
 
-		if (shadow instanceof AccountShadowType){
+		if (shadow instanceof AccountShadowType) {
 			((AccountShadowType) shadow).setCredentials(null);
 		}
-		
+
 		// Store shadow in the repository
 		String oid = null;
 		try {
