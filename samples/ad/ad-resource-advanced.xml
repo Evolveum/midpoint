@@ -18,6 +18,8 @@
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!-- Portions Copyrighted 2010 Forgerock                     -->
+<!-- Portions Copyrighted 2011 Ivan Noris                    -->
+<!-- Portions Copyrighted 2011 Peter Prochazka               -->
 <!--                                                         -->
 
 
@@ -102,6 +104,18 @@ This resource definition contains only the very basic definitions for midPoint t
 			<accountType default="true">
 				<name>Default Account</name>
 				<objectClass>ri:AccountObjectClass</objectClass>
+				<attribute ref="icfs:givenName "> <!-- required attribute on AD -->
+					<name>Given Name</name>
+					<outbound default="true">
+						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+							<code>
+								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+								$i:user/i:givenName
+							</code>
+						</valueExpression>
+					</outbound>
+				</attribute>
+
 				<attribute ref="icfs:name">
 					<name>Distinguished Name</name>
 
@@ -112,11 +126,14 @@ This resource definition contains only the very basic definitions for midPoint t
 						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
 							<code>
 								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-								concat('cn=', $i:user/i:name, ',cn=Users,dc=example,dc=com')
+								concat('cn=',
+								$i:user/i:name, ',cn=Users,dc=example,dc=com')
 							</code>
 						</valueExpression>
 					</outbound>
 				</attribute>
+
+
 				<attribute ref="ri:description">
 					<outbound default="true">
 						<value>Created by IDM</value>
