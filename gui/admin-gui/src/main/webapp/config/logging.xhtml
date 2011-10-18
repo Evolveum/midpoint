@@ -65,9 +65,9 @@
 
 			<ice:dataTable rows="20" value="#{logging.loggers}"
 				id="subsystemLoggerTable" var="item"
-				columnWidths="auto, 300px, 70px" resizable="false">
+				columnWidths="auto, auto, auto, auto" resizable="false">
 
-				<ice:column>
+				<ice:column rendered="#{logging.advancedView}">
 					<f:facet name="header">
 						<ice:selectBooleanCheckbox id="selectAllCheckbox"
 							value="#{logging.selectAllLoggers}"
@@ -79,29 +79,18 @@
 						valueChangeListener="#{logging.selectLoggerPerformed}" />
 				</ice:column>
 
-				<ice:column>
+				<ice:column >
 					<f:facet name="header">
 						<ice:outputLabel value="#{msg['web.bean.loggerListItem.package']}" />
 					</f:facet>
 					<f:subview rendered="#{item.systemComponent}">
-						<ui:remove>
-							<ice:outputText value="#{item.componentString}"
-								rendered="#{item.systemComponent}" />
-
-						</ui:remove>
 						<ice:commandLink style="text-decoration: underline;"
 							value="#{item.componentString}" action="#{logging.editLogger}">
 
 							<f:param name="loggerId" value="#{item.id}" />
 						</ice:commandLink>
-						<ui:remove>
-							<ice:selectOneMenu value="#{item.componentString}"
-								rendered="#{item.editing}">
-								<f:selectItems value="#{logging.components}" />
-							</ice:selectOneMenu>
-						</ui:remove>
 					</f:subview>
-					<f:subview rendered="#{not item.systemComponent}">
+					<f:subview rendered="#{not item.systemComponent &amp;&amp; logging.advancedView}">
 						<ice:commandLink style="text-decoration: underline;"
 							rendered="#{not item.editing}" value="#{item.packageName}"
 							action="#{logging.editLogger}">
@@ -121,7 +110,7 @@
 						<ice:outputText value="#{item.levelString}"
 							rendered="#{not item.editing}" />
 					</ui:remove>
-					<ice:selectOneMenu value="#{item.levelString}">
+					<ice:selectOneMenu value="#{item.levelString}" rendered="#{item.systemComponent || logging.advancedView}">
 						<f:param id="loggerId" name="loggerId" value="#{item.id}" />
 						<f:selectItems value="#{logging.levels}" />
 					</ice:selectOneMenu>
@@ -149,7 +138,7 @@
 					<ice:selectOneMenu
 						valueChangeListener="#{logging.addLoggerAppender}"
 						style="width: inherit;" partialSubmit="true" immediate="true"
-						id="loggerAppenderSelect" value="#{item.appendersText}">
+						id="loggerAppenderSelect" value="#{item.appendersText}" rendered="#{(item.systemComponent || logging.advancedView)}">
 						<f:param name="loggerId" value="#{item.id}" />
 						<f:selectItems value="#{logging.appenderNames}" />
 					</ice:selectOneMenu>
@@ -173,11 +162,7 @@
 						buttonType="positive" action="#{logging.addLogger}"
 						img="/resources/images/report_add.png" />
 
-					<ui:remove>
-						<idm:button value="#{msg['page.button.addSubsystem']}"
-							buttonType="positive" action="#{logging.addSubsystemLogger}"
-							img="/resources/images/report_add.png" />
-					</ui:remove>
+					
 					<idm:button value="#{msg['page.button.deleteLogger']}"
 						buttonType="negative" action="#{logging.deleteLoggers}"
 						img="/resources/images/report_delete.png" />

@@ -88,6 +88,8 @@ public class LoggingController implements Serializable {
 	private List<BasicLoggerListItem> loggers;
 	private List<AppenderListItem> appenders;
 	private List<SubsystemLoggerListItem> subsystemLoggers;
+	
+	private List<BasicLoggerListItem> classLoggers;
 
 	private boolean advancedView = false;
 
@@ -428,6 +430,7 @@ public class LoggingController implements Serializable {
 		int id = 0;
 		List<SubsystemLoggerListItem> subsystemItems = new ArrayList<SubsystemLoggerListItem>();
 		
+		classLoggers = new ArrayList<BasicLoggerListItem>();
 		// create logger item for each defined class or package..if defined
 		// logger is for profiling (aspect) create special case
 		for (ClassLoggerConfigurationType classLogger : logging.getClassLogger()) {
@@ -436,7 +439,7 @@ public class LoggingController implements Serializable {
 				id++;
 				break;
 			}
-			getLoggers().add(createLoggerListItem(id, classLogger));
+			classLoggers.add(createLoggerListItem(id, classLogger));
 			id++;
 		}
 
@@ -514,6 +517,16 @@ public class LoggingController implements Serializable {
 
 	public void changeView(ActionEvent evt) {
 		advancedView = !advancedView;
+		if (advancedView){
+			getLoggers().addAll(classLoggers);
+		} else{
+			for (Iterator<BasicLoggerListItem> i = getLoggers().iterator(); i.hasNext();){
+				BasicLoggerListItem logger = i.next();
+				if (!logger.isSystemComponent()){
+					i.remove();
+				}
+			}
+		}
 	}
 
 //	public String initController() {
@@ -700,16 +713,25 @@ public class LoggingController implements Serializable {
 		}
 		for (BasicLoggerListItem item : loggers) {
 			if (item instanceof LoggerListItem) {
-				if (((LoggerListItem) item).getPackageName().equals("PROFILING")) {
-					continue;
-				}
-				ClassLoggerConfigurationType logger = createClassLogger((LoggerListItem) item, appenders);
-				configuration.getClassLogger().add(logger);
+				continue;
+//				if (((LoggerListItem) item).getPackageName().equals("PROFILING")) {
+//					continue;
+//				}
+//				ClassLoggerConfigurationType logger = createClassLogger((LoggerListItem) item, appenders);
+//				configuration.getClassLogger().add(logger);
 			} else if (item instanceof SubsystemLoggerListItem) {
 				SubSystemLoggerConfigurationType logger = createSubsystemLogger(
 						(SubsystemLoggerListItem) item, appenders);
 				configuration.getSubSystemLogger().add(logger);
 			}
+		}
+		
+		for (BasicLoggerListItem item : classLoggers) {
+			if (((LoggerListItem) item).getPackageName().equals("PROFILING")) {
+				continue;
+			}
+			ClassLoggerConfigurationType logger = createClassLogger((LoggerListItem) item, appenders);
+			configuration.getClassLogger().add(logger);
 		}
 
 		updateProfilingLogger(profilingLogger);
