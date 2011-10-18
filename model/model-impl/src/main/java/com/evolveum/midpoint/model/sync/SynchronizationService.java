@@ -149,6 +149,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				LOGGER.trace(JAXBUtil.silentMarshalWrap(objectShadowAfterChange));
 			}
 			SynchronizationSituation situation = checkSituation(change, objectShadowAfterChange, subResult);
+			
+			LOGGER.debug("SITUATION: {} ()",situation.getSituation().value(),ObjectTypeUtil.toShortString(situation.getUser()));
 
 			notifyChange(change, situation, resource, objectShadowAfterChange, subResult);
 		} finally {

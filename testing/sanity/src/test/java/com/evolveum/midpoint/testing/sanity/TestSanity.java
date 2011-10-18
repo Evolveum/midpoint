@@ -1890,7 +1890,7 @@ public class TestSanity extends AbstractIntegrationTest {
 			// givenName is not mandatory in LDAP, therefore givenName may not
 			// be present on user
 			List<ObjectReferenceType> accountRefs = user.getAccountRef();
-			AssertJUnit.assertEquals("Wrong accountRef", 1, accountRefs.size());
+			AssertJUnit.assertEquals("Wrong accountRef for user "+user.getName(), 1, accountRefs.size());
 			ObjectReferenceType accountRef = accountRefs.get(0);
 			// here was ref to resource oid, not account oid
 

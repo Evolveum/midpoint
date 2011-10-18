@@ -79,17 +79,17 @@ public class ControllerAddUserTest extends AbstractTestNGSpringContextTests {
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void addNullUser() throws Exception {
-		controller.addUser(null, null, null);
+		controller.addUser(null, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void addUserWithNullTemplate() throws Exception {
-		controller.addUser(new UserType(), null, null);
+		controller.addUser(new UserType(), null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void addUserWithNullResult() throws Exception {
-		controller.addUser(null, null, null);
+		controller.addUser(null, null, null, null);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -144,7 +144,7 @@ public class ControllerAddUserTest extends AbstractTestNGSpringContextTests {
 		try {
 			LOGGER.info("provisioning: " + provisioning.getClass());
 			LOGGER.info("repo" + repository.getClass());
-			assertEquals(userOid, controller.addUser(user, userTemplate, result));
+			assertEquals(userOid, controller.addUser(user, userTemplate, null, result));
 		} finally {
 			LOGGER.info(result.dump());
 		}

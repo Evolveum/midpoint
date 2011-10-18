@@ -189,7 +189,7 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public String addUser(UserType user, UserTemplateType userTemplate, OperationResult result)
+	public String addUser(UserType user, UserTemplateType userTemplate, Collection<String> excludedResourceOids, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException {
 		Validate.notNull(user, "User must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
@@ -199,9 +199,13 @@ public class ModelControllerImpl implements ModelController {
 		}
 
 		OperationResult subResult = result.createSubresult(ADD_USER);
+		subResult.addParam("user", user);
+		subResult.addParam("userTemplate", userTemplate);
+		subResult.addParam("exclusion", excludedResourceOids);
+		
 		UserTypeHandler handler = new UserTypeHandler(this, provisioning, cacheRepositoryService,
 				schemaHandler);
-		return handler.addUser(user, userTemplate, null, subResult);
+		return handler.addUser(user, userTemplate, excludedResourceOids, subResult);
 	}
 
 	@Override

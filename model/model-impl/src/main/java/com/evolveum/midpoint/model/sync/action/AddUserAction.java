@@ -29,6 +29,8 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.MiscUtil;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -72,7 +74,7 @@ public class AddUserAction extends BaseAction {
 							new PropertyReferenceListType(), subResult);
 				}
 
-				userOid = getModel().addUser(user, userTemplate, subResult);
+				userOid = getModel().addUser(user, userTemplate, MiscUtil.toCollection(ResourceObjectShadowUtil.getResourceOid(shadowAfterChange)), subResult);
 			} else {
 				LOGGER.debug("User with oid {} already exists, skipping create.",
 						new Object[] { user.getOid() });

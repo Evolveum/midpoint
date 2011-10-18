@@ -77,7 +77,7 @@ public interface ModelController extends ModelService {
 	 * @throws ObjectAlreadyExistsException
 	 * @throws ObjectNotFoundException
 	 */
-	String addUser(UserType user, UserTemplateType userTemplate, OperationResult result)
+	String addUser(UserType user, UserTemplateType userTemplate, Collection<String> excludedResourceOids, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException;
 
 }
