@@ -378,17 +378,19 @@ public class UserTypeHandler extends BasicHandler {
 			OperationResult subResult = result.createSubresult(ModelControllerImpl.CHANGE_ACCOUNT);
 			subResult.addParams(new String[] { "accountOid", "object", "accountRef" }, excludedResourceOids, user,
 					accountRef);
-			if (excludedResourceOids != null && excludedResourceOids.contains(accountRef.getOid())) {
-				subResult.computeStatus("Account excluded during modification, skipped.");
-				// preventing cycles while updating resource object shadows
-				continue;
-			}
 
 			try {
 				AccountShadowType account = getModelController().getObject(AccountShadowType.class,
 						accountRef.getOid(), ModelUtils.createPropertyReferenceListType("Resource"),
 						subResult);
 
+				if (excludedResourceOids != null 
+						&& excludedResourceOids.contains(ResourceObjectShadowUtil.getResourceOid(account))) {
+					subResult.computeStatus("Account excluded during modification, skipped.");
+					// preventing cycles while updating resource object shadows
+					continue;
+				}
+				
 				ResourceType resource = getProvisioning().getObject(ResourceType.class,
 						ResourceObjectShadowUtil.getResourceOid(account), null, subResult);
 

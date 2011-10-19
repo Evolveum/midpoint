@@ -10,6 +10,7 @@ import java.sql.SQLSyntaxErrorException;
 import java.util.Set;
 
 import javax.naming.NameAlreadyBoundException;
+import javax.naming.directory.InvalidAttributeValueException;
 import javax.naming.directory.SchemaViolationException;
 
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
@@ -173,7 +174,7 @@ class IcfUtil {
 			// connectors
 			Exception newEx = new ObjectAlreadyExistsException(createMessage(null, ex));
 			parentResult.recordFatalError("Object already exists: "+ex.getMessage(), newEx);
-			return newEx;
+			return newEx;		
 		} else if (ex instanceof javax.naming.CommunicationException) {
 			// This is thrown by LDAP connector and may be also throw by similar
 			// connectors
@@ -185,6 +186,12 @@ class IcfUtil {
 			// connectors
 			Exception newEx = new SchemaException(createMessage("Schema violation", ex)); 
 			parentResult.recordFatalError("Schema violation: "+ex.getMessage(), newEx);
+			return newEx;
+		} else if (ex instanceof InvalidAttributeValueException) {
+			// This is thrown by LDAP connector and may be also throw by similar
+			// connectors
+			Exception newEx = new SchemaException(createMessage("Invalid attribute", ex)); 
+			parentResult.recordFatalError("Invalid attribute: "+ex.getMessage(), newEx);
 			return newEx;
 		} else if (ex instanceof ConnectException) {
 			// Buried deep in many exceptions, usually connection refused or

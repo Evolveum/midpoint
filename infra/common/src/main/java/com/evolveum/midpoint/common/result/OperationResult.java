@@ -37,6 +37,7 @@ import javax.xml.bind.JAXBException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
@@ -646,7 +647,7 @@ public class OperationResult implements Serializable, Dumpable {
 			sb.append("[p]");
 			sb.append(entry.getKey());
 			sb.append("=");
-			sb.append(DebugUtil.prettyPrint(entry.getValue()));
+			sb.append(dumpEntry(entry.getValue()));
 			sb.append("\n");
 		}
 
@@ -657,7 +658,7 @@ public class OperationResult implements Serializable, Dumpable {
 			sb.append("[c]");
 			sb.append(entry.getKey());
 			sb.append("=");
-			sb.append(DebugUtil.prettyPrint(entry.getValue()));
+			sb.append(dumpEntry(entry.getValue()));
 			sb.append("\n");
 		}
 
@@ -666,7 +667,7 @@ public class OperationResult implements Serializable, Dumpable {
 				sb.append(INDENT_STRING);
 			}
 			sb.append("[r]=");
-			sb.append(DebugUtil.prettyPrint(returnValue));
+			sb.append(dumpEntry(returnValue));
 			sb.append("\n");
 		}
 
@@ -682,6 +683,21 @@ public class OperationResult implements Serializable, Dumpable {
 		for (OperationResult sub : getSubresults()) {
 			sub.dumpIndent(sb, indent + 1, printStackTrace);
 		}
+	}
+
+	private String dumpEntry(Object value) {
+		if (value instanceof Element) {
+			Element element = (Element)value;
+			if (SchemaConstants.C_VALUE.equals(DOMUtil.getQName(element))) {
+				try {
+					Object cvalue = XsdTypeConverter.toJavaValue(value);
+					return DebugUtil.prettyPrint(cvalue);
+				} catch (Exception e) {
+					return "value: "+element.getTextContent();
+				}
+			}
+		}
+		return DebugUtil.prettyPrint(value);
 	}
 
 	private void dumpInnerCauses(StringBuilder sb, Throwable innerCause, int indent) {

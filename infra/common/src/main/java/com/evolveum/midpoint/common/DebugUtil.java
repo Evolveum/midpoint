@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -68,6 +69,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UnknownJavaObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -584,19 +586,69 @@ public class DebugUtil implements ObjectFormatter {
 			return ("Error marshalling the object: " + ex.getMessage());
 		}
 	}
+	
+	public static String prettyPrint(UnknownJavaObjectType xml) {
+		if (xml == null) {
+			return "null";
+		}
+		return "Java("+xml.getClazz()+","+xml.getToString()+")";
+	}
 
+//	public static String prettyPrint(Object value) {
+//		if (value == null) {
+//			return "null";
+//		}
+//		// TODO: temporary hack. Maybe we can use
+//		// reflection instead of horde of if-s
+//		if (value instanceof ObjectType) {
+//			ObjectType object = (ObjectType) value;
+//			return prettyPrint(object);
+//		} else if (value instanceof JAXBElement) {
+//			return prettyPrint((JAXBElement)value);
+//		} else {
+//			return value.toString();
+//		}
+//	}
+	
 	public static String prettyPrint(Object value) {
 		if (value == null) {
 			return "null";
 		}
-		// TODO: temporary hack. Maybe we can use
-		// reflection instead of horde of if-s
-		if (value instanceof ObjectType) {
-			ObjectType object = (ObjectType) value;
-			return prettyPrint(object);
-		} else {
-			return value.toString();
+		String out = null;
+		if (value instanceof JAXBElement) {
+			Object elementValue = ((JAXBElement)value).getValue();
+			out = tryPrettyPrint(elementValue);
+			if (out != null) {
+				return ("JAXBElement("+((JAXBElement)value).getName()+","+out+")");
+			}
 		}
+		out = tryPrettyPrint(value);
+		if (out == null) {
+			out = value.toString();
+		}
+		return out;
+	}
+
+	private static String tryPrettyPrint(Object value) {
+		for (Method method : DebugUtil.class.getMethods()) {
+			if (method.getName().equals("prettyPrint")) {
+				Class<?>[] parameterTypes = method.getParameterTypes();
+				if (parameterTypes.length == 1 && parameterTypes[0].equals(value.getClass())) {
+					try {
+						return (String)method.invoke(null, value);
+					} catch (IllegalArgumentException e) {
+						return "###INTERNAL#ERROR### Illegal argument: "+e.getMessage();
+					} catch (IllegalAccessException e) {
+						return "###INTERNAL#ERROR### Illegal access: "+e.getMessage();
+					} catch (InvocationTargetException e) {
+						return "###INTERNAL#ERROR### Illegal target: "+e.getMessage();
+					} catch (Throwable e) {
+						return "###INTERNAL#ERROR### "+e.getClass().getName()+": "+e.getMessage();
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 	@Override
