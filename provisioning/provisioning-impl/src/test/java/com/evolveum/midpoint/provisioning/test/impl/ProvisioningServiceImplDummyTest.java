@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
@@ -39,11 +40,13 @@ import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.EnhancedResourceType;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -82,12 +85,14 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.TestConnecti
 		"classpath:application-context-provisioning-test.xml", "classpath:application-context-task.xml",
 		"classpath:application-context-repository.xml",
 		"classpath:application-context-configuration-test.xml" })
+@DirtiesContext
 public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 	private static final String FILENAME_RESOURCE_DUMMY = "src/test/resources/impl/resource-dummy.xml";
 	private static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
 	private static final String FILENAME_ACCOUNT = "src/test/resources/impl/account-dummy.xml";
 	private static final String ACCOUNT_NEW_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
+	private static final String ACCOUNT_NEW_ICF_UID = "will";
 	private static final String FILENAME_ACCOUNT_SCRIPT = "src/test/resources/impl/account-dummy-script.xml";
 	private static final String ACCOUNT_NEW_SCRIPT_OID = "c0c010c0-d34d-b44f-f11d-33322212abcd";
 	private static final String FILENAME_ENABLE_ACCOUNT = "src/test/resources/impl/enable-account.xml";
@@ -410,6 +415,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
 		assertTrue("The account is not enabled", dummyAccount.isEnabled());
 		assertEquals("Wrong password", "3lizab3th", dummyAccount.getPassword());
+		
+		checkConsistency();
 	}
 
 	@Test
@@ -429,6 +436,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertNotNull("No dummy account", shadow);
 		
 		checkShadow(shadow);
+		
+		checkConsistency();
 	}
 	
 	@Test
@@ -465,6 +474,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		AccountShadowType shadow = (AccountShadowType) foundObjects.get(0);
 		display("Found object",shadow);
 		checkShadow(shadow);
+		
+		checkConsistency();
 	}
 		
 	private void checkShadow(AccountShadowType shadow) {
@@ -608,6 +619,20 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	@Test
 	public void test33DeleteScript() {
 		// TODO
+	}
+	
+	private void checkConsistency() throws SchemaException {
+		
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName() + ".checkConsistency");
+		
+		QueryType query = new QueryType();
+		Document doc = DOMUtil.getDocument();
+		XPathHolder xpath = new XPathHolder(SchemaConstants.I_ATTRIBUTES);
+		query.setFilter(QueryUtil.createEqualFilter(doc, xpath, ConnectorFactoryIcfImpl.ICFS_UID, ACCOUNT_NEW_ICF_UID));
+		
+		ResultList<AccountShadowType> objects = repositoryService.searchObjects(AccountShadowType.class, query , null, result);
+		assertEquals("Wrong number of shadows for ICF UID " + ACCOUNT_NEW_ICF_UID, 1, objects.size());
+		
 	}
 
 }

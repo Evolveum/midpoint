@@ -219,20 +219,27 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		if (change.getShadow() != null) {
 			LOGGER.trace("Determining situation for OID {}.", new Object[] { change.getShadow().getOid() });
 		} else {
-			LOGGER.trace("Determining situation for new resource object.");
+			LOGGER.trace("Determining situation for new resource object (shadow OID {}).", objectShadowAfterChange.getOid());
 		}
-		ResourceObjectShadowType resourceShadow = change.getShadow();
 		ModificationType modification = getModificationType(change.getObjectChange());
 		SynchronizationSituation situation = null;
 		try {
 			UserType user = null;
-			if (resourceShadow != null && resourceShadow.getOid() != null
-					&& !resourceShadow.getOid().isEmpty()) {
-				user = controller.listAccountShadowOwner(resourceShadow.getOid(), subResult);
+			ResourceObjectShadowType shadow = null;
+			ResourceObjectShadowType shadowFromChange = change.getShadow();
+			if (shadowFromChange != null && shadowFromChange.getOid() != null
+					&& !shadowFromChange.getOid().isEmpty()) {
+				user = controller.listAccountShadowOwner(shadowFromChange.getOid(), subResult);
+				shadow = shadowFromChange;
+				
+			} else if (objectShadowAfterChange != null && objectShadowAfterChange.getOid() != null
+					&& !objectShadowAfterChange.getOid().isEmpty()) {
+				user = controller.listAccountShadowOwner(objectShadowAfterChange.getOid(), subResult);
+				shadow = objectShadowAfterChange;
 			}
 
 			if (user != null) {
-				LOGGER.trace("Shadow OID {} does have owner: {}", change.getShadow().getOid(), user.getOid());
+				LOGGER.trace("Shadow OID {} does have owner: {}", shadow.getOid(), user.getOid());
 				SynchronizationSituationType state = null;
 				switch (modification) {
 					case ADD:

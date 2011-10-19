@@ -94,6 +94,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.MiscUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
@@ -215,6 +216,7 @@ public class TestSanity extends AbstractIntegrationTest {
 	private static ResourceType resourceDerby;
 	private static String accountShadowOidOpendj;
 	private static String accountShadowOidDerby;
+	private String accountShadowOidGuybrushOpendj;
 	private String originalJacksPassword;
 
 	/**
@@ -830,7 +832,31 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertAttribute(modelShadow, resourceDerby, "FULL_NAME", "Cpt. Jack Sparrow");
 
 	}
+	
+	@Test
+	public void test015AccountOwner() throws FaultMessage {
+		displayTestTile("test015AccountOwner");
 
+		// GIVEN
+
+		assertCache();
+
+		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+		Holder<UserType> userHolder = new Holder<UserType>();
+		
+		// WHEN
+		
+		modelWeb.listAccountShadowOwner(accountShadowOidOpendj, userHolder, resultHolder);
+		
+		// THEN
+		
+		assertSuccess("listAccountShadowOwner has failed (result)", resultHolder.value);
+		UserType user = userHolder.value;
+		assertNotNull("No owner",user);
+		assertEquals(USER_JACK_OID,user.getOid());
+		
+		System.out.println("Account "+accountShadowOidOpendj+" has owner "+ObjectTypeUtil.toShortString(user));
+	}
 	
 	/**
 	 * We are going to modify the user. As the user has an account, the user
@@ -1486,7 +1512,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
 		assertEquals(1, accountRefs.size());
 		ObjectReferenceType accountRef = accountRefs.get(0);
-		String accountShadowOidGuybrushOpendj = accountRef.getOid();
+		accountShadowOidGuybrushOpendj = accountRef.getOid();
 		assertFalse(accountShadowOidGuybrushOpendj.isEmpty());
 
 		// Check if shadow was created in the repo
@@ -1540,6 +1566,31 @@ public class TestSanity extends AbstractIntegrationTest {
 		// TODO: attributes in role definition
 		// TODO: Derby
 	
+	}
+	
+	@Test
+	public void test051AccountOwnerAfterRole() throws FaultMessage {
+		displayTestTile("test051AccountOwnerAfterRole");
+
+		// GIVEN
+
+		assertCache();
+
+		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+		Holder<UserType> userHolder = new Holder<UserType>();
+		
+		// WHEN
+		
+		modelWeb.listAccountShadowOwner(accountShadowOidGuybrushOpendj, userHolder, resultHolder);
+		
+		// THEN
+		
+		assertSuccess("listAccountShadowOwner has failed (result)", resultHolder.value);
+		UserType user = userHolder.value;
+		assertNotNull("No owner",user);
+		assertEquals(USER_GUYBRUSH_OID,user.getOid());
+		
+		System.out.println("Account "+accountShadowOidGuybrushOpendj+" has owner "+ObjectTypeUtil.toShortString(user));
 	}
 
 	
@@ -1877,6 +1928,14 @@ public class TestSanity extends AbstractIntegrationTest {
 		ObjectListType uobjects = listHolder.value;
 		assertSuccess("listObjects has failed", resultHolder.value);
 		AssertJUnit.assertFalse("No users created", uobjects.getObject().isEmpty());
+		
+		try {
+			AccountShadowType guybrushShadow = modelService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj, null, new OperationResult("get shadow"));
+			display("Guybrush shadow ("+accountShadowOidGuybrushOpendj+")",guybrushShadow);
+		} catch (ObjectNotFoundException e) {
+			System.out.println("NO GUYBRUSH SHADOW");
+			// TODO: fail
+		}
 
 		for (ObjectType oo : uobjects.getObject()) {
 			UserType user = (UserType) oo;

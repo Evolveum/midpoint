@@ -133,6 +133,16 @@ public class XPathHolder {
 		parse(xpath, domNode, null);
 	}
 
+	public XPathHolder(QName... segmentQNames) {
+		this.segments = new ArrayList<XPathSegment>();
+		for (QName segmentQName :segmentQNames) {
+			XPathSegment segment = new XPathSegment(segmentQName);
+			this.segments.add(segment);
+		}
+
+		this.absolute = false;		
+	}
+
 	private void parse(String xpath, Node domNode, Map<String, String> namespaceMap) {
 
 		segments = new ArrayList<XPathSegment>();

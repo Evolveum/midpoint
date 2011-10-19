@@ -18,6 +18,7 @@ import java.sql.Statement;
 import javax.xml.bind.JAXBException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -50,6 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 		"classpath:application-context-task.xml",
 		"classpath:application-context-repository.xml",
 		"classpath:application-context-configuration-test.xml" })
+@DirtiesContext
 public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 	
 	private static final String FILENAME_RESOURCE_DERBY = "src/test/resources/impl/resource-derby.xml";

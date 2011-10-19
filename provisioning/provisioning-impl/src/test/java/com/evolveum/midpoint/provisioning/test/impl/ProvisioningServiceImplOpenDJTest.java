@@ -45,6 +45,7 @@ import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.w3c.dom.Element;
 
@@ -116,6 +117,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsC
 		"classpath:application-context-task.xml",
 		"classpath:application-context-repository.xml",
 		"classpath:application-context-configuration-test.xml" })
+@DirtiesContext
 public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 	// Let's reuse the resource definition from UCF tests ... for now
