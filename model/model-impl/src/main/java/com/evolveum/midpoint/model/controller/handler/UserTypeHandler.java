@@ -656,8 +656,10 @@ public class UserTypeHandler extends BasicHandler {
 			AccountShadowType account = getRepository().getObject(AccountShadowType.class, accountRef.getOid(), null, result);
 			user.getAccount().add(account);
 		} catch (ObjectNotFoundException e) {
-			LoggingUtils.logException(LOGGER, "Couldn't resolve account reference {} in {}", e,
-					ObjectTypeUtil.toShortString(accountRef), ObjectTypeUtil.toShortString(user));
+			LOGGER.warn("Couldn't resolve account reference {} in {}: {}", new Object[]{
+					ObjectTypeUtil.toShortString(accountRef), ObjectTypeUtil.toShortString(user),e.getMessage()});
+			// otherwise ignore the error. this may happen, e.g. during account delete if we are unlinking
+			// already deleted account.
 		} catch (SchemaException e) {
 			LoggingUtils.logException(LOGGER, "Couldn't resolve account reference {} in {}", e,
 					ObjectTypeUtil.toShortString(accountRef), ObjectTypeUtil.toShortString(user));
