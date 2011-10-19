@@ -525,7 +525,7 @@ public class ShadowCache {
 				if (readFromRepository) {
 					// Attached shadow (with OID)
 					try {
-						shadow = lookupShadow(object, parentResult);
+						shadow = lookupShadow(object, resource, parentResult);
 					} catch (SchemaException e) {
 						// TODO: better error handling
 						LOGGER.error(
@@ -1108,7 +1108,7 @@ public class ShadowCache {
 
 					// Try to find shadow that corresponds to the resource
 					// object
-					shadow = lookupShadow(object, parentResult);
+					shadow = lookupShadow(object, resourceType, parentResult);
 
 					if (shadow == null) {
 						LOGGER.trace(
@@ -1426,7 +1426,7 @@ public class ShadowCache {
 	 * @throws SchemaProcessorException
 	 * @throws SchemaException
 	 */
-	private ResourceObjectShadowType lookupShadow(ResourceObject resourceObject, OperationResult parentResult)
+	private ResourceObjectShadowType lookupShadow(ResourceObject resourceObject, ResourceType resource, OperationResult parentResult)
 			throws SchemaException {
 
 		QueryType query = createSearchShadowQuery(resourceObject);
@@ -1449,7 +1449,8 @@ public class ShadowCache {
 			throw new IllegalStateException("More than one shadows found for " + resourceObject);
 		}
 
-		return results.get(0);
+		ResourceObjectShadowType repoShadow = results.get(0);
+		return createShadow(resourceObject, resource, repoShadow);
 	}
 
 	private QueryType createSearchShadowQuery(ResourceObject resourceObject) throws SchemaException {
