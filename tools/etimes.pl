@@ -17,6 +17,7 @@ while ($line) {
       my $rest = $';
       my $opkey = $1;
       my $op = $ops{$opkey};
+      $op->{key} = $1;
       $op->{op} = $2;
       $ops{$opkey} = $op;
       my @args;
@@ -43,7 +44,7 @@ while ($line) {
 }
 
 foreach my $op (sort { $a->{etime} <=> $b->{etime} } values %ops) {
-  print $op->{etime}.": ".$op->{op}."\n";
+  print $op->{etime}.": ".$op->{key}." ".$op->{op}."\n";
   foreach my $args (@{$op->{args}}) {
     print "  ".$args."\n";
   }

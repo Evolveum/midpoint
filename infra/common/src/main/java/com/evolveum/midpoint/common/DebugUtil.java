@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.common;
 
+import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
@@ -239,7 +240,7 @@ public class DebugUtil implements ObjectFormatter {
 		if (objectChange == null) {
 			return "null";
 		}
-		StringBuilder sb = new StringBuilder("ObjectChange(");
+		StringBuilder sb = new StringBuilder("ObjectModification(");
 		sb.append(objectChange.getOid());
 		sb.append(",");
 		List<PropertyModificationType> changes = objectChange.getPropertyModification();
@@ -259,7 +260,7 @@ public class DebugUtil implements ObjectFormatter {
 		if (change == null) {
 			return "null";
 		}
-		StringBuilder sb = new StringBuilder("Change(");
+		StringBuilder sb = new StringBuilder("ProperyModification(");
 		sb.append(change.getModificationType());
 		sb.append(",");
 		if (change.getPath() != null) {
@@ -270,7 +271,10 @@ public class DebugUtil implements ObjectFormatter {
 		}
 		sb.append(",");
 
-		sb.append(prettyPrint(change.getValue().getAny()));
+		for (Object element : change.getValue().getAny()) {
+			sb.append(prettyPrint(element));
+			sb.append(",");
+		}
 
 		return sb.toString();
 	}
@@ -507,6 +511,39 @@ public class DebugUtil implements ObjectFormatter {
 		sb.append(")");
 		return sb.toString();
 	}
+	
+	public static String prettyPrint(ObjectChangeAdditionType change) {
+		if (change == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("ObjectChangeAdditionType(");
+		sb.append(prettyPrint(change.getObject(), true));
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	public static String prettyPrint(ObjectChangeModificationType change) {
+		if (change == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("ObjectChangeModificationType(");
+		sb.append(prettyPrint(change.getObjectModification()));
+		sb.append(")");
+		return sb.toString();
+	}
+
+	public static String prettyPrint(ObjectChangeDeletionType change) {
+		if (change == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("ObjectChangeDeletionType(");
+		sb.append(change.getOid());
+		sb.append(")");
+		return sb.toString();
+	}
 
 	public static String prettyPrint(ObjectChangeType change) {
 		if (change == null) {
@@ -514,20 +551,11 @@ public class DebugUtil implements ObjectFormatter {
 		}
 		StringBuilder sb = new StringBuilder();
 		if (change instanceof ObjectChangeAdditionType) {
-			sb.append("ObjectChangeAdditionType(");
-			ObjectChangeAdditionType add = (ObjectChangeAdditionType) change;
-			sb.append(prettyPrint(add.getObject(), true));
-			sb.append(")");
+			return prettyPrint((ObjectChangeAdditionType) change);
 		} else if (change instanceof ObjectChangeModificationType) {
-			sb.append("ObjectChangeModificationType(");
-			ObjectChangeModificationType mod = (ObjectChangeModificationType) change;
-			sb.append(prettyPrint(mod.getObjectModification()));
-			sb.append(")");
+			return prettyPrint((ObjectChangeModificationType) change);
 		} else if (change instanceof ObjectChangeDeletionType) {
-			sb.append("ObjectChangeDeletionType(");
-			ObjectChangeDeletionType del = (ObjectChangeDeletionType) change;
-			sb.append(del.getOid());
-			sb.append(")");
+			return prettyPrint((ObjectChangeDeletionType) change);
 		} else {
 			sb.append("Unknown change type ");
 			sb.append(change.getClass().getName());
@@ -581,7 +609,7 @@ public class DebugUtil implements ObjectFormatter {
 
 	public static String prettyPrint(JAXBElement<?> element) {
 		try {
-			return JAXBUtil.marshal(element);
+			return prettyPrint(JAXBUtil.toDomElement(element));
 		} catch (JAXBException ex) {
 			return ("Error marshalling the object: " + ex.getMessage());
 		}
@@ -653,15 +681,14 @@ public class DebugUtil implements ObjectFormatter {
 
 	@Override
 	public String format(Object o) {
-		if (o instanceof ObjectType) {
-			return prettyPrint((ObjectType)o);
-		} if (o instanceof ObjectChangeType) {
-			return prettyPrint((ObjectChangeType)o);
-		} if (o instanceof ObjectModificationType) {
-			return prettyPrint((ObjectModificationType)o);
+		if (o instanceof Class) {
+			Class<?> c = (Class<?>)o;
+			if (c.getPackage().getName().equals("com.evolveum.midpoint.xml.ns._public.common.common_1")) {
+				return c.getSimpleName();
+			}
+			return c.getName();
 		}
-		// TODO: more
-		return null;
+		return prettyPrint(o);
 	}
 	
 	//static initialization of LoggingAspect - formatters registration

@@ -140,6 +140,11 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 			result.recordPartialError("failed to import", ex);
 			return !isStopOnError();
 		}
+		
+		// FIXME: hack. Hardcoded ugly summarization of successes
+		if (result.isSuccess()) {
+			result.getSubresults().clear();
+		}
 
 		// Check if we haven't been interrupted
 		if (task.canRun()) {
