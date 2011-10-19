@@ -104,13 +104,47 @@ This resource definition contains only the very basic definitions for midPoint t
 			<accountType default="true">
 				<name>Default Account</name>
 				<objectClass>ri:AccountObjectClass</objectClass>
-				<attribute ref="icfs:givenName "> <!-- required attribute on AD -->
+				<attribute ref="icfs:givenName">
 					<name>Given Name</name>
 					<outbound default="true">
 						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
 							<code>
 								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 								$i:user/i:givenName
+							</code>
+						</valueExpression>
+					</outbound>
+				</attribute>
+				<attribute ref="icfs:sn">
+					<name>Surname</name>
+					<outbound default="true">
+						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+							<code>
+								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+								$i:user/i:familyName
+							</code>
+						</valueExpression>
+					</outbound>
+				</attribute>
+				<attribute ref="icfs:sAMAccountName"> <!-- required attribute on AD -->
+					<name>Login name</name>
+					<outbound default="true">
+						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+							<code>
+								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+								$i:user/i:name
+							</code>
+						</valueExpression>
+					</outbound>
+				</attribute>
+
+				<attribute ref="icfs:mail">
+					<name>Email address</name>
+					<outbound default="true">
+						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+							<code>
+								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+								$i:user/i:eMailAddress
 							</code>
 						</valueExpression>
 					</outbound>
