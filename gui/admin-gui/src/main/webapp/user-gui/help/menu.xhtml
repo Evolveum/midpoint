@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:comp="http://java.sun.com/jsf/composite/components"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+
+	<idm:leftMenuContainer name="#{msg['Help']}">
+		<idm:leftMenuItem id="leftAbout" name="#{msg['About midPoint']}" action="/user-gui/help/index?faces-redirect=true" />
+		<idm:leftMenuItem id="leftAboutSystem" name="#{msg['About System']}" action="/user-gui/help/system?faces-redirect=true" />
+	</idm:leftMenuContainer>
+</ui:composition>
