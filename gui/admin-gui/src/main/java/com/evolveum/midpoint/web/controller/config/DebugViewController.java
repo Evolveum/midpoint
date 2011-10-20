@@ -40,7 +40,6 @@ import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -117,8 +116,7 @@ public class DebugViewController implements Serializable {
 			editable = true;
 		}
 	}
-	
-	
+
 
 	public String getXml() {
 		return xml;
@@ -179,7 +177,6 @@ public class DebugViewController implements Serializable {
 
 			return DebugListController.PAGE_NAVIGATION;
 		}
-
 		return viewObject();
 	}
 
@@ -230,7 +227,7 @@ public class DebugViewController implements Serializable {
 			result.recordFatalError("Couln't update object '" + newObject.getName() + "'.");
 //			FacesUtils.addErrorMessage("Couln't update object '" + newObject.getName() + "'.");
 		}
-
+		initController();
 		template.setSelectedLeftId("leftList");
 		result.recordSuccess();
 		ControllerUtil.printResults(TRACE, result, "Changes saved sucessfully.");
