@@ -60,6 +60,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
@@ -121,6 +123,22 @@ public class DebugUtil implements ObjectFormatter {
 		for(int i = 0; i < indent; i++) {
 			sb.append(DebugDumpable.INDENT_STRING);
 		}
+	}
+	
+	public static String prettyPrint(Collection<?> collection) {
+		if (collection == null) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder(getCollectionOpeningSymbol(collection));
+		Iterator<?> iterator = collection.iterator();
+		while (iterator.hasNext()) {
+			sb.append(prettyPrint(iterator.next()));
+			if (iterator.hasNext()) {
+				sb.append(",");
+			}
+		}
+		sb.append(getCollectionClosingSymbol(collection));
+		return sb.toString();
 	}
 
 	public static String prettyPrint(PropertyReferenceListType reflist) {
@@ -199,6 +217,20 @@ public class DebugUtil implements ObjectFormatter {
 				}
 			}
 		}
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	public static String prettyPrint(OperationResultType resultType) {
+		if (resultType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("RT(");
+		sb.append(resultType.getOperation());
+		sb.append(",");
+		sb.append(resultType.getStatus());
+		sb.append(",");
+		sb.append(resultType.getMessage());
 		sb.append(")");
 		return sb.toString();
 	}
@@ -456,7 +488,7 @@ public class DebugUtil implements ObjectFormatter {
 
 		return sb.toString();
 	}
-
+	
 	private static void prettyPrintFilter(StringBuilder sb, Element filter) {
 
 		if (filter == null) {
@@ -496,6 +528,41 @@ public class DebugUtil implements ObjectFormatter {
 		sb.append(")");
 	}
 
+	public static String prettyPrint(PagingType paging) {
+
+		if (paging == null) {
+			return "null";
+		}
+
+		StringBuilder sb = new StringBuilder("Paging(");
+
+		if (paging.getOffset() != null) {
+			sb.append(paging.getOffset()).append(",");
+		} else {
+			sb.append(",");
+		}
+
+		if (paging.getMaxSize() != null) {
+			sb.append(paging.getMaxSize()).append(",");
+		} else {
+			sb.append(",");
+		}
+
+		if (paging.getOrderBy() != null) {
+			sb.append(prettyPrint(paging.getOrderBy())).append(",");
+		} else {
+			sb.append(",");
+		}
+
+		if (paging.getOrderDirection() != null) {
+			sb.append(paging.getOrderDirection());
+		}
+
+		sb.append(")");
+
+		return sb.toString();
+	}	
+	
 	public static String prettyPrint(ResourceObjectShadowChangeDescriptionType change) {
 		if (change == null) {
 			return "null";
@@ -658,6 +725,21 @@ public class DebugUtil implements ObjectFormatter {
 	}
 
 	private static String tryPrettyPrint(Object value) {
+		if (value instanceof Class) {
+			Class<?> c = (Class<?>)value;
+			if (c.getPackage().getName().equals("com.evolveum.midpoint.xml.ns._public.common.common_1")) {
+				return c.getSimpleName();
+			}
+			return c.getName();
+		}
+		if (value instanceof Collection) {
+			return prettyPrint((Collection<?>)value);
+		}
+		if (value instanceof ObjectType) {
+			// ObjectType has many subtypes, difficult to sort out using reflection
+			// therefore we special-case it
+			return prettyPrint((ObjectType)value);
+		}
 		for (Method method : DebugUtil.class.getMethods()) {
 			if (method.getName().equals("prettyPrint")) {
 				Class<?>[] parameterTypes = method.getParameterTypes();
@@ -681,14 +763,11 @@ public class DebugUtil implements ObjectFormatter {
 
 	@Override
 	public String format(Object o) {
-		if (o instanceof Class) {
-			Class<?> c = (Class<?>)o;
-			if (c.getPackage().getName().equals("com.evolveum.midpoint.xml.ns._public.common.common_1")) {
-				return c.getSimpleName();
-			}
-			return c.getName();
+		try {
+			return prettyPrint(o);
+		} catch (Throwable t) {
+			return "###INTERNAL#ERROR### "+t.getClass().getName()+": "+t.getMessage();
 		}
-		return prettyPrint(o);
 	}
 	
 	//static initialization of LoggingAspect - formatters registration

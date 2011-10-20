@@ -601,7 +601,7 @@ public class OperationResult implements Serializable, Dumpable {
 
 	@Override
 	public String toString() {
-		return OperationResult.class.getSimpleName() + "(" + operation + " " + status + " " + message;
+		return "R(" + operation + " " + status + " " + message + ")";
 	}
 
 	public String dump() {

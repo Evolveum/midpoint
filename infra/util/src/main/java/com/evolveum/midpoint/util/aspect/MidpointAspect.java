@@ -87,6 +87,11 @@ public class MidpointAspect {
 		return markSubsystem(pjp, "WEB");
 	}
 
+	@Around("entriesIntoUcf()")
+	public Object processUcfNdc(ProceedingJoinPoint pjp) throws Throwable {
+		return markSubsystem(pjp, "UCF");
+	}	
+
 	private Object markSubsystem(ProceedingJoinPoint pjp, String subsystem) throws Throwable {
 		Object retValue = null;
 		String prev = null;
@@ -140,12 +145,11 @@ public class MidpointAspect {
 					sb.append("(");
 					for (int i = 0; i < args.length; i++) {
 						sb.append(formatVal(args[i]));
-						if (args.length == i + 1) {
-							sb.append(")");
-						} else {
+						if (args.length != i + 1) {
 							sb.append(", ");
 						}
 					}
+					sb.append(")");
 					LOGGER_PROFILING.trace(sb.toString());
 				}
 			}
@@ -244,6 +248,10 @@ public class MidpointAspect {
 
 	@Pointcut("execution(* com.evolveum.midpoint.web.controller..*.*(..))")
 	public void entriesIntoWeb() {
+	}
+
+	@Pointcut("execution(* com.evolveum.midpoint.provisioning.ucf.api..*.*(..))")
+	public void entriesIntoUcf() {
 	}
 
 	/**

@@ -14,12 +14,6 @@ my %packageToSubsystem = (
   web => "WEB",
   mode => "MODEL",
 );
-my %subsystemDependencies = (
-  WEB => [ 'MODEL' ],
-  MODEL => [ 'PROVISIONING', 'REPOSITORY' ],
-  PROVISIONING => [ 'REPOSITORY' ],
-  REPOSITORY => [],
-);
 
 parse();
 displayIndividualTimes();
@@ -152,7 +146,7 @@ sub displayCumulativeTimes {
 sub displaySubsystemTimes {
   my $totalOwnTime = 0;
   map { $totalOwnTime += $_->{ownTime} } values %subsystems;
-  foreach my $op (sort { $a->{totalTime} <=> $b->{totalTime} } values %subsystems) {
+  foreach my $op (sort { $a->{ownTime} <=> $b->{ownTime} } values %subsystems) {
     my $subsystem = $op->{subsystem};
     printf "%15s:  total:%-15f  own:%-15f %3d%%  (%d)\n",$op->{subsystem},$op->{totalTime},$op->{ownTime},($op->{ownTime}*100/$totalOwnTime),$op->{invocations};
 #    print $op->{totalTime}."(total): ".$op->{subsystem}.": total:".$op->{totalTime}." own:".ownTime($subsystem)." (".$op->{invocations}.")\n";
@@ -162,18 +156,3 @@ sub displaySubsystemTimes {
   
 }
 
-
-
-sub ownTime {
-  my ($subsystem) = @_;
-  
-  my $op = $subsystems{$subsystem};
-  my $totalTime = $op->{totalTime};
-  my $dependencies = $subsystemDependencies{$subsystem};
-  
-  foreach my $dependency (@$dependencies) {
-    $totalTime -= $subsystems{$dependency}->{totalTime};
-  }
-
-  return $totalTime;
-}
