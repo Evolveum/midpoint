@@ -419,8 +419,36 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			objListType = getCacheRepositoryService().listObjects(objectType, paging, parentResult);
 
 		}
+		
+		if (ResourceType.class.equals(objectType)) {
+			ResultList<T> newObjListType = new ResultArrayList<T>();
+			for (T obj : objListType) {
+				ResourceType resource = (ResourceType)obj;
+				ResourceType completeResource;
+				try {
+					completeResource = shadowCache.completeResource(resource, null, result);
+					newObjListType.add((T)completeResource);
+				} catch (ObjectNotFoundException e) {
+					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[]{
+						ObjectTypeUtil.toShortString(resource), e.getMessage(), e	
+					});
+					newObjListType.add(obj);
+				} catch (SchemaException e) {
+					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[]{
+							ObjectTypeUtil.toShortString(resource), e.getMessage(), e	
+						});
+					newObjListType.add(obj);
+				} catch (CommunicationException e) {
+					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[]{
+							ObjectTypeUtil.toShortString(resource), e.getMessage(), e	
+						});
+					newObjListType.add(obj);
+				}
+			}
+			result.recordSuccess();
+			return newObjListType;
+		}
 
-		LOGGER.trace("**PROVISIONING: Finished listing object.");
 		result.recordSuccess();
 		return objListType;
 
