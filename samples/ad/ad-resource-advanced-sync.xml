@@ -104,6 +104,7 @@ This resource definition contains only the very basic definitions for midPoint t
 			<accountType default="true">
 				<name>Default Account</name>
 				<objectClass>ri:AccountObjectClass</objectClass>
+
 				<attribute ref="ri:givenName"> <!-- required attribute on AD -->
 					<name>Given Name</name>
 					<outbound default="true">
@@ -114,6 +115,12 @@ This resource definition contains only the very basic definitions for midPoint t
 							</code>
 						</valueExpression>
 					</outbound>
+					<inbound>
+						<target>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$i:user/i:givenName
+						</target>
+					</inbound>
 				</attribute>
 				<attribute ref="ri:sn">
 					<name>Surname</name>
@@ -125,6 +132,12 @@ This resource definition contains only the very basic definitions for midPoint t
 							</code>
 						</valueExpression>
 					</outbound>
+					<inbound>
+						<target>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$i:user/i:familyName
+						</target>
+					</inbound>
 				</attribute>
 				<attribute ref="ri:sAMAccountName"> <!-- required attribute on AD -->
 					<name>Login name</name>
@@ -136,6 +149,31 @@ This resource definition contains only the very basic definitions for midPoint t
 							</code>
 						</valueExpression>
 					</outbound>
+					<inbound>
+						<target>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$i:user/i:name
+						</target>
+					</inbound>
+				</attribute>
+
+				<attribute ref="ri:mail">
+					<name>Email address</name>
+<!-- FIXME if eMailAddress is null, create crashes
+					<outbound default="true">
+						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+							<code>
+								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+								$i:user/i:eMailAddress
+							</code>
+						</valueExpression>
+					</outbound>-->
+					<inbound>
+						<target>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$i:user/i:eMailAddress
+						</target>
+					</inbound>
 				</attribute>
 
 				<attribute ref="icfs:name">
@@ -154,15 +192,20 @@ This resource definition contains only the very basic definitions for midPoint t
 						</valueExpression>
 					</outbound>
 				</attribute>
-
-
-				<attribute ref="ri:description">
-					<outbound default="true">
-						<value>Created by IDM</value>
-					</outbound>
-				</attribute>
+				<credentials>
+					<outboundPassword>true</outboundPassword>
+				</credentials>
 			</accountType>
 		</schemaHandling>
+<!--
+		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd">
+			<cap:credentials>
+				<cap:password/>
+			</cap:credentials>
+			<cap:liveSync/>
+			<cap:testConnection/>
+		</capabilities>
+-->
 		<scripts>
 			<script>
 				<operation>modify</operation>
@@ -224,6 +267,93 @@ exit
 		</code>
 		</script>-->
 		</scripts>
+        <!--
+            Synchronization section describes the synchronization policy, timing,
+            reactions and similar synchronization settings.
+        -->
+		<synchronization>
+            <!--
+                The synchronization for this resource is enabled.
+                It means that the synchronization will react to changes detected by
+                the system (live sync task, discovery or reconciliation) -->
+			<enabled>true</enabled>
+
+			<correlation> 
+				<description>
+					Correlation expression is a search query.
+                	Following search queury will look for users that have "name"
+                    equal to the "sAMAccountName" attribute of the account. Simply speaking,
+                    it will look for match in usernames in the IDM and the resource.
+                    The correlation rule always looks for users, so it will not match
+                    any other object type. 
+				</description>
+				<equal>
+					<path>.</path>
+					<valueExpression>
+						<ref>name</ref>
+						<code>
+							$account/attributes/ri:sAMAccountName
+						</code>
+		        	</valueExpression>
+				</equal>
+			</correlation>
+
+            <!-- Confirmation rule may be here, but as the search above will
+                 always return at most one match, the confirmation rule is not needed. -->
+
+            <!-- Following section describes reactions to a situations.
+                 The setting here assumes that this resource is authoritative,
+                 therefore all accounts created on the resource should be
+                 reflected as new users in IDM.
+                 See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
+             -->
+			<reaction>
+				<situation>confirmed</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser"/>
+			</reaction>
+			<reaction>
+				<situation>deleted</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
+			</reaction>
+			<reaction>
+				<situation>missing</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addAccount"/>
+			</reaction>
+			<reaction>
+				<situation>found</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+			</reaction>
+			<reaction>
+				<situation>unassigned</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+			</reaction>
+			<reaction>
+				<situation>unmatched</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addUser">
+                    <!-- Reference to the User Template is here. If the user would be
+                         created as a result of this action, it will be created according
+                         to this template. -->
+					<userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
+				</action>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+			</reaction>
+
+		</synchronization>
 	</resource>
 
+	<task oid="91919191-76e0-59e2-86d6-444f02d3ffff">
+		<name>Synchronization: Active Directory</name>
+		<description>
+			Definition of a live sychnronization task. It will poll changelog and pull in changes
+		</description>
+		<executionStatus>running</executionStatus>
+		<exclusivityStatus>released</exclusivityStatus>
+		<handlerUri>http://midpoint.evolveum.com/model/sync/handler-1</handlerUri>
+		<objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef"/>
+		<recurrence>recurring</recurrence>
+		<binding>tight</binding>
+		<schedule>
+			<interval>5</interval>
+		</schedule>
+	</task>
 </objects>
