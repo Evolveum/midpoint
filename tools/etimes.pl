@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 use strict;
-use Data::Dumper;
+#use Data::Dumper;
 
 my %ops;
 my %cumulative;
@@ -56,7 +56,6 @@ sub parse {
       processHalfline($halfline,\%logdata);
     }
     $line = <>;
-#    print Dumper(\%threads);
   }
 }
 
@@ -112,7 +111,7 @@ sub count {
   
   if ($parentop->{owntime} > 0 || $op->{owntime} > 0) {
     warn "Possibly inconsistent data, is the log from two executions?\n";
-    print Dumper($op,$parentop,\%threads);
+#    print Dumper($op,$parentop,\%threads);
   }
   
   my $etime = $op->{etime};
@@ -151,9 +150,11 @@ sub displayCumulativeTimes {
 }
 
 sub displaySubsystemTimes {
+  my $totalOwnTime = 0;
+  map { $totalOwnTime += $_->{ownTime} } values %subsystems;
   foreach my $op (sort { $a->{totalTime} <=> $b->{totalTime} } values %subsystems) {
     my $subsystem = $op->{subsystem};
-    printf "%15s:  total:%-15f  own:%-15f  (%d)\n",$op->{subsystem},$op->{totalTime},$op->{ownTime},$op->{invocations};
+    printf "%15s:  total:%-15f  own:%-15f %3d%%  (%d)\n",$op->{subsystem},$op->{totalTime},$op->{ownTime},($op->{ownTime}*100/$totalOwnTime),$op->{invocations};
 #    print $op->{totalTime}."(total): ".$op->{subsystem}.": total:".$op->{totalTime}." own:".ownTime($subsystem)." (".$op->{invocations}.")\n";
   }
   
