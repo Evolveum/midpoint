@@ -32,8 +32,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.util.xpath.MidPointXPathFunctionResolver;
 import com.evolveum.midpoint.util.xpath.functions.CapitalizeFunction;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
+
 import javax.xml.namespace.QName;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -98,7 +103,12 @@ public class XPathUtil {
         //Note: probably no validation required
         XPath xpath = setupXPath();
         if (null != variables) {
-            XPathVariableResolver variableResolver = new MapXPathVariableResolver(variables);
+        	Map <QName,Object> varMap = new HashMap<QName, Object>();
+            Set<Entry<QName, Variable>> set = variables.entrySet();
+            for (Entry<QName, Variable> entry : set) {
+                varMap.put(entry.getKey(), entry.getValue().getObject());
+            }
+            XPathVariableResolver variableResolver = new MapXPathVariableResolver(varMap);
             xpath.setXPathVariableResolver(variableResolver);
         }
         xpath.setNamespaceContext(new MidPointNamespaceContext(namespaces));

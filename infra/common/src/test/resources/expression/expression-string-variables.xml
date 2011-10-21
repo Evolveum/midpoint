@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<expression xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
+		xmlns:x="http://example.com/xxx"
+		xmlns:y="http://example.com/yyy">
+    <variable name="x:foo">
+    	<value>FOO</value>
+    </variable>
+    <variable name="y:bar">
+    	<value>BAR</value>
+    </variable>
+	<code xmlns:x="http://example.com/xxx">
+		declare namespace yy="http://example.com/yyy";
+		concat($x:foo,$yy:bar)
+	</code>
+</expression>

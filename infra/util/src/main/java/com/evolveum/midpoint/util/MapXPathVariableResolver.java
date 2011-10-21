@@ -44,11 +44,8 @@ public class MapXPathVariableResolver implements XPathVariableResolver {
     public MapXPathVariableResolver() {
     }
 
-    public MapXPathVariableResolver(Map<QName, Variable> variables) {
-        Set<Entry<QName, Variable>> set = variables.entrySet();
-        for (Entry<QName, Variable> entry : set) {
-            this.variables.put(entry.getKey(), entry.getValue().getObject());
-        }
+    public MapXPathVariableResolver(Map<QName, Object> variables) {
+    	this.variables = variables;
     }
 
     public void addVariable(QName name, Object value) {

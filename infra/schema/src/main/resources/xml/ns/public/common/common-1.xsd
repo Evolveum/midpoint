@@ -3570,6 +3570,311 @@
 		</xsd:attribute>
 	</xsd:complexType>
 
+	<xsd:complexType name="ValueConstructionXType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines how a value of a property (or attribute) should be
+				constructed. The value may be static or constructed as an
+				result of evaluating an expression.
+
+				This strucuture also defines a method how to merge several value
+				construction definitions, how to behave if a property already
+				has a value, etc.
+
+				This is reusable data structure, used in schemaHandling, roles
+				and it may also be used in may other places.
+
+				Motivation: We need to construct attribute or property values on
+				many places in midPoint. E.g. we need that in roles to generate
+				dynamic account attribute values, we need that to define "templates"
+				for identifiers and default values for attributes when creating a
+				new account. We also need that to specify values when creating a
+				new user (user templates). Having the same data structure for all of
+				these cases may simplify the code, as it all can be handled by a
+				generic library reused in many places throught the system.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element ref="tns:description" minOccurs="0" maxOccurs="1" />
+			<xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1" />
+			<xsd:element ref="tns:stringFilter" minOccurs="0" maxOccurs="unbounded" />
+			<xsd:element name="value">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element ref="tns:valueConstructor" maxOccurs="unbounded">
+							<xsd:annotation>
+								<xsd:documentation>
+									TODO
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>					
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element ref="tns:condition" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:element name="stringFilter" type="tns:StringFilterType"/>
+	
+	<xsd:complexType name="StringFilterType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:complexType>
+	
+	<xsd:element name="valueConstructor" abstract="true"/>
+			
+	<xsd:complexType name="LiteralType" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>
+				Static value for the attribute or property.
+
+				Please note that this is nillable and therefore it may be
+				explicitly set to "nil" value. Doing this means that empty
+				set of values should be constructed. E.g. setting
+				this to "nil" and also setting "authoritative" flag
+				may enforce removal of all attribute values (if used properly).
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
+				<xsd:annotation>
+					<xsd:documentation>
+						Static attribute values. The values in this element should be
+						assigned to the account as-is.
+
+						List of values for the attribute provided in an propriate XML elements
+						that specify attribute name. (as is usual for properties)
+
+						Only one attribute may be specified here, although it may have multiple
+						values. Multi-valued attributes are expressed by repeating the same XML
+						element multiple times.
+						Hence all the XML elements that match this xsd:any must have the same
+						element names (may have different values of course).
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:dom />
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:any>
+		</xsd:sequence>
+	</xsd:complexType>
+			
+	<xsd:element name="literal" type="tns:LiteralType" substitutionGroup="tns:valueConstructor" nillable="true"/>
+	
+	<xsd:complexType name="AsIsType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Copy value as is, without any modification.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:complexType>
+	
+	<xsd:element name="asIs" type="tns:AsIsType" substitutionGroup="tns:valueConstructor"/>
+
+	<xsd:complexType name="GenerateType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Generate value according to a policy that is associated with the property/attribute.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:complexType>
+	
+	<xsd:element name="generate" type="tns:GenerateType" substitutionGroup="tns:valueConstructor"/>
+	
+	<xsd:element name="expression" type="tns:ExpressionType" substitutionGroup="tns:valueConstructor"/>
+
+	
+
+<!-- 			
+				<xsd:sequence>
+					<xsd:element name="valueExpression" type="tns:ExpressionType">
+						<xsd:annotation>
+							<xsd:documentation>
+								Expression to dynamically generate the value.
+								See ExpressionType for more details.
+
+								The
+								expression will
+								most
+								likely use variables. The
+								names and content of the variables
+								depends on the
+								specific usage of
+								this type. Please refer to
+								the
+								containing or deriving type documentation for more
+								details.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="dependency" type="c:XPathType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Defines the XPath of a property on which the
+								expression
+								depends. If there are other expressions
+								to be
+								evaluated
+								that set such value, such expressions will
+								be evaluated before
+								this expression.
+
+								This may or may not
+								be needed. If
+								the
+								dependencies
+								can be derived from the expression implicitly, the
+								dependency element may be
+								omitted. It may also be
+								omitted if the
+								order of expression execution is not
+								significant. In case the
+								user want to
+								make sure that
+								expressions will be
+								executed in a
+								crertain order, he
+								should include dependency elements.
+
+								Due to the
+								JAXB "feature" this does not work for now.
+								Please do not use it.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:choice>
+			<xsd:element ref="c:condition" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						The value will only be valid if the condition is
+						evaluated to true. If the condition is false,
+						the value
+						definition
+						should not be applied at all (exactly as if
+						there is no
+						definition).
+						If there is no condition,
+						it is assumed to be
+						true.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element ref="tns:valueFilter" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						List of filters that will be applied to the
+						value after
+						it was constructed. The filters will get
+						applied as
+						the
+						very last step, after the expression had run.
+
+						The filters will be
+						executed in chain in the order as
+						specified here.
+
+						The
+						filters are
+						supposed to "mess up" or transcode
+						the value from XML standards to
+						any format
+						suitable for
+						native storage (e.g. on
+						resource).
+						(but see
+						the note in ValueFilterType documentation)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="exclusive" type="xsd:boolean" default="false" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					The value construction cannot be combined with
+					other
+					value constructions.
+
+					If there are other
+					non-exclusive
+					value
+					constructions to be
+					applied to the same propert or attribute, such
+					constructions
+					should be
+					ignored. If there are other
+					exclusive value
+					constructions, the error should be produced and the values
+					should
+					not be
+					changed.
+
+					TODO: not yet finished
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="default" type="xsd:boolean" default="false" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					This value construction should only be applied if the
+					property or attribute does not have a value.
+
+					This flag makes the value construction conditional. Please
+					note that now there is no way how to get attribute value and
+					set a new value atomically. Therefore also the "default" flag 
+					cannot be executed atomically and a risk of inconsistency is 
+					still there. The implementation should minimize that risk by 
+					making the "window of risk" as shortas possible and utilize 
+					any additional consistency guarantees if possible.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="authoritative" type="xsd:boolean" default="true" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					The value provided by this construction element
+					is authoritative.
+
+					It means that this value
+					construction is
+					supposed
+					to both
+					add the value and remove it.
+
+					TODO: not yet finished
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="clear" type="xsd:boolean" default="false" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					The value construction is supposed to be executed
+					on the
+					"clear" value for a attribute or
+					property.
+
+					If there
+					are any
+					existing values on the property or attribute
+					before the execution of
+					all applicable value
+					construction
+					definitions, such
+					values should be
+					cleared.
+
+					TODO: not yet finished
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+ -->
+
 	<xsd:complexType name="PropertyConstructionType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -4684,24 +4989,14 @@
 	<xsd:complexType name="ExpressionType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Generic expression. The purpose of the expression
-				is to return
-				a value. The expression must produce
-				something that is a
-				piece
+				Generic expression. The purpose of the expression is to return
+				a value. The expression must produce something that is a piece
 				of XML, which means that it may produce either string value,
-				XML node or a list of XML
-				nodes.
+				XML node or a list of XML nodes.
 
-				The expression may use variables or
-				arguments. However, such
-				variables or arguments passed to
-				the
-				expression will be
-				different
-				for each invocation. It should be
-				documented in each case this
-				type is used.
+				The expression may use variables or arguments. However, such
+				variables or arguments passed to the expression will be different
+				for each invocation. It should be documented in each case this type is used.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -4727,18 +5022,20 @@
 			<xsd:element name="language" type="xsd:anyURI" minOccurs="0" default="http://www.w3.org/TR/xpath/">
 				<xsd:annotation>
 					<xsd:documentation>
-						Language of the expression.
-						The expressions in
-						multiple languages may be supported in
-						later
-						versions of
-						midPoint.
-						Now the only supported language
-						is XPath 1.0, which is also the
+						Language of the expression. The expressions in multiple languages may be supported in
+						later versions of midPoint. Now the only supported language is XPath 2.0, which is also the
 						default language.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="variable" type="tns:VariableDefinitionType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Definition of additional variables that should be
+						present during evaluation of the expression.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>			
 			<xsd:element name="code" type="tns:ExpressionCodeType">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -4748,8 +5045,6 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
-
-	<xsd:element name="expression" type="tns:ExpressionType" />
 
 	<xsd:complexType name="ExpressionCodeType" mixed="true">
 		<xsd:annotation>
