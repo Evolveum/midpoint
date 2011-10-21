@@ -20,6 +20,15 @@ window.onresize = function() {
 	setToCenter();
 };
 
+window.onscroll = function() {
+	var a = jQuery("html").scrollTop();
+	if (a >= 120) {
+		jQuery("#progressIndicator").show();
+	} else {
+		jQuery("#progressIndicator").hide();
+	}
+};
+
 function setToCenter() {
 	var centerOfWindow = jQuery("#top-nav").width() / 2;
 	var navBarHalfWidth = jQuery("#navBar").width() / 2;
