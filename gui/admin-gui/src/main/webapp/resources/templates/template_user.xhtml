@@ -53,7 +53,7 @@
 				<f:verbatim styleClass="delimiter"
 					rendered="#{security.isUserLoggedIn}">|</f:verbatim>
 				<ice:outputLink id="topHelpLink"
-					value="#{facesContext.externalContext.requestContextPath}/help/index.iface"
+					value="#{facesContext.externalContext.requestContextPath}/user-gui/help/index.iface"
 					rendered="#{security.isUserLoggedIn}">
 					<span id="helpSpan">#{msg['page.template.help']}</span>
 				</ice:outputLink>
