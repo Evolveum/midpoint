@@ -62,6 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 public class ControllerListAccountShadowOwnerTest extends AbstractTestNGSpringContextTests {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller/listObjects");
+	private static final File TEST_FOLDER_COMMON = new File("./src/test/resources/common");
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerListAccountShadowOwnerTest.class);
 	@Autowired(required = true)
 	private ModelController controller;

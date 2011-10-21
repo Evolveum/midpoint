@@ -61,6 +61,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 
 	private static final Trace LOGGER = TraceManager.getTrace(ExpressionHandlerImplTest.class);
 	private static final File TEST_FOLDER = new File("./src/test/resources");
+	private static final File TEST_FOLDER_COMMON = new File("./src/test/resources/common");
 	@Autowired
 	private ExpressionHandler expressionHandler;
 
@@ -122,8 +123,8 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 	public void testEvaluateExpression() throws Exception {
 		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 				TEST_FOLDER, "./expr/account.xml"))).getValue();
-		ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
-				"./expr/resource.xml"))).getValue();
+		ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(TEST_FOLDER_COMMON,
+				"resource.xml"))).getValue();
 		account.setResource(resource);
 		account.setResourceRef(null);
 

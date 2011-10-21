@@ -76,6 +76,7 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller/addObject");
+	private static final File TEST_FOLDER_COMMON = new File("./src/test/resources/common");
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerAddObjectTest.class);
 	@Autowired(required = true)
 	private ModelController controller;
@@ -120,7 +121,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void addUserCorrect() throws Exception {
-		ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER, "system-configuration.xml"));
+		ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER_COMMON, "system-configuration.xml"));
 
 		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"add-user-correct.xml"))).getValue();
@@ -156,7 +157,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 	@Test(expectedExceptions = ObjectAlreadyExistsException.class)
 	@SuppressWarnings("unchecked")
 	public void addUserWithExistingOid() throws Exception {
-		ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER, "system-configuration.xml"));
+		ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER_COMMON, "system-configuration.xml"));
 
 		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"add-user-with-oid.xml"))).getValue();
@@ -177,11 +178,11 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void addUserAndCreateDefaultAccount() throws Exception {
-		ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER,
+		ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER_COMMON,
 				"system-configuration-with-template.xml"));
 
 		final String resourceOid = "10000000-0000-0000-0000-000000000003";
-		ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+		ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(TEST_FOLDER_COMMON,
 				"resource.xml"))).getValue();
 		when(
 				provisioning.getObject(eq(ResourceType.class), eq(resourceOid),

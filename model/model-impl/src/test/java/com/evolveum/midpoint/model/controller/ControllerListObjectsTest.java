@@ -68,6 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller/listObjects");
+	private static final File TEST_FOLDER_COMMON = new File("./src/test/resources/common");
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerListObjectsTest.class);
 	@Autowired(required = true)
 	private ModelController controller;

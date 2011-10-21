@@ -65,6 +65,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 		"classpath:application-context-task.xml" })
 public class SchemaHandlerUserDefinedVariablesTest extends AbstractTestNGSpringContextTests {
 
+	private static final File TEST_FOLDER_COMMON = new File("./src/test/resources/common");
+	
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaHandlerUserDefinedVariablesTest.class);
 	@Autowired
 	private SchemaHandler schemaHandler;
@@ -81,7 +83,7 @@ public class SchemaHandlerUserDefinedVariablesTest extends AbstractTestNGSpringC
 	@SuppressWarnings("unchecked")
 	public void testApplyOutboundSchemaHandlingWithUserDefinedVariablesOnAccount() throws Exception {
 		ObjectType object = ((JAXBElement<ObjectType>) JAXBUtil.unmarshal(new File(
-				"src/test/resources/generic-object-my-config.xml"))).getValue();
+				TEST_FOLDER_COMMON,"generic-object-my-config.xml"))).getValue();
 		when(
 				repositoryService.getObject(any(Class.class), eq(object.getOid()),
 						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(object);

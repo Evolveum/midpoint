@@ -64,6 +64,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 public class UserTypeHandlerTest extends AbstractTestNGSpringContextTests {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/assignment/simple");
+	private static final File TEST_FOLDER_COMMON = new File("./src/test/resources/common");
 	private static final Trace LOGGER = TraceManager.getTrace(UserTypeHandlerTest.class);
 	@Autowired(required = true)
 	private ModelController model;
@@ -84,13 +85,13 @@ public class UserTypeHandlerTest extends AbstractTestNGSpringContextTests {
 		MidPointNamespacePrefixMapper.initialize();
 
 		ModelTUtil.mockGetSystemConfiguration(repository, new File(
-				"./src/test/resources/controller/addObject/system-configuration.xml"));
+				TEST_FOLDER_COMMON,"system-configuration.xml"));
 		final UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "user.xml")))
 				.getValue();
 		final RoleType role = ((JAXBElement<RoleType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "role.xml")))
 				.getValue();
-		final ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
-				"./src/test/resources/resource-simple.xml"))).getValue();
+		final ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File( TEST_FOLDER_COMMON,
+				"resource.xml"))).getValue();
 
 		when(
 				repository.getObject(eq(RoleType.class), eq(role.getOid()),
@@ -119,6 +120,8 @@ public class UserTypeHandlerTest extends AbstractTestNGSpringContextTests {
 					@Override
 					public String answer(InvocationOnMock invocation) throws Throwable {
 						UserType user = (UserType) invocation.getArguments()[0];
+						System.out.println("XXXXXXXXX");
+						System.out.println(JAXBUtil.marshalWrap(user));
 						XmlAsserts.assertPatch(new File(TEST_FOLDER, "user-expected.xml"),
 								JAXBUtil.marshalWrap(user));
 
@@ -128,7 +131,10 @@ public class UserTypeHandlerTest extends AbstractTestNGSpringContextTests {
 
 		OperationResult result = new OperationResult("Simple Role Assignment");
 		try {
+			
+			//WHEN
 			model.addObject(user, result);
+			
 		} finally {
 			LOGGER.debug(result.dump());
 		}
@@ -144,13 +150,13 @@ public class UserTypeHandlerTest extends AbstractTestNGSpringContextTests {
 		try {
 			MidPointNamespacePrefixMapper.initialize();
 			
-			ModelTUtil.mockGetSystemConfiguration(repository, new File(
-					"./src/test/resources/controller/addObject/system-configuration.xml"));
+			ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER_COMMON, 
+					"system-configuration.xml"));
 			final UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 					"user-account-assignment.xml"))).getValue();
 	
 			final ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
-					"./src/test/resources/resource-simple.xml"))).getValue();
+					TEST_FOLDER_COMMON, "resource.xml"))).getValue();
 	
 			when(
 					provisioning.getObject(eq(ResourceType.class), eq(resource.getOid()),

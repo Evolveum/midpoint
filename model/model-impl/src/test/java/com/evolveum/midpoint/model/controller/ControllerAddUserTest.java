@@ -62,6 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 public class ControllerAddUserTest extends AbstractTestNGSpringContextTests {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller/addUser");
+	private static final File TEST_FOLDER_COMMON = new File("./src/test/resources/common");
 
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerAddUserTest.class);
 	@Autowired(required = true)
@@ -98,8 +99,8 @@ public class ControllerAddUserTest extends AbstractTestNGSpringContextTests {
 		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "empty-user.xml")))
 				.getValue();
 		UserTemplateType userTemplate = ((JAXBElement<UserTemplateType>) JAXBUtil.unmarshal(new File(
-				TEST_FOLDER, "user-template.xml"))).getValue();
-		ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+				TEST_FOLDER_COMMON, "user-template.xml"))).getValue();
+		ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(TEST_FOLDER_COMMON,
 				"resource.xml"))).getValue();
 
 		final String userOid = "10000000-0000-0000-0000-000000000001";
@@ -118,9 +119,9 @@ public class ControllerAddUserTest extends AbstractTestNGSpringContextTests {
 				AccountShadowType account = (AccountShadowType) invocation.getArguments()[0];
 				AccountShadowType expectedAccount = ((JAXBElement<AccountShadowType>) JAXBUtil
 						.unmarshal(new File(TEST_FOLDER, "expected-account.xml"))).getValue();
-
-				XmlAsserts.assertPatch(JAXBUtil.marshalWrap(account, SchemaConstants.I_ACCOUNT_SHADOW_TYPE),
-						JAXBUtil.marshalWrap(expectedAccount, SchemaConstants.I_ACCOUNT_SHADOW_TYPE));
+				
+				XmlAsserts.assertPatch(JAXBUtil.marshalWrap(expectedAccount, SchemaConstants.I_ACCOUNT_SHADOW_TYPE),
+						JAXBUtil.marshalWrap(account, SchemaConstants.I_ACCOUNT_SHADOW_TYPE));
 
 				return accountOid;
 			}
@@ -144,7 +145,11 @@ public class ControllerAddUserTest extends AbstractTestNGSpringContextTests {
 		try {
 			LOGGER.info("provisioning: " + provisioning.getClass());
 			LOGGER.info("repo" + repository.getClass());
-			assertEquals(userOid, controller.addUser(user, userTemplate, null, result));
+			
+			// WHEN
+			String oid = controller.addUser(user, userTemplate, null, result);
+			
+			assertEquals(userOid, oid);
 		} finally {
 			LOGGER.info(result.dump());
 		}

@@ -78,14 +78,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 public class ImportTest extends AbstractTestNGSpringContextTests {
 
 	private static final String TEST_FILE_DIRECTORY = "src/test/resources/importer/";
+	private static final File TEST_FOLDER_COMMON = new File("./src/test/resources/common");
 	private static final File IMPORT_USERS_FILE = new File(TEST_FILE_DIRECTORY, "import-users.xml");
 	private static final File IMPORT_USERS_OVERWRITE_FILE = new File(TEST_FILE_DIRECTORY, "import-users-overwrite.xml");
 	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	private static final String USER_WILL_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
-	private static final File IMPORT_CONNECTOR_FILE = new File(TEST_FILE_DIRECTORY, "import-connector.xml");
+	private static final File IMPORT_CONNECTOR_FILE = new File(TEST_FOLDER_COMMON, "connector-dbtable.xml");
 	private static final String CONNECOTR_LDAP_OID = "7d3ebd6f-6113-4833-8a6a-596b73a5e434";
 	private static final String CONNECTOR_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector";
-	private static final File IMPORT_RESOURCE_FILE = new File(TEST_FILE_DIRECTORY, "import-resource.xml");
+	private static final File IMPORT_RESOURCE_FILE = new File(TEST_FOLDER_COMMON, "resource-derby.xml");
 	private static final String RESOURCE_DERBY_OID = "ef2bc95b-76e0-59e2-86d6-999902d3abab";
 	
 	@Autowired(required = true)

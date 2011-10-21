@@ -65,6 +65,7 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller/deleteObject");
+	private static final File TEST_FOLDER_COMMON = new File("./src/test/resources/common");
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerDeleteObjectTest.class);
 	@Autowired(required = true)
 	private ModelController controller;
@@ -120,8 +121,8 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 	@SuppressWarnings("unchecked")
 	public void testDeleteCorrectProvisioning() throws FaultMessage, JAXBException, ObjectNotFoundException,
 			SchemaException, CommunicationException, ConsistencyViolationException {
-		final ResourceType expectedResource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
-				"delete-resource.xml"))).getValue();
+		final ResourceType expectedResource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(TEST_FOLDER_COMMON,
+				"resource.xml"))).getValue();
 
 		final String oid = "abababab-abab-abab-abab-000000000001";
 		when(

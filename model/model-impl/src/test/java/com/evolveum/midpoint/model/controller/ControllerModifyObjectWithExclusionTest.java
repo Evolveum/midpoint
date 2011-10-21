@@ -71,6 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 public class ControllerModifyObjectWithExclusionTest extends AbstractTestNGSpringContextTests {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller/modify");
+	private static final File TEST_FOLDER_COMMON = new File("./src/test/resources/common");
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerModifyObjectWithExclusionTest.class);
 	@Autowired(required = true)
 	private ModelController controller;
@@ -115,8 +116,8 @@ public class ControllerModifyObjectWithExclusionTest extends AbstractTestNGSprin
 		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "user.xml"))).getValue();
 		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"account.xml"))).getValue();
-		GenericObjectType object = ((JAXBElement<GenericObjectType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
-				"../../generic-object-my-config.xml"))).getValue();
+		GenericObjectType object = ((JAXBElement<GenericObjectType>) JAXBUtil.unmarshal(new File(TEST_FOLDER_COMMON,
+				"generic-object-my-config.xml"))).getValue();
 
 		ObjectModificationType change = ((JAXBElement<ObjectModificationType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"change.xml"))).getValue();
