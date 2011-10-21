@@ -1429,7 +1429,7 @@ public class ShadowCache {
 	private ResourceObjectShadowType lookupShadow(ResourceObject resourceObject, ResourceType resource, OperationResult parentResult)
 			throws SchemaException {
 
-		QueryType query = createSearchShadowQuery(resourceObject);
+		QueryType query = createSearchShadowQuery(resourceObject, resource);
 		PagingType paging = new PagingType();
 
 		// TODO: check for errors
@@ -1453,7 +1453,7 @@ public class ShadowCache {
 		return createShadow(resourceObject, resource, repoShadow);
 	}
 
-	private QueryType createSearchShadowQuery(ResourceObject resourceObject) throws SchemaException {
+	private QueryType createSearchShadowQuery(ResourceObject resourceObject, ResourceType resource) throws SchemaException {
 
 		// We are going to query for attributes, so setup appropriate
 		// XPath for the filter
@@ -1483,7 +1483,10 @@ public class ShadowCache {
 		Document doc = DOMUtil.getDocument();
 		Element filter;
 		try {
-			filter = QueryUtil.createEqualFilter(doc, xpath, identifier.serializeToJaxb(doc));
+			filter = QueryUtil.createAndFilter(doc,
+				QueryUtil.createEqualRefFilter(doc, null, SchemaConstants.I_RESOURCE_REF, resource.getOid()),
+				QueryUtil.createEqualFilter(doc, xpath, identifier.serializeToJaxb(doc))
+			);
 		} catch (SchemaException e) {
 			LOGGER.error("Schema error while creating search filter: {}", e.getMessage(), e);
 			throw new SchemaException("Schema error while creating search filter: " + e.getMessage(), e);
