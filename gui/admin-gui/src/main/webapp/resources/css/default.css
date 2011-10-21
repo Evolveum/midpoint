@@ -129,65 +129,7 @@ body,table {
 	background-color: #fff;
 }
 
-#progressIndicator{
-	position: fixed;
-	background-image: url("../images/progressIndicator.png");
-	top: 35px;
-	right: 0px;
-	height: 80px;
-	width: 70px;
-	z-index: 100;
-	display: none;
-}
-
-#progressIndicator .iceOutConStat {
-	position: absolute;
-	right: 12px;
-	top: 10px;
-	margin: 0px;
-	border: none;
-	font-size: 0px;
-	height: 38px;
-	width: 38px;
-}
-
-#progressIndicator .iceOutConStatInactv {
-	position: absolute;
-	background-image: url("../images/preloaderNormal.gif");
-	background-position: 0px 0px;
-	background-repeat: no-repeat;
-	width: 38px;
-	height: 38px;
-}
-
-#progressIndicator .iceOutConStatActv {
-	position: absolute;
-	background-image: url("../images/preloaderActive.gif");
-	background-position: 0px 0px;
-	background-repeat: no-repeat;
-	width: 38px;
-	height: 38px;
-}
-
-#progressIndicator .iceOutConStatCaution {
-	position: absolute;
-	background-image: url("../images/preloaderCaution.gif");
-	background-position: 0px 0px;
-	background-repeat: no-repeat;
-	width: 38px;
-	height: 38px;
-}
-
-#progressIndicator .iceOutConStatDisconnect {
-	position: absolute;
-	background-image: url("../images/preloaderDisconnect.gif");
-	background-position: 0px 0px;
-	background-repeat: no-repeat;
-	width: 38px;
-	height: 38px;
-}
-
-#progressIndicatorTop .iceOutConStat {
+.iceOutConStat {
 	position: absolute;
 	right: 50px;
 	margin: 0px;
@@ -197,7 +139,7 @@ body,table {
 	width: 45px;
 }
 
-#progressIndicatorTop .iceOutConStatInactv {
+.iceOutConStatInactv {
 	position: absolute;
 	background-image: url("../images/preloaderNormalTop.gif");
 	background-position: 0px 0px;
@@ -206,7 +148,7 @@ body,table {
 	height: 45px;
 }
 
-#progressIndicatorTop .iceOutConStatActv {
+.iceOutConStatActv {
 	position: absolute;
 	background-image: url("../images/preloaderActiveTop.gif");
 	background-position: 0px 0px;
@@ -215,7 +157,7 @@ body,table {
 	height: 45px;
 }
 
-#progressIndicatorTop .iceOutConStatCaution {
+.iceOutConStatCaution {
 	position: absolute;
 	background-image: url("../images/preloaderCautionTop.gif");
 	background-position: 0px 0px;
@@ -224,7 +166,7 @@ body,table {
 	height: 45px;
 }
 
-#progressIndicatorTop .iceOutConStatDisconnect {
+.iceOutConStatDisconnect {
 	position: absolute;
 	background-image: url("../images/preloaderDisconnectTop.gif");
 	background-position: 0px 0px;

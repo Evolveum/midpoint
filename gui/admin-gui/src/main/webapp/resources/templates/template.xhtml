@@ -68,9 +68,6 @@
 		</div>
 		<h:panelGroup rendered="#{security.isAdminLoggedIn}" id="nav"
 			layout="block">
-			<div id="progressIndicator">
-				<ice:outputConnectionStatus />
-			</div>
 
 			<div class="container">
 				<idm:topMenu selected="#{template.selectedTopId}">
@@ -121,10 +118,7 @@
 						jQuery("#navBar").css("margin-left",
 								centerOfWindow - navBarHalfWidth);
 					</script>
-
-					<div id="progressIndicatorTop">
-						<ice:outputConnectionStatus />
-					</div>
+					<ice:outputConnectionStatus />
 				</idm:topMenu>
 
 			</div>
