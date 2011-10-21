@@ -20,8 +20,7 @@
 <!-- Portions Copyrighted 2010 Peter Prochazka -->
 <!-- -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<name>midPoint Provisioning - impl</name>
 	<groupId>com.evolveum.midpoint.provisioning</groupId>
@@ -30,7 +29,7 @@
 	<parent>
 		<artifactId>provisioning</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>1.9-SNAPSHOT</version>
+		<version>1.9</version>
 	</parent>
 	<organization>
 		<name>evolveum</name>
@@ -49,9 +48,9 @@
 		<url>http://jira.evolveum.com/</url>
 	</issueManagement>
 	<scm>
-		<connection>scm:svn:http://svn.evolveum.com/midpoint/</connection>
-		<developerConnection>scm:svn:https://svn.evolveum.com/midpoint/</developerConnection>
-		<url>https://fisheye.evolveum.com/midpoint/</url>
+		<connection>scm:svn:http://svn.evolveum.com/midpoint/tags/midpoint-1.9</connection>
+		<developerConnection>scm:svn:https://svn.evolveum.com/midpoint/tags/midpoint-1.9</developerConnection>
+		<url>https://fisheye.evolveum.com/midpoint/tags/midpoint-1.9</url>
 	</scm>
 	<!-- Special repository for scannotation -->
 	<repositories>
@@ -66,28 +65,28 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>test-util</artifactId>
-			<version>1.9-SNAPSHOT</version>
+			<version>1.9</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.provisioning</groupId>
 			<artifactId>provisioning-api</artifactId>
-			<version>1.9-SNAPSHOT</version>
+			<version>1.9</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-api</artifactId>
-			<version>1.9-SNAPSHOT</version>
+			<version>1.9</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>system-init</artifactId>
-			<version>1.9-SNAPSHOT</version>
+			<version>1.9</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>task-api</artifactId>
-			<version>1.9-SNAPSHOT</version>
+			<version>1.9</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-pool</groupId>
@@ -115,13 +114,13 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-basex-impl</artifactId>
-			<version>1.9-SNAPSHOT</version>
+			<version>1.9</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>task-impl</artifactId>
-			<version>1.9-SNAPSHOT</version>
+			<version>1.9</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -132,7 +131,7 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-test-util</artifactId>
-			<version>1.9-SNAPSHOT</version>
+			<version>1.9</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -168,13 +167,13 @@
 		<dependency>
 			<groupId>com.evolveum.icf</groupId>
 			<artifactId>dummy-connector</artifactId>
-			<version>1.1.0.0-SNAPSHOT</version>
+			<version>1.1.0.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.icf</groupId>
 			<artifactId>dummy-resource</artifactId>
-			<version>1.1.0.0-SNAPSHOT</version>
+			<version>1.1.0.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -195,7 +194,7 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>system-init</artifactId>
-			<version>1.9-SNAPSHOT</version>
+			<version>1.9</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
