@@ -37,6 +37,26 @@
 					</div>
 				</f:facet>
 			</ice:panelPopup>
+			
+			<ice:panelPopup modal="true" autoCentre="true"
+				visible="#{debugList.showPopupForDeleteAllObjects}">
+				<f:facet name="header">
+					<ice:outputText
+						value="#{msg['page.config.debugList.confirm.title']}" />
+				</f:facet>
+				<f:facet name="body">
+					<ice:outputText value="#{msg['page.config.debugList.confirmAll']}" />
+					<div class="button-bar">
+						<ice:commandButton id="yesForAll"
+							value="#{msg['page.config.debugList.confirm.yes']}"
+							action="#{debugList.deleteAllObjects}">
+						</ice:commandButton>
+						<ice:commandButton id="noForAll"
+							value="#{msg['page.config.debugList.confirm.no']}"
+							action="#{debugList.hideConfirmDeleteForAllObjects}" />
+					</div>
+				</f:facet>
+			</ice:panelPopup>
 
 			<ice:selectOneMenu id="selectOneMenuList" styleClass="secondRow"
 				value="#{debugList.objectType}" immediate="true"
@@ -53,7 +73,8 @@
 				<ice:outputText value="#{msg['page.config.debugList.objectName']}" />
 				<ice:outputText />
 
-				<c:forEach items="#{debugList.objects}" var="item" varStatus="status">
+				<c:forEach items="#{debugList.objects}" var="item"
+					varStatus="status">
 					<ice:commandLink value="#{item.name}" id="link#{status.index}"
 						action="#{debugList.viewOrEdit}"
 						style="text-decoration: underline;">
@@ -68,7 +89,13 @@
 					</idm:button>
 				</c:forEach>
 			</ice:panelGrid>
-
+			
+			<idm:button id="deleteAllObjectsButton" rendered="#{debugList.showTable}"
+				value="Delete all objects"
+				action="#{debugList.showConfirmDeleteForAllObjects}"
+				img="/resources/images/delete.png" buttonType="negative">
+			</idm:button>
+			
 			<comp:paging bean="#{debugList}" rendered="#{debugList.showTable}" />
 		</ice:form>
 	</ui:define>

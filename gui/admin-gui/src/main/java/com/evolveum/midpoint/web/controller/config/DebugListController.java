@@ -75,6 +75,7 @@ public class DebugListController extends ListController<ObjectBean> {
 	private transient DebugViewController debugView;
 	private String objectType = ObjectTypes.USER.getValue();
 	private boolean showPopup = false;
+	private boolean showPopupForDeleteAllObjects = false;
 	private String oidToDelete;
 
 	public List<SelectItem> getObjectTypes() {
@@ -91,6 +92,10 @@ public class DebugListController extends ListController<ObjectBean> {
 
 	public boolean isShowPopup() {
 		return showPopup;
+	}
+	
+	public boolean isShowPopupForDeleteAllObjects() {
+		return showPopupForDeleteAllObjects;
 	}
 
 	public String initController() {
@@ -157,6 +162,22 @@ public class DebugListController extends ListController<ObjectBean> {
 		oidToDelete = null;
 		list();
 	}
+	
+	public void deleteAllObjects(){
+		showPopupForDeleteAllObjects = false;
+		if(getObjects().isEmpty()){
+			FacesUtils.addErrorMessage("The list is empty.");
+			return;
+		}
+		
+		for (int i = 0; i < getObjects().size(); i++) {
+			if (!repositoryManager.deleteObject(ObjectTypes.getObjectTypeClass(objectType), getObjects().get(i).getOid())) {
+				FacesUtils.addErrorMessage("Delete list failed.");
+				return;
+			}
+		}
+		list();
+	}
 
 	public void showConfirmDelete() {
 		oidToDelete = FacesUtils.getRequestParameter(PARAM_DELETE_OBJECT_OID);
@@ -170,6 +191,18 @@ public class DebugListController extends ListController<ObjectBean> {
 
 	public void hideConfirmDelete() {
 		showPopup = false;
+	}
+	
+	public void showConfirmDeleteForAllObjects(){
+		if (getObjects().isEmpty()) {
+			FacesUtils.addErrorMessage("List is empty.");
+			return;
+		}
+		showPopupForDeleteAllObjects = true;
+	}
+	
+	public void hideConfirmDeleteForAllObjects() {
+		showPopupForDeleteAllObjects = false;
 	}
 
 	public String viewOrEdit() {
