@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
 
 /**
@@ -34,13 +35,28 @@ public class ExpressionFactory {
 	public static String DEFAULT_LANGUAGE = "http://www.w3.org/TR/xpath/";
 	
 	private Map<String,ExpressionEvaluator> evaluators;
+	private ObjectResolver objectResolver;
 	
 	public ExpressionFactory() {
 		evaluators = new HashMap<String, ExpressionEvaluator>();
 	}
 	
+	public ObjectResolver getObjectResolver() {
+		return objectResolver;
+	}
+
+	public void setObjectResolver(ObjectResolver objectResolver) {
+		this.objectResolver = objectResolver;
+	}
+
+	public Map<String, ExpressionEvaluator> getEvaluators() {
+		return evaluators;
+	}
+
 	public Expression createExpression(ExpressionType expressionType, String shortDesc) throws ExpressionEvaluationException {
-		return new Expression(getEvaluator(getLanguage(expressionType), shortDesc), expressionType, shortDesc);
+		Expression expression = new Expression(getEvaluator(getLanguage(expressionType), shortDesc), expressionType, shortDesc);
+		expression.setObjectResolver(objectResolver);
+		return expression;
 	}
 	
 	public void registerEvaluator(String language, ExpressionEvaluator evaluator) {

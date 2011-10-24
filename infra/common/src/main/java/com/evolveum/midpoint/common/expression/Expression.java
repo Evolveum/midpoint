@@ -27,6 +27,9 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
@@ -43,6 +46,7 @@ public class Expression {
 	private Map<QName,Object> variables;
 	private String shortDesc;
 	private ExpressionEvaluator evaluator;
+	private ObjectResolver objectResolver;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Expression.class);
 	
@@ -58,6 +62,14 @@ public class Expression {
 		}
 	}
 	
+	public ObjectResolver getObjectResolver() {
+		return objectResolver;
+	}
+
+	public void setObjectResolver(ObjectResolver objectResolver) {
+		this.objectResolver = objectResolver;
+	}
+
 	public void addVariableDefinition(VariableDefinitionType varDef) {
 		if (varDef.getObjectRef() != null) {
 			addVariableDefinition(varDef.getName(),varDef.getObjectRef());
@@ -70,12 +82,15 @@ public class Expression {
 	}
 	
 	public void addVariableDefinition(QName name, ObjectReferenceType objectRef) {
-		// TODO: resolve to object and then to DOM
 		addVariableDefinition(name,(Object)objectRef);
 	}
 
 	public void addVariableDefinition(QName name, String value) {
 		addVariableDefinition(name,(Object)value);
+	}
+	
+	public void setRootNode(ObjectReferenceType objectRef) {
+		addVariableDefinition(null,(Object)objectRef);
 	}
 	
 	private void addVariableDefinition(QName name, Object value) {
@@ -86,7 +101,7 @@ public class Expression {
 		variables.put(name, value);
 	}
 	
-	public <T> T evaluate(Class<T> type) throws ExpressionEvaluationException {
-		return evaluator.evaluate(type, code, variables);
+	public <T> T evaluate(Class<T> type) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		return evaluator.evaluate(type, code, variables, objectResolver, shortDesc);
 	}
 }

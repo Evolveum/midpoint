@@ -28,6 +28,7 @@ import javax.xml.bind.JAXBElement;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.EnhancedResourceType;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -63,12 +64,11 @@ public class ResourceTypeUtil {
 	 * 
 	 * @see ObjectResolver
 	 */
-	public static ConnectorType getConnectorType(ResourceType resource, ObjectResolver resolver) {
+	public static ConnectorType getConnectorType(ResourceType resource, ObjectResolver resolver) throws ObjectNotFoundException, SchemaException {
 		if (resource.getConnector() != null) {
 			return resource.getConnector();
 		} else if (resource.getConnectorRef() != null) {
-			String oid = resource.getConnectorRef().getOid();
-			return (ConnectorType) resolver.resolve(oid);
+			return (ConnectorType) resolver.resolve(resource.getConnectorRef(),"resolving connector in "+ObjectTypeUtil.toShortString(resource));
 		} else {
 			return null;
 		}

@@ -15,49 +15,35 @@
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
- * "Portions Copyrighted 2011 [name of copyright owner]"
- * 
+ * Portions Copyrighted 2011 [name of copyright owner]
  */
 package com.evolveum.midpoint.schema.exception;
 
 /**
- * Object with specified criteria (OID) has not been found in the repository.
+ * Exception used for tunneling checked exceptions through places where checked exceptipons are not allowed (e.g. callbacks).
+ * 
+ * This exception must not appear to the "outside", it must be caught and transformed back to the original form.
  * 
  * @author Radovan Semancik
- * 
+ *
  */
-public class ObjectNotFoundException extends CommonException {
-	private static final long serialVersionUID = -9003686713018111855L;
+public class TunnelException extends RuntimeException {
+	private static final long serialVersionUID = -3745473492409029661L;
 
-	private String oid = null;;
-	
-	public ObjectNotFoundException() {
+	public TunnelException() {
 		super();
 	}
 
-	public ObjectNotFoundException(String message, Throwable cause) {
+	public TunnelException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
-	public ObjectNotFoundException(String message, Throwable cause, String oid) {
-		super(message, cause);
-		this.oid = oid;
-	}
-	
-	public ObjectNotFoundException(String message) {
+	public TunnelException(String message) {
 		super(message);
 	}
 
-	public ObjectNotFoundException(Throwable cause) {
+	public TunnelException(Throwable cause) {
 		super(cause);
 	}
-
-	public String getOid() {
-		return oid;
-	}
-
-	@Override
-	public String getOperationResultMessage() {
-		return "Object not found";
-	}
+	
 }

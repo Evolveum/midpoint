@@ -17,26 +17,34 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.common.expression;
+package com.evolveum.midpoint.schema.util;
 
-import java.util.Map;
-
-import javax.xml.namespace.QName;
-
-import org.w3c.dom.Element;
-
-import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.schema.exception.TunnelException;
 
 /**
  * @author Radovan Semancik
  *
  */
-public interface ExpressionEvaluator {
+public class ExceptionUtil {
+	
+	public static Throwable lookForTunneledException(Throwable ex) {
+		if (ex instanceof TunnelException) {
+			return ex.getCause();
+		}
+		if (ex.getCause() != null) {
+			return lookForTunneledException(ex.getCause());
+		}
+		return null;
+	}
 
-	public <T> T evaluate(Class<T> type, Element code, Map<QName,Object> variables, ObjectResolver objectResolver, String contextDescription) 
-		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException;
+	public static String lookForMessage(Throwable e) {
+		if (e.getMessage() != null) {
+			return e.getMessage();
+		}
+		if (e.getCause() != null) {
+			return lookForMessage(e.getCause());
+		}
+		return null;
+	}
 	
 }

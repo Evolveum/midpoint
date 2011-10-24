@@ -248,6 +248,19 @@ public final class JAXBUtil {
 			throws JAXBException {
 		createMarshaller(properties).marshal(xmlObject, stream);
 	}
+	
+	public static Element marshallObjectType(ObjectType object) throws JAXBException {
+		// We need to determine element name
+		QName elementName = SchemaConstants.C_OBJECT;
+		try {
+			ObjectTypes objectTypeType = ObjectTypes.getObjectType(object.getClass());
+			elementName = objectTypeType.getQName();
+		} catch (IllegalArgumentException e) {
+			// No luck, the default element name should be OK
+		}
+		JAXBElement<? extends ObjectType> element = new JAXBElement(elementName, object.getClass(), object);
+		return toDomElement(element);
+	}
 
 	public static void silentMarshal(Object xmlObject, Element element) {
 		try {

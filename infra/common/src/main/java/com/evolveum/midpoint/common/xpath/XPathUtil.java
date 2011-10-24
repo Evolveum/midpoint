@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.common.xpath;
 
+import com.evolveum.midpoint.common.expression.xpath.MidPointNamespaceContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.ExpressionCodeHolder;
 import com.evolveum.midpoint.schema.holder.XPathHolder;

@@ -19,6 +19,9 @@
  */
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
@@ -27,13 +30,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
  * The classes implementing this will most likely fetch the objects from the
  * repository or from some kind of object cache.
  * 
- * This is EXPERIMENTAL feature. Let's see if it can simplify the system or
- * whether it only complicates things ...
- * 
  * @author Radovan Semancik
  */
 public interface ObjectResolver {
 	
-	public ObjectType resolve(String oid);
+	/**
+	 * Resolve the provided reference to object (ObjectType).
+	 * 
+	 * Note: The reference is used instead of just OID because the reference
+	 * also contains object type. This speeds up the repository operations.
+	 * 
+	 * @param ref object reference to resolve
+	 * @param contextDescription short description of the context of resolution, e.g. "executing expression FOO". Used in error messages.
+	 * @return resolved object
+	 * @throws ObjectNotFoundException
+	 *             requested object does not exist
+	 * @throws SchemaException
+	 *             error dealing with storage schema
+	 * @throws IllegalArgumentException
+	 *             wrong OID format, etc.
+	 */
+	public ObjectType resolve(ObjectReferenceType ref, String contextDescription) throws ObjectNotFoundException, SchemaException;
 	
 }

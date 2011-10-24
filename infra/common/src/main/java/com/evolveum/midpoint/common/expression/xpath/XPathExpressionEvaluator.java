@@ -17,7 +17,7 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.common.expression;
+package com.evolveum.midpoint.common.expression.xpath;
 
 import java.util.Map;
 
@@ -33,9 +33,15 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.evolveum.midpoint.common.xpath.MidPointNamespaceContext;
+import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MapXPathVariableResolver;
 import com.evolveum.midpoint.util.xpath.MidPointXPathFunctionResolver;
@@ -52,28 +58,62 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
 	private XPathFactory factory = XPathFactory.newInstance();
 	
 	@Override
-	public <T> T evaluate(Class<T> type, Element code, Map<QName, Object> variables) throws ExpressionEvaluationException {
+	public <T> T evaluate(Class<T> type, Element code, Map<QName, Object> variables, ObjectResolver objectResolver, String contextDescription) 
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		XPathExpressionCodeHolder codeHolder = new XPathExpressionCodeHolder(code);
 		
 		XPath xpath = factory.newXPath();
-        xpath.setXPathVariableResolver(new MapXPathVariableResolver(variables));
+		XPathVariableResolver variableResolver = new LazyXPathVariableResolver(variables, objectResolver, contextDescription);
+        xpath.setXPathVariableResolver(variableResolver);
         xpath.setNamespaceContext(new MidPointNamespaceContext(codeHolder.getNamespaceMap()));
         xpath.setXPathFunctionResolver(getFunctionResolver());
         
         XPathExpression expr;
 		try {
+			
 			expr = xpath.compile(codeHolder.getExpressionAsString());
-		} catch (XPathExpressionException e) {
-			throw new ExpressionEvaluationException(e.getMessage(),e);
+			
+		} catch (Exception e) {
+			Throwable originalException = ExceptionUtil.lookForTunneledException(e);
+			if (originalException != null && originalException instanceof ObjectNotFoundException) {
+				throw (ObjectNotFoundException)originalException;
+			}
+			if (originalException != null && originalException instanceof SchemaException) {
+				throw (SchemaException)originalException;
+			}
+			if (e instanceof XPathExpressionException) {
+				throw createExpressionEvaluationException(e);
+			}
+			if (e instanceof RuntimeException) {
+				throw (RuntimeException)e;
+			}
+			throw new SystemException(e.getMessage(),e);
 		}
-        Node rootNode = determineRootNode(variables);
+		
+        Object rootNode = determineRootNode(variableResolver);
         QName returnType = determineRerturnType(type);
         Object evaluatedExpression;
+        
 		try {
+			
 			evaluatedExpression = expr.evaluate(rootNode, returnType);
-		} catch (XPathExpressionException e) {
-			throw new ExpressionEvaluationException(e.getMessage(),e);
+			
+		} catch (Exception e) {
+			Throwable originalException = ExceptionUtil.lookForTunneledException(e);
+			if (originalException != null && originalException instanceof ObjectNotFoundException) {
+				throw (ObjectNotFoundException)originalException;
+			}
+			if (originalException != null && originalException instanceof SchemaException) {
+				throw (SchemaException)originalException;
+			}
+			if (e instanceof XPathExpressionException) {
+				throw createExpressionEvaluationException(e);
+			}
+			if (e instanceof RuntimeException) {
+				throw (RuntimeException)e;
+			}
+			throw new SystemException(e.getMessage(),e);
 		}
         
         if (evaluatedExpression == null) {
@@ -87,19 +127,17 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
         return (T)evaluatedExpression;
 	}
 
+
+	private ExpressionEvaluationException createExpressionEvaluationException(Exception e) {
+		return new ExpressionEvaluationException(ExceptionUtil.lookForMessage(e),e);
+	}
+
 	/**
 	 * Kind of convenience magic. Try few obvious variables and set them as the root node
 	 * for evaluation. This allow to use "fullName" instead of "$user/fullName".
 	 */
-	private Node determineRootNode(Map<QName, Object> variables) {
-		if (variables.containsKey(SchemaConstants.I_USER)) {
-			return (Node)variables.get(SchemaConstants.I_USER);
-		}
-		if (variables.containsKey(SchemaConstants.I_ACCOUNT)) {
-			return (Node)variables.get(SchemaConstants.I_ACCOUNT);
-		}
-		// Otherwise an empty document is just fine
-		return DOMUtil.getDocument();
+	private Object determineRootNode(XPathVariableResolver variableResolver) {
+		return variableResolver.resolveVariable(null);
 	}
 	
 	private QName determineRerturnType(Class<?> type) throws ExpressionEvaluationException {

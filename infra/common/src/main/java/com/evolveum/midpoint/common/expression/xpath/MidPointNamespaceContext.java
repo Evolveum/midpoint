@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.common.xpath;
+package com.evolveum.midpoint.common.expression.xpath;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -49,7 +49,7 @@ public class MidPointNamespaceContext implements NamespaceContext {
 	@Override
 	public String getNamespaceURI(String prefix) {
 		if (prefix == null)
-			throw new NullPointerException("Null prefix");
+			throw new IllegalArgumentException("Null prefix");
 
 		String namespace = (String) map.get(prefix);
 		if (null != namespace) {

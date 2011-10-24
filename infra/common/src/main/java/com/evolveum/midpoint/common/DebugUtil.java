@@ -740,6 +740,10 @@ public class DebugUtil implements ObjectFormatter {
 			// therefore we special-case it
 			return prettyPrint((ObjectType)value);
 		}
+		if (value instanceof Node) {
+			// This is interface, won't catch it using reflection
+			return prettyPrint((Node)value);
+		}
 		for (Method method : DebugUtil.class.getMethods()) {
 			if (method.getName().equals("prettyPrint")) {
 				Class<?>[] parameterTypes = method.getParameterTypes();
