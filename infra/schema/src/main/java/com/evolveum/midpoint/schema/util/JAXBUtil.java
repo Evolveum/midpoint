@@ -431,6 +431,19 @@ public final class JAXBUtil {
 		}
 	}
 
+	public static boolean isElement(Object element) {
+		if (element == null) {
+			return false;
+		}
+		if (element instanceof Element) {
+			return true;
+		} else if (element instanceof JAXBElement) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
 	@SuppressWarnings("rawtypes")
 	public static QName getElementQName(Object element) {
 		if (element == null) {

@@ -311,6 +311,11 @@ class DomToSchemaProcessor {
 				if (xsType == null) {
 					throw new SchemaException("Found element "+elementName+" without type definition");
 				}
+				if (xsType.getName() == null) {
+					// No type defined, safe to skip
+					continue;
+					//throw new SchemaException("Found element "+elementName+" with incomplete type name: {"+xsType.getTargetNamespace()+"}"+xsType.getName());
+				}
 				QName typeQName = new QName (xsType.getTargetNamespace(),xsType.getName());
 				XSAnnotation annotation = xsType.getAnnotation();
 				
@@ -343,10 +348,13 @@ class DomToSchemaProcessor {
 	 */
 	private boolean isPropertyContainer(XSType xsType) {
 		Element annoElement = getAnnotationElement(xsType.getAnnotation(), ProcessorConstants.A_PROPERTY_CONTAINER);
-		if (annoElement==null) {
-			return false;
+		if (annoElement != null) {
+			return true;
 		}
-		return true;
+		if (xsType.getBaseType() != null && !xsType.getBaseType().equals(xsType)) {
+			return isPropertyContainer(xsType.getBaseType());
+		}
+		return false;
 	}
 
 

@@ -28,6 +28,7 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -128,11 +129,11 @@ public class DOMUtil {
 			DocumentBuilder loader = factory.newDocumentBuilder();
 			return loader.parse(IOUtils.toInputStream(doc, "utf-8"));
 		} catch (SAXException ex) {
-			throw new IllegalStateException("Error parsing XML document " + ex.getMessage());
+			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
 		} catch (IOException ex) {
-			throw new IllegalStateException("Error parsing XML document " + ex.getMessage());
+			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
 		} catch (ParserConfigurationException ex) {
-			throw new IllegalStateException("Error parsing XML document " + ex.getMessage());
+			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
 		}
 	}
 
@@ -144,11 +145,24 @@ public class DOMUtil {
 			DocumentBuilder loader = factory.newDocumentBuilder();
 			return loader.parse(new File(filePath));
 		} catch (SAXException ex) {
-			throw new IllegalStateException("Error parsing XML document " + ex.getMessage());
+			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
 		} catch (IOException ex) {
-			throw new IllegalStateException("Error parsing XML document " + ex.getMessage());
+			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
 		} catch (ParserConfigurationException ex) {
-			throw new IllegalStateException("Error parsing XML document " + ex.getMessage());
+			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
+		}
+	}
+	
+	public static Document parse(InputStream inputStream) throws IOException {
+		try {
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			factory.setNamespaceAware(true);
+			DocumentBuilder loader = factory.newDocumentBuilder();
+			return loader.parse(inputStream);
+		} catch (SAXException ex) {
+			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
+		} catch (ParserConfigurationException ex) {
+			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
 		}
 	}
 

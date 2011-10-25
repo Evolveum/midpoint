@@ -3597,6 +3597,27 @@
 		<xsd:sequence>
 			<xsd:element ref="tns:description" minOccurs="0" maxOccurs="1" />
 			<xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="authoritative" minOccurs="0" type="xsd:boolean" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="exclusive" minOccurs="0" type="xsd:boolean" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="initial" minOccurs="0" type="xsd:boolean" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element ref="tns:stringFilter" minOccurs="0" maxOccurs="unbounded" />
 			<xsd:element name="value">
 				<xsd:complexType>
@@ -3615,6 +3636,8 @@
 		</xsd:sequence>
 	</xsd:complexType>
 	
+	<xsd:element name="valueConstruction" type="tns:ValueConstructionXType" />
+	
 	<xsd:element name="stringFilter" type="tns:StringFilterType"/>
 	
 	<xsd:complexType name="StringFilterType">
@@ -3627,7 +3650,7 @@
 	
 	<xsd:element name="valueConstructor" abstract="true"/>
 			
-	<xsd:complexType name="LiteralType" mixed="true">
+	<xsd:complexType name="LiteralValueConstructorType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Static value for the attribute or property.
@@ -3640,7 +3663,7 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
+			<xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
 				<xsd:annotation>
 					<xsd:documentation>
 						Static attribute values. The values in this element should be
@@ -3655,17 +3678,14 @@
 						Hence all the XML elements that match this xsd:any must have the same
 						element names (may have different values of course).
 					</xsd:documentation>
-					<xsd:appinfo>
-						<jaxb:dom />
-					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:any>
 		</xsd:sequence>
 	</xsd:complexType>
 			
-	<xsd:element name="literal" type="tns:LiteralType" substitutionGroup="tns:valueConstructor" nillable="true"/>
+	<xsd:element name="literal" type="tns:LiteralValueConstructorType" substitutionGroup="tns:valueConstructor" nillable="true"/>
 	
-	<xsd:complexType name="AsIsType">
+	<xsd:complexType name="AsIsValueConstructorType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Copy value as is, without any modification.
@@ -3673,9 +3693,9 @@
 		</xsd:annotation>
 	</xsd:complexType>
 	
-	<xsd:element name="asIs" type="tns:AsIsType" substitutionGroup="tns:valueConstructor"/>
+	<xsd:element name="asIs" type="tns:AsIsValueConstructorType" substitutionGroup="tns:valueConstructor"/>
 
-	<xsd:complexType name="GenerateType">
+	<xsd:complexType name="GenerateValueConstructorType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Generate value according to a policy that is associated with the property/attribute.
@@ -3683,7 +3703,7 @@
 		</xsd:annotation>
 	</xsd:complexType>
 	
-	<xsd:element name="generate" type="tns:GenerateType" substitutionGroup="tns:valueConstructor"/>
+	<xsd:element name="generate" type="tns:GenerateValueConstructorType" substitutionGroup="tns:valueConstructor"/>
 	
 	<xsd:element name="expression" type="tns:ExpressionType" substitutionGroup="tns:valueConstructor"/>
 

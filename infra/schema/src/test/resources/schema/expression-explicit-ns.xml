@@ -22,7 +22,7 @@
 
 
 
-<valueConstruction xsi:type="c:ValueConstructionType"
+<valueConstructionOld xsi:type="c:ValueConstructionType"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
@@ -43,4 +43,4 @@
         </code>
 	</valueExpression>
 
-</valueConstruction>
+</valueConstructionOld>

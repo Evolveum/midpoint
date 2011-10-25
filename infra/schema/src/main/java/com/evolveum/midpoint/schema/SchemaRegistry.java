@@ -28,19 +28,21 @@ import java.io.Reader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
 import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.ls.LSInput;
 import org.w3c.dom.ls.LSResourceResolver;
@@ -49,9 +51,13 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
+import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.sun.xml.txw2.Document;
 
 /**
  * Registry and resolver of schema files and resources.
@@ -62,33 +68,35 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public class SchemaRegistry implements LSResourceResolver {
 	
-	private SchemaFactory schemaFactory;
-	private Schema midPointSchema;
+	private javax.xml.validation.SchemaFactory schemaFactory;
+	private javax.xml.validation.Schema javaxSchema;
 	private EntityResolver builtinSchemaResolver;	
 	private List<SchemaDescription> schemaDescriptions;
+	private Map<String,Schema> parsedSchemas;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaRegistry.class);
 	
 	public SchemaRegistry() {
 		super();
 		this.schemaDescriptions = new ArrayList<SchemaDescription>();
+		this.parsedSchemas = new HashMap<String, Schema>();
 		registerBuiltinSchemas();
 	}
 	
 	private void registerBuiltinSchemas() {
 		String prefix;
 		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_C);
-		registerSchema("xml/ns/public/common/common-1.xsd",prefix,SchemaConstants.NS_C);
+		registerMidPointSchema("xml/ns/public/common/common-1.xsd",prefix,SchemaConstants.NS_C);
 		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_ANNOTATION);
-		registerSchema("xml/ns/public/common/annotation-1.xsd",prefix,SchemaConstants.NS_ANNOTATION);
+		registerMidPointSchema("xml/ns/public/common/annotation-1.xsd",prefix,SchemaConstants.NS_ANNOTATION);
 		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_RESOURCE);
-		registerSchema("xml/ns/public/resource/resource-schema-1.xsd",prefix,SchemaConstants.NS_RESOURCE);
+		registerMidPointSchema("xml/ns/public/resource/resource-schema-1.xsd",prefix,SchemaConstants.NS_RESOURCE);
 		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_CAPABILITIES);
-		registerSchema("xml/ns/public/resource/capabilities-1.xsd",prefix,SchemaConstants.NS_CAPABILITIES);
+		registerMidPointSchema("xml/ns/public/resource/capabilities-1.xsd",prefix,SchemaConstants.NS_CAPABILITIES);
 		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_ICF_CONFIGURATION);
-		registerSchema("xml/ns/public/connector/icf-1/connector-schema-1.xsd",prefix,SchemaConstants.NS_ICF_CONFIGURATION);
+		registerMidPointSchema("xml/ns/public/connector/icf-1/connector-schema-1.xsd",prefix,SchemaConstants.NS_ICF_CONFIGURATION);
 		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_ICF_SCHEMA);
-		registerSchema("xml/ns/public/connector/icf-1/resource-schema-1.xsd",prefix,SchemaConstants.NS_ICF_SCHEMA);
+		registerMidPointSchema("xml/ns/public/connector/icf-1/resource-schema-1.xsd",prefix,SchemaConstants.NS_ICF_SCHEMA);
 		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(W3C_XML_SCHEMA_NS_URI);
 		registerSchema("xml/ns/standard/XMLSchema.xsd",prefix,W3C_XML_SCHEMA_NS_URI);
 	}
@@ -106,13 +114,20 @@ public class SchemaRegistry implements LSResourceResolver {
 	public void registerSchema(String resourcePath, String usualPrefix, String namespace) {
 		schemaDescriptions.add(new SchemaDescription(resourcePath, usualPrefix, namespace));
 	}
+	
+	/**
+	 * Must be called before call to initialize()
+	 */
+	public void registerMidPointSchema(String resourcePath, String usualPrefix, String namespace) {
+		schemaDescriptions.add(new SchemaDescription(resourcePath, usualPrefix, namespace, true));
+	}
 
 	/**
 	 * Must be called before call to initialize()
 	 * @param node
 	 */
 	public void registerSchema(Node node) {
-		schemaDescriptions.add(new SchemaDescription(new DOMSource(node)));
+		schemaDescriptions.add(new SchemaDescription(node));
 	}
 
 	/**
@@ -120,30 +135,43 @@ public class SchemaRegistry implements LSResourceResolver {
 	 * @param node
 	 */
 	public void registerSchema(Node node, String usualPrefix) {
-		schemaDescriptions.add(new SchemaDescription(new DOMSource(node), usualPrefix));
+		schemaDescriptions.add(new SchemaDescription(node, usualPrefix));
 	}
 	
-	public void initialize() throws SAXException, IOException {
+	public void initialize() throws SAXException, IOException, SchemaException {
 		initResolver();
+		parseJavaxSchema();
+		parseMidPointSchema();
+	}
+	
+	private void parseJavaxSchema() throws SAXException, IOException {
 		schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 		Source[] sources = new Source[schemaDescriptions.size()];
 		int i = 0;
 		for (SchemaDescription schemaDescription : schemaDescriptions) {
 			Source source = schemaDescription.getSource();
-			if (source == null) {
-				InputStream inputStream = SchemaRegistry.class.getClassLoader().getResourceAsStream(schemaDescription.getResourcePath());
-				if (inputStream==null) {
-					throw new IllegalStateException("Cannot fetch system resource for schema " + schemaDescription.getResourcePath());
-				}
-				source = new StreamSource(inputStream);
-			}
 			sources[i] = source;
 			i++;
 		}
 		schemaFactory.setResourceResolver(this);
-		midPointSchema = schemaFactory.newSchema(sources);
+		javaxSchema = schemaFactory.newSchema(sources);
 	}
 
+	private void parseMidPointSchema() throws SchemaException {
+		for (SchemaDescription schemaDescription : schemaDescriptions) {
+			if (!schemaDescription.isMidPointSchema()) {
+				continue;
+			}
+			Element domElement = schemaDescription.getDomElement();
+			Schema schema = Schema.parse(domElement);
+			String namespace = schemaDescription.getNamespace();
+			if (namespace == null) {
+				namespace = schema.getNamespace();
+			}
+			parsedSchemas.put(namespace, schema);
+		}
+	}
+	
 	private void initResolver() throws IOException {
 		CatalogManager catalogManager = new CatalogManager();
 		catalogManager.setUseStaticCatalog(true);
@@ -163,8 +191,17 @@ public class SchemaRegistry implements LSResourceResolver {
 		builtinSchemaResolver=catalogResolver;
 	}
 
-	public Schema getMidPointSchema() {
-		return midPointSchema;
+	public javax.xml.validation.Schema getJavaxSchema() {
+		return javaxSchema;
+	}
+	
+	public Schema getSchema(String namespace) {
+		return parsedSchemas.get(namespace);
+	}
+	
+	// Convenience
+	public Schema getCommonSchema() {
+		return parsedSchemas.get(SchemaConstants.NS_C);
 	}
 	
 	public QName setQNamePrefix(QName qname) {
@@ -221,13 +258,22 @@ public class SchemaRegistry implements LSResourceResolver {
 		private String resourcePath;
 		private String usualPrefix;
 		private String namespace;
-		private Source source;
+		private Node node;
+		private boolean isMidPointSchema = false;
 
 		public SchemaDescription(String resourcePath, String usualPrefix, String namespace) {
 			super();
 			this.resourcePath = resourcePath;
 			this.namespace = namespace;
 			this.usualPrefix = usualPrefix;
+		}
+
+		public SchemaDescription(String resourcePath, String usualPrefix, String namespace, boolean isMidPointSchema) {
+			super();
+			this.resourcePath = resourcePath;
+			this.namespace = namespace;
+			this.usualPrefix = usualPrefix;
+			this.isMidPointSchema = isMidPointSchema;
 		}
 		
 		public SchemaDescription(String resourcePath, String usualPrefix) {
@@ -236,15 +282,15 @@ public class SchemaRegistry implements LSResourceResolver {
 			this.usualPrefix = usualPrefix;
 		}
 
-		public SchemaDescription(Source source, String usualPrefix) {
+		public SchemaDescription(Node node, String usualPrefix) {
 			super();
-			this.source = source;
+			this.node = node;
 			this.usualPrefix = usualPrefix;
 		}
-
-		public SchemaDescription(Source source) {
+		
+		public SchemaDescription(Node node) {
 			super();
-			this.source = source;
+			this.node = node;
 		}
 
 		public String getResourcePath() {
@@ -270,14 +316,47 @@ public class SchemaRegistry implements LSResourceResolver {
 		public void setUsualPrefix(String usualPrefix) {
 			this.usualPrefix = usualPrefix;
 		}
-
-		public Source getSource() {
-			return source;
+		
+		public boolean isMidPointSchema() {
+			return isMidPointSchema;
 		}
 
-		public void setSource(Source source) {
-			this.source = source;
-		}				
+		public Source getSource() {
+			if (node != null) {
+				return new DOMSource(node);
+			}
+			if (resourcePath != null) {			
+				InputStream inputStream = SchemaRegistry.class.getClassLoader().getResourceAsStream(resourcePath);
+				if (inputStream==null) {
+					throw new IllegalStateException("Cannot fetch system resource for schema " + resourcePath);
+				}
+				return new StreamSource(inputStream);
+			}
+			throw new IllegalStateException("Cannot determine source for schema " + namespace);
+		}
+		
+		public Element getDomElement() {
+			if (node == null) {
+				if (resourcePath != null) {			
+					InputStream inputStream = SchemaRegistry.class.getClassLoader().getResourceAsStream(resourcePath);
+					if (inputStream==null) {
+						throw new IllegalStateException("Cannot fetch system resource " + resourcePath + " for schema " + namespace);
+					}
+					try {
+						node = DOMUtil.parse(inputStream);
+					} catch (IOException e) {
+						throw new IllegalStateException("Cannot fetch and parse system resource " + resourcePath 
+								+ " for schema " + namespace + ": "+e.getMessage(), e);
+					}
+				} else {
+					throw new IllegalStateException("Cannot parse schema " + namespace + ": no DOM node and no resource");
+				}
+			}
+			if (node instanceof Element) {
+				return (Element)node;
+			}
+			return DOMUtil.getFirstChildElement(node);
+		}
 	}
 	
 	class Input implements LSInput {

@@ -53,6 +53,7 @@ import org.xml.sax.SAXParseException;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -108,8 +109,10 @@ public class Validator {
 			throw new IllegalStateException("Error in system schemas: " + e.getMessage(), e);
 		} catch (IOException e) {
 			throw new IllegalStateException("Error reading schemas: " + e.getMessage(), e);
+		} catch (SchemaException e) {
+			throw new IllegalStateException("Error processing schemas: " + e.getMessage(), e);
 		}
-		midPointXsdSchema = schemaRegistry.getMidPointSchema();
+		midPointXsdSchema = schemaRegistry.getJavaxSchema();
 		xsdValidator = midPointXsdSchema.newValidator();
 		xsdValidator.setResourceResolver(schemaRegistry);
 	}
