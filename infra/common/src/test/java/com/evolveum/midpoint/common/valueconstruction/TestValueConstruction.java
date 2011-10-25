@@ -95,6 +95,28 @@ public class TestValueConstruction {
 		assertEquals("foobar",result.getValue(String.class));
 	}
 
+	@Test
+	public void testConstructionAsIs() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		// GIVEN
+		JAXBElement<ValueConstructionXType> valueConstructionTypeElement = (JAXBElement<ValueConstructionXType>) JAXBUtil.unmarshal(
+				new File(TEST_DIR, "construction-asis.xml"));
+		ValueConstructionXType valueConstructionType = valueConstructionTypeElement.getValue();
+		
+		PropertyContainerDefinition userContainer = schemaRegistry.getCommonSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+		PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C,"givenName"));
+		
+		Property givenName = givenNameDef.instantiate();
+		givenName.setValue("barbar");
+		
+		// WHEN
+		ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "asis construction");
+		construction.setInput(givenName);
+		construction.evaluate();
+		Property result = construction.getOutput();
+		
+		// THEN
+		assertEquals("barbar",result.getValue(String.class));
+	}
 	
 
 }

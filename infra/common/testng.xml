@@ -52,9 +52,10 @@
 			<class name="com.evolveum.midpoint.common.test.JAXBUtilTest" />
 		</classes>
 	</test>
-	<test name="Expression" preserve-order="false">
+	<test name="ExpressionConstrcution" preserve-order="false">
 		<classes>
 			<class name="com.evolveum.midpoint.common.expression.TestXPathExpressions" />
+			<class name="com.evolveum.midpoint.common.valueconstruction.TestValueConstruction" />
 		</classes>
 	</test>
 </suite>
