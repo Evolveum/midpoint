@@ -160,7 +160,59 @@ public class TestValueConstruction {
 		// THEN
 		assertEquals("Captain Jack Sparrow",result.getValue(String.class));
 	}
+	
+	@Test
+	public void testConstructionExpressionSystemVariables() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		// GIVEN
+		JAXBElement<ValueConstructionXType> valueConstructionTypeElement = (JAXBElement<ValueConstructionXType>) JAXBUtil.unmarshal(
+				new File(TEST_DIR, "construction-expression-system-variables.xml"));
+		ValueConstructionXType valueConstructionType = valueConstructionTypeElement.getValue();
+		
+		PropertyContainerDefinition userContainer = schemaRegistry.getCommonSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+		PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C,"givenName"));
+				
+		// WHEN
+		ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "system variables expression construction");
+		
+		ObjectReferenceType ref = new ObjectReferenceType();
+		ref.setOid("c0c010c0-d34d-b33f-f00d-111111111111");
+		ref.setType(SchemaConstants.I_USER_TYPE);
+		construction.addVariableDefinition(SchemaConstants.I_USER, ref);
+		
+		construction.evaluate();
+		Property result = construction.getOutput();
+		
+		// THEN
+		assertEquals("Captain Jack Sparrow",result.getValue(String.class));
+	}
 
+	@Test
+	public void testConstructionRootNode() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		// GIVEN
+		JAXBElement<ValueConstructionXType> valueConstructionTypeElement = (JAXBElement<ValueConstructionXType>) JAXBUtil.unmarshal(
+				new File(TEST_DIR, "construction-expression-root-node.xml"));
+		ValueConstructionXType valueConstructionType = valueConstructionTypeElement.getValue();
+		
+		PropertyContainerDefinition userContainer = schemaRegistry.getCommonSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+		PropertyDefinition localityDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C,"locality"));
+				
+		// WHEN
+		ValueConstruction construction = factory.createValueConstruction(valueConstructionType, localityDef, "system variables expression construction");
+		
+		ObjectReferenceType ref = new ObjectReferenceType();
+		ref.setOid("c0c010c0-d34d-b33f-f00d-111111111111");
+		ref.setType(SchemaConstants.I_USER_TYPE);
+		construction.setRootNode(ref);
+		
+		construction.evaluate();
+		Property result = construction.getOutput();
+		
+		// THEN
+		Set<String> expected = new HashSet<String>();
+		expected.add("Black Pearl");
+		assertEquals(expected,result.getValues());
+	}
+	
 	@Test
 	public void testConstructionExpressionList() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		// GIVEN
@@ -180,6 +232,32 @@ public class TestValueConstruction {
 		Set<String> expected = new HashSet<String>();
 		expected.add("Leaders");
 		expected.add("Followers");
+		assertEquals(expected,result.getValues());
+	}
+	
+	/*
+	 * DOES NOT WORK NOW
+	 * This automatic scalar-list conversion fails with:
+	 * net.sf.saxon.trans.XPathException: Cannot convert XPath value to Java object: required class is org.w3c.dom.NodeList; supplied value has type xs:string
+	 */
+	@Test(enabled=false)
+	public void testConstructionExpressionScalarList() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		// GIVEN
+		JAXBElement<ValueConstructionXType> valueConstructionTypeElement = (JAXBElement<ValueConstructionXType>) JAXBUtil.unmarshal(
+				new File(TEST_DIR, "construction-expression-scalar-list.xml"));
+		ValueConstructionXType valueConstructionType = valueConstructionTypeElement.getValue();
+		
+		PropertyContainerDefinition userContainer = schemaRegistry.getCommonSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+		PropertyDefinition ouDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C,"organizationalUnit"));
+				
+		// WHEN
+		ValueConstruction construction = factory.createValueConstruction(valueConstructionType, ouDef, "scalar list expression construction");
+		construction.evaluate();
+		Property result = construction.getOutput();
+		
+		// THEN
+		Set<String> expected = new HashSet<String>();
+		expected.add("Pirates");
 		assertEquals(expected,result.getValues());
 	}
 

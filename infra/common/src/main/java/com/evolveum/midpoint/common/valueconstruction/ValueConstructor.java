@@ -19,7 +19,10 @@
  */
 package com.evolveum.midpoint.common.valueconstruction;
 
+import java.util.Map;
+
 import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -29,11 +32,12 @@ import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 
 /**
  * @author Radovan Semancik
- *
+ * 
  */
 public interface ValueConstructor {
-	
-	Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition, Property input, String contextDescription)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException;
-	
+
+	Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition,
+			Property input, Map<QName, Object> variables, String contextDescription) throws SchemaException,
+			ExpressionEvaluationException, ObjectNotFoundException;
+
 }

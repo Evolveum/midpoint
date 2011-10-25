@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<valueConstruction 
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
+		xmlns:y="http://example.com/yyy">
+	<value>
+		<expression>
+			<code>
+				'Pirates'
+			</code>
+		</expression>
+	</value>
+</valueConstruction>

@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.common.valueconstruction;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
@@ -50,8 +51,10 @@ public class ExpressionValueConstructor implements ValueConstructor {
 	 * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property)
 	 */
 	@Override
-	public Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition, Property input, String contextDescription) 
+	public Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition, 
+			Property input, Map<QName, Object> variables, String contextDescription) 
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		
 		Object contstuctorTypeObject = constructorElement.getValue();
 		if (!(contstuctorTypeObject instanceof ExpressionType)) {
 			throw new IllegalArgumentException("Expression value constructor cannot handle elements of type "+contstuctorTypeObject.getClass().getName());
@@ -59,6 +62,8 @@ public class ExpressionValueConstructor implements ValueConstructor {
 		ExpressionType constructorType = (ExpressionType)contstuctorTypeObject;
 		
 		Expression expression = factory.createExpression(constructorType, contextDescription);
+		
+		expression.addVariableDefinitions(variables);
 		
 		QName typeName = outputDefinition.getTypeName();
 		Class<?> type = XsdTypeConverter.toJavaType(typeName);

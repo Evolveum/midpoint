@@ -128,7 +128,10 @@ public class ValueConstruction {
 	
 	private void evaluateValueConstructors() throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		for (JAXBElement<?> valueConstructorElement : valueConstructionType.getValue().getValueConstructor()) {
-			output = determineConstructor(valueConstructorElement).construct(valueConstructorElement, outputDefinition, input, shortDesc);
+			
+			output = determineConstructor(valueConstructorElement)
+						.construct(valueConstructorElement, outputDefinition, input, variables, shortDesc);
+			
 			if (output != null) {
 				// we got the value, no need to continue
 				break;

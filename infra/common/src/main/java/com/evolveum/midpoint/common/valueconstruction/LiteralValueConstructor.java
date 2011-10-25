@@ -19,7 +19,10 @@
  */
 package com.evolveum.midpoint.common.valueconstruction;
 
+import java.util.Map;
+
 import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
@@ -39,14 +42,17 @@ public class LiteralValueConstructor implements ValueConstructor {
 	 * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property)
 	 */
 	@Override
-	public Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition, Property input, String contextDescription) 
+	public Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition, 
+			Property input, Map<QName, Object> variables, String contextDescription) 
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		
 		Object contstuctorTypeObject = constructorElement.getValue();
 		if (!(contstuctorTypeObject instanceof LiteralValueConstructorType)) {
 			throw new IllegalArgumentException("Literal value constructor cannot handle elements of type "+contstuctorTypeObject.getClass().getName());
 		}
 		LiteralValueConstructorType constructorType = (LiteralValueConstructorType)contstuctorTypeObject;
 		Property output = outputDefinition.parseItem(constructorType.getAny());
+		
 		return output;
 	}
 

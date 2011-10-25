@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<valueConstruction 
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+	<value>
+		<expression>
+			<code>
+				c:locality
+			</code>
+		</expression>
+	</value>
+</valueConstruction>

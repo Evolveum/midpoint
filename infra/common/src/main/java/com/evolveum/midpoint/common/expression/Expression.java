@@ -22,6 +22,8 @@ package com.evolveum.midpoint.common.expression;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -78,8 +80,7 @@ public class Expression {
 			addVariableDefinition(varDef.getName(),varDef.getValue());
 		} else {
 			LOGGER.warn("Empty definition of variable {} in expression {}, ignoring it",varDef.getName(),shortDesc);
-		}
-		
+		}	
 	}
 	
 	public void addVariableDefinition(QName name, ObjectReferenceType objectRef) {
@@ -88,6 +89,12 @@ public class Expression {
 
 	public void addVariableDefinition(QName name, String value) {
 		addVariableDefinition(name,(Object)value);
+	}
+	
+	public void addVariableDefinitions(Map<QName, Object> extraVariables) {
+		for (Entry<QName, Object> entry : extraVariables.entrySet()) {
+			variables.put(entry.getKey(), entry.getValue());
+		}
 	}
 	
 	public void setRootNode(ObjectReferenceType objectRef) {
