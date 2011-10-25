@@ -39,6 +39,7 @@
     <i:employeeNumber>emp1234</i:employeeNumber>
     <i:employeeType>CAPTAIN</i:employeeType>
     <i:organizationalUnit>Leaders</i:organizationalUnit>
+    <i:organizationalUnit>Followers</i:organizationalUnit>
     <i:locality>Black Pearl</i:locality>
 
     <i:credentials>

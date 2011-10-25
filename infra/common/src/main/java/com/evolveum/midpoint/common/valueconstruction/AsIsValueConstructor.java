@@ -22,6 +22,8 @@ package com.evolveum.midpoint.common.valueconstruction;
 import javax.xml.bind.JAXBElement;
 
 import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
@@ -38,8 +40,8 @@ public class AsIsValueConstructor implements ValueConstructor {
 	 * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property)
 	 */
 	@Override
-	public Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition, Property input) 
-			throws SchemaException {
+	public Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition, Property input, String contextDescription) 
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		Object contstuctorTypeObject = constructorElement.getValue();
 		if (!(contstuctorTypeObject instanceof AsIsValueConstructorType)) {
 			throw new IllegalArgumentException("AsIs value constructor cannot handle elements of type "+contstuctorTypeObject.getClass().getName());

@@ -126,9 +126,9 @@ public class ValueConstruction {
 		// TODO: output filter
 	}
 	
-	private void evaluateValueConstructors() throws SchemaException {
+	private void evaluateValueConstructors() throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		for (JAXBElement<?> valueConstructorElement : valueConstructionType.getValue().getValueConstructor()) {
-			output = determineConstructor(valueConstructorElement).construct(valueConstructorElement, outputDefinition, input);
+			output = determineConstructor(valueConstructorElement).construct(valueConstructorElement, outputDefinition, input, shortDesc);
 			if (output != null) {
 				// we got the value, no need to continue
 				break;

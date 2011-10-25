@@ -22,6 +22,10 @@ package com.evolveum.midpoint.common.valueconstruction;
 import static org.testng.AssertJUnit.assertEquals;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -57,6 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionXTy
 public class TestValueConstruction {
 
 	private static File TEST_DIR = new File("src/test/resources/valueconstruction");
+	private static File OBJECTS_DIR = new File("src/test/resources/objects");
 	
 	private ValueConstructionFactory factory;
 	SchemaRegistry schemaRegistry;
@@ -66,11 +71,11 @@ public class TestValueConstruction {
 		ExpressionFactory expressionFactory = new ExpressionFactory();
 		XPathExpressionEvaluator xpathEvaluator = new XPathExpressionEvaluator();
 		expressionFactory.registerEvaluator(XPathExpressionEvaluator.XPATH_LANGUAGE_URL, xpathEvaluator);
-		ObjectResolver resolver = new DirectoryFileObjectResolver(new File(TEST_DIR, "objects"));
+		ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
 		expressionFactory.setObjectResolver(resolver);
 		
 		factory = new ValueConstructionFactory();
-		factory.initialize();
+		factory.setExpressionFactory(expressionFactory);
 		
 		schemaRegistry = new SchemaRegistry();
 		schemaRegistry.initialize();
@@ -117,6 +122,65 @@ public class TestValueConstruction {
 		// THEN
 		assertEquals("barbar",result.getValue(String.class));
 	}
-	
+
+	@Test
+	public void testConstructionExpressionSimple() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		// GIVEN
+		JAXBElement<ValueConstructionXType> valueConstructionTypeElement = (JAXBElement<ValueConstructionXType>) JAXBUtil.unmarshal(
+				new File(TEST_DIR, "construction-expression-simple.xml"));
+		ValueConstructionXType valueConstructionType = valueConstructionTypeElement.getValue();
+		
+		PropertyContainerDefinition userContainer = schemaRegistry.getCommonSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+		PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C,"givenName"));
+				
+		// WHEN
+		ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "simple expression construction");
+		construction.evaluate();
+		Property result = construction.getOutput();
+		
+		// THEN
+		assertEquals("fooBAR",result.getValue(String.class));
+	}
+
+	@Test
+	public void testConstructionExpressionVariables() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		// GIVEN
+		JAXBElement<ValueConstructionXType> valueConstructionTypeElement = (JAXBElement<ValueConstructionXType>) JAXBUtil.unmarshal(
+				new File(TEST_DIR, "construction-expression-variables.xml"));
+		ValueConstructionXType valueConstructionType = valueConstructionTypeElement.getValue();
+		
+		PropertyContainerDefinition userContainer = schemaRegistry.getCommonSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+		PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C,"givenName"));
+				
+		// WHEN
+		ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "variables expression construction");
+		construction.evaluate();
+		Property result = construction.getOutput();
+		
+		// THEN
+		assertEquals("Captain Jack Sparrow",result.getValue(String.class));
+	}
+
+	@Test
+	public void testConstructionExpressionList() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		// GIVEN
+		JAXBElement<ValueConstructionXType> valueConstructionTypeElement = (JAXBElement<ValueConstructionXType>) JAXBUtil.unmarshal(
+				new File(TEST_DIR, "construction-expression-list.xml"));
+		ValueConstructionXType valueConstructionType = valueConstructionTypeElement.getValue();
+		
+		PropertyContainerDefinition userContainer = schemaRegistry.getCommonSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+		PropertyDefinition ouDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C,"organizationalUnit"));
+				
+		// WHEN
+		ValueConstruction construction = factory.createValueConstruction(valueConstructionType, ouDef, "list expression construction");
+		construction.evaluate();
+		Property result = construction.getOutput();
+		
+		// THEN
+		Set<String> expected = new HashSet<String>();
+		expected.add("Leaders");
+		expected.add("Followers");
+		assertEquals(expected,result.getValues());
+	}
 
 }

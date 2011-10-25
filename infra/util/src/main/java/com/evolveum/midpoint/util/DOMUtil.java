@@ -656,4 +656,21 @@ public class DOMUtil {
 		return true;
 	}
 
+	public static boolean isJunk(Node node) {
+		if (node.getNodeType() == Node.COMMENT_NODE) {
+			return true;
+		}
+		if (node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE) {
+			return true;
+		}
+		if (node.getNodeType() == Node.TEXT_NODE) {
+			Text text = (Text)node;
+			if (text.getTextContent().matches("^\\s*$")) {
+				return true;
+			}
+			return false;
+		}
+		return false;
+	}
+
 }

@@ -19,22 +19,33 @@
  */
 package com.evolveum.midpoint.common.valueconstruction;
 
-import javax.xml.bind.JAXBElement;
+import java.util.List;
 
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.common.expression.Expression;
+import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.LiteralValueConstructorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
 
 /**
  * @author Radovan Semancik
  *
  */
-public class LiteralValueConstructor implements ValueConstructor {
+public class ExpressionValueConstructor implements ValueConstructor {
 	
+	private ExpressionFactory factory;
+	
+	ExpressionValueConstructor(ExpressionFactory factory) {
+		this.factory = factory;
+	}
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property)
 	 */
@@ -42,11 +53,25 @@ public class LiteralValueConstructor implements ValueConstructor {
 	public Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition, Property input, String contextDescription) 
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		Object contstuctorTypeObject = constructorElement.getValue();
-		if (!(contstuctorTypeObject instanceof LiteralValueConstructorType)) {
-			throw new IllegalArgumentException("Literal value constructor cannot handle elements of type "+contstuctorTypeObject.getClass().getName());
+		if (!(contstuctorTypeObject instanceof ExpressionType)) {
+			throw new IllegalArgumentException("Expression value constructor cannot handle elements of type "+contstuctorTypeObject.getClass().getName());
 		}
-		LiteralValueConstructorType constructorType = (LiteralValueConstructorType)contstuctorTypeObject;
-		Property output = outputDefinition.parseItem(constructorType.getAny());
+		ExpressionType constructorType = (ExpressionType)contstuctorTypeObject;
+		
+		Expression expression = factory.createExpression(constructorType, contextDescription);
+		
+		QName typeName = outputDefinition.getTypeName();
+		Class<?> type = XsdTypeConverter.toJavaType(typeName);
+		Property output = outputDefinition.instantiate();
+		
+		if (outputDefinition.isMultiValue()) {
+			List<?> resultValues = expression.evaluateList(type);
+			output.getValues().addAll(resultValues);
+		} else {
+			Object resultValue = expression.evaluateScalar(type);
+			output.getValues().add(resultValue);
+		}
+		
 		return output;
 	}
 

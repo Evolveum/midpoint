@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.common.expression;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
@@ -36,7 +37,10 @@ import com.evolveum.midpoint.schema.util.ObjectResolver;
  */
 public interface ExpressionEvaluator {
 
-	public <T> T evaluate(Class<T> type, Element code, Map<QName,Object> variables, ObjectResolver objectResolver, String contextDescription) 
+	public <T> T evaluateScalar(Class<T> type, Element code, Map<QName,Object> variables, ObjectResolver objectResolver, String contextDescription) 
 		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException;
-	
+
+	public <T> List<T> evaluateList(Class<T> type, Element code, Map<QName,Object> variables, ObjectResolver objectResolver, String contextDescription) 
+		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException;
+
 }

@@ -136,37 +136,22 @@ public class XsdTypeConverter {
 	public static <T> T toJavaValue(Object element, Class<T> type) throws JAXBException {
 		if (element instanceof Element) {
 			Element xmlElement = (Element)element;
-			String stringContent = xmlElement.getTextContent();
 			if (type.equals(Element.class)) {
 				return (T) xmlElement;
-			} else if (type.equals(String.class)) {
-				return (T) stringContent;
-			} else if (type.equals(char.class)) {
-				return (T)(new Character(stringContent.charAt(0)));
-			} else if (type.equals(File.class)) {
-				return (T) new File(stringContent);
-			} else if (type.equals(Integer.class)) {
-				return (T) Integer.valueOf(stringContent);
-			} else if (type.equals(int.class)) {
-				return (T) Integer.valueOf(stringContent);
-			} else if (type.equals(Long.class)) {
-				return (T) Long.valueOf(stringContent);
-			} else if (type.equals(long.class)) {
-				return (T) Long.valueOf(stringContent);
-			} else if (type.equals(byte[].class)) {
-				byte[] decodedData = Base64.decodeBase64(xmlElement.getTextContent());
-				return (T) decodedData;
-			} else if (type.equals(boolean.class) || Boolean.class.isAssignableFrom(type)) {
-				// TODO: maybe we will need more inteligent conversion, e.g. to trim spaces, case insensitive, etc.
-				return (T) Boolean.valueOf(stringContent);
-			} else if (type.equals(GregorianCalendar.class)) {
-				return (T) getDatatypeFactory().newXMLGregorianCalendar(stringContent).toGregorianCalendar();
 			} else if (type.equals(QName.class)) {
 				return (T) DOMUtil.getQNameValue(xmlElement);
 			} else if (JAXBUtil.isJaxbClass(type)) {
 				return JAXBUtil.unmarshal(xmlElement, type).getValue();
 			} else {
-				throw new IllegalArgumentException("Unknown type for conversion: " + type + "(element "+JAXBUtil.getElementQName(element)+")");
+				String stringContent = xmlElement.getTextContent();
+				if (stringContent == null) {
+					return null;
+				}
+				T javaValue = toJavaValue(stringContent, type);
+				if (javaValue == null) {
+					throw new IllegalArgumentException("Unknown type for conversion: " + type + "(element "+JAXBUtil.getElementQName(element)+")");
+				}
+				return javaValue;
 			}
 		} else if (element instanceof JAXBElement) {
 			return ((JAXBElement<T>)element).getValue();
@@ -175,6 +160,35 @@ public class XsdTypeConverter {
 		}
 	}
 
+	public static <T> T toJavaValue(String stringContent, Class<T> type) {
+		if (type.equals(String.class)) {
+			return (T) stringContent;
+		} else if (type.equals(char.class)) {
+			return (T)(new Character(stringContent.charAt(0)));
+		} else if (type.equals(File.class)) {
+			return (T) new File(stringContent);
+		} else if (type.equals(Integer.class)) {
+			return (T) Integer.valueOf(stringContent);
+		} else if (type.equals(int.class)) {
+			return (T) Integer.valueOf(stringContent);
+		} else if (type.equals(Long.class)) {
+			return (T) Long.valueOf(stringContent);
+		} else if (type.equals(long.class)) {
+			return (T) Long.valueOf(stringContent);
+		} else if (type.equals(byte[].class)) {
+			byte[] decodedData = Base64.decodeBase64(stringContent);
+			return (T) decodedData;
+		} else if (type.equals(boolean.class) || Boolean.class.isAssignableFrom(type)) {
+			// TODO: maybe we will need more inteligent conversion, e.g. to trim spaces, case insensitive, etc.
+			return (T) Boolean.valueOf(stringContent);
+		} else if (type.equals(GregorianCalendar.class)) {
+			return (T) getDatatypeFactory().newXMLGregorianCalendar(stringContent).toGregorianCalendar();
+		} else {
+			return null;
+		}
+	}
+
+	
 	public static Object toJavaValue(Object xmlElement, QName type) throws JAXBException {
 		return toJavaValue(xmlElement, toJavaType(type));
 	}

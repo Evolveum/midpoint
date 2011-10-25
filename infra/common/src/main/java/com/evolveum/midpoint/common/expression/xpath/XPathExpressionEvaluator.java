@@ -19,8 +19,11 @@
  */
 package com.evolveum.midpoint.common.expression.xpath;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -29,12 +32,14 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import javax.xml.xpath.XPathVariableResolver;
 
+import org.eclipse.core.runtime.ISafeRunnable;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -58,9 +63,38 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
 	private XPathFactory factory = XPathFactory.newInstance();
 	
 	@Override
-	public <T> T evaluate(Class<T> type, Element code, Map<QName, Object> variables, ObjectResolver objectResolver, String contextDescription) 
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+	public <T> T evaluateScalar(Class<T> type, Element code, Map<QName, Object> variables,
+			ObjectResolver objectResolver, String contextDescription) throws ExpressionEvaluationException,
+			ObjectNotFoundException, SchemaException {
+
+		QName returnType = determineRerturnType(type);
 		
+		Object evaluatedExpression = evaluate(returnType, code, variables, objectResolver, contextDescription);
+		
+		return convertScalar(type, returnType, evaluatedExpression, contextDescription);
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluateList(java.lang.Class, org.w3c.dom.Element, java.util.Map, com.evolveum.midpoint.schema.util.ObjectResolver, java.lang.String)
+	 */
+	@Override
+	public <T> List<T> evaluateList(Class<T> type, Element code, Map<QName, Object> variables,
+			ObjectResolver objectResolver, String contextDescription) throws ExpressionEvaluationException,
+			ObjectNotFoundException, SchemaException {
+		
+		Object evaluatedExpression = evaluate(XPathConstants.NODESET, code, variables, objectResolver, contextDescription);
+		
+		if (!(evaluatedExpression instanceof NodeList)) {
+			throw new IllegalStateException("The expression "+contextDescription+" resulted in "+evaluatedExpression.getClass().getName()+" while exprecting NodeList");
+		}
+		
+		return convertList(type, (NodeList)evaluatedExpression, contextDescription);
+	}
+
+		
+	private Object evaluate(QName returnType, Element code, Map<QName, Object> variables, ObjectResolver objectResolver, String contextDescription) 
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+
 		XPathExpressionCodeHolder codeHolder = new XPathExpressionCodeHolder(code);
 		
 		XPath xpath = factory.newXPath();
@@ -92,7 +126,6 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
 		}
 		
         Object rootNode = determineRootNode(variableResolver);
-        QName returnType = determineRerturnType(type);
         Object evaluatedExpression;
         
 		try {
@@ -120,11 +153,7 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
         	return null;
         }
         
-        if (!type.isAssignableFrom(evaluatedExpression.getClass())) {
-        	throw new ExpressionEvaluationException("Expression returned incompatible type "+evaluatedExpression.getClass());
-        }
-        
-        return (T)evaluatedExpression;
+        return evaluatedExpression;
 	}
 
 
@@ -147,6 +176,9 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
 		if (type.equals(Double.class)) {
 			return XPathConstants.NUMBER;
 		}
+		if (type.equals(Integer.class)) {
+			return XPathConstants.NUMBER;
+		}
 		if (type.equals(Boolean.class)) {
 			return XPathConstants.BOOLEAN;
 		}
@@ -158,11 +190,85 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
 		}
 		throw new ExpressionEvaluationException("Unsupported return type "+type);
 	}
+	
+	private <T> T convertScalar(Class<T> type, QName returnType, Object value, String contextDescription) throws ExpressionEvaluationException {
+		if (type.isAssignableFrom(value.getClass())) {
+			return (T)value;
+		}
+		try {
+			if (value instanceof String) {
+				return XsdTypeConverter.toJavaValue((String)value, type);
+			}
+			return XsdTypeConverter.toJavaValue(value, type);
+		} catch (JAXBException e) {
+			throw new ExpressionEvaluationException("Error converting result of " 
+					+ contextDescription + ": " + e.getMessage(), e);
+		} catch (IllegalArgumentException e) {
+			throw new ExpressionEvaluationException("Error converting result of " 
+					+ contextDescription + ": " + e.getMessage(), e);
+		}
+	}
+	
+	private <T> T convertScalar(Class<T> type, NodeList valueNodes, String contextDescription) throws ExpressionEvaluationException {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < valueNodes.getLength(); i++) {
+			Node node = valueNodes.item(i);
+			if (DOMUtil.isJunk(node)) {
+				continue;
+			}
+			if (node.getNodeType() == Node.TEXT_NODE) {
+				sb.append(node.getTextContent());
+			} else {
+				// We have failed
+				return null;
+			}
+		}
+		try {
+			return XsdTypeConverter.toJavaValue(sb.toString(), type);
+		} catch (IllegalArgumentException e) {
+			throw new ExpressionEvaluationException("Error converting result of " +
+					contextDescription + ": " + e.getMessage(), e);
+		}
+	}
+	
+	private <T> List<T> convertList(Class<T> type, NodeList valueNodes, String contextDescription) throws ExpressionEvaluationException {
+		List<T> values = new ArrayList<T>();
+		if (valueNodes == null) {
+			return values;
+		}
+		T scalarAttempt = convertScalar(type, valueNodes, contextDescription);
+		if (scalarAttempt != null) {
+			values.add(scalarAttempt);
+			return values;
+		}
+		for (int i = 0; i < valueNodes.getLength(); i++) {
+			Node node = valueNodes.item(i);
+			if (DOMUtil.isJunk(node)) {
+				continue;
+			}
+			if (node.getNodeType() == Node.ELEMENT_NODE) {
+				Element element = (Element)node;
+				T value;
+				try {
+					value = XsdTypeConverter.toJavaValue(element, type);
+				} catch (JAXBException e) {
+					throw new ExpressionEvaluationException("Error converting value of element " +
+							DOMUtil.getQName(element) + " in result of " + contextDescription + ": " + e.getMessage(), e);
+				} catch (IllegalArgumentException e) {
+					throw new ExpressionEvaluationException("Error converting value of element " +
+							DOMUtil.getQName(element) + " in result of " + contextDescription + ": " + e.getMessage(), e);
+				}
+				values.add(value);
+			}
+		}
+		return values;
+	}
 
 	private MidPointXPathFunctionResolver getFunctionResolver() {
 		MidPointXPathFunctionResolver resolver = new MidPointXPathFunctionResolver();
 		resolver.registerFunction(new QName("http://midpoint.evolveum.com/custom", "capitalize"), new CapitalizeFunction());
 		return resolver;
 	}
+
 
 }

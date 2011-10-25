@@ -25,8 +25,10 @@ import java.util.Map;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AsIsValueConstructorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LiteralValueConstructorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionXType;
@@ -40,14 +42,25 @@ public class ValueConstructionFactory {
 	ObjectFactory objectFactory = new ObjectFactory();
 	
 	private Map<QName,ValueConstructor> constructors;
+	private ExpressionFactory expressionFactory;
 	
 	public ValueConstructionFactory() {
-		constructors = new HashMap<QName, ValueConstructor>();
+		constructors = null;
 	}
 	
-	public void initialize() {
+	public ExpressionFactory getExpressionFactory() {
+		return expressionFactory;
+	}
+
+	public void setExpressionFactory(ExpressionFactory expressionFactory) {
+		this.expressionFactory = expressionFactory;
+	}
+
+	private void initialize() {
+		constructors = new HashMap<QName, ValueConstructor>();
 		createLiteralConstructor();
 		createAsIsConstructor();
+		createExpressionConstructor();
 	}
 
 	private void createLiteralConstructor() {
@@ -61,8 +74,17 @@ public class ValueConstructionFactory {
 		JAXBElement<AsIsValueConstructorType> element = objectFactory.createAsIs(objectFactory.createAsIsValueConstructorType());
 		constructors.put(element.getName(), constructor);
 	}
+	
+	private void createExpressionConstructor() {
+		ValueConstructor constructor = new ExpressionValueConstructor(expressionFactory);
+		JAXBElement<ExpressionType> element = objectFactory.createExpression(objectFactory.createExpressionType());
+		constructors.put(element.getName(), constructor);
+	}
 
 	public ValueConstruction createValueConstruction(ValueConstructionXType valueConstructionType, PropertyDefinition outputDefinition, String shortDesc) {
+		if (constructors == null) {
+			initialize();
+		}
 		ValueConstruction construction = new ValueConstruction(valueConstructionType, outputDefinition, shortDesc, constructors);
 		return construction;
 	}

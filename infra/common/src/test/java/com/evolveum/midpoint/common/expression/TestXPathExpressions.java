@@ -21,6 +21,8 @@ package com.evolveum.midpoint.common.expression;
 
 import static org.testng.AssertJUnit.assertEquals;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -48,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 public class TestXPathExpressions {
 
 	private static File TEST_DIR = new File("src/test/resources/expression");
+	private static File OBJECTS_DIR = new File("src/test/resources/objects");
 	
 	private ExpressionFactory factory;
 	
@@ -56,7 +59,7 @@ public class TestXPathExpressions {
 		factory = new ExpressionFactory();
 		XPathExpressionEvaluator xpathEvaluator = new XPathExpressionEvaluator();
 		factory.registerEvaluator(XPathExpressionEvaluator.XPATH_LANGUAGE_URL, xpathEvaluator);
-		ObjectResolver resolver = new DirectoryFileObjectResolver(new File(TEST_DIR, "objects"));
+		ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
 		factory.setObjectResolver(resolver);
 	}
 	
@@ -69,7 +72,7 @@ public class TestXPathExpressions {
 		
 		// WHEN
 		Expression expression = factory.createExpression(expressionType, "simple thing");
-		String result = expression.evaluate(String.class);
+		String result = expression.evaluateScalar(String.class);
 		
 		// THEN
 		assertEquals("foobar",result);
@@ -84,7 +87,7 @@ public class TestXPathExpressions {
 		
 		// WHEN
 		Expression expression = factory.createExpression(expressionType, "string variable thing");
-		String result = expression.evaluate(String.class);
+		String result = expression.evaluateScalar(String.class);
 		
 		// THEN
 		assertEquals("FOOBAR",result);
@@ -100,7 +103,7 @@ public class TestXPathExpressions {
 		
 		// WHEN
 		Expression expression = factory.createExpression(expressionType, "objectref variable thing");
-		String result = expression.evaluate(String.class);
+		String result = expression.evaluateScalar(String.class);
 		
 		// THEN
 		assertEquals("Captain Jack Sparrow",result);
@@ -122,7 +125,7 @@ public class TestXPathExpressions {
 		ref.setType(SchemaConstants.I_USER_TYPE);
 		expression.addVariableDefinition(SchemaConstants.I_USER, ref);
 		
-		String result = expression.evaluate(String.class);
+		String result = expression.evaluateScalar(String.class);
 		
 		// THEN
 		assertEquals("Jack",result);
@@ -143,10 +146,28 @@ public class TestXPathExpressions {
 		ref.setType(SchemaConstants.I_USER_TYPE);
 		expression.setRootNode(ref);
 		
-		String result = expression.evaluate(String.class);
+		String result = expression.evaluateScalar(String.class);
 		
 		// THEN
 		assertEquals("Black Pearl",result);
+	}
+	
+	@Test
+	public void testExpressionList() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		// GIVEN
+		JAXBElement<ExpressionType> expressionTypeElement = (JAXBElement<ExpressionType>) JAXBUtil.unmarshal(
+				new File(TEST_DIR, "expression-list.xml"));
+		ExpressionType expressionType = expressionTypeElement.getValue();
+		
+		// WHEN
+		Expression expression = factory.createExpression(expressionType, "list thing");
+		List<String> results = expression.evaluateList(String.class);
+		
+		// THEN
+		List<String> expected = new ArrayList<String>();
+		expected.add("Leaders");
+		expected.add("Followers");
+		assertEquals(expected,results);
 	}
 
 }

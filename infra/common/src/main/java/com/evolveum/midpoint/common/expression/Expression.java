@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.common.expression;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
@@ -101,7 +102,12 @@ public class Expression {
 		variables.put(name, value);
 	}
 	
-	public <T> T evaluate(Class<T> type) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		return evaluator.evaluate(type, code, variables, objectResolver, shortDesc);
+	public <T> T evaluateScalar(Class<T> type) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		return evaluator.evaluateScalar(type, code, variables, objectResolver, shortDesc);
 	}
+
+	public <T> List<T> evaluateList(Class<T> type) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		return evaluator.evaluateList(type, code, variables, objectResolver, shortDesc);
+	}
+
 }
