@@ -37,7 +37,7 @@
 					</div>
 				</f:facet>
 			</ice:panelPopup>
-			
+
 			<ice:panelPopup modal="true" autoCentre="true"
 				visible="#{debugList.showPopupForDeleteAllObjects}">
 				<f:facet name="header">
@@ -68,6 +68,14 @@
 				action="#{debugList.list}" img="/resources/images/table.png"
 				immediate="true" />
 
+			<div style="width: 50px; display: inline-block;" />
+			<ice:outputText value="Objects per page " rendered="#{debugList.showTable}" />
+			<ice:inputText id="pageSize" value="#{debugList.rowsCount}" size="1" rendered="#{debugList.showTable}" />
+			<idm:button value="#{msg['page.account.index.refresh']}"
+				action="#{debugList.listFirst}" id="relistButton"
+				rendered="#{debugList.showTable}"
+				img="/resources/images/arrow_rotate_clockwise.png" />
+
 			<ice:panelGrid columns="2" cellpadding="7" cellspacing="7"
 				rendered="#{debugList.showTable}">
 				<ice:outputText value="#{msg['page.config.debugList.objectName']}" />
@@ -89,14 +97,15 @@
 					</idm:button>
 				</c:forEach>
 			</ice:panelGrid>
-			
-			<idm:button id="deleteAllObjectsButton" rendered="#{debugList.showTable}"
-				value="Delete all objects"
+
+			<idm:button id="deleteAllObjectsButton"
+				rendered="#{debugList.showTable}" value="Delete all objects"
 				action="#{debugList.showConfirmDeleteForAllObjects}"
 				img="/resources/images/delete.png" buttonType="negative">
 			</idm:button>
-			
+
 			<comp:paging bean="#{debugList}" rendered="#{debugList.showTable}" />
+
 		</ice:form>
 	</ui:define>
 </ui:composition>
