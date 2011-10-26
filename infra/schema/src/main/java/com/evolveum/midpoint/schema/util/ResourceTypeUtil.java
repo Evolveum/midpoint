@@ -187,5 +187,19 @@ public class ResourceTypeUtil {
 	public static boolean hasCredentialsCapability(ResourceType resource) {
 		return (getEffectiveCapability(resource, CredentialsCapabilityType.class)!=null);
 	}
+	
+	public static boolean hasResourceNativeActivationCapability(ResourceType resource) {
+		ActivationCapabilityType activationCapability = null;
+		// check resource native capabilities. if resource cannot do
+		// activation, it sholud be null..
+		if (resource.getNativeCapabilities() != null) {
+			activationCapability = ResourceTypeUtil.getCapability(resource.getNativeCapabilities().getAny(),
+					ActivationCapabilityType.class);
+		}
+		if (activationCapability == null) {
+			return false;
+		}
+		return true;
+	}
 
 }

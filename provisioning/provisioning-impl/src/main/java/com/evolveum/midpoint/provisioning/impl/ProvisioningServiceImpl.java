@@ -59,7 +59,6 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
@@ -94,6 +93,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Autowired
 	private ShadowCache shadowCache;
 	@Autowired
+	private ResourceTypeManager resourceTypeManager;
+	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService cacheRepositoryService;
 	@Autowired
@@ -112,6 +113,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	public void setShadowCache(ShadowCache shadowCache) {
 		this.shadowCache = shadowCache;
+	}
+	
+	public ResourceTypeManager getResourceTypeManager() {
+		return resourceTypeManager;
+	}
+	
+	public void setResourceTypeManager(ResourceTypeManager resourceTypeManager) {
+		this.resourceTypeManager = resourceTypeManager;
 	}
 
 	/**
@@ -203,7 +212,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		} else if (repositoryObject instanceof ResourceType) {
 			// Make sure that the object is complete, e.g. there is a (fresh) schema
 			try {
-				ResourceType completeResource = getShadowCache().completeResource((ResourceType) repositoryObject,
+				ResourceType completeResource = getResourceTypeManager().completeResource((ResourceType) repositoryObject,
 						null, result);
 				result.computeStatus("Resource retrieval failed");
 				return (T) completeResource;
@@ -289,7 +298,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		if (!(resourceObjectType instanceof ResourceType)) {
 			result.recordFatalError("Object to synchronize must be type of resource.");
 			throw new IllegalArgumentException("Object to synchronize must be type of resource.");
-		}
+		}  
 
 		ResourceType resourceType = (ResourceType) resourceObjectType;
 
@@ -426,7 +435,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				ResourceType resource = (ResourceType)obj;
 				ResourceType completeResource;
 				try {
-					completeResource = shadowCache.completeResource(resource, null, result);
+					completeResource = getResourceTypeManager().completeResource(resource, null, result);
 					newObjListType.add((T)completeResource);
 				} catch (ObjectNotFoundException e) {
 					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[]{
@@ -618,7 +627,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					new PropertyReferenceListType(), parentResult);
 
 			resourceType = (ResourceType) objectType;
-			getShadowCache().testConnection(resourceType, parentResult);
+			resourceTypeManager.testConnection(resourceType, parentResult);
 
 		} catch (ObjectNotFoundException ex) {
 			throw new ObjectNotFoundException("Object with OID " + resourceOid + " not found");
@@ -674,7 +683,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 		};
 
-		shadowCache.listShadows(resource, objectClass, shadowHandler, false, result);
+		resourceTypeManager.listShadows(resource, objectClass, shadowHandler, false, result);
 
 		return objectList;
 	}
@@ -760,7 +769,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 		};
 
-		getShadowCache().searchObjectsIterative(objectClass, resource, shadowHandler, null, result);
+		getResourceTypeManager().searchObjectsIterative(objectClass, resource, shadowHandler, null, result);
 		result.recordSuccess();
 	}
 
