@@ -195,7 +195,7 @@ public class ShadowConverter {
 		} catch (GenericFrameworkException ex) {
 			parentResult.recordFatalError("Generic error in connector: " + ex.getMessage(), ex);
 			throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
-		}
+		} 
 
 		shadow = ShadowCacheUtil.createRepositoryShadow(resourceObject, resource, shadow);
 
@@ -378,8 +378,8 @@ public class ShadowConverter {
 
 		ResourceObjectShadowType shadow = null;
 		try {
-			shadow = ShadowCacheUtil.createShadow(resourceObject, resource, null);
-			change.setOldShadow(shadow);
+//			shadow = ShadowCacheUtil.createShadow(resourceObject, resource, null);
+//			change.setOldShadow(shadow);
 			shadow = ShadowCacheUtil.createRepositoryShadow(resourceObject, resource, shadow);
 
 		} catch (SchemaException ex) {
@@ -451,7 +451,7 @@ public class ShadowConverter {
 	/**
 	 * Get account activation state from the resource object.
 	 */
-	public ActivationType determineActivation(ResourceType resource, ResourceObject ro,
+	private ActivationType determineActivation(ResourceType resource, ResourceObject ro,
 			OperationResult parentResult) {
 		if (ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
 			return convertFromNativeActivationAttributes(resource, ro, parentResult);

@@ -410,6 +410,7 @@ public class ShadowCache {
 		try {
 			lastToken = shadowConverter.fetchCurrentToken(resourceType, parentResult);
 		} catch (CommunicationException e) {
+			parentResult.recordFatalError(e.getMessage(), e);
 			throw e;
 
 		}
@@ -429,13 +430,13 @@ public class ShadowCache {
 			// parentResult);
 
 			changes = shadowConverter.fetchChanges(resourceType, lastToken, parentResult);
+
 			for (Iterator<Change> i = changes.iterator(); i.hasNext();) {
 				// search objects in repository
 				Change change = i.next();
 				try {
-					// ResourceObjectShadowType newShadow =
-					findOrCreateShadowFromChange(resourceType, change, parentResult);
-					// change.setOldShadow(newShadow);
+					 ResourceObjectShadowType newShadow = findOrCreateShadowFromChange(resourceType, change, parentResult);
+					 change.setOldShadow(newShadow);
 				} catch (ObjectNotFoundException ex) {
 					parentResult
 							.recordPartialError("Couldn't find object defined in change. Skipping processing this change.");
