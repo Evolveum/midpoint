@@ -20,70 +20,80 @@
 <!-- Portions Copyrighted 2010 Forgerock -->
 <!-- -->
 
-<beans:beans xmlns="http://www.springframework.org/schema/security" xmlns:beans="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
              http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd">
 
-	<global-method-security secured-annotations="enabled" jsr250-annotations="enabled" />
+    <global-method-security secured-annotations="enabled" jsr250-annotations="enabled"/>
 
-	<http use-expressions="true" entry-point-ref="authenticationEntryPoint" auto-config="false">
-		<custom-filter ref="maintenanceFilter" after="LAST" />
-		
-		<custom-filter ref="sessionManagementFilter" before="SESSION_MANAGEMENT_FILTER" />		
+    <http use-expressions="true" entry-point-ref="authenticationEntryPoint" auto-config="false">
+        <custom-filter ref="sessionManagementFilter" before="SESSION_MANAGEMENT_FILTER"/>
+        <custom-filter ref="maintenanceFilter" after="LAST"/>
 
-		<intercept-url pattern="/" access="permitAll" />
-		<intercept-url pattern="/favicon.ico" access="permitAll" />
-		<intercept-url pattern="/xmlhttp/css/**" access="permitAll" />
-		<intercept-url pattern="/resources/css/**" access="permitAll" />
-		<intercept-url pattern="/resources/images/**" access="permitAll" />
-		<intercept-url pattern="/javax.faces.resource/**" access="permitAll" />
-		<intercept-url pattern="/login.iface" access="permitAll" />
-		<intercept-url pattern="/maintenance.iface" access="permitAll" />
-		<intercept-url pattern="/error.iface" access="permitAll" />
-		<intercept-url pattern="/user-gui/login.iface" access="permitAll" />
-		<intercept-url pattern="/user-gui/**" access="hasAnyRole('ROLE_USER','ROLE_ADMIN')" />
-		<intercept-url pattern="/**" access="hasRole('ROLE_ADMIN')" />
-		<intercept-url pattern="/user-gui/**" access="isAuthenticated()" />
+        <intercept-url pattern="/" access="permitAll"/>
+        <intercept-url pattern="/favicon.ico" filters="none"/>
+        <intercept-url pattern="/xmlhttp/css/**" filters="none"/>
+        <intercept-url pattern="/resources/css/**" filters="none"/>
+        <intercept-url pattern="/resources/images/**" filters="none"/>
+        <intercept-url pattern="/javax.faces.resource/**" filters="none"/>
+        <intercept-url pattern="/maintenance.iface" access="permitAll"/>
+        <intercept-url pattern="/error.iface" access="permitAll"/>
+        <intercept-url pattern="/login.iface" access="permitAll"/>
+        <intercept-url pattern="/j_spring_security_check" access="permitAll"/>
+        <intercept-url pattern="/user-gui/**" access="hasAnyRole('ROLE_USER','ROLE_ADMIN')"/>
+        <intercept-url pattern="/**" access="hasRole('ROLE_ADMIN')"/>
 
-		<form-login login-processing-url="/j_spring_security_check" login-page="/login.iface"
-			authentication-failure-url="/login.iface" />
+        <logout logout-url="/j_spring_security_logout" invalidate-session="true"/>
 
-		<logout logout-url="/j_spring_security_logout" logout-success-url="/login.iface" invalidate-session="true" />
+        <session-management>
+            <concurrency-control max-sessions="1" error-if-maximum-exceeded="true"/>
+        </session-management>
+        <custom-filter position="FORM_LOGIN_FILTER" ref="authenticationFilter"/>
+    </http>
 
-		<!-- Uncomment to limit the number of sessions a user can have -->
-		<session-management>
-			<concurrency-control max-sessions="1" error-if-maximum-exceeded="false" />
-		</session-management>
-	</http>
-	
-	<beans:bean id="maintenanceFilter" class="com.evolveum.midpoint.web.security.MidPointMaintenanceFilter">
-		<beans:property name="maintenanceUrl" value="/maintenance.iface" />
-		<beans:property name="redirectStrategy" ref="jsfRedirectStrategy" />
-	</beans:bean>
+    <beans:bean name="savedRequestAwareAuthenticationSuccessHandler" class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler">
+        <beans:property name="defaultTargetUrl" value="/user-gui/index.iface"/>
+        <beans:property name="alwaysUseDefaultTargetUrl" value="false"/>
+    </beans:bean>
 
-	<beans:bean id="authenticationEntryPoint" class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">
-		<beans:property name="loginFormUrl" value="/login.iface" />
-	</beans:bean>
-	<beans:bean id="sessionManagementFilter" class="org.springframework.security.web.session.SessionManagementFilter">
-		<beans:constructor-arg name="securityContextRepository" ref="httpSessionSecurityContextRepository" />
-		<beans:property name="invalidSessionUrl" value="/login.iface" />
-		<beans:property name="redirectStrategy" ref="jsfRedirectStrategy" />
-	</beans:bean>
+    <beans:bean id="authenticationFilter" class="org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter">
+    <beans:property name="authenticationManager" ref="authenticationManager" />
+    <beans:property name="postOnly" value="true" />
+    <beans:property name="authenticationSuccessHandler" ref="savedRequestAwareAuthenticationSuccessHandler" />
+    </beans:bean>
 
-	<beans:bean id="jsfRedirectStrategy" class="com.evolveum.midpoint.web.security.MidPointRedirectStrategy" />
-	<beans:bean id="httpSessionSecurityContextRepository" class="org.springframework.security.web.context.HttpSessionSecurityContextRepository" />
+    <beans:bean id="maintenanceFilter" class="com.evolveum.midpoint.web.security.MidPointMaintenanceFilter">
+        <beans:property name="maintenanceUrl" value="/maintenance.iface"/>
+        <beans:property name="redirectStrategy" ref="jsfRedirectStrategy"/>
+    </beans:bean>
 
-	<beans:bean id="midPointAuthenticationProvider" class="com.evolveum.midpoint.web.security.MidPointAuthenticationProvider">
-		<beans:property name="loginTimeout">
-			<beans:value type="java.lang.Integer">15</beans:value>
-		</beans:property>
-		<beans:property name="maxFailedLogins">
-			<beans:value type="java.lang.Integer">3</beans:value>
-		</beans:property>
-	</beans:bean>
+    <beans:bean id="authenticationEntryPoint"
+                class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">
+        <beans:property name="loginFormUrl" value="/login.iface"/>
+    </beans:bean>
+    <beans:bean id="sessionManagementFilter" class="org.springframework.security.web.session.SessionManagementFilter">
+        <beans:constructor-arg name="securityContextRepository" ref="httpSessionSecurityContextRepository"/>
+        <beans:property name="invalidSessionUrl" value="/login.iface"/>
+        <beans:property name="redirectStrategy" ref="jsfRedirectStrategy"/>
+    </beans:bean>
 
-	<authentication-manager alias="authenticationManager">
-		<authentication-provider ref="midPointAuthenticationProvider" />
-	</authentication-manager>
+    <beans:bean id="jsfRedirectStrategy" class="com.evolveum.midpoint.web.security.MidPointRedirectStrategy"/>
+    <beans:bean id="httpSessionSecurityContextRepository"
+                class="org.springframework.security.web.context.HttpSessionSecurityContextRepository"/>
+
+    <beans:bean id="midPointAuthenticationProvider"
+                class="com.evolveum.midpoint.web.security.MidPointAuthenticationProvider">
+        <beans:property name="loginTimeout">
+            <beans:value type="java.lang.Integer">15</beans:value>
+        </beans:property>
+        <beans:property name="maxFailedLogins">
+            <beans:value type="java.lang.Integer">3</beans:value>
+        </beans:property>
+    </beans:bean>
+
+    <authentication-manager alias="authenticationManager">
+        <authentication-provider ref="midPointAuthenticationProvider"/>
+    </authentication-manager>
 </beans:beans>

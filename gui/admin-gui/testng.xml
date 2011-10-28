@@ -45,7 +45,6 @@
 		<classes>
 			<class name="com.evolveum.midpoint.web.controller.AboutControllerTest" />
 			<class name="com.evolveum.midpoint.web.controller.config.XPathDebugControllerTest" />
-			<class name="com.evolveum.midpoint.web.controller.LoginControllerTest" />
 		</classes>
 	</test>
 </suite>
