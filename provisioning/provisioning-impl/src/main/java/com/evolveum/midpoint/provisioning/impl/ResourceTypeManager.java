@@ -604,7 +604,7 @@ public class ResourceTypeManager {
 	private ResourceObjectShadowType lookupShadow(ResourceObject resourceObject, ResourceType resource,
 			OperationResult parentResult) throws SchemaException {
 
-		QueryType query = createSearchShadowQuery(resourceObject, resource);
+		QueryType query = ShadowCacheUtil.createSearchShadowQuery(resourceObject, resource, parentResult);
 		PagingType paging = new PagingType();
 
 		// TODO: check for errors
@@ -626,55 +626,6 @@ public class ResourceTypeManager {
 
 		ResourceObjectShadowType repoShadow = results.get(0);
 		return ShadowCacheUtil.createShadow(resourceObject, resource, repoShadow);
-	}
-
-	private QueryType createSearchShadowQuery(ResourceObject resourceObject, ResourceType resource)
-			throws SchemaException {
-
-		// We are going to query for attributes, so setup appropriate
-		// XPath for the filter
-		XPathSegment xpathSegment = new XPathSegment(SchemaConstants.I_ATTRIBUTES);
-		List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
-		xpathSegments.add(xpathSegment);
-		XPathHolder xpath = new XPathHolder(xpathSegments);
-
-		// Now we need to determine what is the identifier and set correct
-		// value for it in the filter
-		Property identifier = resourceObject.getIdentifier();
-
-		Set<Object> idValues = identifier.getValues();
-		// Only one value is supported for an identifier
-		if (idValues.size() > 1) {
-			LOGGER.error("More than one identifier value is not supported");
-			// TODO: This should probably be switched to checked exception later
-			throw new IllegalArgumentException("More than one identifier value is not supported");
-		}
-		if (idValues.size() < 1) {
-			LOGGER.error("The identifier has no value");
-			// TODO: This should probably be switched to checked exception later
-			throw new IllegalArgumentException("The identifier has no value");
-		}
-
-		// We have all the data, we can construct the filter now
-		Document doc = DOMUtil.getDocument();
-		Element filter;
-		try {
-			filter = QueryUtil.createAndFilter(
-					doc,
-					QueryUtil.createEqualRefFilter(doc, null, SchemaConstants.I_RESOURCE_REF,
-							resource.getOid()),
-					QueryUtil.createEqualFilter(doc, xpath, identifier.serializeToJaxb(doc)));
-		} catch (SchemaException e) {
-			LOGGER.error("Schema error while creating search filter: {}", e.getMessage(), e);
-			throw new SchemaException("Schema error while creating search filter: " + e.getMessage(), e);
-		}
-
-		QueryType query = new QueryType();
-		query.setFilter(filter);
-
-		LOGGER.trace("created query " + DOMUtil.printDom(filter));
-
-		return query;
 	}
 
 	/**
