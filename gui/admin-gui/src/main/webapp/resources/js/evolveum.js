@@ -26,13 +26,10 @@ function setToCenter() {
 	jQuery("#navBar").css("margin-left", centerOfWindow - navBarHalfWidth);
 
 	var centerOfLoginDiv = jQuery(".loginDiv").width() / 2;
-	var loginFormAdmin = jQuery("#loginFormAdmin").width() / 2;
-	var loginFormUser = jQuery("#loginFormUser").width() / 2;
+	var loginForm = jQuery("#loginForm").width() / 2;
 	var loginButton = jQuery("#loginButton").width() / 2;
-	jQuery("#loginFormAdmin").css("margin-left",
-			centerOfLoginDiv - loginFormAdmin);
-	jQuery("#loginFormUser").css("margin-left",
-			centerOfLoginDiv - loginFormUser);
+	jQuery("#loginForm").css("margin-left",
+			centerOfLoginDiv - loginForm);
 	jQuery("#loginButton").css("margin-left", loginForm - loginButton);
 
 }

@@ -425,6 +425,30 @@ p {
 	margin-left: 30px;
 }
 
+#loginButtons input.submit {
+	margin: 0 7px 0 0;
+	background-color: #d5d5d5;
+	border: 1px solid #cdcdcd;
+	border-top: 1px solid #ddd;
+	border-left: 1px solid #ddd;
+	font-family: "Lucida Grande", Tahoma, Arial, Verdana, sans-serif;
+	font-size: 12px;
+	line-height: 130%;
+	text-decoration: none;
+	font-weight: bold;
+	color: #565656;
+	cursor: pointer;
+	padding: 5px 10px 4px 7px;
+}
+
+#loginButtons input.submit:hover {
+	background-color: #dff4ff;
+	border: 1px solid #c2e1ef;
+	color: #336699;
+}
+
+
+
 .buttons {
 	display: inline-block;
 	padding: 4px 0;

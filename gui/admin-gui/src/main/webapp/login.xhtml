@@ -18,22 +18,26 @@
 
 		<hr />
 		<div class="loginDiv">
-
-          <form method="post" action="j_spring_security_check" name="loginForm">
-            <h:panelGrid columns="2">
-                <h:outputLabel id="userNameLabel" for="j_username" value="#{msgs.username}:"/>
-                <h:inputText id="j_username" autocomplete="off"/>
-                <h:outputLabel id="passwordLabel" for="j_password" value="#{msgs.password}:"/>
-                <h:inputSecret id="j_password" autocomplete="off"/>
-                <h:commandButton type="submit" value="Login"/>
-                <h:commandButton type="reset" value="Clear"/>
-            </h:panelGrid>
-        </form>
+			<form method="post" action="j_spring_security_check" name="loginForm">
+				<ice:panelGrid id="loginForm" columns="2">
+					<ice:outputText id="userNameLabel" for="j_username"
+						value="#{msg['page.login.username']}" />
+					<ice:inputText id="j_username" autocomplete="off" />
+					<ice:outputText id="passwordLabel" for="j_password"
+						value="#{msg['page.login.password']}" />
+					<ice:inputSecret id="j_password" autocomplete="off" />
+				</ice:panelGrid>
+				<br />
+				<h:panelGroup id="loginButtons" columns="1" style="text-align: center;">
+					<h:commandButton class="submit" type="submit" value="Login" />
+				</h:panelGroup>
+			</form>
 		</div>
 		<script type="text/javascript">
 			var centerOfLoginDiv = jQuery(".loginDiv").width() / 2;
 			var loginForm = jQuery("#loginForm").width() / 2;
 			var loginButton = jQuery("#loginButton").width() / 2;
+			loginButton = loginButton + 40;
 			jQuery("#loginForm").css("margin-left",
 					centerOfLoginDiv - loginForm);
 			jQuery("#loginButton").css("margin-left", loginForm - loginButton);
