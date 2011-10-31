@@ -19,7 +19,7 @@
 		<hr />
 		<div class="loginDiv">
 			<form method="post" action="j_spring_security_check" name="loginForm">
-				<ice:panelGrid id="loginForm" columns="2">
+				<ice:panelGrid id="loginForm" columns="2" style="margin-top: 20px;">
 					<ice:outputText id="userNameLabel" for="j_username"
 						value="#{msg['page.login.username']}" />
 					<ice:inputText id="j_username" autocomplete="off" />
@@ -28,8 +28,10 @@
 					<ice:inputSecret id="j_password" autocomplete="off" />
 				</ice:panelGrid>
 				<br />
-				<h:panelGroup id="loginButtons" columns="1" style="text-align: center;">
-					<h:commandButton class="submit" type="submit" value="Login" />
+				<h:panelGroup id="loginButtons" columns="1"
+					style="text-align: center;">
+					<h:commandButton class="submit" type="submit"
+						value="#{msg['page.login.button']}" />
 				</h:panelGroup>
 			</form>
 		</div>
@@ -41,6 +43,13 @@
 			jQuery("#loginForm").css("margin-left",
 					centerOfLoginDiv - loginForm);
 			jQuery("#loginButton").css("margin-left", loginForm - loginButton);
+			
+			jQuery(".iceInpSecrt").keypress(function(e) {
+		        if(e.which == 13) {
+		            jQuery(this).blur();
+		            jQuery('.submit').focus().click();
+		        }
+		    });
 		</script>
 
 	</ui:define>
