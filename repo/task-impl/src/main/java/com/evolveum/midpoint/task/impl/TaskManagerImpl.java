@@ -237,7 +237,11 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		OperationResult result = parentResult.createSubresult(TaskManager.class.getName()+".releaseTask");
 		result.addParam(OperationResult.PARAM_OID, task.getOid());
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerImpl.class);
-		
+
+		// if the task is transient, we have to persist it first
+		if (task.getPersistenceStatus() == TaskPersistenceStatus.TRANSIENT)
+			persist(task, result);
+
 		try {
 			repositoryService.releaseTask(task.getOid(), result);
 		} catch (ObjectNotFoundException ex) {

@@ -59,7 +59,10 @@ public class TaskItem implements Serializable {
 
 	public TaskItem(Task task) {
 		this.handlerUri = task.getHandlerUri();
-		this.objectRef = task.getObjectRef().getOid();
+		if (task.getObjectRef() != null)
+			this.objectRef = task.getObjectRef().getOid();
+		else
+			this.objectRef = null;
 		this.oid = task.getOid();
 		this.name = task.getName();
 		Calendar calendar = GregorianCalendar.getInstance();
@@ -93,7 +96,10 @@ public class TaskItem implements Serializable {
 
 	public TaskItem(TaskType task) {
 		this.handlerUri = task.getHandlerUri();
-		this.objectRef = task.getObjectRef().getOid();
+		if (task.getObjectRef() != null)
+			this.objectRef = task.getObjectRef().getOid();
+		else
+			this.objectRef = null;
 		this.oid = task.getOid();
 		this.name = task.getName();
 		if (task.getLastRunStartTimestamp() != null) {
