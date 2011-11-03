@@ -71,7 +71,6 @@ public class ResourceDetailsController implements Serializable {
 	private transient TemplateController template;
 	private ResourceListItem resource;
 	private List<String> capabilitiesName;
-	private PropertyReferenceListType propertyReferenceList = new PropertyReferenceListType();
 	private ResourceManager manager;
 
 	public ResourceListItem getResource() {
@@ -93,7 +92,6 @@ public class ResourceDetailsController implements Serializable {
 
 		try {
 			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
-
 			OperationResult result = manager.testConnection(resource.getOid());
 			ControllerUtil.updateResourceState(resource.getState(), result);
 		} catch (Exception ex) {
@@ -207,10 +205,11 @@ public class ResourceDetailsController implements Serializable {
 	public List<String> getCapabilities() {
 		manager = ControllerUtil.getResourceManager(objectTypeCatalog);
 		try{
-			GuiResourceDto resourceDto = manager.get(resource.getOid(), propertyReferenceList);
+            PropertyReferenceListType propertyReferenceList = new PropertyReferenceListType();
+            GuiResourceDto resourceDto = manager.get(resource.getOid(), propertyReferenceList);
 			List<Object> capabilitiesList = ResourceTypeUtil.listEffectiveCapabilities(resourceDto.getXmlObject());
 			
-			if (!capabilitiesList.isEmpty()) {
+			if (capabilitiesList != null && !capabilitiesList.isEmpty()) {
 				for (int i = 0; i < capabilitiesList.size(); i++) {
 					capabilitiesName.add(ResourceTypeUtil.getCapabilityDisplayName(capabilitiesList.get(i)));
 				}
