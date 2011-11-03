@@ -17,7 +17,7 @@
 
 	<ui:define name="content">
 		<ice:form>
-			<ice:panelGrid columns="2" style="width: 100%;">
+			<ice:panelGrid columns="2" style="width: 80%;">
 				<ice:panelGroup>
 					<ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
 						<f:facet name="header">
@@ -42,6 +42,16 @@
 						<ice:outputLabel
 							value="#{msg['page.resource.resourceDetails.progress']}" />
 						<ice:outputText value="#{resourceDetails.resource.progress}" />
+
+						<ice:dataTable value="#{resourceDetails.capabilities}"
+							var="capabilitie">
+							<h:column>
+								<f:facet name="header">
+									<ice:outputText value="Capabilities" />
+								</f:facet>
+								<ice:outputText value="#{capabilitie}" />
+							</h:column>
+						</ice:dataTable>
 					</ice:panelGrid>
 					<ice:commandLink
 						style="margin-top: 40px; display: block; text-decoration: underline;"
