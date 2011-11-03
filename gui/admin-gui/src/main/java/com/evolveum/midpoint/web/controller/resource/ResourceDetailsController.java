@@ -204,6 +204,7 @@ public class ResourceDetailsController implements Serializable {
 
 	public List<String> getCapabilities() {
 		manager = ControllerUtil.getResourceManager(objectTypeCatalog);
+        capabilitiesName = new ArrayList<String>();
 		try{
             PropertyReferenceListType propertyReferenceList = new PropertyReferenceListType();
             GuiResourceDto resourceDto = manager.get(resource.getOid(), propertyReferenceList);
@@ -221,9 +222,6 @@ public class ResourceDetailsController implements Serializable {
 					+ ".", ex);
 		}
 
-		if (capabilitiesName == null) {
-			capabilitiesName = new ArrayList<String>();
-		}
 		return capabilitiesName;
 	}
 }
