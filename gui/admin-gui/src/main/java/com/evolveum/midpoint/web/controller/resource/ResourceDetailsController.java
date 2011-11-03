@@ -72,7 +72,7 @@ public class ResourceDetailsController implements Serializable {
 	private ResourceListItem resource;
 	private List<String> capabilitiesName;
 	private PropertyReferenceListType propertyReferenceList = new PropertyReferenceListType();
-	private ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
+	private ResourceManager manager;
 
 	public ResourceListItem getResource() {
 		if (resource == null) {
@@ -205,13 +205,21 @@ public class ResourceDetailsController implements Serializable {
 	}
 
 	public List<String> getCapabilities() {
-		GuiResourceDto resourceDto = manager.get(resource.getOid(), propertyReferenceList);
-		List<Object> capabilitiesList = ResourceTypeUtil.listEffectiveCapabilities(resourceDto.getXmlObject());
-
-		if (!capabilitiesList.isEmpty()) {
-			for (int i = 0; i < capabilitiesList.size(); i++) {
-				capabilitiesName.add(ResourceTypeUtil.getCapabilityDisplayName(capabilitiesList.get(i)));
+		manager = ControllerUtil.getResourceManager(objectTypeCatalog);
+		try{
+			GuiResourceDto resourceDto = manager.get(resource.getOid(), propertyReferenceList);
+			List<Object> capabilitiesList = ResourceTypeUtil.listEffectiveCapabilities(resourceDto.getXmlObject());
+			
+			if (!capabilitiesList.isEmpty()) {
+				for (int i = 0; i < capabilitiesList.size(); i++) {
+					capabilitiesName.add(ResourceTypeUtil.getCapabilityDisplayName(capabilitiesList.get(i)));
+				}
 			}
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't load resource capabilities",
+					ex, resource);
+			FacesUtils.addErrorMessage("Couldn't load resource capabilities for resource '" + resource
+					+ ".", ex);
 		}
 
 		if (capabilitiesName == null) {
