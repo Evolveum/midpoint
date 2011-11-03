@@ -43,16 +43,8 @@
 							value="#{msg['page.resource.resourceDetails.progress']}" />
 						<ice:outputText value="#{resourceDetails.resource.progress}" />
 
-						<ice:dataTable value="#{resourceDetails.capabilities}"
-							var="capabilitie">
-							<h:column>
-								<f:facet name="header">
-									<ice:outputText value="Capabilities" />
-								</f:facet>
-								<ice:outputText value="#{capabilitie}" />
-							</h:column>
-						</ice:dataTable>
 					</ice:panelGrid>
+
 					<ice:commandLink
 						style="margin-top: 40px; display: block; text-decoration: underline;"
 						value="#{msg['page.resource.resourceDetails.button.seeDebugPages']}"
@@ -106,13 +98,24 @@
 					</ui:remove>
 				</ice:panelGrid>
 			</ice:panelGrid>
-
+			<br />
+			<h3>Capabilities</h3>
+			<ice:dataTable value="#{resourceDetails.capabilities}"
+				var="capabilitie" style="width: 300px;">
+				<h:column>
+					<f:facet name="header">
+						<ice:outputText value="Capabilities" />
+					</f:facet>
+					<ice:outputText value="#{capabilitie}" />
+				</h:column>
+			</ice:dataTable>
+			<br />
 			<h3>#{msg['page.resource.resourceDetails.objectTypes']}</h3>
 			<ice:dataTable rows="30"
 				value="#{resourceDetails.resource.objectTypes}" var="item"
 				columnClasses="iceDatTblCol1"
 				rowClasses="iceDatTblRow1 iceDatTblRow2"
-				columnWidths="150px, 170px, 100px, 220px, 200px" resizable="false">
+				columnWidths="150px, 170px, 100px, 220px, 155px" resizable="false">
 
 				<ice:column>
 					<f:facet name="header">

@@ -139,7 +139,7 @@ body {
 	margin-top: 25px;
 	background-image: url(../images/footerBgRepeat.jpg);
 	background-repeat: repeat-x;
-	height: 45px;
+	height: 44px;
 	padding-top: 13px;
 	width: 100%;
 }
@@ -202,7 +202,7 @@ body {
 #wrapper {
 	width: 98%;
 	padding: 10px 0px;
-	min-height: 600px;
+	min-height: 585px;
 }
 
 .clear {
@@ -220,7 +220,7 @@ body {
 	margin-left: 20px;
 	padding: 10px 0px;
 	width: 15%;
-	height: 600px;
+	height: auto;
 	overflow: hidden;
 	float: left;
 	padding: 10px 0px;
