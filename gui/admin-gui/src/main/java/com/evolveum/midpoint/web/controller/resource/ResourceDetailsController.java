@@ -70,6 +70,9 @@ public class ResourceDetailsController implements Serializable {
 	@Autowired(required = true)
 	private transient TemplateController template;
 	private ResourceListItem resource;
+	private List<String> capabilitiesName;
+	private PropertyReferenceListType propertyReferenceList = new PropertyReferenceListType();
+	private ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
 
 	public ResourceListItem getResource() {
 		if (resource == null) {
@@ -95,7 +98,8 @@ public class ResourceDetailsController implements Serializable {
 			ControllerUtil.updateResourceState(resource.getState(), result);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't test resource {}", ex, resource.getName());
-//			FacesUtils.addErrorMessage("Couldn't test resource '" + resource.getName() + "'.", ex);
+			// FacesUtils.addErrorMessage("Couldn't test resource '" +
+			// resource.getName() + "'.", ex);
 		}
 
 		return null;
@@ -199,18 +203,19 @@ public class ResourceDetailsController implements Serializable {
 
 		return null;
 	}
-	
-	public List<String> getCapabilities(){
-		PropertyReferenceListType propertyReferenceList = new PropertyReferenceListType();		
-		ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
+
+	public List<String> getCapabilities() {
 		GuiResourceDto resourceDto = manager.get(resource.getOid(), propertyReferenceList);
-		List<Object> capabilitiesList  = ResourceTypeUtil.listEffectiveCapabilities(resourceDto.getXmlObject());
-		List<String> capabilitiesName = new ArrayList<String>();
-		
-		if(!capabilitiesList.isEmpty()){
+		List<Object> capabilitiesList = ResourceTypeUtil.listEffectiveCapabilities(resourceDto.getXmlObject());
+
+		if (!capabilitiesList.isEmpty()) {
 			for (int i = 0; i < capabilitiesList.size(); i++) {
 				capabilitiesName.add(ResourceTypeUtil.getCapabilityDisplayName(capabilitiesList.get(i)));
 			}
+		}
+
+		if (capabilitiesName == null) {
+			capabilitiesName = new ArrayList<String>();
 		}
 		return capabilitiesName;
 	}
