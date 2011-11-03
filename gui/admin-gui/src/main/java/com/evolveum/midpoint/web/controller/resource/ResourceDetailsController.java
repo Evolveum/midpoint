@@ -21,6 +21,8 @@
 package com.evolveum.midpoint.web.controller.resource;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -30,6 +32,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -41,7 +44,9 @@ import com.evolveum.midpoint.web.controller.config.DebugViewController;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
+import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 
 @Controller("resourceDetails")
 @Scope("session")
@@ -193,5 +198,20 @@ public class ResourceDetailsController implements Serializable {
 		}
 
 		return null;
+	}
+	
+	public List<String> getCapabilities(){
+		PropertyReferenceListType propertyReferenceList = new PropertyReferenceListType();		
+		ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
+		GuiResourceDto resourceDto = manager.get(resource.getOid(), propertyReferenceList);
+		List<Object> capabilitiesList  = ResourceTypeUtil.listEffectiveCapabilities(resourceDto.getXmlObject());
+		List<String> capabilitiesName = new ArrayList<String>();
+		
+		if(!capabilitiesList.isEmpty()){
+			for (int i = 0; i < capabilitiesList.size(); i++) {
+				capabilitiesName.add(ResourceTypeUtil.getCapabilityDisplayName(capabilitiesList.get(i)));
+			}
+		}
+		return capabilitiesName;
 	}
 }
