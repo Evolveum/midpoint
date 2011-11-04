@@ -73,6 +73,8 @@ function displayMessageCauseDetails(id) {
 /* //////////////////// jQuery ////////////////////////////// */
 jQuery(document).ready(function() {
 	jQuery.noConflict();
+	
+	jQuery().UItoTop();
 
 	highliteTableRows();
 
