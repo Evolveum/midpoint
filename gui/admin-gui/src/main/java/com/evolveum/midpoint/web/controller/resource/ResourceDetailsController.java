@@ -220,6 +220,7 @@ public class ResourceDetailsController implements Serializable {
 					ex, resource);
 			FacesUtils.addErrorMessage("Couldn't load resource capabilities for resource '" + resource
 					+ ".", ex);
+			
 		}
 
 		return capabilitiesName;

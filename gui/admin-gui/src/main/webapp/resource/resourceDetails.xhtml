@@ -99,12 +99,12 @@
 				</ice:panelGrid>
 			</ice:panelGrid>
 			<br />
-			<h3>Capabilities</h3>
+			<h3>#{msg['page.resource.resourceDetails.capabilitiesTitle']}</h3>
 			<ice:dataTable value="#{resourceDetails.capabilities}"
-				var="capabilitie" style="width: 300px;">
+				var="capabilitie" columnClasses="iceDatTblCol1" rowClasses="iceDatTblRow1 iceDatTblRow2" style="width: 300px;">
 				<h:column>
 					<f:facet name="header">
-						<ice:outputText value="Capabilities" />
+						<ice:outputText value="#{msg['page.resource.resourceDetails.capabilities']}" />
 					</f:facet>
 					<ice:outputText value="#{capabilitie}" />
 				</h:column>
