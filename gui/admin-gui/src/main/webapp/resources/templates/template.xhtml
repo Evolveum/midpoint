@@ -21,8 +21,8 @@
 		<h:outputScript name="jquery.ui.totop.js" library="js" />
 		<h:outputScript name="easing.js" library="js" />
 		<h:outputScript name="evolveum.js" library="js" />
-		
-		
+
+
 	</h:head>
 
 	<h:body style="min-width:1270px;">
@@ -122,7 +122,7 @@
 						jQuery("#navBar").css("margin-left",
 								centerOfWindow - navBarHalfWidth);
 					</script>
-					<ice:outputConnectionStatus />
+					<ice:outputConnectionStatus showPopupOnDisconnect="true" />
 				</idm:topMenu>
 
 			</div>
@@ -172,7 +172,7 @@
 				<p id="credit">#{msg['page.template.copyright']}</p>
 			</div>
 		</div>
-			
+
 	</h:body>
 </f:view>
 </html>

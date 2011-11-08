@@ -36,8 +36,6 @@
 	</ui:define>
 
 	<ui:define name="content">
-		<hr />
-		<br />
 		<div
 			style="position: absolute; background-color: #C6C6C6; width: 150px; height: 210px; border: 1px solid #767676;">
 			<span
@@ -46,73 +44,73 @@
 		</div>
 		<ice:form id="user-profile" style="position: absolute; margin-left: 170px; ">
 			<div style="padding: 1px 0 10px 0;">
-				<idm:button action="#{userProfile.profileBackPerformed}"
+				<idm:button action="#{endUserDetails.profileBackPerformed}"
 					value="#{msg['page.account.detail.button.back']}"
-					rendered="#{userProfile.editMode}" immediate="true"
+					rendered="#{endUserDetails.editMode}" immediate="true"
 					img="/resources/images/door_in.png" />
 
-				<idm:button actionListener="#{userProfile.startEditMode}"
+				<idm:button actionListener="#{endUserDetails.startEditMode}"
 					value="#{msg['page.account.detail.button.edit']}" id="editButton"
 					img="/resources/images/user_edit.png"
-					rendered="#{!userProfile.editMode}" immediate="true"
+					rendered="#{!endUserDetails.editMode}" immediate="true"
 					action="/profile/userProfile" />
 
-				<idm:button action="#{userProfile.fillUser}"
-					actionListener="#{userProfile.saveProfilePerformed}"
+				<idm:button action="#{endUserDetails.fillUser}"
+					actionListener="#{endUserDetails.saveProfilePerformed}"
 					id="saveButton" buttonType="positive"
 					value="#{msg['page.account.detail.button.save']}"
-					img="/resources/images/user.png" rendered="#{userProfile.editMode}" />
+					img="/resources/images/user.png" rendered="#{endUserDetails.editMode}" />
 			</div>
 			<ice:panelGrid columns="2"
 				cellpadding="6" cellspacing="6" id="userProfileGrid">
 
 				<ice:outputText
 					value="#{msg['page.account.detail.tab.user.givenName']}" />
-				<ice:outputText id="givenName" value="#{userProfile.user.givenName}"
-					rendered="#{!userProfile.editMode}" />
+				<ice:outputText id="givenName" value="#{endUserDetails.user.givenName}"
+					rendered="#{!endUserDetails.editMode}" />
 				<ice:inputText id="givenNameText"
-					value="#{userProfile.user.givenName}"
-					rendered="#{userProfile.editMode}" />
+					value="#{endUserDetails.user.givenName}"
+					rendered="#{endUserDetails.editMode}" />
 
 				<ice:outputText
 					value="#{msg['page.account.detail.tab.user.familyName']}" />
 				<ice:outputText id="familyName"
-					value="#{userProfile.user.familyName}"
-					rendered="#{!userProfile.editMode}" />
+					value="#{endUserDetails.user.familyName}"
+					rendered="#{!endUserDetails.editMode}" />
 				<ice:inputText id="familyNameText"
-					value="#{userProfile.user.familyName}"
-					rendered="#{userProfile.editMode}" />
+					value="#{endUserDetails.user.familyName}"
+					rendered="#{endUserDetails.editMode}" />
 
 				<ice:outputText
 					value="#{msg['page.account.detail.tab.user.fullName']}" />
-				<ice:outputText id="fullName" value="#{userProfile.user.fullName}"
-					rendered="#{!userProfile.editMode}" />
+				<ice:outputText id="fullName" value="#{endUserDetails.user.fullName}"
+					rendered="#{!endUserDetails.editMode}" />
 				<ice:inputText id="fullNameText"
-					value="#{userProfile.user.fullName}"
-					rendered="#{userProfile.editMode}" />
+					value="#{endUserDetails.user.fullName}"
+					rendered="#{endUserDetails.editMode}" />
 
 				<ui:remove>
 					<ice:outputText value="#{msg['page.account.detail.tab.user.name']}" />
-					<ice:outputText id="name" value="#{userProfile.user.name}"
-						rendered="#{!userProfile.editMode}" />
-					<ice:inputText id="nameText" value="#{userProfile.user.name}"
-						rendered="#{userProfile.editMode}" />
+					<ice:outputText id="name" value="#{endUserDetails.user.name}"
+						rendered="#{!endUserDetails.editMode}" />
+					<ice:inputText id="nameText" value="#{endUserDetails.user.name}"
+						rendered="#{endUserDetails.editMode}" />
 				</ui:remove>
 
 				<ice:outputLabel
 					value="#{msg['page.account.detail.tab.user.email']}" />
-				<ice:outputText id="email" rendered="#{!userProfile.editMode}"
-					value="#{userProfile.user.email}" />
-				<ice:inputText id="emailText" value="#{userProfile.user.email}"
-					rendered="#{userProfile.editMode}" />
+				<ice:outputText id="email" rendered="#{!endUserDetails.editMode}"
+					value="#{endUserDetails.user.email}" />
+				<ice:inputText id="emailText" value="#{endUserDetails.user.email}"
+					rendered="#{endUserDetails.editMode}" />
 
 				<ice:outputLabel
 					value="#{msg['page.account.detail.tab.user.locality']}" />
-				<ice:outputText id="locality" rendered="#{!userProfile.editMode}"
-					value="#{userProfile.user.locality}" />
+				<ice:outputText id="locality" rendered="#{!endUserDetails.editMode}"
+					value="#{endUserDetails.user.locality}" />
 				<ice:inputText id="localityText"
-					value="#{userProfile.user.locality}"
-					rendered="#{userProfile.editMode}" />
+					value="#{endUserDetails.user.locality}"
+					rendered="#{endUserDetails.editMode}" />
 			</ice:panelGrid>
 
 		</ice:form>
@@ -120,22 +118,22 @@
 		<ice:form id="user-password"
 			style="position: absolute; margin-top: 230px;">
 			<div>
-				<idm:button action="#{userProfile.passwordBackPerformed}"
+				<idm:button action="#{endUserDetails.passwordBackPerformed}"
 					value="#{msg['page.account.detail.button.back']}"
-					rendered="#{userProfile.editPasswordMode}" immediate="true"
+					rendered="#{endUserDetails.editPasswordMode}" immediate="true"
 					img="/resources/images/door_in.png" />
 
-				<idm:button actionListener="#{userProfile.startEditPasswordMode}"
+				<idm:button actionListener="#{endUserDetails.startEditPasswordMode}"
 					value="Change password" id="editButton"
 					img="/resources/images/user_edit.png"
-					rendered="#{!userProfile.editPasswordMode}" immediate="true"
-					action="/profile/userProfile" />
+					rendered="#{!endUserDetails.editPasswordMode}" immediate="true"
+					action="/profile/endUserDetails" />
 
-				<idm:button action="#{userProfile.fillUser}"
-					actionListener="#{userProfile.savePasswordPerformed}"
+				<idm:button action="#{endUserDetails.fillUser}"
+					actionListener="#{endUserDetails.savePasswordPerformed}"
 					id="savePaswordButton" buttonType="positive" value="Change"
 					img="/resources/images/user.png"
-					rendered="#{userProfile.editPasswordMode}" />
+					rendered="#{endUserDetails.editPasswordMode}" />
 			</div>
 
 			<ice:panelGrid columns="2" cellpadding="6" cellspacing="6" style=""
@@ -143,10 +141,10 @@
 
 				<ice:outputLabel
 					value="#{msg['page.account.detail.tab.user.password1']}"
-					rendered="#{userProfile.editPasswordMode}" />
-				<ice:panelGroup rendered="#{userProfile.editPasswordMode}">
+					rendered="#{endUserDetails.editPasswordMode}" />
+				<ice:panelGroup rendered="#{endUserDetails.editPasswordMode}">
 					<ice:inputSecret id="password1"
-						value="#{userProfile.user.password1}"
+						value="#{endUserDetails.user.password1}"
 						requiredMessage="#{msg['field.required']}">
 						<f:validator validatorId="PasswordValidator" />
 						<f:attribute name="otherComponentId" value="password2" />
@@ -156,28 +154,15 @@
 
 				<ice:outputLabel
 					value="#{msg['page.account.detail.tab.user.password2']}"
-					rendered="#{userProfile.editPasswordMode}" />
-				<ice:panelGroup rendered="#{userProfile.editPasswordMode}">
+					rendered="#{endUserDetails.editPasswordMode}" />
+				<ice:panelGroup rendered="#{endUserDetails.editPasswordMode}">
 					<ice:inputSecret id="password2" immediate="true"
-						value="#{userProfile.user.password2}"
+						value="#{endUserDetails.user.password2}"
 						requiredMessage="#{msg['field.required']}" />
 					<ice:message for="password2" errorClass="error" />
 				</ice:panelGroup>
 			</ice:panelGrid>
 
-		</ice:form>
-
-		<ice:form style="margin-top:330px;">
-			<hr />
-			<br />
-			<ice:panelTabSet id="icePnlTbSet" style="width: 100%;">
-				<ice:panelTab label="News">
-					<ice:outputText value="Some news in this tab..." />
-				</ice:panelTab>
-				<ice:panelTab label="Account and Role list">
-					<ice:outputText value="List of accounts and roles..." />
-				</ice:panelTab>
-			</ice:panelTabSet>
 		</ice:form>
 	</ui:define>
 </ui:composition>

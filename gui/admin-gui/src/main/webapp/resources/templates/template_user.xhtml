@@ -21,7 +21,7 @@
 		<h:outputScript name="jquery.ui.totop.js" library="js" />
 		<h:outputScript name="easing.js" library="js" />
 		<h:outputScript name="evolveum.js" library="js" />
-		
+
 	</h:head>
 
 	<h:body style="min-width:1270px;">
@@ -79,12 +79,20 @@
 							name="#{msg['page.template.top.home']}"
 							description="#{msg['page.template.top.description.home']}" />
 
+						<idm:topMenuItem id="topAccounts"
+							action="#{endUserDetails.fillAccount}"
+							name="Accounts" description="Assigned accounts" />
+
+						<idm:topMenuItem id="topRoles"
+							action="/user-gui/role/index?faces-redirect=true" name="Roles"
+							description="Assigned roles" />
+
+						<idm:topMenuItem id="topProfile" action="#{endUserDetails.fillUser}"
+							name="Profile" description="User profile" />
+
 						<idm:topMenuItem id="topSearch"
 							action="/user-gui/search/index?faces-redirect=true" name="Search"
 							description="Search user" />
-
-						<idm:topMenuItem id="topProfile" action="#{userProfile.fillUser}"
-							name="Profile" description="User profile" />
 
 						<div id="topConfigurationButtonRight"></div>
 					</div>
@@ -94,7 +102,7 @@
 						jQuery("#navBar").css("margin-left",
 								centerOfWindow - navBarHalfWidth);
 					</script>
-					<ice:outputConnectionStatus />
+					<ice:outputConnectionStatus showPopupOnDisconnect="true" />
 				</idm:topMenu>
 			</div>
 
