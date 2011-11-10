@@ -40,7 +40,11 @@ public class RoleDto extends ExtensibleObjectDto<RoleType> implements ContainsAs
 	private List<AssignmentBean> assignments;
 	private ModelService model;
 
-	public RoleDto() {
+	public RoleDto(RoleType role) {
+		super(role);
+		if (role != null) {
+			createAssignments(role);
+		}
 	}
 
 	public RoleDto(RoleType role, ModelService model) {

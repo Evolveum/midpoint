@@ -50,6 +50,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.AccountFormBean;
 import com.evolveum.midpoint.web.bean.ResourceCapability;
+import com.evolveum.midpoint.web.controller.util.AssignmentEditor;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.jsf.form.AttributeType;
 import com.evolveum.midpoint.web.jsf.form.FormAttribute;
@@ -61,6 +62,7 @@ import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
+import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SchemaFormParser;
@@ -78,11 +80,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 public class EndUserDetailsController implements Serializable {
 
 	private static final long serialVersionUID = 7795454033519006167L;
-	public static final String PAGE_NAVIGATION_TO_USER = "/user-gui/profile/userProfile?faces-redirect=true";
+	public static final String PAGE_NAVIGATION_TO_USER = "/user-gui/profile/index?faces-redirect=true";
 	public static final String PAGE_NAVIGATION_TO_ACCOUNT = "/user-gui/account/index?faces-redirect=true";
+	public static final String PAGE_NAVIGATION_TO_ROLE = "/user-gui/role/index?faces-redirect=true";
 	private static final Trace LOGGER = TraceManager.getTrace(EndUserDetailsController.class);
 	@Autowired(required = true)
 	private ObjectTypeCatalog objectTypeCatalog;
+	@Autowired(required = true)
+	private AssignmentEditor<UserDto> assignmentEditor;
 	private Protector protector;
 	private List<AccountFormBean> accountList;
 	private List<AccountFormBean> accountListDeleted = new ArrayList<AccountFormBean>();
@@ -91,6 +96,10 @@ public class EndUserDetailsController implements Serializable {
 	private boolean editPasswordMode = false;
 	private boolean editAccount = false;
 
+	public AssignmentEditor<UserDto> getAssignmentEditor() {
+		return assignmentEditor;
+	}
+	
 	public boolean isEditPasswordMode() {
 		return editPasswordMode;
 	}
@@ -183,6 +192,12 @@ public class EndUserDetailsController implements Serializable {
 	public String fillAccount() {
 		fillContent();
 		return PAGE_NAVIGATION_TO_ACCOUNT;
+	}
+	
+	public String fillRole() {
+		fillContent();
+		assignmentEditor.initController(user);
+		return PAGE_NAVIGATION_TO_ROLE;
 	}
 
 	public void startEditMode(ActionEvent evt) {
