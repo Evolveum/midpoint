@@ -35,6 +35,7 @@
   <context-param>
     <param-name>contextConfigLocation</param-name>
     <param-value>
+            classpath:application-context-common.xml
     		classpath:application-context-configuration.xml
             classpath*:application-context-repository.xml,
             classpath:application-context-task.xml,
