@@ -20,9 +20,12 @@
 <!-- Portions Copyrighted 2010 Peter Prochazka               -->
 <!--                                                         -->
 <suite name="Suite" parallel="none">
-  <test name="Test" parallel="none">
-    <classes>
-      <class name="com.evolveum.midpoint.init.ConfigurationLoadTest"/>
-    </classes>
-  </test>
+	<listeners>
+		<listener class-name="com.evolveum.midpoint.tools.testng.TestMethodLoggerListener"/>
+	</listeners>
+	<test name="Test" parallel="none">
+		<classes>
+			<class name="com.evolveum.midpoint.init.ConfigurationLoadTest"/>
+		</classes>
+	</test>
 </suite>

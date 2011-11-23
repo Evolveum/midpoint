@@ -21,6 +21,9 @@
 <!--                                                         -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="unit" parallel="false">
-  <test name="task-api" preserve-order="false" enabled="false">
-  </test>
+	<listeners>
+		<listener class-name="com.evolveum.midpoint.tools.testng.TestMethodLoggerListener"/>
+	</listeners>
+	<test name="task-api" preserve-order="false" enabled="false">
+	</test>
 </suite>
