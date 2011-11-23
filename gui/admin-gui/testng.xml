@@ -21,6 +21,9 @@
 <!--                                                         -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="Suite" parallel="false">
+	<listeners>
+		<listener class-name="com.evolveum.midpoint.tools.testng.TestMethodLoggerListener"/>
+	</listeners>
 	<test name="Spring context test" preserve-order="false">
 		<classes>
 			<class name="com.evolveum.midpoint.web.test.SpringApplicationContextTest" />
