@@ -19,8 +19,16 @@
  */
 package com.evolveum.midpoint.model;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.processor.ObjectDelta;
+import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -33,12 +41,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  */
 public class AccountSyncContext implements Dumpable, DebugDumpable {
 	
+	private ResourceAccountType resourceAccountType;
 	private MidPointObject<AccountShadowType> accountOld;
 	private MidPointObject<AccountShadowType> accountNew;
 	private ObjectDelta<AccountShadowType> accountPrimaryDelta;
-	private ObjectDelta<AccountShadowType> accountSecondaryDelta;
+	private ObjectDelta<AccountShadowType> accountSecondaryDelta; 
+	Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaSetTripleMap;
 	private ResourceType resource;
 	
+	AccountSyncContext(ResourceAccountType resourceAccountType) {
+		this.resourceAccountType = resourceAccountType;
+		this.attributeValueDeltaSetTripleMap = new HashMap<QName, DeltaSetTriple<ValueConstruction>>();
+	}
+	
+	public ResourceAccountType getResourceAccountType() {
+		return resourceAccountType;
+	}
+
 	public MidPointObject<AccountShadowType> getAccountOld() {
 		return accountOld;
 	}
@@ -99,6 +118,10 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 		}
 	}
 	
+	public Map<QName, DeltaSetTriple<ValueConstruction>> getAttributeValueDeltaSetTripleMap() {
+		return attributeValueDeltaSetTripleMap;
+	}
+	
 	/**
 	 * Assuming that oldAccount is already set (or is null if it does not exist)
 	 */
@@ -120,7 +143,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		indent(sb,indent);
+		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("ACCOUNT old:");
 		if (accountOld == null) {
 			sb.append(" null");
@@ -130,7 +153,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 		}
 		
 		sb.append("\n");
-		indent(sb,indent);
+		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("ACCOUNT new:");
 		if (accountNew == null) {
 			sb.append(" null");
@@ -140,7 +163,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 		}
 
 		sb.append("\n");
-		indent(sb,indent);
+		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("ACCOUNT primary delta:");
 		if (accountPrimaryDelta == null) {
 			sb.append(" null");
@@ -150,7 +173,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 		}
 
 		sb.append("\n");
-		indent(sb,indent);
+		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("ACCOUNT secondary delta:");
 		if (accountSecondaryDelta == null) {
 			sb.append(" null");
@@ -158,7 +181,17 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 			sb.append("\n");
 			sb.append(accountSecondaryDelta.debugDump(indent+1));
 		}
-		
+
+		sb.append("\n");
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("ACCOUNT attribute DeltaSetTriple map:");
+		if (accountSecondaryDelta == null) {
+			sb.append(" null");
+		} else {
+			sb.append("\n");
+			DebugUtil.debugDumpMapSingleLine(sb, attributeValueDeltaSetTripleMap, indent+1);
+		}
+
 		return sb.toString();
 	}
 	
@@ -166,11 +199,5 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 	public String dump() {
 		return debugDump();
 	}
-	
-	private void indent(StringBuilder sb, int indent) {
-		for (int i=0;i<indent;i++) {
-			sb.append(INDENT_STRING);
-		}
-	}
-	
+		
 }

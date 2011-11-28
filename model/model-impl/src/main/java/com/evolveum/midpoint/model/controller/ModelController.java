@@ -540,10 +540,10 @@ public class ModelController implements ModelService {
 		MidPointObject<AccountShadowType> mpAccount = refinedSchema.parseObjectType(accountType);
 		ObjectDelta<AccountShadowType> accountDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, changeType);
 		accountDelta.setObjectToAdd(mpAccount);
-		AccountSyncContext accountSyncContext = new AccountSyncContext();
-		accountSyncContext.setAccountPrimaryDelta(accountDelta);
 		ResourceAccountType rat = new ResourceAccountType(accountType.getResourceRef().getOid(), accountType.getAccountType());
-		syncContext.addAccountSyncContext(rat,accountSyncContext);
+		AccountSyncContext accountSyncContext = syncContext.createAccountSyncContext(rat);
+		accountSyncContext.setAccountPrimaryDelta(accountDelta);
+		
 	}
 
 	@Override

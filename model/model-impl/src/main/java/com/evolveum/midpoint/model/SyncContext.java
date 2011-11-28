@@ -149,14 +149,14 @@ public class SyncContext implements Dumpable, DebugDumpable {
 
 	public void setAccountPrimaryDelta(ResourceAccountType rat, ObjectDelta<AccountShadowType> accountDelta) {
 		if (!accountContextMap.containsKey(rat)) {
-			accountContextMap.put(rat,new AccountSyncContext());
+			accountContextMap.put(rat,new AccountSyncContext(rat));
 		}
 		accountContextMap.get(rat).setAccountPrimaryDelta(accountDelta);
 	}
 
 	public void setAccountSecondaryDelta(ResourceAccountType rat, ObjectDelta<AccountShadowType> accountDelta) {
 		if (!accountContextMap.containsKey(rat)) {
-			accountContextMap.put(rat,new AccountSyncContext());
+			accountContextMap.put(rat,new AccountSyncContext(rat));
 		}
 		accountContextMap.get(rat).setAccountSecondaryDelta(accountDelta);
 	}
@@ -276,6 +276,13 @@ public class SyncContext implements Dumpable, DebugDumpable {
 			changes.add(change);
 		}
 	}
+	
+	public AccountSyncContext createAccountSyncContext(ResourceAccountType rat) {
+		AccountSyncContext accountSyncContext = new AccountSyncContext(rat);
+		addAccountSyncContext(rat, accountSyncContext);
+		return accountSyncContext;
+	}
+
 
 	@Override
 	public String debugDump() {

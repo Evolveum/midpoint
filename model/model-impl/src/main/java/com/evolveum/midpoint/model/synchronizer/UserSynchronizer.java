@@ -19,16 +19,29 @@
  */
 package com.evolveum.midpoint.model.synchronizer;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.xml.namespace.QName;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
+import com.evolveum.midpoint.model.AccountSyncContext;
+import com.evolveum.midpoint.model.DeltaSetTriple;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -39,14 +52,17 @@ import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyDelta;
 import com.evolveum.midpoint.schema.processor.PropertyPath;
+import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
@@ -69,7 +85,10 @@ public class UserSynchronizer {
 	
 	@Autowired(required = true)
 	private AssignmentProcessor assignmentProcessor;
-	
+
+	@Autowired(required = true)
+	private OutboundProcessor outboundProcessor;
+
 	@Autowired(required=true)
 	private SchemaRegistry schemaRegistry;
 
@@ -104,8 +123,23 @@ public class UserSynchronizer {
 		context.recomputeNew();
 		
 		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Context after assignments and recompute:\n{}",context.dump());
+		}
+
+		outboundProcessor.processOutbound(context, result);
+		context.recomputeNew();
+		
+		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Context after outbound and recompute:\n{}",context.dump());
 		}
+
+		consolidateValues(context, result);
+		context.recomputeNew();
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Context after consolidation and recompute:\n{}",context.dump());
+		}
+
 	}
 
 	private void loadUser(SyncContext context, OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -226,4 +260,162 @@ public class UserSynchronizer {
 		return systemConfigurationType.getDefaultUserTemplate();
 	}
 
+	/**
+	 * Converts delta set triples to a secondary account deltas.
+	 */
+	private void consolidateValues(SyncContext context, OperationResult result) throws SchemaException {
+		
+		for (AccountSyncContext accCtx: context.getAccountContexts()) {
+			
+			ObjectDelta<AccountShadowType> accountDelta = accCtx.getAccountDelta();
+			
+			if (accountDelta.getChangeType() == ChangeType.ADD) {
+				consolidateValuesAddAccount(context, accCtx, result);
+			} else if (accountDelta.getChangeType() == ChangeType.MODIFY) {
+				consolidateValuesModifyAccount(context, accCtx, result);
+			}
+			// TODO
+			
+		}
+		
+	}
+
+	private void consolidateValuesAddAccount(SyncContext context, AccountSyncContext accCtx, OperationResult result) throws SchemaException {
+		
+		Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap = accCtx.getAttributeValueDeltaSetTripleMap();
+		ResourceAccountType rat = accCtx.getResourceAccountType();
+		ObjectDelta<AccountShadowType> accountDelta = accCtx.getAccountDelta();
+		
+		RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(rat, schemaRegistry);
+		if (rAccount == null) {
+			LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}",rat,context.dump());
+			throw new IllegalStateException("Definition for account type "+rat+" not found in the context, but it should be there");
+		}
+		
+		AccountShadowType newAccountType = rAccount.createBlankShadow();
+		ObjectDefinition<AccountShadowType> accountTypeDefinition = rAccount.getObjectDefinition();
+		MidPointObject<AccountShadowType> newAccount = accountTypeDefinition.parseObjectType(newAccountType);
+		
+		PropertyContainer attributesContainer = newAccount.findOrCreatePropertyContainer(SchemaConstants.I_ATTRIBUTES);
+		
+		Collection<QName> attrNames = new HashSet<QName>();
+		attrNames.addAll(attributeValueDeltaMap.keySet());
+		
+		for (QName attributeName : attrNames) {
+			RefinedAttributeDefinition refinedAttributeDefinition = rAccount.getAttributeDefinition(attributeName);
+			ResourceObjectAttribute attr = refinedAttributeDefinition.instantiate();
+			attributesContainer.add(attr);
+			
+			Collection<ValueConstruction> valueConstructions = null;
+			DeltaSetTriple<ValueConstruction> deltaTriple = attributeValueDeltaMap.get(attributeName);
+			
+			if (deltaTriple != null) {
+				valueConstructions = deltaTriple.getNonNegativeValues();
+			}
+			if (valueConstructions == null) {
+				valueConstructions = new HashSet<ValueConstruction>();
+			}
+			
+			// TODO: initial, exclusive
+			
+			for (ValueConstruction valueConstruction: valueConstructions) {
+				Property output = valueConstruction.getOutput();
+				attr.addValues(output.getValues());
+			}			
+			
+		}
+		
+		accountDelta.setObjectToAdd(newAccount);
+		context.setAccountSecondaryDelta(rat, accountDelta);
+		
+	}
+
+	private void consolidateValuesModifyAccount(SyncContext context, AccountSyncContext accCtx,
+			OperationResult result) throws SchemaException {
+		
+		Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap = accCtx.getAttributeValueDeltaSetTripleMap();
+		ResourceAccountType rat = accCtx.getResourceAccountType();
+		ObjectDelta<AccountShadowType> accountDelta = accCtx.getAccountDelta();
+		
+		RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(rat, schemaRegistry);
+		if (rAccount == null) {
+			LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}",rat,context.dump());
+			throw new IllegalStateException("Definition for account type "+rat+" not found in the context, but it should be there");
+		}
+				
+		PropertyPath parentPath = new PropertyPath(SchemaConstants.I_ATTRIBUTES);
+		
+		for (Entry<QName, DeltaSetTriple<ValueConstruction>> entry: attributeValueDeltaMap.entrySet()) {
+			QName attributeName = entry.getKey();
+			DeltaSetTriple<ValueConstruction> triple = entry.getValue();
+			
+			PropertyDelta propDelta = null;
+			
+			// TODO: initial, exclusive
+			
+			Collection<Object> allValues = collectAllValues(triple);
+			for (Object value: allValues) {
+				if (isValueInSet(value, triple.getZeroSet())) {
+					// Value unchanged, nothing to do
+					continue;
+				}
+				boolean isInPlusSet = isValueInSet(value, triple.getPlusSet());
+				boolean isInMinusSet = isValueInSet(value, triple.getMinusSet());
+				if (isInPlusSet && isInMinusSet) {
+					// Value added and removed. Ergo no change.
+					continue;
+				}
+				if (propDelta == null) {
+					propDelta = new PropertyDelta(parentPath, attributeName);
+				}
+				if (isInPlusSet) {
+					propDelta.addValueToAdd(value);
+				}
+				if (isInMinusSet) {
+					propDelta.addValueToDelete(value);
+				}
+			}
+			
+			if (propDelta != null) {
+				accountDelta.addModification(propDelta);
+			}
+			
+		}
+
+		
+	}
+
+	private Collection<Object> collectAllValues(DeltaSetTriple<ValueConstruction> triple) {
+		Collection<Object> allValues = new HashSet<Object>();
+		collectAllValuesFromSet(allValues, triple.getZeroSet());
+		collectAllValuesFromSet(allValues, triple.getPlusSet());
+		collectAllValuesFromSet(allValues, triple.getMinusSet());
+		return allValues;
+	}
+
+	private void collectAllValuesFromSet(Collection<Object> allValues, Collection<ValueConstruction> set) {
+		if (set == null) {
+			return;
+		}
+		for (ValueConstruction valConstr: set) {
+			collectAllValuesFromValueConstruction(allValues, valConstr);
+		}
+	}
+
+	private void collectAllValuesFromValueConstruction(Collection<Object> allValues,
+			ValueConstruction valConstr) {
+		Property output = valConstr.getOutput();
+		if (output == null) {
+			return;
+		}
+		allValues.addAll(output.getValues());
+	}
+
+	private boolean isValueInSet(Object value, Collection<ValueConstruction> set) {
+		// Stupid implementation, but easy to write. TODO: optimize
+		Collection<Object> allValues = new HashSet<Object>();
+		collectAllValuesFromSet(allValues, set);
+		return allValues.contains(value);
+	}
+	
 }

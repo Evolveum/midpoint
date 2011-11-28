@@ -247,144 +247,23 @@ public class AssignmentProcessor {
 			Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap,
 			OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		 
-		RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(rat, schemaRegistry);
-		if (rAccount == null) {
-			LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}",rat,context.dump());
-			throw new IllegalStateException("Definition for account type "+rat+" not found in the context, but it should be there");
-		}
 		ObjectDelta<AccountShadowType> accountDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.ADD);
-		// No need for OID. This is a new object, OID will be assigned by the repo
-		
-		AccountShadowType newAccountType = rAccount.createBlankShadow();
-		ObjectDefinition<AccountShadowType> accountTypeDefinition = rAccount.getObjectDefinition();
-		MidPointObject<AccountShadowType> newAccount = accountTypeDefinition.parseObjectType(newAccountType);
-		
-		PropertyContainer attributesContainer = newAccount.findOrCreatePropertyContainer(SchemaConstants.I_ATTRIBUTES);
-		
-		Collection<QName> attrNames = new HashSet<QName>();
-		attrNames.addAll(attributeValueDeltaMap.keySet());
-		attrNames.addAll(rAccount.getNamesOfAttributesWithOutboundExpressions());
-		
-		for (QName attributeName : attrNames) {
-			RefinedAttributeDefinition refinedAttributeDefinition = rAccount.getAttributeDefinition(attributeName);
-			ResourceObjectAttribute attr = refinedAttributeDefinition.instantiate();
-			attributesContainer.add(attr);
-			
-			Collection<ValueConstruction> valueConstructions = null;
-			DeltaSetTriple<ValueConstruction> deltaTriple = attributeValueDeltaMap.get(attributeName);
-			
-			if (deltaTriple != null) {
-				valueConstructions = deltaTriple.getNonNegativeValues();
-			}
-			if (valueConstructions == null) {
-				valueConstructions = new HashSet<ValueConstruction>();
-			}
-			
-			ValueConstruction evaluatedOutboundAccountConstruction = evaluateOutboundAccountConstruction(context, refinedAttributeDefinition, rAccount, result);
-			if (evaluatedOutboundAccountConstruction != null) {
-				valueConstructions.add(evaluatedOutboundAccountConstruction);
-			}
-			
-			for (ValueConstruction valueConstruction: valueConstructions) {
-				Property output = valueConstruction.getOutput();
-				attr.addValues(output.getValues());
-			}			
-			
-		}
-		
-		// TODO: compute attributes
-		
-		accountDelta.setObjectToAdd(newAccount);
+		// No need for OID. This is a new object, OID will be assigned by the repo		
 		context.setAccountSecondaryDelta(rat, accountDelta);
 		
 	}
-
 
 	private void processAccountModification(SyncContext context,
 			ResourceAccountType rat, DeltaSetTriple<AccountConstruction> accountDeltaSetTriple,
 			Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap, OperationResult result) throws SchemaException {
 
-		RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(rat, schemaRegistry);
-		if (rAccount == null) {
-			LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}",rat,context.dump());
-			throw new IllegalStateException("Definition for account type "+rat+" not found in the context, but it should be there");
-		}
-		
 		ObjectDelta<AccountShadowType> accountDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY);
 		// TODO: oid
 		
 		context.setAccountSecondaryDelta(rat, accountDelta);
-		PropertyPath parentPath = new PropertyPath(SchemaConstants.I_ATTRIBUTES);
-		
-		for (Entry<QName, DeltaSetTriple<ValueConstruction>> entry: attributeValueDeltaMap.entrySet()) {
-			QName attributeName = entry.getKey();
-			DeltaSetTriple<ValueConstruction> triple = entry.getValue();
-			
-			PropertyDelta propDelta = null;
-			
-			Collection<Object> allValues = collectAllValues(triple);
-			for (Object value: allValues) {
-				if (isValueInSet(value, triple.getZeroSet())) {
-					// Value unchanged, nothing to do
-					continue;
-				}
-				boolean isInPlusSet = isValueInSet(value, triple.getPlusSet());
-				boolean isInMinusSet = isValueInSet(value, triple.getMinusSet());
-				if (isInPlusSet && isInMinusSet) {
-					// Value added and removed. Ergo no change.
-					continue;
-				}
-				if (propDelta == null) {
-					propDelta = new PropertyDelta(parentPath, attributeName);
-				}
-				if (isInPlusSet) {
-					propDelta.addValueToAdd(value);
-				}
-				if (isInMinusSet) {
-					propDelta.addValueToDelete(value);
-				}
-			}
-			
-			if (propDelta != null) {
-				accountDelta.addModification(propDelta);
-			}
-			
-		}
 				
 	}
 	
-	private boolean isValueInSet(Object value, Collection<ValueConstruction> set) {
-		// Stupid implementation, but easy to write. TODO: optimize
-		Collection<Object> allValues = new HashSet<Object>();
-		collectAllValuesFromSet(allValues, set);
-		return allValues.contains(value);
-	}
-
-	private Collection<Object> collectAllValues(DeltaSetTriple<ValueConstruction> triple) {
-		Collection<Object> allValues = new HashSet<Object>();
-		collectAllValuesFromSet(allValues, triple.getZeroSet());
-		collectAllValuesFromSet(allValues, triple.getPlusSet());
-		collectAllValuesFromSet(allValues, triple.getMinusSet());
-		return allValues;
-	}
-
-	private void collectAllValuesFromSet(Collection<Object> allValues, Collection<ValueConstruction> set) {
-		if (set == null) {
-			return;
-		}
-		for (ValueConstruction valConstr: set) {
-			collectAllValuesFromValueConstruction(allValues, valConstr);
-		}
-	}
-
-	private void collectAllValuesFromValueConstruction(Collection<Object> allValues,
-			ValueConstruction valConstr) {
-		Property output = valConstr.getOutput();
-		if (output == null) {
-			return;
-		}
-		allValues.addAll(output.getValues());
-	}
 
 	private void processAccountDeletion(SyncContext context, ResourceAccountType rat,
 			DeltaSetTriple<AccountConstruction> accountDeltaSetTriple,
@@ -398,25 +277,6 @@ public class AssignmentProcessor {
 		
 	}
 	
-	private ValueConstruction evaluateOutboundAccountConstruction(SyncContext context, RefinedAttributeDefinition refinedAttributeDefinition, 
-			RefinedAccountDefinition refinedAccountDefinition, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		
-		ValueConstructionType outboundValueConstructionType = refinedAttributeDefinition.getOutboundValueConstructionType();
-		if (outboundValueConstructionType == null) {
-			return null;
-		}
-		
-		ValueConstruction valueConstruction = valueConstructionFactory.createValueConstruction(outboundValueConstructionType, refinedAttributeDefinition, 
-				"outbound expression for "+refinedAttributeDefinition.getName()+" in "+ObjectTypeUtil.toShortString(refinedAccountDefinition.getResourceType()));
-		
-		// FIXME: should be userNew, but that is not yet filled in
-		valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, context.getUserOld());
-		// TODO: variables
-		
-		valueConstruction.evaluate(result);
-		
-		return valueConstruction;
-	}
 	
 	private Map<QName, DeltaSetTriple<ValueConstruction>> computeAttributeValueDeltaMap(DeltaSetTriple<AccountConstruction> accountDeltaSetTriple) {
 		
@@ -438,7 +298,6 @@ public class AssignmentProcessor {
 			}
 		}
 		return attrMap;
-	}
-	
+	}	
 	
 }

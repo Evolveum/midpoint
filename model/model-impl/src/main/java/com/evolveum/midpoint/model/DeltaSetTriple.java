@@ -21,7 +21,11 @@ package com.evolveum.midpoint.model;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 

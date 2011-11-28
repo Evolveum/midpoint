@@ -5329,10 +5329,11 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:ExtensibleObjectType">
 				<xsd:sequence>
-					<xsd:element name="assignmentPolicyEnforcement" type="tns:AssignmentPolicyEnforcementType" minOccurs="0">
+					<xsd:element name="globalAccountSynchronizationSettings" type="tns:AccountSynchronizationSettingsType" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
-								Full enforcement is the default setting.
+								System-global account synchronization settings. These will be used if there is no specific settings
+								(e.g. per resource or per request).
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
@@ -5405,6 +5406,23 @@
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:complexType name="AccountSynchronizationSettingsType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="assignmentPolicyEnforcement" type="tns:AssignmentPolicyEnforcementType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Full enforcement is the default setting.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>			
+		</xsd:sequence>
 	</xsd:complexType>
 	
 	<xsd:simpleType name="AssignmentPolicyEnforcementType">

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+         
+<c:genericObject oid="c0c010c0-d34d-b33f-f00d-999111111122"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+	xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
+	xmlns:my="http://myself.me/schemas/whatever"
+	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd
+						http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
+
+		<c:name>My Sample Config Object</c:name>
+		<c:extension>
+            <!-- This additional level of depth (the "locations" element) is needed now
+                 because current repository does not support generic multi-valued
+                 properties. This should be fixed in next releases. -->
+			<my:locations>
+                <!-- Lookup table. The "key" attribute is a key, the element content
+                     is a value. However, the data structure may be structured differently,
+                     it depends on a specific XPath that is used for lookup (see the
+                     definition of outbound expression for "l" attribute in the resource
+                     definition above). -->
+				<my:location key="home">Here</my:location>
+				<my:location key="work">There</my:location>
+				<my:location key="somewhere">There there over the corner</my:location>
+			</my:locations>
+		</c:extension>
+        <!-- This is generic object, it must have an "application level" type.
+             However, this is not used in the current business logic. Can be anything. -->
+		<c:objectType>http://myself.me/schemas/objects#SampleConfigType</c:objectType>
+	</c:genericObject>

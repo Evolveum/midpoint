@@ -22,7 +22,6 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -34,6 +33,8 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.xml.bind.JAXBElement;
@@ -127,6 +128,45 @@ public class DebugUtil implements ObjectFormatter {
 		}
 	}
 	
+	public static <K, V extends DebugDumpable> void debugDumpMapMultiLine(StringBuilder sb, Map<K, V> map, int indent) {
+		Iterator<Entry<K, V>> i = map.entrySet().iterator();
+		while (i.hasNext()) {
+			Entry<K,V> entry = i.next();
+			indentDebugDump(sb,indent);
+			sb.append(entry.getKey());
+			sb.append(" => ");
+			V value = entry.getValue();
+			if (value == null) {
+				sb.append("null");
+			} else {
+				sb.append("\n");
+				sb.append(value.debugDump(indent+1));
+			}
+			if (i.hasNext()) {
+				sb.append("\n");
+			}
+		}
+	}
+
+	public static <K, V> void debugDumpMapSingleLine(StringBuilder sb, Map<K, V> map, int indent) {
+		Iterator<Entry<K, V>> i = map.entrySet().iterator();
+		while (i.hasNext()) {
+			Entry<K,V> entry = i.next();
+			indentDebugDump(sb,indent);
+			sb.append(entry.getKey());
+			sb.append(" => ");
+			V value = entry.getValue();
+			if (value == null) {
+				sb.append("null");
+			} else {
+				sb.append(value);
+			}
+			if (i.hasNext()) {
+				sb.append("\n");
+			}
+		}
+	}
+
 	public static String prettyPrint(Collection<?> collection) {
 		if (collection == null) {
 			return null;
@@ -890,5 +930,6 @@ public class DebugUtil implements ObjectFormatter {
 		ObjectFormatter f = new DebugUtil();
 		MidpointAspect.registerFormatter(f);
 	}
+
 
 }
