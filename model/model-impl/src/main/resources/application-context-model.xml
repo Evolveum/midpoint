@@ -20,14 +20,14 @@
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 <beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:jee="http://www.springframework.org/schema/jee"
-    xmlns:aop="http://www.springframework.org/schema/aop"
-    xmlns:context="http://www.springframework.org/schema/context"
-    xmlns:ws= "http://jax-ws.dev.java.net/spring/core"
-    xmlns:p="http://www.springframework.org/schema/p"
-    xmlns:util="http://www.springframework.org/schema/util"
-    xsi:schemaLocation="
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:jaxws="http://cxf.apache.org/jaxws"
+       xsi:schemaLocation="
      http://www.springframework.org/schema/jee
      http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
      http://www.springframework.org/schema/beans
@@ -36,16 +36,16 @@
      http://www.springframework.org/schema/context/spring-context-3.0.xsd
      http://www.springframework.org/schema/aop
      http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
-     http://jax-ws.dev.java.net/spring/core
-     https://jax-ws.dev.java.net/spring/core.xsd
-     http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd"
-     default-lazy-init="false"
-     default-autowire="byName">
+     http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
+     http://cxf.apache.org/jaxws
+     http://cxf.apache.org/schemas/jaxws.xsd"
+       default-lazy-init="false"
+       default-autowire="byName">
 
-   <!-- enabling annotation driven configuration -->
+    <!-- enabling annotation driven configuration -->
     <context:annotation-config/>
     <context:component-scan base-package="com.evolveum.midpoint.model"/>
-    <context:spring-configured />
+    <context:spring-configured/>
 
     <bean id="actionManager" class="com.evolveum.midpoint.model.sync.ActionManagerImpl">
         <property name="actionMapping">
@@ -79,10 +79,10 @@
                 </entry>
             </map>
         </property>
-        <property name="model" >
+        <property name="model">
             <ref bean="modelController"/>
         </property>
-        <property name="schemaHandler" >
+        <property name="schemaHandler">
             <ref bean="schemaHandler"/>
         </property>
     </bean>
@@ -98,8 +98,17 @@
                 </entry>
                 <entry key="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#diacriticsFilter">
                     <value type="java.lang.Class">com.evolveum.midpoint.model.filter.DiacriticsFilter</value>
-                </entry>                
+                </entry>
             </map>
         </property>
     </bean>
+
+    <jaxws:endpoint id="modelWS"
+                    implementor="com.evolveum.midpoint.model.ModelWebService"
+                    endpointName="e:ModelWebServiceEndpoint"
+                    serviceName="s:ModelWebService"
+                    address="http://localhost:8081/model"
+                    xmlns:e="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"
+                    xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+
 </beans>
