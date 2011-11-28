@@ -542,6 +542,7 @@
 							<systemPropertyVariables>
 <!-- 								<midpoint.home>target/midPointHome/</midpoint.home> -->
 							</systemPropertyVariables>
+							<argLine>-Xms512m -Xmx1024m -XX:MaxPermSize=192m</argLine>
 						</configuration>
 						<dependencies>
 							<dependency>
