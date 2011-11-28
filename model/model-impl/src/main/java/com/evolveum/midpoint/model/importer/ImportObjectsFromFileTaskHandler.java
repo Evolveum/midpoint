@@ -37,8 +37,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.common.result.OperationConstants;
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
@@ -51,6 +49,8 @@ import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyModification;
 import com.evolveum.midpoint.schema.processor.PropertyModification.ModificationType;
+import com.evolveum.midpoint.schema.result.OperationConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;

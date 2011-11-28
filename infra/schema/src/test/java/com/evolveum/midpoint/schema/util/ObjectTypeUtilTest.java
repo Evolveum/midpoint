@@ -28,8 +28,9 @@ import javax.xml.bind.JAXBException;
 
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType.Password;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 
 /**
@@ -39,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationTy
 public class ObjectTypeUtilTest {
 
 	@Test
-	public void testGetPropertyNewValue() throws JAXBException {
+	public void testGetPropertyNewValue() throws JAXBException, SchemaException {
 		// GIVEN
 		
 		ObjectChangeModificationType objectChange = ((JAXBElement<ObjectChangeModificationType>) JAXBUtil
@@ -49,7 +50,7 @@ public class ObjectTypeUtilTest {
 		// WHEN
 		
 		ObjectModificationType objectModification = objectChange.getObjectModification();
-		Password newPasswordStructure = ObjectTypeUtil.getPropertyNewValue(objectModification,"credentials","password",Password.class);
+		PasswordType newPasswordStructure = ObjectTypeUtil.getPropertyNewValue(objectModification,"credentials","password",PasswordType.class);
 		
 		// THEN
 		
@@ -64,9 +65,10 @@ public class ObjectTypeUtilTest {
 	 * THIS IS ALL WRONG! This is a wrong way how to change password. the <clearValue> is not a property
      * and therefore it cannot be changed by itself. But current problems with the diff algorithm cause
      * that modifications like this appear in the system.
+	 * @throws SchemaException 
 	 */
 	@Test
-	public void testGetPropertyNewValueHack() throws JAXBException {
+	public void testGetPropertyNewValueHack() throws JAXBException, SchemaException {
 		// GIVEN
 		
 		ObjectChangeModificationType objectChange = ((JAXBElement<ObjectChangeModificationType>) JAXBUtil
@@ -76,7 +78,7 @@ public class ObjectTypeUtilTest {
 		// WHEN
 		
 		ObjectModificationType objectModification = objectChange.getObjectModification();
-		Password newPasswordStructure = ObjectTypeUtil.getPropertyNewValue(objectModification,"credentials","password",Password.class);
+		PasswordType newPasswordStructure = ObjectTypeUtil.getPropertyNewValue(objectModification,"credentials","password",PasswordType.class);
 		
 		// THEN
 		
@@ -86,7 +88,7 @@ public class ObjectTypeUtilTest {
 	}
 	
 	@Test
-	public void testGetPropertyNewValue2() throws JAXBException {
+	public void testGetPropertyNewValue2() throws JAXBException, SchemaException {
 		// GIVEN
 		
 		ObjectChangeModificationType objectChange = ((JAXBElement<ObjectChangeModificationType>) JAXBUtil

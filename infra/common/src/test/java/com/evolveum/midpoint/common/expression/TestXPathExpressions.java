@@ -36,6 +36,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.test.util.DirectoryFileObjectResolver;
@@ -70,9 +71,11 @@ public class TestXPathExpressions {
 				new File(TEST_DIR, "expression-simple.xml"));
 		ExpressionType expressionType = expressionTypeElement.getValue();
 		
+		OperationResult opResult = new OperationResult("testExpressionSimple");
+		
 		// WHEN
 		Expression expression = factory.createExpression(expressionType, "simple thing");
-		String result = expression.evaluateScalar(String.class);
+		String result = expression.evaluateScalar(String.class, opResult);
 		
 		// THEN
 		assertEquals("foobar",result);
@@ -85,9 +88,11 @@ public class TestXPathExpressions {
 				new File(TEST_DIR, "expression-string-variables.xml"));
 		ExpressionType expressionType = expressionTypeElement.getValue();
 		
+		OperationResult opResult = new OperationResult("testExpressionStringVariables");
+		
 		// WHEN
 		Expression expression = factory.createExpression(expressionType, "string variable thing");
-		String result = expression.evaluateScalar(String.class);
+		String result = expression.evaluateScalar(String.class, opResult);
 		
 		// THEN
 		assertEquals("FOOBAR",result);
@@ -101,9 +106,11 @@ public class TestXPathExpressions {
 				new File(TEST_DIR, "expression-objectref-variables.xml"));
 		ExpressionType expressionType = expressionTypeElement.getValue();
 		
+		OperationResult opResult = new OperationResult("testExpressionObjectRefVariables");
+		
 		// WHEN
 		Expression expression = factory.createExpression(expressionType, "objectref variable thing");
-		String result = expression.evaluateScalar(String.class);
+		String result = expression.evaluateScalar(String.class, opResult);
 		
 		// THEN
 		assertEquals("Captain Jack Sparrow",result);
@@ -117,6 +124,8 @@ public class TestXPathExpressions {
 				new File(TEST_DIR, "expression-system-variables.xml"));
 		ExpressionType expressionType = expressionTypeElement.getValue();
 		
+		OperationResult opResult = new OperationResult("testSystemVariables");
+		
 		// WHEN
 		Expression expression = factory.createExpression(expressionType, "system variable thing");
 		
@@ -125,7 +134,7 @@ public class TestXPathExpressions {
 		ref.setType(SchemaConstants.I_USER_TYPE);
 		expression.addVariableDefinition(SchemaConstants.I_USER, ref);
 		
-		String result = expression.evaluateScalar(String.class);
+		String result = expression.evaluateScalar(String.class, opResult);
 		
 		// THEN
 		assertEquals("Jack",result);
@@ -138,6 +147,8 @@ public class TestXPathExpressions {
 				new File(TEST_DIR, "expression-root-node.xml"));
 		ExpressionType expressionType = expressionTypeElement.getValue();
 		
+		OperationResult opResult = new OperationResult("testRootNode");
+		
 		// WHEN
 		Expression expression = factory.createExpression(expressionType, "root node thing");
 		
@@ -146,7 +157,7 @@ public class TestXPathExpressions {
 		ref.setType(SchemaConstants.I_USER_TYPE);
 		expression.setRootNode(ref);
 		
-		String result = expression.evaluateScalar(String.class);
+		String result = expression.evaluateScalar(String.class, opResult);
 		
 		// THEN
 		assertEquals("Black Pearl",result);
@@ -159,9 +170,11 @@ public class TestXPathExpressions {
 				new File(TEST_DIR, "expression-list.xml"));
 		ExpressionType expressionType = expressionTypeElement.getValue();
 		
+		OperationResult opResult = new OperationResult("testExpressionList");
+		
 		// WHEN
 		Expression expression = factory.createExpression(expressionType, "list thing");
-		List<String> results = expression.evaluateList(String.class);
+		List<String> results = expression.evaluateList(String.class, opResult);
 		
 		// THEN
 		List<String> expected = new ArrayList<String>();

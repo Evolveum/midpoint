@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -101,9 +102,9 @@ public class GuiUserDto extends UserDto implements Selectable {
 			credentials = new CredentialsType();
 			
 		}
-		CredentialsType.Password password = credentials.getPassword();
+		PasswordType password = credentials.getPassword();
 		if (password == null) {
-			password = new CredentialsType.Password();
+			password = new PasswordType();
 			
 		}
 

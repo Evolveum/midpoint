@@ -29,6 +29,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 
 /**
@@ -37,10 +38,17 @@ import com.evolveum.midpoint.schema.util.ObjectResolver;
  */
 public interface ExpressionEvaluator {
 
-	public <T> T evaluateScalar(Class<T> type, Element code, Map<QName,Object> variables, ObjectResolver objectResolver, String contextDescription) 
+	public <T> T evaluateScalar(Class<T> type, Element code, Map<QName,Object> variables, ObjectResolver objectResolver, 
+			String contextDescription, OperationResult result) 
 		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException;
 
-	public <T> List<T> evaluateList(Class<T> type, Element code, Map<QName,Object> variables, ObjectResolver objectResolver, String contextDescription) 
+	public <T> List<T> evaluateList(Class<T> type, Element code, Map<QName,Object> variables, ObjectResolver objectResolver, 
+			String contextDescription, OperationResult result) 
 		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException;
+
+	/**
+	 * Returns human readable name of the language that this evaluator supports
+	 */
+	public String getLanguageName();
 
 }

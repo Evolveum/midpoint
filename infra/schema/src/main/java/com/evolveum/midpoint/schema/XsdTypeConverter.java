@@ -21,8 +21,10 @@ package com.evolveum.midpoint.schema;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,8 +40,11 @@ import org.apache.commons.codec.binary.Base64;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.ClassPathUtil;
@@ -101,7 +106,7 @@ public class XsdTypeConverter {
 				}
 			}
 		}
-		addMapping(CredentialsType.Password.class, JAXBUtil.getTypeQName(CredentialsType.Password.class), true);
+		//addMapping(CredentialsType.PasswordType.class, JAXBUtil.getTypeQName(CredentialsType.Password.class), true);
 	}
 
 	private static void addMapping(Class javaClass, QName xsdType, boolean both) {
@@ -133,7 +138,7 @@ public class XsdTypeConverter {
 		return javaType;
 	}
 
-	public static <T> T toJavaValue(Object element, Class<T> type) throws JAXBException {
+	public static <T> T toJavaValue(Object element, Class<T> type) throws SchemaException {
 		if (element instanceof Element) {
 			Element xmlElement = (Element)element;
 			if (type.equals(Element.class)) {
@@ -141,7 +146,12 @@ public class XsdTypeConverter {
 			} else if (type.equals(QName.class)) {
 				return (T) DOMUtil.getQNameValue(xmlElement);
 			} else if (JAXBUtil.isJaxbClass(type)) {
-				return JAXBUtil.unmarshal(xmlElement, type).getValue();
+				try {
+					return JAXBUtil.unmarshal(xmlElement, type).getValue();
+				} catch (JAXBException e) {
+					QName elementQName = JAXBUtil.getElementQName(xmlElement);
+					throw new SchemaException("Cannot parse value of element "+elementQName+": "+e.getMessage(),e,elementQName);
+				}
 			} else {
 				String stringContent = xmlElement.getTextContent();
 				if (stringContent == null) {
@@ -189,7 +199,7 @@ public class XsdTypeConverter {
 	}
 
 	
-	public static Object toJavaValue(Object xmlElement, QName type) throws JAXBException {
+	public static Object toJavaValue(Object xmlElement, QName type) throws SchemaException {
 		return toJavaValue(xmlElement, toJavaType(type));
 	}
 
@@ -200,7 +210,7 @@ public class XsdTypeConverter {
 	 * @return
 	 * @throws JAXBException
 	 */
-	public static Object toJavaValue(Object xmlElement) throws JAXBException {
+	public static Object toJavaValue(Object xmlElement) throws SchemaException {
 		return toTypedJavaValueWithDefaultType(xmlElement, null).getValue();
 	}
 
@@ -212,10 +222,10 @@ public class XsdTypeConverter {
 	 * @param defaultType
 	 * @return converted java value
 	 * @throws JAXBException
-	 * @throws IllegalStateException
+	 * @throws SchemaException
 	 *             if no xsi:type or default type specified
 	 */
-	public static TypedValue toTypedJavaValueWithDefaultType(Object element, QName defaultType) throws JAXBException {
+	public static TypedValue toTypedJavaValueWithDefaultType(Object element, QName defaultType) throws SchemaException {
 		if (element instanceof Element) {
 			// DOM Element
 			Element xmlElement = (Element)element;
@@ -223,7 +233,8 @@ public class XsdTypeConverter {
 			if (xsiType==null) {
 				xsiType = defaultType;
 				if (xsiType==null) {
-					throw new IllegalStateException("Cannot conver element "+xmlElement+" to java, no type information available");
+					QName elementQName = JAXBUtil.getElementQName(xmlElement);
+					throw new SchemaException("Cannot convert element "+elementQName+" to java, no type information available", elementQName);
 				}
 			}
 			return new TypedValue(toJavaValue(xmlElement, xsiType),xsiType,DOMUtil.getQName(xmlElement));
@@ -236,7 +247,7 @@ public class XsdTypeConverter {
 		}
 	}
 	
-	public static Object toXsdElement(Object val, QName typeName, QName elementName, Document doc, boolean recordType) throws JAXBException {
+	public static Object toXsdElement(Object val, QName typeName, QName elementName, Document doc, boolean recordType) throws SchemaException {
 		// Just ignore the typeName for now. The java type will determine the conversion
 		Object createdObject = toXsdElement(val, elementName, doc, false);
 		if (createdObject instanceof Element) {
@@ -253,7 +264,7 @@ public class XsdTypeConverter {
 		return createdObject;
 	}
 
-	public static Object toXsdElement(Object val, QName elementName, Document doc) throws JAXBException {
+	public static Object toXsdElement(Object val, QName elementName, Document doc) throws SchemaException {
 		return toXsdElement(val, elementName, doc, false);
 	}
 
@@ -266,7 +277,7 @@ public class XsdTypeConverter {
 	 * @return created element
 	 * @throws JAXBException
 	 */
-	public static Object toXsdElement(Object val, QName elementName, Document doc, boolean recordType) throws JAXBException {
+	public static Object toXsdElement(Object val, QName elementName, Document doc, boolean recordType) throws SchemaException {
 		if (val == null) {
 			// if no value is specified, do not create element
 			return null;
@@ -354,6 +365,96 @@ public class XsdTypeConverter {
 	public static boolean canConvert(Class<?> clazz) {
 		return (getJavaToXsdMapping(clazz) != null);
 	}
+	
+	public static <T> T convertValueElementAsScalar(Element valueElement, Class<T> type) throws SchemaException {
+		return toJavaValue(valueElement, type);
+	}
+	
+	public static Object convertValueElementAsScalar(Element valueElement, QName xsdType) throws SchemaException {
+		return toJavaValue(valueElement, xsdType);
+	}
+
+	public static List<Object> convertValueElementAsList(Element valueElement) throws SchemaException {
+		return convertValueElementAsList(valueElement.getChildNodes(), Object.class);
+	}
+	
+	public static <T> List<T> convertValueElementAsList(Element valueElement, Class<T> type) throws SchemaException {
+		if (type.equals(Object.class)) {
+			if (DOMUtil.hasXsiType(valueElement)) {
+				Object scalarValue = convertValueElementAsScalar(valueElement, DOMUtil.resolveXsiType(valueElement));
+				List<Object> list = new ArrayList<Object>(1);
+				list.add(scalarValue);
+				return (List<T>) list;
+			}
+		}
+		return convertValueElementAsList(valueElement.getChildNodes(), type);
+	}
+
+	public static List<?> convertValueElementAsList(Element valueElement, QName xsdType) throws SchemaException {
+		Class<?> type = toJavaType(xsdType);
+		return convertValueElementAsList(valueElement.getChildNodes(), type);
+	}
+	
+	public static <T> List<T> convertValueElementAsList(NodeList valueNodes, Class<T> type) throws SchemaException {
+		// We need to determine whether this is single value or multi value
+		// no XML elements = single (primitive) value
+		// XML elements = multi value
+		
+		List<T> values = new ArrayList<T>();
+		if (valueNodes == null) {
+			return values;
+		}
+		
+		T scalarAttempt = tryConvertPrimitiveScalar(valueNodes, type);
+		if (scalarAttempt != null) {
+			values.add(scalarAttempt);
+			return values;
+		}
+		
+		for (int i = 0; i < valueNodes.getLength(); i++) {
+			Node node = valueNodes.item(i);
+			if (DOMUtil.isJunk(node)) {
+				continue;
+			}
+			if (node.getNodeType() == Node.ELEMENT_NODE) {
+				Element element = (Element)node;
+				T value = null;
+				if (type.equals(Object.class)) {
+					Class<?> overrideType = String.class;
+					if (DOMUtil.hasXsiType(element)) {
+						QName xsiType = DOMUtil.resolveXsiType(element);
+						overrideType = toJavaType(xsiType);
+					}
+					value = (T) XsdTypeConverter.toJavaValue(element, overrideType);
+				} else {
+					value = XsdTypeConverter.toJavaValue(element, type);
+				}
+				values.add(value);
+			}
+		}
+		return values;
+	}
+	
+	private static <T> T tryConvertPrimitiveScalar(NodeList valueNodes, Class<T> type) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < valueNodes.getLength(); i++) {
+			Node node = valueNodes.item(i);
+			if (DOMUtil.isJunk(node)) {
+				continue;
+			}
+			if (node.getNodeType() == Node.TEXT_NODE) {
+				sb.append(node.getTextContent());
+			} else {
+				// We have failed
+				return null;
+			}
+		}
+		if (type.equals(Object.class)) {
+			// Try string as default type
+			return (T)XsdTypeConverter.toJavaValue(sb.toString(), String.class);
+		}
+		return XsdTypeConverter.toJavaValue(sb.toString(), type);
+	}
 
 	public static XMLGregorianCalendar toXMLGregorianCalendar(long timeInMillis) {
 		GregorianCalendar gregorianCalendar = new GregorianCalendar();
@@ -398,7 +499,7 @@ public class XsdTypeConverter {
 	 * @throws JAXBException 
 	 */
 	public static void appendBelowNode(Object val, QName xsdType, QName name, Node parentNode,
-			boolean recordType) throws JAXBException {
+			boolean recordType) throws SchemaException {
 		Object xsdElement = toXsdElement(val, xsdType, name, parentNode.getOwnerDocument(), recordType);
 		if (xsdElement==null) {
 			return;
@@ -406,7 +507,11 @@ public class XsdTypeConverter {
 		if (xsdElement instanceof Element) {
 			parentNode.appendChild((Element)xsdElement);
 		} else if (xsdElement instanceof JAXBElement) {
-			JAXBUtil.marshal(xsdElement, parentNode);
+			try {
+				JAXBUtil.marshal(xsdElement, parentNode);
+			} catch (JAXBException e) {
+				throw new SchemaException("Error marshalling element "+xsdElement+": "+e.getMessage(),e);
+			}
 		} else {
 			throw new IllegalStateException("The XSD type converter returned unknown element type: "+xsdElement+" ("+xsdElement.getClass().getName()+")");
 		}

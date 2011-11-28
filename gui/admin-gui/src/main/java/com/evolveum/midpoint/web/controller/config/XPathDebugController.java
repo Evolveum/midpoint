@@ -42,11 +42,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.xpath.XPathUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.ExpressionCodeHolder;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Variable;
@@ -134,9 +134,9 @@ public class XPathDebugController implements Serializable {
 		}
 	}
 
-	private Map<QName, Variable> getVariableValue() throws JAXBException {
+	private Map<QName, Object> getVariableValue() throws JAXBException {
 		LOGGER.debug("getVariableValue start");
-		Map<QName, Variable> variableMap = new HashMap<QName, Variable>();
+		Map<QName, Object> variableMap = new HashMap<QName, Object>();
 		for (XPathVariableBean variable : getVariables()) {
 			if (StringUtils.isNotEmpty(variable.getVariableName())) {
 				if (variable.getType().equals("Object")) {
@@ -147,8 +147,8 @@ public class XPathDebugController implements Serializable {
 						// will get a JAXB object. Need to convert it.
 						Element jaxbToDom = JAXBUtil.jaxbToDom(objectType, SchemaConstants.I_OBJECT, null);
 						// TODO: May need to add xsi:type attribute here
-						variableMap.put(getQNameForVariable(variable.getVariableName()), new Variable(
-								jaxbToDom, false));
+						variableMap.put(getQNameForVariable(variable.getVariableName()), 
+								jaxbToDom);
 					} catch (Exception ex) {
 						LoggingUtils.logException(LOGGER, "Failed to get variable value {}", ex,
 								variable.getValue());
@@ -156,7 +156,7 @@ public class XPathDebugController implements Serializable {
 				}
 				if (variable.getType().equals("String")) {
 					variableMap.put(getQNameForVariable(variable.getVariableName()),
-							new Variable(variable.getValue(), false));
+							variable.getValue());
 				}
 			}
 		}

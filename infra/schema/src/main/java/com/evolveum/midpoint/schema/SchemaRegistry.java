@@ -73,6 +73,7 @@ public class SchemaRegistry implements LSResourceResolver {
 	private EntityResolver builtinSchemaResolver;	
 	private List<SchemaDescription> schemaDescriptions;
 	private Map<String,Schema> parsedSchemas;
+	private boolean initialized = false;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaRegistry.class);
 	
@@ -142,6 +143,7 @@ public class SchemaRegistry implements LSResourceResolver {
 		initResolver();
 		parseJavaxSchema();
 		parseMidPointSchema();
+		initialized = true;
 	}
 	
 	private void parseJavaxSchema() throws SAXException, IOException {
@@ -199,8 +201,11 @@ public class SchemaRegistry implements LSResourceResolver {
 		return parsedSchemas.get(namespace);
 	}
 	
-	// Convenience
+	// Convenience and safety
 	public Schema getCommonSchema() {
+		if (!initialized) {
+			throw new IllegalStateException("Attempt to get common schema from uninitialized Schema Registry");
+		}
 		return parsedSchemas.get(SchemaConstants.NS_C);
 	}
 	

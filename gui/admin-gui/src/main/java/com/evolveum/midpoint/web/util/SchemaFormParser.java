@@ -33,6 +33,7 @@ import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
@@ -51,7 +52,7 @@ import com.evolveum.midpoint.web.jsf.form.FormObject;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfigurationType;
 
 /**
  * 
@@ -62,7 +63,7 @@ public class SchemaFormParser {
 
 	private static Trace LOGGER = TraceManager.getTrace(SchemaFormParser.class);
 
-	public List<FormObject> parseSchemaForConnector(ConnectorDto connector, Configuration configuration)
+	public List<FormObject> parseSchemaForConnector(ConnectorDto connector, ResourceConfigurationType configuration)
 			throws SchemaException {
 		Validate.notNull(connector, "Connector must not be null.");
 		List<FormObject> objects = new ArrayList<FormObject>();
@@ -158,7 +159,7 @@ public class SchemaFormParser {
 		return valueMap;
 	}
 
-	private Map<List<QName>, List<Object>> createConfigValueMap(Configuration configuration) {
+	private Map<List<QName>, List<Object>> createConfigValueMap(ResourceConfigurationType configuration) {
 		if (configuration == null) {
 			return createAttributeValueMap(null);
 		}
@@ -219,7 +220,7 @@ public class SchemaFormParser {
 		}
 
 		ResourceDto resource = account.getResource();
-		Schema schema = ResourceTypeUtil.getResourceSchema(resource.getXmlObject());
+		Schema schema = RefinedResourceSchema.getResourceSchema(resource.getXmlObject());
 		// schema.updateSchemaAccess(resource.getXmlObject().getSchemaHandling());
 		ResourceObjectDefinition definition = (ResourceObjectDefinition) schema
 				.findContainerDefinitionByType(accountType);
@@ -265,7 +266,7 @@ public class SchemaFormParser {
 			}
 		}
 
-		Schema schema = ResourceTypeUtil.getResourceSchema(resourceDto.getXmlObject());
+		Schema schema = RefinedResourceSchema.getResourceSchema(resourceDto.getXmlObject());
 		for (Definition definition : schema.getDefinitions()) {
 			if (!(definition instanceof ResourceObjectDefinition)) {
 				continue;

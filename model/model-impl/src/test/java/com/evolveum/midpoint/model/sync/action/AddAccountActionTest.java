@@ -38,10 +38,10 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.test.context.ContextConfiguration;
 
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.model.test.util.ModelTUtil;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;

@@ -11,11 +11,11 @@ import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.exception.ConcurrencyException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.bean.TaskItem;
@@ -173,8 +173,15 @@ public class TaskDetailsController implements Serializable {
 
 	public void createInstance() {
 
-		taskManager.createTaskInstance(task.toTaskType());
-		FacesUtils.addSuccessMessage("Task instance created sucessfully");
+		try {
+			taskManager.createTaskInstance(task.toTaskType());
+			FacesUtils.addSuccessMessage("Task instance created sucessfully");
+			
+		} catch (SchemaException ex) {
+			FacesUtils.addErrorMessage(
+					"Failed to create task. Reason: " + ex.getMessage(), ex);
+		}
+		
 	}
 
 	public TaskManager getTaskManager() {

@@ -21,13 +21,16 @@ package com.evolveum.midpoint.common.expression;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
 
 /**
- * @author semancik
+ * 
+ * @author Radovan Semancik
  *
  */
 public class ExpressionFactory {
@@ -39,6 +42,17 @@ public class ExpressionFactory {
 	
 	public ExpressionFactory() {
 		evaluators = new HashMap<String, ExpressionEvaluator>();
+	}
+	
+	/**
+	 * Factory method created especially to be used from the Spring context.
+	 */
+	public static ExpressionFactory createExpressionFactory(Map<String,ExpressionEvaluator> evaluators) {
+		ExpressionFactory expressionFactory = new ExpressionFactory();
+		for (Entry<String, ExpressionEvaluator> entry: evaluators.entrySet()) {
+			expressionFactory.registerEvaluator(entry.getKey(), entry.getValue());
+		}
+		return expressionFactory;
 	}
 	
 	public ObjectResolver getObjectResolver() {
@@ -56,6 +70,7 @@ public class ExpressionFactory {
 	public Expression createExpression(ExpressionType expressionType, String shortDesc) throws ExpressionEvaluationException {
 		Expression expression = new Expression(getEvaluator(getLanguage(expressionType), shortDesc), expressionType, shortDesc);
 		expression.setObjectResolver(objectResolver);
+		expression.setReturnType(expressionType.getReturnType());
 		return expression;
 	}
 	

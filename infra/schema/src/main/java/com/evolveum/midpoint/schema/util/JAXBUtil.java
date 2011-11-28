@@ -344,6 +344,10 @@ public final class JAXBUtil {
 		}
 	}
 
+	public static <T> JAXBElement<T> unmarshal(File file, Class<T> clazz) throws JAXBException {
+		return (JAXBElement<T>) unmarshal(file);
+	}
+	
 	public static Object unmarshal(File file) throws JAXBException {
 		if (file == null) {
 			throw new IllegalArgumentException("File argument can't be null.");
@@ -652,7 +656,7 @@ public final class JAXBUtil {
 			throw new IllegalArgumentException("Got unexpected type " + b.getClass().getName() + ": " + b);
 		}
 
-		return DOMUtil.compareElement(ae, be);
+		return DOMUtil.compareElement(ae, be, true);
 	}
 
 	public static <T> T fromElement(Object element, Class<T> type) {

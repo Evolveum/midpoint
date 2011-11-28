@@ -25,7 +25,7 @@ package com.evolveum.midpoint.web.bean;
 import java.io.Serializable;
 import java.util.Date;
 
-import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.util.FacesUtils;
 
 /**

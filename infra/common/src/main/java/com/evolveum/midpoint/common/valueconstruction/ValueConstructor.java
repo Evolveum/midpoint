@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
 
 /**
  * @author Radovan Semancik
@@ -37,7 +38,7 @@ import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 public interface ValueConstructor {
 
 	Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition,
-			Property input, Map<QName, Object> variables, String contextDescription) throws SchemaException,
+			Property input, Map<QName, Object> variables, String contextDescription, OperationResult result) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException;
 
 }

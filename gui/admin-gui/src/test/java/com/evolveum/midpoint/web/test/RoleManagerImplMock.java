@@ -24,7 +24,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.model.RoleManager;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;

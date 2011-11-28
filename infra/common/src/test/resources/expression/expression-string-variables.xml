@@ -2,10 +2,12 @@
 <expression xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
 		xmlns:x="http://example.com/xxx"
 		xmlns:y="http://example.com/yyy">
-    <variable name="x:foo">
+    <variable>
+    	<name>x:foo</name>
     	<value>FOO</value>
     </variable>
-    <variable name="y:bar">
+    <variable>
+    	<name>y:bar</name>
     	<value>BAR</value>
     </variable>
 	<code xmlns:x="http://example.com/xxx">

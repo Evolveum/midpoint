@@ -29,9 +29,8 @@ import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AsIsValueConstructorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.LiteralValueConstructorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionXType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
 
 /**
  * @author Radovan Semancik
@@ -65,7 +64,7 @@ public class ValueConstructionFactory {
 
 	private void createLiteralConstructor() {
 		ValueConstructor constructor = new LiteralValueConstructor();
-		JAXBElement<LiteralValueConstructorType> element = objectFactory.createLiteral(objectFactory.createLiteralValueConstructorType());
+		JAXBElement<Object> element = objectFactory.createValue(null);
 		constructors.put(element.getName(), constructor);
 	}
 
@@ -81,7 +80,7 @@ public class ValueConstructionFactory {
 		constructors.put(element.getName(), constructor);
 	}
 
-	public ValueConstruction createValueConstruction(ValueConstructionXType valueConstructionType, PropertyDefinition outputDefinition, String shortDesc) {
+	public ValueConstruction createValueConstruction(ValueConstructionType valueConstructionType, PropertyDefinition outputDefinition, String shortDesc) {
 		if (constructors == null) {
 			initialize();
 		}

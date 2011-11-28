@@ -24,7 +24,7 @@ package com.evolveum.midpoint.model.sync;
 
 import java.util.List;
 
-import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;

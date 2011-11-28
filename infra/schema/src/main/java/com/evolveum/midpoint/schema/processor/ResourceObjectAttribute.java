@@ -118,7 +118,7 @@ public class ResourceObjectAttribute extends Property {
 	 * Return a human readable name of this class suitable for logs.
 	 */
 	protected String getDebugDumpClassName() {
-		return "Attribute";
+		return "ROA";
 	}
 		
 }

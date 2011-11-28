@@ -45,12 +45,12 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.crypto.Protector;
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
@@ -149,6 +149,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			OperationResult result) throws Exception {
 		OperationResult subResult = result.createSubresult(AbstractIntegrationTest.class.getName()
 				+ ".addObjectFromFile");
+		subResult.addParam("filePath", filePath);
 		LOGGER.trace("addObjectFromFile: {}", filePath);
 		T object = unmarshallJaxbFromFile(filePath, type);
 		System.out.println("obj: " + object.getName());

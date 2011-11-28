@@ -41,7 +41,7 @@ import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType.Password;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
@@ -120,7 +120,7 @@ public class ResourceCapability implements Serializable {
 		CredentialsType credentials = new CredentialsType();
 		credentials.setAllowedIdmGuiAccess(allowedIdmGuiAccess);
 		
-		CredentialsType.Password password = new CredentialsType.Password();
+		PasswordType password = new PasswordType();
 		
 		
 		try{

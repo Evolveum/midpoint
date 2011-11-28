@@ -36,13 +36,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
-import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.common.result.OperationResultStatus;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.ConcurrencyException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -152,19 +152,21 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	}
 	
 	@Override
-	public Task createTaskInstance(TaskType taskType) {
+	public Task createTaskInstance(TaskType taskType) throws SchemaException {
 		//Note: we need to be Spring Bean Factory Aware, because some repo implementations are in scope prototype
 		RepositoryService repoService = (RepositoryService) this.beanFactory.getBean("repositoryService");
-		return new TaskImpl(this,taskType,repoService);
+		TaskImpl task = new TaskImpl(this,repoService);
+		task.initialize(taskType);
+		return task;
 	}
 	
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.task.api.TaskManager#createTaskInstance(com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType, java.lang.String)
 	 */
 	@Override
-	public Task createTaskInstance(TaskType taskType, String operationName) {
+	public Task createTaskInstance(TaskType taskType, String operationName) throws SchemaException {
 		RepositoryService repoService = (RepositoryService) this.beanFactory.getBean("repositoryService");
-		TaskImpl taskImpl = new TaskImpl(this,taskType,repoService);
+		TaskImpl taskImpl = (TaskImpl)createTaskInstance(taskType);
 		if (taskImpl.getResult()==null) {
 			taskImpl.setResult(new OperationResult(operationName));
 		}
@@ -202,8 +204,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		ObjectType object = repositoryService.getObject(ObjectType.class, taskOid, resolve, result);
 		TaskType taskType = (TaskType) object;
 		//Note: we need to be Spring Bean Factory Aware, because some repo implementations are in scope prototype
-		RepositoryService repoService = (RepositoryService) this.beanFactory.getBean("repositoryService");	
-		return new TaskImpl(this,taskType,repoService);
+		return createTaskInstance(taskType);
 	}
 
 	/* (non-Javadoc)
@@ -413,12 +414,10 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	 * Precondition: claimed, runnable task
 	 * As the task is claimed as it enters this methods, all we need is to execute it.
 	 * 
-	 * @param task XML TaskType object
+	 * @param task XML TaskType object 
 	 */
-	public void processRunnableTaskType(TaskType taskType) {
-		//Note: we need to be Spring Bean Factory Aware, because some repo implementations are in scope prototype
-		RepositoryService repoService = (RepositoryService) this.beanFactory.getBean("repositoryService");
-		Task task = new TaskImpl(this,taskType,repoService);
+	public void processRunnableTaskType(TaskType taskType) throws SchemaException {
+		Task task = createTaskInstance(taskType);
 		processRunnableTask(task);
 	}
 

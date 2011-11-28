@@ -41,13 +41,13 @@ import org.mockito.stubbing.Answer;
 import org.springframework.test.context.ContextConfiguration;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.test.XmlAsserts;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.model.test.util.ModelTUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;

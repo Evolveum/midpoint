@@ -13,9 +13,8 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -39,8 +38,10 @@ import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
-import com.evolveum.midpoint.schema.util.MiscUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -179,7 +180,7 @@ public class ResourceTypeManager {
 
 			xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
 			xmlSchemaType.getAny().add(xsdElement);
-			xmlSchemaType.setCachingMetadata(MiscUtil.generateCachingMetadata());
+			xmlSchemaType.setCachingMetadata(MiscSchemaUtil.generateCachingMetadata());
 
 			ObjectModificationType objectModificationType = ObjectTypeUtil.createModificationReplaceProperty(
 					resource.getOid(), SchemaConstants.I_SCHEMA, xmlSchemaType);
@@ -372,7 +373,7 @@ public class ResourceTypeManager {
 			// this will also retrieve the schema from cache and/or parse it if
 			// needed
 			ResourceType completeResource = completeResource(resource, null, parentResult);
-			schema = ResourceTypeUtil.getResourceSchema(completeResource);
+			schema = RefinedResourceSchema.getResourceSchema(completeResource);
 
 		} catch (SchemaException e) {
 			parentResult.recordFatalError("Unable to parse resource schema: " + e.getMessage(), e);

@@ -31,6 +31,7 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 
 /**
@@ -55,7 +56,7 @@ import com.evolveum.midpoint.util.Dumpable;
  * @author Radovan Semancik
  * 
  */
-public abstract class Definition implements Serializable, Dumpable {
+public abstract class Definition implements Serializable, Dumpable, DebugDumpable {
 
 	private static final long serialVersionUID = -2643332934312107274L;
 	protected QName defaultName;
@@ -161,7 +162,43 @@ public abstract class Definition implements Serializable, Dumpable {
 	public void setHelp(String help) {
 		this.help = help;
 	}
-		
+	
+	protected void copyDefinitionData(Definition clone) {
+		clone.defaultName = this.defaultName;
+		clone.displayName = this.displayName;
+		clone.help = this.help;
+		clone.ignored = this.ignored;
+		clone.typeName = this.typeName;
+	}
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (ignored ? 1231 : 1237);
+		result = prime * result + ((typeName == null) ? 0 : typeName.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Definition other = (Definition) obj;
+		if (ignored != other.ignored)
+			return false;
+		if (typeName == null) {
+			if (other.typeName != null)
+				return false;
+		} else if (!typeName.equals(other.typeName))
+			return false;
+		return true;
+	}
+
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + " ("+getTypeName()+")";
@@ -169,13 +206,19 @@ public abstract class Definition implements Serializable, Dumpable {
 	
 	@Override
 	public String dump() {
-		return dump(0);
+		return debugDump();
 	}
 	
-	public String dump(int indent) {
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		for (int i=0; i<indent; i++) {
-			sb.append(Schema.INDENT);
+			sb.append(DebugDumpable.INDENT_STRING);
 		}
 		sb.append(toString());
 		sb.append("\n");

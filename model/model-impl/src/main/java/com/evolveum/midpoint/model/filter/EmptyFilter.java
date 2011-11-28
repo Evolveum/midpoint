@@ -25,7 +25,7 @@ package com.evolveum.midpoint.model.filter;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 

@@ -31,7 +31,8 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAccountTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
 
@@ -58,7 +59,7 @@ public class ResourceDto extends ExtensibleObjectDto<ResourceType> {
 		return getXmlObject().getConfiguration().getAny();
 	}
 
-	public void setConfiguration(Configuration value) {
+	public void setConfiguration(ResourceConfigurationType value) {
 		// TODO		
 	}
 	
@@ -72,8 +73,8 @@ public class ResourceDto extends ExtensibleObjectDto<ResourceType> {
 			return accountTypeList;
 		}
 
-		List<SchemaHandlingType.AccountType> list = getXmlObject().getSchemaHandling().getAccountType();
-		for (SchemaHandlingType.AccountType accountType : list) {
+		List<ResourceAccountTypeDefinitionType> list = getXmlObject().getSchemaHandling().getAccountType();
+		for (ResourceAccountTypeDefinitionType accountType : list) {
 			accountTypeList.add(new AccountTypeDto(accountType.getName(), accountType.getObjectClass(),
 					accountType.isDefault()));
 		}

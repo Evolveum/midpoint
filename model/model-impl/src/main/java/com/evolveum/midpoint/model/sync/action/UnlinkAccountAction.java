@@ -22,10 +22,10 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;

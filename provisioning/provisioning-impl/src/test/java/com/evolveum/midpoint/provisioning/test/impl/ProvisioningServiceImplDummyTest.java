@@ -32,14 +32,13 @@ import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.refinery.EnhancedResourceType;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
-import com.evolveum.midpoint.schema.EnhancedResourceType;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
@@ -51,6 +50,8 @@ import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
@@ -198,7 +199,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	public void test002ConnectorRediscovery() {
 		displayTestTile("test002ConnectorRediscovery");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
 				+ ".test002ConnectorRediscovery");
 
 		// WHEN
@@ -221,7 +222,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	public void test003Connection() throws ObjectNotFoundException, SchemaException {
 		displayTestTile("test003Connection");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
 				+ ".test003Connection");
 		// Check that there is no schema before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID,
@@ -265,7 +266,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	public void test004ParsedSchema() throws ObjectNotFoundException, CommunicationException, SchemaException {
 		displayTestTile("test004ParsedSchema");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
 				+ ".test004ParsedSchema");
 
 		// WHEN
@@ -279,7 +280,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertNotNull(enh.getParsedSchema());
 
 		// Also test if the utility method returns the same thing
-		Schema returnedSchema = ResourceTypeUtil.getResourceSchema(resource);
+		Schema returnedSchema = RefinedResourceSchema.getResourceSchema(resource);
 
 		// Not equals() but == ... we want to really know if exactly the same
 		// object instance is returned
@@ -326,7 +327,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		displayTestTile("test005Capabilities");
 
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
 				+ ".test005Capabilities");
 
 		// WHEN

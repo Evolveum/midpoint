@@ -26,9 +26,9 @@ import javax.xml.bind.JAXBException;
 
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -86,7 +86,7 @@ public class ModifyUserAction extends BaseAction {
 				resolveResource(shadowAfterChange);
 			}
 
-			userType = getSchemaHandler().processInboundHandling(userType, shadowAfterChange, result);
+//			userType = getSchemaHandler().processInboundHandling(userType, shadowAfterChange, result);
 
 			ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldUserType, userType);
 			if (modification != null && modification.getOid() != null) {

@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.bean.ResourceCapability;
 import com.evolveum.midpoint.web.model.AccountManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;

@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.schema.processor;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,6 +38,7 @@ import org.w3c.dom.Node;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 
 
@@ -204,10 +206,31 @@ public class Property extends Item {
 	 * TODO
 	 */
 	public void setValue(Object value) {
-		values.clear();
-		values.add(value);
+		this.values.clear();
+		this.values.add(value);
 	}
 	
+	public void addValue(Object value) {
+		this.values.add(value);
+	}
+	
+	public void addValues(Collection<? extends Object> valuesToAdd) {
+		this.values.addAll(valuesToAdd);
+	}
+	
+	public void deleteValues(Collection<? extends Object> valuesToDelete) {
+		this.values.removeAll(valuesToDelete);
+	}
+
+	public void replaceValues(Collection<? extends Object> valuesToReplace) {
+		this.values.clear();
+		addValues(valuesToReplace);
+	}
+	
+	public boolean isEmpty() {
+		return (values == null || values.isEmpty());
+	}
+
 	public PropertyModification createModification(PropertyModification.ModificationType modificationType, Set<Object> modifyValues) {
 
 		return new PropertyModification(this,modificationType, modifyValues);
@@ -244,8 +267,8 @@ public class Property extends Item {
 			}
 				try {
 					XsdTypeConverter.appendBelowNode(val,xsdType,getName(),parentNode,recordType);
-				} catch (JAXBException e) {
-					throw new SystemException("Unexpected JAXB problem while converting "+propDef.getTypeName()+" : "+e.getMessage(),e);
+				} catch (SchemaException e) {
+					throw new SchemaException(e.getMessage()+", while converting "+propDef.getTypeName(),e);
 				}
 		}			
 	}
@@ -322,8 +345,8 @@ public class Property extends Item {
 			
 				try {
 					elements.add(XsdTypeConverter.toXsdElement(val,xsdType,getName(),doc,recordType));
-				} catch (JAXBException e) {
-					throw new SystemException("Unexpected JAXB problem while converting "+propDef.getTypeName()+" : "+e.getMessage(),e);
+				} catch (SchemaException e) {
+					throw new SchemaException(e.getMessage()+", while converting "+propDef.getTypeName(),e);
 				}
 			
 		}			
@@ -347,8 +370,8 @@ public class Property extends Item {
 			Object newElement = null;
 			try {
 				newElement = XsdTypeConverter.toXsdElement(getValue(),getDefinition().getTypeName(),getName(),domElement.getOwnerDocument(),false);
-			} catch (JAXBException e) {
-				throw new SchemaException("Cannot convert value of property "+getName()+": "+e.getMessage(),e);
+			} catch (SchemaException e) {
+				throw new SchemaException(e.getMessage()+", while converting value of property "+getName(),e);
 			}
 			Element newDomElement = null;
 			try {
@@ -366,8 +389,46 @@ public class Property extends Item {
 	}
 	
 	@Override
+	public Property clone() {
+		Property clone = new Property();
+		copyValues(clone);
+		return clone;
+	}
+		
+	protected void copyValues(Property clone) {
+		super.copyValues(clone);
+		clone.values = new HashSet<Object>();
+		clone.values.addAll(values);
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((values == null) ? 0 : values.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Property other = (Property) obj;
+		if (values == null) {
+			if (other.values != null)
+				return false;
+		} else if (!values.equals(other.values))
+			return false;
+		return true;
+	}
+
+	@Override
 	public String toString() {
-		return getClass().getSimpleName()+"("+getName()+"):"+getValues();
+		return getClass().getSimpleName()+"("+DebugUtil.prettyPrint(getName())+"):"+getValues();
 	}
 	
 	public String debugDump(int indent) {
@@ -375,16 +436,19 @@ public class Property extends Item {
 		for (int i = 0; i < indent; i++) {
 			sb.append(INDENT_STRING);
 		}
-		sb.append(getDebugDumpClassName()).append(": ").append(getName()).append(" = ");
+		sb.append(getDebugDumpClassName()).append(": ").append(DebugUtil.prettyPrint(getName())).append(" = ");
 		if (getValues() == null) {
 			sb.append("null");
 		} else {
 			sb.append("[ ");
 			for (Object value : getValues()) {
-				sb.append(value);
+				sb.append(DebugUtil.prettyPrint(value));
 				sb.append(", ");
 			}
 			sb.append(" ]");
+		}
+		if (getDefinition() != null) {
+			sb.append(" def");
 		}
 		return sb.toString();
 	}
@@ -393,8 +457,7 @@ public class Property extends Item {
 	 * Return a human readable name of this class suitable for logs.
 	 */
 	protected String getDebugDumpClassName() {
-		return "Property";
+		return "Pro";
 	}
-
 
 }

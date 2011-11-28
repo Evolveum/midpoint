@@ -40,7 +40,6 @@ public class ResourceObjectShadowTypeComparator extends Equals<ResourceObjectSha
 		}
 		LOGGER.warn("ResourceObjectShadowTypeComparator is not comparing all class members (not implemented yet).");
 
-		o1.getAny();
 		o1.getAttributes();
 
 		return areQNameEqual(o1.getObjectClass(), o2.getObjectClass())

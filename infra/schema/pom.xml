@@ -77,6 +77,14 @@
 			<artifactId>xsom</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>commons-beanutils</groupId>
+			<artifactId>commons-beanutils</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
 		</dependency>
@@ -129,6 +137,11 @@
 			<artifactId>xmlschema-core</artifactId>
 			<version>2.0.1</version>
 		</dependency>
+		<dependency>
+			<groupId>org.jvnet.jaxb2_commons</groupId>
+			<artifactId>jaxb2-basics-runtime</artifactId>
+			<version>0.6.3</version>
+		</dependency>
 		<!--  Testing dependecies  -->
 		<dependency>
 			<groupId>org.testng</groupId>
@@ -144,7 +157,34 @@
 	</dependencies>
 	<build>
 		<plugins>
-
+			<!-- <plugin>
+				<groupId>org.jvnet.jaxb2.maven2</groupId>
+				<artifactId>maven-jaxb2-plugin</artifactId>
+				<version>0.7.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<args>
+						<arg>-XtoString</arg>
+						<arg>-Xequals</arg>
+						<arg>-XhashCode</arg>
+						<arg>-Xcopyable</arg>
+						<arg>-Xmergeable</arg>
+					</args>
+					<plugins>
+						<plugin>
+							<groupId>org.jvnet.jaxb2_commons</groupId>
+							<artifactId>jaxb2-basics</artifactId>
+							<version>0.6.3</version>
+						</plugin>
+					</plugins>
+				</configuration>
+			</plugin>  -->			
 			<plugin>
 				<groupId>org.apache.cxf</groupId>
 				<artifactId>cxf-codegen-plugin</artifactId>
@@ -165,10 +205,78 @@
 										<extraarg>-verbose</extraarg>
 										<extraarg>-validate</extraarg>
 										<extraarg>-xjc-Xts</extraarg>
+										<extraarg>-xjc-XhashCode</extraarg>
+										<extraarg>-xjc-Xequals</extraarg>
+										<extraarg>-xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.schema.DomAwareEqualsStrategy</extraarg>
+<!-- 										<extraargs>-version</extraargs> -->
+									</extraargs>
+								</wsdlOption>
+								<wsdlOption>
+									<!-- Ugly hack. The fake WSDL includes all the XSD files we need to compile
+									     This is the only way I found to generate equals and hashCode methods with CXF.
+									     If you find anything better please correct it. -->
+									<wsdl>src/main/resources/xml/ns/private/fake/fakeWrapper.wsdl</wsdl>
+									<catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog.xml</catalog>
+									<extraargs>
+										<extraarg>-impl</extraarg>
+										<extraarg>-verbose</extraarg>
+										<extraarg>-validate</extraarg>
+										<extraarg>-xjc-Xts</extraarg>
+										<extraarg>-xjc-XhashCode</extraarg>
+										<extraarg>-xjc-XhashCode-hashCodeStrategyClass=com.evolveum.midpoint.schema.DomAwareHashCodeStrategy</extraarg>
+										<extraarg>-xjc-Xequals</extraarg>
+										<extraarg>-xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.schema.DomAwareEqualsStrategy</extraarg>
 <!-- 										<extraargs>-version</extraargs> -->
 									</extraargs>
 								</wsdlOption>
 							</wsdlOptions>
+<!--							<xsdOptions>
+								<xsdOption>
+									<xsd>src/main/resources/xml/ns/public/common/common-1.xsd</xsd>
+									<extensionArgs>
+										<extensionArg>-Xts</extensionArg>
+										<extensionArg>-Xequals</extensionArg>
+										<extensionArg>-xjc-XhashCode</extensionArg>
+									</extensionArgs>
+									<extension>true</extension>
+								</xsdOption>
+								<xsdOption>
+									<xsd>src/main/resources/xml/ns/public/resource/resource-schema-1.xsd</xsd>
+									<extensionArgs>
+										<extensionArg>-Xts</extensionArg>
+										<extensionArg>-Xequals</extensionArg>
+										<extensionArg>-xjc-XhashCode</extensionArg>
+									</extensionArgs>
+									<extension>true</extension>
+								</xsdOption>
+								<xsdOption>
+									<xsd>src/main/resources/xml/ns/public/resource/capabilities-1.xsd</xsd>
+									<extensionArgs>
+										<extensionArg>-Xts</extensionArg>
+										<extensionArg>-Xequals</extensionArg>
+										<extensionArg>-xjc-XhashCode</extensionArg>
+									</extensionArgs>
+									<extension>true</extension>
+								</xsdOption>
+								<xsdOption>
+									<xsd>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-1.xsd</xsd>
+									<extensionArgs>
+										<extensionArg>-Xts</extensionArg>
+										<extensionArg>-Xequals</extensionArg>
+										<extensionArg>-xjc-XhashCode</extensionArg>
+									</extensionArgs>
+									<extension>true</extension>
+								</xsdOption>
+								<xsdOption>
+									<xsd>src/main/resources/xml/ns/public/connector/icf-1/connector-schema-1.xsd</xsd>
+									<extensionArgs>
+										<extensionArg>-Xts</extensionArg>
+										<extensionArg>-Xequals</extensionArg>
+										<extensionArg>-xjc-XhashCode</extensionArg>
+									</extensionArgs>
+									<extension>true</extension>
+								</xsdOption>
+							</xsdOptions> -->
 						</configuration>
 						<goals>
 							<goal>wsdl2java</goal>
@@ -181,8 +289,14 @@
 						<artifactId>cxf-xjc-ts</artifactId>
 						<version>${cxf-xjc.version}</version>
 					</dependency>
+					<dependency>
+						<groupId>org.jvnet.jaxb2_commons</groupId>
+						<artifactId>jaxb2-basics</artifactId>
+						<version>0.6.3</version>
+					</dependency>					
 				</dependencies>
 			</plugin>
+			<!-- 
 			<plugin>
 				<groupId>org.apache.cxf</groupId>
 				<artifactId>cxf-xjc-plugin</artifactId>
@@ -201,51 +315,16 @@
 						</goals>
 						<configuration>
 							<sourceRoot>${project.build.directory}/generated/cxf</sourceRoot>
-							<xsdOptions>
-								<xsdOption>
-									<xsd>src/main/resources/xml/ns/public/common/common-1.xsd</xsd>
-									<extensionArgs>
-										<extensionArg>-Xts</extensionArg>
-									</extensionArgs>
-									<extension>true</extension>
-								</xsdOption>
-								<xsdOption>
-									<xsd>src/main/resources/xml/ns/public/resource/resource-schema-1.xsd</xsd>
-									<extensionArgs>
-										<extensionArg>-Xts</extensionArg>
-									</extensionArgs>
-									<extension>true</extension>
-								</xsdOption>
-								<xsdOption>
-									<xsd>src/main/resources/xml/ns/public/resource/capabilities-1.xsd</xsd>
-									<extensionArgs>
-										<extensionArg>-Xts</extensionArg>
-									</extensionArgs>
-									<extension>true</extension>
-								</xsdOption>
-								<xsdOption>
-									<xsd>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-1.xsd</xsd>
-									<extensionArgs>
-										<extensionArg>-Xts</extensionArg>
-									</extensionArgs>
-									<extension>true</extension>
-								</xsdOption>
-								<xsdOption>
-									<xsd>src/main/resources/xml/ns/public/connector/icf-1/connector-schema-1.xsd</xsd>
-									<extensionArgs>
-										<extensionArg>-Xts</extensionArg>
-									</extensionArgs>
-									<extension>true</extension>
-								</xsdOption>
+							<xsdOptions>							
 							</xsdOptions>
-							<extensions>
+							<extensions> -->
 								<!--extension>org.apache.cxf.xjcplugins:cxf-xjc-dv:${cxf.version}</extension-->
-								<extension>org.apache.cxf.xjcplugins:cxf-xjc-ts:${cxf-xjc.version}</extension>
+								<!--  <extension>org.apache.cxf.xjcplugins:cxf-xjc-ts:${cxf-xjc.version}</extension>
 							</extensions>
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
+			</plugin> -->
 		</plugins>
 	</build>
 </project>

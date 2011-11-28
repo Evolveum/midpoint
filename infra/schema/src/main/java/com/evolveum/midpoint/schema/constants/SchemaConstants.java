@@ -47,6 +47,7 @@ public abstract class SchemaConstants {
 	private static final CatalogResolver catalogResolver;
 	private static boolean resolverInitialized = false;
 
+	public static final String NS_MIDPOINT_PUBLIC_PREFIX = "http://midpoint.evolveum.com/xml/ns/public/";
 	public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 	public static final String NS_ANNOTATION = "http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd";
 	public static final String NS_C_PREFIX = "c";
@@ -71,7 +72,7 @@ public abstract class SchemaConstants {
 	public static final QName C_VALUE = new QName(NS_C, "value");
 
 	public static final QName ACTIVATION = new QName(NS_C, "activation");
-
+	public static final QName C_PATH = new QName(NS_C, "path");
 	public static final QName C_OID_ATTRIBUTE = new QName(NS_C, "oid");
 	public static final QName I_OBJECTS = new QName(NS_C, "objects");
 	public static final QName C_EXTENSION = new QName(NS_C, "extension");;
@@ -133,6 +134,8 @@ public abstract class SchemaConstants {
 	public static final QName X_DOCUMENTATION = new QName(W3C_XML_SCHEMA_NS_URI, "documentation");
 	public static final QName I_SYSTEM_CONFIGURATION_TYPE = new QName(NS_C, "SystemConfigurationType");
 	public static final QName I_SYSTEM_CONFIGURATION = new QName(NS_C, "systemConfiguration");
+	public static final QName I_PASSWORD_POLICY_TYPE = new QName(NS_C, "PasswordPolicyType");
+	public static final QName I_PASSWORD_POLICY = new QName(NS_C, "passwordPolicy");
 
 	public static final QName ROLE = new QName(NS_C, "role");
 	public static final QName ROLE_TYPE = new QName(NS_C, "RoleType");

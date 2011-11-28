@@ -34,7 +34,7 @@ import javax.xml.namespace.QName;
 
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.model.dto.ConnectorHostDto;

@@ -21,11 +21,15 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -72,7 +76,7 @@ public class PropertyDefinition extends ItemDefinition {
 	private boolean read = true;
 	private boolean update = true;
 
-	PropertyDefinition(QName name, QName defaultName, QName typeName) {
+	public PropertyDefinition(QName name, QName defaultName, QName typeName) {
 		super(name, defaultName, typeName);
 	}
 
@@ -81,7 +85,7 @@ public class PropertyDefinition extends ItemDefinition {
 	}
 
 	// This creates reference to other schema
-	public PropertyDefinition(QName name) {
+	PropertyDefinition(QName name) {
 		super(name, null, null);
 	}
 	
@@ -258,11 +262,7 @@ public class PropertyDefinition extends ItemDefinition {
 
 		for (Object element : elements) {		
 			Object value;
-			try {
-				value = XsdTypeConverter.toJavaValue(element, getTypeName());
-			} catch (JAXBException e) {
-				throw new SchemaException("Schema error in property "+propName+" : "+e.getMessage(),e);
-			}
+			value = XsdTypeConverter.toJavaValue(element, getTypeName());
 			prop.getValues().add(value);
 		}
 		return prop;
@@ -280,6 +280,85 @@ public class PropertyDefinition extends ItemDefinition {
 		}
 		return sb.toString();
 	}
+
+	public Property parseFromValueElement(Element valueElement) throws SchemaException {
+		Property prop = this.instantiate();
+		if (isSingleValue()) {
+			prop.getValues().add(XsdTypeConverter.convertValueElementAsScalar(valueElement, getTypeName()));
+		} else {
+			prop.getValues().addAll(XsdTypeConverter.convertValueElementAsList(valueElement, getTypeName()));
+		}
+		return prop;
+	}
+
+	@Override
+	public Property parseItemFromJaxbObject(Object jaxbObject) throws SchemaException {
+		Property property = this.instantiate();
+		if (isMultiValue()) {
+			// expect collection
+			if (jaxbObject instanceof Collection) {
+				property.getValues().addAll((Collection)jaxbObject);
+			} else {
+				throw new SchemaException("Multi-valued property "+getName()+" got non-collection value of type "+jaxbObject.getClass().getName(),getName());
+			}
+		} else {
+			property.getValues().add(jaxbObject);
+		}
+		return property;
+	}
+	
+	@Override
+	<T extends ItemDefinition> T findItemDefinition(PropertyPath path, Class<T> clazz) {
+		if (path.isEmpty() && clazz.isAssignableFrom(this.getClass())) {
+			return (T) this;
+		} else {
+			throw new IllegalArgumentException("No definition for path "+path+" in "+this);
+		}
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + Arrays.hashCode(allowedValues);
+		result = prime * result + (create ? 1231 : 1237);
+		result = prime * result + maxOccurs;
+		result = prime * result + minOccurs;
+		result = prime * result + (read ? 1231 : 1237);
+		result = prime * result + (update ? 1231 : 1237);
+		result = prime * result + ((valueType == null) ? 0 : valueType.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PropertyDefinition other = (PropertyDefinition) obj;
+		if (!Arrays.equals(allowedValues, other.allowedValues))
+			return false;
+		if (create != other.create)
+			return false;
+		if (maxOccurs != other.maxOccurs)
+			return false;
+		if (minOccurs != other.minOccurs)
+			return false;
+		if (read != other.read)
+			return false;
+		if (update != other.update)
+			return false;
+		if (valueType == null) {
+			if (other.valueType != null)
+				return false;
+		} else if (!valueType.equals(other.valueType))
+			return false;
+		return true;
+	}
+	
 	
 	
 }

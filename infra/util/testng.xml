@@ -45,4 +45,9 @@
 			<class name="com.evolveum.midpoint.util.ClassPathTest" />
 		</classes>
 	</test>
+	<test name="Utils">
+		<classes>
+			<class name="com.evolveum.midpoint.util.TestMiscUtil" />
+		</classes>
+	</test>
 </suite>

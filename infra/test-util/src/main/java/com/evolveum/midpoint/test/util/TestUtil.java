@@ -17,73 +17,36 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
 
 package com.evolveum.midpoint.test.util;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
-import java.io.InputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
+import static org.testng.AssertJUnit.assertEquals;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * Unit test utility.
+ * Unit test utilities.
  * 
- * The utility is able to locate and unmarshall sample XML objects.
- * 
- * It is expected that this will be used by other unit tests to reuse
- * the same XML objects instead of each test creating its own set of
- * testing objects.
- *
- * @author $author$
- * @version $Revision$ $Date$
- * @since 1.0.0
+ * @author Radovan Semancik
  */
 public class TestUtil {
 
-    public static final String code_id = "$Id$";
-    public static final JAXBContext ctx;
-
-    static {
-        JAXBContext context = null;
-        try {
-            context = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
-        } catch (JAXBException ex) {
-            ex.printStackTrace();
-        }
-        ctx = context;
-    }
-
-    /**
-     * Gets an object from the sample object store and unmarshall it.
-     *
-     * The sample objects are stored in XML form in /repository/%s.xml files.
-     * The objects are referenceable by {@link SampleObjects} enum.
-     * 
-     * @param object
-     * @return the sample object instance or assert null error if the object is not available
-     */
-    public static ExtensibleObjectType getSampleObject(SampleObjects object) {
-        assert null != object;
-        String resourceName = String.format("/test-data/repository/%s.xml", object.getOID());
-
-        InputStream in = TestUtil.class.getResourceAsStream(resourceName);
-        ExtensibleObjectType out = null;
-        if (null != in) {
-            try {
-                JAXBElement<ExtensibleObjectType> o = (JAXBElement<ExtensibleObjectType>) ctx.createUnmarshaller().unmarshal(in);
-                out = o.getValue();
-            } catch (JAXBException ex) {
-                Logger.getLogger(TestUtil.class.getName()).log(Level.SEVERE, "Error parsing "+object.getOID(), ex);
-            }
-        }
-
-        assert null != out;
-        return out;
-    }
+	public static <T> void assertSetEquals(Collection<T> actual, T... expected) {
+		assertSetEquals(null,actual,expected);
+	}
+	
+	public static <T> void assertSetEquals(String message, Collection<T> actual, T... expected) {
+		Set<T> expectedSet = new HashSet<T>();
+		expectedSet.addAll(Arrays.asList(expected));
+		Set<T> actualSet = new HashSet<T>();
+		actualSet.addAll(actual);
+		if (message != null) {
+			assertEquals(message,expectedSet,actualSet);
+		} else {
+			assertEquals(expectedSet,actualSet);
+		}
+	}
 }

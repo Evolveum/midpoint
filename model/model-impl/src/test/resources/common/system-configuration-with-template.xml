@@ -1,28 +1,36 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+	<name>System Configuration</name>
 	<defaultUserTemplate>
-		<name>Default User Template</name>
-		<propertyConstruction>
-			<property>			
-				declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-				i:fullName
-			</property>
-			<valueConstruction default="true">
-				<valueExpression>
-					<code>
-						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-						concat($i:user/i:givenName,' ',$i:user/i:familyName)
-					</code>
-            </valueExpression>
-			</valueConstruction>
-		</propertyConstruction>
-		<accountConstruction>
-			<resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType" />
-			<type>Default Account</type>
-		</accountConstruction>
+	    <name>Default User Template</name>
+	    <propertyConstruction>
+	        <property>c:fullName</property>
+	        <valueConstruction>
+	        	<initial>true</initial>
+	            <expression>
+	            	<code>
+	                    declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+	                    concat($c:user/c:givenName,' ',$c:user/c:familyName)
+	                </code>
+	            </expression>
+	        </valueConstruction>
+	    </propertyConstruction>
+	    <propertyConstruction>
+	        <property>c:assignment</property>
+	        <valueConstruction>
+	        	<initial>true</initial>
+	            <value>
+	            	<assignment>
+						<accountConstruction>
+							<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+						</accountConstruction>
+					</assignment>
+	            </value>
+	        </valueConstruction>
+	    </propertyConstruction>
 	</defaultUserTemplate>
-	<name>SystemConfiguration</name>
 	<logging>
 		<logger>
 			<level>all</level>

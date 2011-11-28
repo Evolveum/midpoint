@@ -20,37 +20,49 @@
 package com.evolveum.midpoint.common.valueconstruction;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionXType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.VariableDefinitionType;
 
 /**
  * @author Radovan Semancik
  *
  */
-public class ValueConstruction {
+public class ValueConstruction implements Dumpable, DebugDumpable {
 
 	private Map<QName,ValueConstructor> constructors;
 	private Map<QName,Object> variables;
 	private String shortDesc;
-	private ValueConstructionXType valueConstructionType;
+	private ValueConstructionType valueConstructionType;
 	private ObjectResolver objectResolver;
 	private Property input;
 	private Property output;
@@ -58,7 +70,7 @@ public class ValueConstruction {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ValueConstruction.class);
 	
-	ValueConstruction(ValueConstructionXType valueConstructionType, PropertyDefinition outputDefinition, String shortDesc, Map<QName,ValueConstructor> constructors) {
+	ValueConstruction(ValueConstructionType valueConstructionType, PropertyDefinition outputDefinition, String shortDesc, Map<QName,ValueConstructor> constructors) {
 		this.shortDesc = shortDesc;
 		this.valueConstructionType = valueConstructionType;
 		this.constructors = constructors;
@@ -88,6 +100,10 @@ public class ValueConstruction {
 	public void setRootNode(ObjectReferenceType objectRef) {
 		addVariableDefinition(null,(Object)objectRef);
 	}
+	
+	public void setRootNode(ObjectType objectType) {
+		addVariableDefinition(null,(Object)objectType);
+	}
 
 	public void addVariableDefinition(VariableDefinitionType varDef) {
 		if (varDef.getObjectRef() != null) {
@@ -103,11 +119,25 @@ public class ValueConstruction {
 	public void addVariableDefinition(QName name, ObjectReferenceType objectRef) {
 		addVariableDefinition(name,(Object)objectRef);
 	}
+	
+	public void addVariableDefinition(QName name, ObjectType objectType) {
+		addVariableDefinition(name,(Object)objectType);
+	}
+	
+	public void addVariableDefinition(QName name, MidPointObject<? extends ObjectType> midpointObject) {
+		addVariableDefinition(name,(Object)midpointObject);
+	}
 
 	public void addVariableDefinition(QName name, String value) {
 		addVariableDefinition(name,(Object)value);
 	}
 		
+	public void addVariableDefinitions(Map<QName, Object> extraVariables) {
+		for (Entry<QName, Object> entry : extraVariables.entrySet()) {
+			variables.put(entry.getKey(), entry.getValue());
+		}
+	}
+	
 	private void addVariableDefinition(QName name, Object value) {
 		if (variables.containsKey(name)) {
 			LOGGER.warn("Duplicate definition of variable {} in expression {}, ignoring it",name,shortDesc);
@@ -116,25 +146,63 @@ public class ValueConstruction {
 		variables.put(name, value);
 	}
 	
-	public void evaluate() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+	public boolean isInitial() {
+		Boolean value = valueConstructionType.isInitial();
+		if (value == null) {
+			value = false;
+		}
+		return value;
+	}
+
+	public boolean isAuthoritative() {
+		Boolean value = valueConstructionType.isAuthoritative();
+		if (value == null) {
+			value = false;
+		}
+		return value;
+	}
+
+	public boolean isExclusive() {
+		Boolean value = valueConstructionType.isExclusive();
+		if (value == null) {
+			value = false;
+		}
+		return value;
+	}
+	
+	public void evaluate(OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		if (outputDefinition == null) {
 			throw new IllegalArgumentException("No output definition, cannot evaluate construction "+shortDesc);
 		}
 		// TODO: evaluate condition
 		// TODO: input filter
-		evaluateValueConstructors();
+		evaluateValueConstructors(result);
 		// TODO: output filter
 	}
 	
-	private void evaluateValueConstructors() throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		for (JAXBElement<?> valueConstructorElement : valueConstructionType.getValue().getValueConstructor()) {
-			
-			output = determineConstructor(valueConstructorElement)
-						.construct(valueConstructorElement, outputDefinition, input, variables, shortDesc);
-			
-			if (output != null) {
-				// we got the value, no need to continue
-				break;
+	private void evaluateValueConstructors(OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		if (valueConstructionType.getValueConstructor() != null && valueConstructionType.getSquence() != null) {
+			throw new SchemaException("Both constructor and sequence was specified, ambiguous situation in "+shortDesc);
+		}
+		if (valueConstructionType.getValueConstructor() == null && valueConstructionType.getSquence() == null) {
+			throw new SchemaException("No constructor was specified in "+shortDesc);
+		}
+		
+		if (valueConstructionType.getValueConstructor() != null) {
+			output = determineConstructor(valueConstructionType.getValueConstructor())
+				.construct(valueConstructionType.getValueConstructor(), outputDefinition, input, variables, shortDesc, result);
+		}
+		
+		if (valueConstructionType.getSquence() != null) {
+			for (JAXBElement<?> valueConstructorElement : valueConstructionType.getSquence().getValueConstructor()) {
+				
+				output = determineConstructor(valueConstructorElement)
+							.construct(valueConstructorElement, outputDefinition, input, variables, shortDesc, result);
+				
+				if (output != null) {
+					// we got the value, no need to continue
+					break;
+				}
 			}
 		}
 	}
@@ -149,4 +217,85 @@ public class ValueConstruction {
 	public Property getOutput() {
 		return output;
 	}
+	
+	public static List<Object> getStaticValueList(ValueConstructionType valueConstruction) throws SchemaException {
+		JAXBElement<?> valueConstructor = valueConstruction.getValueConstructor();
+		if (valueConstructor == null) {
+			return null;
+		}
+		if (!valueConstructor.getName().equals(SchemaConstants.C_VALUE)) {
+			throw new IllegalArgumentException("Expected static value constructor but found "+valueConstructor.getName()+" in value construction");
+		}
+		Element element = (Element)valueConstructor.getValue();
+		return XsdTypeConverter.convertValueElementAsList(element);
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((input == null) ? 0 : input.hashCode());
+		result = prime * result + ((output == null) ? 0 : output.hashCode());
+		result = prime * result + ((outputDefinition == null) ? 0 : outputDefinition.hashCode());
+		result = prime * result + ((variables == null) ? 0 : variables.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ValueConstruction other = (ValueConstruction) obj;
+		if (input == null) {
+			if (other.input != null)
+				return false;
+		} else if (!input.equals(other.input))
+			return false;
+		if (output == null) {
+			if (other.output != null)
+				return false;
+		} else if (!output.equals(other.output))
+			return false;
+		if (outputDefinition == null) {
+			if (other.outputDefinition != null)
+				return false;
+		} else if (!outputDefinition.equals(other.outputDefinition))
+			return false;
+		if (variables == null) {
+			if (other.variables != null)
+				return false;
+		} else if (!variables.equals(other.variables))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		for (int i=0;i<indent;i++) {
+			sb.append(INDENT_STRING);
+		}
+		sb.append(toString());
+		return sb.toString();
+	}
+
+	@Override
+	public String dump() {
+		return debugDump();
+	}
+
+	@Override
+	public String toString() {
+		return "ValueConstruction(" + DebugUtil.prettyPrint(outputDefinition.getName()) + " = " + output + ")";
+	}
+	
 }

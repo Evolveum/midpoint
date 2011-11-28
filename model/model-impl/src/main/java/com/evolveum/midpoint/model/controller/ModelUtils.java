@@ -41,11 +41,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.AccountType;
 
 /**
  * 
@@ -92,35 +92,6 @@ public class ModelUtils {
 		}
 	}
 
-	public static AccountType getAccountTypeFromHandling(ResourceObjectShadowType accountShadow,
-			ResourceType resource) {
-		Validate.notNull(accountShadow, "Resource object shadow must not be null.");
-		Validate.notNull(resource, "Resource must not be null.");
-
-		SchemaHandlingType schemaHandling = resource.getSchemaHandling();
-		if (schemaHandling == null) {
-			return null;
-		}
-
-		QName accountObjectClass = accountShadow.getObjectClass();
-		if (accountObjectClass != null) {
-			for (AccountType accountType : schemaHandling.getAccountType()) {
-				if (accountObjectClass.equals(accountType.getObjectClass())) {
-					return accountType;
-				}
-			}
-		}
-
-		// no suitable definition found, then use default account
-		for (AccountType accountType : schemaHandling.getAccountType()) {
-			if (accountType.isDefault()) {
-				return accountType;
-			}
-		}
-
-		return null;
-	}
-
 	public static void generatePassword(AccountShadowType account, int length, Protector protector)
 			throws EncryptionException {
 		Validate.notNull(account, "Account shadow must not be null.");
@@ -132,11 +103,11 @@ public class ModelUtils {
 			pwd = new RandomString(length).nextString();
 		}
 
-		CredentialsType.Password password = getPassword(account);
+		PasswordType password = getPassword(account);
 		password.setProtectedString(protector.encryptString(pwd));
 	}
 
-	public static CredentialsType.Password getPassword(AccountShadowType account) {
+	public static PasswordType getPassword(AccountShadowType account) {
 		Validate.notNull(account, "Account shadow must not be null.");
 
 		CredentialsType credentials = account.getCredentials();
@@ -145,9 +116,9 @@ public class ModelUtils {
 			credentials = of.createCredentialsType();
 			account.setCredentials(credentials);
 		}
-		CredentialsType.Password password = credentials.getPassword();
+		PasswordType password = credentials.getPassword();
 		if (password == null) {
-			password = of.createCredentialsTypePassword();
+			password = of.createPasswordType();
 			credentials.setPassword(password);
 		}
 
@@ -169,34 +140,6 @@ public class ModelUtils {
 		}
 
 		return list;
-	}
-
-	public static AccountType getAccountTypeFromHandling(String accountTypeName, ResourceType resource) {
-		Validate.notNull(resource, "Resource must not be null.");
-
-		SchemaHandlingType schemaHandling = resource.getSchemaHandling();
-		if (schemaHandling == null) {
-			throw new IllegalArgumentException(
-					"Provided resource definition doesn't contain schema handling.");
-		}
-
-		if (StringUtils.isNotEmpty(accountTypeName)) {
-			for (AccountType accountType : schemaHandling.getAccountType()) {
-				if (accountTypeName.equals(accountType.getName())) {
-					return accountType;
-				}
-			}
-		}
-
-		// no suitable definition found, then use default account
-		for (AccountType accountType : schemaHandling.getAccountType()) {
-			if (accountType.isDefault()) {
-				return accountType;
-			}
-		}
-
-		throw new IllegalArgumentException("No schema handlig account type for name '" + accountTypeName
-				+ "' found.");
 	}
 
 	public static boolean isActivationEnabled(ActivationType activation) {

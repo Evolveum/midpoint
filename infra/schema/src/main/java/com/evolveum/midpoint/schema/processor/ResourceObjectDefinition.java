@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,6 +29,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.util.DebugDumpable;
 
 /**
  * Resource Object Definition (Object Class).
@@ -57,6 +59,7 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 	private ResourceObjectAttributeDefinition namingAttribute;
 	private boolean defaultAccountType = false;
 	private boolean accountType = false;
+	private String accountTypeName;
 	private String nativeObjectClass;
 
 	public ResourceObjectDefinition(Schema schema, QName name, ComplexTypeDefinition complexTypeDefinition) {
@@ -77,7 +80,7 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 	 * @throws IllegalStateException
 	 *             if there is no definition for the referenced attributed
 	 */
-	public Set<ResourceObjectAttributeDefinition> getIdentifiers() {
+	public Collection<ResourceObjectAttributeDefinition> getIdentifiers() {
 		if (idenitifiers == null) {
 			idenitifiers = new HashSet<ResourceObjectAttributeDefinition>();
 		}
@@ -256,6 +259,14 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 			}
 		}
 	}
+	
+	public String getAccountTypeName() {
+		return accountTypeName;
+	}
+	
+	public void setAccountTypeName(String accountTypeName) {
+		this.accountTypeName = accountTypeName;
+	}
 
 	/**
 	 * Returns the definition of display name attribute.
@@ -301,12 +312,41 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 		return new ResourceObject(getNameOrDefaultName(), this);
 	}
 	
+	@Override
+	public PropertyContainer instantiate(QName name) {
+		return new ResourceObject(name, this);
+	}
+	
+	@Override
+	public PropertyContainer instantiate(QName name, Object element) {
+		return new ResourceObject(name, this, element);
+	}
+	
+	public ResourceObjectDefinition clone() {
+		ResourceObjectDefinition clone = new ResourceObjectDefinition(schema, defaultName, complexTypeDefinition);
+		copyDefinitionData(clone);
+		return clone;
+	}
+	
+	protected void copyDefinitionData(ResourceObjectDefinition clone) {
+		super.copyDefinitionData(clone);
+		clone.accountType = this.accountType;
+		clone.accountTypeName = this.accountTypeName;
+		clone.defaultAccountType = this.defaultAccountType;
+		clone.descriptionAttribute = this.descriptionAttribute;
+		clone.displayNameAttribute = this.displayNameAttribute;
+		clone.idenitifiers = this.idenitifiers;
+		clone.namingAttribute = this.namingAttribute;
+		clone.nativeObjectClass = this.nativeObjectClass;
+		clone.secondaryIdenitifiers = this.secondaryIdenitifiers;
+	}
+
 	public Set<ResourceObjectAttribute> parseAttributes(List<Object> elements) throws SchemaException {
 		return (Set) parseItems(elements);
 	}
 
-	public Set<ResourceObjectAttribute> parseIdentifiers(List<Object> elements) throws SchemaException {
-		return (Set) parseItems(elements, getIdentifiers());
+	public Collection<? extends ResourceObjectAttribute> parseIdentifiers(List<Object> elements) throws SchemaException {
+		return (Collection) parseItems(elements, getIdentifiers());
 	}
 
 	public ResourceObjectAttributeDefinition findAttributeDefinition(QName elementQName) {
@@ -315,7 +355,7 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 	
 	public ResourceObjectAttributeDefinition findAttributeDefinition(String elementLocalname) {
 		QName elementQName = new QName(schema.getNamespace(),elementLocalname);
-		return findItemDefinition(elementQName,ResourceObjectAttributeDefinition.class);
+		return findAttributeDefinition(elementQName);
 	}
 	
 	public ResourceObjectAttributeDefinition createAttributeDefinition(QName name, QName typeName) {
@@ -336,41 +376,40 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 		return createAttributeDefinition(name,typeName);
 	}
 
-	@Override
-	public PropertyContainer instantiate(QName name) {
-		return new ResourceObject(name, this);
+	public Collection<? extends ResourceObjectAttributeDefinition> getAttributeDefinitions() {
+		Set<ResourceObjectAttributeDefinition> attrs = new HashSet<ResourceObjectAttributeDefinition>();
+		for (ItemDefinition def: complexTypeDefinition.getDefinitions()) {
+			if (def instanceof ResourceObjectAttributeDefinition) {
+				attrs.add((ResourceObjectAttributeDefinition)def);
+			}
+		}
+		return attrs;
 	}
 	
 	@Override
-	public PropertyContainer instantiate(QName name, Object element) {
-		return new ResourceObject(name, this, element);
-	}
-
-
-	@Override
-	public String dump(int indent) {
+	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		for (int i=0; i<indent; i++) {
-			sb.append(Schema.INDENT);
+			sb.append(DebugDumpable.INDENT_STRING);
 		}
 		sb.append(toString());
 		sb.append("\n");
 		for (Definition def : getDefinitions()) {
 			if (def instanceof ResourceObjectAttributeDefinition) {
 				ResourceObjectAttributeDefinition attrDef = (ResourceObjectAttributeDefinition)def;
-				sb.append(attrDef.dump(indent+1));
+				sb.append(attrDef.debugDump(indent+1));
 				if (attrDef.isIdentifier(this)) {
 					sb.deleteCharAt(sb.length()-1);
 					sb.append(" id");
 					sb.append("\n");
 				}
 			} else {
-				sb.append(def.dump(indent+1));
+				sb.append(def.debugDump(indent+1));
 			}
 		}
 		return sb.toString();
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -387,4 +426,5 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 		}
 		return sb.toString();
 	}
+
 }

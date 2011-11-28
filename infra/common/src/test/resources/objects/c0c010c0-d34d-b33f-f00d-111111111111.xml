@@ -19,13 +19,15 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
-<i:user oid="c0c010c0-d34d-b33f-f00d-111111111111" xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+<i:user oid="c0c010c0-d34d-b33f-f00d-111111111111" 
+   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   xmlns:xsd='http://www.w3.org/2001/XMLSchema'
    xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <c:name>jack</c:name>
     <c:extension>
-        <piracy:ship>Black Pearl</piracy:ship>
+        <piracy:ship xsi:type="xsd:string">Black Pearl</piracy:ship>
     </c:extension>
     <i:fullName>Jack Sparrow</i:fullName>
     <i:givenName>Jack</i:givenName>

@@ -22,11 +22,11 @@ package com.evolveum.midpoint.task.api;
 
 import java.util.Set;
 
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.exception.ConcurrencyException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
@@ -78,8 +78,9 @@ public interface TaskManager {
 	 * 
 	 * @param taskType JAXB (XML) representation of the task
 	 * @return new Java representation of the task
+	 * @throws SchemaException The provided taskType is not compliant to schema
 	 */
-	public Task createTaskInstance(TaskType taskType);
+	public Task createTaskInstance(TaskType taskType) throws SchemaException;
 
 	/**
 	 * Creates new transient, running, claimed task instance.
@@ -107,8 +108,9 @@ public interface TaskManager {
 	 * @param taskType JAXB (XML) representation of the task
 	 * @param operationName operation name to use as a root for new result in task
 	 * @return new Java representation of the task
+	 * @throws SchemaException The provided taskType is not compliant to schema
 	 */
-	public Task createTaskInstance(TaskType taskType, String operationName);
+	public Task createTaskInstance(TaskType taskType, String operationName) throws SchemaException;
 	
 	/**
 	 * Returns a task with specified OID.

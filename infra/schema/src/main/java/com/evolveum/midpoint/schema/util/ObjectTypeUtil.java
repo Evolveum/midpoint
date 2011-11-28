@@ -23,6 +23,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
@@ -34,14 +35,15 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
+import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType.Password;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -92,7 +94,6 @@ public class ObjectTypeUtil {
 		return null;
 	}
 
-	// TODO: refactor to use one code base for the method
 	public static PropertyModificationType createPropertyModificationType(
 			PropertyModificationTypeType changeType, XPathHolder xpathType, Object element) {
 		PropertyModificationType change = new PropertyModificationType();
@@ -104,16 +105,20 @@ public class ObjectTypeUtil {
 		return change;
 	}
 
-	// public static PropertyModificationType
-	// createPropertyModificationType(PropertyModificationTypeType changetype,
-	// XPathType xpath, Element element) {
-	// return createPropertyModificationType(changetype, xpath, new
-	// QName(element.getNamespaceURI(), element.getLocalName()),
-	// element.getTextContent());
-	// }
-
 	public static PropertyModificationType createPropertyModificationType(
-			PropertyModificationTypeType changetype, XPathHolder xpath, QName property, Object value) {
+			PropertyModificationTypeType changetype, XPathHolder xpath, QName propertyName, Object value) {
+		Collection<Object> values = new ArrayList<Object>(1);
+		values.add(value);
+		return createPropertyModificationType(changetype, xpath, propertyName, values);
+	}
+	
+	public static PropertyModificationType createPropertyModificationType(
+			PropertyModificationTypeType changetype, XPathHolder xpath, Property property) {
+		return createPropertyModificationType(changetype, xpath, property.getName(), property.getValues());
+	}
+	
+	public static PropertyModificationType createPropertyModificationType(
+			PropertyModificationTypeType changetype, XPathHolder xpath, QName propertyName, Collection<Object> values) {
 
 		PropertyModificationType propertyChange = new PropertyModificationType();
 		propertyChange.setModificationType(changetype);
@@ -125,35 +130,37 @@ public class ObjectTypeUtil {
 			xpath = new XPathHolder();
 		}
 
-		if (property.getPrefix() == null) {
+		if (propertyName.getPrefix() == null) {
 			// If the prefix was not specified, generate a random prefix
 			// to avoid collisions with standard "nsXX" prefixes
-			String prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(property.getNamespaceURI());
-			property = new QName(property.getNamespaceURI(), property.getLocalPart(), prefix);
+			String prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(propertyName.getNamespaceURI());
+			propertyName = new QName(propertyName.getNamespaceURI(), propertyName.getLocalPart(), prefix);
 		}
 
 		propertyChange.setPath(xpath.toElement(SchemaConstants.NS_C, "path", doc));
 
 		Value jaxbValue = new Value();
 
-		if (value == null) {
-			// Emtpy value, that means empty element set. Nothing to do.
-			// This may be used e.g. for deleting all values (replacing by empty
-			// value)
-		} else if (XsdTypeConverter.canConvert(value.getClass())) {
-
-			try {
-				Object e = XsdTypeConverter.toXsdElement(value, property, doc);
-				jaxbValue.getAny().add(e);
-			} catch (JAXBException ex) {
-				throw new SystemException("Unexpected JAXB problem while coverting " + property + " : "
-						+ ex.getMessage(), ex);
+		for (Object value : values) {
+			if (value == null) {
+				// Empty value, that means empty element set. Nothing to do.
+				// This may be used e.g. for deleting all values (replacing by empty
+				// value)
+			} else if (XsdTypeConverter.canConvert(value.getClass())) {
+	
+				try {
+					Object e = XsdTypeConverter.toXsdElement(value, propertyName, doc);
+					jaxbValue.getAny().add(e);
+				} catch (SchemaException ex) {
+					throw new SystemException("Unexpected JAXB problem while coverting " + propertyName + " : "
+							+ ex.getMessage(), ex);
+				}
+			} else if (value instanceof Element) {
+				// This may not be needed any more
+				jaxbValue.getAny().add((Element) value);
+			} else {
+				throw new IllegalArgumentException("Unsupported value type " + value.getClass().getName());
 			}
-		} else if (value instanceof Element) {
-			// This may not be needed any more
-			jaxbValue.getAny().add((Element) value);
-		} else {
-			throw new IllegalArgumentException("Unsupported value type " + value.getClass().getName());
 		}
 
 		propertyChange.setValue(jaxbValue);
@@ -163,17 +170,20 @@ public class ObjectTypeUtil {
 
 	public static ObjectModificationType createModificationReplaceProperty(String oid, QName propertyName,
 			Object propertyValue) {
+		return createModificationReplaceProperty(oid,null,propertyName,propertyValue);
+	}
+	
+	public static ObjectModificationType createModificationReplaceProperty(String oid, XPathHolder xpath, QName propertyName,
+			Object propertyValue) {
 		ObjectModificationType modification = new ObjectModificationType();
 		modification.setOid(oid);
 		List<PropertyModificationType> propertyModifications = modification.getPropertyModification();
 		PropertyModificationType propertyModification = createPropertyModificationType(
-				PropertyModificationTypeType.replace, null, propertyName, propertyValue);
+				PropertyModificationTypeType.replace, xpath, propertyName, propertyValue);
 		propertyModifications.add(propertyModification);
 		return modification;
 	}
 	
-	
-
 	public static String toShortString(ObjectType object) {
 		if (object == null) {
 			return "null";
@@ -305,7 +315,7 @@ public class ObjectTypeUtil {
 	 * single value and "replace" modification are assumed
 	 */	
 	public static <T> T getPropertyNewValue(ObjectModificationType objectChange, String pathSegment,
-			String propertyName, Class<T> propertyClass) { 
+			String propertyName, Class<T> propertyClass) throws SchemaException { 
 //		XPathSegment xpathSegment = new XPathSegment(new QName(SchemaConstants.NS_C,pathSegment));
 //		List<XPathSegment> segmentlist = new ArrayList<XPathSegment>(1);
 //		segmentlist.add(xpathSegment);
@@ -326,7 +336,7 @@ public class ObjectTypeUtil {
 	 * single value and "replace" modification are assumed
 	 */	
 	public static <T> T getPropertyNewValue(ObjectModificationType objectChange, XPathHolder path,
-			QName propertyName, Class<T> propertyClass) { 
+			QName propertyName, Class<T> propertyClass) throws SchemaException { 
 		PropertyModificationType propertyModification = getPropertyModification(objectChange, path, propertyName);
 		if (propertyModification == null) {
 			return null;
@@ -338,11 +348,7 @@ public class ObjectTypeUtil {
 		if (valueElements.size()>1) {
 			throw new IllegalStateException("Multiple values during modification of property "+propertyName+" while expeting just a single value");
 		}
-		try {
-			return XsdTypeConverter.toJavaValue(valueElements.get(0), propertyClass);
-		} catch (JAXBException e) {
-			throw new IllegalStateException("Error parsing value of property "+propertyName+": "+e.getMessage(),e);
-		}
+		return XsdTypeConverter.toJavaValue(valueElements.get(0), propertyClass);
 	}
 	
 	public static PropertyModificationType getPropertyModification(ObjectModificationType objectChange, XPathHolder path,

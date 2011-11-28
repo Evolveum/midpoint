@@ -19,25 +19,34 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!-- Portions Copyrighted 2011 lazyman					     -->
 <!--                                                         -->
-<i:userTemplate oid="10000000-0000-0000-0000-000000000002"
+<userTemplate oid="10000000-0000-0000-0000-000000000002"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
-   xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'>
-    <c:name>Default User Template</c:name>
-    <i:propertyConstruction>
-        <i:property>i:fullName</i:property>
-        <i:valueConstruction default="true">
-            <i:valueExpression>
-            	<c:code>
-                    declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                    concat($i:user/i:givenName,' ',$i:user/i:familyName)
-                </c:code>
-            </i:valueExpression>
-        </i:valueConstruction>
-    </i:propertyConstruction>
-    <i:accountConstruction>
-        <m:resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
-        <m:type>Default Account</m:type>
-    </i:accountConstruction>
-</i:userTemplate>
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'>
+    <name>Default User Template</name>
+    <propertyConstruction>
+        <property>c:fullName</property>
+        <valueConstruction>
+        	<initial>true</initial>
+            <expression>
+            	<code>
+                    declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                    concat($c:user/c:givenName,' ',$c:user/c:familyName)
+                </code>
+            </expression>
+        </valueConstruction>
+    </propertyConstruction>
+    <propertyConstruction>
+        <property>c:assignment</property>
+        <valueConstruction>
+        	<initial>true</initial>
+            <value>
+            	<assignment>
+					<accountConstruction>
+						<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+					</accountConstruction>
+				</assignment>
+            </value>
+        </valueConstruction>
+    </propertyConstruction>
+</userTemplate>

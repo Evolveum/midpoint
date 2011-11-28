@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -154,13 +155,13 @@ public final class ResourceObject extends PropertyContainer {
 	 * Resource objects may have multiple (composite) identifiers, all of them
 	 * are returned.
 	 * 
-	 * The returned set it immuatble! Any modifications will be lost.
+	 * The returned set it immutable! Any modifications will be lost.
 	 * 
 	 * @return set of identifier properties
 	 */
 	public Set<ResourceObjectAttribute> getIdentifiers() {
 		Set<ResourceObjectAttribute> identifiers = new HashSet<ResourceObjectAttribute>();
-		Set<ResourceObjectAttributeDefinition> attrDefs = getDefinition().getIdentifiers();
+		Collection<ResourceObjectAttributeDefinition> attrDefs = getDefinition().getIdentifiers();
 		for (ResourceObjectAttributeDefinition attrDef : attrDefs) {		
 			for (ResourceObjectAttribute property : getAttributes()){
 				if (attrDef.getName().equals(property.getName())){
@@ -406,7 +407,7 @@ public final class ResourceObject extends PropertyContainer {
 	 * Return a human readable name of this class suitable for logs.
 	 */
 	protected String getDebugDumpClassName() {
-		return "Resource object";
+		return "ReO";
 	}
 
 }

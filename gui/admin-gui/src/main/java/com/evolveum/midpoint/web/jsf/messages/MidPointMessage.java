@@ -22,7 +22,7 @@ package com.evolveum.midpoint.web.jsf.messages;
 
 import javax.faces.application.FacesMessage;
 
-import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResult;
 
 /**
  * 

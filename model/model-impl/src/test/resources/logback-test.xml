@@ -28,6 +28,7 @@
 		</encoder>
 	</appender>
 	<logger name="com.evolveum.midpoint.schema" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.common.expression" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model" level="TRACE" />
 	<logger name="PROFILING" level="TRACE" />
 	<root level="INFO">

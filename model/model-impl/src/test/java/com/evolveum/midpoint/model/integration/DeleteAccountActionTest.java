@@ -32,7 +32,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.test.util.ModelTUtil;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -41,6 +41,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -72,7 +73,7 @@ public class DeleteAccountActionTest extends AbstractTestNGSpringContextTests {
 
 	private ResourceObject createSampleResourceObject(ResourceType resourceType, AccountShadowType accountType)
 			throws SchemaException, SchemaException {
-		Schema schema = ResourceTypeUtil.getResourceSchema(resourceType);
+		Schema schema = RefinedResourceSchema.getResourceSchema(resourceType);
 		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema.findContainerDefinitionByType(accountType
 				.getObjectClass());
 		ResourceObject resourceObject = rod.instantiate();

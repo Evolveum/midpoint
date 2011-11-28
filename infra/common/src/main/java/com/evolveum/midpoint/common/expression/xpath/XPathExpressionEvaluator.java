@@ -38,13 +38,13 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -64,12 +64,12 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
 	
 	@Override
 	public <T> T evaluateScalar(Class<T> type, Element code, Map<QName, Object> variables,
-			ObjectResolver objectResolver, String contextDescription) throws ExpressionEvaluationException,
+			ObjectResolver objectResolver, String contextDescription, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, SchemaException {
 
 		QName returnType = determineRerturnType(type);
 		
-		Object evaluatedExpression = evaluate(returnType, code, variables, objectResolver, contextDescription);
+		Object evaluatedExpression = evaluate(returnType, code, variables, objectResolver, contextDescription, result);
 		
 		return convertScalar(type, returnType, evaluatedExpression, contextDescription);
 	}
@@ -79,10 +79,10 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
 	 */
 	@Override
 	public <T> List<T> evaluateList(Class<T> type, Element code, Map<QName, Object> variables,
-			ObjectResolver objectResolver, String contextDescription) throws ExpressionEvaluationException,
+			ObjectResolver objectResolver, String contextDescription, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, SchemaException {
 		
-		Object evaluatedExpression = evaluate(XPathConstants.NODESET, code, variables, objectResolver, contextDescription);
+		Object evaluatedExpression = evaluate(XPathConstants.NODESET, code, variables, objectResolver, contextDescription, result);
 		
 		if (!(evaluatedExpression instanceof NodeList)) {
 			throw new IllegalStateException("The expression "+contextDescription+" resulted in "+evaluatedExpression.getClass().getName()+" while exprecting NodeList");
@@ -92,13 +92,13 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
 	}
 
 		
-	private Object evaluate(QName returnType, Element code, Map<QName, Object> variables, ObjectResolver objectResolver, String contextDescription) 
+	private Object evaluate(QName returnType, Element code, Map<QName, Object> variables, ObjectResolver objectResolver, String contextDescription, OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
 		XPathExpressionCodeHolder codeHolder = new XPathExpressionCodeHolder(code);
 		
 		XPath xpath = factory.newXPath();
-		XPathVariableResolver variableResolver = new LazyXPathVariableResolver(variables, objectResolver, contextDescription);
+		XPathVariableResolver variableResolver = new LazyXPathVariableResolver(variables, objectResolver, contextDescription, result);
         xpath.setXPathVariableResolver(variableResolver);
         xpath.setNamespaceContext(new MidPointNamespaceContext(codeHolder.getNamespaceMap()));
         xpath.setXPathFunctionResolver(getFunctionResolver());
@@ -117,7 +117,7 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
 				throw (SchemaException)originalException;
 			}
 			if (e instanceof XPathExpressionException) {
-				throw createExpressionEvaluationException(e);
+				throw createExpressionEvaluationException(e, contextDescription);
 			}
 			if (e instanceof RuntimeException) {
 				throw (RuntimeException)e;
@@ -141,7 +141,7 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
 				throw (SchemaException)originalException;
 			}
 			if (e instanceof XPathExpressionException) {
-				throw createExpressionEvaluationException(e);
+				throw createExpressionEvaluationException(e, contextDescription);
 			}
 			if (e instanceof RuntimeException) {
 				throw (RuntimeException)e;
@@ -157,8 +157,8 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
 	}
 
 
-	private ExpressionEvaluationException createExpressionEvaluationException(Exception e) {
-		return new ExpressionEvaluationException(ExceptionUtil.lookForMessage(e),e);
+	private ExpressionEvaluationException createExpressionEvaluationException(Exception e, String contextDescription) {
+		return new ExpressionEvaluationException(ExceptionUtil.lookForMessage(e)+" in "+contextDescription,e);
 	}
 
 	/**
@@ -199,8 +199,11 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
 			if (value instanceof String) {
 				return XsdTypeConverter.toJavaValue((String)value, type);
 			}
-			return XsdTypeConverter.toJavaValue(value, type);
-		} catch (JAXBException e) {
+			if (value instanceof Element) {
+				return XsdTypeConverter.convertValueElementAsScalar((Element)value, type);
+			}
+			throw new ExpressionEvaluationException("Unexpected scalar return type "+value.getClass().getName());
+		} catch (SchemaException e) {
 			throw new ExpressionEvaluationException("Error converting result of " 
 					+ contextDescription + ": " + e.getMessage(), e);
 		} catch (IllegalArgumentException e) {
@@ -208,60 +211,22 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
 					+ contextDescription + ": " + e.getMessage(), e);
 		}
 	}
-	
-	private <T> T convertScalar(Class<T> type, NodeList valueNodes, String contextDescription) throws ExpressionEvaluationException {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < valueNodes.getLength(); i++) {
-			Node node = valueNodes.item(i);
-			if (DOMUtil.isJunk(node)) {
-				continue;
-			}
-			if (node.getNodeType() == Node.TEXT_NODE) {
-				sb.append(node.getTextContent());
-			} else {
-				// We have failed
-				return null;
-			}
-		}
-		try {
-			return XsdTypeConverter.toJavaValue(sb.toString(), type);
-		} catch (IllegalArgumentException e) {
-			throw new ExpressionEvaluationException("Error converting result of " +
-					contextDescription + ": " + e.getMessage(), e);
-		}
-	}
-	
+		
 	private <T> List<T> convertList(Class<T> type, NodeList valueNodes, String contextDescription) throws ExpressionEvaluationException {
 		List<T> values = new ArrayList<T>();
 		if (valueNodes == null) {
 			return values;
 		}
-		T scalarAttempt = convertScalar(type, valueNodes, contextDescription);
-		if (scalarAttempt != null) {
-			values.add(scalarAttempt);
-			return values;
+		
+		try {
+			
+			return XsdTypeConverter.convertValueElementAsList(valueNodes, type);
+			
+		} catch (SchemaException e) {
+			throw new ExpressionEvaluationException("Error converting return value of " + contextDescription + ": " + e.getMessage(), e);
+		} catch (IllegalArgumentException e) {
+			throw new ExpressionEvaluationException("Error converting return value of " + contextDescription + ": " + e.getMessage(), e);
 		}
-		for (int i = 0; i < valueNodes.getLength(); i++) {
-			Node node = valueNodes.item(i);
-			if (DOMUtil.isJunk(node)) {
-				continue;
-			}
-			if (node.getNodeType() == Node.ELEMENT_NODE) {
-				Element element = (Element)node;
-				T value;
-				try {
-					value = XsdTypeConverter.toJavaValue(element, type);
-				} catch (JAXBException e) {
-					throw new ExpressionEvaluationException("Error converting value of element " +
-							DOMUtil.getQName(element) + " in result of " + contextDescription + ": " + e.getMessage(), e);
-				} catch (IllegalArgumentException e) {
-					throw new ExpressionEvaluationException("Error converting value of element " +
-							DOMUtil.getQName(element) + " in result of " + contextDescription + ": " + e.getMessage(), e);
-				}
-				values.add(value);
-			}
-		}
-		return values;
 	}
 
 	private MidPointXPathFunctionResolver getFunctionResolver() {
@@ -270,5 +235,9 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
 		return resolver;
 	}
 
+	@Override
+	public String getLanguageName() {
+		return "XPath 2.0";
+	}
 
 }

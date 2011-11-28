@@ -27,15 +27,15 @@ import javax.xml.bind.JAXBElement;
 
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.schema.EnhancedResourceType;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
@@ -64,11 +64,12 @@ public class ResourceTypeUtil {
 	 * 
 	 * @see ObjectResolver
 	 */
-	public static ConnectorType getConnectorType(ResourceType resource, ObjectResolver resolver) throws ObjectNotFoundException, SchemaException {
+	public static ConnectorType getConnectorType(ResourceType resource, ObjectResolver resolver, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		if (resource.getConnector() != null) {
 			return resource.getConnector();
 		} else if (resource.getConnectorRef() != null) {
-			return (ConnectorType) resolver.resolve(resource.getConnectorRef(),"resolving connector in "+ObjectTypeUtil.toShortString(resource));
+			return (ConnectorType) resolver.resolve(resource.getConnectorRef(),
+					"resolving connector in "+ObjectTypeUtil.toShortString(resource) ,parentResult);
 		} else {
 			return null;
 		}
@@ -86,26 +87,7 @@ public class ResourceTypeUtil {
 		return null;
 	}
 
-	public static Schema getResourceSchema(ResourceType resource) throws SchemaException {
-		Element resourceXsdSchema = getResourceXsdSchema(resource);
-		if (resourceXsdSchema == null) {
-			return null;
-		}
-		if (resource instanceof EnhancedResourceType) {
-			EnhancedResourceType enh = (EnhancedResourceType) resource;
-			if (enh.getParsedSchema() != null) {
-				return enh.getParsedSchema();
-			} else {
-				Schema parsedSchema = Schema.parse(resourceXsdSchema);
-				enh.setParsedSchema(parsedSchema);
-				return parsedSchema;
-			}
-		}
-		Schema parsedSchema = Schema.parse(resourceXsdSchema);
-		return parsedSchema;
-	}
-
-	public static boolean compareConfiguration(Configuration a, Configuration b) {
+	public static boolean compareConfiguration(ResourceConfigurationType a, ResourceConfigurationType b) {
 		if (a == b) {
 			// Short-cut. If they are the same instance they must be the same
 			return true;

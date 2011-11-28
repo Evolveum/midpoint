@@ -30,7 +30,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.model.controller.ModelController;
-import com.evolveum.midpoint.model.controller.SchemaHandler;
 import com.evolveum.midpoint.model.sync.Action;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -57,14 +56,11 @@ public abstract class BaseActionTest extends AbstractTestNGSpringContextTests  {
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")	
 	protected RepositoryService repository;
-	@Autowired(required = true)
-	protected SchemaHandler schemaHandler;
 
 	protected void before(Action action) {
 		this.action = action;
 		BaseAction base = (BaseAction) this.action;
 		base.setModel(controller);
-		base.setSchemaHandler(schemaHandler);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)

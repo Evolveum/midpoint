@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
@@ -239,7 +240,7 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 
 		Schema schema = null;
 		try {
-			schema = ResourceTypeUtil.getResourceSchema(resource);
+			schema = RefinedResourceSchema.getResourceSchema(resource);
 		} catch (SchemaException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't parse resource schema", ex);
 			FacesUtils.addErrorMessage("Couldn't parse resource schema.", ex);

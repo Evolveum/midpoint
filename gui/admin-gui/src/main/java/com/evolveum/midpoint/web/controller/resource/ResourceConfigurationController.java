@@ -32,7 +32,7 @@ import com.evolveum.midpoint.web.jsf.form.FormObject;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SchemaFormParser;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfigurationType;
 
 @Controller("resourceConfiguration")
 @Scope("session")
@@ -65,7 +65,7 @@ public class ResourceConfigurationController extends WizardPage {
 		return getConfigurationList().size();
 	}
 
-	public void init(ConnectorDto connector, Configuration configuration) {
+	public void init(ConnectorDto connector, ResourceConfigurationType configuration) {
 		if (connector == null) {
 			FacesUtils.addErrorMessage("Connector object must not be null.");
 			return;

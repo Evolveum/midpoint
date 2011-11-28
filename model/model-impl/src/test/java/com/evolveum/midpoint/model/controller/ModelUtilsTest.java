@@ -52,6 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
@@ -129,7 +130,7 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 	public void getPasswordExistingAccount() throws Exception {
 		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 				TEST_FOLDER, "account-with-pwd.xml"))).getValue();
-		CredentialsType.Password password = ModelUtils.getPassword(account);
+		PasswordType password = ModelUtils.getPassword(account);
 		assertNotNull(password);
 	}
 
@@ -138,7 +139,7 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 	public void getPasswordNonExistingAccount() throws Exception {
 		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 				TEST_FOLDER, "account-without-pwd.xml"))).getValue();
-		CredentialsType.Password password = ModelUtils.getPassword(account);
+		PasswordType password = ModelUtils.getPassword(account);
 		assertNotNull(password);
 	}
 
@@ -155,50 +156,13 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 		int length = 5;
 		ModelUtils.generatePassword(account, length, protector);
 
-		CredentialsType.Password password = ModelUtils.getPassword(account);
+		PasswordType password = ModelUtils.getPassword(account);
 		assertNotNull(password);
 		assertNotNull(password.getProtectedString());
 		assertNotNull(password.getProtectedString().getEncryptedData());
 
 		String decrypted = protector.decryptString(password.getProtectedString());
 		assertEquals(length, decrypted.length());
-	}
-
-	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void getAccountTypeDefinitionFromSchemaHandlingNullAccount() {
-		ModelUtils.getAccountTypeFromHandling((ResourceObjectShadowType) null, null);
-	}
-
-	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void getAccountTypeDefinitionFromSchemaHandlingNullResource() {
-		ModelUtils.getAccountTypeFromHandling(new AccountShadowType(), null);
-	}
-
-	@Test
-	public void getAccountTypeDefinitionFromSchemaHandlingNonExisting() throws Exception {
-		getAccountTypeDefinitionFromSchemaHandlingNonExisting("account-no-schema-handling.xml");
-	}
-
-	@Test
-	public void getAccountTypeDefinitionFromSchemaHandlingNonExisting2() throws Exception {
-		getAccountTypeDefinitionFromSchemaHandlingNonExisting("account-no-schema-handling2.xml");
-	}
-
-	@SuppressWarnings("unchecked")
-	private void getAccountTypeDefinitionFromSchemaHandlingNonExisting(String fileName) throws JAXBException {
-		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
-				TEST_FOLDER, fileName))).getValue();
-
-		assertNull(ModelUtils.getAccountTypeFromHandling(account, account.getResource()));
-	}
-
-	@Test
-	@SuppressWarnings("unchecked")
-	public void getAccountTypeDefinitionFromSchemaHandlingExisting() throws Exception {
-		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
-				TEST_FOLDER, "account-schema-handling.xml"))).getValue();
-
-		ModelUtils.getAccountTypeFromHandling(account, account.getResource());
 	}
 
 	@Test

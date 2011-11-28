@@ -22,7 +22,7 @@
 
 package com.evolveum.midpoint.common.validator;
 
-import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import java.util.List;
 

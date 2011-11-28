@@ -43,6 +43,7 @@ import java.io.FileNotFoundException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -77,7 +78,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
-import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
@@ -92,8 +93,9 @@ import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
-import com.evolveum.midpoint.schema.util.MiscUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -406,10 +408,10 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * @throws SchemaException 
 	 */
 	private void checkOpenDjSchema(ResourceType resource, String source) throws SchemaException {
-		Schema schema = ResourceTypeUtil.getResourceSchema(resource);
+		Schema schema = RefinedResourceSchema.getResourceSchema(resource);
 		ResourceObjectDefinition accountDefinition = schema.findAccountDefinition();
 		assertNotNull("Schema does not define any account (resource from "+source+")",accountDefinition);
-		Set<ResourceObjectAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
+		Collection<ResourceObjectAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
 		assertFalse("No account identifiers (resource from "+source+")", identifiers == null || identifiers.isEmpty());
 		// TODO: check for naming attributes and display names, etc
 		
@@ -615,7 +617,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		displayJaxb("User (repository)", repoUser, new QName("user"));
 
 		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
-		assertEquals(1, accountRefs.size());
+		assertEquals("No accountRefs", 1, accountRefs.size());
 		ObjectReferenceType accountRef = accountRefs.get(0);
 		accountShadowOidOpendj = accountRef.getOid();
 		assertFalse(accountShadowOidOpendj.isEmpty());
@@ -1997,7 +1999,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		LOGGER.trace("importObjectFromFile: {}", filename);
 		Task task = taskManager.createTaskInstance();
 		FileInputStream stream = new FileInputStream(filename);
-		modelService.importObjectsFromStream(stream, MiscUtil.getDefaultImportOptions(), task, result);
+		modelService.importObjectsFromStream(stream, MiscSchemaUtil.getDefaultImportOptions(), task, result);
 	}
 	
 	private void assertCache() {

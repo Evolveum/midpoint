@@ -27,7 +27,6 @@ import java.util.Map;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.model.controller.ModelController;
-import com.evolveum.midpoint.model.controller.SchemaHandler;
 import com.evolveum.midpoint.model.sync.action.BaseAction;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -43,7 +42,6 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 	private static transient Trace trace = TraceManager.getTrace(ActionManagerImpl.class);
 	private Map<String, Class<T>> actionMap;
 	private ModelController model;
-	private SchemaHandler schemaHandler;
 
 	@Override
 	public void setActionMapping(Map<String, Class<T>> actionMap) {
@@ -63,7 +61,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 		try {
 			action = clazz.newInstance();
 			((BaseAction) action).setModel(model);
-			((BaseAction) action).setSchemaHandler(schemaHandler);
+//			((BaseAction) action).setSchemaHandler(schemaHandler);
 		} catch (Exception ex) {
 			LoggingUtils.logException(trace, "Couln't create action instance", ex);
 		}
@@ -75,7 +73,4 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 		this.model = model;
 	}
 
-	public void setSchemaHandler(SchemaHandler schemaHandler) {
-		this.schemaHandler = schemaHandler;
-	}
 }

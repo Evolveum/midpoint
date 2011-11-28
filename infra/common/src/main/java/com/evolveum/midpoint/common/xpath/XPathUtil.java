@@ -63,11 +63,13 @@ public class XPathUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(XPathUtil.class);
 
-    public static Object evaluateExpression(Map<QName, Variable> variables, ExpressionCodeHolder expressionHolder, QName returnType) {
+    @Deprecated
+    public static Object evaluateExpression(Map<QName, Object> variables, ExpressionCodeHolder expressionHolder, QName returnType) {
         return new XPathUtil().evaluateExpr(variables, expressionHolder, returnType);
     }
 
-    protected Object evaluateExpr(Map<QName, Variable> variables, ExpressionCodeHolder expressionHolder, QName returnType) {
+    @Deprecated
+    protected Object evaluateExpr(Map<QName, Object> variables, ExpressionCodeHolder expressionHolder, QName returnType) {
         LOGGER.trace("Expression '{}' will be evaluated in context: variables = \n'{}' and namespaces = \n'{}'", new Object[]{expressionHolder.getExpressionAsString(), variables.values(), expressionHolder.getNamespaceMap()});
 
         Validate.notNull(expressionHolder);
@@ -78,9 +80,9 @@ public class XPathUtil {
             XPath xpath = setupXPath(variables, expressionHolder.getNamespaceMap());
             XPathExpression expr = xpath.compile(expressionHolder.getExpressionAsString());
             //TODO: we will probably need to update interface and add parameter nodeForEval - node on which do the xpath evaluation
-            Node nodeForEval = variables.get(SchemaConstants.I_ACCOUNT) == null ? null : (Node) variables.get(SchemaConstants.I_ACCOUNT).getObject();
+            Node nodeForEval = variables.get(SchemaConstants.I_ACCOUNT) == null ? null : (Node) variables.get(SchemaConstants.I_ACCOUNT);
             if (null == nodeForEval) {
-                nodeForEval = variables.get(SchemaConstants.I_USER) == null ? null : (Node) variables.get(SchemaConstants.I_USER).getObject();
+                nodeForEval = variables.get(SchemaConstants.I_USER) == null ? null : (Node) variables.get(SchemaConstants.I_USER);
             }
             Object evaluatedExpression = expr.evaluate(nodeForEval, returnType);
             LOGGER.trace("Expression '{}' was evaluated to '{}' ", new Object[]{expressionHolder.getExpressionAsString(), evaluatedExpression});
@@ -92,6 +94,7 @@ public class XPathUtil {
         }
     }
 
+    @Deprecated
     protected XPath setupXPath() {
         //Note: probably no validation required
         XPathFactory factory = XPathFactory.newInstance();
@@ -100,16 +103,12 @@ public class XPathUtil {
         return xpath;
     }
 
-    protected XPath setupXPath(Map<QName, Variable> variables, Map<String, String> namespaces) {
+    @Deprecated
+    protected XPath setupXPath(Map<QName, Object> variables, Map<String, String> namespaces) {
         //Note: probably no validation required
         XPath xpath = setupXPath();
         if (null != variables) {
-        	Map <QName,Object> varMap = new HashMap<QName, Object>();
-            Set<Entry<QName, Variable>> set = variables.entrySet();
-            for (Entry<QName, Variable> entry : set) {
-                varMap.put(entry.getKey(), entry.getValue().getObject());
-            }
-            XPathVariableResolver variableResolver = new MapXPathVariableResolver(varMap);
+            XPathVariableResolver variableResolver = new MapXPathVariableResolver(variables);
             xpath.setXPathVariableResolver(variableResolver);
         }
         xpath.setNamespaceContext(new MidPointNamespaceContext(namespaces));
@@ -119,7 +118,7 @@ public class XPathUtil {
         return xpath;
     }
 
-    public NodeList matchedNodesByXPath(XPathHolder xpathType, Map<QName, Variable> variables, Node domObject) throws XPathExpressionException {
+    public NodeList matchedNodesByXPath(XPathHolder xpathType, Map<QName, Object> variables, Node domObject) throws XPathExpressionException {
         Validate.notNull(xpathType, "xpathType is null");
         Validate.notNull(domObject, "domObject is null");
         try {

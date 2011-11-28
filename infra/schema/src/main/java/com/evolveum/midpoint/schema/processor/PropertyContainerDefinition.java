@@ -21,20 +21,31 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import com.evolveum.midpoint.schema.TypedValue;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.QNameUtil;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import org.apache.cxf.common.util.StringUtils;
 import org.springframework.beans.PropertyAccessException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -65,16 +76,39 @@ import org.w3c.dom.Element;
 public class PropertyContainerDefinition extends ItemDefinition {
 
 	private static final long serialVersionUID = -5068923696147960699L;
+	private static final String ANY_GETTER_NAME = "getAny";
 	protected ComplexTypeDefinition complexTypeDefinition;
 	protected Schema schema;
+	protected boolean dynamic;
 
 	/**
 	 * The constructors should be used only occasionally (if used at all).
 	 * Use the factory methods in the ResourceObjectDefintion instead.
 	 */
 	PropertyContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition) {
-		super(name, complexTypeDefinition.getDefaultName(), complexTypeDefinition.getTypeName());
+		super(name, determineDefaultName(complexTypeDefinition), determineTypeName(complexTypeDefinition));
 		this.complexTypeDefinition = complexTypeDefinition;
+		if (complexTypeDefinition == null) {
+			dynamic = true;
+		} else {
+			dynamic = false;
+		}
+	}
+
+	private static QName determineTypeName(ComplexTypeDefinition complexTypeDefinition) {
+		if (complexTypeDefinition == null) {
+			// Property container without type: xsd:any
+			// FIXME: this is kind of hack, but it works now
+			return DOMUtil.XSD_ANY;
+		}
+		return complexTypeDefinition.getTypeName();
+	}
+
+	private static QName determineDefaultName(ComplexTypeDefinition complexTypeDefinition) {
+		if (complexTypeDefinition == null) {
+			return null;
+		}
+		return complexTypeDefinition.getDefaultName();
 	}
 
 	/**
@@ -82,7 +116,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
 	 * Use the factory methods in the ResourceObjectDefintion instead.
 	 */
 	PropertyContainerDefinition(Schema schema, QName name, ComplexTypeDefinition complexTypeDefinition) {
-		super(name, complexTypeDefinition.getDefaultName(), complexTypeDefinition.getTypeName());
+		super(name, determineDefaultName(complexTypeDefinition), determineTypeName(complexTypeDefinition));
 		this.complexTypeDefinition = complexTypeDefinition;
 		if (schema == null) {
 			throw new IllegalArgumentException("Schema can't be null.");
@@ -94,14 +128,41 @@ public class PropertyContainerDefinition extends ItemDefinition {
 		return schema.getNamespace();
 	}
 	
-	ComplexTypeDefinition getComplexTypeDefinition() {
+	public ComplexTypeDefinition getComplexTypeDefinition() {
 		return complexTypeDefinition;
 	}
 	
-	protected <T extends ItemDefinition> T findItemDefinition(QName name, Class<T> clazz) {
+	public void setComplexTypeDefinition(ComplexTypeDefinition complexTypeDefinition) {
+		this.complexTypeDefinition = complexTypeDefinition;
+	}
+
+	public boolean isWildcard() {
+		return (complexTypeDefinition == null);
+	}
+	
+	public <T extends ItemDefinition> T findItemDefinition(QName name, Class<T> clazz) {
+		if (clazz == null) {
+			throw new IllegalArgumentException("type not specified while searching for "+name+" in "+this);
+		}
+		if (name == null) {
+			throw new IllegalArgumentException("name not specified while searching in "+this);
+		}
 		for (ItemDefinition def : getDefinitions()) {
 			if (clazz.isAssignableFrom(def.getClass()) && name.equals(def.getName())) {
 				return (T) def;
+			}
+		}
+		return null;
+	}
+	
+	public <T extends ItemDefinition> T findItemDefinition(PropertyPath path, Class<T> clazz) {
+		if (path.isEmpty()) {
+			return (T) this;
+		}
+		QName first = path.first();
+		for (ItemDefinition def : getDefinitions()) {
+			if (first.equals(def.getName())) {
+				return def.findItemDefinition(path.rest(),clazz);
 			}
 		}
 		return null;
@@ -124,6 +185,17 @@ public class PropertyContainerDefinition extends ItemDefinition {
 		return findItemDefinition(name,PropertyDefinition.class);
 	}
 
+	public PropertyDefinition findPropertyDefinition(PropertyPath propertyPath) {
+		if (propertyPath.isEmpty()) {
+			throw new IllegalArgumentException("Property path is empty while searching for property definition in "+this);
+		}
+		if (propertyPath.size() == 1) {
+			return findPropertyDefinition(propertyPath.first());
+		}
+		PropertyContainerDefinition pcd = findPropertyContainerDefinition(propertyPath.first());
+		return pcd.findPropertyDefinition(propertyPath.rest());
+	}
+	
 	/**
 	 * Finds an inner PropertyContainerDefinition by looking at the property container name.
 	 * 
@@ -148,7 +220,12 @@ public class PropertyContainerDefinition extends ItemDefinition {
 	 * 
 	 * @return set of definitions
 	 */
-	public Set<ItemDefinition> getDefinitions() {
+	public Collection<ItemDefinition> getDefinitions() {
+		if (complexTypeDefinition == null) {
+			// e.g. for xsd:any containers
+			// FIXME
+			return new HashSet<ItemDefinition>();
+		}
 		return complexTypeDefinition.getDefinitions();
 	}
 
@@ -170,6 +247,14 @@ public class PropertyContainerDefinition extends ItemDefinition {
 			}
 		}
 		return props;
+	}
+
+	public boolean isDynamic() {
+		return dynamic;
+	}
+
+	public void setDynamic(boolean dynamic) {
+		this.dynamic = dynamic;
 	}
 
 	/**
@@ -199,6 +284,22 @@ public class PropertyContainerDefinition extends ItemDefinition {
 		return new PropertyContainer(name, this, element);
 	}
 
+	/**
+	 * Shallow clone
+	 */
+	public PropertyContainerDefinition clone() {
+		PropertyContainerDefinition clone = new PropertyContainerDefinition(name, complexTypeDefinition);
+		copyDefinitionData(clone);
+		return clone;
+	}
+	
+	protected void copyDefinitionData(PropertyContainerDefinition clone) {
+		super.copyDefinitionData(clone);
+		clone.complexTypeDefinition = this.complexTypeDefinition;
+		clone.schema = this.schema;
+		clone.dynamic = this.dynamic;
+	}
+	
 	/**
 	 * Creates new instance of property definition and adds it to the container.
 	 * 
@@ -363,7 +464,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
 	 * @return set of deserialized items
 	 * @throws SchemaProcessorException error parsing the elements
 	 */
-	public Set<Item> parseItems(List<Object> elements) throws SchemaException {
+	public Collection<? extends Item> parseItems(List<Object> elements) throws SchemaException {
 		return parseItems(elements,null);
 	}
 		
@@ -378,11 +479,11 @@ public class PropertyContainerDefinition extends ItemDefinition {
 	 * min/max constraints are not checked now
 	 * TODO: maybe we need to check them
 	 */
-	protected Set<Item> parseItems(List<Object> elements, Set<? extends ItemDefinition> selection) throws SchemaException {
+	protected Collection<? extends Item> parseItems(List<Object> elements, Collection<? extends ItemDefinition> selection) throws SchemaException {
 		
 		// TODO: more robustness in handling schema violations (min/max constraints, etc.)
 		
-		Set<Item> props = new HashSet<Item>();
+		Collection<Item> props = new HashSet<Item>();
 		
 		// Iterate over all the XML elements there. Each element is
 		// an attribute.
@@ -426,16 +527,320 @@ public class PropertyContainerDefinition extends ItemDefinition {
 		return props;
 	}
 	
+	public PropertyContainer parseItemFromJaxbObject(Object jaxbObject) throws SchemaException {
+		return parseItemFromJaxbObject(jaxbObject, PropertyContainer.class);
+	}
+	
+	protected <T extends PropertyContainer> T parseItemFromJaxbObject(Object jaxbObject, Class<T> type) throws SchemaException {
+		
+		if (isDynamic()) {
+			return parseItemFromJaxbObjectDynamic(jaxbObject,type);
+		} else {
+			return parseItemFromJaxbObjectStatic(jaxbObject,type);
+		}
+	}
+		
+	private <T extends PropertyContainer> T parseItemFromJaxbObjectStatic(Object jaxbObject, Class<T> type) throws SchemaException {
+		
+		Class clazz = jaxbObject.getClass();
+		T propertyContainer = (T) this.instantiate();
+		
+		if (complexTypeDefinition == null) {
+			throw new IllegalStateException("Cannot parse object as the complexType definition for "+getName()+" is missing.");
+		}
+		
+		for (ItemDefinition itemDef: complexTypeDefinition.getDefinitions()) {
+			QName itemName = itemDef.getName();
+			if (itemName == null) {
+				throw new IllegalArgumentException("No definition name in "+getName()+", definition: "+itemDef);
+			}
+			String getterName = null;
+			if (itemDef.getTypeName().equals(DOMUtil.XSD_BOOLEAN)) {
+				getterName = "is"+StringUtils.capitalize(itemName.getLocalPart());
+			} else {
+				getterName = "get"+StringUtils.capitalize(itemName.getLocalPart());
+			}
+			
+			Object value = null;
+			try {
+				Method method = clazz.getMethod(getterName);
+				value = method.invoke(jaxbObject);
+			} catch (SecurityException e) {
+				throw new SchemaException("Access denied while trying to execute getter "+getterName+" in " + getName() + ": "+e.getMessage(),e,itemName);
+			} catch (NoSuchMethodException e) {
+				throw new SchemaException("Metod not found while trying to execute getter "+getterName+" in " + getName() + ": "+e.getMessage(),e,itemName);
+			} catch (IllegalArgumentException e) {
+				throw new SchemaException("Illegal argument while trying to execute getter "+getterName+" in " + getName() + ": "+e.getMessage(),e,itemName);
+			} catch (IllegalAccessException e) {
+				throw new SchemaException("Illegal access while trying to execute getter "+getterName+" in " + getName() + ": "+e.getMessage(),e,itemName);
+			} catch (InvocationTargetException e) {
+				throw new SchemaException("Bad invocation target while trying to execute getter "+getterName+" in " + getName() + ": "+e.getMessage(),e,itemName);
+			}
+			
+			if (value != null) {
+				if (value instanceof Collection) {
+					if (((Collection)value).isEmpty()) {
+						continue;
+					}
+				}
+				Item item = itemDef.parseItemFromJaxbObject(value);
+				propertyContainer.add(item);
+			}
+		}
+		
+		return propertyContainer;
+	}
+
+	private <T extends PropertyContainer> T parseItemFromJaxbObjectDynamic(Object jaxbObject, Class<T> type) throws SchemaException {
+		
+		Class clazz = jaxbObject.getClass();
+		T propertyContainer = (T) this.instantiate();
+				
+		Object value = null;
+		try {
+			Method method = clazz.getMethod(ANY_GETTER_NAME);
+			value = method.invoke(jaxbObject);
+		} catch (SecurityException e) {
+			throw new SchemaException("Access denied while trying to execute getter "+ANY_GETTER_NAME+" in " + getName() + ": "+e.getMessage(),e);
+		} catch (NoSuchMethodException e) {
+			throw new SchemaException("Metod not found while trying to execute getter "+ANY_GETTER_NAME+" in " + getName() + ": "+e.getMessage(),e);
+		} catch (IllegalArgumentException e) {
+			throw new SchemaException("Illegal argument while trying to execute getter "+ANY_GETTER_NAME+" in " + getName() + ": "+e.getMessage(),e);
+		} catch (IllegalAccessException e) {
+			throw new SchemaException("Illegal access while trying to execute getter "+ANY_GETTER_NAME+" in " + getName() + ": "+e.getMessage(),e);
+		} catch (InvocationTargetException e) {
+			throw new SchemaException("Bad invocation target while trying to execute getter "+ANY_GETTER_NAME+" in " + getName() + ": "+e.getMessage(),e);
+		}
+		
+		if (value == null) {
+			throw new IllegalStateException("Unexpected null result from "+ANY_GETTER_NAME+" in " + getName());
+		}
+		
+		List<Object> elementList = null;
+		try {
+			elementList = (List<Object>) value;
+		} catch (ClassCastException e) {
+			throw new IllegalStateException("Unexpected result from "+ANY_GETTER_NAME+" in " + getName()+", expected List<Object> but got "+value.getClass());
+		}
+
+		Property property = null;
+		for(Object element: elementList) {
+			QName elementName = JAXBUtil.getElementQName(element);
+
+			if (property == null || !property.getName().equals(elementName)) {
+				PropertyDefinition propertyDefinition = findPropertyDefinition(elementName);
+				if (propertyDefinition != null) {
+					property = propertyDefinition.instantiate(elementName);
+				} else {
+					property = new Property(elementName);
+				}
+				propertyContainer.add(property);
+			}
+			
+			try {
+				if (property.getDefinition() != null) {
+					Object elementValue = XsdTypeConverter.toJavaValue(element,property.getDefinition().getTypeName());
+					property.getValues().add(elementValue);
+				} else {
+					TypedValue typedValue = XsdTypeConverter.toTypedJavaValueWithDefaultType(element,null);
+					Object elementValue = typedValue.getValue();
+					property.getValues().add(elementValue);
+					if (property.getDefinition() == null) {
+						PropertyDefinition def = new PropertyDefinition(elementName, typedValue.getXsdType());
+						property.setDefinition(def);
+					}
+				}
+			} catch (SchemaException e) {
+				// add more context. As exception is immutable, we need to wrap it once again
+				throw new SchemaException(e.getMessage()+", in "+getName(),e,elementName);
+			}
+			
+		}
+						
+		return propertyContainer;
+	}
+
+	/**
+	 * used for MidPoint -> JAXB conversion
+	 */
+	protected void fillProperties(Object instance, PropertyContainer source) throws SchemaException {
+		if (isJaxbAny(instance.getClass())) {
+			fillPropertiesDynamic(instance, source);
+		} else {
+			fillPropertiesStatic(instance, source);
+		}
+	}
+	
+	/**
+	 * This is lame, but it works.
+	 */
+	private boolean isJaxbAny(Class clazz) {
+		for (Method method: clazz.getMethods()) {
+			if (method.getName().equals(ANY_GETTER_NAME)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private void fillPropertiesStatic(Object jaxbObject, PropertyContainer source) throws SchemaException {
+		
+		Class<? extends Object> clazz = jaxbObject.getClass();
+		
+		if (complexTypeDefinition == null) {
+			throw new IllegalStateException("Cannot parse object as the complexType definition for "+getName()+" is missing.");
+		}
+		
+		for (Item item: source.getItems()) {
+			QName itemName = item.getName();
+			Definition itemDef = item.getDefinition();
+			if (itemDef == null) {
+				throw new IllegalArgumentException("No definition for item "+getName());
+			}
+			
+			Method method = null;
+			
+			try {
+
+				if (item instanceof Property) {
+					if (((PropertyDefinition)itemDef).isMultiValue()) {
+						method = findGetter(clazz,itemName.getLocalPart());
+						Collection collection = (Collection) method.invoke(jaxbObject);
+						collection.addAll(((Property)item).getValues());
+					} else {
+						method = findSetter(clazz, itemName.getLocalPart());
+						method.invoke(jaxbObject, ((Property)item).getValue());
+					}
+				} else if (item instanceof PropertyContainer) {
+					method = findSetter(clazz, itemName.getLocalPart());
+					Class<?> subClass = method.getParameterTypes()[0];
+					Object subInstance = instantiateJaxbClass(subClass);
+					((PropertyContainerDefinition)itemDef).fillProperties(subInstance, (PropertyContainer)item);
+					method.invoke(jaxbObject, subInstance);
+				}
+			
+			} catch (SecurityException e) {
+				throw new SchemaException("Access denied while trying to execute setter "+clazz.getName()+"."+method+" for "+itemName+" in " + getName() + ": "+e.getMessage(),e,itemName);
+			} catch (NoSuchMethodException e) {
+				throw new SchemaException("Access denied while trying to execute setter "+clazz.getName()+"."+method+" for "+itemName+" in " + getName() + ": "+e.getMessage(),e,itemName);
+			} catch (IllegalArgumentException e) {
+				throw new SchemaException("Access denied while trying to execute setter "+clazz.getName()+"."+method+" for "+itemName+" in " + getName() + ": "+e.getMessage(),e,itemName);
+			} catch (IllegalAccessException e) {
+				throw new SchemaException("Access denied while trying to execute setter "+clazz.getName()+"."+method+" for "+itemName+" in " + getName() + ": "+e.getMessage(),e,itemName);
+			} catch (InvocationTargetException e) {
+				throw new SchemaException("Access denied while trying to execute setter "+clazz.getName()+"."+method+" for "+itemName+" in " + getName() + ": "+e.getMessage(),e,itemName);
+			}
+		}
+	}
+	
+	private Method findGetter(Class<? extends Object> clazz, String propName) throws SecurityException, NoSuchMethodException {
+		String getterName = "get"+StringUtils.capitalize(propName);
+		return clazz.getMethod(getterName);
+	}
+
+	private Method findSetter(Class<? extends Object> clazz, String propName) {
+		String setterName = "set"+StringUtils.capitalize(propName);
+		for (Method method: clazz.getMethods()) {
+			if (method.getName().equals(setterName)) {
+				return method;
+			}
+		}
+		return null;
+	}
+
+	private void fillPropertiesDynamic(Object jaxbObject, PropertyContainer source) throws SchemaException {
+		
+		Class clazz = jaxbObject.getClass();
+				
+		Object getterValue = null;
+		try {
+			Method method = clazz.getMethod(ANY_GETTER_NAME);
+			getterValue = method.invoke(jaxbObject);
+		} catch (SecurityException e) {
+			throw new SchemaException("Access denied while trying to execute getter "+ANY_GETTER_NAME+" in " + getName() + ": "+e.getMessage(),e);
+		} catch (NoSuchMethodException e) {
+			throw new SchemaException("Metod not found while trying to execute getter "+ANY_GETTER_NAME+" in " + getName() + ": "+e.getMessage(),e);
+		} catch (IllegalArgumentException e) {
+			throw new SchemaException("Illegal argument while trying to execute getter "+ANY_GETTER_NAME+" in " + getName() + ": "+e.getMessage(),e);
+		} catch (IllegalAccessException e) {
+			throw new SchemaException("Illegal access while trying to execute getter "+ANY_GETTER_NAME+" in " + getName() + ": "+e.getMessage(),e);
+		} catch (InvocationTargetException e) {
+			throw new SchemaException("Bad invocation target while trying to execute getter "+ANY_GETTER_NAME+" in " + getName() + ": "+e.getMessage(),e);
+		}
+		
+		if (getterValue == null) {
+			throw new IllegalStateException("Unexpected null result from "+ANY_GETTER_NAME+" in " + getName());
+		}
+		
+		List<Object> elementList = null;
+		try {
+			elementList = (List<Object>) getterValue;
+		} catch (ClassCastException e) {
+			throw new IllegalStateException("Unexpected result from "+ANY_GETTER_NAME+" in " + getName()+", expected List<Object> but got "+getterValue.getClass());
+		}
+
+		Property property = null;
+		
+		Document doc = DOMUtil.getDocument();
+		
+		for (Property prop: source.getProperties()) {
+			QName propName = prop.getName();
+			Definition itemDef = findPropertyDefinition(propName);
+			boolean recordType = false;
+			if (itemDef == null) {
+				itemDef = prop.getDefinition();
+				recordType = true;
+				if (itemDef == null) {
+					throw new SchemaException("No definition for item "+propName+" in "+this);
+				}
+			}
+
+			for (Object value : prop.getValues()) {
+				try {
+					Object element = XsdTypeConverter.toXsdElement(value, itemDef.getTypeName(), propName, doc, recordType);
+					elementList.add(element);
+				} catch (SchemaException e) {
+					// add more context. As exception is immutable, we need to wrap it once again
+					throw new SchemaException(e.getMessage()+", in "+getName(),e,propName);
+				}
+			}			
+		}
+	}
+
+	
+	protected <T> T instantiateJaxbClass(Class<T> clazz) {
+		try {
+			Constructor<T> constructor = clazz.getConstructor();
+			T instance = constructor.newInstance();
+			return instance;
+		} catch (SecurityException e) {
+			throw new SystemException("Error instantiating JAXB object of type "+clazz+": "+e.getMessage(),e);
+		} catch (NoSuchMethodException e) {
+			throw new SystemException("Error instantiating JAXB object of type "+clazz+": "+e.getMessage(),e);
+		} catch (IllegalArgumentException e) {
+			throw new SystemException("Error instantiating JAXB object of type "+clazz+": "+e.getMessage(),e);
+		} catch (InstantiationException e) {
+			throw new SystemException("Error instantiating JAXB object of type "+clazz+": "+e.getMessage(),e);
+		} catch (IllegalAccessException e) {
+			throw new SystemException("Error instantiating JAXB object of type "+clazz+": "+e.getMessage(),e);
+		} catch (InvocationTargetException e) {
+			throw new SystemException("Error instantiating JAXB object of type "+clazz+": "+e.getMessage(),e);
+		}
+	}
+
 	@Override
-	public String dump(int indent) {
+	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		for (int i=0; i<indent; i++) {
-			sb.append(Schema.INDENT);
+			sb.append(DebugDumpable.INDENT_STRING);
 		}
 		sb.append(toString());
+		if (isDynamic()) {
+			sb.append(" dynamic");
+		}
 		sb.append("\n");
 		for (Definition def : getDefinitions()) {
-			sb.append(def.dump(indent+1));
+			sb.append(def.debugDump(indent+1));
 		}
 		return sb.toString();
 	}

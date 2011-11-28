@@ -2,11 +2,9 @@
 <valueConstruction 
 		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-	<value>
-		<expression>
-			<code>
-				c:locality
-			</code>
-		</expression>
-	</value>
+	<expression>
+		<code>
+			c:locality
+		</code>
+	</expression>
 </valueConstruction>

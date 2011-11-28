@@ -134,7 +134,9 @@ class DomToSchemaProcessor {
 			inSource.setSystemId("SystemId");
 			// XXX: end hack
 			inSource.setEncoding("utf-8");
+			
 			parser.parse(inSource);
+			
 			xss = parser.getResult();
 		} catch (Exception ex) {
 			throw new SchemaException("Uknown error during resource xsd schema parsing: "
@@ -193,24 +195,6 @@ class DomToSchemaProcessor {
 	}
 
 	/**
-	 * @param complexType
-	 * @return
-	 */
-	private boolean isResourceObject(XSComplexType complexType) {
-		XSAnnotation annotation = complexType.getAnnotation();
-		// annotation: resourceObject
-		if (getAnnotationElement(annotation, A_RESOURCE_OBJECT) != null) {
-			return true;
-		}
-		// annotation: accountType
-		if (getAnnotationElement(annotation, A_ACCOUNT_TYPE) != null) {
-			// <accountType> implies <resourceObject> ... at least for now (compatibility)
-			return true;
-		}
-		return false;
-	}
-
-	/**
 	 * Creates ComplexTypeDefinition object from a single XSD complexType definition.
 	 * @param complexType XS complex type definition
 	 * @return
@@ -234,7 +218,6 @@ class DomToSchemaProcessor {
 		return ctd;
 
 	}
-	
 
 	/**
 	 * Creates ComplexTypeDefinition object from a XSModelGroup inside XSD complexType definition.
@@ -258,10 +241,15 @@ class DomToSchemaProcessor {
 
 				XSElementDecl element = pterm.asElementDecl();
 				QName elementName = new QName(element.getTargetNamespace(), element.getName());
-
+				
 				XSType xsType = element.getType();
 				
-				if (isPropertyContainer(xsType)) {
+				if (isObjectDefinition(xsType)) {					
+					// This is object reference. It also has its *Ref equivalent which will get parsed.
+					// therefore it is safe to ignore
+					
+				} else if (isPropertyContainer(xsType)) {
+
 					// Create an inner PropertyContainer. It is assumed that this is a XSD complex type
 					// TODO: check cast
 					XSComplexType complexType = (XSComplexType)xsType;
@@ -272,9 +260,25 @@ class DomToSchemaProcessor {
 					
 				} else if (xsType.getName() == null) {
 					// Anonymous types. Safe to ignore?
+					// xsd:any will fall here as well ...
+					
+//					System.out.println("SSSSSSSS no type name for element: "+elementName);
+//					System.out.println("SSSSSSSS element: "+element);
+//					System.out.println("SSSSSSSS element wildcard: "+element.isWildcard());
+//					System.out.println("SSSSSSSS type: "+xsType);
+//					System.out.println("SSSSSSSS base type: "+xsType.getBaseType());
+//					System.out.println("SSSSSSSS base type name: "+xsType.getBaseType().getName());
+					
+										
+					if (isAny(xsType)) {
+						// This is a element with xsd:any type. It has to be property container
+						XSAnnotation containerAnnotation = xsType.getAnnotation();
+						PropertyContainerDefinition containerDefinition = createPropertyContainerDefinition(xsType,elementName,null,containerAnnotation,false);
+						ctd.getDefinitions().add(containerDefinition);
+					}
 					
 				} else {
-					
+										
 					// Create a property definition (even if this is a XSD complex type)
 					QName typeName = new QName(xsType.getTargetNamespace(), xsType.getName());
 
@@ -342,6 +346,13 @@ class DomToSchemaProcessor {
 		}
 	}
 	
+	private boolean isAny(XSType xsType) {
+		// FIXME: Not perfect and probably quite wrong. But works for now.
+		if (xsType.getName() == null && xsType.getBaseType().getName().equals("anyType")) {
+			return true;
+		}
+		return false;
+	}
 	
 	/**
 	 * Returns true if provides XSD type is a property container. It looks for annotations.
@@ -353,6 +364,37 @@ class DomToSchemaProcessor {
 		}
 		if (xsType.getBaseType() != null && !xsType.getBaseType().equals(xsType)) {
 			return isPropertyContainer(xsType.getBaseType());
+		}
+		return false;
+	}
+	
+	/**
+	 * Returns true if provides XSD type is an object definition. It looks for a ObjectType supertype.
+	 */
+	private boolean isObjectDefinition(XSType xsType) {
+		if (xsType.getName() == null) {
+			return false;
+		}
+		QName typeName = new QName(xsType.getTargetNamespace(),xsType.getName());
+		if (typeName.equals(SchemaConstants.C_OBJECT_TYPE)) {
+			return true;
+		}
+		if (xsType.getBaseType() != null && !xsType.getBaseType().equals(xsType)) {
+			return isObjectDefinition(xsType.getBaseType());
+		}
+		return false;
+	}
+	
+	private boolean isResourceObject(XSComplexType complexType) {
+		XSAnnotation annotation = complexType.getAnnotation();
+		// annotation: resourceObject
+		if (getAnnotationElement(annotation, A_RESOURCE_OBJECT) != null) {
+			return true;
+		}
+		// annotation: accountType
+		if (getAnnotationElement(annotation, A_ACCOUNT_TYPE) != null) {
+			// <accountType> implies <resourceObject> ... at least for now (compatibility)
+			return true;
 		}
 		return false;
 	}
@@ -428,7 +470,11 @@ class DomToSchemaProcessor {
 			
 			pcd = rod;
 		} else {
-			pcd = new PropertyContainerDefinition(elementName, complexTypeDefinition);
+			if (isObjectDefinition(xsType)) {
+				pcd = new ObjectDefinition(elementName, complexTypeDefinition);
+			} else {
+				pcd = new PropertyContainerDefinition(elementName, complexTypeDefinition);
+			}
 		}
 		
 		// TODO: parse generic annotations

@@ -42,12 +42,12 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.util.MiscUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -116,7 +116,7 @@ public class TestSampleImport extends AbstractIntegrationTest {
 		FileInputStream stream = new FileInputStream(sampleFile);
 
 		// WHEN
-		modelService.importObjectsFromStream(stream, MiscUtil.getDefaultImportOptions(), task, result);
+		modelService.importObjectsFromStream(stream, MiscSchemaUtil.getDefaultImportOptions(), task, result);
 
 		// THEN
 		result.computeStatus();

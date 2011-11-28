@@ -32,7 +32,6 @@
 	<test name="Controller add" preserve-order="true" parallel="false" verbose="10">
 		<classes>
 			<class name="com.evolveum.midpoint.model.controller.ControllerAddObjectTest" />
-			<class name="com.evolveum.midpoint.model.controller.ControllerAddUserTest" />
 		</classes>
 	</test>
 	<test name="Controler delete" preserve-order="true" parallel="false" verbose="10">
@@ -61,7 +60,7 @@
 	<test name="Controle modify" preserve-order="true" parallel="false" verbose="10">
 		<classes>
 			<class name="com.evolveum.midpoint.model.controller.ControllerModifyObjectTest" />
-			<class name="com.evolveum.midpoint.model.controller.ControllerModifyObjectWithExclusionTest" />
+			<class name="com.evolveum.midpoint.model.controller.TestAssignment" />
 		</classes>
 	</test>
 	<test name="Controler Search" preserve-order="true" parallel="false" verbose="10">
@@ -78,15 +77,6 @@
 		<classes>
 			<class name="com.evolveum.midpoint.model.controller.FilterManagerImplTest" />
 			<class name="com.evolveum.midpoint.model.controller.ModelUtilsTest" />
-		</classes>
-	</test>
-	<test name="Controler Schema" preserve-order="true" parallel="false" verbose="10">
-		<classes>
-			<class name="com.evolveum.midpoint.model.controller.SchemaHandlerImplTest" />
-			<class name="com.evolveum.midpoint.model.controller.SchemaHandlerXPath2Test" />
-			<class name="com.evolveum.midpoint.model.controller.SchemaHandlerXPathCustomFunctionTest" />
-			<class name="com.evolveum.midpoint.model.controller.SchemaHandlerUserDefinedVariablesTest" />
-			<class name="com.evolveum.midpoint.model.controller.SchemaPropertyConstructionTest" />
 		</classes>
 	</test>
 	<test name="Expresions" preserve-order="true" parallel="false" verbose="10">
@@ -136,14 +126,16 @@
 			<class name="com.evolveum.midpoint.model.sync.ActionManagerImplTest" />
 		</classes>
 	</test>
+	<test name="Synchronizer" preserve-order="true" parallel="false" verbose="10">
+		<classes>
+			<class name="com.evolveum.midpoint.model.synchronizer.TestAssignmentProcessor" />
+			<class name="com.evolveum.midpoint.model.synchronizer.TestAssignmentEvaluator" />
+			<class name="com.evolveum.midpoint.model.synchronizer.TestSynchronizerAddUser" />
+		</classes>
+	</test>
 	<test name="Model Web service" preserve-order="true" parallel="false" verbose="10">
 		<classes>
 			<class name="com.evolveum.midpoint.model.ModelWebServiceTest" />
-		</classes>
-	</test>
-	<test name="User Type Handler" preserve-order="true" parallel="false" verbose="10">
-		<classes>
-			<class name="com.evolveum.midpoint.model.controller.handler.UserTypeHandlerTest" />
 		</classes>
 	</test>
 </suite>

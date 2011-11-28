@@ -26,10 +26,10 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.MiscUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -66,7 +66,7 @@ public class AddUserAction extends BaseAction {
 			if (user == null) {
 				user = new ObjectFactory().createUserType();
 
-				user = getSchemaHandler().processInboundHandling(user, shadowAfterChange, subResult);
+//				user = getSchemaHandler().processInboundHandling(user, shadowAfterChange, subResult);
 
 				if (user.getName() == null) {
 					LOGGER.warn("Inbound expressions haven't generated 'name' property for user created from "+ObjectTypeUtil.toShortString(shadowAfterChange));
@@ -79,7 +79,7 @@ public class AddUserAction extends BaseAction {
 							new PropertyReferenceListType(), subResult);
 				}
 
-				userOid = getModel().addUser(user, userTemplate, MiscUtil.toCollection(ResourceObjectShadowUtil.getResourceOid(shadowAfterChange)), subResult);
+//				userOid = getModel().addUser(user, userTemplate, MiscSchemaUtil.toCollection(ResourceObjectShadowUtil.getResourceOid(shadowAfterChange)), subResult);
 			} else {
 				LOGGER.debug("User with oid {} already exists, skipping create.",
 						new Object[] { user.getOid() });

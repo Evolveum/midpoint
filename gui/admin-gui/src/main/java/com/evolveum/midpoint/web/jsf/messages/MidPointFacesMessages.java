@@ -35,8 +35,8 @@ import javax.faces.context.ResponseWriter;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.common.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.FacesUtils;

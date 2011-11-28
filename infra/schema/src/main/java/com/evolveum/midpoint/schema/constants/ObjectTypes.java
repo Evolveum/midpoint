@@ -30,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
@@ -80,7 +81,9 @@ public enum ObjectTypes {
 	OBJECT("schema.objectTypes.object", SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT,
 			ObjectType.class, false),
 	
-	ROLE("schema.objectTypes.role", SchemaConstants.ROLE_TYPE, SchemaConstants.ROLE, RoleType.class, false);
+	ROLE("schema.objectTypes.role", SchemaConstants.ROLE_TYPE, SchemaConstants.ROLE, RoleType.class, false),
+	
+	PASSWORD_POLICY("schema.objectTypes.paswordPolicy", SchemaConstants.I_PASSWORD_POLICY_TYPE, SchemaConstants.I_PASSWORD_POLICY, PasswordPolicyType.class, false);
 
 	private String localizationKey;
 	private QName type;

@@ -26,7 +26,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -36,6 +35,7 @@ import com.evolveum.midpoint.schema.processor.ExtensionProcessor;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.PropertyModification;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
@@ -115,14 +115,13 @@ public class TaskImpl implements Task {
 	 * @param taskType
 	 * @param repositoryService
 	 */
-	TaskImpl(TaskManagerImpl taskManager, TaskType taskType, RepositoryService repositoryService) {
+	TaskImpl(TaskManagerImpl taskManager, RepositoryService repositoryService) {
 		this.taskManager = taskManager;
 		this.repositoryService = repositoryService;
 		canRun = true;
-		initialize(taskType);
 	}
 		
-	private void initialize(TaskType taskType) {
+	void initialize(TaskType taskType) throws SchemaException {
 		executionStatus = TaskExecutionStatus.fromTaskType(taskType.getExecutionStatus());
 		exclusivityStatus = TaskExclusivityStatus.fromTaskType(taskType.getExclusivityStatus());
 		recurrenceStatus = TaskRecurrence.fromTaskType(taskType.getRecurrence());

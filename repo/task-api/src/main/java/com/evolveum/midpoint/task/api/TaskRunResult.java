@@ -20,7 +20,7 @@
  */
 package com.evolveum.midpoint.task.api;
 
-import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResult;
 
 /**
  * Single-purpose class to return task run results.

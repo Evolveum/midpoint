@@ -19,7 +19,11 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!-- Portions Copyrighted 2011 lazyman                       -->
 <!--                                                         -->
-<object xsi:type="ResourceType" oid="10000000-0000-0000-0000-000000000003" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<object xsi:type="ResourceType" oid="10000000-0000-0000-0000-000000000003" 
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
 	xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
 	<name>Localhost OpenDJ</name>
@@ -35,8 +39,7 @@
 			</c:equal>
 		</and>
 	</connectorRef>
-	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003
-	</namespace>
+	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003</namespace>
 	<configuration>
 		<icfcldap:configurationProperties xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
 			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
@@ -206,165 +209,138 @@
 		</xsd:schema>
 	</schema>
 	<schemaHandling>
-		<accountType default="true">
-			<name>Default Account</name>
-			<objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">ri:AccountObjectClass</objectClass>
-			<attribute ref="icfs:name" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd">
-				<name>Distinguished Name</name>
+		<accountType>
+			<name>user</name>
+			<displayName>Default Account</displayName>
+			<default>true</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<displayName>Distinguished Name</displayName>
 				<access>create</access>
 				<access>read</access>
-				<outbound default="true">
-					<valueExpression>
-						<c:code xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-							xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-							xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:my="http://myself.me/schemas/whatever">
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-							concat('uid=', $i:user/c:name, ',ou=people,dc=example,dc=com')
-							</c:code>
-					</valueExpression>
+				<outbound>
+				    <initial>true</initial>
+					<expression>
+						<code>
+							concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')
+						</code>
+					</expression>
 				</outbound>
 			</attribute>
-			<attribute ref="icfs:uid" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd">
-				<name>Entry UUID</name>
+			<attribute>
+				<ref>icfs:uid</ref>
+				<displayName>Entry UUID</displayName>
 				<access>read</access>
 			</attribute>
-			<attribute ref="ri:cn"
-				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">
-				<name>Common Name</name>
+			<attribute>
+				<ref>ri:cn</ref>
+				<displayName>Common Name</displayName>
 				<access>create</access>
 				<access>read</access>
 				<access>update</access>
 				<outbound>
-					<valueExpression>
-						<c:code xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-							xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-							xmlns:my="http://myself.me/schemas/whatever">
-							declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+					<expression>
+						<code>
 							$c:user/c:fullName
-							</c:code>
-					</valueExpression>
+						</code>
+					</expression>
 				</outbound>
-				<c:inbound xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-					xmlns:my="http://myself.me/schemas/whatever">
-					<c:target>
-						declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+				<inbound>
+					<target>
 						$c:user/c:fullName
-						</c:target>
-				</c:inbound>
+					</target>
+				</inbound>
 			</attribute>
-			<attribute ref="ri:sn"
-				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">
-				<name>Surname</name>
+			<attribute>
+				<ref>ri:sn</ref>
+				<displayName>Surname</displayName>
 				<access>create</access>
 				<access>read</access>
 				<access>update</access>
 				<outbound>
-					<valueExpression>
-						<c:code xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-							xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-							xmlns:my="http://myself.me/schemas/whatever">
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-							$i:user/i:familyName
-							</c:code>
-					</valueExpression>
+					<expression>
+						<code>
+							$c:user/c:familyName
+						</code>
+					</expression>
 				</outbound>
-				<c:inbound xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-					xmlns:my="http://myself.me/schemas/whatever">
-					<c:target>
-						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-						$i:user/i:familyName
-						</c:target>
-				</c:inbound>
+				<inbound>
+					<target>
+						$c:user/c:familyName
+					</target>
+				</inbound>
 			</attribute>
-			<attribute ref="ri:givenName"
-				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">
-				<name>Given Name</name>
+			<attribute>
+				<ref>ri:givenName</ref>
+				<displayName>Given Name</displayName>
 				<access>create</access>
 				<access>read</access>
 				<access>update</access>
 				<outbound>
-					<valueExpression>
-						<c:code xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-							xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-							xmlns:my="http://myself.me/schemas/whatever">
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-							$i:user/i:givenName
-							</c:code>
-					</valueExpression>
+					<expression>
+						<code>
+							$c:user/c:givenName
+						</code>
+					</expression>
 				</outbound>
-				<c:inbound xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-					xmlns:my="http://myself.me/schemas/whatever">
-					<c:target>
-						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-						$i:user/i:givenName
-						</c:target>
-				</c:inbound>
+				<inbound>
+					<target>
+						$c:user/c:givenName
+					</target>
+				</inbound>
 			</attribute>
-			<attribute ref="ri:uid"
-				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">
-				<name>Login Name</name>
+			<attribute>
+				<ref>ri:uid</ref>
+				<displayName>Login Name</displayName>
 				<access>create</access>
 				<access>read</access>
 				<outbound>
-					<valueExpression>
-						<c:code xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-							xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-							xmlns:my="http://myself.me/schemas/whatever">
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-							$i:user/i:name
-							</c:code>
-					</valueExpression>
+					<expression>
+						<code>
+							$c:user/c:name
+						</code>
+					</expression>
 				</outbound>
-				<c:inbound xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-					xmlns:my="http://myself.me/schemas/whatever">
-					<c:target>
-						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-						$i:user/i:name
-                        </c:target>
-				</c:inbound>
+				<inbound>
+					<target>
+						$c:user/c:name
+                    </target>
+				</inbound>
 			</attribute>
-			<attribute ref="ri:description"
-				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">
-				<outbound default="true">
+			<attribute>
+				<ref>ri:description</ref>
+				<outbound>
+					<initial>true</initial>
 					<value>Created by IDM</value>
 				</outbound>
-				<c:inbound xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-					xmlns:my="http://myself.me/schemas/whatever">
-					<c:valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter"
+				<inbound>
+					<!-- c:valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter"
 						xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd">
 						<f:replace>
 							<f:pattern>\p{C}</f:pattern>
 							<f:replacement />
 						</f:replace>
-					</c:valueFilter>
-					<c:target>
-						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-						declare namespace
-						my="http://whatever.com/my";
-						$i:user/i:extension/my:description
-                        </c:target>
-				</c:inbound>
+					</c:valueFilter>  -->
+					<target>
+						declare namespace my="http://whatever.com/my";
+						$c:user/c:extension/my:description
+                    </target>
+				</inbound>
 			</attribute>
-			<attribute ref="ri:l"
-				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">
+			<attribute>
+				<ref>ri:l</ref>
 				<outbound>
-					<variable name="my:defaultLocation" xmlns:my="http://myself.me/schemas/whatever">
-						<value>middle of nowhere</value>
-					</variable>
-					<valueExpression>
-						<c:code xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-							xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-							xmlns:my="http://myself.me/schemas/whatever">
-							declare namespace my="http://myself.me/schemas/whatever";
-
-							$my:defaultLocation
-							</c:code>
-					</valueExpression>
+					<expression>
+						<variable xmlns:my="http://myself.me/schemas/whatever">
+							<name>my:defaultLocation</name>
+							<value xsi:type="xsd:string">middle of nowhere</value>
+						</variable>
+						<returnType>scalar</returnType>
+						<c:code xmlns:my="http://myself.me/schemas/whatever">
+								$my:defaultLocation
+						</c:code>
+					</expression>
 				</outbound>
 			</attribute>
 		</accountType>
@@ -372,19 +348,18 @@
 		<synchronization>
 		<enabled>true</enabled>
 		<correlation>
-			<c:equal xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
+			<equal xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
 				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
 				xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:my="http://myself.me/schemas/whatever">
-				<c:path>.</c:path>
-				<c:valueExpression>
-					<c:ref>c:name</c:ref>
-					<c:code>
-					declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-					declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-					$i:account/i:attributes/dj:uid
-					</c:code>
-                        </c:valueExpression>
-			</c:equal>
+				<path>.</path>
+				<valueExpression>
+					<ref>c:name</ref>
+					<code>
+						declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+						$c:account/c:attributes/dj:uid
+					</code>
+				</valueExpression>
+			</equal>
 		</correlation>
 		<reaction>
 			<situation>confirmed</situation>

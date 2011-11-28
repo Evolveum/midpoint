@@ -16,11 +16,11 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ExtensionProcessor;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -129,8 +129,13 @@ public class TaskItem implements Serializable {
 					.getResult());
 		}
 		if (task.getExtension() != null) {
-			this.extension = ExtensionProcessor.parseExtension(task
-					.getExtension());
+			try {
+				this.extension = ExtensionProcessor.parseExtension(task
+						.getExtension());
+			} catch (SchemaException e) {
+				// FIXME: this is probably wrong
+				throw new IllegalArgumentException(e.getMessage(),e);
+			}
 		}
 	}
 

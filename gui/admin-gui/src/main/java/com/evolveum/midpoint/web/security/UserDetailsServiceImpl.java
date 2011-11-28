@@ -38,11 +38,11 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -53,6 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -122,7 +123,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		user.setGivenName(userType.getGivenName());
 
 		if (credentialsType != null && credentialsType.getPassword() != null) {
-			CredentialsType.Password password = credentialsType.getPassword();
+			PasswordType password = credentialsType.getPassword();
 
 			Credentials credentials = user.getCredentials();
 			credentials.setPassword(password.getProtectedString());
@@ -186,7 +187,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		return null;
 	}
 
-	private UserType getUserByOid(String oid) throws ObjectNotFoundException {
+	private UserType getUserByOid(String oid) throws ObjectNotFoundException, SchemaException {
 		ObjectType object = modelService.getObject(UserType.class, oid, new PropertyReferenceListType(),
 				new OperationResult("Get user by oid"));
 		if (object != null && (object instanceof UserType)) {
@@ -202,9 +203,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 			credentials = new CredentialsType();
 			userType.setCredentials(credentials);
 		}
-		CredentialsType.Password password = credentials.getPassword();
+		PasswordType password = credentials.getPassword();
 		if (password == null) {
-			password = new CredentialsType.Password();
+			password = new PasswordType();
 			credentials.setPassword(password);
 		}
 

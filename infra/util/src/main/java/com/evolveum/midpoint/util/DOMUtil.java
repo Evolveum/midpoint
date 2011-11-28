@@ -87,6 +87,8 @@ public class DOMUtil {
 	public static final QName XSD_DATETIME = new QName(W3C_XML_SCHEMA_NS_URI, "dateTime",
 			NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_QNAME = new QName(W3C_XML_SCHEMA_NS_URI, "QName", NS_W3C_XML_SCHEMA_PREFIX);
+	
+	public static final QName XSD_ANY = new QName(W3C_XML_SCHEMA_NS_URI, "any", NS_W3C_XML_SCHEMA_PREFIX);
 
 	public static final String NS_XML_ENC = "http://www.w3.org/2001/04/xmlenc#";
 	public static final String NS_XML_DSIG = "http://www.w3.org/2000/09/xmldsig#";
@@ -501,6 +503,10 @@ public class DOMUtil {
 		}
 		return prefix;
 	}
+	
+	private static boolean isNamespaceDefinition(Attr attr) {
+			return W3C_XML_SCHEMA_XMLNS_URI.equals(attr.getNamespaceURI());
+	}
 
 	public static void setNamespaceDeclaration(Element element, String prefix, String namespaceUri) {
 		Document doc = element.getOwnerDocument();
@@ -562,7 +568,8 @@ public class DOMUtil {
 		return createElement(document, qname);
 	}
 
-	public static boolean compareElement(Element a, Element b) {
+		
+	public static boolean compareElement(Element a, Element b, boolean considerNamespacePrefixes) {
 		if (a==b) {
 			return true;
 		}
@@ -575,16 +582,16 @@ public class DOMUtil {
 		if (!getQName(a).equals(getQName(b))) {
 			return false;
 		}
-		if (!compareAttributes(a.getAttributes(),b.getAttributes())) {
+		if (!compareAttributes(a.getAttributes(),b.getAttributes(), considerNamespacePrefixes)) {
 			return false;
 		}
-		if (!compareNodeList(a.getChildNodes(),b.getChildNodes())) {
+		if (!compareNodeList(a.getChildNodes(),b.getChildNodes(), considerNamespacePrefixes)) {
 			return false;
 		}
 		return true;
 	}
 
-	private static boolean compareAttributes(NamedNodeMap a, NamedNodeMap b) {
+	private static boolean compareAttributes(NamedNodeMap a, NamedNodeMap b, boolean considerNamespacePrefixes) {
 		if (a==b) {
 			return true;
 		}
@@ -594,14 +601,20 @@ public class DOMUtil {
 		if (a == null || b == null) {
 			return false;
 		}
-		if (a.getLength() != b.getLength()) {
-			return false;
-		}
-		for (int i = 0; i < a.getLength(); i++) {
-			Node aItem = a.item(i);
+		
+		return (compareAttributesIsSubset(a,b,considerNamespacePrefixes)
+				&& compareAttributesIsSubset(b,a,considerNamespacePrefixes));
+	}
+		
+	private static boolean compareAttributesIsSubset(NamedNodeMap subset, NamedNodeMap superset, boolean considerNamespacePrefixes) {
+		for (int i = 0; i < subset.getLength(); i++) {
+			Node aItem = subset.item(i);
 			Attr aAttr = (Attr) aItem;
+			if (!considerNamespacePrefixes && isNamespaceDefinition(aAttr)) {
+				continue;
+			}
 			QName aQname = new QName(aAttr.getNamespaceURI(),aAttr.getLocalName());
-			Attr bAttr = findAttributeByQName(b,aQname);
+			Attr bAttr = findAttributeByQName(superset,aQname);
 			if (bAttr == null) {
 				return false;
 			}
@@ -611,7 +624,7 @@ public class DOMUtil {
 		}
 		return true;
 	}
-	
+
 	private static Attr findAttributeByQName(NamedNodeMap attrs, QName qname) {
 		for (int i = 0; i < attrs.getLength(); i++) {
 			Node aItem = attrs.item(i);
@@ -624,7 +637,7 @@ public class DOMUtil {
 		return null;
 	}
 
-	private static boolean compareNodeList(NodeList a, NodeList b) {
+	private static boolean compareNodeList(NodeList a, NodeList b, boolean considerNamespacePrefixes) {
 		if (a==b) {
 			return true;
 		}
@@ -644,7 +657,7 @@ public class DOMUtil {
 				return false;
 			}
 			if (aItem.getNodeType() == Node.ELEMENT_NODE) {
-				if (!compareElement((Element)aItem,(Element)bItem)) {
+				if (!compareElement((Element)aItem, (Element)bItem, considerNamespacePrefixes)) {
 					return false;
 				}
 			} else if (aItem.getNodeType() == Node.TEXT_NODE) {

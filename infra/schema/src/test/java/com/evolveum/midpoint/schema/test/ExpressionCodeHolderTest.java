@@ -67,11 +67,9 @@ public class ExpressionCodeHolderTest {
         Object object = u.unmarshal(fis);
 
         @SuppressWarnings("rawtypes")
-		ValueConstructionType valueConstruction = (ValueConstructionType) ((JAXBElement) object).getValue();
-        	
-        ExpressionType valueExpression = valueConstruction.getValueExpression();
+		ExpressionType expressionType = (ExpressionType) ((JAXBElement) object).getValue();
 
-        ExpressionCodeHolder ex = new ExpressionCodeHolder(valueExpression.getCode());
+        ExpressionCodeHolder ex = new ExpressionCodeHolder(expressionType.getCode());
 
         AssertJUnit.assertEquals("$c:user/c:extension/foo:something/bar:somethingElse", ex.getExpressionAsString().trim());
         
@@ -101,11 +99,9 @@ public class ExpressionCodeHolderTest {
         Object object = u.unmarshal(fis);
 
 		@SuppressWarnings("rawtypes")
-		ValueConstructionType valueConstruction = (ValueConstructionType) ((JAXBElement) object).getValue();
+		ExpressionType expressionType = (ExpressionType) ((JAXBElement) object).getValue();
 
-        ExpressionType valueExpression = valueConstruction.getValueExpression();
-
-        ExpressionCodeHolder ex = new ExpressionCodeHolder(valueExpression.getCode());
+        ExpressionCodeHolder ex = new ExpressionCodeHolder(expressionType.getCode());
 
         AssertJUnit.assertEquals("$c:user/c:extension/foo:something/bar:somethingElse", ex.getExpressionAsString().trim());
 

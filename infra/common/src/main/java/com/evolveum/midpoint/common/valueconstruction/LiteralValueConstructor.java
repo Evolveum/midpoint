@@ -24,13 +24,16 @@ import java.util.Map;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.LiteralValueConstructorType;
+import com.evolveum.midpoint.schema.result.OperationResult;
 
 /**
  * @author Radovan Semancik
@@ -43,15 +46,18 @@ public class LiteralValueConstructor implements ValueConstructor {
 	 */
 	@Override
 	public Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition, 
-			Property input, Map<QName, Object> variables, String contextDescription) 
+			Property input, Map<QName, Object> variables, String contextDescription, OperationResult result) 
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
-		Object contstuctorTypeObject = constructorElement.getValue();
-		if (!(contstuctorTypeObject instanceof LiteralValueConstructorType)) {
-			throw new IllegalArgumentException("Literal value constructor cannot handle elements of type "+contstuctorTypeObject.getClass().getName());
+		if (!constructorElement.getName().equals(SchemaConstants.C_VALUE)) {
+			throw new IllegalArgumentException("Literal value constructor cannot handle elements "+constructorElement.getName());
 		}
-		LiteralValueConstructorType constructorType = (LiteralValueConstructorType)contstuctorTypeObject;
-		Property output = outputDefinition.parseItem(constructorType.getAny());
+		Object constructorTypeObject = constructorElement.getValue();
+		if (!(constructorTypeObject instanceof Element)) {
+			throw new IllegalArgumentException("Literal value constructor can only handle DOM elements, but got "+constructorTypeObject.getClass().getName());
+		}
+		
+		Property output = outputDefinition.parseFromValueElement((Element)constructorTypeObject);
 		
 		return output;
 	}

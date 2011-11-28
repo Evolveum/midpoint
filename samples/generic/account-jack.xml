@@ -35,4 +35,5 @@
 		<ri:givenName>Jack</ri:givenName>
 		<ri:sn>Sparrow</ri:sn>
 	</attributes>
+	<accountType>user</accountType>
 </account>

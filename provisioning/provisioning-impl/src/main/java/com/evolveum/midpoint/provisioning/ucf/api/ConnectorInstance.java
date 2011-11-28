@@ -19,7 +19,6 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
@@ -29,7 +28,10 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfigurationType;
+
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
@@ -68,7 +70,7 @@ public interface ConnectorInstance {
 	 * 
 	 * @param configuration
 	 */
-	public void configure(Configuration configuration, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException;
+	public void configure(ResourceConfigurationType configuration, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException;
 
 	
 	public Schema generateConnectorSchema();
@@ -148,8 +150,8 @@ public interface ConnectorInstance {
 	 * @throws SchemaException error converting object from native (connector) format
 	 */
 	public ResourceObject fetchObject(ResourceObjectDefinition objectClass,
-			Set<ResourceObjectAttribute> identifiers, boolean returnDefaultAttributes,
-			Set<ResourceObjectAttributeDefinition> attributesToReturn, OperationResult parentResult)
+			Collection<? extends ResourceObjectAttribute> identifiers, boolean returnDefaultAttributes,
+			Collection<? extends ResourceObjectAttributeDefinition> attributesToReturn, OperationResult parentResult)
 		throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
 	
 	/**
@@ -229,9 +231,9 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException
 	 * @throws SchemaException 
 	 */
-	public Set<AttributeModificationOperation> modifyObject(ResourceObjectDefinition objectClass, Set<ResourceObjectAttribute> identifiers, Set<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
+	public Set<AttributeModificationOperation> modifyObject(ResourceObjectDefinition objectClass, Collection<? extends ResourceObjectAttribute> identifiers, Set<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
 	
-	public void deleteObject(ResourceObjectDefinition objectClass, Set<Operation> additionalOperations, Set<ResourceObjectAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
+	public void deleteObject(ResourceObjectDefinition objectClass, Set<Operation> additionalOperations, Collection<? extends ResourceObjectAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Creates a live Java object from a token previously serialized to string.

@@ -21,7 +21,16 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
  * MidPoint Object Definition.
@@ -39,11 +48,69 @@ import javax.xml.namespace.QName;
  * @author Radovan Semancik
  * 
  */
-public class ObjectDefinition extends PropertyContainerDefinition {
-
+public class ObjectDefinition<T extends ObjectType> extends PropertyContainerDefinition {
 	private static final long serialVersionUID = -8298581031956931008L;
+	
+	protected Class<T> jaxbClass;
 
 	ObjectDefinition(QName name, ComplexTypeDefinition complexTypeDefinition) {
+		// Object definition can only be top-level, hence null parent
 		super(name, complexTypeDefinition);
+		determineJaxbClass();
 	}
+	
+	// TODO: make this smarter, based on actual JAXB classes
+	private void determineJaxbClass() {
+		jaxbClass = (Class<T>) ObjectTypes.getObjectTypeFromTypeQName(getTypeName()).getClassDefinition();
+		if (jaxbClass == null) {
+			throw new SystemException("Cannot determine JAXB class name for object type "+getTypeName());
+		}
+	}
+
+	public Class<T> getJaxbClass() {
+		return jaxbClass;
+	}
+
+	public void setJaxbClass(Class<T> jaxbClass) {
+		this.jaxbClass = jaxbClass;
+	}
+
+	public MidPointObject<T> parseObjectType(T objectType) throws SchemaException {
+		MidPointObject<T> object = parseItemFromJaxbObject(objectType, MidPointObject.class);
+		object.setOid(objectType.getOid());
+		object.setObjectType(objectType);
+		return object;
+	}
+	
+	public T convertToObjectType(MidPointObject<T> mpObject) throws SchemaException {		
+		if (jaxbClass == null) {
+			throw new IllegalStateException("No JAXB class was set for "+this);
+		}
+		T instance = instantiateJaxbClass(jaxbClass);
+		fillProperties(instance, mpObject);
+		return instance;		
+	}
+
+	protected void fillProperties(T instance, MidPointObject<T> mpObject) throws SchemaException {
+		instance.setOid(mpObject.getOid());
+		super.fillProperties(instance, mpObject);
+	}
+
+	@Override
+	public MidPointObject<T> instantiate(QName name) {
+		MidPointObject<T> midPointObject = new MidPointObject<T>(name, this);
+		return midPointObject;
+	}
+
+	@Override
+	public MidPointObject<T> instantiate(QName name, Object element) {
+		return new MidPointObject<T>(name, this, element);
+	}
+	
+	public ObjectDefinition<T> clone() {
+		ObjectDefinition<T> clone = new ObjectDefinition<T>(name, complexTypeDefinition);
+		copyDefinitionData(clone);
+		return clone;
+	}
+	
 }

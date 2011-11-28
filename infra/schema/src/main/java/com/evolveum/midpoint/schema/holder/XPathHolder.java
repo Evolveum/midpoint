@@ -44,6 +44,7 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
+import com.evolveum.midpoint.schema.processor.PropertyPath;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -136,6 +137,16 @@ public class XPathHolder {
 	public XPathHolder(QName... segmentQNames) {
 		this.segments = new ArrayList<XPathSegment>();
 		for (QName segmentQName :segmentQNames) {
+			XPathSegment segment = new XPathSegment(segmentQName);
+			this.segments.add(segment);
+		}
+
+		this.absolute = false;		
+	}
+	
+	public XPathHolder(PropertyPath propertyPath) {
+		this.segments = new ArrayList<XPathSegment>();
+		for (QName segmentQName :propertyPath.getSegments()) {
 			XPathSegment segment = new XPathSegment(segmentQName);
 			this.segments.add(segment);
 		}
@@ -446,6 +457,16 @@ public class XPathHolder {
 			return true;
 		if (obj == null)
 			return false;
+		
+		// Special case
+		if (obj instanceof QName) {
+			if (segments.size() != 1) {
+				return false;
+			}
+			XPathSegment segment = segments.get(0);
+			return segment.getQName().equals((QName)obj);
+		}
+		
 		if (getClass() != obj.getClass())
 			return false;
 		XPathHolder other = (XPathHolder) obj;

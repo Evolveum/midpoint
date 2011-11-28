@@ -33,10 +33,13 @@ import org.w3c.dom.Element;
  * @author semancik
  */
 public class SchemaProcessorBasicTest {
-	private static final String SCHEMA1_FILENAME = "src/test/resources/processor/schema1.xsd";
-	private static final String OBJECT1_FILENAME = "src/test/resources/processor/object1.xml";
-	private static final String SCHEMA2_FILENAME = "src/test/resources/processor/schema2.xsd";
-	private static final String OBJECT2_FILENAME = "src/test/resources/processor/object2.xml";
+	
+	private static final String TEST_DIR = "src/test/resources/processor/";
+	
+	private static final String SCHEMA1_FILENAME = TEST_DIR + "schema1.xsd";
+	private static final String OBJECT1_FILENAME = TEST_DIR + "object1.xml";
+	private static final String SCHEMA2_FILENAME = TEST_DIR + "schema2.xsd";
+	private static final String OBJECT2_FILENAME = TEST_DIR + "object2.xml";
 	private static final String SCHEMA_NAMESPACE = "http://schema.foo.com/bar";
 	
 	public SchemaProcessorBasicTest() {
@@ -195,6 +198,13 @@ public class SchemaProcessorBasicTest {
 		assertEquals(new QName(SCHEMA_NAMESPACE,"propertyContainer"),propertyContainer.getName());
 		assertEquals(new QName(SCHEMA_NAMESPACE,"propertyContainer"),propertyContainer.getDefinition().getName());
 		assertEquals(new QName(SCHEMA_NAMESPACE,"PropertyContainerType"),propertyContainer.getDefinition().getTypeName());
+		
+	}
+	
+	@Test
+	public void testParseAndSerializeUser() {
+		
+		
 		
 	}
 	

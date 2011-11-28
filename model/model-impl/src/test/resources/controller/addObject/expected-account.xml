@@ -18,27 +18,24 @@
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!-- Portions Copyrighted 2011 lazyman					     -->
+<!-- Portions Copyrighted 2011 Radovan Semancik			     -->
 <!--                                                         -->
-<c:object xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
-	xmlns:ldap="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd" xmlns:unix="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
-	xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xsi:type="c:AccountShadowType"
-	xsi:schemaLocation="http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
-   http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../ns/public/common/common-1.xsd
-   http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd ../ns/public/resource/resource-schema-1.xsd
-   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd ../ns/public/resource/idconnector/resource-schema-1.xsd
-   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd ../ns/public/resource/idconnector/configuration-1.xsd">
-
-	<c:name>Localhost OpenDJ-bond</c:name>	
-	<c:resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType" />
-	<c:objectClass>ri:AccountObjectClass</c:objectClass>
-	<c:attributes>
+<object xsi:type="AccountShadowType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+	xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+	xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd"
+	xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
+	xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">
+    <resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
+    <objectClass>ri:AccountObjectClass</objectClass>
+    <accountType>user</accountType>
+	<attributes>
 		<ics:name>uid=bond,ou=people,dc=example,dc=com</ics:name>
 		<ri:cn>James Bond 007</ri:cn>
 		<ri:sn></ri:sn>
 		<ri:givenName>James Jr.</ri:givenName>
 		<ri:description>Created by IDM</ri:description>
-	</c:attributes>
-</c:object>
+	</attributes>
+</object>

@@ -96,13 +96,13 @@ public class DiffPatchRegressionTest {
 
     @Test
     public void testPatchRealEsbUserAccountRef() throws Exception {
-        ObjectModificationType changes = CalculateXmlDiff.calculateChanges(new File("src/test/resources/user-real-esb-account-ref-old.xml"), new File("src/test/resources/user-real-esb-account-ref-new.xml"));
+        ObjectModificationType changes = CalculateXmlDiff.calculateChanges(new File("src/test/resources/patch/user-real-esb-account-ref-old.xml"), new File("src/test/resources/patch/user-real-esb-account-ref-new.xml"));
         assertNotNull(changes);
         assertEquals("383af517-2b29-4ab3-9bf1-07e60075e7ec", changes.getOid());
         assertEquals(1, changes.getPropertyModification().size());
-        String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/user-real-esb-account-ref-old.xml"));
+        String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/patch/user-real-esb-account-ref-old.xml"));
 
-        XmlAsserts.assertPatch(new File("src/test/resources/user-real-esb-account-ref-new.xml"), patchedXml);
+        XmlAsserts.assertPatch(new File("src/test/resources/patch/user-real-esb-account-ref-new.xml"), patchedXml);
     }
 
     @Test
@@ -113,7 +113,7 @@ public class DiffPatchRegressionTest {
         PropertyModificationType change = new PropertyModificationType();
         change.setModificationType(PropertyModificationTypeType.replace);
 
-        Document userDoc = parseXmlToDocument(new File("src/test/resources/user-real-esb.xml"));
+        Document userDoc = parseXmlToDocument(new File("src/test/resources/patch/user-real-esb.xml"));
         XPathHolder xphatType = new XPathHolder(".", userDoc.getFirstChild());
         change.setPath(xphatType.toElement(SchemaConstants.NS_C, "xpath"));
 
@@ -123,9 +123,9 @@ public class DiffPatchRegressionTest {
 
         changes.getPropertyModification().add(change);
 
-        String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/user-real-esb.xml"));
+        String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/patch/user-real-esb.xml"));
 
-        XmlAsserts.assertPatch(new File("src/test/resources/user-real-esb-patched.xml"), patchedXml);
+        XmlAsserts.assertPatch(new File("src/test/resources/patch/user-real-esb-patched.xml"), patchedXml);
     }
 
     @Test
@@ -142,9 +142,9 @@ public class DiffPatchRegressionTest {
 
         changes.getPropertyModification().add(change);
 
-        String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/user-real-esb.xml"));
+        String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/patch/user-real-esb.xml"));
 
-        XmlAsserts.assertPatch(new File("src/test/resources/user-real-esb-patched.xml"), patchedXml);
+        XmlAsserts.assertPatch(new File("src/test/resources/patch/user-real-esb-patched.xml"), patchedXml);
     }
 
     private PropertyModificationType createPasswordModification(String newPassword) {
@@ -175,8 +175,8 @@ public class DiffPatchRegressionTest {
         PropertyModificationType passwordChange = createPasswordModification("b");
         mod.getPropertyModification().add(passwordChange);
 
-        String patchedXml = (new PatchXml()).applyDifferences(mod, new File("src/test/resources/account-password-modification-no-credentials-tag.xml"));
-        XmlAsserts.assertPatch(new File("src/test/resources/account-password-modification-no-credentials-tag-patched.xml"), patchedXml);
+        String patchedXml = (new PatchXml()).applyDifferences(mod, new File("src/test/resources/patch/account-password-modification-no-credentials-tag.xml"));
+        XmlAsserts.assertPatch(new File("src/test/resources/patch/account-password-modification-no-credentials-tag-patched.xml"), patchedXml);
     }
 
     @Test
@@ -186,7 +186,7 @@ public class DiffPatchRegressionTest {
         PropertyModificationType passwordChange = createPasswordModification("newPassword");
         mod.getPropertyModification().add(passwordChange);
 
-        String patchedXml = (new PatchXml()).applyDifferences(mod, new File("src/test/resources/account-password-modification-with-credentials-tag.xml"));
-        XmlAsserts.assertPatch(new File("src/test/resources/account-password-modification-with-credentials-tag-patched.xml"), patchedXml);
+        String patchedXml = (new PatchXml()).applyDifferences(mod, new File("src/test/resources/patch/account-password-modification-with-credentials-tag.xml"));
+        XmlAsserts.assertPatch(new File("src/test/resources/patch/account-password-modification-with-credentials-tag-patched.xml"), patchedXml);
     }
 }

@@ -40,11 +40,11 @@ import org.springframework.stereotype.Controller;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.crypto.Protector;
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;

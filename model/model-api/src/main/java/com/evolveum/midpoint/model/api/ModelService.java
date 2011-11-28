@@ -26,14 +26,15 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ConsistencyViolationException;
+import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
@@ -115,6 +116,8 @@ public interface ModelService {
 	 * @return Retrieved object
 	 * @throws ObjectNotFoundException
 	 *             requested object does not exist
+	 * @throws SchemaException 
+	 * 				the object is not schema compliant
 	 * @throws IllegalArgumentException
 	 *             missing required parameter, wrong OID format, etc.
 	 * @throws ClassCastException
@@ -125,7 +128,7 @@ public interface ModelService {
 	 *             state
 	 */
 	<T extends ObjectType> T getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
-			OperationResult result) throws ObjectNotFoundException;
+			OperationResult result) throws ObjectNotFoundException, SchemaException;
 
 	/**
 	 * <p>
@@ -168,6 +171,9 @@ public interface ModelService {
 	 * @throws SchemaException
 	 *             error dealing with resource schema, e.g. created object does
 	 *             not conform to schema
+	 * @throws ExpressionEvaluationException 
+	 * 				evaluation of expression associated with the object has failed
+	 * @throws CommunicationException 
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 * @throws SystemException
@@ -175,7 +181,7 @@ public interface ModelService {
 	 *             state
 	 */
 	<T extends ObjectType> String addObject(T object, OperationResult parentResult) throws ObjectAlreadyExistsException,
-			ObjectNotFoundException, SchemaException;
+			ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException;
 
 	/**
 	 * <p>
@@ -205,6 +211,9 @@ public interface ModelService {
 	 *             specified object does not exist
 	 * @throws SchemaException
 	 *             resulting object would violate the schema
+	 * @throws ExpressionEvaluationException
+	 * 				evaluation of expression associated with the object has failed
+	 * @throws CommunicationException 
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 * @throws SystemException
@@ -212,7 +221,7 @@ public interface ModelService {
 	 *             state
 	 */
 	<T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType change,
-			OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException;
 
 	/**
 	 * <p>
@@ -458,9 +467,10 @@ public interface ModelService {
 	 * Invocation of this method may be switched to background.
 	 * </p>
 	 * TODO: OperationResult
+	 * @throws SchemaException 
 	 */
 	void importAccountsFromResource(String resourceOid, QName objectClass, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException;
+			throws ObjectNotFoundException, SchemaException;
 
 	/**
 	 * Import objects from file.

@@ -34,9 +34,8 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.provisioning.ucf.api.ActivationChangeOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributeModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
@@ -56,8 +55,10 @@ import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
-import com.evolveum.midpoint.schema.util.MiscUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -65,7 +66,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType.Password;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -243,7 +244,7 @@ public class ShadowCache {
 		if (shadow instanceof AccountShadowType) {
 			AccountShadowType account = (AccountShadowType) shadow;
 			if (account.getCredentials() != null && account.getCredentials().getPassword() != null) {
-				Password password = account.getCredentials().getPassword();
+				PasswordType password = account.getCredentials().getPassword();
 				ProtectedStringType protectedString = password.getProtectedString();
 				if (protectedString != null) {
 					PasswordChangeOperation passOp = new PasswordChangeOperation(protectedString);
@@ -461,7 +462,7 @@ public class ShadowCache {
 	}
 
 	private void addExecuteScriptOperation(Set<Operation> operations, OperationTypeType type,
-			ScriptsType scripts, OperationResult result) {
+			ScriptsType scripts, OperationResult result) throws SchemaException {
 		if (scripts == null) {
 			// No warning needed, this is quite normal
 			// result.recordWarning("Skiping creating script operation to execute. Scripts was not defined.");
@@ -475,9 +476,8 @@ public class ShadowCache {
 					ExecuteScriptOperation scriptOperation = new ExecuteScriptOperation();
 
 					for (ScriptArgumentType argument : script.getArgument()) {
-						JAXBElement<ValueConstructionType.Value> value = argument.getValue();
-						ExecuteScriptArgument arg = new ExecuteScriptArgument(argument.getName(), value
-								.getValue().getContent());
+						ExecuteScriptArgument arg = new ExecuteScriptArgument(argument.getName(), 
+								ValueConstruction.getStaticValueList(argument));
 						scriptOperation.getArgument().add(arg);
 					}
 
@@ -574,14 +574,14 @@ public class ShadowCache {
 	}
 
 	private PasswordChangeOperation determinePasswordChange(ObjectModificationType objectChange,
-			ResourceObjectShadowType objectType) {
+			ResourceObjectShadowType objectType) throws SchemaException {
 		// Look for password change
-		Password newPasswordStructure = ObjectTypeUtil.getPropertyNewValue(objectChange, "credentials",
-				"password", Password.class);
+		PasswordType newPasswordStructure = ObjectTypeUtil.getPropertyNewValue(objectChange, "credentials",
+				"password", PasswordType.class);
 		PasswordChangeOperation passwordChangeOp = null;
 		if (newPasswordStructure != null) {
 			ProtectedStringType newPasswordPS = newPasswordStructure.getProtectedString();
-			if (MiscUtil.isNullOrEmpty(newPasswordPS)) {
+			if (MiscSchemaUtil.isNullOrEmpty(newPasswordPS)) {
 				throw new IllegalArgumentException(
 						"ProtectedString is empty in an attempt to change password of "
 								+ ObjectTypeUtil.toShortString(objectType));

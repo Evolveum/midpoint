@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
 
 /**
@@ -52,7 +53,7 @@ public class ExpressionValueConstructor implements ValueConstructor {
 	 */
 	@Override
 	public Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition, 
-			Property input, Map<QName, Object> variables, String contextDescription) 
+			Property input, Map<QName, Object> variables, String contextDescription, OperationResult result) 
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
 		Object contstuctorTypeObject = constructorElement.getValue();
@@ -70,10 +71,10 @@ public class ExpressionValueConstructor implements ValueConstructor {
 		Property output = outputDefinition.instantiate();
 		
 		if (outputDefinition.isMultiValue()) {
-			List<?> resultValues = expression.evaluateList(type);
+			List<?> resultValues = expression.evaluateList(type, result);
 			output.getValues().addAll(resultValues);
 		} else {
-			Object resultValue = expression.evaluateScalar(type);
+			Object resultValue = expression.evaluateScalar(type, result);
 			output.getValues().add(resultValue);
 		}
 		

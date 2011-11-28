@@ -26,6 +26,7 @@ import javax.xml.bind.JAXBException;
 
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -45,7 +46,7 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
 	}
 
 	@Override
-	public ObjectType resolve(ObjectReferenceType ref, String contextDescription)
+	public ObjectType resolve(ObjectReferenceType ref, String contextDescription, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
 		File file = new File( directory, oidToFilename(ref.getOid()));
 		if (file.exists()) {

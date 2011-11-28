@@ -25,6 +25,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -37,6 +38,7 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.PropertyModification.ModificationType;
+import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Dumpable;
 
@@ -210,6 +212,34 @@ public class PropertyContainer extends Item implements Serializable {
 		}
 		return null;
 	}
+	
+	public PropertyContainer findPropertyContainer(QName name) {
+		return findItem(name, PropertyContainer.class);
+	}
+	
+	public PropertyContainer findPropertyContainer(PropertyPath parentPath) {
+		if (parentPath == null || parentPath.isEmpty()) {
+			return this;
+		}
+		 PropertyContainer subContainer = findItem(parentPath.first(), PropertyContainer.class);
+		 return subContainer.findPropertyContainer(parentPath.rest());
+	}
+
+	public Property findProperty(PropertyPath parentPath, QName propertyQName) {
+		PropertyContainer pc = findPropertyContainer(parentPath);
+		return pc.findProperty(propertyQName);
+	}
+
+	public Property findProperty(PropertyPath propertyPath) {
+		if (propertyPath.size() == 0) {
+			return null;
+		}
+		if (propertyPath.size() == 1) {
+			return findProperty(propertyPath.first());
+		}
+		PropertyContainer pc = findPropertyContainer(propertyPath.allExceptLast());
+		return pc.findProperty(propertyPath.last());
+	}
 
 	/**
 	 * Finds a specific property in the container by name.
@@ -221,14 +251,18 @@ public class PropertyContainer extends Item implements Serializable {
 	 * @return found property or null
 	 */
 	public Item findItem(QName itemQName) {
+		return findItem(itemQName,Item.class);
+	}
+
+	private <T extends Item> T findItem(QName itemQName, Class<T> type) {
 		for (Item item : items) {
-			if (itemQName.equals(item.getName())) {
-				return item;
+			if (type.isAssignableFrom(item.getClass()) &&
+					itemQName.equals(item.getName())) {
+				return (T) item;
 			}
 		}
 		return null;
 	}
-
 	
 	/**
 	 * Finds a specific property in the container by definition.
@@ -262,12 +296,72 @@ public class PropertyContainer extends Item implements Serializable {
 		return findProperty(propertyDefinition.getName());
 	}
 
+	public PropertyContainer findOrCreatePropertyContainer(QName containerName) {
+		PropertyContainer container = findItem(containerName, PropertyContainer.class);
+		if (container != null) {
+			return container;
+		}
+		return createPropertyContainer(containerName);
+	}
+
+	public PropertyContainer findOrCreatePropertyContainer(PropertyPath containerPath) {
+		if (containerPath.size() == 0) {
+			return this;
+		}
+		PropertyContainer container = findOrCreatePropertyContainer(containerPath.first());
+		return container.findOrCreatePropertyContainer(containerPath.rest());
+	}
+
+	public Property findOrCreateProperty(QName propertyQName) {
+		Property property = findItem(propertyQName, Property.class);
+		if (property != null) {
+			return property;
+		}
+		return createProperty(propertyQName);
+	}
+	
+	public Property findOrCreateProperty(PropertyPath parentPath, QName propertyQName) {
+		PropertyContainer container = findOrCreatePropertyContainer(parentPath);
+		if (container == null) {
+			throw new IllegalArgumentException("No container");
+		}
+		return container.findOrCreateProperty(propertyQName);
+	}
+		
+	public PropertyContainer createPropertyContainer(QName containerName) {
+		if (getDefinition() == null) {
+			throw new IllegalStateException("No definition");
+		}
+		PropertyContainerDefinition containerDefinition = getDefinition().findPropertyContainerDefinition(containerName);
+		if (containerDefinition == null) {
+			throw new IllegalArgumentException("No definition of container '"+containerName+"' in "+getDefinition());
+		}
+		PropertyContainer container = containerDefinition.instantiate();
+		add(container);
+		return container;
+	}
+	
+	public Property createProperty(QName propertyName) {
+		if (getDefinition() == null) {
+			throw new IllegalStateException("No definition");
+		}
+		PropertyDefinition propertyDefinition = getDefinition().findPropertyDefinition(propertyName);
+		if (propertyDefinition == null) {
+			throw new IllegalArgumentException("No definition of property '"+propertyName+"' in "+getDefinition());
+		}
+		Property property = propertyDefinition.instantiate();
+		add(property);
+		return property;
+	}
+
+	
 	@Override
 	public void serializeToDom(Node parentNode) throws SchemaException {
 		if (parentNode==null) {
 			throw new IllegalArgumentException("No parent node specified");
 		}
 		Element containerElement = DOMUtil.getDocument(parentNode).createElementNS(name.getNamespaceURI(), name.getLocalPart());
+		parentNode.appendChild(containerElement);
 		for (Item item : items) {
 			item.serializeToDom(containerElement);
 		}
@@ -300,43 +394,7 @@ public class PropertyContainer extends Item implements Serializable {
 		}
 		return elements;
 	}
-
-	@Override
-	public String toString() {
-		return getClass().getSimpleName() + "(" + getName() + "):"
-				+ getItems();
-	}
-
-	public String dump() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(getClass().getSimpleName()).append("(").append(getName()).append(")\n");
-		for (Item item : getItems()) {
-			sb.append(INDENT_STRING);
-			sb.append(item.dump());
-		}
-		return sb.toString();
-	}
 	
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < indent; i++) {
-			sb.append(INDENT_STRING);
-		}
-		sb.append(getDebugDumpClassName()).append(": ").append(getName()).append("\n");
-		for (Item item : getItems()) {
-			sb.append(item.debugDump(indent+1));
-			sb.append("\n");
-		}
-		return sb.toString();
-	}
-
-	/**
-	 * Return a human readable name of this class suitable for logs.
-	 */
-	protected String getDebugDumpClassName() {
-		return "Property container";
-	}
-
 	public boolean isEmpty() {
 		return items.isEmpty();
 	}
@@ -365,4 +423,67 @@ public class PropertyContainer extends Item implements Serializable {
 			throw new NotImplementedException("Modification in subcontainers is not supported yet");
 		}
 	}
+
+	@Override
+	public PropertyContainer clone() {
+		PropertyContainer clone = new PropertyContainer();
+		copyValues(clone);
+		return clone;
+	}
+	
+	protected void copyValues(PropertyContainer clone) {
+		super.copyValues(clone);
+		for (Item item: items) {
+			clone.items.add(item.clone());
+		}
+	}
+	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + "(" + getName() + "):"
+				+ getItems();
+	}
+
+	@Override
+	public String dump() {
+		return debugDump();
+	}
+	
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < indent; i++) {
+			sb.append(INDENT_STRING);
+		}
+		sb.append(getDebugDumpClassName()).append(": ").append(DebugUtil.prettyPrint(getName()));
+		sb.append(additionalDumpDescription());
+		if (getDefinition() != null) {
+			sb.append(" def");
+		}
+		Iterator<Item> i = getItems().iterator();
+		if (i.hasNext()) {
+			sb.append("\n");
+		}
+		while (i.hasNext()) {
+			Item item = i.next();
+			sb.append(item.debugDump(indent+1));
+			if (i.hasNext()) {
+				sb.append("\n");
+			}
+		}
+		return sb.toString();
+	}
+
+	protected String additionalDumpDescription() {
+		return "";
+	}
+
+	/**
+	 * Return a human readable name of this class suitable for logs.
+	 */
+	@Override
+	protected String getDebugDumpClassName() {
+		return "PrC";
+	}
+
 }

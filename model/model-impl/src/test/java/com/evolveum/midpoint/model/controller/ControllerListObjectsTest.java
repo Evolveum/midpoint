@@ -40,15 +40,15 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.test.util.equal.UserTypeComparator;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
-import com.evolveum.midpoint.schema.util.MiscUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
@@ -101,7 +101,7 @@ public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void userList() throws Exception {
-		final ResultList<UserType> expectedUserList = MiscUtil.toResultList(UserType.class,
+		final ResultList<UserType> expectedUserList = MiscSchemaUtil.toResultList(UserType.class,
 				((JAXBElement<ObjectListType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "user-list.xml")))
 						.getValue());
 

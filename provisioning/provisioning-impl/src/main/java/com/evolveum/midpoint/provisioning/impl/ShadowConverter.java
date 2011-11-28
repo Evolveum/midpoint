@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.provisioning.impl;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -11,8 +12,7 @@ import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.DebugUtil;
-import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.ActivationChangeOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributeModificationOperation;
@@ -32,7 +32,9 @@ import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
-import com.evolveum.midpoint.schema.util.MiscUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -45,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModification
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType.Password;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType.EnableDisable;
 
@@ -101,7 +103,7 @@ public class ShadowConverter {
 		}
 
 		// Let's get all the identifiers from the Shadow <attributes> part
-		Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(shadow.getAttributes().getAny());
+		Collection<? extends ResourceObjectAttribute> identifiers = rod.parseIdentifiers(shadow.getAttributes().getAny());
 
 		if (identifiers == null || identifiers.isEmpty()) {
 			// No identifiers found
@@ -216,7 +218,7 @@ public class ShadowConverter {
 				.getObjectClass());
 
 		LOGGER.trace("Getting object identifiers");
-		Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(shadow.getAttributes().getAny());
+		Collection<? extends ResourceObjectAttribute> identifiers = rod.parseIdentifiers(shadow.getAttributes().getAny());
 
 		try {
 
@@ -258,7 +260,7 @@ public class ShadowConverter {
 
 		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema.findContainerDefinitionByType(shadow
 				.getObjectClass());
-		Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(shadow.getAttributes().getAny());
+		Collection<? extends ResourceObjectAttribute> identifiers = rod.parseIdentifiers(shadow.getAttributes().getAny());
 
 
 		Set<Operation> attributeChanges = getAttributeChanges(objectChanges, changes, rod);
@@ -308,7 +310,7 @@ public class ShadowConverter {
 
 		LOGGER.trace("Getting last token");
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
-		Schema resourceSchema = ResourceTypeUtil.getResourceSchema(resourceType);
+		Schema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType);
 		ResourceObjectDefinition objectClass = resourceSchema.findAccountDefinition();
 		Property lastToken = null;
 		try {
@@ -338,7 +340,7 @@ public class ShadowConverter {
 		LOGGER.trace("Shadow cache, fetch changes");
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
-		Schema resourceSchema = ResourceTypeUtil.getResourceSchema(resource);
+		Schema resourceSchema = RefinedResourceSchema.getResourceSchema(resource);
 		ResourceObjectDefinition objectClass = resourceSchema.findAccountDefinition();
 
 		// get changes from the connector
@@ -397,7 +399,7 @@ public class ShadowConverter {
 
 
 	private ResourceObject fetchResourceObject(ResourceObjectDefinition rod,
-			Set<ResourceObjectAttribute> identifiers, ConnectorInstance connector, ResourceType resource,
+			Collection<? extends ResourceObjectAttribute> identifiers, ConnectorInstance connector, ResourceType resource,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 			SchemaException {
 

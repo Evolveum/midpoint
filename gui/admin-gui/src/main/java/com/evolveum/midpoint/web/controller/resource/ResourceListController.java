@@ -34,11 +34,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
-import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -200,7 +201,7 @@ public class ResourceListController extends SortableListController<ResourceListI
 
 		ResourceListItem item = new ResourceListItem(resource.getOid(), resource.getName(), type, version);
 		try {
-			Schema schema = ResourceTypeUtil.getResourceSchema(resource);
+			Schema schema = RefinedResourceSchema.getResourceSchema(resource);
 			if (schema == null) {
 				LOGGER.debug("Schema for resource {} was null.", new Object[] { resource.getName() });
 				return item;

@@ -25,7 +25,7 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.schema.EnhancedResourceType;
+import com.evolveum.midpoint.common.refinery.EnhancedResourceType;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;

@@ -23,6 +23,12 @@ package com.evolveum.midpoint.schema.processor;
 
 import javax.xml.namespace.QName;
 
+import org.w3c.dom.Node;
+
+import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+
 /**
  * Common supertype for all identity objects. Defines basic properties that each
  * object must have to live in our system (identifier, name).
@@ -40,17 +46,22 @@ import javax.xml.namespace.QName;
  * @author Radovan Semancik
  * 
  */
-public class MidPointObject extends PropertyContainer {
+public class MidPointObject<T extends ObjectType> extends PropertyContainer {
 
+	protected String oid;
+	protected T objectType = null;
+	
 	public MidPointObject(QName name) {
 		super(name);
 	}
 
-	public MidPointObject(QName name, PropertyContainerDefinition definition) {
+	public MidPointObject(QName name, ObjectDefinition definition) {
 		super(name, definition);
 	}
 	
-	// TODO: support OID
+	public MidPointObject(QName name, ObjectDefinition definition, Object element) {
+		super(name,definition,element);
+	}
 
 	/**
 	 * Returns Object ID (OID).
@@ -60,6 +71,72 @@ public class MidPointObject extends PropertyContainer {
 	 * @return Object ID (OID)
 	 */
 	public String getOid() {
-		throw new IllegalStateException("not implemented yet.");
+		return oid;
 	}
+
+	public void setOid(String oid) {
+		this.oid = oid;
+	}
+
+	public Class<T> getJaxbClass() {
+		return ((ObjectDefinition)getDefinition()).getJaxbClass();
+	}
+
+	public T getObjectType() {
+		return objectType;
+	}
+
+	public void setObjectType(T objectType) {
+		this.objectType = objectType;
+	}
+	
+	public T getOrParseObjectType() throws SchemaException {
+		if (objectType == null) {
+			objectType = convertToObjectType();
+		}
+		return objectType;
+	}
+	
+	private T convertToObjectType() throws SchemaException {
+		ObjectDefinition<T> def = (ObjectDefinition<T>) getDefinition();
+		if (def == null) {
+			throw new IllegalStateException("Cannot convert object with no definition ("+this+")");
+		}
+		return def.convertToObjectType(this);
+	}
+	
+	
+
+	@Override
+	public MidPointObject<T> clone() {
+		MidPointObject<T> clone = new MidPointObject<T>(getName());
+		copyValues(clone);
+		return clone;
+	}
+
+	protected void copyValues(MidPointObject<T> clone) {
+		super.copyValues(clone);
+		clone.oid = this.oid;
+		clone.objectType = null; // this will get generated eventually. Copying will not work anyway.
+	}
+
+	/**
+	 * Return a human readable name of this class suitable for logs.
+	 */
+	@Override
+	protected String getDebugDumpClassName() {
+		return "MidPoint object";
+	}
+	
+	@Override
+	protected String additionalDumpDescription() {
+		return ", "+getOid();
+	}
+
+	public Node serializeToDom() throws SchemaException {
+		Node doc = DOMUtil.getDocument();
+		serializeToDom(doc);
+		return doc;
+	}
+
 }

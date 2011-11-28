@@ -31,6 +31,7 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.util.DebugUtil;
 
 /**
  * Abstract item definition in the schema.
@@ -60,6 +61,8 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 
 	private static final long serialVersionUID = -2643332934312107274L;
 	protected QName name;
+	protected ItemDefinition parent;
+	private PropertyPath path;
 
 	// TODO: annotations
 	
@@ -104,6 +107,10 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		return name;
 	}
 
+	public void setName(QName name) {
+		this.name = name;
+	}
+
 	/**
 	 * Returns either name (if specified) or default name.
 	 * 
@@ -118,6 +125,24 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		return defaultName;
 	}
 	
+	public PropertyPath getPath() {
+		if (path == null) {
+			path = determinePath();
+		}
+		return path;
+	}
+	
+	public PropertyPath getParentPath() {
+		if (parent == null) {
+			return new PropertyPath();
+		}
+		return parent.getPath();
+	}
+	
+	private PropertyPath determinePath() {
+		return getParentPath().subPath(getNameOrDefaultName());
+	}
+
 	/**
 	 * Create an item instance. Definition name or default name will
 	 * used as an element name for the instance. The instance will otherwise be empty.
@@ -150,9 +175,57 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	 */
 	abstract public Item parseItem(List<Object> elements) throws SchemaException;
 	
+	abstract public Item parseItemFromJaxbObject(Object jaxbObject) throws SchemaException;
+	
+	abstract <T extends ItemDefinition> T findItemDefinition(PropertyPath path, Class<T> clazz);
+	
+	protected void copyDefinitionData(ItemDefinition clone) {
+		super.copyDefinitionData(clone);
+		clone.name = this.name;
+		clone.parent = this.parent;
+		clone.path = this.path;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((parent == null) ? 0 : parent.hashCode());
+		result = prime * result + ((path == null) ? 0 : path.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ItemDefinition other = (ItemDefinition) obj;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		if (parent == null) {
+			if (other.parent != null)
+				return false;
+		} else if (!parent.equals(other.parent))
+			return false;
+		if (path == null) {
+			if (other.path != null)
+				return false;
+		} else if (!path.equals(other.path))
+			return false;
+		return true;
+	}
+
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + ":" + getName() + " ("+getTypeName()+")";
+		return getClass().getSimpleName() + ":" + DebugUtil.prettyPrint(getName()) + " ("+DebugUtil.prettyPrint(getTypeName())+")";
 	}
 	
 }

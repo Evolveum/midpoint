@@ -25,6 +25,7 @@ import org.w3c.dom.NodeList;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Objects;
@@ -49,7 +50,7 @@ public class XsdTypeConverterTest {
 	}
 	
 	@Test
-	public void testConvertFromProtectedString() throws JAXBException {
+	public void testConvertFromProtectedString() throws SchemaException {
 		Document document = DOMUtil.parseDocument(
 				"<password xmlns=\""+FOO_NAMESPACE+"\" "+
 				"xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd\" "+
@@ -67,7 +68,7 @@ public class XsdTypeConverterTest {
 	}
 	
 	@Test
-	public void testConvertToProtectedString() throws JAXBException {
+	public void testConvertToProtectedString() throws JAXBException, SchemaException {
 		ProtectedStringType ps = new ProtectedStringType();
 		ps.setClearValue("abra kadabra");
 		Document doc = DOMUtil.getDocument();
@@ -86,7 +87,7 @@ public class XsdTypeConverterTest {
 	}
 	
 	@Test
-	public void testAccountMarshall() throws JAXBException {
+	public void testAccountMarshall() throws JAXBException, SchemaException {
 		System.out.println("\ntestJaxbDom\n\n");
 		JAXBElement jaxbElement = (JAXBElement)JAXBUtil.unmarshal(new File("src/test/resources/converter/account-jack.xml"));
 		System.out.println("Object: "+jaxbElement.getValue());

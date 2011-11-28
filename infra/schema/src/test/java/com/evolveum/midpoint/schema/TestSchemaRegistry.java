@@ -3,6 +3,8 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.IOException;
@@ -17,11 +19,14 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 
 /**
  * @author Radovan Semancik
@@ -65,7 +70,7 @@ public class TestSchemaRegistry {
 	}
 	
 	@Test
-	public void testCommonSchema() throws SchemaException, SAXException, IOException {
+	public void testCommonSchemaUserType() throws SchemaException, SAXException, IOException {
 
 		SchemaRegistry reg = new SchemaRegistry();
 		reg.initialize();
@@ -78,7 +83,46 @@ public class TestSchemaRegistry {
 		PropertyContainerDefinition userContainer = commonSchema.findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
 		assertNotNull("No user container", userContainer);
 		
+		System.out.println("testCommonSchemaUserType:");
+		System.out.println(userContainer.dump());
+		
+		assertFalse(userContainer.isWildcard());
+		
+		PropertyDefinition nameDef = userContainer.findPropertyDefinition(SchemaConstants.C_NAME);
+		assertNotNull("No name definition", nameDef);
+
+		PropertyContainerDefinition extensionDef = userContainer.findPropertyContainerDefinition(SchemaConstants.C_EXTENSION);
+		assertNotNull("No 'extension' definition", extensionDef);
+		assertTrue(extensionDef.isWildcard());
+		
 		PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C,"givenName"));
 		assertNotNull("No givenName definition", givenNameDef);
+	}
+	
+	@Test
+	public void testCommonSchemaAccountType() throws SchemaException, SAXException, IOException {
+
+		SchemaRegistry reg = new SchemaRegistry();
+		reg.initialize();
+		
+		com.evolveum.midpoint.schema.processor.Schema commonSchema = reg.getCommonSchema();
+		assertNotNull("No parsed common schema", commonSchema);
+		
+		ObjectDefinition<AccountShadowType> accountDef = commonSchema.findObjectDefinition(ObjectTypes.ACCOUNT, AccountShadowType.class);
+		assertNotNull("No account definition", accountDef);
+
+		System.out.println("testCommonSchemaAccountType:");
+		System.out.println(accountDef.dump());
+		
+		PropertyDefinition nameDef = accountDef.findPropertyDefinition(SchemaConstants.C_NAME);
+		assertNotNull("No name definition", nameDef);
+		
+		PropertyContainerDefinition extensionDef = accountDef.findPropertyContainerDefinition(SchemaConstants.C_EXTENSION);
+		assertNotNull("No 'extension' definition", extensionDef);
+		assertTrue(extensionDef.isWildcard());
+		
+		PropertyContainerDefinition attributesDef = accountDef.findPropertyContainerDefinition(SchemaConstants.I_ATTRIBUTES);
+		assertNotNull("No 'attributes' definition", attributesDef);
+		assertTrue(attributesDef.isWildcard());
 	}
 }

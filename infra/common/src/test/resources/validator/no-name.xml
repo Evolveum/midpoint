@@ -34,16 +34,5 @@
         <c:configuration>
         </c:configuration>
 
-        <c:schema>
-        </c:schema>
-
-        <c:schemaHandling>
-
-            <c:accountType default="true">
-                <c:name>Default Account</c:name>
-                <c:objectClass>ri:Account</c:objectClass>
-
-            </c:accountType>
-        </c:schemaHandling>
     </c:resource>
 </c:objects>

@@ -44,7 +44,7 @@ public class ExtensionProcessor {
 
 	public static final QName DEFAULT_TYPE = DOMUtil.XSD_STRING;
 	
-	public static PropertyContainer parseExtension(Extension xmlExtension) {
+	public static PropertyContainer parseExtension(Extension xmlExtension) throws SchemaException {
 		// Extension is optional, so don't die on null
 		if (xmlExtension==null) {
 			// Return empty set
@@ -53,7 +53,7 @@ public class ExtensionProcessor {
 		return parseExtension(xmlExtension.getAny());
 	}
 	
-	public static PropertyContainer parseExtension(List<Object> xmlExtension) {
+	public static PropertyContainer parseExtension(List<Object> xmlExtension) throws SchemaException {
 		PropertyContainer container = new PropertyContainer(SchemaConstants.C_EXTENSION);
 		
 		// Extension is optional, so don't die on null
@@ -64,12 +64,7 @@ public class ExtensionProcessor {
 		// There is no extension schema at the moment. Therefore assume that all properties are strings unless there is an
 		// explicit xsi:type specification
 		for (Object element : xmlExtension) {
-			TypedValue tval;
-			try {
-				tval = XsdTypeConverter.toTypedJavaValueWithDefaultType(element, DEFAULT_TYPE);
-			} catch (JAXBException e) {
-				throw new SystemException("Unexpected JAXB problem while parsing element "+element+" : "+e.getMessage(),e);
-			}
+			TypedValue tval = XsdTypeConverter.toTypedJavaValueWithDefaultType(element, DEFAULT_TYPE);
 			Object value = tval.getValue();
 			QName propName = tval.getElementName();
 			QName xsdType = tval.getXsdType();

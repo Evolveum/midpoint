@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.QNameUtil;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -35,6 +36,7 @@ import java.util.Set;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import org.eclipse.core.internal.runtime.FindSupport;
 import org.springframework.beans.PropertyAccessException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -81,19 +83,20 @@ public class ComplexTypeDefinition extends Definition {
 	}	
 	
 	@Override
-	public String dump(int indent) {
+	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		for (int i=0; i<indent; i++) {
-			sb.append(Schema.INDENT);
+			sb.append(DebugDumpable.INDENT_STRING);
 		}
 		sb.append(toString());
 		sb.append("\n");
 		for (ItemDefinition def : getDefinitions()) {
-			sb.append(def.dump(indent+1));
+			sb.append(def.debugDump(indent+1));
 		}
 		return sb.toString();
 	}
 
+		
 	public PropertyDefinition createPropertyDefinifion(QName name, QName typeName) {
 		PropertyDefinition propDef = new PropertyDefinition(name, typeName);
 		itemDefinitions.add(propDef);
@@ -122,11 +125,37 @@ public class ComplexTypeDefinition extends Definition {
 	}
 
 
-	/**
-	 * @return
-	 */
 	public boolean isEmpty() {
 		return itemDefinitions.isEmpty();
+	}
+	
+	/**
+	 * Shallow clone.
+	 */
+	public ComplexTypeDefinition clone() {
+		ComplexTypeDefinition clone = new ComplexTypeDefinition(this.defaultName, this.typeName);
+		copyDefinitionData(clone);
+		return clone;
+	}
+	
+	protected void copyDefinitionData(ComplexTypeDefinition clone) {
+		super.copyDefinitionData(clone);
+		clone.itemDefinitions.addAll(this.itemDefinitions);
+		clone.schemaNamespace = this.schemaNamespace;
+	}
+
+	public void replaceDefinition(QName propertyName, ItemDefinition newDefinition) {
+		for (ItemDefinition itemDef: itemDefinitions) {
+			if (itemDef.getName().equals(propertyName)) {
+				if (!itemDef.getClass().isAssignableFrom(newDefinition.getClass())) {
+					throw new IllegalArgumentException("The provided definition of class "+newDefinition.getClass().getName()+" does not match existing definition of class "+itemDef.getClass().getName());
+				}
+				itemDefinitions.remove(itemDef);
+				itemDefinitions.add(newDefinition);
+				return;
+			}
+		}
+		throw new IllegalArgumentException("The definition with name "+propertyName+" was not found in complex type "+getTypeName());
 	}
 
 }

@@ -26,9 +26,9 @@ import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.schema.holder.ValueAssignmentHolder;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AttributeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.FilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueAssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueFilterType;
 import java.io.File;
@@ -66,7 +66,7 @@ public class ValueAssignmentHolderTest {
 
         Object object = u.unmarshal(fis);
 
-        AttributeDescriptionType attrDesc = (AttributeDescriptionType) ((JAXBElement) object).getValue();
+        ResourceAttributeDefinitionType attrDesc = (ResourceAttributeDefinitionType) ((JAXBElement) object).getValue();
 
         List<Element> inbounds = attrDesc.getInbound();
         Element inboundElement = inbounds.get(0);
@@ -102,7 +102,7 @@ public class ValueAssignmentHolderTest {
 
         Object object = u.unmarshal(fis);
 
-        AttributeDescriptionType attrDesc = (AttributeDescriptionType) ((JAXBElement) object).getValue();
+        ResourceAttributeDefinitionType attrDesc = (ResourceAttributeDefinitionType) ((JAXBElement) object).getValue();
 
         List<Element> inbounds = attrDesc.getInbound();
         Element inboundElement = inbounds.get(0);

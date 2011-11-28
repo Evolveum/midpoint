@@ -3,14 +3,13 @@
 		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
 		xmlns:y="http://example.com/yyy">
-	<value>
-		<expression>
-			<variable name="y:jack">
-		    	<objectRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>
-		    </variable>
-			<code>
-				$y:jack/c:organizationalUnit
-			</code>
-		</expression>
-	</value>
+	<expression>
+		<variable>
+			<name>y:jack</name>
+	    	<objectRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>
+	    </variable>
+		<code>
+			$y:jack/c:organizationalUnit
+		</code>
+	</expression>
 </valueConstruction>

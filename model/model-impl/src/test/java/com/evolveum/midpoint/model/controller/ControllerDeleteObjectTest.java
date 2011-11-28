@@ -37,13 +37,13 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ConsistencyViolationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -112,8 +112,6 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 		} finally {
 			LOGGER.debug(result.dump());
 		}
-		verify(repository, atLeastOnce()).getObject(any(Class.class), eq(oid), any(PropertyReferenceListType.class),
-				any(OperationResult.class));
 		verify(repository, times(1)).deleteObject(any(Class.class), eq(oid), any(OperationResult.class));
 	}
 
@@ -135,8 +133,6 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 			LOGGER.debug(result.dump());
 		}
 
-		verify(repository, atLeastOnce()).getObject(any(Class.class), eq(oid), any(PropertyReferenceListType.class),
-				any(OperationResult.class));
 		verify(provisioning, times(1)).deleteObject(any(Class.class), eq(oid), any(ScriptsType.class),
 				any(OperationResult.class));
 	}

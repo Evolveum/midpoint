@@ -41,10 +41,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -79,17 +79,17 @@ public class ControllerGetObjectTest extends AbstractTestNGSpringContextTests  {
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void getObjectNullOid() throws ObjectNotFoundException {
+	public void getObjectNullOid() throws ObjectNotFoundException, SchemaException {
 		controller.getObject(null, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void getObjectNullPropertyReferenceListType() throws ObjectNotFoundException {
+	public void getObjectNullPropertyReferenceListType() throws ObjectNotFoundException, SchemaException {
 		controller.getObject(null, "1", null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void getObjectNullResultType() throws ObjectNotFoundException {
+	public void getObjectNullResultType() throws ObjectNotFoundException, SchemaException {
 		controller.getObject(null, "1", new PropertyReferenceListType(), null);
 	}
 

@@ -38,11 +38,12 @@ import org.opends.server.types.SearchResultEntry;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.common.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -333,5 +334,12 @@ public class IntegrationTestTools {
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
 		LOGGER.debug(value);
 	}
-	
+
+	public static void display(String title, Object value) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+		System.out.println(DebugUtil.prettyPrint(value));
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
+		LOGGER.debug(DebugUtil.prettyPrint(value));
+	}
+
 }

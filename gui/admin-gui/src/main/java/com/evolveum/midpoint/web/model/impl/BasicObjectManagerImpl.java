@@ -23,8 +23,8 @@ package com.evolveum.midpoint.web.model.impl;
 import java.util.Collection;
 import java.util.Set;
 
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.model.dto.ObjectDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;

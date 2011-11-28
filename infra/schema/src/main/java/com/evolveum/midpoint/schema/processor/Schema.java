@@ -22,7 +22,9 @@
 package com.evolveum.midpoint.schema.processor;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -32,15 +34,16 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccessType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AttributeDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.AccountType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
  * Schema as a collection of definitions. This is a midPoint-specific view of
@@ -58,14 +61,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.A
  * @author Radovan Semancik
  * 
  */
-public class Schema implements Dumpable, Serializable {
+public class Schema implements Dumpable, DebugDumpable, Serializable {
 
 	private static final long serialVersionUID = 5068618465625931984L;
 	private static final Trace LOGGER = TraceManager.getTrace(Schema.class);
-	static final String INDENT = "  ";
 
-	private String namespace;
-	private Set<Definition> definitions;
+	protected String namespace;
+	protected Set<Definition> definitions;
 
 	public Schema(String namespace) {
 		if (StringUtils.isEmpty(namespace)) {
@@ -134,38 +136,6 @@ public class Schema implements Dumpable, Serializable {
 		return propertyContainerDefinition.parseItem(domElement);
 	}
 
-	public void updateSchemaAccess(SchemaHandlingType schemaHandling) {
-		if (schemaHandling == null) {
-			return;
-		}
-
-		List<AccountType> accounts = schemaHandling.getAccountType();
-		for (AccountType account : accounts) {
-			PropertyContainerDefinition container = findContainerDefinitionByType(account.getObjectClass());
-			if (container == null) {
-				continue;
-			}
-
-			List<AttributeDescriptionType> attributes = account.getAttribute();
-			for (AttributeDescriptionType attribute : attributes) {
-				List<AccessType> access = attribute.getAccess();
-				if (access.isEmpty()) {
-					continue;
-				}
-
-				PropertyDefinition property = container.findPropertyDefinition(attribute.getRef());
-				if (property == null) {
-					LOGGER.trace("Property {} was not found, access to attribute won't be updated.",
-							new Object[] { attribute.getRef() });
-					continue;
-				}
-
-				property.setCreate(access.contains(AccessType.CREATE));
-				property.setRead(access.contains(AccessType.READ));
-				property.setUpdate(access.contains(AccessType.UPDATE));
-			}
-		}
-	}
 
 	// TODO: Methods for searching the schema, such as findDefinitionByName(),
 	// etc.
@@ -180,17 +150,43 @@ public class Schema implements Dumpable, Serializable {
 	 *             if more than one definition is found
 	 */
 	public PropertyContainerDefinition findContainerDefinitionByType(QName typeName) {
+		return findContainerDefinitionByType(typeName,PropertyContainerDefinition.class);
+	}
+	
+	public ObjectDefinition findObjectDefinitionByType(QName typeName) {
+		return findContainerDefinitionByType(typeName,ObjectDefinition.class);
+	}
+
+	public <T extends ObjectType> ObjectDefinition<T> findObjectDefinitionByType(QName typeName, Class<T> type) {
+		return findContainerDefinitionByType(typeName,ObjectDefinition.class);
+	}
+
+	public <T extends ObjectType> ObjectDefinition<T> findObjectDefinition(ObjectTypes objectType, Class<T> type) {
+		return findContainerDefinitionByType(objectType.getTypeQName(),ObjectDefinition.class);
+	}
+	
+	public <T extends ObjectType> ObjectDefinition<T> findObjectDefinition(Class<T> type) {
+		return findContainerDefinitionByType(ObjectTypes.getObjectType(type).getTypeQName(),ObjectDefinition.class);
+	}
+
+	private <T extends PropertyContainerDefinition> T findContainerDefinitionByType(QName typeName, Class<T> type) {
 		if (typeName == null) {
 			throw new IllegalArgumentException("typeName must be supplied");
 		}
 		// TODO: check for multiple definition with the same type
 		for (Definition definition : definitions) {
-			if (definition instanceof PropertyContainerDefinition
+			if (type.isAssignableFrom(definition.getClass())
 					&& typeName.equals(definition.getTypeName())) {
-				return (PropertyContainerDefinition) definition;
+				return (T) definition;
 			}
 		}
 		return null;
+	}
+	
+	public PropertyContainerDefinition findContainerDefinition(Class<? extends ObjectType> type, PropertyPath path) {
+		ObjectTypes objectType = ObjectTypes.getObjectType(type);
+		ObjectDefinition objectDefinition = findObjectDefinitionByType(objectType.getTypeQName());
+		return objectDefinition.findItemDefinition(path, PropertyContainerDefinition.class);
 	}
 
 	/**
@@ -249,16 +245,25 @@ public class Schema implements Dumpable, Serializable {
 		return null;
 	}
 
-	@Override
-	public String dump() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("Schema ns=");
-		sb.append(getNamespace());
-		sb.append("\n");
-		for (Definition def : getDefinitions()) {
-			sb.append(def.dump(1));
+	/**
+	 * Finds item definition by type.
+	 * 
+	 */
+	@SuppressWarnings("unchecked")
+	public <T extends ItemDefinition> T findItemDefinitionByType(QName typeName, Class<T> definitionType) {
+		if (typeName == null) {
+			throw new IllegalArgumentException("typeName must be supplied");
 		}
-		return sb.toString();
+		// TODO: check for multiple definition with the same type
+		for (Definition definition : definitions) {
+			if (definitionType.isAssignableFrom(definition.getClass())) {
+				ItemDefinition idef = (ItemDefinition) definition;
+				if (typeName.equals(idef.getTypeName())) {
+					return (T) idef;
+				}
+			}
+		}
+		return null;
 	}
 
 	public boolean isEmpty() {
@@ -361,7 +366,7 @@ public class Schema implements Dumpable, Serializable {
 	 * @return new property definition
 	 */
 	public PropertyDefinition createPropertyDefinition(QName name, QName typeName) {
-		PropertyDefinition def = new PropertyDefinition(name, typeName);
+		PropertyDefinition def = new PropertyDefinition(name, name, typeName);
 		definitions.add(def);
 		return def;
 	}
@@ -404,4 +409,62 @@ public class Schema implements Dumpable, Serializable {
 		return null;
 	}
 
+	public ResourceObjectDefinition findResourceObjectDefinitionByType(QName typeName) {
+		return findItemDefinitionByType(typeName, ResourceObjectDefinition.class);
+	}
+
+	public Collection<? extends ResourceObjectDefinition> getAccountDefinitions() {
+		Set<ResourceObjectDefinition> accounts = new HashSet<ResourceObjectDefinition>();
+		for (Definition def: definitions) {
+			if (def instanceof ResourceObjectDefinition) {
+				ResourceObjectDefinition rod = (ResourceObjectDefinition)def;
+				if (rod.isAccountType()) {
+					accounts.add(rod);
+				}
+			}
+		}
+		return accounts;
+	}
+	
+	public <T extends ObjectType> MidPointObject<T> parseObjectType(T objectType) throws SchemaException {
+		ObjectDefinition<T> objectDefinition = (ObjectDefinition<T>) findObjectDefinition(objectType.getClass());
+		if (objectDefinition == null) {
+			throw new IllegalArgumentException("No definition for object type "+objectType);
+		}
+		return objectDefinition.parseObjectType(objectType);
+	}
+	
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		for (int i=0;i<indent;i++) {
+			sb.append(INDENT_STRING);
+		}
+		sb.append(toString()).append("\n");
+		Iterator<Definition> i = definitions.iterator();
+		while (i.hasNext()) {
+			Definition def = i.next();
+			sb.append(def.debugDump(indent+1));
+			if (i.hasNext()) {
+				sb.append("\n");
+			}
+		}
+		return sb.toString();
+	}
+
+	@Override
+	public String dump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String toString() {
+		return "Schema(ns=" + namespace + ")";
+	}
+	
 }

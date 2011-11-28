@@ -22,11 +22,11 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.MiscUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -86,7 +86,7 @@ public class LinkAccountAction extends BaseAction {
 								SchemaConstants.I_ACCOUNT_REF, accountRef));
 
 //				getModel().modifyObject(changes, subResult);
-				getModel().modifyObjectWithExclusion(UserType.class, changes, MiscUtil.toCollection(ResourceObjectShadowUtil.getResourceOid(shadowAfterChange)), subResult);
+//				getModel().modifyObjectWithExclusion(UserType.class, changes, MiscSchemaUtil.toCollection(ResourceObjectShadowUtil.getResourceOid(shadowAfterChange)), subResult);
 			} else {
 				LOGGER.debug("Skipping link account to user, shadow in change is not AccountShadowType.");
 			}
