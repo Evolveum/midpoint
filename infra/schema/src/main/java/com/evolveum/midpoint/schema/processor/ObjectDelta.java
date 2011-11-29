@@ -240,7 +240,9 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
 			if (getChangeType() == ChangeType.ADD) {
 				return getObjectToAdd();
 			} else {
-				throw new IllegalStateException("Cannot apply "+getChangeType()+" delta to a null old object");
+				//throw new IllegalStateException("Cannot apply "+getChangeType()+" delta to a null old object");
+				// This seems to be quite OK
+				return null;
 			}
 		}
 		if (getChangeType() == ChangeType.DELETE) {

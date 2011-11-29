@@ -242,12 +242,13 @@ public interface ModelService {
 	 * @throws ConsistencyViolationException
 	 *             sub-operation failed, cannot delete objects as its deletion
 	 *             would lead to inconsistent state
+	 * @throws CommunicationException 
 	 * @throws SystemException
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
 	<T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult)
-			throws ObjectNotFoundException, ConsistencyViolationException;
+			throws ObjectNotFoundException, ConsistencyViolationException, CommunicationException;
 
 	/**
 	 * <p>

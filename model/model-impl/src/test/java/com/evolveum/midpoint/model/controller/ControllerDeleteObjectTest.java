@@ -98,7 +98,7 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testDeleteCorrectRepo() throws FaultMessage, JAXBException, ObjectNotFoundException, SchemaException,
-			ConsistencyViolationException {
+			ConsistencyViolationException, CommunicationException {
 		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"delete-user.xml"))).getValue();
 

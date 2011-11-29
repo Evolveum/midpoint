@@ -356,8 +356,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		
 		assertCache();
 
-		System.out.println("testResource result:");
-		displayJaxb(result, SchemaConstants.C_RESULT);
+		displayJaxb("testResource result:", result, SchemaConstants.C_RESULT);
 
 		assertSuccess("testResource has failed", result);
 
@@ -448,8 +447,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		// THEN
 
 		assertCache();
-		System.out.println("testResource result:");
-		displayJaxb(result, SchemaConstants.C_RESULT);
+		displayJaxb("testResource result:", result, SchemaConstants.C_RESULT);
 
 		assertSuccess("testResource has failed", result.getPartialResults().get(0));
 
@@ -566,8 +564,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		// THEN
 
 		assertCache();
-		System.out.println("addObject result:");
-		displayJaxb(resultHolder.value, SchemaConstants.C_RESULT);
+		displayJaxb("addObject result:", resultHolder.value, SchemaConstants.C_RESULT);
 		assertSuccess("addObject has failed", resultHolder.value);
 
 		AssertJUnit.assertEquals(USER_JACK_OID, oidHolder.value);
@@ -893,8 +890,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// THEN
 		assertCache();
-		System.out.println("modifyObject result:");
-		displayJaxb(result, SchemaConstants.C_RESULT);
+		displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
 		assertSuccess("modifyObject has failed", result);
 
 		// Check if user object was modified in the repo
@@ -903,7 +899,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 		ObjectType repoObject = repositoryService.getObject(ObjectType.class, USER_JACK_OID, resolve, repoResult);
 		UserType repoUser = (UserType) repoObject;
-		displayJaxb(repoUser, new QName("user"));
+		displayJaxb("repository user", repoUser, new QName("user"));
 
 		assertEquals("Cpt. Jack Sparrow", repoUser.getFullName());
 		assertEquals("somewhere", repoUser.getLocality());
@@ -926,7 +922,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		repoResult.computeStatus();
 		assertSuccess("getObject(repo) has failed", repoResult);
 		AccountShadowType repoShadow = (AccountShadowType) repoObject;
-		displayJaxb(repoShadow, new QName("shadow"));
+		displayJaxb("repository shadow", repoShadow, new QName("shadow"));
 		AssertJUnit.assertNotNull(repoShadow);
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
 
@@ -987,8 +983,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// THEN
 		assertCache();
-		System.out.println("modifyObject result:");
-		displayJaxb(result, SchemaConstants.C_RESULT);
+		displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
 		assertSuccess("modifyObject has failed", result);
 
 		// Check if user object was modified in the repo
@@ -997,7 +992,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 		ObjectType repoObject = repositoryService.getObject(ObjectType.class, USER_JACK_OID, resolve, repoResult);
 		UserType repoUser = (UserType) repoObject;
-		displayJaxb(repoUser, new QName("user"));
+		displayJaxb("repository user", repoUser, new QName("user"));
 
 		// Check if nothing else was modified
 		AssertJUnit.assertEquals("Cpt. Jack Sparrow", repoUser.getFullName());
@@ -1019,7 +1014,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		repoResult.computeStatus();
 		assertSuccess("getObject(repo) has failed", repoResult);
 		AccountShadowType repoShadow = (AccountShadowType) repoObject;
-		displayJaxb(repoShadow, new QName("shadow"));
+		displayJaxb("repository shadow", repoShadow, new QName("shadow"));
 		AssertJUnit.assertNotNull(repoShadow);
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
 
@@ -1097,17 +1092,15 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// THEN
 		assertCache();
-		System.out.println("modifyObject result:");
-		displayJaxb(result, SchemaConstants.C_RESULT);
+		displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
 		assertSuccess("modifyObject has failed", result);
 
 		// Check if user object was modified in the repo
 
 		OperationResult repoResult = new OperationResult("getObject");
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
-		ObjectType repoObject = repositoryService.getObject(ObjectType.class, USER_JACK_OID, resolve, repoResult);
-		UserType repoUser = (UserType) repoObject;
-		displayJaxb(repoUser, new QName("user"));
+		UserType repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID, resolve, repoResult);
+		displayJaxb("repository user", repoUser, new QName("user"));
 
 		// Check if nothing else was modified
 		AssertJUnit.assertEquals("Cpt. Jack Sparrow", repoUser.getFullName());
@@ -1125,12 +1118,11 @@ public class TestSanity extends AbstractIntegrationTest {
 		// Check if shadow is still in the repo and that it is untouched
 		repoResult = new OperationResult("getObject");
 		
-		repoObject = repositoryService.getObject(ObjectType.class, accountShadowOidOpendj, resolve, repoResult);
+		AccountShadowType repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, resolve, repoResult);
 		
 		repoResult.computeStatus();
 		assertSuccess("getObject(repo) has failed", repoResult);
-		AccountShadowType repoShadow = (AccountShadowType) repoObject;
-		displayJaxb(repoShadow, new QName("shadow"));
+		displayJaxb("repo shadow", repoShadow, new QName("shadow"));
 		AssertJUnit.assertNotNull(repoShadow);
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
 
@@ -1223,17 +1215,15 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// THEN
 		assertCache();
-		System.out.println("modifyObject result:");
-		displayJaxb(result, SchemaConstants.C_RESULT);
+		displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
 		assertSuccess("modifyObject has failed", result);
 
 		// Check if user object was modified in the repo
 
 		OperationResult repoResult = new OperationResult("getObject");
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
-		ObjectType repoObject = repositoryService.getObject(ObjectType.class, USER_JACK_OID, resolve, repoResult);
-		UserType repoUser = (UserType) repoObject;
-		displayJaxb(repoUser, new QName("user"));
+		UserType repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID, resolve, repoResult);
+		displayJaxb("repo user", repoUser, new QName("user"));
 
 		// Check if nothing else was modified
 		AssertJUnit.assertEquals("Cpt. Jack Sparrow", repoUser.getFullName());
@@ -1251,12 +1241,11 @@ public class TestSanity extends AbstractIntegrationTest {
 		// Check if shadow is still in the repo and that it is untouched
 		repoResult = new OperationResult("getObject");
 		
-		repoObject = repositoryService.getObject(ObjectType.class, accountShadowOidOpendj, resolve, repoResult);
+		AccountShadowType repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, resolve, repoResult);
 		
 		repoResult.computeStatus();
 		assertSuccess("getObject(repo) has failed", repoResult);
-		AccountShadowType repoShadow = (AccountShadowType) repoObject;
-		displayJaxb(repoShadow, new QName("shadow"));
+		displayJaxb("repo shadow", repoShadow, new QName("shadow"));
 		AssertJUnit.assertNotNull(repoShadow);
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
 
@@ -1398,8 +1387,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// THEN
 		assertCache();
-		System.out.println("deleteObject result:");
-		displayJaxb(result, SchemaConstants.C_RESULT);
+		displayJaxb("deleteObject result", result, SchemaConstants.C_RESULT);
 		assertSuccess("deleteObject has failed", result);
 		
 		// Check if shadow was deleted
@@ -1442,8 +1430,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// THEN
 		assertCache();
-		System.out.println("deleteObject result:");
-		displayJaxb(result, SchemaConstants.C_RESULT);
+		displayJaxb("deleteObject result", result, SchemaConstants.C_RESULT);
 		assertSuccess("deleteObject has failed", result);
 
 		// User should be gone from the repository
@@ -1817,8 +1804,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		// THEN
 
 		assertCache();
-		System.out.println("importFromResource result:");
-		displayJaxb(taskType.getResult(), SchemaConstants.C_RESULT);
+		displayJaxb("importFromResource result", taskType.getResult(), SchemaConstants.C_RESULT);
 		AssertJUnit.assertEquals("importFromResource has failed", OperationResultStatusType.IN_PROGRESS, taskType.getResult().getStatus());
 		// Convert the returned TaskType to a more usable Task
 		Task task = taskManager.createTaskInstance(taskType);

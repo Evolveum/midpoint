@@ -38,10 +38,12 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.DeltaSetTriple;
 import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -60,11 +62,14 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountSynchronizationSettingsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
@@ -84,6 +89,9 @@ public class UserSynchronizer {
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 	
+	@Autowired(required = true)
+	private ProvisioningService provisioningService;
+	
 	@Autowired(required=true)
 	private UserPolicyProcessor userPolicyProcessor;
 	
@@ -99,10 +107,12 @@ public class UserSynchronizer {
 	@Autowired(required=true)
 	private SchemaRegistry schemaRegistry;
 	
-	public void synchronizeUser(SyncContext context, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	public void synchronizeUser(SyncContext context, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
 		
 		loadUser(context, result);
 		loadFromSystemConfig(context, result);
+		context.recomputeUserNew();
+		loadAccountRefs(context, result);
 		context.recomputeUserNew();
 		
 		if (LOGGER.isTraceEnabled()) {
@@ -177,6 +187,29 @@ public class UserSynchronizer {
 		Schema commonSchema = schemaRegistry.getCommonSchema();
 		MidPointObject<UserType> user = commonSchema.parseObjectType(userType);
 		context.setUserOld(user);
+	}
+	
+	private void loadAccountRefs(SyncContext context, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException {
+		MidPointObject<UserType> userNew = context.getUserNew();
+		UserType userType = userNew.getOrParseObjectType();
+		for (ObjectReferenceType accountRef: userType.getAccountRef()) {
+			String oid = accountRef.getOid();
+			// Fetching from repository instead of provisioning so we avoid reading in a full account
+			AccountShadowType accountType = cacheRepositoryService.getObject(AccountShadowType.class, oid, null, result);
+			String resourceOid = ResourceObjectShadowUtil.getResourceOid(accountType);
+			ResourceAccountType rat = new ResourceAccountType(resourceOid, accountType.getAccountType());
+			AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
+			if (accountSyncContext == null) {
+				ResourceType resource = context.getResource(rat);
+				if (resource == null) {
+					// Fetching from provisioning to take advantage of caching and pre-parsed schema
+					resource = provisioningService.getObject(ResourceType.class, resourceOid, null, result);
+					context.rememberResource(resource);
+				}
+				accountSyncContext = context.createAccountSyncContext(rat);
+			}
+			accountSyncContext.setOid(oid);
+		}
 	}
 	
 	private void loadFromSystemConfig(SyncContext context, OperationResult result) throws ObjectNotFoundException, SchemaException {
@@ -307,7 +340,10 @@ public class UserSynchronizer {
 			
 			LOGGER.trace("Consolidating (modify) account {}, attribute {}",rat,attributeName);
 			
-			PropertyContainer attributesPropertyContainer = accCtx.getAccountNew().findPropertyContainer(SchemaConstants.I_ATTRIBUTES);
+			PropertyContainer attributesPropertyContainer = null;
+			if (accCtx.getAccountNew() != null) {
+				attributesPropertyContainer = accCtx.getAccountNew().findPropertyContainer(SchemaConstants.I_ATTRIBUTES);
+			}
 			
 			Collection<Object> allValues = collectAllValues(triple);
 			for (Object value: allValues) {
@@ -347,11 +383,13 @@ public class UserSynchronizer {
 						}
 					}
 					if (initialOnly) {
-						Property attributeNew = attributesPropertyContainer.findProperty(attributeName);
-						if (attributeNew != null && !attributeNew.isEmpty()) {
-							// There is already a value, skip this
-							LOGGER.trace("Value {} is initial and the attribute already has a value, skipping it",value);
-							continue;
+						if (attributesPropertyContainer != null) {
+							Property attributeNew = attributesPropertyContainer.findProperty(attributeName);
+							if (attributeNew != null && !attributeNew.isEmpty()) {
+								// There is already a value, skip this
+								LOGGER.trace("Value {} is initial and the attribute already has a value, skipping it",value);
+								continue;
+							}
 						}
 					}
 					LOGGER.trace("Value {} added",value);
@@ -365,14 +403,15 @@ public class UserSynchronizer {
 			
 			if (propDelta != null) {
 				if (accountSecondaryDelta == null) {
+					// TODO: convert to factory method?
 					accountSecondaryDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY);
+					accountSecondaryDelta.setOid(accCtx.getOid());
 					accCtx.setAccountSecondaryDelta(accountSecondaryDelta);
 				}
 				accountSecondaryDelta.addModification(propDelta);
 			}
 			
 		}
-
 		
 	}
 

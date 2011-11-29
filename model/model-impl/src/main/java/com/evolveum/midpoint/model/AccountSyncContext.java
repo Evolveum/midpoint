@@ -46,6 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 public class AccountSyncContext implements Dumpable, DebugDumpable {
 	
 	private ResourceAccountType resourceAccountType;
+	private String oid;
 	private MidPointObject<AccountShadowType> accountOld;
 	private MidPointObject<AccountShadowType> accountNew;
 	private ObjectDelta<AccountShadowType> accountPrimaryDelta;
@@ -92,6 +93,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 	public void addToSecondaryDelta(PropertyDelta accountPasswordDelta) {
 		if (accountSecondaryDelta == null) {
 			accountSecondaryDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY);
+			accountSecondaryDelta.setOid(oid);
 		}
 		accountSecondaryDelta.swallow(accountPasswordDelta);
 	}
@@ -108,16 +110,11 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 	}
 	
 	public String getOid() {
-		if (accountOld != null && accountOld.getOid() != null) {
-			return accountOld.getOid();
-		}
-		if (accountNew != null && accountNew.getOid() != null) {
-			return accountNew.getOid();
-		}
-		return null;
+		return oid;
 	}
 	
 	public void setOid(String oid) {
+		this.oid = oid;
 		if (accountPrimaryDelta != null) {
 			accountPrimaryDelta.setOid(oid);
 		}
@@ -158,6 +155,8 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("OID: ").append(oid).append("\n");
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("ACCOUNT old:");
 		if (accountOld == null) {

@@ -133,7 +133,7 @@ public class DebugUtil implements ObjectFormatter {
 		while (i.hasNext()) {
 			Entry<K,V> entry = i.next();
 			indentDebugDump(sb,indent);
-			sb.append(entry.getKey());
+			sb.append(prettyPrint(entry.getKey()));
 			sb.append(" => ");
 			V value = entry.getValue();
 			if (value == null) {
@@ -153,7 +153,7 @@ public class DebugUtil implements ObjectFormatter {
 		while (i.hasNext()) {
 			Entry<K,V> entry = i.next();
 			indentDebugDump(sb,indent);
-			sb.append(entry.getKey());
+			sb.append(prettyPrint(entry.getKey()));
 			sb.append(" => ");
 			V value = entry.getValue();
 			if (value == null) {

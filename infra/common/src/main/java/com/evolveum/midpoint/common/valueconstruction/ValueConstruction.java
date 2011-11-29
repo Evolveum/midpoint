@@ -229,6 +229,20 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 		Element element = (Element)valueConstructor.getValue();
 		return XsdTypeConverter.convertValueElementAsList(element);
 	}
+	
+	/**
+	 * Shallow clone. Only the output is cloned deeply.
+	 */
+	public ValueConstruction clone() {
+		ValueConstruction clone = new ValueConstruction(valueConstructionType, outputDefinition, shortDesc, constructors);
+		clone.input = this.input;
+		clone.objectResolver = this.objectResolver;
+		clone.output = this.output.clone();
+		clone.outputDefinition = this.outputDefinition;
+		clone.variables = this.variables;
+		
+		return clone;
+	}
 
 	@Override
 	public int hashCode() {

@@ -51,6 +51,23 @@ public class DeltaSetTriple<T> implements Dumpable {
 		this.minusSet = minusSet;
 	}
 
+	public static <T> DeltaSetTriple<T> diff(Collection<T> valuesOld, Collection<T> valuesNew) {
+		DeltaSetTriple<T> triple = new DeltaSetTriple<T>();
+		for (T val: valuesOld) {
+			if (valuesNew.contains(val)) {
+				triple.getZeroSet().add(val);
+			} else {
+				triple.getMinusSet().add(val);
+			}
+		}
+		for (T val: valuesNew) {
+			if (!valuesOld.contains(val)) {
+				triple.getPlusSet().add(val);
+			}
+		}
+		return triple;
+	}
+
 	private Collection<T> createSet() {
 		return new HashSet<T>();
 	}

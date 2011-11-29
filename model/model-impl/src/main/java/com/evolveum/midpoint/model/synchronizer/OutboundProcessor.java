@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.model.synchronizer;
 
+import java.util.Collection;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ChangeType;
+import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.processor.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -47,6 +49,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
 
 /**
@@ -70,8 +73,9 @@ public class OutboundProcessor {
 			
 			ResourceAccountType rat = accCtx.getResourceAccountType();
 			ObjectDelta<AccountShadowType> accountDelta = accCtx.getAccountDelta();
-			if (accountDelta.getChangeType() == ChangeType.DELETE) {
-				LOGGER.trace("Processing outbound expressions for account {} skipped, no account delta", rat);
+						
+			if (accountDelta != null && accountDelta.getChangeType() == ChangeType.DELETE) {
+				LOGGER.trace("Processing outbound expressions for account {} skipped, DELETE account delta", rat);
 				// No point in evaluating outbound
 				continue;
 			}
@@ -92,16 +96,49 @@ public class OutboundProcessor {
 				
 				// TODO: check access 
 				
-				ValueConstruction evaluatedOutboundAccountConstruction = evaluateOutboundAccountConstruction(context, refinedAttributeDefinition, rAccount, result);
-				LOGGER.trace("Processing outbound expressions for account {}, attribute {}, result:\n{}", 
-						new Object[]{rat, attributeName, evaluatedOutboundAccountConstruction == null ? null : evaluatedOutboundAccountConstruction.dump()});
-				if (evaluatedOutboundAccountConstruction != null) {
+				ValueConstruction evaluatedOutboundValueConstructionOld = evaluateOutboundValueConstruction(context.getUserOld(), refinedAttributeDefinition, rAccount, result);
+				ValueConstruction evaluatedOutboundValueConstructionNew = evaluateOutboundValueConstruction(context.getUserNew(), refinedAttributeDefinition, rAccount, result);
+				
+				LOGGER.trace("Processing outbound expressions for account {}, attribute {}\nOLD:\n{}\nNEW\n{}", 
+						new Object[]{rat, attributeName, 
+						evaluatedOutboundValueConstructionOld == null ? null : evaluatedOutboundValueConstructionOld.dump(),
+						evaluatedOutboundValueConstructionNew == null ? null : evaluatedOutboundValueConstructionNew.dump(),});
+				
+				if (evaluatedOutboundValueConstructionNew != null) {
+					
 					if (attrDeltaTriple == null) {
 						attrDeltaTriple = new DeltaSetTriple<ValueConstruction>();
 						attributeValueDeltaSetTripleMap.put(attributeName, attrDeltaTriple);
 					}
-					// TODO: zero set or plus set?
-					attrDeltaTriple.getPlusSet().add(evaluatedOutboundAccountConstruction);
+					
+					if (accountDelta != null && accountDelta.getChangeType() == ChangeType.ADD) {
+						// Special behavior for add. In case the account is added we don't care how the expression output has
+						// changed. We will add all the values
+						attrDeltaTriple.getPlusSet().add(evaluatedOutboundValueConstructionNew);
+						
+					} else {
+						// Diff new and old values, distributed the deltas accordingly
+						
+						Collection<Object> valuesOld = evaluatedOutboundValueConstructionOld.getOutput().getValues();
+						Collection<Object> valuesNew = evaluatedOutboundValueConstructionNew.getOutput().getValues();
+						DeltaSetTriple<Object> valueDeltraTriple = DeltaSetTriple.diff(valuesOld,valuesNew);
+						
+						// Clonning the value construction is necessary, as we need three of them
+						evaluatedOutboundValueConstructionNew.getOutput().getValues().clear();
+						ValueConstruction plusValueConstruction = evaluatedOutboundValueConstructionNew;
+						ValueConstruction minusValueConstruction = evaluatedOutboundValueConstructionNew.clone();
+						ValueConstruction zeroValueConstruction = evaluatedOutboundValueConstructionNew.clone();
+						
+						plusValueConstruction.getOutput().getValues().addAll(valueDeltraTriple.getPlusSet());
+						attrDeltaTriple.getPlusSet().add(plusValueConstruction);
+						
+						minusValueConstruction.getOutput().getValues().addAll(valueDeltraTriple.getMinusSet());
+						attrDeltaTriple.getMinusSet().add(minusValueConstruction);
+						
+						zeroValueConstruction.getOutput().getValues().addAll(valueDeltraTriple.getZeroSet());
+						attrDeltaTriple.getZeroSet().add(zeroValueConstruction);
+					}
+					
 				}
 			}
 		
@@ -109,7 +146,7 @@ public class OutboundProcessor {
 		
 	}
 	
-	private ValueConstruction evaluateOutboundAccountConstruction(SyncContext context, RefinedAttributeDefinition refinedAttributeDefinition, 
+	private ValueConstruction evaluateOutboundValueConstruction(MidPointObject<UserType> user, RefinedAttributeDefinition refinedAttributeDefinition, 
 			RefinedAccountDefinition refinedAccountDefinition, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		ValueConstructionType outboundValueConstructionType = refinedAttributeDefinition.getOutboundValueConstructionType();
@@ -121,7 +158,7 @@ public class OutboundProcessor {
 				"outbound expression for "+refinedAttributeDefinition.getName()+" in "+ObjectTypeUtil.toShortString(refinedAccountDefinition.getResourceType()));
 		
 		// FIXME: should be userNew, but that is not yet filled in
-		valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, context.getUserOld());
+		valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, user);
 		// TODO: variables
 		
 		valueConstruction.evaluate(result);

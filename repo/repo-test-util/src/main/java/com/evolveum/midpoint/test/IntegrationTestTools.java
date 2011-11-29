@@ -233,16 +233,12 @@ public class IntegrationTestTools {
 	}
 
 	public static void displayJaxb(String title, Object o, QName qname) throws JAXBException {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
-		displayJaxb(o, qname);
-	}
-
-	public static void displayJaxb(Object o, QName qname) throws JAXBException {
 		Document doc = DOMUtil.getDocument();
 		Element element = JAXBUtil.jaxbToDom(o, qname, doc);
-		System.out.println(DOMUtil.serializeDOMToString(element));
-		LOGGER.debug(DOMUtil.serializeDOMToString(element));
+		String serialized = DOMUtil.serializeDOMToString(element);
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+		System.out.println(serialized);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n" + serialized);
 	}
 
 	public static void display(String message) {

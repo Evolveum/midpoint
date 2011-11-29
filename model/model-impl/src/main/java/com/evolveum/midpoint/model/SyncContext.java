@@ -243,11 +243,11 @@ public class SyncContext implements Dumpable, DebugDumpable {
 		return getRefinedResourceSchema(rat, schemaRegistry).getAccountDefinition(rat.getAccountType());
 	}
 
-	private ResourceType getResource(ResourceAccountType rat) {
+	public ResourceType getResource(ResourceAccountType rat) {
 		return resourceCache.get(rat.getResourceOid());
 	}
 
-	private AccountSyncContext getAccountSyncContext(ResourceAccountType rat) {
+	public AccountSyncContext getAccountSyncContext(ResourceAccountType rat) {
 		return accountContextMap.get(rat);
 	}
 

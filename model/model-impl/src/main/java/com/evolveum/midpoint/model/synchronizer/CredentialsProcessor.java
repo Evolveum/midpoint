@@ -86,9 +86,9 @@ public class CredentialsProcessor {
 			ResourceAccountType rat = accCtx.getResourceAccountType();
 			
 			ObjectDelta<AccountShadowType> accountDelta = accCtx.getAccountDelta();
-			if (accountDelta.getChangeType() == ChangeType.ADD) {
+			if (accountDelta != null && accountDelta.getChangeType() == ChangeType.ADD) {
 				// adding new account, synchronize password regardless whether the password was changed or not.
-			} else if (passwordValueDelta == null) {
+			} else if (passwordValueDelta != null) {
 				// user password was changed. synchronize it regardless of the account change.
 			} else {
 				LOGGER.trace("No change in password and the account is not added, skipping credentials processing for account "+rat);

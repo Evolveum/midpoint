@@ -555,7 +555,7 @@ public class ModelController implements ModelService {
 
 	@Override
 	public <T extends ObjectType> void deleteObject(Class<T> clazz, String oid, OperationResult result)
-			throws ObjectNotFoundException, ConsistencyViolationException {
+			throws ObjectNotFoundException, ConsistencyViolationException, CommunicationException {
 		Validate.notNull(clazz, "Class must not be null.");
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
@@ -1047,6 +1047,10 @@ public class ModelController implements ModelService {
 		
 		for (AccountSyncContext accCtx: syncContext.getAccountContexts()) {
 			ObjectDelta<AccountShadowType> accDelta = accCtx.getAccountDelta();
+			if (accDelta == null) {
+				LOGGER.trace("No change for account "+accCtx.getResourceAccountType());
+				continue;
+			}
 			LOGGER.trace("Executing ACCOUNT change "+accDelta);
 			executeChange(accDelta, result);
 			// To make sure that the OID is set (e.g. after ADD operation)
@@ -1092,6 +1096,10 @@ public class ModelController implements ModelService {
 	}
 
 	private void executeChange(ObjectDelta<?> change, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+		 
+		if (change == null) {
+			throw new IllegalArgumentException("Null change");
+		}
 		
 		if (change.getChangeType() == ChangeType.ADD) {
 			executeAddition(change, result);
