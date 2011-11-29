@@ -63,6 +63,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
@@ -98,24 +99,25 @@ public class UserSynchronizer {
 	public void synchronizeUser(SyncContext context, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		
 		loadUser(context, result);
+		loadFromSystemConfig(context, result);
 		context.recomputeUserNew();
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Context after loadUser and recompute:\n{}",context.dump());
+			LOGGER.trace("Context after LOAD and recompute:\n{}",context.dump());
 		}
 		
 		processInbound(context);
 		context.recomputeUserNew();
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Context after inbound and recompute:\n{}",context.dump());
+			LOGGER.trace("Context after INBOUND and recompute:\n{}",context.dump());
 		}
 		
 		processUserPolicy(context, result);
 		context.recomputeUserNew();
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Context after userPolicy and recompute:\n{}",context.dump());
+			LOGGER.trace("Context after USER POLICY and recompute:\n{}",context.dump());
 			LOGGER.trace("User delta:\n{}",context.getUserDelta().dump());
 		}
 		
@@ -123,21 +125,26 @@ public class UserSynchronizer {
 		context.recomputeNew();
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Context after assignments and recompute:\n{}",context.dump());
+			LOGGER.trace("Context after ASSIGNMNETS and recompute:\n{}",context.dump());
 		}
 
 		outboundProcessor.processOutbound(context, result);
 		context.recomputeNew();
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Context after outbound and recompute:\n{}",context.dump());
+			LOGGER.trace("Context after OUTBOUND and recompute:\n{}",context.dump());
 		}
 
 		consolidateValues(context, result);
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Context after CONSOLIDATION:\n{}",context.dump());
+		}
+		
 		context.recomputeNew();
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Context after consolidation and recompute:\n{}",context.dump());
+			LOGGER.trace("Context after CONSOLIDATION and recompute:\n{}",context.dump());
 		}
 
 	}
@@ -165,6 +172,28 @@ public class UserSynchronizer {
 		MidPointObject<UserType> user = commonSchema.parseObjectType(userType);
 		context.setUserOld(user);
 	}
+	
+	private void loadFromSystemConfig(SyncContext context, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		SystemConfigurationType systemConfigurationType = cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
+		if (systemConfigurationType == null) {
+			// throw new SystemException("System configuration object is null (should not happen!)");
+			// This should not happen, but it happens in tests. And it is a convenient short cut. Tolerate it for now.
+			LOGGER.warn("System configuration object is null (should not happen!)");
+			return;
+		}
+		
+		if (context.getUserTemplate() == null) {
+			UserTemplateType defaultUserTemplate = systemConfigurationType.getDefaultUserTemplate();
+			context.setUserTemplate(defaultUserTemplate);
+		}
+		
+		if (context.getAccountSynchronizationSettings() == null) {
+			AccountSynchronizationSettingsType globalAccountSynchronizationSettings = systemConfigurationType.getGlobalAccountSynchronizationSettings();
+			LOGGER.trace("Applying globalAccountSynchronizationSettings to context: {}", globalAccountSynchronizationSettings);
+			context.setAccountSynchronizationSettings(globalAccountSynchronizationSettings);
+		}
+	}
+
 
 	private void processInbound(SyncContext context) {
 		// Loop through the account changes, apply inbound expressions
@@ -247,34 +276,32 @@ public class UserSynchronizer {
 		if (context.getUserTemplate() != null) {
 			return context.getUserTemplate();
 		}
-		return getDefaultUserTemplate(result);
-	}
-
-	private UserTemplateType getDefaultUserTemplate(OperationResult result) throws ObjectNotFoundException, SchemaException {
-		SystemConfigurationType systemConfigurationType = cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
-		if (systemConfigurationType == null) {
-			// throw new SystemException("System configuration object is null (should not happen!)");
-			// This should not happen, but it happens in tests. And it is a convenient short cut. Tolerate it for now.
-			return null;
-		}
-		return systemConfigurationType.getDefaultUserTemplate();
+		return null;
 	}
 
 	/**
 	 * Converts delta set triples to a secondary account deltas.
 	 */
-	private void consolidateValues(SyncContext context, OperationResult result) throws SchemaException {
+	private void consolidateValues(SyncContext context, OperationResult result) throws SchemaException, ExpressionEvaluationException {
 		
 		for (AccountSyncContext accCtx: context.getAccountContexts()) {
 			
-			ObjectDelta<AccountShadowType> accountDelta = accCtx.getAccountDelta();
+			ObjectDelta<AccountShadowType> accountSecondaryDelta = accCtx.getAccountSecondaryDelta();
 			
-			if (accountDelta.getChangeType() == ChangeType.ADD) {
-				consolidateValuesAddAccount(context, accCtx, result);
-			} else if (accountDelta.getChangeType() == ChangeType.MODIFY) {
+			if (accountSecondaryDelta != null) {
+				// There is a secondary delta, so add to it
+				if (accountSecondaryDelta.getChangeType() == ChangeType.ADD) {
+					consolidateValuesAddAccount(context, accCtx, result);
+				} else if (accountSecondaryDelta.getChangeType() == ChangeType.MODIFY) {
+					consolidateValuesModifyAccount(context, accCtx, result);
+				}
+				// TODO
+				
+			} else {
+				// No secondary delta. There must be a primary delta instead. So we modify
+				// Even if there is no primary delta, then we modify
 				consolidateValuesModifyAccount(context, accCtx, result);
 			}
-			// TODO
 			
 		}
 		
@@ -331,11 +358,11 @@ public class UserSynchronizer {
 	}
 
 	private void consolidateValuesModifyAccount(SyncContext context, AccountSyncContext accCtx,
-			OperationResult result) throws SchemaException {
+			OperationResult result) throws SchemaException, ExpressionEvaluationException {
 		
 		Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap = accCtx.getAttributeValueDeltaSetTripleMap();
 		ResourceAccountType rat = accCtx.getResourceAccountType();
-		ObjectDelta<AccountShadowType> accountDelta = accCtx.getAccountDelta();
+		ObjectDelta<AccountShadowType> accountSecondaryDelta = accCtx.getAccountSecondaryDelta();
 		
 		RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(rat, schemaRegistry);
 		if (rAccount == null) {
@@ -351,33 +378,70 @@ public class UserSynchronizer {
 			
 			PropertyDelta propDelta = null;
 			
-			// TODO: initial, exclusive
+			LOGGER.trace("Consolidating (modify) account {}, attribute {}",rat,attributeName);
+			
+			PropertyContainer attributesPropertyContainer = accCtx.getAccountNew().findPropertyContainer(SchemaConstants.I_ATTRIBUTES);
 			
 			Collection<Object> allValues = collectAllValues(triple);
 			for (Object value: allValues) {
 				if (isValueInSet(value, triple.getZeroSet())) {
 					// Value unchanged, nothing to do
+					LOGGER.trace("Value {} unchanged, doing nothing",value);
 					continue;
 				}
-				boolean isInPlusSet = isValueInSet(value, triple.getPlusSet());
-				boolean isInMinusSet = isValueInSet(value, triple.getMinusSet());
-				if (isInPlusSet && isInMinusSet) {
+				Collection<ValueConstruction> plusConstructions =
+					collectValueConstructionsFromSet(value, triple.getPlusSet());
+				Collection<ValueConstruction> minusConstructions =
+					collectValueConstructionsFromSet(value, triple.getMinusSet());
+				if (!plusConstructions.isEmpty() && !minusConstructions.isEmpty()) {
 					// Value added and removed. Ergo no change.
+					LOGGER.trace("Value {} added and removed, doing nothing",value);
 					continue;
 				}
 				if (propDelta == null) {
 					propDelta = new PropertyDelta(parentPath, attributeName);
 				}
-				if (isInPlusSet) {
+				if (!plusConstructions.isEmpty()) {
+					boolean initialOnly = true;
+					ValueConstruction exclusiveVc = null;
+					for (ValueConstruction vc: plusConstructions) {
+						if (!vc.isInitial()) {
+							initialOnly = false;
+						}
+						if (vc.isExclusive()) {
+							if (exclusiveVc == null) {
+								exclusiveVc = vc;
+							} else {
+								String message = "Exclusion conflict in account "+rat+", attribute "+attributeName+
+								", conflicting constructions: "+exclusiveVc+" and "+vc;
+								LOGGER.error(message);
+								throw new ExpressionEvaluationException(message);
+							}
+						}
+					}
+					if (initialOnly) {
+						Property attributeNew = attributesPropertyContainer.findProperty(attributeName);
+						if (attributeNew != null && !attributeNew.isEmpty()) {
+							// There is already a value, skip this
+							LOGGER.trace("Value {} is initial and the attribute already has a value, skipping it",value);
+							continue;
+						}
+					}
+					LOGGER.trace("Value {} added",value);
 					propDelta.addValueToAdd(value);
 				}
-				if (isInMinusSet) {
+				if (!minusConstructions.isEmpty()) {
+					LOGGER.trace("Value {} deleted",value);
 					propDelta.addValueToDelete(value);
 				}
 			}
 			
 			if (propDelta != null) {
-				accountDelta.addModification(propDelta);
+				if (accountSecondaryDelta == null) {
+					accountSecondaryDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY);
+					accCtx.setAccountSecondaryDelta(accountSecondaryDelta);
+				}
+				accountSecondaryDelta.addModification(propDelta);
 			}
 			
 		}
@@ -416,6 +480,20 @@ public class UserSynchronizer {
 		Collection<Object> allValues = new HashSet<Object>();
 		collectAllValuesFromSet(allValues, set);
 		return allValues.contains(value);
+	}
+	
+	private Collection<ValueConstruction> collectValueConstructionsFromSet(Object value, Collection<ValueConstruction> set) {
+		Collection<ValueConstruction> contructions = new HashSet<ValueConstruction>();
+		for (ValueConstruction valConstr: set) {
+			Property output = valConstr.getOutput();
+			if (output == null) {
+				continue;
+			}
+			if (output.getValues().contains(value)) {
+				contructions.add(valConstr);
+			}
+		}
+		return contructions;
 	}
 	
 }

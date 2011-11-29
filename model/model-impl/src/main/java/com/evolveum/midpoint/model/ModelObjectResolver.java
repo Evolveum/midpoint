@@ -105,7 +105,6 @@ public class ModelObjectResolver implements ObjectResolver {
 			throw new SystemException("Couldn't get object with oid '" + oid + "'.", ex);
 		} finally {
 			result.computeStatus();
-			LOGGER.trace(result.dump());
 		}
 
 		return object;

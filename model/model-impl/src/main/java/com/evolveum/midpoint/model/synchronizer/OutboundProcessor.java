@@ -68,13 +68,16 @@ public class OutboundProcessor {
 		
 		for (AccountSyncContext accCtx: context.getAccountContexts()) {
 			
+			ResourceAccountType rat = accCtx.getResourceAccountType();
 			ObjectDelta<AccountShadowType> accountDelta = accCtx.getAccountDelta();
 			if (accountDelta.getChangeType() == ChangeType.DELETE) {
+				LOGGER.trace("Processing outbound expressions for account {} skipped, no account delta", rat);
 				// No point in evaluating outbound
 				continue;
 			}
 			
-			ResourceAccountType rat = accCtx.getResourceAccountType();
+			LOGGER.trace("Processing outbound expressions for account {} starting", rat);
+			
 			RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(rat, schemaRegistry);
 			if (rAccount == null) {
 				LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}",rat,context.dump());
@@ -90,6 +93,8 @@ public class OutboundProcessor {
 				// TODO: check access 
 				
 				ValueConstruction evaluatedOutboundAccountConstruction = evaluateOutboundAccountConstruction(context, refinedAttributeDefinition, rAccount, result);
+				LOGGER.trace("Processing outbound expressions for account {}, attribute {}, result:\n{}", 
+						new Object[]{rat, attributeName, evaluatedOutboundAccountConstruction == null ? null : evaluatedOutboundAccountConstruction.dump()});
 				if (evaluatedOutboundAccountConstruction != null) {
 					if (attrDeltaTriple == null) {
 						attrDeltaTriple = new DeltaSetTriple<ValueConstruction>();
@@ -98,7 +103,6 @@ public class OutboundProcessor {
 					// TODO: zero set or plus set?
 					attrDeltaTriple.getPlusSet().add(evaluatedOutboundAccountConstruction);
 				}
-				
 			}
 		
 		}

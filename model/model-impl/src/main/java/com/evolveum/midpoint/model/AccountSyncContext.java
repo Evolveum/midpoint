@@ -185,7 +185,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 		sb.append("\n");
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("ACCOUNT attribute DeltaSetTriple map:");
-		if (accountSecondaryDelta == null) {
+		if (attributeValueDeltaSetTripleMap == null) {
 			sb.append(" null");
 		} else {
 			sb.append("\n");

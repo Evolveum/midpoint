@@ -40,6 +40,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
@@ -59,7 +60,7 @@ public class SyncContext implements Dumpable, DebugDumpable {
 	
 	private UserTemplateType userTemplate;
 	private String channel;
-	private AssignmentPolicyEnforcementType assignmentPolicyEnforcementType;
+	private AccountSynchronizationSettingsType accountSynchronizationSettings;
 	
 	private Map<ResourceAccountType,AccountSyncContext> accountContextMap;
 	private Map<String,ResourceType> resourceCache;
@@ -124,16 +125,21 @@ public class SyncContext implements Dumpable, DebugDumpable {
 	public void setChannel(String channel) {
 		this.channel = channel;
 	}
-
-	public AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType() {
-		if (assignmentPolicyEnforcementType == null) {
-			return AssignmentPolicyEnforcementType.FULL;
-		}
-		return assignmentPolicyEnforcementType;
+	
+	public AccountSynchronizationSettingsType getAccountSynchronizationSettings() {
+		return accountSynchronizationSettings;
 	}
 
-	public void setAssignmentPolicyEnforcementType(AssignmentPolicyEnforcementType assignmentPolicyEnforcementType) {
-		this.assignmentPolicyEnforcementType = assignmentPolicyEnforcementType;
+	public void setAccountSynchronizationSettings(
+			AccountSynchronizationSettingsType accountSynchronizationSettings) {
+		this.accountSynchronizationSettings = accountSynchronizationSettings;
+	}
+
+	public AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType() {
+		if (accountSynchronizationSettings.getAssignmentPolicyEnforcement() == null) {
+			return AssignmentPolicyEnforcementType.FULL;
+		}
+		return accountSynchronizationSettings.getAssignmentPolicyEnforcement();
 	}
 
 	public Collection<AccountSyncContext> getAccountContexts() {
@@ -299,6 +305,17 @@ public class SyncContext implements Dumpable, DebugDumpable {
 		StringBuilder sb = new StringBuilder();
 		indent(sb,indent);
 		sb.append("SyncContext\n");
+		
+		indent(sb,indent+1);
+		sb.append("Settings: ");
+		if (accountSynchronizationSettings != null) {
+			sb.append("assignments:");
+			sb.append(accountSynchronizationSettings.getAssignmentPolicyEnforcement());
+		} else {
+			sb.append("null");
+		}
+		sb.append("\n");
+		
 		indent(sb,indent+1);
 		sb.append("USER old:");
 		if (userOld == null) {

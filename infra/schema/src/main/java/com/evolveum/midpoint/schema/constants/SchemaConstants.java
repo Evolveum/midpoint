@@ -70,7 +70,6 @@ public abstract class SchemaConstants {
 	public static final QName C_OBJECT_TYPE = new QName(NS_C, "ObjectType");
 	public static final QName C_OBJECT_REF = new QName(NS_C, "objectRef");
 	public static final QName C_VALUE = new QName(NS_C, "value");
-
 	public static final QName ACTIVATION = new QName(NS_C, "activation");
 	public static final QName C_PATH = new QName(NS_C, "path");
 	public static final QName C_OID_ATTRIBUTE = new QName(NS_C, "oid");
@@ -136,6 +135,7 @@ public abstract class SchemaConstants {
 	public static final QName I_SYSTEM_CONFIGURATION = new QName(NS_C, "systemConfiguration");
 	public static final QName I_PASSWORD_POLICY_TYPE = new QName(NS_C, "PasswordPolicyType");
 	public static final QName I_PASSWORD_POLICY = new QName(NS_C, "passwordPolicy");
+	public static final QName C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS = new QName(NS_C, "globalAccountSynchronizationSettings"); 
 
 	public static final QName ROLE = new QName(NS_C, "role");
 	public static final QName ROLE_TYPE = new QName(NS_C, "RoleType");

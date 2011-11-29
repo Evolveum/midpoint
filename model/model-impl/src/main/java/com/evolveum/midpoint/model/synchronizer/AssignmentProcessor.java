@@ -66,6 +66,8 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountSynchronizationSettingsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -93,6 +95,16 @@ public class AssignmentProcessor {
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
 
 	public void processAssignments(SyncContext context, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+		
+		AccountSynchronizationSettingsType accountSynchronizationSettings = context.getAccountSynchronizationSettings();
+		if (accountSynchronizationSettings != null) {
+			AssignmentPolicyEnforcementType assignmentPolicyEnforcement = accountSynchronizationSettings.getAssignmentPolicyEnforcement();
+			if (assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.NONE) {
+				// No assignment processing
+				LOGGER.trace("Assignment enforcement policy set to NONE, skipping assignment processing");
+				return;
+			}
+		}
 		
 		Collection<AssignmentType> assignmentsOld = null;
 		if (context.getUserTypeOld() != null) {

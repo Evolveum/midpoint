@@ -110,6 +110,8 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountSynchronizationSettingsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
@@ -126,6 +128,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
@@ -594,6 +598,13 @@ public class TestSanity extends AbstractIntegrationTest {
 		// GIVEN
 
 		assertCache();
+		
+		// IMPORTANT! SWITCHING OFF ASSIGNMENT ENFORCEMENT HERE!
+		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
+		syncSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.NONE);
+		applySyncSettings(syncSettings);
+		
+		assertSyncSettingsAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.NONE);
 		
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
 				REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME, ObjectModificationType.class);
@@ -1475,6 +1486,11 @@ public class TestSanity extends AbstractIntegrationTest {
 		displayTestTile("test050AssignRole");
 
 		// GIVEN
+		
+		// IMPORTANT! Assignment enforcement is back to default (FULL)
+		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
+		applySyncSettings(syncSettings);
+	
 		UserType user = unmarshallJaxbFromFile(USER_GUYBRUSH_FILENAME, UserType.class);
 		
 		// Encrypt the password
@@ -2006,6 +2022,39 @@ public class TestSanity extends AbstractIntegrationTest {
 		if (RepositoryCache.exists()) {
 			AssertJUnit.fail("Cache exists! "+RepositoryCache.dump());
 		}
+	}
+
+	private void applySyncSettings(AccountSynchronizationSettingsType syncSettings) throws ObjectNotFoundException, SchemaException {
+		ObjectModificationType objectChange = new ObjectModificationType();
+		objectChange.setOid(SystemObjectsType.SYSTEM_CONFIGURATION.value());
+		PropertyModificationType propMod = new PropertyModificationType();
+		propMod.setModificationType(PropertyModificationTypeType.replace);
+		Value value = new Value();
+		JAXBElement<AccountSynchronizationSettingsType> syncSettingsElement = new JAXBElement<AccountSynchronizationSettingsType>(
+				SchemaConstants.C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS, AccountSynchronizationSettingsType.class,
+				syncSettings);
+		value.getAny().add(syncSettingsElement);
+		propMod.setValue(value);
+		objectChange.getPropertyModification().add(propMod);
+		
+		OperationResult result = new OperationResult("Aplying sync settings");
+		repositoryService.modifyObject(SystemConfigurationType.class, objectChange, result);
+		display("Aplying sync settings result", result);
+		result.computeStatus();
+		assertSuccess("Aplying sync settings failed (result)", result);
+	}
+	
+	private void assertSyncSettingsAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType assignmentPolicy) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult("Asserting sync settings");
+		SystemConfigurationType systemConfigurationType = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+				null, result);
+		result.computeStatus();
+		assertSuccess("Asserting sync settings failed (result)", result);
+		AccountSynchronizationSettingsType globalAccountSynchronizationSettings = systemConfigurationType.getGlobalAccountSynchronizationSettings();
+		assertNotNull("globalAccountSynchronizationSettings is null", globalAccountSynchronizationSettings);
+		AssignmentPolicyEnforcementType assignmentPolicyEnforcement = globalAccountSynchronizationSettings.getAssignmentPolicyEnforcement();
+		assertNotNull("assignmentPolicyEnforcement is null",assignmentPolicyEnforcement);
+		assertEquals("Assignment policy mismatch", assignmentPolicy, assignmentPolicyEnforcement);
 	}
 
 }

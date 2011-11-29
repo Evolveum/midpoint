@@ -447,27 +447,34 @@ public class ModelController implements ModelService {
 			
 			ObjectDelta<T> objectDelta = null;
 			Schema commonSchema = schemaRegistry.getCommonSchema();
-			Collection<ObjectDelta<?>> changes = null;
 			
 			if (UserType.class.isAssignableFrom(type)) {
 				SyncContext syncContext = userTypeModifyToContext(change, commonSchema, result);
 				
 				userSynchronizer.synchronizeUser(syncContext, parentResult);
 				
-				changes = syncContext.getAllChanges();
+				try {
+					executeChanges(syncContext, parentResult);
+					result.computeStatus();
+				} catch (ObjectAlreadyExistsException e) {
+					// This should not happen
+					// TODO Better handling
+					throw new SystemException(e.getMessage(),e);
+				}
+				
 			} else {
 				objectDelta = ObjectDelta.createDelta(type, change, commonSchema);
-				changes = new HashSet<ObjectDelta<?>>();
+				Collection<ObjectDelta<?>> changes = new HashSet<ObjectDelta<?>>();
 				changes.add(objectDelta);
-			}
 			
-			try {
-				executeChanges(changes, parentResult);
-				result.computeStatus();
-			} catch (ObjectAlreadyExistsException e) {
-				// This should not happen
-				// TODO Better handling
-				throw new SystemException(e.getMessage(),e);
+				try {
+					executeChanges(changes, parentResult);
+					result.computeStatus();
+				} catch (ObjectAlreadyExistsException e) {
+					// This should not happen
+					// TODO Better handling
+					throw new SystemException(e.getMessage(),e);
+				}
 			}
 			
 		} catch (ExpressionEvaluationException ex) {
