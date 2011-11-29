@@ -270,6 +270,21 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
 	public void addModification(PropertyDelta propertyDelta) {
 		modifications.add(propertyDelta);
 	}
+	
+	/**
+	 * Incorporates the property delta into the existing property deltas
+	 * (regardless of the change type).
+	 */
+	public void swallow(PropertyDelta newPropertyDelta) {
+		if (changeType == ChangeType.MODIFY) {
+			// TODO: check for conflict
+			addModification(newPropertyDelta);
+		} else if (changeType == ChangeType.ADD) {
+			throw new UnsupportedOperationException("Not implemented yet");
+		}
+		// nothing to do for DELETE
+	}
+
 
 	private Collection<PropertyDelta> createEmptyModifications() {
 		return new HashSet<PropertyDelta>();

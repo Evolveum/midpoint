@@ -84,17 +84,20 @@ public class UserSynchronizer {
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 	
+	@Autowired(required=true)
+	private UserPolicyProcessor userPolicyProcessor;
+	
 	@Autowired(required = true)
 	private AssignmentProcessor assignmentProcessor;
 
 	@Autowired(required = true)
 	private OutboundProcessor outboundProcessor;
+	
+	@Autowired(required = true)
+	private CredentialsProcessor credentialsProcessor;
 
 	@Autowired(required=true)
 	private SchemaRegistry schemaRegistry;
-
-	@Autowired(required=true)
-	private ValueConstructionFactory valueConstructionFactory;
 	
 	public void synchronizeUser(SyncContext context, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		
@@ -113,7 +116,7 @@ public class UserSynchronizer {
 			LOGGER.trace("Context after INBOUND and recompute:\n{}",context.dump());
 		}
 		
-		processUserPolicy(context, result);
+		userPolicyProcessor.processUserPolicy(context, result);
 		context.recomputeUserNew();
 		
 		if (LOGGER.isTraceEnabled()) {
@@ -136,16 +139,19 @@ public class UserSynchronizer {
 		}
 
 		consolidateValues(context, result);
-		
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Context after CONSOLIDATION:\n{}",context.dump());
-		}
-		
 		context.recomputeNew();
-		
+
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Context after CONSOLIDATION and recompute:\n{}",context.dump());
 		}
+
+		credentialsProcessor.processCredentials(context, result);
+		context.recomputeNew();
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Context after CREDENTIALS and recompute:\n{}",context.dump());
+		}
+		
 
 	}
 
@@ -199,85 +205,6 @@ public class UserSynchronizer {
 		// Loop through the account changes, apply inbound expressions
 	}
 	
-	private void processUserPolicy(SyncContext context, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
-		
-		UserTemplateType userTemplate = determineUserTemplate(context, result); 
-		
-		if (userTemplate == null) {
-			// No applicable template
-			return;
-		}
-		
-		applyUserTemplate(context, userTemplate, result);
-	}
-
-	private void applyUserTemplate(SyncContext context, UserTemplateType userTemplate, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		
-		LOGGER.trace("Applying "+ObjectTypeUtil.toShortString(userTemplate)+" to "+context.getUserNew());
-		
-		ObjectDelta<UserType> userSecondaryDelta = context.getUserSecondaryDelta();
-		for (PropertyConstructionType propConstr: userTemplate.getPropertyConstruction()) {
-			XPathHolder propertyXPath = new XPathHolder(propConstr.getProperty());
-			PropertyPath propertyPath = new PropertyPath(propertyXPath);
-			
-			ObjectDefinition<UserType> userDefinition = getUserDefinition();
-			PropertyDefinition propertyDefinition = userDefinition.findPropertyDefinition(propertyPath);
-			if (propertyDefinition == null) {
-				throw new SchemaException("The property "+propertyPath+" is not a valid user property, defined in "+ObjectTypeUtil.toShortString(userTemplate));
-			}
-			
-			ValueConstructionType valueConstructionType = propConstr.getValueConstruction();
-			ValueConstruction valueConstruction = valueConstructionFactory.createValueConstruction(valueConstructionType, propertyDefinition, 
-					"user template expression for "+propertyDefinition.getName()+" while processing user " + context.getUserNew());
-			
-			Property existingValue = context.getUserNew().findProperty(propertyPath);
-			if (existingValue != null && !existingValue.isEmpty() && valueConstruction.isInitial()) {
-				// This valueConstruction only applies if the property does not have a value yet.
-				// ... but it does
-				continue;
-			}
-			
-			evaluateUserTemplateValueConstruction(valueConstruction, propertyDefinition, context, result);
-
-			Property output = valueConstruction.getOutput();
-			PropertyDelta propDelta = new PropertyDelta(propertyPath);
-			
-			if (propertyDefinition.isMultiValue()) {
-				propDelta.addValuesToAdd(output.getValues());
-			} else {
-				propDelta.setValuesToReplace(output.getValues());	
-			}
-			
-			if (userSecondaryDelta == null) {
-				userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY);
-				context.setUserSecondaryDelta(userSecondaryDelta);
-			}
-			userSecondaryDelta.addModification(propDelta);
-		}
-		
-	}
-
-	private ObjectDefinition<UserType> getUserDefinition() {
-		return schemaRegistry.getCommonSchema().findObjectDefinition(UserType.class);
-	}
-
-	private void evaluateUserTemplateValueConstruction(
-			ValueConstruction valueConstruction, PropertyDefinition propertyDefinition, SyncContext context, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		
-		valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, context.getUserNew());
-		// TODO: variables
-		// TODO: root node
-		
-		valueConstruction.evaluate(result);
-		
-	}
-
-	private UserTemplateType determineUserTemplate(SyncContext context, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		if (context.getUserTemplate() != null) {
-			return context.getUserTemplate();
-		}
-		return null;
-	}
 
 	/**
 	 * Converts delta set triples to a secondary account deltas.

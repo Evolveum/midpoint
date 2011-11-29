@@ -366,7 +366,11 @@
 			</attribute>
 
 			<credentials>
-				<outboundPassword>true</outboundPassword>
+				<password>
+					<outbound>
+						<asIs/>
+					</outbound>
+				</password>
 			</credentials>
 
 		</accountType>

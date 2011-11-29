@@ -35,8 +35,10 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
 
@@ -182,6 +184,23 @@ public class ResourceTypeUtil {
 			return false;
 		}
 		return true;
+	}
+
+	public static ResourceAccountTypeDefinitionType getResourceAccountTypeDefinitionType(
+			ResourceType resource, String accountType) {
+		if (resource == null) {
+			throw new IllegalArgumentException("The resource is null");
+		}
+		SchemaHandlingType schemaHandling = resource.getSchemaHandling();
+		for (ResourceAccountTypeDefinitionType acct: schemaHandling.getAccountType()) {
+			if (accountType == null && acct.isDefault()) {
+				return acct;
+			}
+			if (acct.getName().equals(accountType)) {
+				return acct;
+			}
+		}
+		return null;
 	}
 
 }

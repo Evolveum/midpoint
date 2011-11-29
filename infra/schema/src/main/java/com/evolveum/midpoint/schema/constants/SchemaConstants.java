@@ -34,6 +34,7 @@ import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
 
+import com.evolveum.midpoint.schema.processor.PropertyPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -137,6 +138,9 @@ public abstract class SchemaConstants {
 	public static final QName I_PASSWORD_POLICY = new QName(NS_C, "passwordPolicy");
 	public static final QName C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS = new QName(NS_C, "globalAccountSynchronizationSettings"); 
 
+	public static final PropertyPath PATH_PASSWORD = new PropertyPath(I_CREDENTIALS, I_PASSWORD);
+	public static final PropertyPath PATH_PASSWORD_VALUE = new PropertyPath(I_CREDENTIALS, I_PASSWORD, new QName(NS_C,"protectedString"));
+	
 	public static final QName ROLE = new QName(NS_C, "role");
 	public static final QName ROLE_TYPE = new QName(NS_C, "RoleType");
 
@@ -168,6 +172,7 @@ public abstract class SchemaConstants {
 			"com.evolveum.midpoint.xml.ns._public.common.common_1",
 			"com.evolveum.midpoint.xml.ns._public.resource.resource_schema_1",
 			"com.evolveum.midpoint.xml.ns._public.resource.capabilities_1" };
+	
 
 	static {
 

@@ -296,6 +296,22 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
 			modValue.getAny().add(XsdTypeConverter.toXsdElement(value, name, document));
 		}
 	}
+	
+	/**
+	 * Assumes "replace" modification.
+	 */
+	public Property getPropertyNew(PropertyDefinition propertyDefinition) {
+		if (valuesToAdd != null && valuesToDelete != null) {
+			throw new IllegalStateException("Cannot fetch new property state, not a 'replace' delta");
+		}
+		Property prop = propertyDefinition.instantiate();
+		if (valuesToReplace == null || valuesToReplace.isEmpty()) {
+			return prop;
+		}
+		prop.getValues().addAll(valuesToReplace);
+		return prop;
+	}
+
 
 	@Override
 	public String toString() {

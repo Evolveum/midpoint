@@ -150,6 +150,9 @@ public class SyncContext implements Dumpable, DebugDumpable {
 		if (accountContextMap.containsKey(rat)) {
 			throw new IllegalArgumentException("Addintion of duplicate account context for "+rat);
 		}
+		if (accountSyncContext.getResource() == null) {
+			accountSyncContext.setResource(getResource(rat));
+		}
 		accountContextMap.put(rat, accountSyncContext);
 	}
 

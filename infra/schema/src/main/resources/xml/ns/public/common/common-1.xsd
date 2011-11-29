@@ -2733,56 +2733,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="credentials" minOccurs="0">
+			<xsd:element name="credentials" minOccurs="0" type="tns:ResourceCredentialsDefinitionType">
 				<xsd:annotation>
 					<xsd:documentation>
 						Definition of credentials handling for this account type.
 						EXPERIMENTAL. Will most likely change later.
 					</xsd:documentation>
 				</xsd:annotation>
-				<xsd:complexType>
-					<xsd:sequence>
-						<xsd:element name="outboundPassword" type="xsd:boolean" minOccurs="0" default="false">
-							<xsd:annotation>
-								<xsd:documentation>
-									If true then the passowrd of the
-									resource
-									account will be automatically
-									changed when user
-									password is
-									changed.
-									EXPERIMENTAL. Will most likely change later.
-								</xsd:documentation>
-							</xsd:annotation>
-						</xsd:element>
-						<xsd:element name="randomPasswordLength" type="xsd:integer" minOccurs="0">
-							<xsd:annotation>
-								<xsd:documentation>
-									If set to any value, the password will be
-									randomly generated when a new account
-									is created
-									and the
-									password cannot be
-									determined otherwise.
-									If set to zero, empty
-									password will be
-									generated. If not set
-									at all, the
-									password
-									attribute will not be present.
-									If a password can be
-									determined otherwise
-									(e.g. from User
-									object), the random
-									generation
-									will not be applied.
-									EXPERIMENTAL. Will most likely
-									change later.
-								</xsd:documentation>
-							</xsd:annotation>
-						</xsd:element>
-					</xsd:sequence>
-				</xsd:complexType>
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
@@ -2867,6 +2824,31 @@
 		</xsd:sequence>
 	</xsd:complexType>
 	<xsd:element name="resourceAttributeDefinition" type="tns:ResourceAttributeDefinitionType"/>
+	
+	<xsd:complexType name="ResourceCredentialsDefinitionType">
+		<xsd:sequence>
+			<xsd:element name="password" type="tns:ResourcePasswordDefinitionType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Defines how the password synchronization is handled for the resource.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ResourcePasswordDefinitionType">
+		<xsd:sequence>
+			<xsd:element name="outbound" type="tns:ValueConstructionType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Defines how the password value is constructed in case of information flow from IDM to the
+						resource, e.g. in case of provisioning.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
 	
 	<xsd:complexType name="CapabilitiesType">
 		<xsd:annotation>

@@ -26,12 +26,16 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
+import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.processor.ObjectDelta;
+import com.evolveum.midpoint.schema.processor.PropertyDelta;
 import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -85,6 +89,13 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 		this.accountSecondaryDelta = accountSecondaryDelta;
 	}
 	
+	public void addToSecondaryDelta(PropertyDelta accountPasswordDelta) {
+		if (accountSecondaryDelta == null) {
+			accountSecondaryDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY);
+		}
+		accountSecondaryDelta.swallow(accountPasswordDelta);
+	}
+	
 	public ObjectDelta<AccountShadowType> getAccountDelta() {
 		return ObjectDelta.union(accountPrimaryDelta, accountSecondaryDelta);
 	}
@@ -120,6 +131,10 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 	
 	public Map<QName, DeltaSetTriple<ValueConstruction>> getAttributeValueDeltaSetTripleMap() {
 		return attributeValueDeltaSetTripleMap;
+	}
+	
+	public ResourceAccountTypeDefinitionType getResourceAccountTypeDefinitionType() {
+		return ResourceTypeUtil.getResourceAccountTypeDefinitionType(resource, resourceAccountType.getAccountType());
 	}
 	
 	/**
