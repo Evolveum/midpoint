@@ -122,12 +122,9 @@
         </property>
     </bean>
 
-    <jaxws:endpoint id="modelWS"
-                    implementor="com.evolveum.midpoint.model.ModelWebService"
-                    endpointName="e:ModelWebServiceEndpoint"
-                    serviceName="s:ModelWebService"
-                    address="http://localhost:8081/model"
-                    xmlns:e="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"
-                    xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
-
+    <jaxws:endpoint id="modelWS" address="http://localhost:8081/model">
+        <jaxws:implementor>
+            <bean parent="modelWebService"/>
+        </jaxws:implementor>
+    </jaxws:endpoint>
 </beans>
