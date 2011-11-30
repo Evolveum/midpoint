@@ -90,10 +90,10 @@ if ( ldap2.exists ('cn=changelog')) {
 //Calculate result
 if (fail) {
 	println "Systest enviroment check failed."
-	exit(1)
+	System.exit(1)
 } else {
 
 	println "Systest enviroment check passed."
-	exit(0)
+	System.exit(0)
 }
 
