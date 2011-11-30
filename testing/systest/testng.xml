@@ -3,7 +3,7 @@
 <suite name="Suite" parallel="false">
   <test name="Test" preserve-order="false">
     <classes>
-      <class name="com.evolveum.midpoint.testing.systest.TestRemoteConnector"/>
+      <class name="ExampleTest"/>
     </classes>
   </test>
 </suite>
