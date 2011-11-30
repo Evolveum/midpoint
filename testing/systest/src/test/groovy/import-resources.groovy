@@ -10,6 +10,12 @@ import javax.jws.soap.SOAPBinding
 import javax.xml.bind.annotation.XmlSeeAlso
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelService
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*
+import com.evolveum.midpoint.schema.util.JAXBUtilLite
+import javax.xml.bind.JAXBContext
+import javax.xml.bind.JAXBElement
+import javax.xml.bind.JAXBException
+import javax.xml.bind.Unmarshaller
 
 import org.apache.directory.groovyldap.*
 
@@ -35,3 +41,11 @@ ldap1 = LDAP.newInstance( config['ldap1.url'], config['ldap1.binddn'] , config['
 ldap2 = LDAP.newInstance( config['ldap2.url'], config['ldap2.binddn'] , config['ldap2.password'] )
 
 //######################### end of common initialization  ###########################
+
+ResourceType  object = ((JAXBElement<UserType>) JAXBUtilLite.unmarshal(new File("src/test/resources/xml/resource-ldap1-dc=example.xml"))).getValue();
+println("obj: " + object.getName());
+try {
+	model.addObj(object);
+} catch ( Exception ex ) {
+	println ex.getMessage()
+}
