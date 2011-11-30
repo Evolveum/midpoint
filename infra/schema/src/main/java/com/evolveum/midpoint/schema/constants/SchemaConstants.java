@@ -128,6 +128,9 @@ public abstract class SchemaConstants {
 	public static final QName I_CREDENTIALS_TYPE = new QName(NS_C, "CredentialsType");
 	public static final QName I_CREDENTIALS = new QName(NS_C, "credentials");
 	public static final QName I_PASSWORD = new QName(NS_C, "password");
+	public static final QName C_ACTIVATION = new QName(NS_C, "activation");
+	public static final QName C_ACTIVATION_ENABLED = new QName(NS_C, "enabled");
+	
 	public static final QName X_ANNOTATION = new QName(W3C_XML_SCHEMA_NS_URI, "annotation");
 	public static final QName X_APPINFO = new QName(W3C_XML_SCHEMA_NS_URI, "appinfo");
 	public static final QName X_SCHEMA = new QName(W3C_XML_SCHEMA_NS_URI, "schema");
@@ -140,6 +143,7 @@ public abstract class SchemaConstants {
 
 	public static final PropertyPath PATH_PASSWORD = new PropertyPath(I_CREDENTIALS, I_PASSWORD);
 	public static final PropertyPath PATH_PASSWORD_VALUE = new PropertyPath(I_CREDENTIALS, I_PASSWORD, new QName(NS_C,"protectedString"));
+	public static final PropertyPath PATH_ACTIVATION_ENABLE = new PropertyPath(C_ACTIVATION, C_ACTIVATION_ENABLED);
 	
 	public static final QName ROLE = new QName(NS_C, "role");
 	public static final QName ROLE_TYPE = new QName(NS_C, "RoleType");

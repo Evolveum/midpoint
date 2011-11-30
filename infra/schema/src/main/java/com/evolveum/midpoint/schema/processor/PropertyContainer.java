@@ -222,6 +222,9 @@ public class PropertyContainer extends Item implements Serializable {
 			return this;
 		}
 		 PropertyContainer subContainer = findItem(parentPath.first(), PropertyContainer.class);
+		 if (subContainer == null) {
+			 return null;
+		 }
 		 return subContainer.findPropertyContainer(parentPath.rest());
 	}
 
@@ -238,6 +241,9 @@ public class PropertyContainer extends Item implements Serializable {
 			return findProperty(propertyPath.first());
 		}
 		PropertyContainer pc = findPropertyContainer(propertyPath.allExceptLast());
+		if (pc == null) {
+			return null;
+		}
 		return pc.findProperty(propertyPath.last());
 	}
 

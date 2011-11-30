@@ -104,6 +104,9 @@ public class UserSynchronizer {
 	@Autowired(required = true)
 	private CredentialsProcessor credentialsProcessor;
 
+	@Autowired(required = true)
+	private ActivationProcessor activationProcessor;
+	
 	@Autowired(required=true)
 	private SchemaRegistry schemaRegistry;
 	
@@ -161,7 +164,14 @@ public class UserSynchronizer {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Context after CREDENTIALS and recompute:\n{}",context.dump());
 		}
+
+		activationProcessor.processActivation(context, result);
+		context.recomputeNew();
 		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Context after ACTIVATION and recompute:\n{}",context.dump());
+		}
+
 
 	}
 

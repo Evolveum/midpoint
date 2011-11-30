@@ -2741,6 +2741,14 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="activation" minOccurs="0" type="tns:ResourceActivationDefinitionType">
+				<xsd:annotation>
+					<xsd:documentation>
+						Definition of credentials handling for this account type.
+						EXPERIMENTAL. Will most likely change later.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 	
@@ -2843,6 +2851,31 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Defines how the password value is constructed in case of information flow from IDM to the
+						resource, e.g. in case of provisioning.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="ResourceActivationDefinitionType">
+		<xsd:sequence>
+			<xsd:element name="enabled" type="tns:ResourceActivationEnableDefinitionType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Defines how the synchronization of the activation section is handled for the resource.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ResourceActivationEnableDefinitionType">
+		<xsd:sequence>
+			<xsd:element name="outbound" type="tns:ValueConstructionType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Defines how the "enable" value is constructed in case of information flow from IDM to the
 						resource, e.g. in case of provisioning.
 					</xsd:documentation>
 				</xsd:annotation>

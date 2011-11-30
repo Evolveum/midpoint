@@ -39,6 +39,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
+import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.DeltaSetTriple;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -102,6 +103,12 @@ public class AssignmentProcessor {
 			if (assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.NONE) {
 				// No assignment processing
 				LOGGER.trace("Assignment enforcement policy set to NONE, skipping assignment processing");
+				
+				// But mark all accounts as assigned, so they will be synchronized as expected
+				for (AccountSyncContext accCtx: context.getAccountContexts()) {
+					accCtx.setAssigned(true);
+				}
+				
 				return;
 			}
 		}
@@ -195,28 +202,32 @@ public class AssignmentProcessor {
 //			System.out.println("BBB2: "+attributeValueDeltaMap);
 			
 			if (zeroAccountMap.containsKey(rat)) {
+				context.getAccountSyncContext(rat).setAssigned(true);
 				// The account existed before the change and should still exist
 				processAccountModification(context, rat, accountDeltaSetTriple, attributeValueDeltaMap, result);
 				continue;
-			}
-			
-			if (plusAccountMap.containsKey(rat) && minusAccountMap.containsKey(rat)) {
+				
+			} else if (plusAccountMap.containsKey(rat) && minusAccountMap.containsKey(rat)) {
+				context.getAccountSyncContext(rat).setAssigned(true);
 				// Account was removed and added in the same operation, therefore keep its original state
 				// TODO
 				throw new UnsupportedOperationException("add+delete of account is not supprted yet");
 				//continue;
-			}
-			
-			if (plusAccountMap.containsKey(rat)) {
+				
+			} else if (plusAccountMap.containsKey(rat)) {
+				context.getAccountSyncContext(rat).setAssigned(true);
 				// Account added
-				processAccountAddition(context, rat, accountDeltaSetTriple, attributeValueDeltaMap, result);
+				processAccountAssign(context, rat, accountDeltaSetTriple, attributeValueDeltaMap, result);
 				continue;
-			}
-			
-			if (minusAccountMap.containsKey(rat)) {
+				
+			} else if (minusAccountMap.containsKey(rat)) {
+				context.getAccountSyncContext(rat).setAssigned(false);
 				// Account removed
-				processAccountDeletion(context, rat, accountDeltaSetTriple, attributeValueDeltaMap, result);
+				processAccountUnassign(context, rat, accountDeltaSetTriple, attributeValueDeltaMap, result);
 				continue;
+				
+			} else {
+				throw new IllegalStateException("Account "+rat+" went looney");
 			}
 			
 		}
@@ -254,7 +265,7 @@ public class AssignmentProcessor {
 		return sb.toString();
 	}
 
-	private void processAccountAddition(SyncContext context, ResourceAccountType rat, 
+	private void processAccountAssign(SyncContext context, ResourceAccountType rat, 
 			DeltaSetTriple<AccountConstruction> accountDeltaSetTriple,
 			Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap,
 			OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
@@ -277,7 +288,7 @@ public class AssignmentProcessor {
 	}
 	
 
-	private void processAccountDeletion(SyncContext context, ResourceAccountType rat,
+	private void processAccountUnassign(SyncContext context, ResourceAccountType rat,
 			DeltaSetTriple<AccountConstruction> accountDeltaSetTriple,
 			Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap, OperationResult result) {
 		

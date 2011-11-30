@@ -372,6 +372,14 @@
 					</outbound>
 				</password>
 			</credentials>
+			
+			<activation>
+				<enabled>
+					<outbound>
+						<asIs/>
+					</outbound>
+				</enabled>
+			</activation>
 
 		</accountType>
 	</schemaHandling>

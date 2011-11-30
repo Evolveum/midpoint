@@ -51,12 +51,14 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 	private MidPointObject<AccountShadowType> accountNew;
 	private ObjectDelta<AccountShadowType> accountPrimaryDelta;
 	private ObjectDelta<AccountShadowType> accountSecondaryDelta; 
-	Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaSetTripleMap;
+	private Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaSetTripleMap;
 	private ResourceType resource;
+	private boolean isAssigned;
 	
 	AccountSyncContext(ResourceAccountType resourceAccountType) {
 		this.resourceAccountType = resourceAccountType;
 		this.attributeValueDeltaSetTripleMap = new HashMap<QName, DeltaSetTriple<ValueConstruction>>();
+		this.isAssigned = false;
 	}
 	
 	public ResourceAccountType getResourceAccountType() {
@@ -126,6 +128,14 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 		}
 	}
 	
+	public boolean isAssigned() {
+		return isAssigned;
+	}
+
+	public void setAssigned(boolean isAssigned) {
+		this.isAssigned = isAssigned;
+	}
+
 	public Map<QName, DeltaSetTriple<ValueConstruction>> getAttributeValueDeltaSetTripleMap() {
 		return attributeValueDeltaSetTripleMap;
 	}
@@ -156,7 +166,9 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("OID: ").append(oid).append("\n");
+		sb.append("OID: ").append(oid);
+		sb.append(", assigned=").append(isAssigned);
+		sb.append("\n");
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("ACCOUNT old:");
 		if (accountOld == null) {
