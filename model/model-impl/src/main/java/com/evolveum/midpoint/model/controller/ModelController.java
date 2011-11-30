@@ -1100,7 +1100,7 @@ public class ModelController implements ModelService {
 		if (change == null) {
 			throw new IllegalArgumentException("Null change");
 		}
-		
+				
 		if (change.getChangeType() == ChangeType.ADD) {
 			executeAddition(change, result);
 			
@@ -1152,7 +1152,7 @@ public class ModelController implements ModelService {
 		String oid = change.getOid();
 		Class<? extends ObjectType> objectTypeClass = change.getObjectTypeClass();
 		ObjectModificationType objectChange = change.toObjectModificationType();
-		
+				
 		if (TaskType.class.isAssignableFrom(objectTypeClass)) {
 			taskManager.modifyTask(objectChange, result);
 		} else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {

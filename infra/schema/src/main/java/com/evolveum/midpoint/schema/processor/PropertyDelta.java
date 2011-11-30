@@ -249,7 +249,7 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
 	public Collection<PropertyModificationType> toPropertyModificationTypes() throws SchemaException {
 		checkConsistence();
 		Collection<PropertyModificationType> mods = new ArrayList<PropertyModificationType>();
-		XPathHolder xpath = new XPathHolder(parentPath.subPath(name));
+		XPathHolder xpath = new XPathHolder(parentPath);
 		Document document = DOMUtil.getDocument();
 		Element xpathElement = xpath.toElement(SchemaConstants.C_PATH, document);
 		if (valuesToReplace != null) {
