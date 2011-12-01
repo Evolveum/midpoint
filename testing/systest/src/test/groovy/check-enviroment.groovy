@@ -2,6 +2,7 @@ import java.io.File
 import java.net.MalformedURLException
 import java.net.URL
 import javax.xml.namespace.QName
+import javax.xml.ws.Holder
 import javax.jws.WebMethod
 import javax.jws.WebParam
 import javax.jws.WebResult
@@ -10,6 +11,11 @@ import javax.jws.soap.SOAPBinding
 import javax.xml.bind.annotation.XmlSeeAlso
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelService
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType
+
 
 import org.apache.directory.groovyldap.*
 
@@ -40,12 +46,30 @@ ldap2 = LDAP.newInstance( config['ldap2.url'], config['ldap2.binddn'] , config['
 // Try to delete unexisting object
 try {
 	println	model.deleteObject("http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#SystemConfigurationType", "00000000-0000-0000-0000-000000000002000")
-	println "SOAP Webservice on " + config['midpoint.soap.url'] + " \t\tFAIL" 
+	println "SOAP Webservice on " + config['midpoint.soap.url'] + " connect \tFAIL" 
 	fail=true
 } catch ( Exception e) {
 	assert e.getMessage() == "Object not found. OID: 00000000-0000-0000-0000-000000000002000"
-	println "SOAP Webservice on " + config['midpoint.soap.url'] + " \t\tPASS" 
+	println "SOAP Webservice on " + config['midpoint.soap.url'] + " connect \tPASS" 
 }
+
+try {
+	Holder<SystemConfigurationType> obj = new Holder<SystemConfigurationType>()
+	Holder<OperationResultType> result = new Holder<OperationResultType>()
+	PropertyReferenceListType props = new PropertyReferenceListType()
+
+	model.getObject("http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#SystemConfigurationType", "00000000-0000-0000-0000-000000000001", props, obj, result)
+
+	//println "OBJECT:" + obj.value
+	//println "RESULT:" + result.value
+	
+	println "SOAP Webservice on " + config['midpoint.soap.url'] + " getObj\tPASS" 
+} catch ( Exception e) {
+	println e.getMessage()
+	println "SOAP Webservice on " + config['midpoint.soap.url'] + " getObj\tFAIL" 
+	fail=true
+}
+
 
 
 //test tree exstincence
