@@ -216,9 +216,9 @@ public class AssignmentProcessor {
 				//continue;
 				
 			} else if (plusAccountMap.containsKey(rat)) {
-				context.getAccountSyncContext(rat).setAssigned(true);
 				// Account added
 				processAccountAssign(context, rat, accountDeltaSetTriple, attributeValueDeltaMap, result);
+				context.getAccountSyncContext(rat).setAssigned(true);
 				continue;
 				
 			} else if (minusAccountMap.containsKey(rat)) {
@@ -272,6 +272,9 @@ public class AssignmentProcessor {
 			OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		 
 		AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
+		if (accountSyncContext == null) {
+			accountSyncContext = context.createAccountSyncContext(rat);
+		}
 		if (accountSyncContext.getPolicyDecision() == null) {
 			accountSyncContext.setPolicyDecision(PolicyDecision.ADD);
 		}

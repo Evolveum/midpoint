@@ -69,6 +69,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableVal
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
@@ -368,6 +369,26 @@ public class DebugUtil implements ObjectFormatter {
 				}
 			}
 		}
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	public static String prettyPrint(ProtectedStringType protectedStringType) {
+		if (protectedStringType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("ProtectedStringType(");
+		
+		if (protectedStringType.getEncryptedData() != null) {
+			sb.append("[encrypted data]");
+		}
+
+		if (protectedStringType.getClearValue() != null) {
+			sb.append("\"");
+			sb.append(protectedStringType.getClearValue());
+			sb.append("\"");
+		}
+
 		sb.append(")");
 		return sb.toString();
 	}

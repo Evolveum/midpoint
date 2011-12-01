@@ -410,9 +410,8 @@ public class PropertyContainer extends Item implements Serializable {
 			applyModification(modification);
 		}
 	}
-
+		
 	public void applyModification(PropertyModification modification) {
-		// TODO Auto-generated method stub
 		if (modification.getPath() == null || modification.getPath().isEmpty()) {
 			// Modification in this container
 			

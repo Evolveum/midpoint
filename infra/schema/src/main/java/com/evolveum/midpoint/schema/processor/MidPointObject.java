@@ -138,5 +138,5 @@ public class MidPointObject<T extends ObjectType> extends PropertyContainer {
 		serializeToDom(doc);
 		return doc;
 	}
-
+	
 }

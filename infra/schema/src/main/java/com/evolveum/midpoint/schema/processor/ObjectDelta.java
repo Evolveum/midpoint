@@ -282,7 +282,8 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
 			// TODO: check for conflict
 			addModification(newPropertyDelta);
 		} else if (changeType == ChangeType.ADD) {
-			throw new UnsupportedOperationException("Not implemented yet");
+			Property property = objectToAdd.findOrCreateProperty(newPropertyDelta.getParentPath(), newPropertyDelta.getName());
+			newPropertyDelta.applyTo(property);
 		}
 		// nothing to do for DELETE
 	}
@@ -298,8 +299,10 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
 				// TODO: merge objects
 				throw new UnsupportedOperationException();
 			} else if (deltaToMerge.changeType == ChangeType.MODIFY) {
-				// TODO: merge changes to the object to create
-				throw new UnsupportedOperationException();
+				if (objectToAdd == null) {
+					throw new IllegalStateException("objectToAdd is null");
+				}
+				deltaToMerge.applyTo(objectToAdd);
 			} else if (deltaToMerge.changeType == ChangeType.DELETE) {
 				// TODO
 				throw new UnsupportedOperationException();
@@ -326,6 +329,15 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
 		}
 	}
 	
+	private void applyTo(MidPointObject<T> mpObject) {
+		if (changeType != ChangeType.MODIFY) {
+			throw new IllegalStateException("Can apply only MODIFY delta to object, got "+changeType+" delta");
+		}
+		for (PropertyDelta propDelta: modifications) {
+			propDelta.applyTo(mpObject);
+		}
+	}
+
 	public ObjectModificationType toObjectModificationType() throws SchemaException {
 		if (changeType != ChangeType.MODIFY) {
 			throw new IllegalStateException("Cannot produce ObjectModificationType from delta of type "+changeType);

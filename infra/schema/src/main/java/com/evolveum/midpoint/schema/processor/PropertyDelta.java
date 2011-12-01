@@ -144,6 +144,10 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
 	
 	public void applyTo(PropertyContainer propertyContainer) {
 		Property property = propertyContainer.findOrCreateProperty(getParentPath(), getName());
+		applyTo(property);
+	}
+
+	public void applyTo(Property property) {
 		if (valuesToReplace != null) {
 			property.replaceValues(valuesToReplace);
 			return;

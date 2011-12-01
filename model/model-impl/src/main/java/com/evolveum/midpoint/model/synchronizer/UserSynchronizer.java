@@ -64,6 +64,7 @@ import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -305,13 +306,24 @@ public class UserSynchronizer {
 
 	private void consolidateValuesAddAccount(SyncContext context, AccountSyncContext accCtx, OperationResult result) throws SchemaException, ExpressionEvaluationException {
 		
-		ObjectDelta<AccountShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, result);
+		ObjectDelta<AccountShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, true, result);
 		ObjectDelta<AccountShadowType> accountSecondaryDelta = accCtx.getAccountSecondaryDelta();
 		if (accountSecondaryDelta != null) {
 			accountSecondaryDelta.merge(modifyDelta);
 		} else {
 			if (accCtx.getAccountPrimaryDelta() == null) {
 				ObjectDelta<AccountShadowType> addDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.ADD);
+				RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(accCtx.getResourceAccountType(), schemaRegistry);
+
+                if (rAccount == null) {
+                        LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}",accCtx.getResourceAccountType(),context.dump());
+                        throw new IllegalStateException("Definition for account type "+accCtx.getResourceAccountType()+" not found in the context, but it should be there");
+                }
+                AccountShadowType newAccountType = rAccount.createBlankShadow();
+                ObjectDefinition<AccountShadowType> accountTypeDefinition = rAccount.getObjectDefinition();
+                MidPointObject<AccountShadowType> newAccount = accountTypeDefinition.parseObjectType(newAccountType);
+                addDelta.setObjectToAdd(newAccount);
+				
 				addDelta.merge(modifyDelta);
 				accCtx.setAccountSecondaryDelta(addDelta);
 			} else {
@@ -324,7 +336,7 @@ public class UserSynchronizer {
 	private void consolidateValuesModifyAccount(SyncContext context, AccountSyncContext accCtx,
 			OperationResult result) throws SchemaException, ExpressionEvaluationException {
 		
-		ObjectDelta<AccountShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, result);
+		ObjectDelta<AccountShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, false, result);
 		ObjectDelta<AccountShadowType> accountSecondaryDelta = accCtx.getAccountSecondaryDelta();
 		if (accountSecondaryDelta != null) {
 			accountSecondaryDelta.merge(modifyDelta);
@@ -341,7 +353,7 @@ public class UserSynchronizer {
 	}	
 	
 	private ObjectDelta<AccountShadowType> consolidateValuesToModifyDelta(SyncContext context, AccountSyncContext accCtx,
-			OperationResult result) throws SchemaException, ExpressionEvaluationException {
+			boolean addUnchangedValues, OperationResult result) throws SchemaException, ExpressionEvaluationException {
 		
 		Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap = accCtx.getAttributeValueDeltaSetTripleMap();
 		ResourceAccountType rat = accCtx.getResourceAccountType();
@@ -371,7 +383,9 @@ public class UserSynchronizer {
 			
 			Collection<Object> allValues = collectAllValues(triple);
 			for (Object value: allValues) {
-				if (isValueInSet(value, triple.getZeroSet())) {
+				Collection<ValueConstruction> zeroConstructions =
+					collectValueConstructionsFromSet(value, triple.getZeroSet());
+				if (!zeroConstructions.isEmpty() && !addUnchangedValues) {
 					// Value unchanged, nothing to do
 					LOGGER.trace("Value {} unchanged, doing nothing",value);
 					continue;
@@ -388,10 +402,18 @@ public class UserSynchronizer {
 				if (propDelta == null) {
 					propDelta = new PropertyDelta(parentPath, attributeName);
 				}
-				if (!plusConstructions.isEmpty()) {
-					boolean initialOnly = true;
-					ValueConstruction exclusiveVc = null;
-					for (ValueConstruction vc: plusConstructions) {
+
+				boolean initialOnly = true;
+				ValueConstruction exclusiveVc = null;
+				Collection<ValueConstruction> constructionsToAdd = null;
+				if (addUnchangedValues) {
+					constructionsToAdd = MiscUtil.union(zeroConstructions, plusConstructions);
+				} else {
+					constructionsToAdd = plusConstructions;
+				}
+				
+				if (!constructionsToAdd.isEmpty()) {
+					for (ValueConstruction vc: constructionsToAdd) {
 						if (!vc.isInitial()) {
 							initialOnly = false;
 						}
@@ -419,6 +441,7 @@ public class UserSynchronizer {
 					LOGGER.trace("Value {} added",value);
 					propDelta.addValueToAdd(value);
 				}
+				
 				if (!minusConstructions.isEmpty()) {
 					LOGGER.trace("Value {} deleted",value);
 					propDelta.addValueToDelete(value);
