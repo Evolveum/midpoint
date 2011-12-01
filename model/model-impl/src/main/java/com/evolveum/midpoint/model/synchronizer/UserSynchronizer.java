@@ -37,6 +37,7 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.DeltaSetTriple;
+import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -200,8 +201,33 @@ public class UserSynchronizer {
 	}
 	
 	private void loadAccountRefs(SyncContext context, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException {
+		PolicyDecision policyDecision = null;
+		if (context.getUserPrimaryDelta() != null && context.getUserPrimaryDelta().getChangeType() == ChangeType.DELETE) {
+			// If user is deleted, all accounts should also be deleted
+			policyDecision = PolicyDecision.DELETE;
+		}
+		
 		MidPointObject<UserType> userNew = context.getUserNew();
-		UserType userType = userNew.getOrParseObjectType();
+		if (userNew != null) {
+			UserType userTypeNew = userNew.getOrParseObjectType();
+			loadAccountRefsFromUser(context, userTypeNew, policyDecision, result);
+		}
+		
+		UserType userTypeOld = context.getUserTypeOld();
+		if (userTypeOld != null) {
+			// Accounts that are not in userNew but are in userOld are to be unlinked
+			if (policyDecision == null) {
+				policyDecision = PolicyDecision.UNLINK;
+			}
+			loadAccountRefsFromUser(context, userTypeOld, policyDecision, result);
+		}
+		
+	}
+		
+	/**
+	 * Does not overwrite existing account contexts, just adds new ones.
+	 */
+	private void loadAccountRefsFromUser(SyncContext context, UserType userType, PolicyDecision policyDecision, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException {
 		for (ObjectReferenceType accountRef: userType.getAccountRef()) {
 			String oid = accountRef.getOid();
 			// Fetching from repository instead of provisioning so we avoid reading in a full account
@@ -217,6 +243,9 @@ public class UserSynchronizer {
 					context.rememberResource(resource);
 				}
 				accountSyncContext = context.createAccountSyncContext(rat);
+				if (accountSyncContext.getPolicyDecision() == null) {
+					accountSyncContext.setPolicyDecision(policyDecision);
+				}
 			}
 			accountSyncContext.setOid(oid);
 		}
@@ -257,19 +286,16 @@ public class UserSynchronizer {
 		for (AccountSyncContext accCtx: context.getAccountContexts()) {
 			
 			ObjectDelta<AccountShadowType> accountSecondaryDelta = accCtx.getAccountSecondaryDelta();
+			PolicyDecision policyDecision = accCtx.getPolicyDecision();
 			
-			if (accountSecondaryDelta != null) {
-				// There is a secondary delta, so add to it
-				if (accountSecondaryDelta.getChangeType() == ChangeType.ADD) {
-					consolidateValuesAddAccount(context, accCtx, result);
-				} else if (accountSecondaryDelta.getChangeType() == ChangeType.MODIFY) {
-					consolidateValuesModifyAccount(context, accCtx, result);
-				}
-				// TODO
-				
+			if (policyDecision == PolicyDecision.ADD) {
+				consolidateValuesAddAccount(context, accCtx, result);
+			} else if (policyDecision == PolicyDecision.KEEP) {
+				consolidateValuesModifyAccount(context, accCtx, result);
+			} else if (policyDecision == PolicyDecision.DELETE) {
+				consolidateValuesDeleteAccount(context, accCtx, result);
 			} else {
-				// No secondary delta. There must be a primary delta instead. So we modify
-				// Even if there is no primary delta, then we modify
+				// This is either UNLINK or null, both are in fact the same as KEEP
 				consolidateValuesModifyAccount(context, accCtx, result);
 			}
 			
@@ -277,62 +303,50 @@ public class UserSynchronizer {
 		
 	}
 
-	private void consolidateValuesAddAccount(SyncContext context, AccountSyncContext accCtx, OperationResult result) throws SchemaException {
+	private void consolidateValuesAddAccount(SyncContext context, AccountSyncContext accCtx, OperationResult result) throws SchemaException, ExpressionEvaluationException {
 		
-		Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap = accCtx.getAttributeValueDeltaSetTripleMap();
-		ResourceAccountType rat = accCtx.getResourceAccountType();
-		ObjectDelta<AccountShadowType> accountDelta = accCtx.getAccountDelta();
-		
-		RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(rat, schemaRegistry);
-		if (rAccount == null) {
-			LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}",rat,context.dump());
-			throw new IllegalStateException("Definition for account type "+rat+" not found in the context, but it should be there");
-		}
-		
-		AccountShadowType newAccountType = rAccount.createBlankShadow();
-		ObjectDefinition<AccountShadowType> accountTypeDefinition = rAccount.getObjectDefinition();
-		MidPointObject<AccountShadowType> newAccount = accountTypeDefinition.parseObjectType(newAccountType);
-		
-		PropertyContainer attributesContainer = newAccount.findOrCreatePropertyContainer(SchemaConstants.I_ATTRIBUTES);
-		
-		Collection<QName> attrNames = new HashSet<QName>();
-		attrNames.addAll(attributeValueDeltaMap.keySet());
-		
-		for (QName attributeName : attrNames) {
-			RefinedAttributeDefinition refinedAttributeDefinition = rAccount.getAttributeDefinition(attributeName);
-			ResourceObjectAttribute attr = refinedAttributeDefinition.instantiate();
-			attributesContainer.add(attr);
-			
-			Collection<ValueConstruction> valueConstructions = null;
-			DeltaSetTriple<ValueConstruction> deltaTriple = attributeValueDeltaMap.get(attributeName);
-			
-			if (deltaTriple != null) {
-				valueConstructions = deltaTriple.getNonNegativeValues();
+		ObjectDelta<AccountShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, result);
+		ObjectDelta<AccountShadowType> accountSecondaryDelta = accCtx.getAccountSecondaryDelta();
+		if (accountSecondaryDelta != null) {
+			accountSecondaryDelta.merge(modifyDelta);
+		} else {
+			if (accCtx.getAccountPrimaryDelta() == null) {
+				ObjectDelta<AccountShadowType> addDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.ADD);
+				addDelta.merge(modifyDelta);
+				accCtx.setAccountSecondaryDelta(addDelta);
+			} else {
+				accCtx.setAccountSecondaryDelta(modifyDelta);
 			}
-			if (valueConstructions == null) {
-				valueConstructions = new HashSet<ValueConstruction>();
-			}
-			
-			// TODO: initial, exclusive
-			
-			for (ValueConstruction valueConstruction: valueConstructions) {
-				Property output = valueConstruction.getOutput();
-				attr.addValues(output.getValues());
-			}			
-			
-		}
-		
-		accountDelta.setObjectToAdd(newAccount);
-		context.setAccountSecondaryDelta(rat, accountDelta);
+		}		
 		
 	}
 
 	private void consolidateValuesModifyAccount(SyncContext context, AccountSyncContext accCtx,
 			OperationResult result) throws SchemaException, ExpressionEvaluationException {
 		
+		ObjectDelta<AccountShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, result);
+		ObjectDelta<AccountShadowType> accountSecondaryDelta = accCtx.getAccountSecondaryDelta();
+		if (accountSecondaryDelta != null) {
+			accountSecondaryDelta.merge(modifyDelta);
+		} else {
+			accCtx.setAccountSecondaryDelta(modifyDelta);
+		}
+	}
+	
+	private void consolidateValuesDeleteAccount(SyncContext context, AccountSyncContext accCtx,
+			OperationResult result) {
+		ObjectDelta<AccountShadowType> deleteDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.DELETE);
+		deleteDelta.setOid(accCtx.getOid());
+		accCtx.setAccountSecondaryDelta(deleteDelta);
+	}	
+	
+	private ObjectDelta<AccountShadowType> consolidateValuesToModifyDelta(SyncContext context, AccountSyncContext accCtx,
+			OperationResult result) throws SchemaException, ExpressionEvaluationException {
+		
 		Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap = accCtx.getAttributeValueDeltaSetTripleMap();
 		ResourceAccountType rat = accCtx.getResourceAccountType();
-		ObjectDelta<AccountShadowType> accountSecondaryDelta = accCtx.getAccountSecondaryDelta();
+		ObjectDelta<AccountShadowType> objectDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY);
+		objectDelta.setOid(accCtx.getOid());
 		
 		RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(rat, schemaRegistry);
 		if (rAccount == null) {
@@ -412,17 +426,12 @@ public class UserSynchronizer {
 			}
 			
 			if (propDelta != null) {
-				if (accountSecondaryDelta == null) {
-					// TODO: convert to factory method?
-					accountSecondaryDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY);
-					accountSecondaryDelta.setOid(accCtx.getOid());
-					accCtx.setAccountSecondaryDelta(accountSecondaryDelta);
-				}
-				accountSecondaryDelta.addModification(propDelta);
+				objectDelta.addModification(propDelta);
 			}
 			
 		}
 		
+		return objectDelta;
 	}
 
 	private Collection<Object> collectAllValues(DeltaSetTriple<ValueConstruction> triple) {

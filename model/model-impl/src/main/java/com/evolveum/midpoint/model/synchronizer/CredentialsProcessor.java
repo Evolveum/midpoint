@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ChangeType;
+import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.Property;
@@ -75,6 +76,12 @@ public class CredentialsProcessor {
 		ObjectDelta<UserType> userDelta = context.getUserDelta();
 		PropertyDelta passwordValueDelta = userDelta.getPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
 			
+		MidPointObject<UserType> userNew = context.getUserNew();
+		if (userNew == null) {
+			// This must be a user delete or something similar. No point in proceeding
+			LOGGER.trace("userNew is null, skipping credentials processing");
+			return;
+		}
 		Property userPasswordNew = context.getUserNew().findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
 		
 		Schema commonSchema = schemaRegistry.getCommonSchema();

@@ -41,6 +41,7 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.DeltaSetTriple;
+import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SchemaRegistry;
@@ -204,7 +205,7 @@ public class AssignmentProcessor {
 			if (zeroAccountMap.containsKey(rat)) {
 				context.getAccountSyncContext(rat).setAssigned(true);
 				// The account existed before the change and should still exist
-				processAccountModification(context, rat, accountDeltaSetTriple, attributeValueDeltaMap, result);
+				processAccountKeep(context, rat, accountDeltaSetTriple, attributeValueDeltaMap, result);
 				continue;
 				
 			} else if (plusAccountMap.containsKey(rat) && minusAccountMap.containsKey(rat)) {
@@ -270,21 +271,22 @@ public class AssignmentProcessor {
 			Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap,
 			OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		 
-		ObjectDelta<AccountShadowType> accountDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.ADD);
-		// No need for OID. This is a new object, OID will be assigned by the repo		
-		context.setAccountSecondaryDelta(rat, accountDelta);
+		AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
+		if (accountSyncContext.getPolicyDecision() == null) {
+			accountSyncContext.setPolicyDecision(PolicyDecision.ADD);
+		}
 		
 	}
 
-	private void processAccountModification(SyncContext context,
+	private void processAccountKeep(SyncContext context,
 			ResourceAccountType rat, DeltaSetTriple<AccountConstruction> accountDeltaSetTriple,
 			Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap, OperationResult result) throws SchemaException {
 
-		ObjectDelta<AccountShadowType> accountDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY);
-		// TODO: oid
-		
-		context.setAccountSecondaryDelta(rat, accountDelta);
-				
+		AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
+		if (accountSyncContext.getPolicyDecision() == null) {
+			accountSyncContext.setPolicyDecision(PolicyDecision.KEEP);
+		}
+						
 	}
 	
 
@@ -292,11 +294,10 @@ public class AssignmentProcessor {
 			DeltaSetTriple<AccountConstruction> accountDeltaSetTriple,
 			Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap, OperationResult result) {
 		
-		ObjectDelta<AccountShadowType> accountDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.DELETE);
-		// TODO: oid
-		context.setAccountSecondaryDelta(rat, accountDelta);
-		
-		// TODO: compute attributes
+		AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
+		if (accountSyncContext.getPolicyDecision() == null) {
+			accountSyncContext.setPolicyDecision(PolicyDecision.DELETE);
+		}
 		
 	}
 	

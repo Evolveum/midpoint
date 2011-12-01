@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ChangeType;
+import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.Property;
@@ -69,7 +70,13 @@ public class ActivationProcessor {
 		ObjectDelta<UserType> userDelta = context.getUserDelta();
 		PropertyDelta enabledValueDelta = userDelta.getPropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
 			
-		Property userEnabledNew = context.getUserNew().findProperty(SchemaConstants.PATH_ACTIVATION_ENABLE);
+		MidPointObject<UserType> userNew = context.getUserNew();
+		if (userNew == null) {
+			// This must be a user delete or something similar. No point in proceeding
+			LOGGER.trace("userNew is null, skipping activation processing");
+			return;
+		}
+		Property userEnabledNew = userNew.findProperty(SchemaConstants.PATH_ACTIVATION_ENABLE);
 		
 		Schema commonSchema = schemaRegistry.getCommonSchema();
 		

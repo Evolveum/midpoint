@@ -554,20 +554,20 @@ public class ModelController implements ModelService {
 	}
 
 	@Override
-	public <T extends ObjectType> void deleteObject(Class<T> clazz, String oid, OperationResult result)
+	public <T extends ObjectType> void deleteObject(Class<T> clazz, String oid, OperationResult parentResult)
 			throws ObjectNotFoundException, ConsistencyViolationException, CommunicationException {
 		Validate.notNull(clazz, "Class must not be null.");
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
-		Validate.notNull(result, "Result type must not be null.");
+		Validate.notNull(parentResult, "Result type must not be null.");
+
+		OperationResult result = parentResult.createSubresult(DELETE_OBJECT);
+		result.addParams(new String[] { "oid" }, oid);
 		
 		RepositoryCache.enter();
-		
+
 		try {
 			LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
-	
-			OperationResult subResult = result.createSubresult(DELETE_OBJECT);
-			subResult.addParams(new String[] { "oid" }, oid);
-			
+
 			ObjectDelta<T> objectDelta = new ObjectDelta<T>(clazz, ChangeType.DELETE);
 			objectDelta.setOid(oid);
 			
@@ -597,6 +597,7 @@ public class ModelController implements ModelService {
 			
 			try {
 				executeChanges(changes, result);
+				result.computeStatus();
 			} catch (ObjectAlreadyExistsException e) {
 				// TODO Better handling
 				throw new SystemException(e.getMessage(),e);
@@ -604,12 +605,23 @@ public class ModelController implements ModelService {
 				// TODO Better handling
 				throw new SystemException(e.getMessage(),e);
 			}
-		
+			
+		} catch (ObjectNotFoundException ex) {
+			LOGGER.error("model.deleteObject failed: {}",ex.getMessage(), ex);
+			result.recordFatalError(ex);
+			throw ex;
+		} catch (CommunicationException ex) {
+			LOGGER.error("model.deleteObject failed: {}",ex.getMessage(), ex);
+			result.recordFatalError(ex);
+			throw ex;
+		} catch (RuntimeException ex) {
+			LOGGER.error("model.deleteObject failed: {}",ex.getMessage(), ex);
+			result.recordFatalError(ex);
+			throw ex;
 		} finally {
 			RepositoryCache.exit();
 		}
 	}
-	
 	
 	
 	@Override

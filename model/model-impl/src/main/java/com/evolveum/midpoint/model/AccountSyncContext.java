@@ -54,6 +54,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 	private Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaSetTripleMap;
 	private ResourceType resource;
 	private boolean isAssigned;
+	private PolicyDecision policyDecision;
 	
 	AccountSyncContext(ResourceAccountType resourceAccountType) {
 		this.resourceAccountType = resourceAccountType;
@@ -135,6 +136,14 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 	public void setAssigned(boolean isAssigned) {
 		this.isAssigned = isAssigned;
 	}
+	
+	public PolicyDecision getPolicyDecision() {
+		return policyDecision;
+	}
+
+	public void setPolicyDecision(PolicyDecision policyDecision) {
+		this.policyDecision = policyDecision;
+	}
 
 	public Map<QName, DeltaSetTriple<ValueConstruction>> getAttributeValueDeltaSetTripleMap() {
 		return attributeValueDeltaSetTripleMap;
@@ -168,6 +177,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("OID: ").append(oid);
 		sb.append(", assigned=").append(isAssigned);
+		sb.append(", decision=").append(policyDecision);
 		sb.append("\n");
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("ACCOUNT old:");
