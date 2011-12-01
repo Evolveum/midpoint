@@ -11,11 +11,24 @@ import javax.xml.bind.annotation.XmlSeeAlso
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelService
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*
-import com.evolveum.midpoint.schema.util.JAXBUtilLite
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.*
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType
+
+import com.evolveum.midpoint.xml.ns._public.common.annotation_1.*
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.*
+import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.*
+import com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_1.*
+import com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_1.*
+import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.*
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.*
+import com.evolveum.midpoint.xml.ns._public.resource.resource_schema_1.*
+import com.evolveum.midpoint.schema.util.JAXBUtil
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.JAXBElement
 import javax.xml.bind.JAXBException
 import javax.xml.bind.Unmarshaller
+import javax.xml.ws.Holder
 
 import org.apache.directory.groovyldap.*
 
@@ -42,10 +55,52 @@ ldap2 = LDAP.newInstance( config['ldap2.url'], config['ldap2.binddn'] , config['
 
 //######################### end of common initialization  ###########################
 
-ResourceType  object = ((JAXBElement<UserType>) JAXBUtilLite.unmarshal(new File("src/test/resources/xml/resource-ldap1-dc=example.xml"))).getValue();
-println("obj: " + object.getName());
+//Search for all Connector types try to find ldap connector ref
+Holder<OperationResultType> result = new Holder<OperationResultType>()
+Holder<ObjectListType> objs = new Holder<ObjectListType>()
+
+PagingType paging = new PagingType()
 try {
-	model.addObj(object);
+	model.listObjects("http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType",paging,objs,result)
 } catch ( Exception ex ) {
-	println ex.getMessage()
+        println "Error while listObjs: " + ex.getMessage()
+        println ex.printStackTrace()
 }
+
+def ldapConnectorRefOid 
+for(def obj in objs.value.getObject()) {
+	if ( obj.name == "ICF org.identityconnectors.ldap.LdapConnector" ) {
+		ldapConnectorRefOid = obj.oid
+	}
+}
+//add resource ldap1
+ResourceType  object = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File("src/test/resources/xml/resource-ldap1-dc=example.xml"))).getValue();
+
+object.getConnectorRef().setOid(ldapConnectorRefOid); 
+
+Holder<String> newOid = new Holder<String>()
+
+
+try {
+	model.addObject(object,newOid,result);
+} catch ( Exception ex ) {
+	//println "Error: " + ex.getMessage()
+	println ex.printStackTrace()
+}
+
+println "Inserting object: "  + object.getName() 
+println "oid: " + newOid.value 
+println "Result: " + result.value
+
+ldap1Oid = newOid.value
+
+
+try {
+	def res = model.testResource(ldap1Oid)
+	println res
+} catch ( Exception ex ){
+	println "Error test connection to ldap1 : " + ex.getMessage()
+}
+
+
+
