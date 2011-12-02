@@ -99,32 +99,34 @@ object.
 
 		</c:configuration>
 
-		<c:schemaHandling>
+		<schemaHandling>
 
             <!-- Definition of default account type.
                  This is now the only account type that midPoint can work with. -->
-			<c:accountType default="true">
+			<accountType>
+				<name>user</name>
 
                 <!-- Readable name for the account type -->
-				<c:name>Default Account</c:name>
-
+				<displayName>Default Account</displayName>
+				<default>true</default>
                 <!-- Reference to the Resource Schema (see above) specifying
                      object class for this account type -->
-				<c:objectClass>ri:AccountObjectClass</c:objectClass>
+				<objectClass>ri:AccountObjectClass</objectClass>
 
                 <!-- Definition of __NAME__ attribute handling.
                      ICF will put entry DN into __NAME__ attribute.-->
-				<c:attribute ref="icfs:name">
+				<attribute>
+					<ref>icfs:name</ref>
 
                     <!-- Readable name for the attribute. This will be used in GUI -->
-					<c:name>Distinguished Name</c:name>
+					<displayName>Distinguished Name</displayName>
 
                     <!-- Access limitation for this attribute.
                          In our case ICF will put DN in the __NAME__ attribute.
                          Althouhg DN can be theoretically changes, this definition
                          will make it immutable. -->
-					<c:access>create</c:access>
-					<c:access>read</c:access>
+					<access>create</access>
+					<access>read</access>
 
                     <!-- Outbound expression for the __NAME__ attribute.
                          If account is created or updated, the __NAME__ attribute
@@ -137,18 +139,19 @@ object.
                          be evaluated only if the entry already does not have an DN.
 
                          It is an XPath expression, similar to BPEL assignment expressions. -->
-					<c:outbound default="true">
-						<c:valueExpression>
-							<c:code>
+					<outbound>
+						<initial>true</initial>
+						<expression>
+							<code>
 								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 								concat('uid=', $i:user/c:name, ',ou=people,dc=example,dc=com')
-							</c:code>
-                        </c:valueExpression>
-					</c:outbound>
+							</code>
+                        			</expression>
+					</outbound>
 
                     <!-- No inbound expression here. We cannot sync changes in DN yet -->
 
-				</c:attribute>
+				</attribute>
 
                 <!-- Definition of __UID__ attribute handling.
                      ICF will put entry UUID into __UID__ attribute in case it
@@ -156,38 +159,40 @@ object.
                      other directory servers and it also dependes on connector
                      configuration. Please see connector documentation for
                      more details.-->
-				<c:attribute ref="icfs:uid">
+				<attribute>
+					<ref>icfs:uid</ref>
 
                     <!-- Readable name for the attribute. This will be used in GUI -->
-					<c:name>Entry UUID</c:name>
+					<displayName>Entry UUID</displayName>
 
                     <!-- Access limitation for this attribute.
                          Entry UUID is created by the directory server itelf
                          and it is immutable. We can only read it. -->
-					<c:access>read</c:access>
+					<access>read</access>
 
                     <!-- There is no "outbound" expression, so midPoint will not
                          do anything with this attribute. -->
 
                     <!-- No inbound expression here. Does not make sense to sync UUID as it is supposed to be immutable -->
 
-				</c:attribute>
+				</attribute>
                 <!-- Definition of uid attribute handling.
                      Do not confuse with __UID__! -->
-				<c:attribute ref="ri:uid">
-					<c:name>Login Name</c:name>
-					<c:access>create</c:access>
-					<c:access>read</c:access>
-					<c:outbound>
+				<attribute>
+					<ref>ri:uid</ref>
+					<displayName>Login Name</displayName>
+					<access>create</access>
+					<access>read</access>
+					<outbound>
                         <!-- It is mapped from (and also to) "name" property of
                              user. It is essentially a login name -->
-						<c:valueExpression>
-							<c:code>
+						<expression>
+							<code>
 								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 								$i:user/i:name
-							</c:code>
-						</c:valueExpression>
-					</c:outbound>
+							</code>
+						</expression>
+					</outbound>
 					<inbound>
 						<description>It is mapped to (and also from) "name" property of
                              user. It is essentially a login name</description>
@@ -197,14 +202,14 @@ object.
                         </target>
 					</inbound>
 
-				</c:attribute>
+				</attribute>
                 <!-- Definition of cn attribute handling. -->
-				<c:attribute ref="ri:cn">
-
-					<c:name>Common Name</c:name>
-					<c:access>create</c:access>
-					<c:access>read</c:access>
-					<c:access>update</c:access>
+				<attribute>
+					<ref>ri:cn</ref>
+					<displayName>Common Name</displayName>
+					<access>create</access>
+					<access>read</access>
+					<access>update</access>
 
                     <!-- Outbound expression here is using "pure" XPath, without
                          using functions. This is the simplest case, just copying
@@ -215,14 +220,14 @@ object.
                          Therefore this value will be copied on every change,
                          overwriting the original value of "cn" on the resource.
                      -->
-					<c:outbound>
-						<c:valueExpression>
-							<c:code>
+					<outbound>
+						<expression>
+							<code>
 								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 								$i:user/i:fullName
-							</c:code>
-                        </c:valueExpression>
-					</c:outbound>
+							</code>
+                        			</expression>
+					</outbound>
 					<inbound>
 					    <description>
 					    	Inbound expression. It is used to synchronize changes
@@ -235,25 +240,23 @@ object.
 							$i:user/i:fullName
 						</target>
 					</inbound>
-
-
-
-				</c:attribute>
+				</attribute>
 
                 <!-- Definition of sn attribute handling. -->
-				<c:attribute ref="ri:sn">
-					<c:name>Surname</c:name>
-					<c:access>create</c:access>
-					<c:access>read</c:access>
-					<c:access>update</c:access>
-					<c:outbound>
-						<c:valueExpression>
-							<c:code>
+				<attribute>
+					<ref>ri:sn</ref>
+					<displayName>Surname</displayName>
+					<access>create</access>
+					<access>read</access>
+					<access>update</access>
+					<outbound>
+						<expression>
+							<code>
 								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 								$i:user/i:familyName
-							</c:code>
-                        </c:valueExpression>
-					</c:outbound>
+							</code>
+						</expression>
+					</outbound>
 					<inbound>
 						<description>sn will be synchronized to user's familyName</description>
 						<target>
@@ -263,22 +266,23 @@ object.
 					</inbound>
 	
                     <!-- sn will be synchronized to user's familyName -->
-				</c:attribute>
+				</attribute>
 
                 <!-- Definition of givenName attribute handling. -->
-				<c:attribute ref="ri:givenName">
-					<c:name>Given Name</c:name>
-					<c:access>create</c:access>
-					<c:access>read</c:access>
-					<c:access>update</c:access>
-					<c:outbound>
-						<c:valueExpression>
-							<c:code>
+				<attribute>
+					<ref>ri:givenName</ref>
+					<displayName>Given Name</displayName>
+					<access>create</access>
+					<access>read</access>
+					<access>update</access>
+					<outbound>
+						<expression>
+							<code>
 								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 								$i:user/i:givenName
-							</c:code>
-                        </c:valueExpression>
-					</c:outbound>
+							</code>
+						</expression>
+					</outbound>
 					<inbound>
 						<description>givenName will be synchronized to user's givenName</description>
 						<target>
@@ -287,13 +291,23 @@ object.
 						</target>
 					</inbound>
 	
-				</c:attribute>
+				</attribute>
 				<credentials>
-					<outboundPassword>true</outboundPassword>
-					<randomPasswordLength>6</randomPasswordLength>
+					<password>
+						<outbound>
+							<asIs/>
+						</outbound>
+					</password>
 				</credentials>
-			</c:accountType>
-		</c:schemaHandling>
+				<activation>
+					<enabled>
+						<outbound>
+							<asIs/>
+						</outbound>
+					</enabled>
+				</activation>
+			</accountType>
+		</schemaHandling>
 		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd">
 			<cap:activation>
 				<cap:enableDisable>
