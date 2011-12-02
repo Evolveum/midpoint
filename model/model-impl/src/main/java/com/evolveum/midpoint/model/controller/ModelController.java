@@ -529,6 +529,7 @@ public class ModelController implements ModelService {
 						if (accountShadowType == null) {
 							throw new SchemaException("Unable to parse account shadow in the modification: unknown error (null was returned)");
 						}
+						ModelUtils.unresolveResourceObjectShadow(accountShadowType);
 						
 						addAccountToContext(syncContext, accountShadowType, ChangeType.ADD, commonSchema, result);
 					}
