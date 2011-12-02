@@ -20,7 +20,9 @@
 package com.evolveum.midpoint.model;
 
 /**
- * @author semancik
+ * Describes what the policy "decides" about a specific account.
+ * 
+ * @author Radovan Semancik
  *
  */
 public enum PolicyDecision {

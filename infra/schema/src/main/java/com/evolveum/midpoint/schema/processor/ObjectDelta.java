@@ -40,8 +40,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModification
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
- * Describes relative change.
+ * Relative difference (delta) of the object.
  * 
+ * This class describes how the object changes. It can describe either object addition, modification of deletion.
+ * 
+ * Addition described complete new (absolute) state of the object.
+ * 
+ * Modification contains a set property deltas that describe relative changes to individual properties
+ * 
+ * Deletion does not contain anything. It only marks object for deletion.
+ * 
+ * The OID is mandatory for modification and deletion.
+ * 
+ * @see PropertyDelta
  * @author Radovan Semancik
  *
  */
@@ -49,9 +60,24 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
 
 	private ChangeType changeType;
 	
+	/**
+	 * OID of the object that this delta applies to.
+	 */
 	private String oid;
+	
+	/**
+	 * New object to add. Valid only if changeType==ADD
+	 */
 	private MidPointObject<T> objectToAdd;
+	
+	/**
+	 * Set of relative property deltas. Valid only if changeType==MODIFY
+	 */
 	private Collection<PropertyDelta> modifications;
+	
+	/**
+	 * Class of the object that we describe.
+	 */
 	private Class<T> objectTypeClass;
 	
 	public ObjectDelta(Class<T> objectTypeClass, ChangeType changeType) {
@@ -91,9 +117,9 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
 	public Collection<PropertyDelta> getModifications() {
 		return modifications;
 	}
-
-	private void add(PropertyDelta propDelta) {
-		modifications.add(propDelta);
+	
+	public void addModification(PropertyDelta propertyDelta) {
+		modifications.add(propertyDelta);
 	}
 
 	public PropertyDelta getPropertyDelta(PropertyPath propertyPath) {
@@ -147,6 +173,9 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
 		return (objectToAdd == null && (modifications == null || modifications.isEmpty()));
 	}
 	
+	/**
+	 * Shallow clone.
+	 */
 	public ObjectDelta<T> clone() {
 		ObjectDelta<T> clone = new ObjectDelta<T>(this.objectTypeClass, this.changeType);
 		clone.modifications = createEmptyModifications();
@@ -155,6 +184,49 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
 		return clone;
 	}
 	
+	/**
+	 * Merge provided delta into this delta.
+	 * This delta is assumed to be chronologically earlier.
+	 */
+	public void merge(ObjectDelta<T> deltaToMerge) {
+		if (changeType == ChangeType.ADD) {
+			if (deltaToMerge.changeType == ChangeType.ADD) {
+				// Maybe we can, be we do not want. This is usually an error anyway.
+				throw new IllegalArgumentException("Cannot merge two ADD deltas: "+this+", "+deltaToMerge);
+			} else if (deltaToMerge.changeType == ChangeType.MODIFY) {
+				if (objectToAdd == null) {
+					throw new IllegalStateException("objectToAdd is null");
+				}
+				deltaToMerge.applyTo(objectToAdd);
+			} else if (deltaToMerge.changeType == ChangeType.DELETE) {
+				this.changeType = ChangeType.DELETE;
+			}
+		} else if (changeType == ChangeType.MODIFY) {
+			if (deltaToMerge.changeType == ChangeType.ADD) {
+				throw new IllegalArgumentException("Cannot merge 'add' delta to a 'modify' object delta");
+			} else if (deltaToMerge.changeType == ChangeType.MODIFY) {
+				// TODO: merge changes to the object to create
+				throw new UnsupportedOperationException();
+			} else if (deltaToMerge.changeType == ChangeType.DELETE) {
+				this.changeType = ChangeType.DELETE;
+			}
+		} else { // DELETE
+			if (deltaToMerge.changeType == ChangeType.ADD) {
+				this.changeType = ChangeType.ADD;
+				// TODO: clone?
+				this.objectToAdd = deltaToMerge.objectToAdd;
+			} else if (deltaToMerge.changeType == ChangeType.MODIFY) {
+				// Just ignore the modification of a deleted object
+			} else if (deltaToMerge.changeType == ChangeType.DELETE) {
+				// Nothing to do
+			}
+		}
+	}
+	
+	/**
+	 * Union of several object deltas. The deltas are merged to create a single delta
+	 * that contains changes from all the deltas. 
+	 */
 	public static <T extends ObjectType> ObjectDelta<T> union(ObjectDelta<T>... deltas) {
 		List<ObjectDelta<T>> modifyDeltas = new ArrayList<ObjectDelta<T>>(deltas.length);
 		ObjectDelta<T> addDelta = null;
@@ -167,6 +239,7 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
 				modifyDeltas.add(delta);
 			} else if (delta.changeType == ChangeType.ADD) {
 				if (addDelta != null) {
+					// Maybe we can, be we do not want. This is usually an error anyway.
 					throw new IllegalArgumentException("Cannot merge two add deltas: "+addDelta+", "+delta);
 				}
 				addDelta = delta;
@@ -229,9 +302,25 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
 			} // else it is DELETE. There's nothing to do. Merging anything to delete is still delete
 		}
 	}
+
 	
 	/**
 	 * Applies this object delta to specified object, returns updated object.
+	 * It modifies the provided object.
+	 */
+	public void applyTo(MidPointObject<T> mpObject) {
+		if (changeType != ChangeType.MODIFY) {
+			throw new IllegalStateException("Can apply only MODIFY delta to object, got "+changeType+" delta");
+		}
+		for (PropertyDelta propDelta: modifications) {
+			propDelta.applyTo(mpObject);
+		}
+	}
+	
+	/**
+	 * Applies this object delta to specified object, returns updated object.
+	 * It leaves the original object unchanged.
+	 * 
 	 * @param objectOld object before change
 	 * @return object with applied changes or null if the object should not exit (was deleted)
 	 */
@@ -256,88 +345,25 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
 		return objectNew;
 	}
 
-
+	/**
+	 * Creates new delta from the ObjectModificationType (XML). Object type and schema are used to locate definitions
+	 * needed to convert properties from XML.
+	 */
 	public static <T extends ObjectType> ObjectDelta<T> createDelta(Class<T> type, ObjectModificationType objectModification, Schema schema) throws SchemaException {
 		ObjectDelta<T> objectDelta = new ObjectDelta<T>(type, ChangeType.MODIFY);
 		objectDelta.setOid(objectModification.getOid());
 		
 		for (PropertyModificationType propMod: objectModification.getPropertyModification()) {
 			PropertyDelta propDelta = PropertyDelta.createDelta(type, propMod, schema);
-			objectDelta.add(propDelta);
+			objectDelta.addModification(propDelta);
 		}
 		
 		return objectDelta;
 	}
-	
-	public void addModification(PropertyDelta propertyDelta) {
-		modifications.add(propertyDelta);
-	}
-	
+
 	/**
-	 * Incorporates the property delta into the existing property deltas
-	 * (regardless of the change type).
+	 * Converts this delta to ObjectModificationType (XML).
 	 */
-	public void swallow(PropertyDelta newPropertyDelta) {
-		if (changeType == ChangeType.MODIFY) {
-			// TODO: check for conflict
-			addModification(newPropertyDelta);
-		} else if (changeType == ChangeType.ADD) {
-			Property property = objectToAdd.findOrCreateProperty(newPropertyDelta.getParentPath(), newPropertyDelta.getName());
-			newPropertyDelta.applyTo(property);
-		}
-		// nothing to do for DELETE
-	}
-
-
-	private Collection<PropertyDelta> createEmptyModifications() {
-		return new HashSet<PropertyDelta>();
-	}
-	
-	public void merge(ObjectDelta<T> deltaToMerge) {
-		if (changeType == ChangeType.ADD) {
-			if (deltaToMerge.changeType == ChangeType.ADD) {
-				// TODO: merge objects
-				throw new UnsupportedOperationException();
-			} else if (deltaToMerge.changeType == ChangeType.MODIFY) {
-				if (objectToAdd == null) {
-					throw new IllegalStateException("objectToAdd is null");
-				}
-				deltaToMerge.applyTo(objectToAdd);
-			} else if (deltaToMerge.changeType == ChangeType.DELETE) {
-				// TODO
-				throw new UnsupportedOperationException();
-			}
-		} else if (changeType == ChangeType.MODIFY) {
-			if (deltaToMerge.changeType == ChangeType.ADD) {
-				throw new IllegalArgumentException("Cannot merge 'add' delta to a 'modify' object delta");
-			} else if (deltaToMerge.changeType == ChangeType.MODIFY) {
-				// TODO: merge changes to the object to create
-				throw new UnsupportedOperationException();
-			} else if (deltaToMerge.changeType == ChangeType.DELETE) {
-				// TODO
-				throw new UnsupportedOperationException();
-			}
-		} else { // DELETE
-			if (deltaToMerge.changeType == ChangeType.ADD) {
-				// TODO
-				throw new UnsupportedOperationException();
-			} else if (deltaToMerge.changeType == ChangeType.MODIFY) {
-				// Just ignore the modification of a deleted object
-			} else if (deltaToMerge.changeType == ChangeType.DELETE) {
-				// Nothing to do
-			}
-		}
-	}
-	
-	private void applyTo(MidPointObject<T> mpObject) {
-		if (changeType != ChangeType.MODIFY) {
-			throw new IllegalStateException("Can apply only MODIFY delta to object, got "+changeType+" delta");
-		}
-		for (PropertyDelta propDelta: modifications) {
-			propDelta.applyTo(mpObject);
-		}
-	}
-
 	public ObjectModificationType toObjectModificationType() throws SchemaException {
 		if (changeType != ChangeType.MODIFY) {
 			throw new IllegalStateException("Cannot produce ObjectModificationType from delta of type "+changeType);
@@ -356,7 +382,26 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
 		}
 		return modType;
 	}	
-	
+		
+	/**
+	 * Incorporates the property delta into the existing property deltas
+	 * (regardless of the change type).
+	 */
+	public void swallow(PropertyDelta newPropertyDelta) {
+		if (changeType == ChangeType.MODIFY) {
+			// TODO: check for conflict
+			addModification(newPropertyDelta);
+		} else if (changeType == ChangeType.ADD) {
+			Property property = objectToAdd.findOrCreateProperty(newPropertyDelta.getParentPath(), newPropertyDelta.getName());
+			newPropertyDelta.applyTo(property);
+		}
+		// nothing to do for DELETE
+	}
+
+	private Collection<PropertyDelta> createEmptyModifications() {
+		return new HashSet<PropertyDelta>();
+	}
+		
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

@@ -30,14 +30,32 @@ import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 
 /**
- * @author semancik
+ * The triple of values (added, unchanged, deleted) that represents difference between two collections of values.
+ * 
+ * The DeltaSetTriple is used as a result of a "diff" operation or it is constructed to determine a ObjectDelta or
+ * PropertyDelta. It is a very useful structure in numerous situations when dealing with relative changes.
+ * 
+ * DeltaSetTriple (similarly to other parts of this system) deal only with unordered values.
+ * 
+ * @author Radovan Semancik
  *
  */
 public class DeltaSetTriple<T> implements Dumpable {
 	
-	Collection<T> zeroSet;
-	Collection<T> plusSet;
-	Collection<T> minusSet;
+	/**
+	 * Collection of values that were not changed.
+	 */
+	private Collection<T> zeroSet;
+	
+	/**
+	 * Collection of values that were added.
+	 */
+	private Collection<T> plusSet;
+	
+	/**
+	 * Collection of values that were deleted.
+	 */
+	private Collection<T> minusSet;
 	
 	public DeltaSetTriple() {
 		zeroSet = createSet();
@@ -51,6 +69,9 @@ public class DeltaSetTriple<T> implements Dumpable {
 		this.minusSet = minusSet;
 	}
 
+	/**
+	 * Compares two (unordered) collections and creates a triple describing the differences.
+	 */
 	public static <T> DeltaSetTriple<T> diff(Collection<T> valuesOld, Collection<T> valuesNew) {
 		DeltaSetTriple<T> triple = new DeltaSetTriple<T>();
 		for (T val: valuesOld) {
@@ -82,6 +103,9 @@ public class DeltaSetTriple<T> implements Dumpable {
 		return minusSet;
 	}
 	
+	/**
+	 * Returns all values, regardless of the internal sets.
+	 */
 	public Collection<T> union() {
 		return MiscUtil.union(zeroSet, plusSet, minusSet);
 	}
@@ -90,6 +114,11 @@ public class DeltaSetTriple<T> implements Dumpable {
 		return MiscUtil.union(zeroSet, plusSet);
 	}
 	
+	/**
+	 * Distributes a value in this triple similar to the placement of other value in the other triple.
+	 * E.g. if the value "otherMember" is in the zero set in "otherTriple" then "myMember" will be placed
+	 * in zero set in this triple.
+	 */
 	public <O> void distributeAs(T myMember, DeltaSetTriple<O> otherTriple, O otherMember) {
 		if (otherTriple.getZeroSet() != null && otherTriple.getZeroSet().contains(otherMember)) {
 			zeroSet.add(myMember);

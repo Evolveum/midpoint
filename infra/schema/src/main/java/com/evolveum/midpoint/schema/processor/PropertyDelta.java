@@ -47,12 +47,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModification
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 
 /**
- * @author semancik
+ * Relative difference (delta) of a property values.
+ * 
+ * This class describes what values are to be added, removed or replaced in the property.
+ * The delta can be either add+delete or replace, but not both. It either describes what
+ * values to add and delete from the property (add+delete) or what is the new set of values
+ * (replace). Add+delete deltas can be merged without a loss. There are ideal for multi-value
+ * properties. If replace deltas are merged, only the last value will be present. These are
+ * better suited for single-value properties. 
+ * 
+ * @see ObjectDelta
+ * @author Radovan Semancik
  *
  */
 public class PropertyDelta implements Dumpable, DebugDumpable {
 
+	/**
+	 * Name of the property
+	 */
 	QName name;
+	/**
+	 * Parent path of the property (path to the property container)
+	 */
 	PropertyPath parentPath;
 	
 	Collection<Object> valuesToReplace = null;
@@ -124,6 +140,10 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
 		}
 	}
 
+	/**
+	 * Merge specified delta to this delta. This delta is assumed to be
+	 * chronologically earlier.
+	 */
 	public void merge(PropertyDelta deltaToMerge) {
 		checkConsistence();
 		deltaToMerge.checkConsistence();
@@ -132,7 +152,8 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
 		}
 		if (deltaToMerge.valuesToReplace != null) {
 			if (this.valuesToReplace != null) {
-				throw new IllegalArgumentException("Cannot merge two 'replace' deltas");
+				this.valuesToReplace.clear();
+				this.valuesToReplace.addAll(deltaToMerge.valuesToReplace);
 			}
 			this.valuesToReplace = newValueCollection();
 			this.valuesToReplace.addAll(deltaToMerge.valuesToReplace);
@@ -142,11 +163,17 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
 		}
 	}
 	
+	/**
+	 * Apply this delta (path) to a property container.
+	 */
 	public void applyTo(PropertyContainer propertyContainer) {
 		Property property = propertyContainer.findOrCreateProperty(getParentPath(), getName());
 		applyTo(property);
 	}
 
+	/**
+	 * Apply this delta (path) to a property.
+	 */
 	public void applyTo(Property property) {
 		if (valuesToReplace != null) {
 			property.replaceValues(valuesToReplace);
@@ -222,6 +249,10 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
 		return valuesToDelete.contains(value);
 	}
 
+	/**
+	 * Creates delta from PropertyModificationType (XML). The values inside the PropertyModificationType are converted to java.
+	 * That's the reason this method needs schema and objectType (to locate the appropriate definitions).
+	 */
 	public static PropertyDelta createDelta(Class<? extends ObjectType> objectType, PropertyModificationType propMod, Schema schema) throws SchemaException {
 		XPathHolder xpath = new XPathHolder(propMod.getPath());
 		PropertyPath parentPath = new PropertyPath(xpath);
@@ -250,6 +281,9 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
 		return propDelta;
 	}
 	
+	/**
+	 * Converts this delta to PropertyModificationType (XML).
+	 */
 	public Collection<PropertyModificationType> toPropertyModificationTypes() throws SchemaException {
 		checkConsistence();
 		Collection<PropertyModificationType> mods = new ArrayList<PropertyModificationType>();
@@ -302,7 +336,9 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
 	}
 	
 	/**
-	 * Assumes "replace" modification.
+	 * Returns the "new" state of the property - the state that would be after the delta
+	 * is applied.
+	 * Assumes "replace" delta.
 	 */
 	public Property getPropertyNew(PropertyDefinition propertyDefinition) {
 		if (valuesToAdd != null && valuesToDelete != null) {
