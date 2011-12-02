@@ -34,8 +34,8 @@ object.
 -->
 
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
@@ -182,7 +182,7 @@ object.
 								<xsd:element minOccurs="0" name="ds-pwp-account-disabled" type="xsd:string">
 				                  <xsd:annotation>
 				                     <xsd:appinfo>
-				                        <c:ignore>true</c:ignore>
+				                        <ignore>true</ignore>
 				                     </xsd:appinfo>
 				                  </xsd:annotation>
 				               </xsd:element>								
@@ -262,24 +262,24 @@ object.
         -->
 		<schemaHandling>
 
-			<accountType default="true">
+            <!-- Definition of default account type.
+                 This is now the only account type that midPoint can work with. -->
+			<accountType>
 
+				<name>user</name>
                 <!-- Readable name for the account type -->
-				<name>Default Account</name>
-
-				<description>
-					Definition of default account type.
-                	This is now the only account type that midPoint can work with.
-				</description>
+				<displayName>Default Account</displayName>
+				<default>true</default>
 
                 <!-- Reference to the Resource Schema (see above) specifying
                      object class for this account type -->
 				<objectClass>ri:AccountObjectClass</objectClass>
 
-				<attribute ref="icfs:name">
+				<attribute>
+					<ref>icfs:name</ref>
 
                     <!-- Readable name for the attribute. This will be used in GUI -->
-					<name>Distinguished Name</name>
+					<displayName>Distinguished Name</displayName>
 
 					<description>
 						Definition of "name" attribute handling.
@@ -294,7 +294,7 @@ object.
 					<access>create</access>
 					<access>read</access>
 
-					<outbound default="true">
+					<outbound>
 						<description>
 							Outbound expression for the "name" attribute.
                         	If account is created or updated, the "name" attribute
@@ -308,22 +308,24 @@ object.
 
                         	It is an XPath expression, similar to BPEL assignment expressions.	
 						</description>
-						<valueExpression>
+						<initial>true</initial>
+						<expression>
 							<code>
 								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 								concat('uid=', $i:user/c:name, ',ou=people,dc=example,dc=com')
 							</code>
-                        </valueExpression>
+                        			</expression>
 					</outbound>
 
                     <!-- No inbound expression here. We cannot sync changes in DN yet -->
 
 				</attribute>
 
-				<attribute ref="icfs:uid">
+				<attribute>
+					<ref>icfs:uid</ref>
 
                     <!-- Readable name for the attribute. This will be used in GUI -->
-					<c:name>Entry UUID</c:name>
+					<displayName>Entry UUID</displayName>
 					
 					<description>
 						Definition of ICF "uid" attribute handling.
@@ -351,9 +353,10 @@ object.
 				</attribute>
 
                 <!-- Definition of cn attribute handling. -->
-				<attribute ref="ri:cn">
+				<attribute>
+					<ref>ri:cn</ref>
 
-					<name>Common Name</name>
+					<displayName>Common Name</displayName>
 					
 					<description>
 						Definition of cn attribute handling.
@@ -375,12 +378,12 @@ object.
 	                        Therefore this value will be copied on every change,
 	                        overwriting the original value of "cn" on the resource.
 						</description>
-						<valueExpression>
+						<expression>
 							<code>
 								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 								$i:user/i:fullName
 							</code>
-                        </valueExpression>
+                        			</expression>
 					</outbound>
 
 					<inbound>
@@ -398,19 +401,20 @@ object.
 
 				</attribute>
 
-				<attribute ref="ri:sn">
-					<name>Surname</name>
+				<attribute>
+					<ref>ri:sn</ref>
+					<displayName>Surname</displayName>
 					<description>Handling of LDAP "sn" (surname) attribute</description>
 					<access>create</access>
 					<access>read</access>
 					<access>update</access>
 					<outbound>
-						<valueExpression>
+						<expression>
 							<code>
 								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 								$i:user/i:familyName
 							</code>
-                        </valueExpression>
+                        			</expression>
 					</outbound>
 					<inbound>
 						<description>sn will be synchronized to user's familyName</description>
@@ -421,19 +425,20 @@ object.
 					</inbound>
 				</attribute>
 
-				<attribute ref="ri:givenName">
-					<name>Given Name</name>
+				<attribute>
+					<ref>ri:givenName</ref>
+					<displayName>Given Name</displayName>
 					<description>Definition of givenName attribute handling.</description>
 					<access>create</access>
 					<access>read</access>
 					<access>update</access>
 					<outbound>
-						<valueExpression>
+						<expression>
 							<code>
 								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 								$i:user/i:givenName
 							</code>
-                        </valueExpression>
+                        			</expression>
 					</outbound>
 					<inbound>
 						<description>givenName will be synchronized to user's givenName</description>
@@ -444,8 +449,9 @@ object.
 					</inbound>
 				</attribute>
 
-				<attribute ref="ri:uid">
-					<name>Login Name</name>
+				<attribute>
+					<ref>ri:uid</ref>
+					<displayName>Login Name</displayName>
 					<description>
 						Definition of LDAP uid attribute handling. This is a native LDAP uid attribute.
                     	Do not confuse with ICF uid attribute (__UID__) which has a different namespace.
@@ -455,12 +461,12 @@ object.
 					<outbound>
 						<description>It is mapped from (and also to) "name" property of
                              user. It is essentially a login name</description>
-						<valueExpression>
+						<expression>
 							<code>
 								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 								$i:user/i:name
 							</code>
-						</valueExpression>
+						</expression>
 					</outbound>
 					<inbound>
 						<description>It is mapped to (and also from) "name" property of
@@ -468,18 +474,20 @@ object.
 						<target>
 							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 							$i:user/i:name
-                        </target>
+                        			</target>
 					</inbound>
 				</attribute>
 
-				<attribute ref="ri:description">
+				<attribute>
+					<ref>ri:description</ref>
 					<description>Definition of description attribute handling.</description>
-					<outbound default="true">
+					<outbound>
 						<description>
 							This outbound expression is not really an expression.
 	                        It is using a fixed literal insead of dynamically
 	                        generated value.
 						</description>
+						<initial>true</initial>
 						<value>Created by IDM</value>
 					</outbound>
 
@@ -502,7 +510,8 @@ object.
                     <!-- No inbound expression for description. We don't want to synchronize that -->
 				</attribute>
 
-				<attribute ref="ri:l">
+				<attribute>
+					<ref>ri:l</ref>
 					<description>
 						Definition of description attribute handling.
                 		This attribute is using a lookup table to translate the values
@@ -514,7 +523,15 @@ object.
                          	a configuration object (set into an XPath variable) to
                          	translate values.
 						</description>
-						<variable name="my:config">
+						<expression>
+							<description>
+								The expression itself. It translates the value of
+	                            user's attribute "locality" (expressed as $i:user/i:locality)
+	                            using a lookup table defined in the configuration object
+	                            in the $my:config variable specified above.	
+							</description>
+						<variable>
+							<name>my:config</name>
 							<description>
 								Definition of extra variable for the XPath expression.
 	                            The variable will appear as "$my:config" in the Xpath
@@ -523,17 +540,12 @@ object.
 							</description>
 							<objectRef oid="c0c010c0-d34d-b33f-f00d-999111111111"/>
 						</variable>
-						<variable name="my:defaultLocation">
+						<variable>
+							<name>my:defaultLocation</name>
 							<description>Example of setting a variable to a string value.</description>
 							<value>middle of nowhere</value>
 						</variable>
-						<valueExpression>
-							<description>
-								The expression itself. It translates the value of
-	                            user's attribute "locality" (expressed as $i:user/i:locality)
-	                            using a lookup table defined in the configuration object
-	                            in the $my:config variable specified above.	
-							</description>
+						<returnType>scalar</returnType>
 							<code>
 								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 								declare namespace my="http://myself.me/schemas/whatever";
@@ -542,15 +554,24 @@ object.
 								else
 									$my:defaultLocation
 							</code>
-                        </valueExpression>
+                        			</expression>
 					</outbound>
 				</attribute>
 				
 				<credentials>
-					<outboundPassword>true</outboundPassword>
-					<randomPasswordLength>6</randomPasswordLength>
+					<password>
+						<outbound>
+							<asIs/>
+						</outbound>
+					</password>
 				</credentials>
-								
+				<activation>
+					<enabled>
+						<outbound>
+							<asIs/>
+						</outbound>
+					</enabled>
+				</activation>
 			</accountType>
 			
 		</schemaHandling>
@@ -661,13 +682,14 @@ object.
 	            This specific definition sets a full name as a concatenation
 	            of givenName and familyName.
 			</description>
-			<valueConstruction default="true">
-				<valueExpression>
+			<valueConstruction>
+				<initial>true</initial>
+				<expression>
 					<code>
 						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 						concat($i:user/i:givenName,' ',$i:user/i:familyName)
 					</code>
-                </valueExpression>
+                		</expression>
 			</valueConstruction>
 		</propertyConstruction>
 
@@ -702,13 +724,14 @@ object.
 	            This specific definition sets a full name as a concatenation
 	            of givenName and familyName.	
 			</description>
-			<valueConstruction default="true">
-				<valueExpression>
+			<valueConstruction>
+				<initial>true</initial>
+				<expression>
 					<code>
 						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 						concat($i:user/i:givenName,' ',$i:user/i:familyName)
 					</code>
-                </valueExpression>
+                		</expression>
 			</valueConstruction>
 		</propertyConstruction>
 		
