@@ -513,6 +513,9 @@ public class ModelController implements ModelService {
 			
 					for (Object element: propModType.getValue().getAny()) {
 						AccountShadowType accountShadowType = XsdTypeConverter.toJavaValue(element, AccountShadowType.class);
+						if (accountShadowType == null) {
+							throw new SchemaException("Unable to parse account shadow in the modification: unknown error (null was returned)");
+						}
 						
 						addAccountToContext(syncContext, accountShadowType, ChangeType.ADD, commonSchema, result);
 					}
@@ -547,6 +550,9 @@ public class ModelController implements ModelService {
 		MidPointObject<AccountShadowType> mpAccount = refinedSchema.parseObjectType(accountType);
 		ObjectDelta<AccountShadowType> accountDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, changeType);
 		accountDelta.setObjectToAdd(mpAccount);
+		if (accountType.getResourceRef() == null) {
+			throw new SchemaException("Account shadow does not contain resourceRef");
+		}
 		ResourceAccountType rat = new ResourceAccountType(accountType.getResourceRef().getOid(), accountType.getAccountType());
 		AccountSyncContext accountSyncContext = syncContext.createAccountSyncContext(rat);
 		accountSyncContext.setAccountPrimaryDelta(accountDelta);

@@ -261,9 +261,9 @@ public class DebugUtil implements ObjectFormatter {
 			sb.append(",");
 		}
 		
-		if (vc.getSquence() != null) {
+		if (vc.getSequence() != null) {
 			sb.append("[");
-			for (JAXBElement vconstr: vc.getSquence().getValueConstructor()) {
+			for (JAXBElement vconstr: vc.getSequence().getValueConstructor()) {
 				prettyPringValueConstructor(sb,vconstr);
 				sb.append(",");
 			}

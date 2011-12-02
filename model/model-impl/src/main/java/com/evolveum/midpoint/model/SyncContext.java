@@ -47,14 +47,43 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
- * @author semancik
+ * Synchronization context that is passed inside the model as the change is processed through several stages.
+ * 
+ * The context contains complete information about the change that relates to a user. It container user, accounts
+ * that belongs, belonged or should belong to the user, deltas, old a new values for all the objects. This information
+ * is assembled and transformed as the context is passed through individual stages of model processing. 
+ * 
+ * It also contains policies (e.g. user template), channel and similar information. This can be used to customize
+ * processing per-request. 
+ * 
+ * @author Radovan Semancik
  *
  */
 public class SyncContext implements Dumpable, DebugDumpable {
 	
+	/**
+	 * User as UserType (XML) before any change (at the time when context was created).
+	 * This is just an optimization not to parse userOld every time a UserType is needed.
+	 * This value is considered immutable.
+	 */
 	private UserType userTypeOld;
+	
+	/**
+	 * User as midPointObject before any change (at the time when context was created)
+	 * This value is considered immutable.
+	 */
 	private MidPointObject<UserType> userOld;
+	
+	/**
+	 * User as midPointObject after the changes were applied. This reflects the expected state of
+	 * the user at the current stage of the processing. It is computed from userOld and user deltas.
+	 * This value is not computed automatically. It needs to be explicitly recomputed.
+	 */
 	private MidPointObject<UserType> userNew;
+	
+	/**
+	 * TODO
+	 */
 	private ObjectDelta<UserType> userPrimaryDelta;
 	private ObjectDelta<UserType> userSecondaryDelta;
 	

@@ -181,10 +181,10 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 	}
 	
 	private void evaluateValueConstructors(OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		if (valueConstructionType.getValueConstructor() != null && valueConstructionType.getSquence() != null) {
+		if (valueConstructionType.getValueConstructor() != null && valueConstructionType.getSequence() != null) {
 			throw new SchemaException("Both constructor and sequence was specified, ambiguous situation in "+shortDesc);
 		}
-		if (valueConstructionType.getValueConstructor() == null && valueConstructionType.getSquence() == null) {
+		if (valueConstructionType.getValueConstructor() == null && valueConstructionType.getSequence() == null) {
 			throw new SchemaException("No constructor was specified in "+shortDesc);
 		}
 		
@@ -193,8 +193,8 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 				.construct(valueConstructionType.getValueConstructor(), outputDefinition, input, variables, shortDesc, result);
 		}
 		
-		if (valueConstructionType.getSquence() != null) {
-			for (JAXBElement<?> valueConstructorElement : valueConstructionType.getSquence().getValueConstructor()) {
+		if (valueConstructionType.getSequence() != null) {
+			for (JAXBElement<?> valueConstructorElement : valueConstructionType.getSequence().getValueConstructor()) {
 				
 				output = determineConstructor(valueConstructorElement)
 							.construct(valueConstructorElement, outputDefinition, input, variables, shortDesc, result);

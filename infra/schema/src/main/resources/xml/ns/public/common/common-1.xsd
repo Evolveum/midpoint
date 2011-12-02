@@ -3249,7 +3249,7 @@
 			<xsd:element ref="tns:stringFilter" minOccurs="0" maxOccurs="unbounded" />
 			<xsd:choice>
 				<xsd:element ref="tns:valueConstructor" minOccurs="1" maxOccurs="1"/>					
-				<xsd:element name="squence">
+				<xsd:element name="sequence">
 					<xsd:complexType>
 						<xsd:sequence>
 							<xsd:element ref="tns:valueConstructor" maxOccurs="unbounded"/>
