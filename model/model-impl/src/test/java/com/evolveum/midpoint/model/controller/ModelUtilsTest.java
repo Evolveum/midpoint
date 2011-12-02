@@ -72,31 +72,6 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 	@Autowired(required = true)
 	private Protector protector;
 
-	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void createReferenceNullOid() {
-		ModelUtils.createReference(null, null);
-	}
-
-	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void createReferenceEmptyOid() {
-		ModelUtils.createReference("", null);
-	}
-
-	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void createReferenceNullType() {
-		ModelUtils.createReference(SystemObjectsType.SYSTEM_CONFIGURATION.value(), null);
-	}
-
-	@Test
-	public void createReference() {
-		String expectedOid = SystemObjectsType.SYSTEM_CONFIGURATION.value();
-
-		ObjectReferenceType ref = ModelUtils.createReference(expectedOid, ObjectTypes.SYSTEM_CONFIGURATION);
-		assertNotNull(ref);
-		assertEquals(ref.getOid(), expectedOid);
-		assertEquals(ObjectTypes.SYSTEM_CONFIGURATION.getTypeQName(), ref.getType());
-	}
-
 	@Test
 	public void validatePagingNull() {
 		ModelUtils.validatePaging(null);

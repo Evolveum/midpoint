@@ -29,6 +29,7 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -269,6 +270,18 @@ public class ObjectTypeUtil {
 		}
 		return ref;
 	}
+	
+	public static ObjectReferenceType createObjectRef(String oid, ObjectTypes type) {
+		Validate.notEmpty(oid, "Oid must not be null or empty.");
+		Validate.notNull(type, "Object type must not be null.");
+
+		ObjectReferenceType reference = new ObjectReferenceType();
+		reference.setType(type.getTypeQName());
+		reference.setOid(oid);
+
+		return reference;
+	}
+
 
 	/**
 	 * @param extension

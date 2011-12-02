@@ -32,6 +32,7 @@ import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -63,20 +64,9 @@ public class ModelUtils {
 			return;
 		}
 
-		ObjectReferenceType reference = createReference(shadow.getResource().getOid(), ObjectTypes.RESOURCE);
+		ObjectReferenceType reference = ObjectTypeUtil.createObjectRef(shadow.getResource().getOid(), ObjectTypes.RESOURCE);
 		shadow.setResource(null);
 		shadow.setResourceRef(reference);
-	}
-
-	public static ObjectReferenceType createReference(String oid, ObjectTypes type) {
-		Validate.notEmpty(oid, "Oid must not be null or empty.");
-		Validate.notNull(type, "Object type must not be null.");
-
-		ObjectReferenceType reference = new ObjectReferenceType();
-		reference.setType(type.getTypeQName());
-		reference.setOid(oid);
-
-		return reference;
 	}
 
 	public static void validatePaging(PagingType paging) {

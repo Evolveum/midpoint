@@ -286,7 +286,6 @@ public class UserSynchronizer {
 		
 		for (AccountSyncContext accCtx: context.getAccountContexts()) {
 			
-			ObjectDelta<AccountShadowType> accountSecondaryDelta = accCtx.getAccountSecondaryDelta();
 			PolicyDecision policyDecision = accCtx.getPolicyDecision();
 			
 			if (policyDecision == PolicyDecision.ADD) {

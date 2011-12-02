@@ -487,17 +487,30 @@ public class ModelController implements ModelService {
 			throw ex;
 		} catch (SchemaException ex) {
 			LOGGER.error("model.modifyObject failed: {}",ex.getMessage(), ex);
+			logDebugChange(type, change);
 			result.recordFatalError(ex);
 			throw ex;
 		} catch (RuntimeException ex) {
 			LOGGER.error("model.modifyObject failed: {}",ex.getMessage(), ex);
+			logDebugChange(type, change);
 			result.recordFatalError(ex);
 			throw ex;
 		} finally {
 			RepositoryCache.exit();
 		}
 	}
-
+	
+	private void logDebugChange(Class<?> type, ObjectModificationType change) {
+		if (LOGGER.isDebugEnabled()) {
+			try {
+				LOGGER.debug("model.modifyObject class={}, change:\n{}",type.getName(),
+						JAXBUtil.marshalWrap(change,SchemaConstants.C_OBJECT_MODIFICATION));
+			} catch (JAXBException ex2) {
+				LOGGER.error("model.modifyObject error marshalling the 'change' parameter to log: {}",ex2.getMessage(), ex2);
+			}
+		}
+	}
+	
 	private SyncContext userTypeModifyToContext(ObjectModificationType change, Schema commonSchema, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException {
 		SyncContext syncContext = new SyncContext();
 		
@@ -543,6 +556,11 @@ public class ModelController implements ModelService {
 			ChangeType changeType, Schema commonSchema, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException {
 		
 		String resourceOid = ResourceObjectShadowUtil.getResourceOid(accountType);
+		if (resourceOid == null) {
+			throw new SchemaException("Account shadow does not contain resource OID");
+		}
+		// We don't try to use resource that may be embedded in the account. This is pure XML and does not contain
+		// parsed schema. Fetching cached resource from provisioning is much more efficient
 		ResourceType resourceType = provisioning.getObject(ResourceType.class, resourceOid, null, result);
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType, schemaRegistry);
 		syncContext.rememberResource(resourceType);
@@ -550,10 +568,7 @@ public class ModelController implements ModelService {
 		MidPointObject<AccountShadowType> mpAccount = refinedSchema.parseObjectType(accountType);
 		ObjectDelta<AccountShadowType> accountDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, changeType);
 		accountDelta.setObjectToAdd(mpAccount);
-		if (accountType.getResourceRef() == null) {
-			throw new SchemaException("Account shadow does not contain resourceRef");
-		}
-		ResourceAccountType rat = new ResourceAccountType(accountType.getResourceRef().getOid(), accountType.getAccountType());
+		ResourceAccountType rat = new ResourceAccountType(resourceOid, accountType.getAccountType());
 		AccountSyncContext accountSyncContext = syncContext.createAccountSyncContext(rat);
 		accountSyncContext.setAccountPrimaryDelta(accountDelta);
 		
@@ -928,12 +943,15 @@ public class ModelController implements ModelService {
 	}
 
 	private String addProvisioningObject(ObjectType object, OperationResult result)
-			throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException {
-		if (object instanceof AccountShadowType) {
-			AccountShadowType account = (AccountShadowType) object;
-			processAccountCredentials(account, result);
-
-			ModelUtils.unresolveResourceObjectShadow(account);
+			throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, CommunicationException {
+		
+		if (object instanceof ResourceObjectShadowType) {
+			ResourceObjectShadowType shadow = (ResourceObjectShadowType) object;
+			String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
+			if (resourceOid == null) {
+				throw new IllegalArgumentException("Resource OID is null in shadow");
+			}
+			ModelUtils.unresolveResourceObjectShadow(shadow);
 		}
 
 		try {
@@ -943,7 +961,9 @@ public class ModelController implements ModelService {
 			throw ex;
 		} catch (ObjectAlreadyExistsException ex) {
 			throw ex;
-		} catch (Exception ex) {
+		} catch (CommunicationException ex) {
+			throw ex;
+		} catch (RuntimeException ex) {
 			throw new SystemException(ex.getMessage(), ex);
 		}
 	}
@@ -996,8 +1016,8 @@ public class ModelController implements ModelService {
 			if (resourceObject.getResource() != null) {
 				scripts = resourceObject.getResource().getScripts();
 			} else {
-				ObjectReferenceType reference = resourceObject.getResourceRef();
-				ResourceType resObject = getObject(ResourceType.class, reference.getOid(),
+				String resourceOid = ResourceObjectShadowUtil.getResourceOid(resourceObject);
+				ResourceType resObject = getObject(ResourceType.class, resourceOid,
 						new PropertyReferenceListType(), result);
 				scripts = resObject.getScripts();
 			}
@@ -1010,49 +1030,14 @@ public class ModelController implements ModelService {
 		return scripts;
 	}
 
-	private void processAccountCredentials(AccountShadowType account, OperationResult result)
-			throws ObjectNotFoundException, SchemaException {
-		// inserting credentials to account if needed (with generated password)
-		ResourceType resource = account.getResource();
-		if (resource == null) {
-			resource = getObject(ResourceType.class, account.getResourceRef().getOid(),
-					new PropertyReferenceListType(), result);
-		}
-
-		if (resource == null || resource.getSchemaHandling() == null) {
-			return;
-		}
-
-//		AccountType accountType = ModelUtils.getAccountTypeFromHandling(account, resource);
-//		if (accountType == null || accountType.getCredentials() == null) {
-//			return;
-//		}
-
-//		AccountType.Credentials credentials = accountType.getCredentials();
-//		int randomPasswordLength = -1;
-//		if (credentials.getRandomPasswordLength() != null) {
-//			randomPasswordLength = credentials.getRandomPasswordLength().intValue();
-//		}
-//
-//		if (randomPasswordLength != -1 && ModelUtils.getPassword(account).getProtectedString() == null) {
-//			try {
-//				ModelUtils.generatePassword(account, randomPasswordLength, protector);
-//			} catch (Exception ex) {
-//				throw new SystemException(ex.getMessage(), ex);
-//			}
-//		}
-	}
-
 	
-	
-	
-	private void executeChanges(Collection<ObjectDelta<?>> changes, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+	private void executeChanges(Collection<ObjectDelta<?>> changes, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException {
 		for (ObjectDelta<?> change: changes) {
 			executeChange(change, result);
 		}
 	}
 	
-	private void executeChanges(SyncContext syncContext, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+	private void executeChanges(SyncContext syncContext, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException {
 		
 		ObjectDelta<UserType> userDelta = syncContext.getUserDelta();
 		LOGGER.trace("Executing USER change "+userDelta);
@@ -1113,7 +1098,7 @@ public class ModelController implements ModelService {
 		cacheRepositoryService.modifyObject(UserType.class, objectChange, result);
 	}
 
-	private void executeChange(ObjectDelta<?> change, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+	private void executeChange(ObjectDelta<?> change, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException {
 		 
 		if (change == null) {
 			throw new IllegalArgumentException("Null change");
@@ -1130,7 +1115,7 @@ public class ModelController implements ModelService {
 		} 
 	}
 	
-	private void executeAddition(ObjectDelta<?> change, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+	private void executeAddition(ObjectDelta<?> change, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException {
 
 		MidPointObject<?> mpObject = change.getObjectToAdd();
 		mpObject.setObjectType(null);
