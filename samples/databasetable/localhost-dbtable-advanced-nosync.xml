@@ -103,100 +103,118 @@ object.
 
              This is the part where most of the customization takes place.
         -->
-		<c:schemaHandling>
+		<schemaHandling>
 
             <!-- Definition of default account type.
                  This is now the only account type that midPoint can work with. -->
-			<c:accountType default="true">
+			<accountType>
+				<name>user</name>
 
                 <!-- Readable name for the account type -->
-				<c:name>Default Account</c:name>
+				<displayName>Default Account</displayName>
+				<default>true</default>
 
                 <!-- Reference to the Resource Schema (see above) specifying
                      object class for this account type -->
-				<c:objectClass>ri:AccountObjectClass</c:objectClass>
-				<c:attribute ref="icfs:uid">
+				<objectClass>ri:AccountObjectClass</objectClass>
+				<attribute>
+					<ref>icfs:uid</ref>
 
                     <!-- Readable name for the attribute. This will be used in GUI -->
-					<c:name>Entry UUID</c:name>
+					<displayName>Entry UUID</displayName>
 
                     <!-- Access limitation for this attribute.
                          Entry UUID is created by the directory server itelf
                          and it is immutable. We can only read it. -->
-					<c:access>read</c:access>
+					<access>read</access>
 <!--
-					<c:outbound default="true">
-						<c:valueExpression>
-							<c:code>
+					<outbound default="true">
+						<expression>
+							<code>
                                                         declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 							$i:user/c:name
-							</c:code>
-						</c:valueExpression>
-					</c:outbound>-->
-				</c:attribute>
-				<c:attribute ref="icfs:name">
+							</code>
+						</expression>
+					</outbound>-->
+				</attribute>
+				<attribute>
+					<ref>icfs:name</ref>
 
                     <!-- Readable name for the attribute. This will be used in GUI -->
-					<c:name>Name</c:name>
+					<displayName>Name</displayName>
 
                     <!-- Access limitation for this attribute.
                           -->
-					<c:access>create</c:access>
-					<c:access>read</c:access>
-					<c:outbound default="true">
-						<c:valueExpression>
-							<c:code>
+					<access>create</access>
+					<access>read</access>
+					<outbound>
+						<initial>true</initial>
+						<expression>
+							<code>
                                                         declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 							$i:user/c:name
-							</c:code>
-						</c:valueExpression>
-					</c:outbound>
-				</c:attribute>
+							</code>
+						</expression>
+					</outbound>
+				</attribute>
 
-				<c:attribute ref="ri:firstName">
-					<c:name>First name</c:name>
-					<c:description>Definition of Firstname attribute handling.</c:description>
-					<c:outbound>
-						<c:valueExpression>
-							<c:code>
+				<attribute>
+					<ref>ri:firstName</ref>
+					<displayName>First name</displayName>
+					<description>Definition of Firstname attribute handling.</description>
+					<outbound>
+						<expression>
+							<code>
 							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 							$i:user/i:givenName
-							</c:code>
-                        			</c:valueExpression>
-					</c:outbound>
+							</code>
+                        			</expression>
+					</outbound>
 							
-				</c:attribute>
-				<c:attribute ref="ri:lastName">
-					<c:name>Last name</c:name>
-					<c:description>Definition of Lastname attribute handling.</c:description>
-					<c:outbound>
-						<c:valueExpression>
-							<c:code>
+				</attribute>
+				<attribute>
+					<ref>ri:lastName</ref>
+					<displayName>Last name</displayName>
+					<description>Definition of Lastname attribute handling.</description>
+					<outbound>
+						<expression>
+							<code>
 							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 							$i:user/i:familyName
-							</c:code>
-                        			</c:valueExpression>
-					</c:outbound>
+							</code>
+                        			</expression>
+					</outbound>
 							
-				</c:attribute>
-				<c:attribute ref="ri:fullName">
-					<c:name>Full name</c:name>
-					<c:description>Definition of Fullname attribute handling.</c:description>
-					<c:outbound>
-						<c:valueExpression>
-							<c:code>
+				</attribute>
+				<attribute>
+					<ref>ri:fullName</ref>
+					<displayName>Full name</displayName>
+					<description>Definition of Fullname attribute handling.</description>
+					<outbound>
+						<expression>
+							<code>
 							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 							$i:user/i:fullName
-							</c:code>
-                        			</c:valueExpression>
-					</c:outbound>
-				</c:attribute>
-  				<credentials>
-                                        <outboundPassword>true</outboundPassword>
-                                        <randomPasswordLength>6</randomPasswordLength>
-                                </credentials>
-			</c:accountType>
-		</c:schemaHandling>
+							</code>
+                        			</expression>
+					</outbound>
+				</attribute>
+				<credentials>
+					<password>
+						<outbound>
+							<asIs/>
+						</outbound>
+					</password>
+				</credentials>
+				<activation>
+					<enabled>
+						<outbound>
+							<asIs/>
+						</outbound>
+					</enabled>
+				</activation>
+			</accountType>
+		</schemaHandling>
 		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd">
 			<cap:activation>
 				<cap:enableDisable>

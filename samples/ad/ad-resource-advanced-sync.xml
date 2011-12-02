@@ -101,19 +101,23 @@ This resource definition contains only the very basic definitions for midPoint t
         -->
 
 		<schemaHandling>
-			<accountType default="true">
-				<name>Default Account</name>
+			<accountType>
+				<name>user</name>
+				<displayName>Default Account</displayName>
+				<default>true</default>
 				<objectClass>ri:AccountObjectClass</objectClass>
 
-				<attribute ref="ri:givenName"> <!-- required attribute on AD -->
-					<name>Given Name</name>
-					<outbound default="true">
-						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+				<attribute>
+					<ref>ri:givenName</ref> <!-- required attribute on AD -->
+					<displayName>Given Name</displayName>
+					<outbound>
+						<initial>true</initial>
+						<expression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
 							<code>
 								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 								$i:user/i:givenName
 							</code>
-						</valueExpression>
+						</expression>
 					</outbound>
 					<inbound>
 						<target>
@@ -122,15 +126,17 @@ This resource definition contains only the very basic definitions for midPoint t
 						</target>
 					</inbound>
 				</attribute>
-				<attribute ref="ri:sn">
-					<name>Surname</name>
-					<outbound default="true">
-						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+				<attribute>
+					<ref>ri:sn</ref>
+					<displayName>Surname</displayName>
+					<outbound>
+						<initial>true</initial>
+						<expression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
 							<code>
 								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 								$i:user/i:familyName
 							</code>
-						</valueExpression>
+						</expression>
 					</outbound>
 					<inbound>
 						<target>
@@ -139,15 +145,17 @@ This resource definition contains only the very basic definitions for midPoint t
 						</target>
 					</inbound>
 				</attribute>
-				<attribute ref="ri:sAMAccountName"> <!-- required attribute on AD -->
-					<name>Login name</name>
-					<outbound default="true">
-						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+				<attribute>
+					<ref>ri:sAMAccountName</ref> <!-- required attribute on AD -->
+					<displayName>Login name</displayName>
+					<outbound>
+						<initial>true</initial>
+						<expression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
 							<code>
 								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 								$i:user/i:name
 							</code>
-						</valueExpression>
+						</expression>
 					</outbound>
 					<inbound>
 						<target>
@@ -157,16 +165,17 @@ This resource definition contains only the very basic definitions for midPoint t
 					</inbound>
 				</attribute>
 
-				<attribute ref="ri:mail">
-					<name>Email address</name>
+				<attribute>
+					<ref>ri:mail</ref>
+					<displayName>Email address</displayName>
 <!-- FIXME if eMailAddress is null, create crashes
 					<outbound default="true">
-						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+						<expression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
 							<code>
 								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 								$i:user/i:eMailAddress
 							</code>
-						</valueExpression>
+						</expression>
 					</outbound>-->
 					<inbound>
 						<target>
@@ -176,25 +185,38 @@ This resource definition contains only the very basic definitions for midPoint t
 					</inbound>
 				</attribute>
 
-				<attribute ref="icfs:name">
-					<name>Distinguished Name</name>
+				<attribute>
+					<ref>icfs:name</ref>
+					<displayName>Distinguished Name</displayName>
 
 					<access>create</access>
 					<access>read</access>
 
-					<outbound default="true">
-						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+					<outbound>
+						<initial>true</initial>
+						<expression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
 							<code>
 								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 								concat('cn=',
 								$i:user/i:givenName, ' ', $i:user/i:familyName, ',cn=Users,dc=example,dc=com')
 							</code>
-						</valueExpression>
+						</expression>
 					</outbound>
 				</attribute>
 				<credentials>
-					<outboundPassword>true</outboundPassword>
+					<password>
+						<outbound>
+							<asIs/>
+						</outbound>
+					</password>
 				</credentials>
+				<activation>
+					<enabled>
+						<outbound>
+							<asIs/>
+						</outbound>
+					</enabled>
+				</activation>
 			</accountType>
 		</schemaHandling>
 <!--
@@ -294,7 +316,7 @@ exit
 						<code>
 							$account/attributes/ri:sAMAccountName
 						</code>
-		        	</valueExpression>
+		        		</valueExpression>
 				</equal>
 			</correlation>
 
