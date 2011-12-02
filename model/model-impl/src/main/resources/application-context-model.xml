@@ -46,27 +46,31 @@
     <context:annotation-config/>
     <context:component-scan base-package="com.evolveum.midpoint.model"/>
     <context:spring-configured/>
-    
-    <bean id="xpathExpressionEvaluator" class="com.evolveum.midpoint.common.expression.xpath.XPathExpressionEvaluator" scope="singleton">
+
+    <bean id="xpathExpressionEvaluator" class="com.evolveum.midpoint.common.expression.xpath.XPathExpressionEvaluator"
+          scope="singleton">
     </bean>
-    
-    <bean id="expressionFactory" class="com.evolveum.midpoint.common.expression.ExpressionFactory" factory-method="createExpressionFactory" scope="singleton">
-    	<constructor-arg>
-    		<map>
-    			<entry key="http://www.w3.org/TR/xpath/" value-ref="xpathExpressionEvaluator"/>
-    		</map>
-    	</constructor-arg>
-    	<property name="objectResolver" ref="modelObjectResolver"/>
+
+    <bean id="expressionFactory" class="com.evolveum.midpoint.common.expression.ExpressionFactory"
+          factory-method="createExpressionFactory" scope="singleton">
+        <constructor-arg>
+            <map>
+                <entry key="http://www.w3.org/TR/xpath/" value-ref="xpathExpressionEvaluator"/>
+            </map>
+        </constructor-arg>
+        <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
-    
-    <bean id="valueConstructionFactory" class="com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory" scope="singleton">
-    	<property name="expressionFactory" >
+
+    <bean id="valueConstructionFactory" class="com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory"
+          scope="singleton">
+        <property name="expressionFactory">
             <ref bean="expressionFactory"/>
         </property>
     </bean>
-    
+
     <!-- FIXME: THIS IS WRONG, IT SHOULD BE PULLED FROM COMMON -->
-    <bean id="schemaRegistry" class="com.evolveum.midpoint.schema.SchemaRegistry" init-method="initialize" scope="singleton">
+    <bean id="schemaRegistry" class="com.evolveum.midpoint.schema.SchemaRegistry" init-method="initialize"
+          scope="singleton">
     </bean>
 
     <bean id="actionManager" class="com.evolveum.midpoint.model.sync.ActionManagerImpl">
@@ -103,6 +107,9 @@
         </property>
         <property name="model">
             <ref bean="modelController"/>
+        </property>
+        <property name="synchronizer">
+            <ref bean="userSynchronizer"/>
         </property>
     </bean>
 

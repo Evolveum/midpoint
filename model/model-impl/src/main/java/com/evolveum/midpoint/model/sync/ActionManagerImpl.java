@@ -22,55 +22,62 @@
 
 package com.evolveum.midpoint.model.sync;
 
-import java.util.Map;
-
-import org.apache.commons.lang.Validate;
-
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.sync.action.BaseAction;
+import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.commons.lang.Validate;
+
+import java.util.Map;
 
 /**
- * 
- * @author Vilo Repan
- * 
+ * @author lazyman
  */
 public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 
-	private static transient Trace trace = TraceManager.getTrace(ActionManagerImpl.class);
-	private Map<String, Class<T>> actionMap;
-	private ModelController model;
+    private static transient Trace trace = TraceManager.getTrace(ActionManagerImpl.class);
+    private Map<String, Class<T>> actionMap;
+    private UserSynchronizer synchronizer;
+    @Deprecated
+    private ModelController model;
 
-	@Override
-	public void setActionMapping(Map<String, Class<T>> actionMap) {
-		Validate.notNull(actionMap, "Action mapping must not be null.");
-		this.actionMap = actionMap;
-	}
+    @Override
+    public void setActionMapping(Map<String, Class<T>> actionMap) {
+        Validate.notNull(actionMap, "Action mapping must not be null.");
+        this.actionMap = actionMap;
+    }
 
-	@Override
-	public Action getActionInstance(String uri) {
-		Validate.notEmpty(uri, "Action uri must not be null or empty.");
-		Class<T> clazz = actionMap.get(uri);
-		if (clazz == null) {
-			return null;
-		}
+    @Override
+    public Action getActionInstance(String uri) {
+        Validate.notEmpty(uri, "Action uri must not be null or empty.");
+        Class<T> clazz = actionMap.get(uri);
+        if (clazz == null) {
+            return null;
+        }
 
-		Action action = null;
-		try {
-			action = clazz.newInstance();
-			((BaseAction) action).setModel(model);
-//			((BaseAction) action).setSchemaHandler(schemaHandler);
-		} catch (Exception ex) {
-			LoggingUtils.logException(trace, "Couln't create action instance", ex);
-		}
+        Action action = null;
+        try {
+            action = clazz.newInstance();
+            if (action instanceof BaseAction) {
+                BaseAction baseAction = (BaseAction) action;
+                baseAction.setSynchronizer(synchronizer);
+                baseAction.setModel(model);
+            }
+        } catch (Exception ex) {
+            LoggingUtils.logException(trace, "Couln't create action instance", ex);
+        }
 
-		return action;
-	}
+        return action;
+    }
 
-	public void setModel(ModelController model) {
-		this.model = model;
-	}
+    public void setSynchronizer(UserSynchronizer synchronizer) {
+        this.synchronizer = synchronizer;
+    }
 
+    @Deprecated
+    public void setModel(ModelController model) {
+        this.model = model;
+    }
 }
