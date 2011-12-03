@@ -40,20 +40,74 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
- * @author semancik
+ * Account synchronization context that is part of SyncContext. Synchronization context that is passed inside the model
+ * as the change is processed through several stages.
+ * 
+ * This part of the context describes an account. The account belonged, belongs, should belong or will belong to the user
+ * specified in SyncContext. The specific state of the account is defined by the fields of this context, especially the 
+ * policyDecision field.
+ * 
+ * @see SyncContext
+ * @author Radovan Semancik
  *
  */
 public class AccountSyncContext implements Dumpable, DebugDumpable {
 	
+	/**
+	 * Definition of account type. This is the same value as the key in SyncContext. It is duplicated
+	 * here, therefore the AccountSyncContext may be used as stand-alone object.
+	 */
 	private ResourceAccountType resourceAccountType;
+	
+	/**
+	 * OID of the account shadow that this context describes. It is copied to the deltas if necessary.
+	 * It may be null if the account is just being created. 
+	 */
 	private String oid;
+	
+	/**
+	 * Old state of the account (state before the change). May be null if the account haven't existed before.
+	 */
 	private MidPointObject<AccountShadowType> accountOld;
+	
+	/**
+	 * New state of the account (after the change). It is not created automatically, it has to be manually recomputed.
+	 */
 	private MidPointObject<AccountShadowType> accountNew;
+	
+	/**
+	 * Primary account delta. This describe the change that the user explicitly requested (e.g. from GUI).
+	 */
 	private ObjectDelta<AccountShadowType> accountPrimaryDelta;
+	
+	/**
+	 * Secondary account delta. This describes the changes that are an effect of primary account delta or user deltas.
+	 */
 	private ObjectDelta<AccountShadowType> accountSecondaryDelta; 
+	
+	/**
+	 * DeltaSetTriples for change account attributes. It is used as a "temporary" store of attributed values between
+	 * evaluation steps (e.g. from assignments through outbound to consolidation). It is also a "memory" of the projected
+	 * absolute state of the account (taken from zero and plus sets of the triple).
+	 */
 	private Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaSetTripleMap;
+	
+	/**
+	 * Resource that hosts this account.
+	 */
 	private ResourceType resource;
+	
+	/**
+	 * True if the account is "legal" (assigned to the user). It may be false for accounts that are either
+	 * found to be illegal by live sync, were unassigned from user, etc.
+	 * If set to null the situation is not yet known. Null is a typical value when the context is constructed.
+	 */
 	private boolean isAssigned;
+	
+	/**
+	 * Decision regarding the account. If set to null no decision was made yet. Null is also a typical value
+	 * when the context is created. It may be pre-set under some circumstances, e.g. if an account is being unlinked.
+	 */
 	private PolicyDecision policyDecision;
 	
 	AccountSyncContext(ResourceAccountType resourceAccountType) {
@@ -116,6 +170,9 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 		return oid;
 	}
 	
+	/**
+	 * Sets oid to the field but also to the deltas (if applicable).
+	 */
 	public void setOid(String oid) {
 		this.oid = oid;
 		if (accountPrimaryDelta != null) {
@@ -154,6 +211,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 	}
 	
 	/**
+	 * Recomputes the new state of account (accountNew). It is computed by applying deltas to the old state (accountOld).
 	 * Assuming that oldAccount is already set (or is null if it does not exist)
 	 */
 	public void recomputeAccountNew() {
