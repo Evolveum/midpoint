@@ -82,16 +82,41 @@ public class SyncContext implements Dumpable, DebugDumpable {
 	private MidPointObject<UserType> userNew;
 	
 	/**
-	 * TODO
+	 * Primary change of the user object - the original change done by the user.
 	 */
 	private ObjectDelta<UserType> userPrimaryDelta;
+
+	/**
+	 * Secondary change of the user object - the change caused as a side-effect of the primary change.
+	 */
 	private ObjectDelta<UserType> userSecondaryDelta;
 	
+	/**
+	 * User template that should be applied during the processing of user policy. If it is null,
+	 * no template will be applied.
+	 */
 	private UserTemplateType userTemplate;
+	
+	/**
+	 * Channel that is the source of primary change (GUI, live sync, import, ...)
+	 */
 	private String channel;
+	
+	/**
+	 * Global synchronization settings that should be applied during processing of this context.
+	 */
 	private AccountSynchronizationSettingsType accountSynchronizationSettings;
 	
+	/**
+	 * Map of account synchronizations contexts. All the accounts in the map somehow "belong" to the user specified in this context.
+	 * The accounts are "distributed" in the map by account type - more exactly a composite key of resource OID and account type.
+	 * @see ResourceAccountType
+	 */
 	private Map<ResourceAccountType,AccountSyncContext> accountContextMap;
+	
+	/**
+	 * Cache of resource instances. It is used to reduce the number of read (getObject) calls for ResourceType objects. 
+	 */
 	private Map<String,ResourceType> resourceCache;
 	
 	public SyncContext() {
@@ -164,6 +189,10 @@ public class SyncContext implements Dumpable, DebugDumpable {
 		this.accountSynchronizationSettings = accountSynchronizationSettings;
 	}
 
+	/**
+	 * Returns one aspect from the synchronization settings (with respect to default value).
+	 * TODO: maybe this is redundant?
+	 */
 	public AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType() {
 		if (accountSynchronizationSettings.getAssignmentPolicyEnforcement() == null) {
 			return AssignmentPolicyEnforcementType.FULL;
@@ -198,7 +227,11 @@ public class SyncContext implements Dumpable, DebugDumpable {
 		}
 		accountContextMap.get(rat).setAccountSecondaryDelta(accountDelta);
 	}
-
+	
+	/**
+	 * Returns user delta, both primary and secondary (merged together).
+	 * The returned object is (kindof) immutable. Changing it may do strange things (but most likely the changes will be lost).
+	 */
 	public ObjectDelta<UserType> getUserDelta() {
 		return ObjectDelta.union(userPrimaryDelta,userSecondaryDelta);
 	}
@@ -215,12 +248,17 @@ public class SyncContext implements Dumpable, DebugDumpable {
 		}
 	}
 	
+	/**
+	 * Recompute new user state and new account states. It applies the deltas (both secondary and primary)
+	 * to the old states (userOld, accountOld), creating a new state (userNew, accountNew).
+	 */
 	public void recomputeNew() {
 		recomputeUserNew();
 		recomputeAccountsNew();
 	}
 	
 	/**
+	 * Recoumpute new user state.
 	 * Assuming that oldUser is already set (or is null if it does not exist)
 	 */
 	public void recomputeUserNew() {
@@ -233,12 +271,19 @@ public class SyncContext implements Dumpable, DebugDumpable {
 		userNew = userDelta.computeChangedObject(userOld);
 	}
 	
+	/**
+	 * Recompute new account state.
+	 */
 	public void recomputeAccountsNew() {
 		for (AccountSyncContext accCtx: getAccountContexts()) {
 			accCtx.recomputeAccountNew();
 		}
 	}
 	
+	/**
+	 * Returns delta of user assignments, both primary and secondary (merged together).
+	 * The returned object is (kindof) immutable. Changing it may do strange things (but most likely the changes will be lost).
+	 */
 	public PropertyDelta getAssignmentDelta() {
 		ObjectDelta<UserType> userDelta = getUserDelta();
 		if (userDelta == null) {
@@ -263,15 +308,32 @@ public class SyncContext implements Dumpable, DebugDumpable {
 		}
 	}
 
+	/**
+	 * Returns refined resource schema for specified account type.
+	 * This is supposed to be efficient, taking the schema from the cache if possible.
+	 * It assumes the resource is in the cache.
+	 * @see SyncContext#rememberResource(ResourceType)
+	 */
 	public RefinedResourceSchema getRefinedResourceSchema(ResourceAccountType rat, SchemaRegistry schemaRegistry) throws SchemaException {
 		return RefinedResourceSchema.getRefinedSchema(getResource(rat), schemaRegistry);
 	}
-	
+
+	/**
+	 * Returns refined account definition for specified account type.
+	 * This is supposed to be efficient, taking the schema from the cache if possible.
+	 * It assumes the resource is in the cache.
+	 * @see SyncContext#rememberResource(ResourceType)
+	 */
 	public RefinedAccountDefinition getRefinedAccountDefinition(ResourceAccountType rat, SchemaRegistry schemaRegistry) throws SchemaException {
 		// TODO: check for null
 		return getRefinedResourceSchema(rat, schemaRegistry).getAccountDefinition(rat.getAccountType());
 	}
 
+	/**
+	 * Returns a resource for specified account type.
+	 * This is supposed to be efficient, taking the resource from the cache. It assumes the resource is in the cache.
+	 * @see SyncContext#rememberResource(ResourceType)
+	 */
 	public ResourceType getResource(ResourceAccountType rat) {
 		return resourceCache.get(rat.getResourceOid());
 	}
@@ -281,7 +343,7 @@ public class SyncContext implements Dumpable, DebugDumpable {
 	}
 
 	/**
-	 * Puts resources in the cache for later use. The resources are fetched from repo
+	 * Puts resources in the cache for later use. The resources should be fetched from provisioning
 	 * and have pre-parsed schemas. So the next time just reuse them without the other overhead.
 	 */
 	public void rememberResources(Collection<ResourceType> resources) {
@@ -290,10 +352,19 @@ public class SyncContext implements Dumpable, DebugDumpable {
 		}
 	}
 	
+	/**
+	 * Puts resource in the cache for later use. The resource should be fetched from provisioning
+	 * and have pre-parsed schemas. So the next time just reuse it without the other overhead.
+	 */
 	public void rememberResource(ResourceType resourceType) {
 		resourceCache.put(resourceType.getOid(), resourceType);
 	}
 
+	/**
+	 * Returns all changes, user and all accounts. Both primary and secondary changes are returned, but
+	 * these are not merged.
+	 * TODO: maybe it would be better to merge them.
+	 */
 	public Collection<ObjectDelta<?>> getAllChanges() {
 		Collection<ObjectDelta<?>> allChanges = new HashSet<ObjectDelta<?>>();
 		
@@ -315,6 +386,9 @@ public class SyncContext implements Dumpable, DebugDumpable {
 		}
 	}
 	
+	/**
+	 * Creates new empty account sync context and adds it to this context.
+	 */
 	public AccountSyncContext createAccountSyncContext(ResourceAccountType rat) {
 		AccountSyncContext accountSyncContext = new AccountSyncContext(rat);
 		addAccountSyncContext(rat, accountSyncContext);
