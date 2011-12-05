@@ -31,7 +31,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.w3c.dom.Element;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,6 +58,26 @@ public abstract class BaseAction implements Action {
     @Override
     public void setParameters(List<Object> parameters) {
         this.parameters = parameters;
+    }
+
+    public Element getParameterElement(QName qname) {
+        Validate.notNull(qname, "QName must not be null.");
+
+        List<Object> parameters = getParameters();
+        Element element = null;
+        for (Object object : parameters) {
+            if (!(object instanceof Element)) {
+                continue;
+            }
+            Element parameter = (Element) object;
+            if (parameter.getLocalName().equals(qname.getLocalPart())
+                    && qname.getNamespaceURI().equals(parameter.getNamespaceURI())) {
+                element = parameter;
+                break;
+            }
+        }
+
+        return element;
     }
 
     protected UserType getUser(String oid, OperationResult result) throws SynchronizationException {
