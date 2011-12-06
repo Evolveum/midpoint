@@ -23,8 +23,9 @@
 <beans:beans xmlns="http://www.springframework.org/schema/security"
              xmlns:beans="http://www.springframework.org/schema/beans"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:util="http://www.springframework.org/schema/util"
              xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-             http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd">
+             http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd">
 
     <global-method-security secured-annotations="enabled" jsr250-annotations="enabled"/>
 
@@ -47,7 +48,7 @@
         <intercept-url pattern="/user-gui/**" access="hasAnyRole('ROLE_USER','ROLE_ADMIN')"/>
         <intercept-url pattern="/**" access="hasRole('ROLE_ADMIN')"/>
 
-        <logout logout-url="/j_spring_security_logout" invalidate-session="true"/>
+        <logout logout-url="/j_spring_security_logout" invalidate-session="true" success-handler-ref="logoutSuccessHandler"/>
 
         <session-management>
             <concurrency-control max-sessions="1" error-if-maximum-exceeded="true"/>
@@ -55,15 +56,24 @@
         <custom-filter position="FORM_LOGIN_FILTER" ref="authenticationFilter"/>
     </http>
 
-    <beans:bean name="savedRequestAwareAuthenticationSuccessHandler" class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler">
+    <beans:bean id="logoutSuccessHandler" class="org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler">
+        <beans:property name="targetUrlParameter">
+            <util:constant
+                    static-field="org.springframework.security.web.authentication.AbstractAuthenticationTargetUrlRequestHandler.DEFAULT_TARGET_PARAMETER"/>
+        </beans:property>
+    </beans:bean>
+
+    <beans:bean name="savedRequestAwareAuthenticationSuccessHandler"
+                class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler">
         <beans:property name="defaultTargetUrl" value="/user-gui/index.iface"/>
         <beans:property name="alwaysUseDefaultTargetUrl" value="false"/>
     </beans:bean>
 
-    <beans:bean id="authenticationFilter" class="org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter">
-    <beans:property name="authenticationManager" ref="authenticationManager" />
-    <beans:property name="postOnly" value="true" />
-    <beans:property name="authenticationSuccessHandler" ref="savedRequestAwareAuthenticationSuccessHandler" />
+    <beans:bean id="authenticationFilter"
+                class="org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter">
+        <beans:property name="authenticationManager" ref="authenticationManager"/>
+        <beans:property name="postOnly" value="true"/>
+        <beans:property name="authenticationSuccessHandler" ref="savedRequestAwareAuthenticationSuccessHandler"/>
     </beans:bean>
 
     <beans:bean id="maintenanceFilter" class="com.evolveum.midpoint.web.security.MidPointMaintenanceFilter">
