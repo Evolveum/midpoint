@@ -34,9 +34,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
-import org.w3c.dom.Element;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -44,6 +41,19 @@ import javax.xml.namespace.QName;
 public class ModifyUserAction extends BaseAction {
 
     private static final Trace LOGGER = TraceManager.getTrace(ModifyUserAction.class);
+    private PolicyDecision decision;
+
+    public ModifyUserAction() {
+        this(PolicyDecision.KEEP);
+    }
+
+    public ModifyUserAction(PolicyDecision decision) {
+        this.decision = decision;
+    }
+
+    protected PolicyDecision getDecision() {
+        return decision;
+    }
 
     @Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
@@ -79,7 +89,7 @@ public class ModifyUserAction extends BaseAction {
         ResourceAccountType resourceAccount = new ResourceAccountType(change.getResource().getOid(), accountAfterChange.getAccountType());
         AccountSyncContext accountContext = context.createAccountSyncContext(resourceAccount);
         accountContext.setResource(change.getResource());
-        accountContext.setPolicyDecision(getPolicyDecision());
+        accountContext.setPolicyDecision(getDecision());
 
 
         MidPointObject<AccountShadowType> accountShadow = new MidPointObject<AccountShadowType>(SchemaConstants.I_ACCOUNT_SHADOW_TYPE);
@@ -92,64 +102,6 @@ public class ModifyUserAction extends BaseAction {
             throw new SynchronizationException("Couldn't execute modify user action.", ex);
         }
 
-//        // As this implementation is in fact diffing user before change and
-//        // after change,
-//        // it can easily be applied to modification and addition.
-//        // However, this is wrong. This approach may be appropriate for
-//        // addition.
-//        // But for modification we should be a bit smarter and process only the
-//        // list of
-//        // attributes that were really changed.
-//
-//        if (change.getObjectChange() instanceof ObjectChangeDeletionType) {
-//            throw new SynchronizationException("The modifyUser action cannot be applied to deletion.");
-//        }
-//
-//        try {
-//            UserType oldUserType = (UserType) JAXBUtil.clone(userType);
-//
-//            if (shadowAfterChange.getResource() == null && shadowAfterChange.getResourceRef() != null) {
-//                resolveResource(shadowAfterChange);
-//            }
-//
-////			userType = getSchemaHandler().processInboundHandling(userType, shadowAfterChange, result);
-//
-//            ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldUserType, userType);
-//            if (modification != null && modification.getOid() != null) {
-//                getModel().modifyObject(UserType.class, modification, subResult);
-//            } else {
-//                LOGGER.warn("Diff returned null for changes of user {}, caused by shadow {}",
-//                        userType.getOid(), shadowAfterChange.getOid());
-//            }
-//        } catch (SchemaException ex) {
-//            throw new SynchronizationException("Can't handle inbound section in schema handling", ex);
-//        } catch (DiffException ex) {
-//            throw new SynchronizationException("Can't save user. Unexpected error: "
-//                    + "Couldn't create create diff.", ex);
-//        } catch (JAXBException ex) {
-//            throw new SynchronizationException("Couldn't clone user object '" + userOid + "', reason: "
-//                    + ex.getMessage(), ex);
-//        } catch (Exception ex) {
-//            throw new SynchronizationException("Can't save user", ex);
-//        }
-
         return userOid;
-    }
-
-    private PolicyDecision getPolicyDecision() {
-        PolicyDecision decision = PolicyDecision.KEEP;
-
-        Element decisionElement = getParameterElement(new QName(SchemaConstants.NS_C, "decision"));
-        if (decisionElement != null) {
-            for (PolicyDecision policyDecision : PolicyDecision.values()) {
-                String value = policyDecision.toString();
-                if (value.equalsIgnoreCase(decisionElement.getTextContent())) {
-                    decision = policyDecision;
-                    break;
-                }
-            }
-        }
-
-        return decision;
     }
 }

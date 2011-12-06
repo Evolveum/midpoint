@@ -22,72 +22,14 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
-import com.evolveum.midpoint.model.sync.SynchronizationException;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.model.PolicyDecision;
 
 /**
- * 
  * @author lazyman
  */
-public class UnlinkAccountAction extends BaseAction {
+public class UnlinkAccountAction extends ModifyUserAction {
 
-	private static final Trace LOGGER = TraceManager.getTrace(UnlinkAccountAction.class);
-
-	@Override
-	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
-			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
-			OperationResult result) throws SynchronizationException {
-		super.executeChanges(userOid, change, situation, shadowAfterChange, result);
-
-		OperationResult subResult = new OperationResult("Unlink Account Action");
-		result.addSubresult(subResult);
-
-		UserType user = getUser(userOid, result);
-		if (user == null) {
-			String message = "User with oid '" + userOid
-					+ "' doesn't exits. Try insert create action before this action.";
-			subResult.recordFatalError(message);
-			throw new SynchronizationException(message);
-		}
-
-		try {
-			if (shadowAfterChange instanceof AccountShadowType) {
-				ObjectReferenceType accountRef = new ObjectReferenceType();
-				accountRef.setOid(shadowAfterChange.getOid());
-				accountRef.setType(ObjectTypes.ACCOUNT.getTypeQName());
-
-				ObjectModificationType changes = new ObjectModificationType();
-				changes.setOid(user.getOid());
-				changes.getPropertyModification().add(
-						ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.delete,
-								null, SchemaConstants.I_ACCOUNT_REF, accountRef));
-
-				getModel().modifyObject(UserType.class, changes, subResult);
-			} else {
-				LOGGER.debug("Skipping unlink account from user, shadow in change is not AccountShadowType.");
-			}
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't unlink account {} from user {}.", ex,
-					shadowAfterChange.getName(), user.getName());
-			subResult.recordFatalError("Couldn't unlink account '" + shadowAfterChange.getName()
-					+ "' from user '" + user.getName() + "'.", ex);
-			throw new SynchronizationException(ex.getMessage(), ex);
-		}
-
-		return userOid;
-	}
+    public UnlinkAccountAction() {
+        super(PolicyDecision.UNLINK);
+    }
 }

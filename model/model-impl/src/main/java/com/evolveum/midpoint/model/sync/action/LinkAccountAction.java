@@ -22,82 +22,12 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
-import com.evolveum.midpoint.model.sync.SynchronizationException;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-
 /**
- * 
  * @author lazyman
- * 
  */
-public class LinkAccountAction extends BaseAction {
+public class LinkAccountAction extends ModifyUserAction {
 
-	private static final Trace LOGGER = TraceManager.getTrace(LinkAccountAction.class);
-
-	@Override
-	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
-			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
-			OperationResult result) throws SynchronizationException {
-		LOGGER.trace("Executing link account action.");
-		super.executeChanges(userOid, change, situation, shadowAfterChange, result);
-
-		OperationResult subResult = new OperationResult("Link Account Action");
-		result.addSubresult(subResult);
-
-		UserType user = getUser(userOid, result);
-		if (user == null) {
-			LOGGER.trace("User with oid {} doesn't exits. Try insert create action before this action.",
-					new Object[] { userOid });
-
-			String message = "User with oid '" + userOid
-					+ "' doesn't exits. Try insert create action before this action.";
-			subResult.recordFatalError(message);
-			throw new SynchronizationException(message);
-		}
-		LOGGER.trace("Found user {} for link account.", new Object[] { user.getName() });
-		try {
-			if (shadowAfterChange instanceof AccountShadowType) {
-				LOGGER.trace("Creating change for account shadow (accountRef).");
-				
-				ObjectReferenceType accountRef = new ObjectReferenceType();
-				accountRef.setOid(shadowAfterChange.getOid());
-				accountRef.setType(ObjectTypes.ACCOUNT.getTypeQName());
-
-				ObjectModificationType changes = new ObjectModificationType();
-				changes.setOid(user.getOid());
-				changes.getPropertyModification().add(
-						ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.add, null,
-								SchemaConstants.I_ACCOUNT_REF, accountRef));
-
-//				getModel().modifyObject(changes, subResult);
-//				getModel().modifyObjectWithExclusion(UserType.class, changes, MiscSchemaUtil.toCollection(ResourceObjectShadowUtil.getResourceOid(shadowAfterChange)), subResult);
-			} else {
-				LOGGER.debug("Skipping link account to user, shadow in change is not AccountShadowType.");
-			}
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't link account {} to user {}.", ex,
-					shadowAfterChange.getName(), user.getName());
-			subResult.recordFatalError("Couldn't link account '" + shadowAfterChange.getName()
-					+ "' to user '" + user.getName() + "'.", ex);
-			throw new SynchronizationException(ex.getMessage(), ex);
-		}
-
-		return userOid;
-	}
+    public LinkAccountAction() {
+        super(null);
+    }
 }
