@@ -54,7 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 		// unknown reason
 		// "classpath:application-context-provisioning.xml",
 		"classpath:application-context-repository.xml",
-		"classpath:application-context-configuration-test.xml" })
+		"classpath:application-context-configuration-test.xml"})
 public class SpringApplicationContextTest extends AbstractTestNGSpringContextTests {
 
 	@Autowired(required = true)

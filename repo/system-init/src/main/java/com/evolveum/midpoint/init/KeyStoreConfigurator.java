@@ -39,7 +39,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author mamut
  *
  */
-@Component("protector")
+@Component(value = "protector")
 public class KeyStoreConfigurator extends AESProtector implements RuntimeConfiguration, Protector {
 
 	private String keyStorePath;

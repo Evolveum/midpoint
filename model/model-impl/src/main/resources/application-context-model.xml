@@ -129,9 +129,49 @@
         </property>
     </bean>
 
-    <jaxws:endpoint id="modelWS" address="http://localhost:8081/model">
+    <import resource="classpath:META-INF/cxf/cxf.xml" />
+	<import resource="classpath:META-INF/cxf/cxf-servlet.xml" />
+
+    <jaxws:endpoint id="modelWS"
+                    address="/model">
         <jaxws:implementor>
             <bean parent="modelWebService"/>
         </jaxws:implementor>
+        <jaxws:inInterceptors>
+            <ref bean="authenticationInterceptor"/>
+<!--
+            <ref bean="authorizationInterceptor"/>
+-->
+        </jaxws:inInterceptors>
     </jaxws:endpoint>
+
+    <bean id="authenticationInterceptor" class="org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor">
+        <constructor-arg>
+            <map>
+                <entry key="action" value="UsernameToken"/>
+                <entry key="passwordType" value="PasswordDigest"/>
+                <entry key="passwordCallbackRef">
+                    <ref bean="passwordCallback"/>
+                </entry>
+            </map>
+        </constructor-arg>
+    </bean>
+
+    <bean id="passwordCallback" class="com.evolveum.midpoint.model.security.PasswordCallback">
+        <constructor-arg name="userDetailsService" ref="userDetailsService"/>
+        <constructor-arg name="protector" ref="protector"/>
+    </bean>
+
+    <!--Example of authorization for WS-->
+<!--
+    <bean id="authorizationInterceptor" class="org.apache.cxf.interceptor.security.SimpleAuthorizingInterceptor">
+        <property name="methodRolesMap">
+            <map>
+                <entry key="getObject" value="ROLE_USER ROLE_ADMIN"/>
+                <entry key="addObject" value="ROLE_ADMIN"/>
+            </map>
+        </property>
+    </bean>
+-->
+
 </beans>

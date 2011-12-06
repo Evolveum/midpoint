@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.web.security;
+package com.evolveum.midpoint.model.security.api;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -30,8 +30,10 @@ import java.security.NoSuchAlgorithmException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 
 /**
+ * Temporary place, till we create special component for it
  * 
  * @author lazyman
+ * @author Igor Farinic
  */
 public class Credentials implements Serializable {
 

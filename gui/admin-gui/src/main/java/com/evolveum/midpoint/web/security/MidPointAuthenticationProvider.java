@@ -26,6 +26,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import com.evolveum.midpoint.model.security.api.Credentials;
+import com.evolveum.midpoint.model.security.api.PrincipalUser;
+import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;

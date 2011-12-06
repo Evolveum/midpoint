@@ -116,4 +116,6 @@
 	<!-- override loggingManager in tests and do not call it's init method, so we won't override logging configuration (for testing with production) -->
 	<bean name="loggingManager" class="com.evolveum.midpoint.web.component.LoggingManager" depends-on="initialDataImport" />
 
+    <bean name="userDetailsService" class="com.evolveum.midpoint.model.security.UserDetailsServiceImpl"/>
+
 </beans>

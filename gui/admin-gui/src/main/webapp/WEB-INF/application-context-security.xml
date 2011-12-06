@@ -33,6 +33,8 @@
         <custom-filter ref="maintenanceFilter" after="LAST"/>
 
         <intercept-url pattern="/" access="permitAll"/>
+        <!-- model WS -->
+        <intercept-url pattern="/model/**" filters="none"/>
         <intercept-url pattern="/favicon.ico" filters="none"/>
         <intercept-url pattern="/xmlhttp/css/**" filters="none"/>
         <intercept-url pattern="/resources/css/**" filters="none"/>

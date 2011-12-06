@@ -25,6 +25,7 @@ package com.evolveum.midpoint.web.security;
 import java.io.Serializable;
 import java.util.Collection;
 
+import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;

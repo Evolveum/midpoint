@@ -5,6 +5,9 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import com.evolveum.midpoint.model.security.api.Credentials;
+import com.evolveum.midpoint.model.security.api.PrincipalUser;
+import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;

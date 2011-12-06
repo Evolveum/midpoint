@@ -20,17 +20,18 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.web.security;
+package com.evolveum.midpoint.model.security.api;
 
 import java.io.Serializable;
 
 import org.apache.commons.lang.StringUtils;
 
 /**
- * 
+ * Temporary place, till we create special component for it
+ *
  * @author lazyman
+ * @author Igor Farinic
  */
-//TODO: this class can extend org.springframework.security.core.userdetails.User 
 public class PrincipalUser implements Serializable {
 
 	private static final long serialVersionUID = 8299738301872077768L;
@@ -58,7 +59,7 @@ public class PrincipalUser implements Serializable {
 		return familyName;
 	}
 
-	void setFamilyName(String familyName) {
+	public void setFamilyName(String familyName) {
 		this.familyName = familyName;
 	}
 
@@ -66,7 +67,7 @@ public class PrincipalUser implements Serializable {
 		return fullName;
 	}
 
-	void setFullName(String fullName) {
+	public void setFullName(String fullName) {
 		this.fullName = fullName;
 	}
 
@@ -74,7 +75,7 @@ public class PrincipalUser implements Serializable {
 		return givenName;
 	}
 
-	void setGivenName(String givenName) {
+	public void setGivenName(String givenName) {
 		this.givenName = givenName;
 	}
 
