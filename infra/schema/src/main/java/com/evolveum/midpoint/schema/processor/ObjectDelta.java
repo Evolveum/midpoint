@@ -180,7 +180,11 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
 		ObjectDelta<T> clone = new ObjectDelta<T>(this.objectTypeClass, this.changeType);
 		clone.modifications = createEmptyModifications();
 		clone.modifications.addAll(this.modifications);
-		clone.objectToAdd = this.objectToAdd.clone();
+		if (this.objectToAdd == null) {
+			clone.objectToAdd = null;
+		} else {
+			clone.objectToAdd = this.objectToAdd.clone();
+		}
 		return clone;
 	}
 	
