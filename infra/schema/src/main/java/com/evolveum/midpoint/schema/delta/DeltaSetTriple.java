@@ -17,15 +17,11 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model;
+package com.evolveum.midpoint.schema.delta;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 
