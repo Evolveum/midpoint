@@ -204,6 +204,7 @@ public class TestSanity extends AbstractIntegrationTest {
 	private static final String REQUEST_USER_MODIFY_ACTIVATION_ENABLE_FILENAME = "src/test/resources/request/user-modify-activation-enable.xml";
 
 	private static final String REQUEST_USER_MODIFY_ADD_ROLE_FILENAME = "src/test/resources/request/user-modify-add-role.xml";
+	private static final String REQUEST_USER_MODIFY_DELETE_ROLE_FILENAME = "src/test/resources/request/user-modify-delete-role.xml";
 	
 	private static final String LDIF_WILL_FILENAME = "src/test/resources/request/will.ldif";
 	private static final String WILL_NAME = "wturner";
@@ -222,8 +223,9 @@ public class TestSanity extends AbstractIntegrationTest {
 	private static ResourceType resourceDerby;
 	private static String accountShadowOidOpendj;
 	private static String accountShadowOidDerby;
-	private String accountShadowOidGuybrushOpendj;
-	private String originalJacksPassword;
+	private static String accountShadowOidGuybrushOpendj;
+	private static String accountGuybrushOpendjEntryUuuid = null;
+	private static String originalJacksPassword;
 
 	/**
 	 * The instance of ModelService. This is the interface that we will test.
@@ -1463,10 +1465,6 @@ public class TestSanity extends AbstractIntegrationTest {
 
 	}
 
-	/**
-	 * Attempt to add new user. It is only added to the repository, so check if
-	 * it is in the repository after the operation. 
-	 */
 	@Test
 	public void test050AssignRole() throws FileNotFoundException, JAXBException, FaultMessage,
 			ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
@@ -1533,15 +1531,14 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
 
 		// check attributes in the shadow: should be only identifiers (ICF UID)
-		String uid = null;
 		boolean hasOthers = false;
 		List<Object> xmlAttributes = repoShadow.getAttributes().getAny();
 		for (Object element : xmlAttributes) {
 			if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
-				if (uid != null) {
+				if (accountGuybrushOpendjEntryUuuid != null) {
 					AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
 				} else {
-					uid = ((Element)element).getTextContent();
+					accountGuybrushOpendjEntryUuuid = ((Element)element).getTextContent();
 				}
 			} else {
 				hasOthers = true;
@@ -1549,11 +1546,11 @@ public class TestSanity extends AbstractIntegrationTest {
 		}
 
 		assertFalse(hasOthers);
-		assertNotNull(uid);
+		assertNotNull(accountGuybrushOpendjEntryUuuid);
 
 		// check if account was created in LDAP
 
-		SearchResultEntry entry = openDJController.searchByEntryUuid(uid);
+		SearchResultEntry entry = openDJController.searchByEntryUuid(accountGuybrushOpendjEntryUuuid);
 		
 		display("LDAP account", entry);
 
@@ -1596,6 +1593,65 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertEquals(USER_GUYBRUSH_OID,user.getOid());
 		
 		System.out.println("Account "+accountShadowOidGuybrushOpendj+" has owner "+ObjectTypeUtil.toShortString(user));
+	}
+
+	
+	@Test
+	public void test058UnassignRole() throws FileNotFoundException, JAXBException, FaultMessage,
+			ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
+		displayTestTile("test058UnassignRole");
+
+		// GIVEN
+		
+		OperationResultType result = new OperationResultType();
+		assertCache();
+
+		ObjectModificationType objectChange = unmarshallJaxbFromFile(
+				REQUEST_USER_MODIFY_DELETE_ROLE_FILENAME, ObjectModificationType.class);
+
+		// WHEN
+		result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+
+		// THEN
+		assertCache();
+		displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
+		assertSuccess("modifyObject has failed", result);
+
+		// Check if user object was modified in the repo
+
+		OperationResult repoResult = new OperationResult("getObject");
+		PropertyReferenceListType resolve = new PropertyReferenceListType();
+
+		UserType repoUser = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, resolve, repoResult);
+
+		repoResult.computeStatus();
+		displayJaxb("User (repository)", repoUser, new QName("user"));
+
+		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+		assertEquals(0, accountRefs.size());
+
+		// Check if shadow was deleted from the repo
+
+		repoResult = new OperationResult("getObject");
+
+		try {
+			AccountShadowType repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
+					resolve, repoResult);
+			AssertJUnit.fail("Account shadow was not deleted from repo");
+		} catch (ObjectNotFoundException ex) {
+			// This is expected
+		}
+
+		// check if account was deleted from LDAP
+
+		SearchResultEntry entry = openDJController.searchByEntryUuid(accountGuybrushOpendjEntryUuuid);
+		
+		display("LDAP account", entry);
+
+		assertNull("LDAP account was not deleted", entry);
+		
+		// TODO: Derby
+	
 	}
 
 	

@@ -183,6 +183,7 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
 	 */
 	public ObjectDelta<T> clone() {
 		ObjectDelta<T> clone = new ObjectDelta<T>(this.objectTypeClass, this.changeType);
+		clone.oid = this.oid;
 		clone.modifications = createEmptyModifications();
 		clone.modifications.addAll(this.modifications);
 		if (this.objectToAdd == null) {
