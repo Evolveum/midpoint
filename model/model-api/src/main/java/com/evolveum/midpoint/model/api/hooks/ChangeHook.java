@@ -26,6 +26,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
 /**
+ * TODO
+ * 
+ * This applies to all changes, therefore it will "hook" into addObject, modifyObject
+ * and also deleteObject.
+ * 
  * @author semancik
  *
  */
@@ -38,14 +43,53 @@ public interface ChangeHook {
 	 * they are processed e.g. by approval process. The (manipulated) changes will be
 	 * recomputed to secondary changes after this step. 
 	 * 
-	 * If the method returns null, it is assumed that no return value is known yet
-	 * and that the execution is switched to background.
+	 * If the method returns FOREGROUND then the value of "changes" parameter will be
+	 * used directly. Otherwise the return value from the task will be used.
+	 * 
+	 * @see HookOperationMode
 	 * 
 	 * @param changes primary changes
 	 * @param task task in which context we execute
 	 * @param result ????
-	 * @return new set of changes or null
+	 * @return indication of hook operation mode (foreground or background)
 	 */
-	Collection<ObjectDelta<?>> preChangePrimary(Collection<ObjectDelta<?>> changes, Task task, OperationResult result);
-	
+	HookOperationMode preChangePrimary(Collection<ObjectDelta<?>> changes, Task task, OperationResult result);
+
+	/**
+	 * Callback before the change is processed by the model. The callback is in the
+	 * "secondary" change phase. It is called after the policies and expressions are
+	 * being executed but before the change is applied to repository and resources.
+	 * The callback may validate or even manipulate the changes before they are executed.
+	 * The (manipulated) changes will NOT be recomputed again and will be directly applied.
+	 * 
+	 * If the method returns FOREGROUND then the value of "changes" parameter will be
+	 * used directly. Otherwise the return value from the task will be used.
+	 * 
+	 * @see HookOperationMode
+	 * 
+	 * @param changes secondary changes
+	 * @param task task in which context we execute
+	 * @param result ????
+	 * @return indication of hook operation mode (foreground or background)
+	 */
+	HookOperationMode preChangeSecondary(Collection<ObjectDelta<?>> changes, Task task, OperationResult result);
+
+	/**
+	 * Callback after the change is executed by the model. The callback gets a view of the
+	 * changes after they were executed - with filled-in OIDs, generated values, etc. 
+	 * 
+	 * The callback may be used to post-process the changes, e.g. to notify users about their
+	 * new accounts.
+	 * 
+	 * If the method returns FOREGROUND then the value of "changes" parameter will be
+	 * used directly (if needed). Otherwise the return value from the task will be used.
+	 * 
+	 * @see HookOperationMode
+	 * 
+	 * @param changes changes after the execution
+	 * @param task task in which context we execute
+	 * @param result ????
+	 * @return indication of hook operation mode (foreground or background)
+	 */
+	HookOperationMode postChange(Collection<ObjectDelta<?>> changes, Task task, OperationResult result);
 }
