@@ -17,26 +17,21 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
 package com.evolveum.midpoint.model.sync.action;
 
+import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
-import org.apache.commons.lang.StringUtils;
-import org.w3c.dom.Element;
-
-import javax.xml.namespace.QName;
-import java.util.List;
 
 /**
- * @author Vilo Repan
+ * @author lazyman
  */
 public class AddUserAction extends BaseAction {
 
@@ -48,7 +43,7 @@ public class AddUserAction extends BaseAction {
                                  OperationResult result) throws SynchronizationException {
         super.executeChanges(userOid, change, situation, shadowAfterChange, result);
 
-        OperationResult subResult = new OperationResult("Add User Action");
+        OperationResult subResult = new OperationResult(ACTION_ADD_USER);
         result.addSubresult(subResult);
 
         try {
@@ -56,20 +51,14 @@ public class AddUserAction extends BaseAction {
             if (user == null) {
                 user = new ObjectFactory().createUserType();
 
-//				user = getSchemaHandler().processInboundHandling(user, shadowAfterChange, subResult);
+                SyncContext context = new SyncContext();
+                MidPointObject<UserType> oldUser = new MidPointObject<UserType>(SchemaConstants.I_USER_TYPE);
+                oldUser.setObjectType(user);
+                context.setUserOld(oldUser);
+                context.setUserTypeOld(user);
+                context.rememberResource(change.getResource());
 
-                if (user.getName() == null) {
-                    LOGGER.warn("Inbound expressions haven't generated 'name' property for user created from " + ObjectTypeUtil.toShortString(shadowAfterChange));
-                }
-
-                UserTemplateType userTemplate = null;
-                String userTemplateOid = getUserTemplateOid();
-                if (StringUtils.isNotEmpty(userTemplateOid)) {
-                    userTemplate = getModel().getObject(UserTemplateType.class, userTemplateOid,
-                            new PropertyReferenceListType(), subResult);
-                }
-
-//				userOid = getModel().addUser(user, userTemplate, MiscSchemaUtil.toCollection(ResourceObjectShadowUtil.getResourceOid(shadowAfterChange)), subResult);
+                getSynchronizer().synchronizeUser(context, subResult);
             } else {
                 LOGGER.debug("User with oid {} already exists, skipping create.",
                         new Object[]{user.getOid()});
@@ -85,16 +74,5 @@ public class AddUserAction extends BaseAction {
         }
 
         return userOid;
-    }
-
-    private String getUserTemplateOid() {
-        List<Object> parameters = getParameters();
-        Element userTemplateRef = getParameterElement(new QName(SchemaConstants.NS_C, "userTemplateRef"));
-
-        if (userTemplateRef != null) {
-            return userTemplateRef.getAttribute("oid");
-        }
-
-        return null;
     }
 }

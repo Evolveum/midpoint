@@ -17,7 +17,6 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
 
 package com.evolveum.midpoint.model.sync;
@@ -34,7 +33,16 @@ import java.util.List;
  */
 public interface Action {
 
+    String ACTION_ADD_USER = Action.class.getName() + ".addUserAction";
     String ACTION_MODIFY_USER = Action.class.getName() + ".modifyUserAction";
+    String ACTION_DELETE_USER = Action.class.getName() + ".deleteUser";
+    String ACTION_ADD_ACCOUNT = Action.class.getName() + ".addAccount";
+    String ACTION_LINK_ACCOUNT = Action.class.getName() + ".linkAccount";
+    String ACTION_UNLINK_ACCOUNT = Action.class.getName() + ".unlinkAccount";
+    String ACTION_DELETE_ACCOUNT = Action.class.getName() + ".deleteAccount";
+    String ACTION_DISABLE_ACCOUNT = Action.class.getName() + ".disableAccount";
+    String ACTION_MODIFY_PASSWORD = Action.class.getName() + ".modifyPassword";
+
 
     String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
                           SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,

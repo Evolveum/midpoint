@@ -17,11 +17,11 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
 
 package com.evolveum.midpoint.model.sync.action;
 
+import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.sync.Action;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
@@ -43,6 +43,7 @@ import java.util.List;
 public abstract class BaseAction implements Action {
 
     private UserSynchronizer synchronizer;
+    private ChangeExecutor executor;
     @Deprecated
     private ModelController model;
     private List<Object> parameters;
@@ -60,7 +61,7 @@ public abstract class BaseAction implements Action {
         this.parameters = parameters;
     }
 
-    public Element getParameterElement(QName qname) {
+    protected Element getParameterElement(QName qname) {
         Validate.notNull(qname, "QName must not be null.");
 
         List<Object> parameters = getParameters();
@@ -91,7 +92,7 @@ public abstract class BaseAction implements Action {
             // user was not found, we return null
         } catch (Exception ex) {
             throw new SynchronizationException("Can't get user with oid '" + oid
-                    + "'. Unknown error occured.", ex);
+                    + "'. Unknown error occurred.", ex);
         }
 
         return null;
@@ -125,5 +126,13 @@ public abstract class BaseAction implements Action {
 
     public void setSynchronizer(UserSynchronizer synchronizer) {
         this.synchronizer = synchronizer;
+    }
+
+    public ChangeExecutor getExecutor() {
+        return executor;
+    }
+
+    public void setExecutor(ChangeExecutor executor) {
+        this.executor = executor;
     }
 }

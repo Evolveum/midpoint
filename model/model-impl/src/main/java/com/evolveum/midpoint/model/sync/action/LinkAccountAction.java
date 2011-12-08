@@ -17,7 +17,6 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
 
 package com.evolveum.midpoint.model.sync.action;
@@ -28,6 +27,6 @@ package com.evolveum.midpoint.model.sync.action;
 public class LinkAccountAction extends ModifyUserAction {
 
     public LinkAccountAction() {
-        super(null);
+        super(null, ACTION_LINK_ACCOUNT);
     }
 }

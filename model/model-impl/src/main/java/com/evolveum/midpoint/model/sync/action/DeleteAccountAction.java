@@ -17,7 +17,6 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
 
 package com.evolveum.midpoint.model.sync.action;
@@ -30,6 +29,6 @@ import com.evolveum.midpoint.model.PolicyDecision;
 public class DeleteAccountAction extends ModifyUserAction {
 
     public DeleteAccountAction() {
-        super(PolicyDecision.DELETE);
+        super(PolicyDecision.DELETE, ACTION_DELETE_ACCOUNT);
     }
 }

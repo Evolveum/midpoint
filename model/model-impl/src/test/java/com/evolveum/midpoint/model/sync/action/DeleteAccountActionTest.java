@@ -18,22 +18,8 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
+
 package com.evolveum.midpoint.model.sync.action;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-
-import javax.xml.bind.JAXBElement;
-
-import org.mockito.Mockito;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -41,113 +27,116 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import org.mockito.Mockito;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import javax.xml.bind.JAXBElement;
+import java.io.File;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 /**
- * 
  * @author lazyman
- * 
  */
-@ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-model-unit-test.xml", 
-		"classpath:application-context-configuration-test-no-repo.xml",
-		"classpath:application-context-task.xml" })
+@ContextConfiguration(locations = {"classpath:application-context-model.xml",
+        "classpath:application-context-model-unit-test.xml",
+        "classpath:application-context-configuration-test-no-repo.xml",
+        "classpath:application-context-task.xml"})
 public class DeleteAccountActionTest extends BaseActionTest {
 
-	private static final File TEST_FOLDER = new File("./src/test/resources/sync/action/account");
-	private static final Trace LOGGER = TraceManager.getTrace(DeleteAccountActionTest.class);
+    private static final File TEST_FOLDER = new File("./src/test/resources/sync/action/account");
+    private static final Trace LOGGER = TraceManager.getTrace(DeleteAccountActionTest.class);
 
-	@BeforeMethod
-	public void before() {
-		Mockito.reset(provisioning, repository);
-		before(new DeleteAccountAction());
-	}
+    @BeforeMethod
+    public void before() {
+        Mockito.reset(provisioning, repository);
+        before(new DeleteAccountAction());
+    }
 
-	@SuppressWarnings("unchecked")
-	@Test(expectedExceptions = SynchronizationException.class)
-	public void problemInProvisioning() throws Exception {
-		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
-				.unmarshal(new File(TEST_FOLDER, "../user/existing-user-change.xml"))).getValue();
+    @SuppressWarnings("unchecked")
+    @Test(expectedExceptions = SynchronizationException.class)
+    public void problemInProvisioning() throws Exception {
+        ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
+                .unmarshal(new File(TEST_FOLDER, "../user/existing-user-change.xml"))).getValue();
 
-		ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
-		String shadowOid = addition.getObject().getOid();
+        ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
+        String shadowOid = addition.getObject().getOid();
 
-		when(
-				repository.getObject(any(Class.class), eq(shadowOid), any(PropertyReferenceListType.class),
-						any(OperationResult.class))).thenThrow(
-				new ObjectNotFoundException("resource object shadow not found."));
+        when(
+                repository.getObject(any(Class.class), eq(shadowOid), any(PropertyReferenceListType.class),
+                        any(OperationResult.class))).thenThrow(
+                new ObjectNotFoundException("resource object shadow not found."));
 
-		OperationResult result = new OperationResult("Delete Account Action Test");
-		try {
-			action.executeChanges(null, change, SynchronizationSituationType.CONFIRMED,
-					(ResourceObjectShadowType) addition.getObject(), result);
-		} finally {
-			LOGGER.debug(result.dump());
-		}
+        OperationResult result = new OperationResult("Delete Account Action Test");
+        try {
+            action.executeChanges(null, change, SynchronizationSituationType.CONFIRMED,
+                    (ResourceObjectShadowType) addition.getObject(), result);
+        } finally {
+            LOGGER.debug(result.dump());
+        }
 
-		verify(provisioning, times(1)).deleteObject(any(Class.class), eq(shadowOid), any(ScriptsType.class),
-				any(OperationResult.class));
-	}
+        verify(provisioning, times(1)).deleteObject(any(Class.class), eq(shadowOid), any(ScriptsType.class),
+                any(OperationResult.class));
+    }
 
-	@SuppressWarnings("unchecked")
-	@Test(expectedExceptions = SynchronizationException.class)
-	public void notExistingResourceForScripts() throws Exception {
-		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
-				.unmarshal(new File(TEST_FOLDER, "../user/existing-user-change.xml"))).getValue();
+    @SuppressWarnings("unchecked")
+    @Test(expectedExceptions = SynchronizationException.class)
+    public void notExistingResourceForScripts() throws Exception {
+        ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
+                .unmarshal(new File(TEST_FOLDER, "../user/existing-user-change.xml"))).getValue();
 
-		ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
-		String shadowOid = addition.getObject().getOid();
+        ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
+        String shadowOid = addition.getObject().getOid();
 
-		when(
-				repository.getObject(any(Class.class), eq(shadowOid), any(PropertyReferenceListType.class),
-						any(OperationResult.class))).thenReturn(addition.getObject());
+        when(
+                repository.getObject(any(Class.class), eq(shadowOid), any(PropertyReferenceListType.class),
+                        any(OperationResult.class))).thenReturn(addition.getObject());
 
-		OperationResult result = new OperationResult("Delete Account Action Test");
-		try {
-			action.executeChanges(null, change, SynchronizationSituationType.CONFIRMED,
-					(ResourceObjectShadowType) addition.getObject(), result);
-		} finally {
-			LOGGER.debug(result.dump());
-		}
-		verify(provisioning, times(1)).deleteObject(any(Class.class), eq(shadowOid), any(ScriptsType.class),
-				any(OperationResult.class));
-	}
+        OperationResult result = new OperationResult("Delete Account Action Test");
+        try {
+            action.executeChanges(null, change, SynchronizationSituationType.CONFIRMED,
+                    (ResourceObjectShadowType) addition.getObject(), result);
+        } finally {
+            LOGGER.debug(result.dump());
+        }
+        verify(provisioning, times(1)).deleteObject(any(Class.class), eq(shadowOid), any(ScriptsType.class),
+                any(OperationResult.class));
+    }
 
-	@SuppressWarnings("unchecked")
-	@Test
-	public void correctDeleteAccount() throws Exception {
-		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
-				.unmarshal(new File(TEST_FOLDER, "../user/existing-user-change.xml"))).getValue();
+    @SuppressWarnings("unchecked")
+    @Test(enabled = false)
+    public void correctDeleteAccount() throws Exception {
+        ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
+                .unmarshal(new File(TEST_FOLDER, "../user/existing-user-change.xml"))).getValue();
 
-		ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
-		String shadowOid = addition.getObject().getOid();
+        ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
+        String shadowOid = addition.getObject().getOid();
 
-		when(
-				repository.getObject(any(Class.class), eq(shadowOid), any(PropertyReferenceListType.class),
-						any(OperationResult.class))).thenReturn(addition.getObject());
-		when(
-				repository.getObject(any(Class.class), eq("c0c010c0-d34d-b44f-f11d-333222111111"),
-						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
-				change.getResource());
-		when(
-				provisioning.getObject(any(Class.class), eq("c0c010c0-d34d-b44f-f11d-333222111111"),
-						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
-				change.getResource());
+        when(
+                repository.getObject(any(Class.class), eq(shadowOid), any(PropertyReferenceListType.class),
+                        any(OperationResult.class))).thenReturn(addition.getObject());
+        when(
+                repository.getObject(any(Class.class), eq("c0c010c0-d34d-b44f-f11d-333222111111"),
+                        any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
+                change.getResource());
+        when(
+                provisioning.getObject(any(Class.class), eq("c0c010c0-d34d-b44f-f11d-333222111111"),
+                        any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
+                change.getResource());
 
-		OperationResult result = new OperationResult("Delete Account Action Test");
-		try {
-			action.executeChanges(null, change, SynchronizationSituationType.CONFIRMED,
-					(ResourceObjectShadowType) addition.getObject(), result);
-		} finally {
-			LOGGER.debug(result.dump());
-		}
-		verify(provisioning, times(1)).deleteObject(any(Class.class), eq(shadowOid), any(ScriptsType.class),
-				any(OperationResult.class));
-	}
+        OperationResult result = new OperationResult("Delete Account Action Test");
+        try {
+            action.executeChanges(null, change, SynchronizationSituationType.CONFIRMED,
+                    (ResourceObjectShadowType) addition.getObject(), result);
+        } finally {
+            LOGGER.debug(result.dump());
+        }
+        verify(provisioning, times(1)).deleteObject(any(Class.class), eq(shadowOid), any(ScriptsType.class),
+                any(OperationResult.class));
+    }
 }

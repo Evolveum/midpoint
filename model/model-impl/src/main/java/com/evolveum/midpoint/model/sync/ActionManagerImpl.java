@@ -17,11 +17,11 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
 
 package com.evolveum.midpoint.model.sync;
 
+import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.sync.action.BaseAction;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
@@ -40,6 +40,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
     private static transient Trace trace = TraceManager.getTrace(ActionManagerImpl.class);
     private Map<String, Class<T>> actionMap;
     private UserSynchronizer synchronizer;
+    private ChangeExecutor changeExecutor;
     @Deprecated
     private ModelController model;
 
@@ -51,7 +52,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 
     @Override
     public Action getActionInstance(String uri) {
-        Validate.notEmpty(uri, "Action uri must not be null or empty.");
+        Validate.notEmpty(uri, "Action URI must not be null or empty.");
         Class<T> clazz = actionMap.get(uri);
         if (clazz == null) {
             return null;
@@ -63,10 +64,11 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
             if (action instanceof BaseAction) {
                 BaseAction baseAction = (BaseAction) action;
                 baseAction.setSynchronizer(synchronizer);
+                baseAction.setExecutor(changeExecutor);
                 baseAction.setModel(model);
             }
         } catch (Exception ex) {
-            LoggingUtils.logException(trace, "Couln't create action instance", ex);
+            LoggingUtils.logException(trace, "Couldn't create action instance", ex);
         }
 
         return action;
@@ -74,6 +76,10 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 
     public void setSynchronizer(UserSynchronizer synchronizer) {
         this.synchronizer = synchronizer;
+    }
+
+    public void setChangeExecutor(ChangeExecutor executor) {
+        this.changeExecutor = executor;
     }
 
     @Deprecated

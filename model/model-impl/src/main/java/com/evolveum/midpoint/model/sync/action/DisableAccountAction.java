@@ -17,7 +17,6 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
 
 package com.evolveum.midpoint.model.sync.action;
@@ -46,6 +45,7 @@ public class DisableAccountAction extends BaseAction {
                     + AccountShadowType.class + "'), but it's '" + change.getShadow().getClass() + "'.");
         }
 
+        OperationResult subResult = result.createSubresult(ACTION_DISABLE_ACCOUNT);
         AccountShadowType account = (AccountShadowType) change.getShadow();
         ActivationType activation = account.getActivation();
         if (activation == null) {

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2011 Evolveum
  *
  * The contents of this file are subject to the terms
@@ -15,15 +15,10 @@
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
+ *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
 package com.evolveum.midpoint.model;
-
-import java.util.Collection;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.controller.ModelUtils;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -31,53 +26,41 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.exception.CommunicationException;
-import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.schema.exception.*;
 import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+import java.util.Collection;
 
 /**
  * @author semancik
- *
  */
 @Component
 public class ChangeExecutor {
-	
-	private static final Trace LOGGER = TraceManager.getTrace(ChangeExecutor.class);
-	
-	@Autowired(required = true)
+
+    private static final Trace LOGGER = TraceManager.getTrace(ChangeExecutor.class);
+
+    @Autowired(required = true)
     private transient TaskManager taskManager;
-	
-	@Autowired(required = true)
+
+    @Autowired(required = true)
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
-	
-	@Autowired(required = true)
+
+    @Autowired(required = true)
     private ProvisioningService provisioning;
-	
+
     public void executeChanges(Collection<ObjectDelta<?>> changes, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException {
         for (ObjectDelta<?> change : changes) {
             executeChange(change, result);
@@ -88,8 +71,10 @@ public class ChangeExecutor {
 
         ObjectDelta<UserType> userDelta = syncContext.getUserDelta();
         LOGGER.trace("Executing USER change " + userDelta);
-
-        executeChange(userDelta, result);
+        if (userDelta != null) {
+            LOGGER.trace("Skipping change execute, because user delta is null");
+            executeChange(userDelta, result);
+        }
 
         // userDelta is composite, mixed from primary and secondary. The OID set into
         // it will be lost ... unless we explicitly save it
@@ -213,71 +198,71 @@ public class ChangeExecutor {
     }
 
     private String addTask(TaskType task, OperationResult result) throws ObjectAlreadyExistsException,
-    		ObjectNotFoundException {
-		try {
-		    return taskManager.addTask(task, result);
-		} catch (ObjectAlreadyExistsException ex) {
-		    throw ex;
-		} catch (Exception ex) {
-		    LoggingUtils.logException(LOGGER, "Couldn't add object {} to task manager", ex, task.getName());
-		    throw new SystemException(ex.getMessage(), ex);
-		}
-	}
-    
-	private String addProvisioningObject(ObjectType object, OperationResult result)
-			throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException,
-			CommunicationException {
+            ObjectNotFoundException {
+        try {
+            return taskManager.addTask(task, result);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't add object {} to task manager", ex, task.getName());
+            throw new SystemException(ex.getMessage(), ex);
+        }
+    }
 
-		if (object instanceof ResourceObjectShadowType) {
-			ResourceObjectShadowType shadow = (ResourceObjectShadowType) object;
-			String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
-			if (resourceOid == null) {
-				throw new IllegalArgumentException("Resource OID is null in shadow");
-			}
-			ModelUtils.unresolveResourceObjectShadow(shadow);
-		}
+    private String addProvisioningObject(ObjectType object, OperationResult result)
+            throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException,
+            CommunicationException {
 
-		try {
-			ScriptsType scripts = getScripts(object, result);
-			return provisioning.addObject(object, scripts, result);
-		} catch (ObjectNotFoundException ex) {
-			throw ex;
-		} catch (ObjectAlreadyExistsException ex) {
-			throw ex;
-		} catch (CommunicationException ex) {
-			throw ex;
-		} catch (RuntimeException ex) {
-			throw new SystemException(ex.getMessage(), ex);
-		}
-	}
+        if (object instanceof ResourceObjectShadowType) {
+            ResourceObjectShadowType shadow = (ResourceObjectShadowType) object;
+            String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
+            if (resourceOid == null) {
+                throw new IllegalArgumentException("Resource OID is null in shadow");
+            }
+            ModelUtils.unresolveResourceObjectShadow(shadow);
+        }
 
-	private void deleteProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid,
-			OperationResult result) throws ObjectNotFoundException, ObjectAlreadyExistsException,
-			SchemaException {
+        try {
+            ScriptsType scripts = getScripts(object, result);
+            return provisioning.addObject(object, scripts, result);
+        } catch (ObjectNotFoundException ex) {
+            throw ex;
+        } catch (ObjectAlreadyExistsException ex) {
+            throw ex;
+        } catch (CommunicationException ex) {
+            throw ex;
+        } catch (RuntimeException ex) {
+            throw new SystemException(ex.getMessage(), ex);
+        }
+    }
 
-		try {
-			// TODO: scripts
-			provisioning.deleteObject(objectTypeClass, oid, null, result);
-		} catch (ObjectNotFoundException ex) {
-			throw ex;
-		} catch (Exception ex) {
-			throw new SystemException(ex.getMessage(), ex);
-		}
-	}
+    private void deleteProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid,
+                                          OperationResult result) throws ObjectNotFoundException, ObjectAlreadyExistsException,
+            SchemaException {
 
-	private void modifyProvisioningObject(Class<? extends ObjectType> objectTypeClass,
-			ObjectModificationType objectChange, OperationResult result) throws ObjectNotFoundException {
+        try {
+            // TODO: scripts
+            provisioning.deleteObject(objectTypeClass, oid, null, result);
+        } catch (ObjectNotFoundException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new SystemException(ex.getMessage(), ex);
+        }
+    }
 
-		try {
-			// TODO: scripts
-			provisioning.modifyObject(objectTypeClass, objectChange, null, result);
-		} catch (ObjectNotFoundException ex) {
-			throw ex;
-		} catch (Exception ex) {
-			throw new SystemException(ex.getMessage(), ex);
-		}
-	}
-	
+    private void modifyProvisioningObject(Class<? extends ObjectType> objectTypeClass,
+                                          ObjectModificationType objectChange, OperationResult result) throws ObjectNotFoundException {
+
+        try {
+            // TODO: scripts
+            provisioning.modifyObject(objectTypeClass, objectChange, null, result);
+        } catch (ObjectNotFoundException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new SystemException(ex.getMessage(), ex);
+        }
+    }
+
     private ScriptsType getScripts(ObjectType object, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException {
         ScriptsType scripts = null;
         if (object instanceof ResourceType) {
