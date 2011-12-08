@@ -253,8 +253,8 @@ public class IntegrationTestTools {
 	}
 
 	public static void display(SearchResultEntry response) {
-		System.out.println(response.toLDIFString());
-		LOGGER.debug(response.toLDIFString());
+		System.out.println(response == null ? "null" : response.toLDIFString());
+		LOGGER.debug(response == null ? "null" : response.toLDIFString());
 	}
 
 	public static void display(String message, Task task) {

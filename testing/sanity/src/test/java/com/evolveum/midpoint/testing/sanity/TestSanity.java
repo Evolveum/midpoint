@@ -668,7 +668,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// check if account was created in LDAP
 
-		SearchResultEntry entry = openDJController.searchByEntryUuid(uid);
+		SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);
 		
 		display("LDAP account", entry);
 
@@ -949,7 +949,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertNotNull(uid);
 
 		// Check if LDAP account was updated
-		SearchResultEntry entry = openDJController.searchByEntryUuid(uid);
+		SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);
 
 		display(entry);
 
@@ -1041,7 +1041,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// Check if LDAP account was updated
 
-		SearchResultEntry entry = openDJController.searchByEntryUuid(uid);
+		SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);
 		display(entry);
 
 		OpenDJController.assertAttribute(entry, "uid", "jack");
@@ -1180,7 +1180,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// Check if LDAP account was updated
 
-		entry = openDJController.searchByEntryUuid(uid);
+		entry = openDJController.searchAndAssertByEntryUuid(uid);
 		display(entry);
 
 		OpenDJController.assertAttribute(entry, "uid", "jack");
@@ -1303,7 +1303,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// Check if LDAP account was updated
 
-		SearchResultEntry entry = openDJController.searchByEntryUuid(uid);
+		SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);
 		display(entry);
 
 		OpenDJController.assertAttribute(entry, "uid", "jack");
@@ -1550,7 +1550,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// check if account was created in LDAP
 
-		SearchResultEntry entry = openDJController.searchByEntryUuid(accountGuybrushOpendjEntryUuuid);
+		SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
 		
 		display("LDAP account", entry);
 

@@ -90,7 +90,7 @@ public class ChangeExecutor {
             executeChange(accDelta, result);
             // To make sure that the OID is set (e.g. after ADD operation)
             accCtx.setOid(accDelta.getOid());
-            makeSureAccountIsLinked(syncContext.getUserNew(), accCtx, result);
+            updateAccountLinks(syncContext.getUserNew(), accCtx, result);
         }
 
         if (LOGGER.isTraceEnabled()) {
@@ -99,21 +99,38 @@ public class ChangeExecutor {
 
     }
 
-    private void makeSureAccountIsLinked(MidPointObject<UserType> userNew, AccountSyncContext accCtx,
+    /**
+     * Make sure that the account is linked (or unliknked) as needed.
+     */
+    private void updateAccountLinks(MidPointObject<UserType> userNew, AccountSyncContext accCtx,
                                          OperationResult result) throws ObjectNotFoundException, SchemaException {
         UserType userTypeNew = userNew.getOrParseObjectType();
         String accountOid = accCtx.getOid();
         if (accountOid == null) {
             throw new IllegalStateException("Account has null OID, this should not happen");
         }
-        for (ObjectReferenceType accountRef : userTypeNew.getAccountRef()) {
-            if (accountRef.getOid().equals(accountOid)) {
-                // Already linked, nothing to do
-                return;
-            }
+	        
+        if (accCtx.getPolicyDecision() == PolicyDecision.UNLINK || accCtx.getPolicyDecision() == PolicyDecision.DELETE) {
+        	// Link should NOT exist
+	        for (ObjectReferenceType accountRef : userTypeNew.getAccountRef()) {
+	            if (accountRef.getOid().equals(accountOid)) {
+	            	// Linked, need to unlink
+	            	unlinkAccount(userTypeNew.getOid(), accountOid, result);
+	            }
+	        }
+	        // Not linked, that's OK
+	        
+        } else {
+        	// Link should exist
+	        for (ObjectReferenceType accountRef : userTypeNew.getAccountRef()) {
+	            if (accountRef.getOid().equals(accountOid)) {
+	                // Already linked, nothing to do
+	                return;
+	            }
+	        }
+	        // Not linked, need to link
+	        linkAccount(userTypeNew.getOid(), accountOid, result);
         }
-        // Not linked, need to link
-        linkAccount(userTypeNew.getOid(), accountOid, result);
     }
 
     private void linkAccount(String userOid, String accountOid, OperationResult result) throws ObjectNotFoundException, SchemaException {
@@ -130,6 +147,20 @@ public class ChangeExecutor {
         cacheRepositoryService.modifyObject(UserType.class, objectChange, result);
     }
 
+    private void unlinkAccount(String userOid, String accountOid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+
+        LOGGER.trace("Unlinking account " + accountOid + " to user " + userOid);
+        ObjectReferenceType accountRef = new ObjectReferenceType();
+        accountRef.setOid(accountOid);
+        accountRef.setType(ObjectTypes.ACCOUNT.getTypeQName());
+
+        PropertyModificationType accountRefMod = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.delete, null, SchemaConstants.I_ACCOUNT_REF, accountRef);
+        ObjectModificationType objectChange = new ObjectModificationType();
+        objectChange.setOid(userOid);
+        objectChange.getPropertyModification().add(accountRefMod);
+        cacheRepositoryService.modifyObject(UserType.class, objectChange, result);
+    }
+    
     public void executeChange(ObjectDelta<?> change, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException {
 
         if (change == null) {

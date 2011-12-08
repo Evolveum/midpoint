@@ -5411,6 +5411,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="modelHooks" type="tns:ModelHooksType" minOccurs="0" />
                     <xsd:element name="logging" type="tns:LoggingConfigurationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -5549,6 +5550,38 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+	<xsd:complexType name="ModelHooksType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>			
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="change" type="tns:HookListType" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="HookListType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="hook" type="tns:HookType"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="HookType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="ref" type="xsd:anyURI"/>
+		</xsd:sequence>
+	</xsd:complexType>
 
     <xsd:complexType name="LoggingConfigurationType">
         <xsd:annotation>

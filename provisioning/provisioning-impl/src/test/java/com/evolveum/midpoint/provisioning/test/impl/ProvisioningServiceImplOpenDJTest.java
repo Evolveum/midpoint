@@ -650,7 +650,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			
 			// Check if object was modified in LDAP
 			
-			SearchResultEntry response = openDJController.searchByEntryUuid(uid);			
+			SearchResultEntry response = openDJController.searchAndAssertByEntryUuid(uid);			
 			display("LDAP account", response);
 			
 			OpenDJController.assertAttribute(response, "sn", "First");
@@ -701,7 +701,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			}
 			assertNotNull(uid);
 			
-			SearchResultEntry entryBefore = openDJController.searchByEntryUuid(uid);			
+			SearchResultEntry entryBefore = openDJController.searchAndAssertByEntryUuid(uid);			
 			display("LDAP account before", entryBefore);
 
 			String passwordBefore = OpenDJController.getAttributeValue(entryBefore, "userPassword");
@@ -719,7 +719,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			
 			// Check if object was modified in LDAP
 			
-			SearchResultEntry entryAfter = openDJController.searchByEntryUuid(uid);			
+			SearchResultEntry entryAfter = openDJController.searchAndAssertByEntryUuid(uid);			
 			display("LDAP account after", entryAfter);
 
 			String passwordAfter = OpenDJController.getAttributeValue(entryAfter, "userPassword");
@@ -778,7 +778,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			
 			// Check if object was created in LDAP and that there is a password
 			
-			SearchResultEntry entryAfter = openDJController.searchByEntryUuid(uid);			
+			SearchResultEntry entryAfter = openDJController.searchAndAssertByEntryUuid(uid);			
 			display("LDAP account after", entryAfter);
 
 			String passwordAfter = OpenDJController.getAttributeValue(entryAfter, "userPassword");

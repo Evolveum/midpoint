@@ -33,6 +33,7 @@ import java.nio.channels.FileChannel;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.jar.JarEntry;
@@ -50,6 +51,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import org.opends.server.util.EmbeddedUtils;
+import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -453,8 +455,22 @@ public class OpenDJController {
 				"dc=example,dc=com", SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
 				100, false, "(entryUUID=" + entryUuid + ")", getSearchAttributes());
 
-		assertEquals("Entry UUID "+entryUuid+" not found",1, op.getEntriesSent());
-		return op.getSearchEntries().get(0);
+		LinkedList<SearchResultEntry> searchEntries = op.getSearchEntries();
+		if (searchEntries == null || searchEntries.isEmpty()) {
+			return null;
+		}
+		if (searchEntries.size() > 1) {
+			AssertJUnit.fail("Multiple matches for Entry UUID "+entryUuid+": "+searchEntries);
+		}
+		return searchEntries.get(0);
+	}
+
+	public SearchResultEntry searchAndAssertByEntryUuid(String entryUuid) throws DirectoryException {
+		SearchResultEntry entry = searchByEntryUuid(entryUuid);
+		if (entry == null) {
+			AssertJUnit.fail("Entry UUID "+entryUuid+" not found");
+		}
+		return entry;
 	}
 	
 	public SearchResultEntry searchByUid(String string) throws DirectoryException {

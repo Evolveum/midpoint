@@ -338,7 +338,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 
 		// Check precondition
 		String entryUuid = getEntryUuid(identifiers);
-		SearchResultEntry ldapEntryBefore = openDJController.searchByEntryUuid(entryUuid);
+		SearchResultEntry ldapEntryBefore = openDJController.searchAndAssertByEntryUuid(entryUuid);
 		assertTrue("The account is not enabled", openDJController.isAccountEnabled(ldapEntryBefore));
 
 		// WHEN
@@ -353,7 +353,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 
 		// THEN
 
-		SearchResultEntry ldapEntryAfter = openDJController.searchByEntryUuid(entryUuid);
+		SearchResultEntry ldapEntryAfter = openDJController.searchAndAssertByEntryUuid(entryUuid);
 		assertFalse("The account was not disabled", openDJController.isAccountEnabled(ldapEntryAfter));
 
 	}
@@ -630,7 +630,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		// THEN
 
 		String entryUuid = (String) resourceObject.getIdentifier().getValue();
-		SearchResultEntry entry = openDJController.searchByEntryUuid(entryUuid);
+		SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
 		display("Entry before change", entry);
 		String passwordAfter = OpenDJController.getAttributeValue(entry, "userPassword");
 
@@ -656,7 +656,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		cc.addObject(resourceObject, null, addResult);
 
 		String entryUuid = (String) resourceObject.getIdentifier().getValue();
-		SearchResultEntry entry = openDJController.searchByEntryUuid(entryUuid);
+		SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
 		display("Entry before change", entry);
 		String passwordBefore = OpenDJController.getAttributeValue(entry, "userPassword");
 		// We have set no password during create, therefore the password should
@@ -680,7 +680,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 
 		// THEN
 
-		entry = openDJController.searchByEntryUuid(entryUuid);
+		entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
 		display("Entry after change", entry);
 
 		String passwordAfter = OpenDJController.getAttributeValue(entry, "userPassword");

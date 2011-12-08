@@ -17,14 +17,28 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.api.hooks;
+package com.evolveum.midpoint.model.hooks;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.model.api.hooks.ChangeHook;
+import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 
 /**
  * @author semancik
  *
  */
-public interface HookRegistry {
+@Component
+public class HookRegistryImpl implements HookRegistry {
+
+	private Map<String,ChangeHook> changeHookMap = new HashMap<String, ChangeHook>();
 	
-	void registerChangeHook(String url, ChangeHook changeHook);
+	@Override
+	public void registerChangeHook(String url, ChangeHook changeHook) {
+		changeHookMap.put(url,changeHook);
+	}
 
 }

@@ -120,9 +120,28 @@ public enum ObjectTypes {
                 return type;
             }
         }
-
         throw new IllegalArgumentException("Unsupported object type " + objectType);
     }
+
+	public static ObjectTypes getObjectTypeFromTypeQName(QName typeQName) {
+		// HACK WARNING! FIXME
+		// UGLY HORRIBLE TERRIBLE AWFUL HACK FOLLOWS
+		// The JAXB fails to correctly process QNames in default namespace (no prefix)
+		// e.g it will not understand this: type="RoleType", even if defatult namespace
+		// is set, it will parse it as null namespace.
+		// Therefore substitute null namespace with common namespace
+		if (typeQName.getNamespaceURI() == null || typeQName.getNamespaceURI().isEmpty()) {
+			typeQName = new QName(SchemaConstants.NS_C, typeQName.getLocalPart());
+		}
+		// END OF UGLY HACK
+		
+		for (ObjectTypes type : values()) {
+			if (type.getTypeQName().equals(typeQName)) {
+				return type;
+			}
+		}
+		throw new IllegalArgumentException("Unsupported object type qname " + typeQName);
+	}
 
     public static ObjectTypes getObjectTypeFromUri(String objectTypeUri) {
         for (ObjectTypes type : values()) {
@@ -131,15 +150,6 @@ public enum ObjectTypes {
             }
         }
         throw new IllegalArgumentException("Unsupported object type uri " + objectTypeUri);
-    }
-
-    public static ObjectTypes getObjectTypeFromTypeQName(QName typeQName) {
-        for (ObjectTypes type : values()) {
-            if (type.getTypeQName().equals(typeQName)) {
-                return type;
-            }
-        }
-        throw new IllegalArgumentException("Unsupported object type qname " + typeQName);
     }
 
     public static String getObjectTypeUri(String objectType) {
