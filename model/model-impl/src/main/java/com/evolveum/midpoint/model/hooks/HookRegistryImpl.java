@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.model.hooks;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,6 +40,11 @@ public class HookRegistryImpl implements HookRegistry {
 	@Override
 	public void registerChangeHook(String url, ChangeHook changeHook) {
 		changeHookMap.put(url,changeHook);
+	}
+
+	@Override
+	public Collection<ChangeHook> getAllChangeHooks() {
+		return changeHookMap.values();
 	}
 
 }

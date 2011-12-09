@@ -20,14 +20,35 @@
  */
 package com.evolveum.midpoint.model.controller;
 
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.Utils;
-import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.hooks.ChangeHook;
+import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
+import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
@@ -41,32 +62,45 @@ import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.exception.*;
+import com.evolveum.midpoint.schema.exception.CommunicationException;
+import com.evolveum.midpoint.schema.exception.ConsistencyViolationException;
+import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
-import org.apache.commons.lang.NotImplementedException;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.InputStream;
-import java.util.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ImportOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * This used to be an interface, but it was switched to class for simplicity. I don't expect that
@@ -126,6 +160,11 @@ public class ModelController implements ModelService {
     @Autowired(required = true)
     private transient ObjectImporter objectImporter;
 
+    @Autowired(required = false)
+    private HookRegistry hookRegistry;
+    
+    @Autowired(required = true)
+    private TaskManager taskManager;
 
     @Override
     public <T extends ObjectType> T getObject(Class<T> clazz, String oid, PropertyReferenceListType resolve,
@@ -238,6 +277,8 @@ public class ModelController implements ModelService {
         OperationResult result = parentResult.createSubresult(ADD_OBJECT);
         result.addParams(new String[]{"object"}, object);
         String oid = null;
+        
+        Task task = taskManager.createTaskInstance();		// in the future, this task instance will come from GUI 
 
         RepositoryCache.enter();
         try {
@@ -256,9 +297,17 @@ public class ModelController implements ModelService {
                 SyncContext syncContext = userTypeAddToContext(userType, commonSchema, result);
                 objectDelta = (ObjectDelta<T>) syncContext.getUserPrimaryDelta();
 
+                if (executePreChangePrimary(objectDelta, task, result) != HookOperationMode.FOREGROUND)
+                	return null;
+                
                 userSynchronizer.synchronizeUser(syncContext, result);
-
+                
+                if (executePreChangeSecondary(syncContext.getAllChanges(), task, result) != HookOperationMode.FOREGROUND)
+                	return null;
+                
                 changeExecutor.executeChanges(syncContext, result);
+                
+                executePostChange(syncContext.getAllChanges(), task, result);	// here we don't care about the result (FOREGROUND/BACKGROUND)
 
             } else {
 
@@ -266,11 +315,17 @@ public class ModelController implements ModelService {
                 MidPointObject<T> mpObject = commonSchema.parseObjectType(object);
                 objectDelta.setObjectToAdd(mpObject);
 
+                if (executePreChangePrimary(objectDelta, task, result) != HookOperationMode.FOREGROUND)
+                	return null;
+
                 LOGGER.trace("Executing GENERIC change " + objectDelta);
                 changeExecutor.executeChange(objectDelta, result);
+
+                executePostChange(objectDelta, task, result);
             }
 
             oid = objectDelta.getOid();
+                        
             result.computeStatus();
 
         } catch (ExpressionEvaluationException ex) {
@@ -298,6 +353,77 @@ public class ModelController implements ModelService {
         }
 
         return oid;
+    }
+    
+    /**
+     * Executes preChangePrimary on all registered hooks.
+     * Parameters (delta, task, result) are simply passed to these hooks.
+     * 
+     * @return FOREGROUND, if all hooks returns FOREGROUND; BACKGROUND if not.
+     * 
+     * TODO in the future, maybe some error status returned from hooks should be considered here.
+     */
+    private HookOperationMode executePreChangePrimary(Collection<ObjectDelta<?>> objectDeltas, Task task, OperationResult result) {
+    	 
+    	HookOperationMode resultMode = HookOperationMode.FOREGROUND;
+        if (hookRegistry != null) {
+        	for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
+        		HookOperationMode mode = hook.preChangePrimary(objectDeltas, task, result);
+        		if (mode == HookOperationMode.BACKGROUND)
+        			resultMode = HookOperationMode.BACKGROUND;
+        	}
+        }
+        return resultMode;
+    }
+    
+    /**
+     * A convenience method when there is only one delta.
+     */
+    private HookOperationMode executePreChangePrimary(ObjectDelta<?> objectDelta, Task task, OperationResult result) {
+    	Collection<ObjectDelta<?>> deltas = new ArrayList<ObjectDelta<?>>();
+    	deltas.add(objectDelta);
+    	return executePreChangePrimary(deltas, task, result);
+    }
+
+    /**
+     * Executes preChangeSecondary. See above for comments.
+     */
+    private HookOperationMode executePreChangeSecondary(Collection<ObjectDelta<?>> objectDeltas, Task task, OperationResult result) {
+   	 
+    	HookOperationMode resultMode = HookOperationMode.FOREGROUND;
+        if (hookRegistry != null) {
+        	for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
+        		HookOperationMode mode = hook.preChangeSecondary(objectDeltas, task, result);
+        		if (mode == HookOperationMode.BACKGROUND)
+        			resultMode = HookOperationMode.BACKGROUND;
+        	}
+        }
+        return resultMode;
+    }
+    
+    /**
+     * Executes postChange. See above for comments. 
+     */
+    private HookOperationMode executePostChange(Collection<ObjectDelta<?>> objectDeltas, Task task, OperationResult result) {
+      	 
+    	HookOperationMode resultMode = HookOperationMode.FOREGROUND;
+        if (hookRegistry != null) {
+        	for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
+        		HookOperationMode mode = hook.postChange(objectDeltas, task, result);
+        		if (mode == HookOperationMode.BACKGROUND)
+        			resultMode = HookOperationMode.BACKGROUND;
+        	}
+        }
+        return resultMode;
+    }
+
+    /**
+     * A convenience method when there is only one delta.
+     */
+    private HookOperationMode executePostChange(ObjectDelta<?> objectDelta, Task task, OperationResult result) {
+    	Collection<ObjectDelta<?>> deltas = new ArrayList<ObjectDelta<?>>();
+    	deltas.add(objectDelta);
+    	return executePostChange(deltas, task, result);
     }
 
     private SyncContext userTypeAddToContext(UserType userType, Schema commonSchema, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException {
