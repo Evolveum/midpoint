@@ -37,7 +37,7 @@ public abstract class TaskRunner implements Runnable {
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(TaskRunner.class);
 	
-	protected TaskHandler handler;
+	protected TaskHandler handler;			// TODO adapt to the situation when there can be more handlers (handler stack) 
 	protected Task task;
 	protected TaskManagerImpl taskManager;
 	protected Thread thread;

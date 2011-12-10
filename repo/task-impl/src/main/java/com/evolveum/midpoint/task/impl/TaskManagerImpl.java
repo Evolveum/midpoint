@@ -333,7 +333,10 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	}
 	
 	TaskHandler getHandler(String uri) {
-		return handlers.get(uri);
+		if (uri != null)
+			return handlers.get(uri);
+		else
+			return null;
 	}
 	
 	private void startInternalThreads() {

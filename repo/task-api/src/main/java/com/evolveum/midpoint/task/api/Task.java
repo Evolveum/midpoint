@@ -35,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UriStack;
 
 /**
  * Task instance - a logical unit of work that is either done synchronously, asynchronously, it is deferred, scheduled, etc.
@@ -115,6 +116,18 @@ public interface Task extends Dumpable {
 	 * @return handler URI
 	 */
 	public String getHandlerUri();
+	
+	/**
+	 * Returns the stack of other handlers URIs.
+	 * 
+	 * The idea is that a task may have a chain of handlers, forming a stack. After a handler at the top
+	 * of the stack finishes its processing, TaskManager will remove it from the stack and invoke
+	 * the then-current handler. After that finishes, the next handler will be called, and so on,
+	 * until the stack is empty.
+	 *   
+	 * @return
+	 */
+	public UriStack getOtherHandlersUriStack();
 	
 	/**
 	 * Sets handler URI.
@@ -326,4 +339,12 @@ public interface Task extends Dumpable {
 	 */
 	public boolean canRun();
 
+	/**
+	 * Marks current handler as finished, and removes it from the handler stack.
+	 * 
+	 * This method *probably* should be called either implicitly by SingleRunner (after a handler 
+	 * returns from run() method) or explicitly by task handler, in case of CycleRunner.
+	 * TODO this has to be thought out a bit. 
+	 */
+	public void finishHandler();
 }

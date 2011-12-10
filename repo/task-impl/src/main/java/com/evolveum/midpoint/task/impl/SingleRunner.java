@@ -73,11 +73,18 @@ public class SingleRunner extends TaskRunner {
 				LOGGER.error("Unable to record run start: {}", ex.getMessage(), ex);
 			} // there are otherwise quite safe to ignore
 
+			
 			TaskRunResult runResult = null;
 			
 			try {
-			
-				runResult = handler.run(task);
+
+				// here we execute the whole handler stack
+				// FIXME do a better run result reporting! (currently only the last runResult gets reported)
+				while (handler != null) {
+					runResult = handler.run(task);
+					task.finishHandler();
+					handler = taskManager.getHandler(task.getHandlerUri());
+				}
 
 			} catch (Exception ex) {
 				LOGGER.error("Task handler threw unexpected exception: {}: {}",new Object[] { ex.getClass().getName(),ex.getMessage(),ex});

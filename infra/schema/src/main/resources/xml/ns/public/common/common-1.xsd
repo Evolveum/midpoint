@@ -1610,6 +1610,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="otherHandlersUriStack" type="tns:UriStack">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                A stack of handlers that should be called after the primary one (handlerUri) finishes.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="result" type="tns:OperationResultType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1857,6 +1864,25 @@
                     <xsd:documentation>
                         Interval in seconds between task invocations.
                         UNSTABLE. This element will most likely change. A lot.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+	<xsd:complexType name="UriStack">
+        <xsd:annotation>
+            <xsd:documentation>
+                A stack of URIs (used e.g. for managing a stack of handlers to be called when a task is to be run).
+                Last URI is considered to be the top of the stack (i.e. the one that will be retrieved first).
+                EXPERIMENTAL. This type may change.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="uri" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A URI that is a part of the stack. 
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

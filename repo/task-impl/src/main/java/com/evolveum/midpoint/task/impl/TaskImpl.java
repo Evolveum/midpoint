@@ -54,6 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModification
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UriStack;
 
 /**
  * Implementation of a Task.
@@ -72,6 +73,7 @@ public class TaskImpl implements Task {
 	private TaskPersistenceStatus persistenceStatus;
 	private TaskRecurrence recurrenceStatus;
 	private String handlerUri;
+	private UriStack otherHandlersUriStack;
 	private ObjectType object;
 	private ObjectReferenceType objectRef;
 	private String oid;
@@ -133,6 +135,7 @@ public class TaskImpl implements Task {
 			oid = taskType.getOid();
 		}
 		handlerUri = taskType.getHandlerUri();
+		otherHandlersUriStack = taskType.getOtherHandlersUriStack();
 		// TODO: object =
 		objectRef = taskType.getObjectRef();
 		name = taskType.getName();
@@ -279,6 +282,11 @@ public class TaskImpl implements Task {
 	public void setHandlerUri(String handlerUri) {
 		this.handlerUri = handlerUri;
 	}
+	
+	@Override
+	public UriStack getOtherHandlersUriStack() {
+		return otherHandlersUriStack;
+	}
 
 	@Override
 	public void setExecutionStatus(TaskExecutionStatus executionStatus) {
@@ -389,6 +397,7 @@ public class TaskImpl implements Task {
 		}
 
 		taskType.setHandlerUri(handlerUri);
+		taskType.setOtherHandlersUriStack(otherHandlersUriStack);
 		taskType.setName(name);
 		taskType.setProgress(BigInteger.valueOf(progress));
 		
@@ -406,7 +415,8 @@ public class TaskImpl implements Task {
 			taskType.setSchedule(schedule);
 		}
 
-		if (extension!=null && !extension.isEmpty()) {
+//		if (extension!=null && !extension.isEmpty()) {			if we do not create (empty) extension element, we'll not be able to add properties into it 
+		if (extension!=null) {		
 			Extension xmlExtension;
 			xmlExtension = ExtensionProcessor.createExtension(extension);
 			taskType.setExtension(xmlExtension);
@@ -443,6 +453,8 @@ public class TaskImpl implements Task {
 		sb.append(persistenceStatus);
 		sb.append("\n  handlerUri: ");
 		sb.append(handlerUri);
+		sb.append("\n  otherHandlersUriStack: ");
+		sb.append(otherHandlersUriStack);
 		sb.append("\n  object: ");
 		sb.append(ObjectTypeUtil.toShortString(object));
 		sb.append("\n  objectRef: ");
@@ -501,7 +513,9 @@ public class TaskImpl implements Task {
 			// Make sure we replace any stale result that may be stored there
 			resultModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_RESULT, null);
 		}
-		modification.getPropertyModification().add(resultModification);
+//		// temporary - Pavol Mederly - make changes only if the task run result contains some OperationResult
+//		if (runResult.getOperationResult()!=null)
+			modification.getPropertyModification().add(resultModification);
 		repositoryService.modifyObject(TaskType.class, modification, parentResult);
 		// TODO: Also save the OpResult
 	}
@@ -655,6 +669,33 @@ public class TaskImpl implements Task {
 		} else if (!oid.equals(other.oid))
 			return false;
 		return true;
+	}
+
+	public void makeRecurrent(long interval)
+	{
+		recurrenceStatus = TaskRecurrence.RECURRING;
+		schedule = new ScheduleType();
+		schedule.setInterval(BigInteger.valueOf(interval));
+	}
+
+	@Override
+	public void finishHandler() {
+
+		// let us drop the current handler URI and nominate the top of the other
+		// handlers stack as the current one
+		int stackSize;
+		if (otherHandlersUriStack != null && !otherHandlersUriStack.getUri().isEmpty()) {
+			stackSize = otherHandlersUriStack.getUri().size();
+			handlerUri = otherHandlersUriStack.getUri().get(stackSize - 1);
+			otherHandlersUriStack.getUri().remove(stackSize - 1);
+		} else {
+			handlerUri = null;
+			stackSize = 0;
+		}
+		
+		LOGGER.trace("finishHandler: new current handler uri = {}, stack size = {}", handlerUri, stackSize);
+		
+		// TODO: make changes in repository as well (really? this has to be thought out yet)
 	}
 
 }

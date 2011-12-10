@@ -80,6 +80,7 @@ public abstract class SchemaConstants {
 	public static final QName C_TASK = new QName(NS_C, "task");
 	public static final QName C_TASK_EXECUTION_STATUS = new QName(NS_C, "executionStatus");
 	public static final QName C_TASK_EXECLUSIVITY_STATUS = new QName(NS_C, "exclusivityStatus");
+	public static final QName C_TASK_DESCRIPTION = new QName(NS_C, "description");		
 	public static final QName C_TASK_LAST_RUN_START_TIMESTAMP = new QName(NS_C, "lastRunStartTimestamp");
 	public static final QName C_TASK_LAST_RUN_FINISH_TIMESTAMP = new QName(NS_C, "lastRunFinishTimestamp");
 	public static final QName C_TASK_RESULT = new QName(NS_C, "result");
@@ -176,7 +177,8 @@ public abstract class SchemaConstants {
 	public static final String[] JAXB_PACKAGES = new String[] {
 			"com.evolveum.midpoint.xml.ns._public.common.common_1",
 			"com.evolveum.midpoint.xml.ns._public.resource.resource_schema_1",
-			"com.evolveum.midpoint.xml.ns._public.resource.capabilities_1" };
+			"com.evolveum.midpoint.xml.ns._public.resource.capabilities_1",
+			"com.evolveum.midpoint.xml.ns._public.communication.workflow_1" };
 	
 
 	static {

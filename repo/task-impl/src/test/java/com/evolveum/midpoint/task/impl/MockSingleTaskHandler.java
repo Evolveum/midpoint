@@ -36,9 +36,21 @@ public class MockSingleTaskHandler implements TaskHandler {
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(MockSingleTaskHandler.class);
 	
+	private String id;
+	
+	MockSingleTaskHandler(String id) {
+		this.id = id;
+	}
+	
+	MockSingleTaskHandler() {
+		id = "1";
+	}
+	
+	private boolean hasRun = false;
+	
 	@Override
 	public TaskRunResult run(Task task) {
-		LOGGER.info("MockSingle.run starting");
+		LOGGER.info("MockSingle.run starting (id = " + id + ")");
 		
 		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(MockSingleTaskHandler.class.getName()+".run");
@@ -55,6 +67,8 @@ public class MockSingleTaskHandler implements TaskHandler {
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		runResult.setProgress(progress);
 		
+		hasRun = true;
+		
 		LOGGER.info("MockSingle.run stopping");
 		return runResult;
 	}
@@ -68,6 +82,14 @@ public class MockSingleTaskHandler implements TaskHandler {
 	public void refreshStatus(Task task) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	public boolean hasRun() {
+		return hasRun;
+	}
+	
+	public void resetHasRun() {
+		hasRun = false;
 	}
 
 }

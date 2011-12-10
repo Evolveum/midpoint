@@ -80,9 +80,13 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
 	private static final String TASK_CYCLE_OID = "91919191-76e0-59e2-86d6-998877665544";
 	private static final String TASK_SINGLE_FILENAME = "src/test/resources/repo/single-task.xml";
 	private static final String TASK_SINGLE_OID = "91919191-76e0-59e2-86d6-556655665566";
-
+	private static final String TASK_SINGLE_MORE_HANDLERS_FILENAME = "src/test/resources/repo/single-task-more-handlers.xml";
+	private static final String TASK_SINGLE_MORE_HANDLERS_OID = "91919191-76e0-59e2-86d6-556655665567";
+	
 	private static final String CYCLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/cycle-task-handler";
 	private static final String SINGLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/single-task-handler";
+	private static final String SINGLE_TASK_HANDLER_2_URI = "http://midpoint.evolveum.com/test/single-task-handler-2";
+	private static final String SINGLE_TASK_HANDLER_3_URI = "http://midpoint.evolveum.com/test/single-task-handler-3";
 
 	private static JAXBContext jaxbctx;
 	private static Unmarshaller unmarshaller;
@@ -112,13 +116,19 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
 			repoInitialized = true;
 		}
 	}
+	
+	MockSingleTaskHandler singleHandler1, singleHandler2, singleHandler3;
 
 	@PostConstruct
 	public void initHandlers() {
 		MockCycleTaskHandler cycleHandler = new MockCycleTaskHandler();
 		taskManager.registerHandler(CYCLE_TASK_HANDLER_URI, cycleHandler);
-		MockSingleTaskHandler singleHandler = new MockSingleTaskHandler();
-		taskManager.registerHandler(SINGLE_TASK_HANDLER_URI, singleHandler);
+		singleHandler1 = new MockSingleTaskHandler("1");
+		taskManager.registerHandler(SINGLE_TASK_HANDLER_URI, singleHandler1);
+		singleHandler2 = new MockSingleTaskHandler("2");
+		taskManager.registerHandler(SINGLE_TASK_HANDLER_2_URI, singleHandler2);
+		singleHandler3 = new MockSingleTaskHandler("3");
+		taskManager.registerHandler(SINGLE_TASK_HANDLER_3_URI, singleHandler3);
 	}
 
 	/**
@@ -143,6 +153,10 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
 
 	@Test(enabled=false)
 	public void test002Single() throws Exception {
+		
+		// reset 'has run' flag on the handler
+		singleHandler1.resetHasRun();
+		
 		// Add single task. This will get picked by task scanner and executed
 		addObjectFromFile(TASK_SINGLE_FILENAME);
 
@@ -184,6 +198,9 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
 		OperationResult taskResult = task.getResult();
 		AssertJUnit.assertNotNull(taskResult);
 		AssertJUnit.assertTrue(taskResult.isSuccess());
+		
+		// Test whether handler has really run
+		AssertJUnit.assertTrue(singleHandler1.hasRun());
 	}
 
 	@Test(enabled=false)
@@ -309,6 +326,64 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
 		AssertJUnit.assertTrue(fetchedDate.compareTo(sinkDate) == 0);
 
 	}
+	
+	@Test(enabled=false)
+	public void test005MoreHandlers() throws Exception {
+		
+		// reset 'has run' flag on handlers
+		singleHandler1.resetHasRun();
+		singleHandler2.resetHasRun();
+		singleHandler3.resetHasRun();
+		
+		// Add single task. This will get picked by task scanner and executed
+		addObjectFromFile(TASK_SINGLE_MORE_HANDLERS_FILENAME);
+
+		// We need to wait for a sync interval, so the task scanner has a chance
+		// to pick up this
+		// task
+		System.out.println("Waiting for task manager to pick up the task and run it");
+		Thread.sleep(2000);
+		System.out.println("... done");
+
+		// Check task status
+
+		OperationResult result = new OperationResult(TestTaskManagerContract.class.getName() + ".test005MoreHandlers");
+		Task task = taskManager.getTask(TASK_SINGLE_MORE_HANDLERS_OID, result);
+
+		AssertJUnit.assertNotNull(task);
+		System.out.println(task.dump());
+
+		ObjectType o = repositoryService.getObject(ObjectType.class, TASK_SINGLE_MORE_HANDLERS_OID, null, result);
+		System.out.println(ObjectTypeUtil.dump(o));
+
+		// .. it should be closed
+		AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
+
+		// .. and released
+		AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
+
+		// .. and last run should not be zero
+		AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
+		AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
+		AssertJUnit.assertNotNull(task.getLastRunFinishTimestamp());
+		AssertJUnit.assertFalse(task.getLastRunFinishTimestamp().longValue() == 0);
+
+		// The progress should be more than 0 as the task has run at least once
+		AssertJUnit.assertTrue(task.getProgress() > 0);
+
+		// Test for presence of a result. It should be there and it should
+		// indicate success
+		OperationResult taskResult = task.getResult();
+		AssertJUnit.assertNotNull(taskResult);
+		AssertJUnit.assertTrue(taskResult.isSuccess());
+		
+		// Test if all three handlers were run
+		
+		AssertJUnit.assertTrue(singleHandler1.hasRun());
+		AssertJUnit.assertTrue(singleHandler2.hasRun());
+		AssertJUnit.assertTrue(singleHandler3.hasRun());
+	}
+
 
 	// UTILITY METHODS
 

@@ -82,6 +82,7 @@ public class CycleRunner extends TaskRunner {
 				TaskRunResult runResult = null;
 				try {
 					
+					// TODO treat correctly handler chains
 					runResult = handler.run(task);
 					
 				} catch (Exception ex) {
