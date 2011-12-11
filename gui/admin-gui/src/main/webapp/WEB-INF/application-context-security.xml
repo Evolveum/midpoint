@@ -48,7 +48,8 @@
         <intercept-url pattern="/user-gui/**" access="hasAnyRole('ROLE_USER','ROLE_ADMIN')"/>
         <intercept-url pattern="/**" access="hasRole('ROLE_ADMIN')"/>
 
-        <logout logout-url="/j_spring_security_logout" invalidate-session="true" success-handler-ref="logoutSuccessHandler"/>
+        <logout logout-url="/j_spring_security_logout" invalidate-session="true"
+                success-handler-ref="logoutSuccessHandler"/>
 
         <session-management>
             <concurrency-control max-sessions="1" error-if-maximum-exceeded="true"/>
@@ -56,7 +57,8 @@
         <custom-filter position="FORM_LOGIN_FILTER" ref="authenticationFilter"/>
     </http>
 
-    <beans:bean id="logoutSuccessHandler" class="org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler">
+    <beans:bean id="logoutSuccessHandler"
+                class="org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler">
         <beans:property name="targetUrlParameter">
             <util:constant
                     static-field="org.springframework.security.web.authentication.AbstractAuthenticationTargetUrlRequestHandler.DEFAULT_TARGET_PARAMETER"/>
@@ -74,7 +76,28 @@
         <beans:property name="authenticationManager" ref="authenticationManager"/>
         <beans:property name="postOnly" value="true"/>
         <beans:property name="authenticationSuccessHandler" ref="savedRequestAwareAuthenticationSuccessHandler"/>
+        <beans:property name="authenticationFailureHandler" ref="exceptionMappingAuthenticationFailureHandler"/>
     </beans:bean>
+
+    <beans:bean id="exceptionMappingAuthenticationFailureHandler"
+                class="org.springframework.security.web.authentication.ExceptionMappingAuthenticationFailureHandler">
+        <beans:property name="defaultFailureUrl" value="/login.iface"/>
+<!--        <beans:property name="exceptionMappings">
+            <beans:props>
+                <beans:prop
+                        key="org.springframework.security.CredentialsExpiredException">
+                    /login.iface
+                </beans:prop>
+                <beans:prop key="org.springframework.security.LockedException">
+                    /login.iface
+                </beans:prop>
+                <beans:prop key="org.springframework.security.DisabledException">
+                    /login.iface
+                </beans:prop>
+            </beans:props>
+        </beans:property>-->
+    </beans:bean>
+
 
     <beans:bean id="maintenanceFilter" class="com.evolveum.midpoint.web.security.MidPointMaintenanceFilter">
         <beans:property name="maintenanceUrl" value="/maintenance.iface"/>

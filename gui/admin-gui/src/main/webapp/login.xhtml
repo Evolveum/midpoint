@@ -26,6 +26,7 @@
 					<ice:outputText id="passwordLabel" for="j_password"
 						value="#{msg['page.login.password']}" />
 					<ice:inputSecret id="j_password" autocomplete="off" />
+                    <ice:outputText id="error" value="#{SPRING_SECURITY_LAST_EXCEPTION.message}"/>
 				</ice:panelGrid>
 				<br />
 				<h:panelGroup id="loginButtons" columns="1"
