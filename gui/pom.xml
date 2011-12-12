@@ -53,6 +53,7 @@
 	</scm>
 	<modules>
 		<module>admin-gui</module>
+        <!--<module>admin-gui-v2</module>-->
 	</modules>
 	
 </project>
