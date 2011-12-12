@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web;
 
 import com.evolveum.midpoint.web.page.admin.home.PageHome;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.util.DefaultPageParametersEncoder;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.mapper.MountedMapper;
@@ -55,5 +56,6 @@ public class MidPointApplication extends WebApplication {
         //pretty url
         DefaultPageParametersEncoder encoder = new DefaultPageParametersEncoder();
         mount(new MountedMapper("/home", PageHome.class, encoder));
+        mount(new MountedMapper("/users", PageUsers.class, encoder));
     }
 }

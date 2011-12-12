@@ -21,11 +21,62 @@
 
 package com.evolveum.midpoint.web.page.admin.home;
 
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.Model;
 
 /**
  * @author lazyman
  */
 public class PageHome extends PageAdmin {
 
+    public PageHome() {
+        initLayout();
+    }
+
+    private void initLayout() {
+        AjaxLinkButton button = new AjaxLinkButton("simpleButton", new Model<String>("Simple")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+            }
+        };
+        add(button);
+
+        button = new AjaxLinkButton("leftButton", AjaxLinkButton.Type.LEFT, new Model<String>("Left")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+            }
+        };
+        add(button);
+        button = new AjaxLinkButton("middleButton", AjaxLinkButton.Type.MIDDLE, new Model<String>("Middle")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+            }
+        };
+        add(button);
+        button = new AjaxLinkButton("rightButton", AjaxLinkButton.Type.RIGHT, new Model<String>("Right")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+            }
+        };
+        add(button);
+
+        button = new AjaxLinkButton("saveButton", AjaxLinkButton.Type.SIMPLE, new Model<String>("Save")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+            }
+        };
+        add(button);
+    }
 }

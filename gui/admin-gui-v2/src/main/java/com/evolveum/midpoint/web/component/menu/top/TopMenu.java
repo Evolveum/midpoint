@@ -51,13 +51,7 @@ public class TopMenu extends Panel {
             @Override
             protected void populateItem(LoopItem loopItem) {
                 final TopMenuItem item = TopMenu.this.items.get(loopItem.getIndex());
-                BookmarkablePageLink<String> link = new BookmarkablePageLink<String>("link", item.getPage()); // {
-//
-//                    @Override
-//                    public void onClick(AjaxRequestTarget target) {
-//                        setResponsePage(item.getPage());
-//                    }
-//                };
+                BookmarkablePageLink<String> link = new BookmarkablePageLink<String>("link", item.getPage());
                 link.add(new Label("label", new StringResourceModel(item.getLabel(), TopMenu.this, null)));
                 link.add(new Label("description", new StringResourceModel(item.getDescription(), TopMenu.this, null)));
 

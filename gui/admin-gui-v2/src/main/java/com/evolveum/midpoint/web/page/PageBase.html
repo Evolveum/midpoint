@@ -26,9 +26,11 @@
     <title>
         <wicket:message key="page.title"></wicket:message>
     </title>
+    <!--<link rel="stylesheet" type="text/css" href="css/reset.css"/>-->
 </head>
 <body>
 <div id="header">
+    <div wicket:id="debugPanel"/>
     <div wicket:id="loginPanel" class="login-box"/>
     <div class="container">
         <div id="logo">
@@ -37,6 +39,9 @@
     </div>
 </div>
 <div wicket:id="topMenu"/>
-<wicket:child/>
+<div>
+    <!-- content -->
+    <wicket:child/>
+</div>
 </body>
 </html>

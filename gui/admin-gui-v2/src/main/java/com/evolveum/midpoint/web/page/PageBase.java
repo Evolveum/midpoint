@@ -25,8 +25,10 @@ import com.evolveum.midpoint.web.MidPointApplication;
 import com.evolveum.midpoint.web.component.login.LoginPanel;
 import com.evolveum.midpoint.web.component.menu.top.TopMenu;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
+import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.markup.html.WebPage;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -35,12 +37,21 @@ import java.util.List;
 public abstract class PageBase extends WebPage {
 
     public PageBase() {
+        initLayout();
+    }
+
+    private void initLayout() {
+        DebugBar debugBar = new DebugBar("debugPanel");
+        debugBar.setVisible(getApplication().usesDevelopmentConfig());
+        add(debugBar);
+
+        add(new LoginPanel("loginPanel"));
+
         List<TopMenuItem> topMenuItems = getTopMenuItems();
         if (topMenuItems == null) {
-            throw new IllegalArgumentException("Top menu item list must not be null.");
+            topMenuItems = new ArrayList<TopMenuItem>();
         }
         add(new TopMenu("topMenu", topMenuItems));
-        add(new LoginPanel("loginPanel"));
     }
 
     public MidPointApplication getMidpointApplication() {
