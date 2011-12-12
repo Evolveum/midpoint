@@ -40,7 +40,7 @@ public abstract class PageBase extends WebPage {
         add(new LoginPanel("loginPanel"));
     }
 
-    protected MidPointApplication getMidpointApplication() {
+    public MidPointApplication getMidpointApplication() {
         return (MidPointApplication) getApplication();
     }
 

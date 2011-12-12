@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.page.admin;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.PageHome;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +36,7 @@ public class PageAdmin extends PageBase {
         List<TopMenuItem> items = new ArrayList<TopMenuItem>();
         items.add(new TopMenuItem("pageAdmin.home", "pageAdmin.home.description", PageHome.class));
         items.add(new TopMenuItem("pageAdmin.workItems", "pageAdmin.workItems.description", PageHome.class));
-        items.add(new TopMenuItem("pageAdmin.accounts", "pageAdmin.accounts.description", PageHome.class));
+        items.add(new TopMenuItem("pageAdmin.accounts", "pageAdmin.accounts.description", PageUsers.class));
         items.add(new TopMenuItem("pageAdmin.serverTasks", "pageAdmin.serverTasks.description", PageHome.class));
         items.add(new TopMenuItem("pageAdmin.roles", "pageAdmin.roles.description", PageHome.class));
         items.add(new TopMenuItem("pageAdmin.resources", "pageAdmin.resources.description", PageHome.class));
