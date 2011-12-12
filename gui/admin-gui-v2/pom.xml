@@ -27,11 +27,11 @@
     <artifactId>admin-gui-v2</artifactId>
     <packaging>war</packaging>
     <version>2.0-SNAPSHOT</version>
-    <!--<parent>-->
-    <!--<artifactId>gui</artifactId>-->
-    <!--<groupId>com.evolveum.midpoint</groupId>-->
-    <!--<version>2.0-SNAPSHOT</version>-->
-    <!--</parent>-->
+    <parent>
+        <artifactId>gui</artifactId>
+        <groupId>com.evolveum.midpoint</groupId>
+        <version>2.0-SNAPSHOT</version>
+    </parent>
 
     <!--<build>-->
     <!--<finalName>idm</finalName>-->
@@ -77,6 +77,48 @@
         <jetty.version>7.5.0.v20110901</jetty.version>
     </properties>
     <dependencies>
+        <!-- MIDPOINT -->
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-api</artifactId>
+            <version>2.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>model-api</artifactId>
+            <version>2.0-SNAPSHOT</version>
+        </dependency>
+        <!-- MIDPOINT RUNTIME DEPENDENCIES -->
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-basex-impl</artifactId>
+            <version>2.0-SNAPSHOT</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>task-impl</artifactId>
+            <version>2.0-SNAPSHOT</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>model-impl</artifactId>
+            <version>2.0-SNAPSHOT</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.provisioning</groupId>
+            <artifactId>provisioning-impl</artifactId>
+            <version>2.0-SNAPSHOT</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>system-init</artifactId>
+            <version>2.0-SNAPSHOT</version>
+            <scope>runtime</scope>
+        </dependency>
         <!-- SPRING -->
         <dependency>
             <groupId>org.springframework</groupId>
@@ -128,13 +170,6 @@
             <artifactId>spring-security-config</artifactId>
             <version>${spring.version}</version>
             <type>jar</type>
-        </dependency>
-
-        <!-- MIDPOINT -->
-        <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>schema</artifactId>
-            <version>2.0-SNAPSHOT</version>
         </dependency>
 
         <!--  WICKET DEPENDENCIES -->
