@@ -29,6 +29,9 @@ import org.apache.wicket.markup.html.WebPage;
 
 import java.util.List;
 
+/**
+ * @author lazyman
+ */
 public abstract class PageBase extends WebPage {
 
     public PageBase() {

@@ -29,8 +29,15 @@
     <context-param>
         <param-name>contextConfigLocation</param-name>
         <param-value>
-            /WEB-INF/applicationContext.xml
-            /WEB-INF/applicationContext-security.xml
+            classpath:application-context-common.xml
+            classpath:application-context-configuration.xml
+            classpath*:application-context-repository.xml,
+            classpath:application-context-task.xml,
+            classpath:application-context-provisioning.xml,
+            classpath:application-context-model.xml,
+            /WEB-INF/application-context-webapp.xml,
+            /WEB-INF/application-context-security.xml,
+            /WEB-INF/application-context-init.xml
         </param-value>
     </context-param>
 

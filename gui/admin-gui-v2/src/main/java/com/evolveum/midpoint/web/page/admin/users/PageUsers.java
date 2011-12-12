@@ -23,6 +23,9 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 
+/**
+ * @author lazyman
+ */
 public class PageUsers extends PageAdmin {
 
 }

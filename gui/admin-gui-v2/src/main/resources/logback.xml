@@ -21,14 +21,40 @@
   -->
 
 <configuration>
-    <appender name="X" class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="IDM_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--See http://logback.qos.ch/manual/appenders.html#RollingFileAppender-->
+        <!--and http://logback.qos.ch/manual/appenders.html#TimeBasedRollingPolicy-->
+        <!--for further documentation-->
+        <Append>true</Append>
+        <File>${catalina.base}/logs/idm.log</File>
         <encoder>
-            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+            <pattern>%date [%thread][%X{subSystem}] %-5level \(%logger{46}\): %message%n</pattern>
         </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/idm.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>20</maxHistory>
+        </rollingPolicy>
     </appender>
-    <root level="INFO">
-        <appender-ref ref="X"/>
+    <logger name="com.evolveum.midpoint.common.LoggingConfigurationManager" level="INFO"/>
+    <logger name="com.evolveum.midpoint.model.controller" level="TRACE"/>
+    <logger name="com.evolveum.midpoint.web" level="TRACE"/>
+    <logger name="org.apache.wicket" level="TRACE"/>
+    <logger name="com.evolveum.midpoint.init" level="INFO"/>
+    <logger name="com.evolveum.midpoint.web.controller" level="TRACE"/>
+    <logger name="com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl" level="INFO"/>
+    <logger name="com.evolveum.midpoint.provisioning" level="TRACE"/>
+    <logger name="com.evolveum.midpoint.common" level="INFO"/>
+    <logger name="com.evolveum.midpoint" level="INFO"/>
+    <logger name="com.evolveum.midpoint.repo" level="TRACE"/>
+    <logger name="com.evolveum.midpoint.web.model" level="TRACE"/>
+    <logger name="com.evolveum.midpoint.web.repo" level="TRACE"/>
+    <logger name="PROFILING" level="TRACE"/>
+    <root level="WARN">
+        <appender-ref ref="IDM_LOG"/>
     </root>
-
-    <logger name="org.apache.wicket" level="WARN"/>
 </configuration>
+
+

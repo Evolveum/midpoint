@@ -29,6 +29,9 @@ import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author lazyman
+ */
 public class PageAdmin extends PageBase {
 
     @Override
