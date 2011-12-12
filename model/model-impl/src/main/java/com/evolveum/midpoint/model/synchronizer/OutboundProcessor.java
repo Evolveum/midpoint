@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2011 Evolveum
  *
  * The contents of this file are subject to the terms
@@ -15,17 +15,10 @@
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
+ *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
 package com.evolveum.midpoint.model.synchronizer;
-
-import java.util.Collection;
-import java.util.Map;
-
-import javax.xml.namespace.QName;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
@@ -43,7 +36,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.MidPointObject;
-import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
+import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -51,119 +44,124 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.xml.namespace.QName;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * @author semancik
- *
  */
 @Component
 public class OutboundProcessor {
 
-	private static final Trace LOGGER = TraceManager.getTrace(OutboundProcessor.class);
-	
-	@Autowired(required=true)
-	private SchemaRegistry schemaRegistry;
-	
-	@Autowired(required=true)
-	private ValueConstructionFactory valueConstructionFactory;
+    private static final Trace LOGGER = TraceManager.getTrace(OutboundProcessor.class);
 
-	void processOutbound(SyncContext context, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		
-		for (AccountSyncContext accCtx: context.getAccountContexts()) {
-			
-			ResourceAccountType rat = accCtx.getResourceAccountType();
-			ObjectDelta<AccountShadowType> accountDelta = accCtx.getAccountDelta();
-						
-			if (accountDelta != null && accountDelta.getChangeType() == ChangeType.DELETE) {
-				LOGGER.trace("Processing outbound expressions for account {} skipped, DELETE account delta", rat);
-				// No point in evaluating outbound
-				continue;
-			}
-			
-			LOGGER.trace("Processing outbound expressions for account {} starting", rat);
-			
-			RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(rat, schemaRegistry);
-			if (rAccount == null) {
-				LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}",rat,context.dump());
-				throw new IllegalStateException("Definition for account type "+rat+" not found in the context, but it should be there");
-			}
-			
-			Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaSetTripleMap = accCtx.getAttributeValueDeltaSetTripleMap();
-			
-			for (QName attributeName : rAccount.getNamesOfAttributesWithOutboundExpressions()) {
-				DeltaSetTriple<ValueConstruction> attrDeltaTriple = attributeValueDeltaSetTripleMap.get(attributeName);
-				RefinedAttributeDefinition refinedAttributeDefinition = rAccount.getAttributeDefinition(attributeName);
-				
-				// TODO: check access 
-				
-				ValueConstruction evaluatedOutboundValueConstructionOld = evaluateOutboundValueConstruction(context.getUserOld(), refinedAttributeDefinition, rAccount, result);
-				ValueConstruction evaluatedOutboundValueConstructionNew = evaluateOutboundValueConstruction(context.getUserNew(), refinedAttributeDefinition, rAccount, result);
-				
-				LOGGER.trace("Processing outbound expressions for account {}, attribute {}\nOLD:\n{}\nNEW\n{}", 
-						new Object[]{rat, attributeName, 
-						evaluatedOutboundValueConstructionOld == null ? null : evaluatedOutboundValueConstructionOld.dump(),
-						evaluatedOutboundValueConstructionNew == null ? null : evaluatedOutboundValueConstructionNew.dump(),});
-				
-				if (evaluatedOutboundValueConstructionNew != null) {
-					
-					if (attrDeltaTriple == null) {
-						attrDeltaTriple = new DeltaSetTriple<ValueConstruction>();
-						attributeValueDeltaSetTripleMap.put(attributeName, attrDeltaTriple);
-					}
-					
-					if (accountDelta != null && accountDelta.getChangeType() == ChangeType.ADD) {
-						// Special behavior for add. In case the account is added we don't care how the expression output has
-						// changed. We will add all the values
-						attrDeltaTriple.getPlusSet().add(evaluatedOutboundValueConstructionNew);
-						
-					} else {
-						// Diff new and old values, distributed the deltas accordingly
-						
-						Collection<Object> valuesOld = evaluatedOutboundValueConstructionOld.getOutput().getValues();
-						Collection<Object> valuesNew = evaluatedOutboundValueConstructionNew.getOutput().getValues();
-						DeltaSetTriple<Object> valueDeltraTriple = DeltaSetTriple.diff(valuesOld,valuesNew);
-						
-						// Clonning the value construction is necessary, as we need three of them
-						evaluatedOutboundValueConstructionNew.getOutput().getValues().clear();
-						ValueConstruction plusValueConstruction = evaluatedOutboundValueConstructionNew;
-						ValueConstruction minusValueConstruction = evaluatedOutboundValueConstructionNew.clone();
-						ValueConstruction zeroValueConstruction = evaluatedOutboundValueConstructionNew.clone();
-						
-						plusValueConstruction.getOutput().getValues().addAll(valueDeltraTriple.getPlusSet());
-						attrDeltaTriple.getPlusSet().add(plusValueConstruction);
-						
-						minusValueConstruction.getOutput().getValues().addAll(valueDeltraTriple.getMinusSet());
-						attrDeltaTriple.getMinusSet().add(minusValueConstruction);
-						
-						zeroValueConstruction.getOutput().getValues().addAll(valueDeltraTriple.getZeroSet());
-						attrDeltaTriple.getZeroSet().add(zeroValueConstruction);
-					}
-					
-				}
-			}
-		
-		}
-		
-	}
-	
-	private ValueConstruction evaluateOutboundValueConstruction(MidPointObject<UserType> user, RefinedAttributeDefinition refinedAttributeDefinition, 
-			RefinedAccountDefinition refinedAccountDefinition, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		
-		ValueConstructionType outboundValueConstructionType = refinedAttributeDefinition.getOutboundValueConstructionType();
-		if (outboundValueConstructionType == null) {
-			return null;
-		}
-		
-		ValueConstruction valueConstruction = valueConstructionFactory.createValueConstruction(outboundValueConstructionType, refinedAttributeDefinition, 
-				"outbound expression for "+refinedAttributeDefinition.getName()+" in "+ObjectTypeUtil.toShortString(refinedAccountDefinition.getResourceType()));
-		
-		// FIXME: should be userNew, but that is not yet filled in
-		valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, user);
-		// TODO: variables
-		
-		valueConstruction.evaluate(result);
-		
-		return valueConstruction;
-	}
+    @Autowired(required = true)
+    private SchemaRegistry schemaRegistry;
+
+    @Autowired(required = true)
+    private ValueConstructionFactory valueConstructionFactory;
+
+    void processOutbound(SyncContext context, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+
+        for (AccountSyncContext accCtx : context.getAccountContexts()) {
+
+            ResourceAccountType rat = accCtx.getResourceAccountType();
+            ObjectDelta<AccountShadowType> accountDelta = accCtx.getAccountDelta();
+
+            if (accountDelta != null && accountDelta.getChangeType() == ChangeType.DELETE) {
+                LOGGER.trace("Processing outbound expressions for account {} skipped, DELETE account delta", rat);
+                // No point in evaluating outbound
+                continue;
+            }
+
+            LOGGER.trace("Processing outbound expressions for account {} starting", rat);
+
+            RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(rat, schemaRegistry);
+            if (rAccount == null) {
+                LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", rat, context.dump());
+                throw new IllegalStateException("Definition for account type " + rat + " not found in the context, but it should be there");
+            }
+
+            Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaSetTripleMap = accCtx.getAttributeValueDeltaSetTripleMap();
+
+            for (QName attributeName : rAccount.getNamesOfAttributesWithOutboundExpressions()) {
+                DeltaSetTriple<ValueConstruction> attrDeltaTriple = attributeValueDeltaSetTripleMap.get(attributeName);
+                RefinedAttributeDefinition refinedAttributeDefinition = rAccount.getAttributeDefinition(attributeName);
+
+                // TODO: check access
+
+                ValueConstruction evaluatedOutboundValueConstructionOld = evaluateOutboundValueConstruction(context.getUserOld(), refinedAttributeDefinition, rAccount, result);
+                ValueConstruction evaluatedOutboundValueConstructionNew = evaluateOutboundValueConstruction(context.getUserNew(), refinedAttributeDefinition, rAccount, result);
+
+                LOGGER.trace("Processing outbound expressions for account {}, attribute {}\nOLD:\n{}\nNEW\n{}",
+                        new Object[]{rat, attributeName,
+                                evaluatedOutboundValueConstructionOld == null ? null : evaluatedOutboundValueConstructionOld.dump(),
+                                evaluatedOutboundValueConstructionNew == null ? null : evaluatedOutboundValueConstructionNew.dump(),});
+
+                if (evaluatedOutboundValueConstructionNew != null) {
+
+                    if (attrDeltaTriple == null) {
+                        attrDeltaTriple = new DeltaSetTriple<ValueConstruction>();
+                        attributeValueDeltaSetTripleMap.put(attributeName, attrDeltaTriple);
+                    }
+
+                    if (accountDelta != null && accountDelta.getChangeType() == ChangeType.ADD) {
+                        // Special behavior for add. In case the account is added we don't care how the expression output has
+                        // changed. We will add all the values
+                        attrDeltaTriple.getPlusSet().add(new PropertyValue<ValueConstruction>(evaluatedOutboundValueConstructionNew));
+
+                    } else {
+                        // Diff new and old values, distributed the deltas accordingly
+
+                        Collection<PropertyValue<Object>> valuesOld = evaluatedOutboundValueConstructionOld.getOutput().getValues();
+                        Collection<PropertyValue<Object>> valuesNew = evaluatedOutboundValueConstructionNew.getOutput().getValues();
+                        DeltaSetTriple<Object> valueDeltaTriple = DeltaSetTriple.diff(valuesOld, valuesNew);
+
+                        // Clonning the value construction is necessary, as we need three of them
+                        evaluatedOutboundValueConstructionNew.getOutput().getValues().clear();
+                        ValueConstruction plusValueConstruction = evaluatedOutboundValueConstructionNew;
+                        ValueConstruction minusValueConstruction = evaluatedOutboundValueConstructionNew.clone();
+                        ValueConstruction zeroValueConstruction = evaluatedOutboundValueConstructionNew.clone();
+
+                        plusValueConstruction.getOutput().getValues().addAll(valueDeltaTriple.getPlusSet());
+                        attrDeltaTriple.getPlusSet().add(new PropertyValue<ValueConstruction>(plusValueConstruction));
+
+                        minusValueConstruction.getOutput().getValues().addAll(valueDeltaTriple.getMinusSet());
+                        attrDeltaTriple.getMinusSet().add(new PropertyValue<ValueConstruction>(minusValueConstruction));
+
+                        zeroValueConstruction.getOutput().getValues().addAll(valueDeltaTriple.getZeroSet());
+                        attrDeltaTriple.getZeroSet().add(new PropertyValue<ValueConstruction>(zeroValueConstruction));
+                    }
+
+                }
+            }
+
+        }
+
+    }
+
+    private ValueConstruction evaluateOutboundValueConstruction(MidPointObject<UserType> user, RefinedAttributeDefinition refinedAttributeDefinition,
+                                                                RefinedAccountDefinition refinedAccountDefinition, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+
+        ValueConstructionType outboundValueConstructionType = refinedAttributeDefinition.getOutboundValueConstructionType();
+        if (outboundValueConstructionType == null) {
+            return null;
+        }
+
+        ValueConstruction valueConstruction = valueConstructionFactory.createValueConstruction(outboundValueConstructionType, refinedAttributeDefinition,
+                "outbound expression for " + refinedAttributeDefinition.getName() + " in " + ObjectTypeUtil.toShortString(refinedAccountDefinition.getResourceType()));
+
+        // FIXME: should be userNew, but that is not yet filled in
+        valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, user);
+        // TODO: variables
+
+        valueConstruction.evaluate(result);
+
+        return valueConstruction;
+    }
 
 }

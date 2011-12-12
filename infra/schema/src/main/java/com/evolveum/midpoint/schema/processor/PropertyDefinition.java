@@ -21,344 +21,344 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-
-import org.w3c.dom.Element;
-
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import org.w3c.dom.Element;
+
+import javax.xml.namespace.QName;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Property Definition.
- * 
+ * <p/>
  * Property is a basic unit of information in midPoint. This class provides
  * definition of property type, multiplicity and so on.
- * 
+ * <p/>
  * Property is a specific characteristic of an object. It may be considered
  * object "attribute" or "field". For example User has fullName property that
  * contains string value of user's full name.
- * 
+ * <p/>
  * Properties may be single-valued or multi-valued
- * 
+ * <p/>
  * Properties may contain primitive types or complex types (defined by XSD
  * schema)
- * 
+ * <p/>
  * Property values are unordered, implementation may change the order of values
- * 
+ * <p/>
  * Duplicate values of properties should be silently removed by implementations,
  * but clients must be able tolerate presence of duplicate values.
- * 
+ * <p/>
  * Operations that modify the objects work with the granularity of properties.
  * They add/remove/replace the values of properties, but do not "see" inside the
  * property.
- * 
+ * <p/>
  * This class represents schema definition for property. See {@link Definition}
  * for more details.
- * 
+ *
  * @author Radovan Semancik
- * 
  */
 public class PropertyDefinition extends ItemDefinition {
 
-	private static final long serialVersionUID = 7259761997904371009L;
-	private QName valueType;
-	private int minOccurs = 1;
-	private int maxOccurs = 1;
-	private Object[] allowedValues;
-	private boolean create = true;
-	private boolean read = true;
-	private boolean update = true;
+    private static final long serialVersionUID = 7259761997904371009L;
+    private QName valueType;
+    private int minOccurs = 1;
+    private int maxOccurs = 1;
+    private Object[] allowedValues;
+    private boolean create = true;
+    private boolean read = true;
+    private boolean update = true;
 
-	public PropertyDefinition(QName name, QName defaultName, QName typeName) {
-		super(name, defaultName, typeName);
-	}
+    public PropertyDefinition(QName name, QName defaultName, QName typeName) {
+        super(name, defaultName, typeName);
+    }
 
-	public PropertyDefinition(QName name, QName typeName) {
-		super(name, null, typeName);
-	}
+    public PropertyDefinition(QName name, QName typeName) {
+        super(name, null, typeName);
+    }
 
-	// This creates reference to other schema
-	PropertyDefinition(QName name) {
-		super(name, null, null);
-	}
-	
-	/**
-	 * Returns allowed values for this property.
-	 * 
-	 * @return Object array. May be null.
-	 */
-	public Object[] getAllowedValues() {
-		return allowedValues;
-	}
+    // This creates reference to other schema
+    PropertyDefinition(QName name) {
+        super(name, null, null);
+    }
 
-	/**
-	 * TODO:
-	 * 
-	 * @return
-	 */
-	public boolean canRead() {
-		return read;
-	}
+    /**
+     * Returns allowed values for this property.
+     *
+     * @return Object array. May be null.
+     */
+    public Object[] getAllowedValues() {
+        return allowedValues;
+    }
 
-	/**
-	 * TODO:
-	 * 
-	 * @return
-	 */
-	public boolean canUpdate() {
-		return update;
-	}
-	
-	/**
-	 * 
-	 */
-	public void setReadOnly() {
-		create = false;
-		read = true;
-		update = false;
-	}
+    /**
+     * TODO:
+     *
+     * @return
+     */
+    public boolean canRead() {
+        return read;
+    }
 
-	/**
-	 * Returns QName of the property value type.
-	 * 
-	 * The returned type is either XSD simple type or complex type. It may not
-	 * be defined in the same schema (especially if it is standard XSD simple
-	 * type).
-	 * 
-	 * @return QName of the property value type
-	 */
-	public QName getValueType() {
-		return valueType;
-	}
+    /**
+     * TODO:
+     *
+     * @return
+     */
+    public boolean canUpdate() {
+        return update;
+    }
 
-	void setValueType(QName valueType) {
-		this.valueType = valueType;
-	}
+    /**
+     *
+     */
+    public void setReadOnly() {
+        create = false;
+        read = true;
+        update = false;
+    }
 
-	/**
-	 * Return the number of minimal value occurrences.
-	 * 
-	 * @return the minOccurs
-	 */
-	public int getMinOccurs() {
-		return minOccurs;
-	}
+    /**
+     * Returns QName of the property value type.
+     * <p/>
+     * The returned type is either XSD simple type or complex type. It may not
+     * be defined in the same schema (especially if it is standard XSD simple
+     * type).
+     *
+     * @return QName of the property value type
+     */
+    public QName getValueType() {
+        return valueType;
+    }
 
-	public void setMinOccurs(int minOccurs) {
-		this.minOccurs = minOccurs;
-	}
+    void setValueType(QName valueType) {
+        this.valueType = valueType;
+    }
 
-	/**
-	 * Return the number of maximal value occurrences.
-	 * 
-	 * Any negative number means "unbounded".
-	 * 
-	 * @return the maxOccurs
-	 */
-	public int getMaxOccurs() {
-		return maxOccurs;
-	}
+    /**
+     * Return the number of minimal value occurrences.
+     *
+     * @return the minOccurs
+     */
+    public int getMinOccurs() {
+        return minOccurs;
+    }
 
-	public void setMaxOccurs(int maxOccurs) {
-		this.maxOccurs = maxOccurs;
-	}
+    public void setMinOccurs(int minOccurs) {
+        this.minOccurs = minOccurs;
+    }
 
-	/**
-	 * Returns true if property is single-valued.
-	 * 
-	 * @return true if property is single-valued.
-	 */
-	public boolean isSingleValue() {
-		return getMaxOccurs() >= 0 && getMaxOccurs() <= 1;
-	}
+    /**
+     * Return the number of maximal value occurrences.
+     * <p/>
+     * Any negative number means "unbounded".
+     *
+     * @return the maxOccurs
+     */
+    public int getMaxOccurs() {
+        return maxOccurs;
+    }
 
-	/**
-	 * Returns true if property is multi-valued.
-	 * 
-	 * @return true if property is multi-valued.
-	 */
-	public boolean isMultiValue() {
-		return getMaxOccurs() < 0 || getMaxOccurs() > 1;
-	}
+    public void setMaxOccurs(int maxOccurs) {
+        this.maxOccurs = maxOccurs;
+    }
 
-	/**
-	 * Returns true if property is mandatory.
-	 * 
-	 * @return true if property is mandatory.
-	 */
-	public boolean isMandatory() {
-		return getMinOccurs() > 0;
-	}
+    /**
+     * Returns true if property is single-valued.
+     *
+     * @return true if property is single-valued.
+     */
+    public boolean isSingleValue() {
+        return getMaxOccurs() >= 0 && getMaxOccurs() <= 1;
+    }
 
-	/**
-	 * Returns true if property is optional.
-	 * 
-	 * @return true if property is optional.
-	 */
-	public boolean isOptional() {
-		return getMinOccurs() == 0;
-	}
+    /**
+     * Returns true if property is multi-valued.
+     *
+     * @return true if property is multi-valued.
+     */
+    public boolean isMultiValue() {
+        return getMaxOccurs() < 0 || getMaxOccurs() > 1;
+    }
 
-	@Override
-	public Property instantiate() {
-		return instantiate(getNameOrDefaultName());
-	}
-	
-	@Override
-	public Property instantiate(QName name) {
-		return new Property(name, this);
-	}
+    /**
+     * Returns true if property is mandatory.
+     *
+     * @return true if property is mandatory.
+     */
+    public boolean isMandatory() {
+        return getMinOccurs() > 0;
+    }
 
-	@Override
-	public Property instantiate(QName name, Object element) {
-		return new Property(name, this, null, element);
-	}
+    /**
+     * Returns true if property is optional.
+     *
+     * @return true if property is optional.
+     */
+    public boolean isOptional() {
+        return getMinOccurs() == 0;
+    }
 
-	// TODO: factory methods for DOM and JAXB elements
+    @Override
+    public Property instantiate() {
+        return instantiate(getNameOrDefaultName());
+    }
 
-	public void setRead(boolean read) {
-		this.read = read;
-	}
+    @Override
+    public Property instantiate(QName name) {
+        return new Property(name, this);
+    }
 
-	public void setUpdate(boolean update) {
-		this.update = update;
-	}
+    @Override
+    public Property instantiate(QName name, Object element) {
+        return new Property(name, this, null, element);
+    }
 
-	public void setCreate(boolean create) {
-		this.create = create;
-	}
+    // TODO: factory methods for DOM and JAXB elements
 
-	public boolean canCreate() {
-		return create;
-	}
+    public void setRead(boolean read) {
+        this.read = read;
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.schema.processor.Definition#parseItem(java.util.List)
-	 */
-	@Override
-	public Property parseItem(List<Object> elements) throws SchemaException {
-		if (elements == null || elements.isEmpty()) {
-			return null;
-		}
-		QName propName = JAXBUtil.getElementQName(elements.get(0));
-		Property prop = null;
-		if (elements.size()==1) {
-			prop = this.instantiate(propName, elements.get(0));
-		} else {
-			// In-place modification not supported for multi-valued properties
-			prop = this.instantiate(propName, null);
-		}
+    public void setUpdate(boolean update) {
+        this.update = update;
+    }
 
-		if (!isMultiValue() && elements.size()>1) {
-			throw new SchemaException("Attempt to store multiple values in single-valued property "+propName);
-		}
+    public void setCreate(boolean create) {
+        this.create = create;
+    }
 
-		for (Object element : elements) {		
-			Object value;
-			value = XsdTypeConverter.toJavaValue(element, getTypeName());
-			prop.getValues().add(value);
-		}
-		return prop;
-	}
-	
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(getClass().getSimpleName()).append(":").append(getName()).append(" (").append(getTypeName()).append(")");
-		if (isMultiValue()) {
-			sb.append(" multi");
-		}
-		if (isOptional()) {
-			sb.append(" opt");
-		}
-		return sb.toString();
-	}
+    public boolean canCreate() {
+        return create;
+    }
 
-	public Property parseFromValueElement(Element valueElement) throws SchemaException {
-		Property prop = this.instantiate();
-		if (isSingleValue()) {
-			prop.getValues().add(XsdTypeConverter.convertValueElementAsScalar(valueElement, getTypeName()));
-		} else {
-			prop.getValues().addAll(XsdTypeConverter.convertValueElementAsList(valueElement, getTypeName()));
-		}
-		return prop;
-	}
+    /* (non-Javadoc)
+      * @see com.evolveum.midpoint.schema.processor.Definition#parseItem(java.util.List)
+      */
+    @Override
+    public Property parseItem(List<Object> elements) throws SchemaException {
+        if (elements == null || elements.isEmpty()) {
+            return null;
+        }
+        QName propName = JAXBUtil.getElementQName(elements.get(0));
+        Property prop = null;
+        if (elements.size() == 1) {
+            prop = this.instantiate(propName, elements.get(0));
+        } else {
+            // In-place modification not supported for multi-valued properties
+            prop = this.instantiate(propName, null);
+        }
 
-	@Override
-	public Property parseItemFromJaxbObject(Object jaxbObject) throws SchemaException {
-		Property property = this.instantiate();
-		if (isMultiValue()) {
-			// expect collection
-			if (jaxbObject instanceof Collection) {
-				property.getValues().addAll((Collection)jaxbObject);
-			} else {
-				throw new SchemaException("Multi-valued property "+getName()+" got non-collection value of type "+jaxbObject.getClass().getName(),getName());
-			}
-		} else {
-			property.getValues().add(jaxbObject);
-		}
-		return property;
-	}
-	
-	@Override
-	<T extends ItemDefinition> T findItemDefinition(PropertyPath path, Class<T> clazz) {
-		if (path.isEmpty() && clazz.isAssignableFrom(this.getClass())) {
-			return (T) this;
-		} else {
-			throw new IllegalArgumentException("No definition for path "+path+" in "+this);
-		}
-	}
+        if (!isMultiValue() && elements.size() > 1) {
+            throw new SchemaException("Attempt to store multiple values in single-valued property " + propName);
+        }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = prime * result + Arrays.hashCode(allowedValues);
-		result = prime * result + (create ? 1231 : 1237);
-		result = prime * result + maxOccurs;
-		result = prime * result + minOccurs;
-		result = prime * result + (read ? 1231 : 1237);
-		result = prime * result + (update ? 1231 : 1237);
-		result = prime * result + ((valueType == null) ? 0 : valueType.hashCode());
-		return result;
-	}
+        for (Object element : elements) {
+            Object value = XsdTypeConverter.toJavaValue(element, getTypeName());
+            prop.getValues().add(new PropertyValue(value));
+        }
+        return prop;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (!super.equals(obj))
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		PropertyDefinition other = (PropertyDefinition) obj;
-		if (!Arrays.equals(allowedValues, other.allowedValues))
-			return false;
-		if (create != other.create)
-			return false;
-		if (maxOccurs != other.maxOccurs)
-			return false;
-		if (minOccurs != other.minOccurs)
-			return false;
-		if (read != other.read)
-			return false;
-		if (update != other.update)
-			return false;
-		if (valueType == null) {
-			if (other.valueType != null)
-				return false;
-		} else if (!valueType.equals(other.valueType))
-			return false;
-		return true;
-	}
-	
-	
-	
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getClass().getSimpleName()).append(":").append(getName()).append(" (").append(getTypeName()).append(")");
+        if (isMultiValue()) {
+            sb.append(" multi");
+        }
+        if (isOptional()) {
+            sb.append(" opt");
+        }
+        return sb.toString();
+    }
+
+    public Property parseFromValueElement(Element valueElement) throws SchemaException {
+        Property prop = this.instantiate();
+        if (isSingleValue()) {
+            prop.getValues().add(new PropertyValue(XsdTypeConverter.convertValueElementAsScalar(valueElement, getTypeName())));
+        } else {
+            List list = XsdTypeConverter.convertValueElementAsList(valueElement, getTypeName());
+            for (Object object : list) {
+                prop.getValues().add(new PropertyValue(object));
+            }
+        }
+        return prop;
+    }
+
+    @Override
+    public Property parseItemFromJaxbObject(Object jaxbObject) throws SchemaException {
+        Property property = this.instantiate();
+        if (isMultiValue()) {
+            // expect collection
+            if (jaxbObject instanceof Collection) {
+                Collection objects = (Collection) jaxbObject;
+                for (Object object : objects) {
+                    property.getValues().add(new PropertyValue<Object>(object));
+                }
+//                property.getValues().addAll((Collection) jaxbObject);
+            } else {
+                throw new SchemaException("Multi-valued property " + getName() + " got non-collection value of type " + jaxbObject.getClass().getName(), getName());
+            }
+        } else {
+            property.getValues().add(new PropertyValue(jaxbObject));
+        }
+        return property;
+    }
+
+    @Override
+    <T extends ItemDefinition> T findItemDefinition(PropertyPath path, Class<T> clazz) {
+        if (path.isEmpty() && clazz.isAssignableFrom(this.getClass())) {
+            return (T) this;
+        } else {
+            throw new IllegalArgumentException("No definition for path " + path + " in " + this);
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + Arrays.hashCode(allowedValues);
+        result = prime * result + (create ? 1231 : 1237);
+        result = prime * result + maxOccurs;
+        result = prime * result + minOccurs;
+        result = prime * result + (read ? 1231 : 1237);
+        result = prime * result + (update ? 1231 : 1237);
+        result = prime * result + ((valueType == null) ? 0 : valueType.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        PropertyDefinition other = (PropertyDefinition) obj;
+        if (!Arrays.equals(allowedValues, other.allowedValues))
+            return false;
+        if (create != other.create)
+            return false;
+        if (maxOccurs != other.maxOccurs)
+            return false;
+        if (minOccurs != other.minOccurs)
+            return false;
+        if (read != other.read)
+            return false;
+        if (update != other.update)
+            return false;
+        if (valueType == null) {
+            if (other.valueType != null)
+                return false;
+        } else if (!valueType.equals(other.valueType))
+            return false;
+        return true;
+    }
+
+
 }

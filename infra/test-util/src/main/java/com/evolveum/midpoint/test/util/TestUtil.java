@@ -21,32 +21,43 @@
 
 package com.evolveum.midpoint.test.util;
 
-import static org.testng.AssertJUnit.assertEquals;
+import com.evolveum.midpoint.schema.processor.PropertyValue;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.testng.AssertJUnit.assertEquals;
+
 /**
  * Unit test utilities.
- * 
+ *
  * @author Radovan Semancik
  */
 public class TestUtil {
 
-	public static <T> void assertSetEquals(Collection<T> actual, T... expected) {
-		assertSetEquals(null,actual,expected);
-	}
-	
-	public static <T> void assertSetEquals(String message, Collection<T> actual, T... expected) {
-		Set<T> expectedSet = new HashSet<T>();
-		expectedSet.addAll(Arrays.asList(expected));
-		Set<T> actualSet = new HashSet<T>();
-		actualSet.addAll(actual);
-		if (message != null) {
-			assertEquals(message,expectedSet,actualSet);
-		} else {
-			assertEquals(expectedSet,actualSet);
-		}
-	}
+    public static <T> void assertPropertyValueSetEquals(Collection<PropertyValue<T>> actual, T... expected) {
+        Set<T> set = new HashSet<T>();
+        for (PropertyValue<T> value : actual) {
+            set.add(value.getValue());
+        }
+        assertSetEquals(set, expected);
+    }
+
+    public static <T> void assertSetEquals(Collection<T> actual, T... expected) {
+        assertSetEquals(null, actual, expected);
+    }
+
+    public static <T> void assertSetEquals(String message, Collection<T> actual, T... expected) {
+        Set<T> expectedSet = new HashSet<T>();
+        expectedSet.addAll(Arrays.asList(expected));
+        Set<T> actualSet = new HashSet<T>();
+        actualSet.addAll(actual);
+        if (message != null) {
+            assertEquals(message, expectedSet, actualSet);
+        } else {
+            assertEquals(expectedSet, actualSet);
+        }
+    }
 }

@@ -18,6 +18,7 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
+
 package com.evolveum.midpoint.model.synchronizer;
 
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
@@ -90,70 +91,78 @@ public class UserSynchronizer {
     @Autowired(required = true)
     private SchemaRegistry schemaRegistry;
 
-    public void synchronizeUser(SyncContext context, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
+    public void synchronizeUser(SyncContext context, OperationResult result) throws SchemaException,
+            ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
 
         loadUser(context, result);
         loadFromSystemConfig(context, result);
         context.recomputeUserNew();
+
         loadAccountRefs(context, result);
         context.recomputeUserNew();
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Context after LOAD and recompute:\n{}", context.dump());
-        }
+        //todo check reconcile flag in account sync context and set accountOld variable if it's not set (from provisioning)
+        //checkAccountContextReconciliation(context, result);
+
+        traceContext("Context after LOAD and recompute:\n{}", context);
 
         // Loop through the account changes, apply inbound expressions
         inboundProcessor.processInbound(context, result);
         context.recomputeUserNew();
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Context after INBOUND and recompute:\n{}", context.dump());
-        }
+        traceContext("Context after INBOUND and recompute:\n{}", context);
 
         userPolicyProcessor.processUserPolicy(context, result);
         context.recomputeUserNew();
-
+        traceContext("Context after USER POLICY and recompute:\n{}", context);
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Context after USER POLICY and recompute:\n{}", context.dump());
             LOGGER.trace("User delta:\n{}", context.getUserDelta().dump());
         }
 
         assignmentProcessor.processAssignments(context, result);
         context.recomputeNew();
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Context after ASSIGNMENTS and recompute:\n{}", context.dump());
-        }
+        traceContext("Context after ASSIGNMENTS and recompute:\n{}", context);
 
         outboundProcessor.processOutbound(context, result);
         context.recomputeNew();
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Context after OUTBOUND and recompute:\n{}", context.dump());
-        }
+        traceContext("Context after OUTBOUND and recompute:\n{}", context);
 
         consolidateValues(context, result);
         context.recomputeNew();
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Context after CONSOLIDATION and recompute:\n{}", context.dump());
-        }
+        traceContext("Context after CONSOLIDATION and recompute:\n{}", context);
 
         credentialsProcessor.processCredentials(context, result);
         context.recomputeNew();
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Context after CREDENTIALS and recompute:\n{}", context.dump());
-        }
+        traceContext("Context after CREDENTIALS and recompute:\n{}", context);
 
         activationProcessor.processActivation(context, result);
         context.recomputeNew();
+        traceContext("Context after ACTIVATION and recompute:\n{}", context);
+    }
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Context after ACTIVATION and recompute:\n{}", context.dump());
+    private void checkAccountContextReconciliation(SyncContext context, OperationResult result)
+            throws ObjectNotFoundException, CommunicationException, SchemaException {
+
+        OperationResult subResult = result.createSubresult(UserSynchronizer.class + ".checkAccountContextReconciliation");
+        for (AccountSyncContext accContext : context.getAccountContexts()) {
+            if (!accContext.isDoReconciliation() || accContext.getAccountOld() != null) {
+                continue;
+            }
+
+            AccountShadowType account = provisioningService.getObject(AccountShadowType.class, accContext.getOid(),
+                    null, subResult);
+
+            MidPointObject<AccountShadowType> object = new MidPointObject<AccountShadowType>(
+                    SchemaConstants.I_ACCOUNT_SHADOW_TYPE);
+            object.setOid(account.getOid());
+            object.setObjectType(account);
+            accContext.setAccountOld(object);
         }
+    }
 
-
+    private void traceContext(String message, SyncContext context) {
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace(message, context.dump());
+        }
     }
 
     private void loadUser(SyncContext context, OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -354,18 +363,18 @@ public class UserSynchronizer {
                 attributesPropertyContainer = accCtx.getAccountNew().findPropertyContainer(SchemaConstants.I_ATTRIBUTES);
             }
 
-            Collection<Object> allValues = collectAllValues(triple);
-            for (Object value : allValues) {
-                Collection<ValueConstruction> zeroConstructions =
+            Collection<PropertyValue<Object>> allValues = collectAllValues(triple);
+            for (PropertyValue<Object> value : allValues) {
+                Collection<PropertyValue<ValueConstruction>> zeroConstructions =
                         collectValueConstructionsFromSet(value, triple.getZeroSet());
                 if (!zeroConstructions.isEmpty() && !addUnchangedValues) {
                     // Value unchanged, nothing to do
                     LOGGER.trace("Value {} unchanged, doing nothing", value);
                     continue;
                 }
-                Collection<ValueConstruction> plusConstructions =
+                Collection<PropertyValue<ValueConstruction>> plusConstructions =
                         collectValueConstructionsFromSet(value, triple.getPlusSet());
-                Collection<ValueConstruction> minusConstructions =
+                Collection<PropertyValue<ValueConstruction>> minusConstructions =
                         collectValueConstructionsFromSet(value, triple.getMinusSet());
                 if (!plusConstructions.isEmpty() && !minusConstructions.isEmpty()) {
                     // Value added and removed. Ergo no change.
@@ -378,7 +387,7 @@ public class UserSynchronizer {
 
                 boolean initialOnly = true;
                 ValueConstruction exclusiveVc = null;
-                Collection<ValueConstruction> constructionsToAdd = null;
+                Collection<PropertyValue<ValueConstruction>> constructionsToAdd = null;
                 if (addUnchangedValues) {
                     constructionsToAdd = MiscUtil.union(zeroConstructions, plusConstructions);
                 } else {
@@ -386,7 +395,8 @@ public class UserSynchronizer {
                 }
 
                 if (!constructionsToAdd.isEmpty()) {
-                    for (ValueConstruction vc : constructionsToAdd) {
+                    for (PropertyValue<ValueConstruction> propertyValue : constructionsToAdd) {
+                        ValueConstruction vc = propertyValue.getValue();
                         if (!vc.isInitial()) {
                             initialOnly = false;
                         }
@@ -430,43 +440,43 @@ public class UserSynchronizer {
         return objectDelta;
     }
 
-    private Collection<Object> collectAllValues(DeltaSetTriple<ValueConstruction> triple) {
-        Collection<Object> allValues = new HashSet<Object>();
+    private Collection<PropertyValue<Object>> collectAllValues(DeltaSetTriple<ValueConstruction> triple) {
+        Collection<PropertyValue<Object>> allValues = new HashSet<PropertyValue<Object>>();
         collectAllValuesFromSet(allValues, triple.getZeroSet());
         collectAllValuesFromSet(allValues, triple.getPlusSet());
         collectAllValuesFromSet(allValues, triple.getMinusSet());
         return allValues;
     }
 
-    private void collectAllValuesFromSet(Collection<Object> allValues, Collection<ValueConstruction> set) {
+    private void collectAllValuesFromSet(Collection<PropertyValue<Object>> allValues, Collection<PropertyValue<ValueConstruction>> set) {
         if (set == null) {
             return;
         }
-        for (ValueConstruction valConstr : set) {
+        for (PropertyValue<ValueConstruction> valConstr : set) {
             collectAllValuesFromValueConstruction(allValues, valConstr);
         }
     }
 
-    private void collectAllValuesFromValueConstruction(Collection<Object> allValues,
-                                                       ValueConstruction valConstr) {
-        Property output = valConstr.getOutput();
+    private void collectAllValuesFromValueConstruction(Collection<PropertyValue<Object>> allValues,
+                                                       PropertyValue<ValueConstruction> valConstr) {
+        Property output = valConstr.getValue().getOutput();
         if (output == null) {
             return;
         }
         allValues.addAll(output.getValues());
     }
 
-    private boolean isValueInSet(Object value, Collection<ValueConstruction> set) {
+    private boolean isValueInSet(Object value, Collection<PropertyValue<ValueConstruction>> set) {
         // Stupid implementation, but easy to write. TODO: optimize
-        Collection<Object> allValues = new HashSet<Object>();
+        Collection<PropertyValue<Object>> allValues = new HashSet<PropertyValue<Object>>();
         collectAllValuesFromSet(allValues, set);
         return allValues.contains(value);
     }
 
-    private Collection<ValueConstruction> collectValueConstructionsFromSet(Object value, Collection<ValueConstruction> set) {
-        Collection<ValueConstruction> contructions = new HashSet<ValueConstruction>();
-        for (ValueConstruction valConstr : set) {
-            Property output = valConstr.getOutput();
+    private Collection<PropertyValue<ValueConstruction>> collectValueConstructionsFromSet(Object value, Collection<PropertyValue<ValueConstruction>> set) {
+        Collection<PropertyValue<ValueConstruction>> contructions = new HashSet<PropertyValue<ValueConstruction>>();
+        for (PropertyValue<ValueConstruction> valConstr : set) {
+            Property output = valConstr.getValue().getOutput();
             if (output == null) {
                 continue;
             }

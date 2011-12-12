@@ -21,260 +21,254 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import java.util.List;
-import java.util.Set;
-
-import javax.xml.namespace.QName;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
+import org.w3c.dom.Node;
+
+import javax.xml.namespace.QName;
 
 
 /**
  * Item is a common abstraction of Property and PropertyContainer.
- * 
+ * <p/>
  * This is supposed to be a superclass for all items. Items are things
  * that can appear in property containers, which generally means only a property
  * and property container itself. Therefore this is in fact superclass for those
  * two definitions.
- * 
+ *
  * @author Radovan Semancik
- * 
  */
 public abstract class Item implements Dumpable, DebugDumpable {
-	
-	protected QName name;
-	protected Definition definition;
-	// Original element from which the item was parsed
-	// live reference, pointing to the original JAXB/DOM. used for applying modifications
-	protected Object element;
 
-	/**
-	 * Default constructor.
-	 * The constructors should be used only occasionally (if used at all).
-	 * Use the factory methods in the ResourceObjectDefintion instead.
-	 */
-	public Item() {
-		super();
-	}
+    protected QName name;
+    protected Definition definition;
+    // Original element from which the item was parsed
+    // live reference, pointing to the original JAXB/DOM. used for applying modifications
+    protected Object element;
 
-	/**
-	 * The constructors should be used only occasionally (if used at all).
-	 * Use the factory methods in the ResourceObjectDefintion instead.
-	 * @param name item name (element name)
-	 */
-	public Item(QName name) {
-		super();
-		this.name = name;
-		this.definition = null;
-	}
+    /**
+     * Default constructor.
+     * The constructors should be used only occasionally (if used at all).
+     * Use the factory methods in the ResourceObjectDefintion instead.
+     */
+    public Item() {
+        super();
+    }
 
-	/**
-	 * The constructors should be used only occasionally (if used at all).
-	 * Use the factory methods in the ResourceObjectDefintion instead.
-	 * @param name item name (element name)
-	 * @param definition item definition (schema)
-	 */
-	public Item(QName name, Definition definition) {
-		super();
-		this.name = name;
-		this.definition = definition;
-	}
+    /**
+     * The constructors should be used only occasionally (if used at all).
+     * Use the factory methods in the ResourceObjectDefintion instead.
+     *
+     * @param name item name (element name)
+     */
+    public Item(QName name) {
+        super();
+        this.name = name;
+        this.definition = null;
+    }
 
-	/**
-	 * The constructors should be used only occasionally (if used at all).
-	 * Use the factory methods in the ResourceObjectDefintion instead.
-	 */
-	public Item(QName name, Definition definition, Object element) {
-		super();
-		this.name = name;
-		this.definition = definition;
-		this.element = element;
-	}
+    /**
+     * The constructors should be used only occasionally (if used at all).
+     * Use the factory methods in the ResourceObjectDefintion instead.
+     *
+     * @param name       item name (element name)
+     * @param definition item definition (schema)
+     */
+    public Item(QName name, Definition definition) {
+        super();
+        this.name = name;
+        this.definition = definition;
+    }
 
-	/**
-	 * Returns applicable property definition.
-	 * 
-	 * May return null if no definition is applicable or the definition is not
-	 * know.
-	 * 
-	 * @return applicable property definition
-	 */
-	public Definition getDefinition() {
-		return definition;
-	}
+    /**
+     * The constructors should be used only occasionally (if used at all).
+     * Use the factory methods in the ResourceObjectDefintion instead.
+     */
+    public Item(QName name, Definition definition, Object element) {
+        super();
+        this.name = name;
+        this.definition = definition;
+        this.element = element;
+    }
 
-	/**
-	 * Returns the name of the property.
-	 * 
-	 * The name is a QName. It uniquely defines a property.
-	 * 
-	 * The name may be null, but such a property will not work.
-	 * 
-	 * The name is the QName of XML element in the XML representation.
-	 * 
-	 * @return property name
-	 */
-	public QName getName() {
-		return name;
-	}
+    /**
+     * Returns applicable property definition.
+     * <p/>
+     * May return null if no definition is applicable or the definition is not
+     * know.
+     *
+     * @return applicable property definition
+     */
+    public Definition getDefinition() {
+        return definition;
+    }
 
-	/**
-	 * Sets the name of the property.
-	 * 
-	 * The name is a QName. It uniquely defines a property.
-	 * 
-	 * The name may be null, but such a property will not work.
-	 * 
-	 * The name is the QName of XML element in the XML representation.
-	 * 
-	 * @param name
-	 *            the name to set
-	 */
-	public void setName(QName name) {
-		this.name = name;
-	}
+    /**
+     * Returns the name of the property.
+     * <p/>
+     * The name is a QName. It uniquely defines a property.
+     * <p/>
+     * The name may be null, but such a property will not work.
+     * <p/>
+     * The name is the QName of XML element in the XML representation.
+     *
+     * @return property name
+     */
+    public QName getName() {
+        return name;
+    }
 
-	/**
-	 * Sets applicable property definition.
-	 * 
-	 * @param definition
-	 *            the definition to set
-	 */
-	public void setDefinition(PropertyDefinition definition) {
-		this.definition = definition;
-	}
-	
-	public Object getElement() {
-		return element;
-	}
-	
-	public void setElement(Object element) {
-		this.element = element;
-	}
+    /**
+     * Sets the name of the property.
+     * <p/>
+     * The name is a QName. It uniquely defines a property.
+     * <p/>
+     * The name may be null, but such a property will not work.
+     * <p/>
+     * The name is the QName of XML element in the XML representation.
+     *
+     * @param name the name to set
+     */
+    public void setName(QName name) {
+        this.name = name;
+    }
 
-	/**
-	 * Returns a display name for the property type.
-	 * 
-	 * Returns null if the display name cannot be determined.
-	 * 
-	 * The display name is fetched from the definition. If no definition
-	 * (schema) is available, the display name will not be returned.
-	 * 
-	 * @return display name for the property type
-	 */
-	public String getDisplayName() {
-		return getDefinition() == null ? null : getDefinition().getDisplayName();
-	}
+    /**
+     * Sets applicable property definition.
+     *
+     * @param definition the definition to set
+     */
+    public void setDefinition(PropertyDefinition definition) {
+        this.definition = definition;
+    }
 
-	/**
-	 * Returns help message defined for the property type.
-	 * 
-	 * Returns null if the help message cannot be determined.
-	 * 
-	 * The help message is fetched from the definition. If no definition
-	 * (schema) is available, the help message will not be returned.
-	 * 
-	 * @return help message for the property type
-	 */
-	public String getHelp() {
-		return getDefinition() == null ? null : getDefinition().getHelp();
-	}
-	
-	/**
-	 * Serializes property to DOM or JAXB element(s).
-	 * 
-	 * The property name will be used as an element QName.
-	 * The values will be in the element content. Single-value
-	 * properties will produce one element (on none), multi-valued
-	 * properies may produce several elements. All of the elements will
-	 * have the same QName.
-	 * 
-	 * The property must have a definition (getDefinition() must not
-	 * return null).
-	 * 
-	 * @param doc DOM Document
-	 * @return property serialized to DOM Element or JAXBElement
-	 * @throws SchemaProcessorException No definition or inconsistent definition 
-	 */
-	abstract public void serializeToDom(Node parentNode) throws SchemaException;
-	
-	public abstract Item clone();
-	
-	protected void copyValues(Item clone) {
-		clone.name = this.name;
-		clone.definition = this.definition;
-		clone.element = this.element;
-	}
-	
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((definition == null) ? 0 : definition.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		return result;
-	}
+    public Object getElement() {
+        return element;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Item other = (Item) obj;
-		if (definition == null) {
-			if (other.definition != null)
-				return false;
-		} else if (!definition.equals(other.definition))
-			return false;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		return true;
-	}
+    public void setElement(Object element) {
+        this.element = element;
+    }
 
-	@Override
-	public String toString() {
-		return getClass().getSimpleName()+"("+getName()+")";
-	}
+    /**
+     * Returns a display name for the property type.
+     * <p/>
+     * Returns null if the display name cannot be determined.
+     * <p/>
+     * The display name is fetched from the definition. If no definition
+     * (schema) is available, the display name will not be returned.
+     *
+     * @return display name for the property type
+     */
+    public String getDisplayName() {
+        return getDefinition() == null ? null : getDefinition().getDisplayName();
+    }
 
-	@Override
-	public String dump() {
-		return toString();
-	}
-	
-	/**
-	 * Provide terse and readable dump of the object suitable for log (at debug level). 
-	 */
-	public String debugDump() {
-		return debugDump(0);
-	}
-	
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < indent; i++) {
-			sb.append(INDENT_STRING);
-		}
-		sb.append(getDebugDumpClassName()).append(": ").append(DebugUtil.prettyPrint(getName()));
-		return sb.toString();
-	}
+    /**
+     * Returns help message defined for the property type.
+     * <p/>
+     * Returns null if the help message cannot be determined.
+     * <p/>
+     * The help message is fetched from the definition. If no definition
+     * (schema) is available, the help message will not be returned.
+     *
+     * @return help message for the property type
+     */
+    public String getHelp() {
+        return getDefinition() == null ? null : getDefinition().getHelp();
+    }
 
-	/**
-	 * Return a human readable name of this class suitable for logs.
-	 */
-	protected String getDebugDumpClassName() {
-		return "Item";
-	}
+    /**
+     * Serializes property to DOM or JAXB element(s).
+     * <p/>
+     * The property name will be used as an element QName.
+     * The values will be in the element content. Single-value
+     * properties will produce one element (on none), multi-valued
+     * properies may produce several elements. All of the elements will
+     * have the same QName.
+     * <p/>
+     * The property must have a definition (getDefinition() must not
+     * return null).
+     *
+     * @param parentNode DOM Document
+     * @return property serialized to DOM Element or JAXBElement
+     * @throws SchemaException No definition or inconsistent definition
+     */
+    abstract public void serializeToDom(Node parentNode) throws SchemaException;
+
+    public abstract Item clone();
+
+    protected void copyValues(Item clone) {
+        clone.name = this.name;
+        clone.definition = this.definition;
+        clone.element = this.element;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((definition == null) ? 0 : definition.hashCode());
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Item other = (Item) obj;
+        if (definition == null) {
+            if (other.definition != null)
+                return false;
+        } else if (!definition.equals(other.definition))
+            return false;
+        if (name == null) {
+            if (other.name != null)
+                return false;
+        } else if (!name.equals(other.name))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(" + getName() + ")";
+    }
+
+    @Override
+    public String dump() {
+        return toString();
+    }
+
+    /**
+     * Provide terse and readable dump of the object suitable for log (at debug level).
+     */
+    public String debugDump() {
+        return debugDump(0);
+    }
+
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < indent; i++) {
+            sb.append(INDENT_STRING);
+        }
+        sb.append(getDebugDumpClassName()).append(": ").append(DebugUtil.prettyPrint(getName()));
+        return sb.toString();
+    }
+
+    /**
+     * Return a human readable name of this class suitable for logs.
+     */
+    protected String getDebugDumpClassName() {
+        return "Item";
+    }
 
 
 }

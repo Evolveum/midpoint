@@ -21,20 +21,26 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
-import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
-import com.evolveum.midpoint.common.diff.DiffException;
+import com.evolveum.midpoint.model.ActivationDecision;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
 
 /**
  * @author Vilo Repan
  */
-public class DisableAccountAction extends BaseAction {
+public class DisableAccountAction extends ModifyUserAction {
 
     private static final Trace trace = TraceManager.getTrace(DisableAccountAction.class);
+
+    public DisableAccountAction() {
+        super(null, ACTION_DISABLE_ACCOUNT, ActivationDecision.DISABLE);
+    }
 
     @Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
@@ -46,33 +52,7 @@ public class DisableAccountAction extends BaseAction {
         }
 
         OperationResult subResult = result.createSubresult(ACTION_DISABLE_ACCOUNT);
-        AccountShadowType account = (AccountShadowType) change.getShadow();
-        ActivationType activation = account.getActivation();
-        if (activation == null) {
-            ObjectFactory of = new ObjectFactory();
-            activation = of.createActivationType();
-            account.setActivation(activation);
-        }
 
-        activation.setEnabled(false);
-
-        try {
-            AccountShadowType oldAccount = getModel().getObject(AccountShadowType.class, account.getOid(),
-                    new PropertyReferenceListType(), new OperationResult("Get Object"));
-
-            ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldAccount, account);
-            getModel().modifyObject(AccountShadowType.class, changes, new OperationResult("Modify Object"));
-        } catch (DiffException ex) {
-            trace.error("Couldn't disable account {}, error while creating diff: {}.",
-                    new Object[]{account.getOid(), ex.getMessage()});
-            throw new SynchronizationException("Couldn't disable account " + account.getOid()
-                    + ", error while creating diff: " + ex.getMessage() + ".", ex);
-        } catch (Exception ex) {
-            trace.error("Couldn't update (disable) account '{}' in provisioning, reason: {}.", new Object[]{
-                    account.getOid(), ex.getMessage()});
-            throw new SynchronizationException("Couldn't update (disable) account '" + account.getOid()
-                    + "' in provisioning, reason: " + ex.getMessage() + ".", ex);
-        }
 
         return userOid;
     }

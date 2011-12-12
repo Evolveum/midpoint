@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2011 Evolveum
  *
  * The contents of this file are subject to the terms
@@ -15,229 +15,220 @@
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
+ *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
 package com.evolveum.midpoint.common.expression.xpath;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-import javax.xml.xpath.XPathVariableResolver;
-
-import org.eclipse.core.runtime.ISafeRunnable;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.MapXPathVariableResolver;
 import com.evolveum.midpoint.util.xpath.MidPointXPathFunctionResolver;
 import com.evolveum.midpoint.util.xpath.functions.CapitalizeFunction;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import javax.xml.namespace.QName;
+import javax.xml.xpath.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Radovan Semancik
- *
  */
 public class XPathExpressionEvaluator implements ExpressionEvaluator {
-	
-	public static String XPATH_LANGUAGE_URL = "http://www.w3.org/TR/xpath/";
 
-	private XPathFactory factory = XPathFactory.newInstance();
-	
-	@Override
-	public <T> T evaluateScalar(Class<T> type, Element code, Map<QName, Object> variables,
-			ObjectResolver objectResolver, String contextDescription, OperationResult result) throws ExpressionEvaluationException,
-			ObjectNotFoundException, SchemaException {
+    public static String XPATH_LANGUAGE_URL = "http://www.w3.org/TR/xpath/";
 
-		QName returnType = determineRerturnType(type);
-		
-		Object evaluatedExpression = evaluate(returnType, code, variables, objectResolver, contextDescription, result);
-		
-		return convertScalar(type, returnType, evaluatedExpression, contextDescription);
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluateList(java.lang.Class, org.w3c.dom.Element, java.util.Map, com.evolveum.midpoint.schema.util.ObjectResolver, java.lang.String)
-	 */
-	@Override
-	public <T> List<T> evaluateList(Class<T> type, Element code, Map<QName, Object> variables,
-			ObjectResolver objectResolver, String contextDescription, OperationResult result) throws ExpressionEvaluationException,
-			ObjectNotFoundException, SchemaException {
-		
-		Object evaluatedExpression = evaluate(XPathConstants.NODESET, code, variables, objectResolver, contextDescription, result);
-		
-		if (!(evaluatedExpression instanceof NodeList)) {
-			throw new IllegalStateException("The expression "+contextDescription+" resulted in "+evaluatedExpression.getClass().getName()+" while exprecting NodeList");
-		}
-		
-		return convertList(type, (NodeList)evaluatedExpression, contextDescription);
-	}
+    private XPathFactory factory = XPathFactory.newInstance();
 
-		
-	private Object evaluate(QName returnType, Element code, Map<QName, Object> variables, ObjectResolver objectResolver, String contextDescription, OperationResult result) 
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    @Override
+    public <T> PropertyValue<T> evaluateScalar(Class<T> type, Element code, Map<QName, Object> variables,
+                                               ObjectResolver objectResolver, String contextDescription, OperationResult result) throws ExpressionEvaluationException,
+            ObjectNotFoundException, SchemaException {
 
-		XPathExpressionCodeHolder codeHolder = new XPathExpressionCodeHolder(code);
-		
-		XPath xpath = factory.newXPath();
-		XPathVariableResolver variableResolver = new LazyXPathVariableResolver(variables, objectResolver, contextDescription, result);
+        QName returnType = determineRerturnType(type);
+
+        Object evaluatedExpression = evaluate(returnType, code, variables, objectResolver, contextDescription, result);
+
+        return convertScalar(type, returnType, evaluatedExpression, contextDescription);
+    }
+
+    /* (non-Javadoc)
+      * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluateList(java.lang.Class, org.w3c.dom.Element, java.util.Map, com.evolveum.midpoint.schema.util.ObjectResolver, java.lang.String)
+      */
+    @Override
+    public <T> List<PropertyValue<T>> evaluateList(Class<T> type, Element code, Map<QName, Object> variables,
+                                                   ObjectResolver objectResolver, String contextDescription, OperationResult result) throws ExpressionEvaluationException,
+            ObjectNotFoundException, SchemaException {
+
+        Object evaluatedExpression = evaluate(XPathConstants.NODESET, code, variables, objectResolver, contextDescription, result);
+
+        if (!(evaluatedExpression instanceof NodeList)) {
+            throw new IllegalStateException("The expression " + contextDescription + " resulted in " + evaluatedExpression.getClass().getName() + " while exprecting NodeList");
+        }
+
+        return convertList(type, (NodeList) evaluatedExpression, contextDescription);
+    }
+
+
+    private Object evaluate(QName returnType, Element code, Map<QName, Object> variables, ObjectResolver objectResolver, String contextDescription, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+
+        XPathExpressionCodeHolder codeHolder = new XPathExpressionCodeHolder(code);
+
+        XPath xpath = factory.newXPath();
+        XPathVariableResolver variableResolver = new LazyXPathVariableResolver(variables, objectResolver, contextDescription, result);
         xpath.setXPathVariableResolver(variableResolver);
         xpath.setNamespaceContext(new MidPointNamespaceContext(codeHolder.getNamespaceMap()));
         xpath.setXPathFunctionResolver(getFunctionResolver());
-        
+
         XPathExpression expr;
-		try {
-			
-			expr = xpath.compile(codeHolder.getExpressionAsString());
-			
-		} catch (Exception e) {
-			Throwable originalException = ExceptionUtil.lookForTunneledException(e);
-			if (originalException != null && originalException instanceof ObjectNotFoundException) {
-				throw (ObjectNotFoundException)originalException;
-			}
-			if (originalException != null && originalException instanceof SchemaException) {
-				throw (SchemaException)originalException;
-			}
-			if (e instanceof XPathExpressionException) {
-				throw createExpressionEvaluationException(e, contextDescription);
-			}
-			if (e instanceof RuntimeException) {
-				throw (RuntimeException)e;
-			}
-			throw new SystemException(e.getMessage(),e);
-		}
-		
+        try {
+
+            expr = xpath.compile(codeHolder.getExpressionAsString());
+
+        } catch (Exception e) {
+            Throwable originalException = ExceptionUtil.lookForTunneledException(e);
+            if (originalException != null && originalException instanceof ObjectNotFoundException) {
+                throw (ObjectNotFoundException) originalException;
+            }
+            if (originalException != null && originalException instanceof SchemaException) {
+                throw (SchemaException) originalException;
+            }
+            if (e instanceof XPathExpressionException) {
+                throw createExpressionEvaluationException(e, contextDescription);
+            }
+            if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            }
+            throw new SystemException(e.getMessage(), e);
+        }
+
         Object rootNode = determineRootNode(variableResolver);
         Object evaluatedExpression;
-        
-		try {
-			
-			evaluatedExpression = expr.evaluate(rootNode, returnType);
-			
-		} catch (Exception e) {
-			Throwable originalException = ExceptionUtil.lookForTunneledException(e);
-			if (originalException != null && originalException instanceof ObjectNotFoundException) {
-				throw (ObjectNotFoundException)originalException;
-			}
-			if (originalException != null && originalException instanceof SchemaException) {
-				throw (SchemaException)originalException;
-			}
-			if (e instanceof XPathExpressionException) {
-				throw createExpressionEvaluationException(e, contextDescription);
-			}
-			if (e instanceof RuntimeException) {
-				throw (RuntimeException)e;
-			}
-			throw new SystemException(e.getMessage(),e);
-		}
-        
-        if (evaluatedExpression == null) {
-        	return null;
+
+        try {
+
+            evaluatedExpression = expr.evaluate(rootNode, returnType);
+
+        } catch (Exception e) {
+            Throwable originalException = ExceptionUtil.lookForTunneledException(e);
+            if (originalException != null && originalException instanceof ObjectNotFoundException) {
+                throw (ObjectNotFoundException) originalException;
+            }
+            if (originalException != null && originalException instanceof SchemaException) {
+                throw (SchemaException) originalException;
+            }
+            if (e instanceof XPathExpressionException) {
+                throw createExpressionEvaluationException(e, contextDescription);
+            }
+            if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            }
+            throw new SystemException(e.getMessage(), e);
         }
-        
+
+        if (evaluatedExpression == null) {
+            return null;
+        }
+
         return evaluatedExpression;
-	}
+    }
 
 
-	private ExpressionEvaluationException createExpressionEvaluationException(Exception e, String contextDescription) {
-		return new ExpressionEvaluationException(ExceptionUtil.lookForMessage(e)+" in "+contextDescription,e);
-	}
+    private ExpressionEvaluationException createExpressionEvaluationException(Exception e, String contextDescription) {
+        return new ExpressionEvaluationException(ExceptionUtil.lookForMessage(e) + " in " + contextDescription, e);
+    }
 
-	/**
-	 * Kind of convenience magic. Try few obvious variables and set them as the root node
-	 * for evaluation. This allow to use "fullName" instead of "$user/fullName".
-	 */
-	private Object determineRootNode(XPathVariableResolver variableResolver) {
-		return variableResolver.resolveVariable(null);
-	}
-	
-	private QName determineRerturnType(Class<?> type) throws ExpressionEvaluationException {
-		if (type.equals(String.class)) {
-			return XPathConstants.STRING;
-		}
-		if (type.equals(Double.class)) {
-			return XPathConstants.NUMBER;
-		}
-		if (type.equals(Integer.class)) {
-			return XPathConstants.NUMBER;
-		}
-		if (type.equals(Boolean.class)) {
-			return XPathConstants.BOOLEAN;
-		}
-		if (type.equals(NodeList.class)) {
-			return XPathConstants.NODESET;
-		}
-		if (type.equals(Node.class)) {
-			return XPathConstants.NODE;
-		}
-		throw new ExpressionEvaluationException("Unsupported return type "+type);
-	}
-	
-	private <T> T convertScalar(Class<T> type, QName returnType, Object value, String contextDescription) throws ExpressionEvaluationException {
-		if (type.isAssignableFrom(value.getClass())) {
-			return (T)value;
-		}
-		try {
-			if (value instanceof String) {
-				return XsdTypeConverter.toJavaValue((String)value, type);
-			}
-			if (value instanceof Element) {
-				return XsdTypeConverter.convertValueElementAsScalar((Element)value, type);
-			}
-			throw new ExpressionEvaluationException("Unexpected scalar return type "+value.getClass().getName());
-		} catch (SchemaException e) {
-			throw new ExpressionEvaluationException("Error converting result of " 
-					+ contextDescription + ": " + e.getMessage(), e);
-		} catch (IllegalArgumentException e) {
-			throw new ExpressionEvaluationException("Error converting result of " 
-					+ contextDescription + ": " + e.getMessage(), e);
-		}
-	}
-		
-	private <T> List<T> convertList(Class<T> type, NodeList valueNodes, String contextDescription) throws ExpressionEvaluationException {
-		List<T> values = new ArrayList<T>();
-		if (valueNodes == null) {
-			return values;
-		}
-		
-		try {
-			
-			return XsdTypeConverter.convertValueElementAsList(valueNodes, type);
-			
-		} catch (SchemaException e) {
-			throw new ExpressionEvaluationException("Error converting return value of " + contextDescription + ": " + e.getMessage(), e);
-		} catch (IllegalArgumentException e) {
-			throw new ExpressionEvaluationException("Error converting return value of " + contextDescription + ": " + e.getMessage(), e);
-		}
-	}
+    /**
+     * Kind of convenience magic. Try few obvious variables and set them as the root node
+     * for evaluation. This allow to use "fullName" instead of "$user/fullName".
+     */
+    private Object determineRootNode(XPathVariableResolver variableResolver) {
+        return variableResolver.resolveVariable(null);
+    }
 
-	private MidPointXPathFunctionResolver getFunctionResolver() {
-		MidPointXPathFunctionResolver resolver = new MidPointXPathFunctionResolver();
-		resolver.registerFunction(new QName("http://midpoint.evolveum.com/custom", "capitalize"), new CapitalizeFunction());
-		return resolver;
-	}
+    private QName determineRerturnType(Class<?> type) throws ExpressionEvaluationException {
+        if (type.equals(String.class)) {
+            return XPathConstants.STRING;
+        }
+        if (type.equals(Double.class)) {
+            return XPathConstants.NUMBER;
+        }
+        if (type.equals(Integer.class)) {
+            return XPathConstants.NUMBER;
+        }
+        if (type.equals(Boolean.class)) {
+            return XPathConstants.BOOLEAN;
+        }
+        if (type.equals(NodeList.class)) {
+            return XPathConstants.NODESET;
+        }
+        if (type.equals(Node.class)) {
+            return XPathConstants.NODE;
+        }
+        throw new ExpressionEvaluationException("Unsupported return type " + type);
+    }
 
-	@Override
-	public String getLanguageName() {
-		return "XPath 2.0";
-	}
+    private <T> PropertyValue<T> convertScalar(Class<T> type, QName returnType, Object value, String contextDescription) throws ExpressionEvaluationException {
+        if (type.isAssignableFrom(value.getClass())) {
+            return new PropertyValue<T>((T) value);
+        }
+        try {
+            if (value instanceof String) {
+                return new PropertyValue<T>(XsdTypeConverter.toJavaValue((String) value, type));
+            }
+            if (value instanceof Element) {
+                return new PropertyValue<T>(XsdTypeConverter.convertValueElementAsScalar((Element) value, type));
+            }
+            throw new ExpressionEvaluationException("Unexpected scalar return type " + value.getClass().getName());
+        } catch (SchemaException e) {
+            throw new ExpressionEvaluationException("Error converting result of "
+                    + contextDescription + ": " + e.getMessage(), e);
+        } catch (IllegalArgumentException e) {
+            throw new ExpressionEvaluationException("Error converting result of "
+                    + contextDescription + ": " + e.getMessage(), e);
+        }
+    }
+
+    private <T> List<PropertyValue<T>> convertList(Class<T> type, NodeList valueNodes, String contextDescription) throws ExpressionEvaluationException {
+        List<PropertyValue<T>> values = new ArrayList<PropertyValue<T>>();
+        if (valueNodes == null) {
+            return values;
+        }
+
+        try {
+            List<T> list = XsdTypeConverter.convertValueElementAsList(valueNodes, type);
+            for (T item : list) {
+                values.add(new PropertyValue<T>(item));
+            }
+            return values;
+        } catch (SchemaException e) {
+            throw new ExpressionEvaluationException("Error converting return value of " + contextDescription + ": " + e.getMessage(), e);
+        } catch (IllegalArgumentException e) {
+            throw new ExpressionEvaluationException("Error converting return value of " + contextDescription + ": " + e.getMessage(), e);
+        }
+    }
+
+    private MidPointXPathFunctionResolver getFunctionResolver() {
+        MidPointXPathFunctionResolver resolver = new MidPointXPathFunctionResolver();
+        resolver.registerFunction(new QName("http://midpoint.evolveum.com/custom", "capitalize"), new CapitalizeFunction());
+        return resolver;
+    }
+
+    @Override
+    public String getLanguageName() {
+        return "XPath 2.0";
+    }
 
 }

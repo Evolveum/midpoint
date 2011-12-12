@@ -18,6 +18,7 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
+
 package com.evolveum.midpoint.model;
 
 import com.evolveum.midpoint.model.controller.ModelUtils;
@@ -67,18 +68,19 @@ public class ChangeExecutor {
         }
     }
 
-    public void executeChanges(SyncContext syncContext, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException {
-
+    public void executeChanges(SyncContext syncContext, OperationResult result) throws ObjectAlreadyExistsException,
+            ObjectNotFoundException, SchemaException, CommunicationException {
         ObjectDelta<UserType> userDelta = syncContext.getUserDelta();
-        LOGGER.trace("Executing USER change " + userDelta);
         if (userDelta != null) {
-            LOGGER.trace("Skipping change execute, because user delta is null");
+            LOGGER.trace("Executing USER change " + userDelta);
             executeChange(userDelta, result);
-        }
 
-        // userDelta is composite, mixed from primary and secondary. The OID set into
-        // it will be lost ... unless we explicitly save it
-        syncContext.setUserOid(userDelta.getOid());
+            // userDelta is composite, mixed from primary and secondary. The OID set into
+            // it will be lost ... unless we explicitly save it
+            syncContext.setUserOid(userDelta.getOid());
+        } else {
+            LOGGER.trace("Skipping change execute, because user delta is null");
+        }
 
         for (AccountSyncContext accCtx : syncContext.getAccountContexts()) {
             ObjectDelta<AccountShadowType> accDelta = accCtx.getAccountDelta();
@@ -96,40 +98,39 @@ public class ChangeExecutor {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Context after change execution:\n{}", syncContext.dump());
         }
-
     }
 
     /**
      * Make sure that the account is linked (or unliknked) as needed.
      */
     private void updateAccountLinks(MidPointObject<UserType> userNew, AccountSyncContext accCtx,
-                                         OperationResult result) throws ObjectNotFoundException, SchemaException {
+                                    OperationResult result) throws ObjectNotFoundException, SchemaException {
         UserType userTypeNew = userNew.getOrParseObjectType();
         String accountOid = accCtx.getOid();
         if (accountOid == null) {
             throw new IllegalStateException("Account has null OID, this should not happen");
         }
-	        
+
         if (accCtx.getPolicyDecision() == PolicyDecision.UNLINK || accCtx.getPolicyDecision() == PolicyDecision.DELETE) {
-        	// Link should NOT exist
-	        for (ObjectReferenceType accountRef : userTypeNew.getAccountRef()) {
-	            if (accountRef.getOid().equals(accountOid)) {
-	            	// Linked, need to unlink
-	            	unlinkAccount(userTypeNew.getOid(), accountOid, result);
-	            }
-	        }
-	        // Not linked, that's OK
-	        
+            // Link should NOT exist
+            for (ObjectReferenceType accountRef : userTypeNew.getAccountRef()) {
+                if (accountRef.getOid().equals(accountOid)) {
+                    // Linked, need to unlink
+                    unlinkAccount(userTypeNew.getOid(), accountOid, result);
+                }
+            }
+            // Not linked, that's OK
+
         } else {
-        	// Link should exist
-	        for (ObjectReferenceType accountRef : userTypeNew.getAccountRef()) {
-	            if (accountRef.getOid().equals(accountOid)) {
-	                // Already linked, nothing to do
-	                return;
-	            }
-	        }
-	        // Not linked, need to link
-	        linkAccount(userTypeNew.getOid(), accountOid, result);
+            // Link should exist
+            for (ObjectReferenceType accountRef : userTypeNew.getAccountRef()) {
+                if (accountRef.getOid().equals(accountOid)) {
+                    // Already linked, nothing to do
+                    return;
+                }
+            }
+            // Not linked, need to link
+            linkAccount(userTypeNew.getOid(), accountOid, result);
         }
     }
 
@@ -160,7 +161,7 @@ public class ChangeExecutor {
         objectChange.getPropertyModification().add(accountRefMod);
         cacheRepositoryService.modifyObject(UserType.class, objectChange, result);
     }
-    
+
     public void executeChange(ObjectDelta<?> change, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException {
 
         if (change == null) {

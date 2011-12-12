@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2011 Evolveum
  *
  * The contents of this file are subject to the terms
@@ -15,15 +15,10 @@
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
+ *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
 package com.evolveum.midpoint.common.valueconstruction;
-
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.expression.Expression;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
@@ -33,52 +28,57 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
 
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author Radovan Semancik
- *
  */
 public class ExpressionValueConstructor implements ValueConstructor {
-	
-	private ExpressionFactory factory;
-	
-	ExpressionValueConstructor(ExpressionFactory factory) {
-		this.factory = factory;
-	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property)
-	 */
-	@Override
-	public Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition, 
-			Property input, Map<QName, Object> variables, String contextDescription, OperationResult result) 
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		
-		Object contstuctorTypeObject = constructorElement.getValue();
-		if (!(contstuctorTypeObject instanceof ExpressionType)) {
-			throw new IllegalArgumentException("Expression value constructor cannot handle elements of type "+contstuctorTypeObject.getClass().getName());
-		}
-		ExpressionType constructorType = (ExpressionType)contstuctorTypeObject;
-		
-		Expression expression = factory.createExpression(constructorType, contextDescription);
-		
-		expression.addVariableDefinitions(variables);
-		
-		QName typeName = outputDefinition.getTypeName();
-		Class<?> type = XsdTypeConverter.toJavaType(typeName);
-		Property output = outputDefinition.instantiate();
-		
-		if (outputDefinition.isMultiValue()) {
-			List<?> resultValues = expression.evaluateList(type, result);
-			output.getValues().addAll(resultValues);
-		} else {
-			Object resultValue = expression.evaluateScalar(type, result);
-			output.getValues().add(resultValue);
-		}
-		
-		return output;
-	}
+    private ExpressionFactory factory;
+
+    ExpressionValueConstructor(ExpressionFactory factory) {
+        this.factory = factory;
+    }
+
+    /* (non-Javadoc)
+      * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property)
+      */
+    @Override
+    public Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition,
+                              Property input, Map<QName, Object> variables, String contextDescription, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+
+        Object contstuctorTypeObject = constructorElement.getValue();
+        if (!(contstuctorTypeObject instanceof ExpressionType)) {
+            throw new IllegalArgumentException("Expression value constructor cannot handle elements of type " + contstuctorTypeObject.getClass().getName());
+        }
+        ExpressionType constructorType = (ExpressionType) contstuctorTypeObject;
+
+        Expression expression = factory.createExpression(constructorType, contextDescription);
+
+        expression.addVariableDefinitions(variables);
+
+        QName typeName = outputDefinition.getTypeName();
+        Class<Object> type = XsdTypeConverter.toJavaType(typeName);
+        Property output = outputDefinition.instantiate();
+
+        if (outputDefinition.isMultiValue()) {
+            List<PropertyValue<Object>> resultValues = expression.evaluateList(type, result);
+            output.getValues().addAll(resultValues);
+        } else {
+            PropertyValue<Object> resultValue = expression.evaluateScalar(type, result);
+            output.getValues().add(resultValue);
+        }
+
+        return output;
+    }
 
 }

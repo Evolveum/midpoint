@@ -23,6 +23,7 @@ package com.evolveum.midpoint.model.sync.action;
 
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.AccountSyncContext;
+import com.evolveum.midpoint.model.ActivationDecision;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
@@ -41,21 +42,26 @@ public class ModifyUserAction extends BaseAction {
 
     private static final Trace LOGGER = TraceManager.getTrace(ModifyUserAction.class);
     private final String actionName;
-    private PolicyDecision decision;
+    private PolicyDecision policyDecision;
+    private ActivationDecision activationDecision;
 
     public ModifyUserAction() {
-        this(PolicyDecision.KEEP, ACTION_MODIFY_USER);
+        this(PolicyDecision.KEEP, ACTION_MODIFY_USER, null);
     }
 
-    public ModifyUserAction(PolicyDecision decision, String actionName) {
+    public ModifyUserAction(PolicyDecision policyDecision, String actionName, ActivationDecision activationDecision) {
         Validate.notEmpty(actionName, "Action name must not be null or empty.");
 
-        this.decision = decision;
+        this.policyDecision = policyDecision;
         this.actionName = actionName;
     }
 
-    protected PolicyDecision getDecision() {
-        return decision;
+    protected PolicyDecision getPolicyDecision() {
+        return policyDecision;
+    }
+
+    public ActivationDecision getActivationDecision() {
+        return activationDecision;
     }
 
     @Override
@@ -81,7 +87,7 @@ public class ModifyUserAction extends BaseAction {
         }
 
         SyncContext context = createSyncContext(userType, change.getResource());
-        AccountSyncContext accountContext = createAccountSyncContext(context, change.getResource(),
+        AccountSyncContext accountContext = createAccountSyncContext(context, change,
                 (AccountShadowType) shadowAfterChange);
 
         try {
@@ -114,17 +120,44 @@ public class ModifyUserAction extends BaseAction {
         return context;
     }
 
-    private AccountSyncContext createAccountSyncContext(SyncContext context, ResourceType resource,
+    private AccountSyncContext createAccountSyncContext(SyncContext context,
+                                                        ResourceObjectShadowChangeDescriptionType change,
                                                         AccountShadowType account) {
+        ResourceType resource = change.getResource();
+
         ResourceAccountType resourceAccount = new ResourceAccountType(resource.getOid(), account.getAccountType());
         AccountSyncContext accountContext = context.createAccountSyncContext(resourceAccount);
         accountContext.setResource(resource);
-        accountContext.setPolicyDecision(getDecision());
+        accountContext.setPolicyDecision(getPolicyDecision());
+        accountContext.setActivationDecision(getActivationDecision());
+        accountContext.setOid(account.getOid());
 
-        MidPointObject<AccountShadowType> accountShadow = new MidPointObject<AccountShadowType>(SchemaConstants.I_ACCOUNT_SHADOW_TYPE);
-        accountShadow.setObjectType(account);
-        accountContext.setAccountNew(accountShadow);
+
+//        ObjectDelta<AccountShadowType> delta = createObjectDelta(change.getObjectChange());
+//        accountContext.setAccountPrimaryDelta(delta);
+
+//        MidPointObject<AccountShadowType> accountShadow = new MidPointObject<AccountShadowType>(SchemaConstants.I_ACCOUNT_SHADOW_TYPE);
+//        accountShadow.setObjectType(account);
+//        accountContext.setAccountNew(accountShadow);
 
         return accountContext;
     }
+
+//    private ChangeType createObjectDelta(ObjectChangeType change) {
+//        new ObjectDelta<AccountShadowType>(AccountShadowType.class, getChangeType(change));
+//
+//        if (change.getObjectChange() instanceof ObjectChangeAdditionType) {
+//            return ChangeType.ADD;
+//        }
+//
+//        if (change.getObjectChange() instanceof ObjectChangeDeletionType) {
+//            return ChangeType.DELETE;
+//        }
+//
+//        if (change.getObjectChange() instanceof  ObjectChangeModificationType) {
+//            return ChangeType.MODIFY;
+//        }
+//
+//        throw new IllegalArgumentException("Object type change was not defined.");
+//    }
 }
