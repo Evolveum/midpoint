@@ -21,11 +21,11 @@
 
 package com.evolveum.midpoint.web.page.admin.home;
 
-import org.apache.wicket.markup.html.WebPage;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
 
 /**
  * @author lazyman
  */
-public class PageHome extends WebPage {
+public class PageHome extends PageAdmin {
 
 }
