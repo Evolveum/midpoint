@@ -7,7 +7,7 @@
 	xmlns:f="http://java.sun.com/jsf/core"
 	xmlns:ice="http://www.icesoft.com/icefaces/component"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
-
+		
 	<ui:define name="title">#{msg['page.login.title']}</ui:define>
 	<ui:define name="sidebar">
 		<div id="sidebarImage"></div>
@@ -22,16 +22,17 @@
 				<ice:panelGrid id="loginForm" columns="2" style="margin-top: 20px;">
 					<ice:outputText id="userNameLabel" for="j_username"
 						value="#{msg['page.login.username']}" />
-					<ice:inputText id="j_username" autocomplete="off" />
+					<ice:inputText onkeypress="if (event.keyCode == 13) this.submit();" id="j_username" autocomplete="off" />
 					<ice:outputText id="passwordLabel" for="j_password"
 						value="#{msg['page.login.password']}" />
-					<ice:inputSecret id="j_password" autocomplete="off" />
-                    <ice:outputText id="error" value="#{SPRING_SECURITY_LAST_EXCEPTION.message}"/>
+					<ice:inputSecret onkeypress="if (event.keyCode == 13) this.submit();" id="j_password" autocomplete="off" />
+					<ice:outputText id="error" 
+						value="#{SPRING_SECURITY_LAST_EXCEPTION.message}" />
 				</ice:panelGrid>
 				<br />
 				<h:panelGroup id="loginButtons" columns="1"
 					style="text-align: center;">
-					<h:commandButton class="submit" type="submit"
+					<h:commandButton id="submitForm" class="submit" type="submit"
 						value="#{msg['page.login.button']}" />
 				</h:panelGroup>
 			</form>
@@ -39,18 +40,17 @@
 		<script type="text/javascript">
 			var centerOfLoginDiv = jQuery(".loginDiv").width() / 2;
 			var loginForm = jQuery("#loginForm").width() / 2;
-			var loginButton = jQuery("#loginButton").width() / 2;
+			var loginButton = jQuery("#loginButtons").width() / 2;
 			loginButton = loginButton + 40;
 			jQuery("#loginForm").css("margin-left",
 					centerOfLoginDiv - loginForm);
-			jQuery("#loginButton").css("margin-left", loginForm - loginButton);
-			
-			jQuery(".iceInpSecrt").keypress(function(e) {
-		        if(e.which == 13) {
-		            jQuery(this).blur();
-		            jQuery('.submit').focus().click();
-		        }
-		    });
+			jQuery("#loginButtons").css("margin-left", loginForm - loginButton);
+
+			/* jQuery("#j_password").keypress(function(e) {
+				if (e.which == 13) {
+					jQuery('#submitForm').click();
+				}
+			}); */
 		</script>
 
 	</ui:define>
