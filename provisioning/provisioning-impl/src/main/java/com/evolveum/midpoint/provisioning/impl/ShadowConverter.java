@@ -505,17 +505,17 @@ public class ShadowConverter {
                             + " provides " + disableValues.size()
                             + " values for DISABLE attribute, expecting just one value");
                 }
-                Object disableObj = activationValues.iterator().next();
+                PropertyValue<Object> disableObj = activationValues.iterator().next();
 
                 for (String disable : disableValues) {
-                    if (disable.equals(String.valueOf(disableObj))) {
+                    if (disable.equals(String.valueOf(disableObj.getValue()))) {
                         activationType.setEnabled(false);
                         return activationType;
                     }
                 }
 
                 for (String enable : enableValues) {
-                    if ("".equals(enable) || enable.equals(String.valueOf(disableObj))) {
+                    if ("".equals(enable) || enable.equals(String.valueOf(disableObj.getValue()))) {
                         activationType.setEnabled(true);
                         return activationType;
                     }
