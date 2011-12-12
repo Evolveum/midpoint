@@ -1,0 +1,80 @@
+/*
+ * Copyright (c) 2011 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ *
+ * Portions Copyrighted 2011 [name of copyright owner]
+ */
+
+div.top-menu {
+    background: none repeat scroll 0 0 #2D3223;
+    width: 100%;
+}
+
+div.top-menu div.top-container {
+    margin-left: auto;
+    margin-right: auto;
+    width: 1200px;
+}
+
+div.top-menu {
+    height: 58px;
+    list-style: none outside none;
+    margin: 0;
+    padding: 0;
+    width: auto;
+}
+
+div.top-menu li {
+    float: left;
+    height: 58px;
+    width: auto;
+    list-style: none;
+}
+
+div.top-menu li a {
+    display: inline-block;
+    height: 48px;
+    padding: 10px 20px 0 20px;
+    text-decoration: none;
+    width: auto;
+    border-right: 1px solid #3F4434;
+}
+
+div.top-menu li a span.label {
+    color: #FFFFFF;
+    font: 18px Georgia, "Times New Roman", serif;
+}
+
+div.top-menu a.last {
+    border-right: none;
+}
+
+div.top-menu a span {
+    display: block;
+    font: 12px Arial, Helvetica, sans-serif;
+    color: #7D8174;
+}
+
+div.top-menu a:hover span, .selected-top span {
+    color: #2D3223 !important;
+}
+
+div.top-menu a:hover, .top-menu .selected-top {
+    background: url("./nav-hover.gif") repeat-x scroll left top transparent;
+    color: #2D3223;
+    text-decoration: none;
+}
