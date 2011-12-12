@@ -46,13 +46,18 @@ public class ModifyUserAction extends BaseAction {
     private ActivationDecision activationDecision;
 
     public ModifyUserAction() {
-        this(PolicyDecision.KEEP, ACTION_MODIFY_USER, null);
+        this(PolicyDecision.KEEP, ACTION_MODIFY_USER);
     }
 
-    public ModifyUserAction(PolicyDecision policyDecision, String actionName, ActivationDecision activationDecision) {
+    public ModifyUserAction(PolicyDecision policyDecision, String actionName) {
+        this(policyDecision, null, actionName);
+    }
+
+    public ModifyUserAction(PolicyDecision policyDecision, ActivationDecision activationDecision, String actionName) {
         Validate.notEmpty(actionName, "Action name must not be null or empty.");
 
         this.policyDecision = policyDecision;
+        this.activationDecision = activationDecision;
         this.actionName = actionName;
     }
 

@@ -22,38 +22,13 @@
 package com.evolveum.midpoint.model.sync.action;
 
 import com.evolveum.midpoint.model.ActivationDecision;
-import com.evolveum.midpoint.model.sync.SynchronizationException;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
 
 /**
  * @author Vilo Repan
  */
 public class DisableAccountAction extends ModifyUserAction {
 
-    private static final Trace trace = TraceManager.getTrace(DisableAccountAction.class);
-
     public DisableAccountAction() {
-        super(null, ACTION_DISABLE_ACCOUNT, ActivationDecision.DISABLE);
-    }
-
-    @Override
-    public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
-                                 SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
-                                 OperationResult result) throws SynchronizationException {
-        if (!(change.getShadow() instanceof AccountShadowType)) {
-            throw new SynchronizationException("Resource object is not account (class '"
-                    + AccountShadowType.class + "'), but it's '" + change.getShadow().getClass() + "'.");
-        }
-
-        OperationResult subResult = result.createSubresult(ACTION_DISABLE_ACCOUNT);
-
-
-        return userOid;
+        super(null, ActivationDecision.DISABLE, ACTION_DISABLE_ACCOUNT);
     }
 }
