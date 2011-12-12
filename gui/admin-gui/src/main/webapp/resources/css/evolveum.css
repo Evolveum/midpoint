@@ -600,7 +600,7 @@ input[disabled],input[readonly],select[disabled],select[readonly],checkbox[disab
 
 #topHomeButtonLeft {
 	background-image:
-		url('/admin-gui/resources/images/buttonNormalLeftCut1.jpg');
+		url('../images/buttonNormalLeftCut1.jpg');
 	position: absolute;
 	height: 47px;
 	width: 30px;
@@ -610,7 +610,7 @@ input[disabled],input[readonly],select[disabled],select[readonly],checkbox[disab
 
 #topConfigurationButtonRight {
 	background-image:
-		url('/admin-gui/resources/images/buttonNormalRightCut1.jpg');
+		url('../images/buttonNormalRightCut1.jpg');
 	position: absolute;
 	height: 47px;
 	width: 30px;
@@ -623,7 +623,7 @@ input[disabled],input[readonly],select[disabled],select[readonly],checkbox[disab
 	position: inherit;
 	float: right;
 	margin-right: 20px;
-	background-image: url('/admin-gui/resources/images/verticalLogo.jpg');
+	background-image: url('../images/verticalLogo.jpg');
 	width: 130px;
 	height: 583px;
 }
@@ -648,11 +648,11 @@ input[disabled],input[readonly],select[disabled],select[readonly],checkbox[disab
 	height:51px;
 	border:none;
 	text-indent:-999px;
-	background:url('/admin-gui/resources/images/ui.totop.png') no-repeat left top;
+	background:url('../images/ui.totop.png') no-repeat left top;
 }
 
 #toTopHover {
-	background:url('/admin-gui/resources/images/ui.totop.png') no-repeat left -51px;
+	background:url('../images/ui.totop.png') no-repeat left -51px;
 	width:51px;
 	height:51px;
 	display:block;
