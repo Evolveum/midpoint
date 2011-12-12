@@ -18,6 +18,7 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
+
 package com.evolveum.midpoint.model.synchronizer;
 
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
@@ -181,8 +182,6 @@ public class AssignmentProcessor {
 //			System.out.println("BBB2: "+attributeValueDeltaMap);
 
             if (zeroAccountMap.containsKey(rat)) {
-                System.out.println(">>>> SC\n" + context.debugDump(2));
-                System.out.println("acc\n" + Arrays.toString(context.getAccountContexts().toArray()));
                 context.getAccountSyncContext(rat).setAssigned(true);
                 // The account existed before the change and should still exist
                 processAccountKeep(context, rat, accountDeltaSetTriple, attributeValueDeltaMap, result);
