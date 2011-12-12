@@ -21,62 +21,58 @@
   -->
 
 <ui:composition template="/resources/templates/template.xhtml"
-                xmlns="http://www.w3.org/1999/xhtml"
-                xmlns:ui="http://java.sun.com/jsf/facelets"
-                xmlns:h="http://java.sun.com/jsf/html"
-                xmlns:comp="http://java.sun.com/jsf/composite/components"
-                xmlns:f="http://java.sun.com/jsf/core"
-                xmlns:ice="http://www.icesoft.com/icefaces/component"
-                xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:comp="http://java.sun.com/jsf/composite/components"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-    <ui:define name="title">#{msg['page.login.title']}</ui:define>
-    <ui:define name="sidebar">
-        <div id="sidebarImage"></div>
-    </ui:define>
+	<ui:define name="title">#{msg['page.login.title']}</ui:define>
+	<ui:define name="sidebar">
+		<div id="sidebarImage"></div>
+	</ui:define>
 
-    <ui:define name="content">
-        <br/>
+	<ui:define name="content">
+		<br />
 
-        <hr/>
-        <div class="loginDiv">
-            <form method="post" action="j_spring_security_check" name="loginForm">
-                <ice:panelGrid id="loginForm" columns="2" style="margin-top: 20px;">
-                    <ice:outputText id="userNameLabel" for="j_username"
-                                    value="#{msg['page.login.username']}"/>
-                    <ice:inputText onkeypress="if (event.keyCode == 13) this.submit();" id="j_username"
-                                   autocomplete="off"/>
-                    <ice:outputText id="passwordLabel" for="j_password"
-                                    value="#{msg['page.login.password']}"/>
-                    <ice:inputSecret onkeypress="if (event.keyCode == 13) this.submit();" id="j_password"
-                                     autocomplete="off"/>
-                    <ice:outputText id="error"
-                                    value="#{SPRING_SECURITY_LAST_EXCEPTION.message}"
-                                    converter="SafeResourceConverter"/>
-                </ice:panelGrid>
-                <br/>
-                <h:panelGroup id="loginButtons" columns="1"
-                              style="text-align: center;">
-                    <h:commandButton id="submitForm" class="submit" type="submit"
-                                     value="#{msg['page.login.button']}"/>
-                </h:panelGroup>
-            </form>
-        </div>
-        <script type="text/javascript">
-            var centerOfLoginDiv = jQuery(".loginDiv").width() / 2;
-            var loginForm = jQuery("#loginForm").width() / 2;
-            var loginButton = jQuery("#loginButtons").width() / 2;
-            loginButton = loginButton + 40;
-            jQuery("#loginForm").css("margin-left",
-                    centerOfLoginDiv - loginForm);
-            jQuery("#loginButtons").css("margin-left", loginForm - loginButton);
+		<hr />
+		<div class="loginDiv">
+			<form method="post" action="j_spring_security_check" name="loginForm">
+				<ice:panelGrid id="loginForm" columns="2" style="margin-top: 20px;">
+					<ice:outputText id="userNameLabel" for="j_username"
+						value="#{msg['page.login.username']}" />
+					<ice:inputText onkeypress="if (event.keyCode == 13) this.submit();"
+						id="j_username" autocomplete="off" />
+					<ice:outputText id="passwordLabel" for="j_password"
+						value="#{msg['page.login.password']}" />
+					<ice:inputSecret
+						onkeypress="if (event.keyCode == 13) this.submit();"
+						id="j_password" autocomplete="off" />
+				</ice:panelGrid>
+				<h:panelGroup id="errorMsg" columns="1" style="text-align: center;">
+					<ice:outputText id="error"
+						value="#{SPRING_SECURITY_LAST_EXCEPTION.message}"
+						converter="SafeResourceConverter" />
+				</h:panelGroup>
+				<br />
+				<h:panelGroup id="loginButtons" columns="1"
+					style="text-align: center;">
+					<h:commandButton id="submitForm" class="submit" type="submit"
+						value="#{msg['page.login.button']}" />
+				</h:panelGroup>
+			</form>
+		</div>
+		<script type="text/javascript">
+			var centerOfLoginDiv = jQuery(".loginDiv").width() / 2;
+			var loginForm = jQuery("#loginForm").width() / 2;
+			var loginButton = jQuery("#loginButton").width() / 2;
+			jQuery("#loginForm").css("margin-left",
+					centerOfLoginDiv - loginForm);
+			jQuery("#loginButton").css("margin-left", loginForm - loginButton);
+		</script>
 
-            /* jQuery("#j_password").keypress(function(e) {
-             if (e.which == 13) {
-             jQuery('#submitForm').click();
-             }
-             }); */
-        </script>
-
-    </ui:define>
+	</ui:define>
 
 </ui:composition>

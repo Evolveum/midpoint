@@ -426,7 +426,7 @@ p {
 }
 
 #loginButtons input.submit {
-	margin: 0px;
+	margin: 10px 0 0 0;
 	background-color: #d5d5d5;
 	background: url("../images/key.png") no-repeat 10px 50%;
 	border: 1px solid #cdcdcd;
@@ -634,7 +634,7 @@ input[disabled],input[readonly],select[disabled],select[readonly],checkbox[disab
 	text-align: center;
 	background-color: #E7EFF1;
 	padding: 20px 0 20px 0;
-	height: 140px;
+	height: 160px;
 }
 
 #toTop {
@@ -665,4 +665,10 @@ input[disabled],input[readonly],select[disabled],select[readonly],checkbox[disab
 
 #toTop:active, #toTop:focus {
 	outline:none;
+}
+
+#error {
+	font: 13px Georgia, "Times New Roman", serif;
+	color: red;
+	position: inherit;
 }
