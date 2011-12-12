@@ -231,14 +231,14 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         return new HashSet<PropertyValue<Object>>();
     }
 
-    public boolean isValueToAdd(Object value) {
+    public boolean isValueToAdd(PropertyValue<?> value) {
         if (valuesToAdd == null) {
             return false;
         }
         return valuesToAdd.contains(value);
     }
 
-    public boolean isValueToDelete(Object value) {
+    public boolean isValueToDelete(PropertyValue<?> value) {
         if (valuesToDelete == null) {
             return false;
         }

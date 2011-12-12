@@ -134,20 +134,20 @@ public class AssignmentProcessor {
 
             Assignment evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, source, result);
 
-            if (assignmentsOld.contains(assignmentType)) {
+            if (assignmentsOld.contains(propertyValue)) {
                 // TODO: remember old state
             }
 
             context.rememberResources(evaluatedAssignment.getResources(result));
 
             // Sort assignments to sets: unchanged (zero), added (plus), removed (minus)
-            if (changedAssignments.contains(assignmentType)) {
+            if (changedAssignments.contains(propertyValue)) {
                 // There was some change
 
-                if (assignmentDelta.isValueToAdd(assignmentType)) {
+                if (assignmentDelta.isValueToAdd(propertyValue)) {
                     collectToAccountMap(plusAccountMap, evaluatedAssignment, result);
                 }
-                if (assignmentDelta.isValueToDelete(assignmentType)) {
+                if (assignmentDelta.isValueToDelete(propertyValue)) {
                     collectToAccountMap(minusAccountMap, evaluatedAssignment, result);
                 }
 
