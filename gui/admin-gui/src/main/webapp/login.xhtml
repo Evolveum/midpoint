@@ -1,58 +1,82 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2011 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2011 [name of copyright owner]
+  -->
+
 <ui:composition template="/resources/templates/template.xhtml"
-	xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:ui="http://java.sun.com/jsf/facelets"
-	xmlns:h="http://java.sun.com/jsf/html"
-	xmlns:comp="http://java.sun.com/jsf/composite/components"
-	xmlns:f="http://java.sun.com/jsf/core"
-	xmlns:ice="http://www.icesoft.com/icefaces/component"
-	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
-		
-	<ui:define name="title">#{msg['page.login.title']}</ui:define>
-	<ui:define name="sidebar">
-		<div id="sidebarImage"></div>
-	</ui:define>
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:comp="http://java.sun.com/jsf/composite/components"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ice="http://www.icesoft.com/icefaces/component"
+                xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<ui:define name="content">
-		<br />
+    <ui:define name="title">#{msg['page.login.title']}</ui:define>
+    <ui:define name="sidebar">
+        <div id="sidebarImage"></div>
+    </ui:define>
 
-		<hr />
-		<div class="loginDiv">
-			<form method="post" action="j_spring_security_check" name="loginForm">
-				<ice:panelGrid id="loginForm" columns="2" style="margin-top: 20px;">
-					<ice:outputText id="userNameLabel" for="j_username"
-						value="#{msg['page.login.username']}" />
-					<ice:inputText onkeypress="if (event.keyCode == 13) this.submit();" id="j_username" autocomplete="off" />
-					<ice:outputText id="passwordLabel" for="j_password"
-						value="#{msg['page.login.password']}" />
-					<ice:inputSecret onkeypress="if (event.keyCode == 13) this.submit();" id="j_password" autocomplete="off" />
-					<ice:outputText id="error" 
-						value="#{SPRING_SECURITY_LAST_EXCEPTION.message}" />
-				</ice:panelGrid>
-				<br />
-				<h:panelGroup id="loginButtons" columns="1"
-					style="text-align: center;">
-					<h:commandButton id="submitForm" class="submit" type="submit"
-						value="#{msg['page.login.button']}" />
-				</h:panelGroup>
-			</form>
-		</div>
-		<script type="text/javascript">
-			var centerOfLoginDiv = jQuery(".loginDiv").width() / 2;
-			var loginForm = jQuery("#loginForm").width() / 2;
-			var loginButton = jQuery("#loginButtons").width() / 2;
-			loginButton = loginButton + 40;
-			jQuery("#loginForm").css("margin-left",
-					centerOfLoginDiv - loginForm);
-			jQuery("#loginButtons").css("margin-left", loginForm - loginButton);
+    <ui:define name="content">
+        <br/>
 
-			/* jQuery("#j_password").keypress(function(e) {
-				if (e.which == 13) {
-					jQuery('#submitForm').click();
-				}
-			}); */
-		</script>
+        <hr/>
+        <div class="loginDiv">
+            <form method="post" action="j_spring_security_check" name="loginForm">
+                <ice:panelGrid id="loginForm" columns="2" style="margin-top: 20px;">
+                    <ice:outputText id="userNameLabel" for="j_username"
+                                    value="#{msg['page.login.username']}"/>
+                    <ice:inputText onkeypress="if (event.keyCode == 13) this.submit();" id="j_username"
+                                   autocomplete="off"/>
+                    <ice:outputText id="passwordLabel" for="j_password"
+                                    value="#{msg['page.login.password']}"/>
+                    <ice:inputSecret onkeypress="if (event.keyCode == 13) this.submit();" id="j_password"
+                                     autocomplete="off"/>
+                    <ice:outputText id="error"
+                                    value="#{SPRING_SECURITY_LAST_EXCEPTION.message}"
+                                    converter="SafeResourceConverter"/>
+                </ice:panelGrid>
+                <br/>
+                <h:panelGroup id="loginButtons" columns="1"
+                              style="text-align: center;">
+                    <h:commandButton id="submitForm" class="submit" type="submit"
+                                     value="#{msg['page.login.button']}"/>
+                </h:panelGroup>
+            </form>
+        </div>
+        <script type="text/javascript">
+            var centerOfLoginDiv = jQuery(".loginDiv").width() / 2;
+            var loginForm = jQuery("#loginForm").width() / 2;
+            var loginButton = jQuery("#loginButtons").width() / 2;
+            loginButton = loginButton + 40;
+            jQuery("#loginForm").css("margin-left",
+                    centerOfLoginDiv - loginForm);
+            jQuery("#loginButtons").css("margin-left", loginForm - loginButton);
 
-	</ui:define>
+            /* jQuery("#j_password").keypress(function(e) {
+             if (e.which == 13) {
+             jQuery('#submitForm').click();
+             }
+             }); */
+        </script>
+
+    </ui:define>
 
 </ui:composition>
