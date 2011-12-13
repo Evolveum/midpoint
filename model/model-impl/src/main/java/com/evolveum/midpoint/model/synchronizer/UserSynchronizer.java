@@ -101,8 +101,9 @@ public class UserSynchronizer {
         loadAccountRefs(context, result);
         context.recomputeUserNew();
 
-        //todo check reconcile flag in account sync context and set accountOld variable if it's not set (from provisioning)
-        //checkAccountContextReconciliation(context, result);
+        // Check reconcile flag in account sync context and set accountOld
+        // variable if it's not set (from provisioning)
+        checkAccountContextReconciliation(context, result);
 
         traceContext("Context after LOAD and recompute:\n{}", context);
 
@@ -143,19 +144,23 @@ public class UserSynchronizer {
             throws ObjectNotFoundException, CommunicationException, SchemaException {
 
         OperationResult subResult = result.createSubresult(UserSynchronizer.class + ".checkAccountContextReconciliation");
-        for (AccountSyncContext accContext : context.getAccountContexts()) {
-            if (!accContext.isDoReconciliation() || accContext.getAccountOld() != null) {
-                continue;
+        try {
+            for (AccountSyncContext accContext : context.getAccountContexts()) {
+                if (!accContext.isDoReconciliation() || accContext.getAccountOld() != null) {
+                    continue;
+                }
+
+                AccountShadowType account = provisioningService.getObject(AccountShadowType.class, accContext.getOid(),
+                        null, subResult);
+
+                MidPointObject<AccountShadowType> object = new MidPointObject<AccountShadowType>(
+                        SchemaConstants.I_ACCOUNT_SHADOW_TYPE);
+                object.setOid(account.getOid());
+                object.setObjectType(account);
+                accContext.setAccountOld(object);
             }
-
-            AccountShadowType account = provisioningService.getObject(AccountShadowType.class, accContext.getOid(),
-                    null, subResult);
-
-            MidPointObject<AccountShadowType> object = new MidPointObject<AccountShadowType>(
-                    SchemaConstants.I_ACCOUNT_SHADOW_TYPE);
-            object.setOid(account.getOid());
-            object.setObjectType(account);
-            accContext.setAccountOld(object);
+        } finally {
+            subResult.computeStatus();
         }
     }
 

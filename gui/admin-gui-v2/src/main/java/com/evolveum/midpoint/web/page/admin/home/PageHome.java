@@ -70,7 +70,7 @@ public class PageHome extends PageAdmin {
         };
         add(button);
 
-        button = new AjaxLinkButton("saveButton", AjaxLinkButton.Type.SIMPLE, new Model<String>("Save")) {
+        button = new AjaxLinkButton("saveButton", AjaxLinkButton.Type.SIMPLE, new Model<String>("Save"), "img/disk.png") {
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {

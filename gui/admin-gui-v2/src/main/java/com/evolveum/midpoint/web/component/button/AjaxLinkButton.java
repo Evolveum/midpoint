@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.component.button;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -30,6 +31,7 @@ import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.parser.XmlTag;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
 /**
@@ -40,7 +42,6 @@ public abstract class AjaxLinkButton extends AjaxLink<String> {
     public static enum Type {SIMPLE, LEFT, MIDDLE, RIGHT}
 
     private Type type;
-    private IModel<String> image;
 
     public AjaxLinkButton(String id, IModel<String> label) {
         this(id, Type.SIMPLE, label);
@@ -50,12 +51,27 @@ public abstract class AjaxLinkButton extends AjaxLink<String> {
         this(id, type, label, null);
     }
 
-    public AjaxLinkButton(String id, Type type, IModel<String> label, IModel<String> image) {
+    public AjaxLinkButton(String id, Type type, IModel<String> label, String image) {
         super(id, label);
         Validate.notNull(type, "Button type must not be null.");
-        this.image = image;
 
         add(new AttributeAppender("class", getTypeModel(type), " "));
+        if (StringUtils.isNotEmpty(image)) {
+            add(new AttributeAppender("style", getImgModel(image), " "));
+        }
+    }
+
+    private IModel<String> getImgModel(String image) {
+        StringBuilder model = new StringBuilder();
+        model.append("padding-left: 30px; background: url('");
+        model.append(WebApplication.get().getServletContext().getContextPath());
+        if (!image.startsWith("/")) {
+            model.append("/");
+        }
+        model.append(image);
+        model.append("') no-repeat 7px 7px #F3F3F3;");
+
+        return new Model<String>(model.toString());
     }
 
     private IModel<String> getTypeModel(Type type) {
