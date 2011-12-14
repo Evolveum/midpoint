@@ -32,8 +32,8 @@ public class TestMidpointObject {
 
     private Map<QName, Object> values = new HashMap<QName, Object>();
 
-    public <T> T getValue(QName key, Class<T> type) {
-        return (T) values.get(key);
+    public Object getValue(QName key) {
+        return values.get(key);
     }
 
     public void setValue(QName key, Object value) {

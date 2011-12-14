@@ -21,18 +21,26 @@
 
 package com.evolveum.midpoint.model.synchronizer;
 
+import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.controller.Filter;
 import com.evolveum.midpoint.model.controller.FilterManager;
 import com.evolveum.midpoint.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -50,25 +58,29 @@ public class InboundProcessor {
     private FilterManager<Filter> filterManager;
 
     void processInbound(SyncContext context, OperationResult result) throws SchemaException {
-//        OperationResult subResult = result.createSubresult(PROCESS_INBOUND_HANDLING);
-//
-//        for (AccountSyncContext accountContext : context.getAccountContexts()) {
-//            ResourceAccountType rat = accountContext.getResourceAccountType();
-//            LOGGER.trace("Processing inbound expressions for account {} starting", rat);
-//
-//            RefinedAccountDefinition accountDefinition = context.getRefinedAccountDefinition(rat, schemaRegistry);
-//            if (accountDefinition == null) {
-//                LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", rat, context.dump());
-//                throw new IllegalStateException("Definition for account type " + rat + " not found in the context, but it should be there");
-//            }
-//
-//            ObjectDelta<AccountShadowType> accountDelta = accountContext.getAccountDelta();
-//            for (QName name : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
-////                PropertyDelta propertyDelta = accountDelta.getPropertyDelta(name);
-////                System.out.println(propertyDelta);
-////                RefinedAttributeDefinition attrDef = accountDefinition.getAttributeDefinition(name);
-//            }
-//        }
+        OperationResult subResult = result.createSubresult(PROCESS_INBOUND_HANDLING);
+
+        try {
+            for (AccountSyncContext accountContext : context.getAccountContexts()) {
+                ResourceAccountType rat = accountContext.getResourceAccountType();
+                LOGGER.trace("Processing inbound expressions for account {} starting", rat);
+
+                RefinedAccountDefinition accountDefinition = context.getRefinedAccountDefinition(rat, schemaRegistry);
+                if (accountDefinition == null) {
+                    LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", rat, context.dump());
+                    throw new IllegalStateException("Definition for account type " + rat + " not found in the context, but it should be there");
+                }
+
+                ObjectDelta<AccountShadowType> accountDelta = accountContext.getAccountDelta();
+                for (QName name : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
+                    PropertyDelta propertyDelta = accountDelta.getPropertyDelta(name);
+                    System.out.println(propertyDelta);
+                    RefinedAttributeDefinition attrDef = accountDefinition.getAttributeDefinition(name);
+                }
+            }
+        } finally {
+            subResult.computeStatus();
+        }
     }
 
     private Element processAttributeInbound(Element user, RefinedAttributeDefinition attrDef) {

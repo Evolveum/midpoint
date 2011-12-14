@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.schema.xjc;
 
+import com.evolveum.midpoint.schema.processor.TestMidpointObject;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.model.CClassInfo;
@@ -32,6 +33,8 @@ import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.namespace.QName;
 import java.util.*;
 
@@ -43,6 +46,8 @@ import java.util.*;
 public class MidPointPlugin {
 
     private static final QName QNAME_OBJECT_TYPE = new QName(PrefixMapper.C.getNamespace(), "ObjectType");
+    private static final QName QNAME_USER_TYPE = new QName(PrefixMapper.C.getNamespace(), "UserType");
+    private static final QName QNAME_FULL_NAME = new QName(PrefixMapper.C.getNamespace(), "fullName");
 
     public String getOptionName() {
         return "Xmidpoint";
@@ -60,7 +65,8 @@ public class MidPointPlugin {
 
             updateObjectType(outline);
         } catch (Exception ex) {
-            throw new RuntimeException("Couldn't process MidPoint JAXB customisation, reason: " + ex.getMessage(), ex);
+            throw new RuntimeException("Couldn't process MidPoint JAXB customisation, reason: "
+                    + ex.getMessage() + ", " + ex.getClass(), ex);
         }
 
         return true;
@@ -78,7 +84,7 @@ public class MidPointPlugin {
         }
     }
 
-    private void createPSFField(Outline outline, JDefinedClass definedClass, String fieldName, QName reference) {
+    private JFieldVar createPSFField(Outline outline, JDefinedClass definedClass, String fieldName, QName reference) {
         JClass clazz = (JClass) outline.getModel().codeModel._ref(QName.class);
 
         JInvocation invocation = (JInvocation) JExpr._new(clazz);
@@ -86,7 +92,7 @@ public class MidPointPlugin {
         invocation.arg(reference.getLocalPart());
 
         int psf = JMod.PUBLIC | JMod.STATIC | JMod.FINAL;
-        definedClass.field(psf, QName.class, fieldName, invocation);
+        return definedClass.field(psf, QName.class, fieldName, invocation);
     }
 
     private void createSchemaConstants(Outline outline) throws JClassAlreadyExistsException {
@@ -127,24 +133,94 @@ public class MidPointPlugin {
         return prefix + newName;
     }
 
-    private void updateObjectType(Outline outline) {
-        ClassOutline objectTypeClassOutline = null;
+    private ClassOutline findClassOutline(Outline outline, QName type) {
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
             QName qname = entry.getValue().getTypeName();
-            if (!QNAME_OBJECT_TYPE.equals(qname)) {
+            if (!type.equals(qname)) {
                 continue;
             }
 
-            objectTypeClassOutline = classOutline;
-            break;
+            return classOutline;
         }
 
-        if (objectTypeClassOutline == null) {
-            throw new IllegalStateException("Object type class outline was not found.");
-        }
+        throw new IllegalStateException("Object type class outline was not found.");
+    }
 
-        //todo insert MidPointObject field into ObjectType class
+    private void updateObjectType(Outline outline) {
+        ClassOutline objectTypeClassOutline = findClassOutline(outline, QNAME_OBJECT_TYPE);
+
+        JDefinedClass definedClass = objectTypeClassOutline.implClass;
+
+        //inserting MidPointObject field into ObjectType class
+        JClass clazz = (JClass) outline.getModel().codeModel._ref(TestMidpointObject.class);
+        JVar field = definedClass.field(JMod.PRIVATE, TestMidpointObject.class, "container", JExpr._new(clazz));
+        //adding XmlTransient annotation
+        field.annotate((JClass) outline.getModel().codeModel._ref(XmlTransient.class));
+
+        JMethod getMethod = definedClass.method(JMod.PUBLIC, clazz, "getContainer");
+        //create body method
+        JBlock body = getMethod.body();
+        body._return(field);
+        //adding Deprecation annotation and small comment to method
+        getMethod.annotate((JClass) outline.getModel().codeModel._ref(Deprecated.class));
+        JDocComment comment = getMethod.javadoc();
+        comment.append("DO NOT USE! For testing purposes only.");
+
+        //for example we update UserType and its fullName
+        updateUserType(outline, getMethod);
+    }
+
+    private void updateUserType(Outline outline, JMethod getContainer) {
+        ClassOutline userType = findClassOutline(outline, QNAME_USER_TYPE);
+        JDefinedClass user = userType.implClass;
+
+        //update field
+        JFieldVar field = user.fields().get("fullName");
+        user.removeField(field);
+
+        //update get/set methods
+        Iterator<JMethod> iterator = user.methods().iterator();
+        while (iterator.hasNext()) {
+            JMethod method = iterator.next();
+            if ("getFullName".equals(method.name())) {
+                iterator.remove();
+            }
+            if ("setFullName".equals(method.name())) {
+                iterator.remove();
+            }
+        }
+        updateGetFullName(outline, userType, getContainer);
+        updateSetFullName(outline, userType, getContainer);
+    }
+
+    private void updateGetFullName(Outline outline, ClassOutline userType, JMethod getContainer) {
+        JDefinedClass user = userType.implClass;
+        JFieldVar field = createPSFField(outline, user, "FULL_NAME", QNAME_FULL_NAME);
+
+        JMethod method = user.method(JMod.PUBLIC, String.class, "getFullName");
+        JAnnotationUse annotation = method.annotate((JClass) outline.getModel().codeModel._ref(XmlElement.class));
+        annotation.param("required", true);
+        JBlock body = method.body();
+
+        JInvocation returnExpr = JExpr.invoke(JExpr.invoke(getContainer), "getValue");
+        returnExpr.arg(JExpr.ref("FULL_NAME"));
+
+        JClass type = (JClass) outline.getModel().codeModel._ref(String.class);
+        body._return(JExpr.cast(type, returnExpr));
+    }
+
+    private void updateSetFullName(Outline outline, ClassOutline userType, JMethod getContainer) {
+        JDefinedClass user = userType.implClass;
+        JMethod method = user.method(JMod.PUBLIC, void.class, "setFullName");
+        method.param(String.class, "fullName");
+
+        JBlock body = method.body();
+
+        JExpression returnExpr = JExpr.invoke(getContainer);
+        JInvocation set = body.invoke(returnExpr, "setValue");
+        set.arg(JExpr.ref("FULL_NAME"));
+        set.arg(JExpr.ref("fullName"));
     }
 }

@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
+import com.evolveum.midpoint.common.refinery.EnhancedResourceType;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.ActivationDecision;
@@ -28,7 +29,11 @@ import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -92,15 +97,14 @@ public class ModifyUserAction extends BaseAction {
         }
 
         SyncContext context = createSyncContext(userType, change.getResource());
-        AccountSyncContext accountContext = createAccountSyncContext(context, change,
-                (AccountShadowType) shadowAfterChange);
-
         try {
+            createAccountSyncContext(context, change, (AccountShadowType) shadowAfterChange);
+
             getSynchronizer().synchronizeUser(context, subResult);
         } catch (Exception ex) {
-            throw new SynchronizationException("Couldn't update sync context in modify user action.", ex);
+            throw new SynchronizationException("Couldn't update account sync context in modify user action.", ex);
         } finally {
-            subResult.recomputeStatus("Couldn't update sync context in modify user action.");
+            subResult.recomputeStatus("Couldn't update account sync context in modify user action.");
         }
 
         try {
@@ -127,7 +131,7 @@ public class ModifyUserAction extends BaseAction {
 
     private AccountSyncContext createAccountSyncContext(SyncContext context,
                                                         ResourceObjectShadowChangeDescriptionType change,
-                                                        AccountShadowType account) {
+                                                        AccountShadowType account) throws SchemaException {
         ResourceType resource = change.getResource();
 
         ResourceAccountType resourceAccount = new ResourceAccountType(resource.getOid(), account.getAccountType());
@@ -137,32 +141,57 @@ public class ModifyUserAction extends BaseAction {
         accountContext.setActivationDecision(getActivationDecision());
         accountContext.setOid(account.getOid());
 
+        Schema schema;
+        if (resource instanceof EnhancedResourceType) {
+            schema = ((EnhancedResourceType) resource).getParsedSchema();
+        } else {
+            schema = Schema.parse(resource.getSchema().getAny().get(0));
+        }
 
-//        ObjectDelta<AccountShadowType> delta = createObjectDelta(change.getObjectChange());
-//        accountContext.setAccountPrimaryDelta(delta);
-
-//        MidPointObject<AccountShadowType> accountShadow = new MidPointObject<AccountShadowType>(SchemaConstants.I_ACCOUNT_SHADOW_TYPE);
-//        accountShadow.setObjectType(account);
-//        accountContext.setAccountNew(accountShadow);
+        ObjectDelta<AccountShadowType> delta = createObjectDelta(change.getObjectChange(), schema);
+        accountContext.setAccountPrimaryDelta(delta);
 
         return accountContext;
     }
 
-//    private ChangeType createObjectDelta(ObjectChangeType change) {
-//        new ObjectDelta<AccountShadowType>(AccountShadowType.class, getChangeType(change));
-//
-//        if (change.getObjectChange() instanceof ObjectChangeAdditionType) {
-//            return ChangeType.ADD;
-//        }
-//
-//        if (change.getObjectChange() instanceof ObjectChangeDeletionType) {
-//            return ChangeType.DELETE;
-//        }
-//
-//        if (change.getObjectChange() instanceof  ObjectChangeModificationType) {
-//            return ChangeType.MODIFY;
-//        }
-//
-//        throw new IllegalArgumentException("Object type change was not defined.");
-//    }
+    private ObjectDelta<AccountShadowType> createObjectDelta(ObjectChangeType change, Schema schema) throws SchemaException {
+        ChangeType changeType = null;
+        if (change instanceof ObjectChangeAdditionType) {
+            changeType = ChangeType.ADD;
+        } else if (change instanceof ObjectChangeDeletionType) {
+            changeType = ChangeType.DELETE;
+        } else if (change instanceof ObjectChangeModificationType) {
+            changeType = ChangeType.MODIFY;
+        }
+
+        if (changeType == null) {
+            throw new IllegalArgumentException("Unknown object change type instance '"
+                    + change.getClass() + "',it's not add, delete nor modify.");
+        }
+
+        ObjectDelta<AccountShadowType> account = null;
+        if (change instanceof ObjectChangeAdditionType) {
+            //todo
+            account = new ObjectDelta<AccountShadowType>(AccountShadowType.class, changeType);
+        } else if (change instanceof ObjectChangeDeletionType) {
+            //todo
+            account = new ObjectDelta<AccountShadowType>(AccountShadowType.class, changeType);
+        } else if (change instanceof ObjectChangeModificationType) {
+            ObjectChangeModificationType modificationChange = (ObjectChangeModificationType) change;
+            ObjectModificationType modification = modificationChange.getObjectModification();
+            account = ObjectDelta.createDelta(AccountShadowType.class, modification, schema);
+
+//            account.setOid(modification.getOid());
+//            for (PropertyModificationType propModification : modification.getPropertyModification()) {
+//                if (PropertyModificationTypeType.add.equals(propModification.getModificationType())
+//                        && (propModification.getValue() == null || propModification.getValue().getAny().isEmpty())) {
+//                    continue;
+//                }
+//                PropertyDelta propDelta = PropertyDelta.createDelta(AccountShadowType.class, propModification, schema);
+//                account.addModification(propDelta);
+//            }
+        }
+
+        return account;
+    }
 }
