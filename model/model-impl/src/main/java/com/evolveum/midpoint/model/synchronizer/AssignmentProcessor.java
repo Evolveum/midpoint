@@ -168,24 +168,23 @@ public class AssignmentProcessor {
         for (ResourceAccountType rat : allAccountTypes) {
 
             if (rat.getResourceOid() == null) {
-                throw new IllegalStateException("Resource OID null in ResourceAccountType during outbound processing");
+                throw new IllegalStateException("Resource OID null in ResourceAccountType during assignment processing");
             }
             if (rat.getAccountType() == null) {
-                throw new IllegalStateException("Account type is null in ResourceAccountType during outbound processing");
+                throw new IllegalStateException("Account type is null in ResourceAccountType during assignment processing");
             }
 
             DeltaSetTriple<AccountConstruction> accountDeltaSetTriple = new DeltaSetTriple<AccountConstruction>(zeroAccountMap.get(rat),
                     plusAccountMap.get(rat), minusAccountMap.get(rat));
 
             Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap = computeAttributeValueDeltaMap(accountDeltaSetTriple);
-//			System.out.println("BBB1: "+accountDeltaSetTriple.dump());
-//			System.out.println("BBB2: "+attributeValueDeltaMap);
-
+			LOGGER.trace("Account {}: accountDeltaSetTriple=\n{}", rat, accountDeltaSetTriple.dump());
+			LOGGER.trace("Account {}: attributeValueDeltaMap=\n{}: ", rat, attributeValueDeltaMap);
+			
             if (zeroAccountMap.containsKey(rat)) {
                 context.getAccountSyncContext(rat).setAssigned(true);
                 // The account existed before the change and should still exist
                 processAccountKeep(context, rat, accountDeltaSetTriple, attributeValueDeltaMap, result);
-                continue;
 
             } else if (plusAccountMap.containsKey(rat) && minusAccountMap.containsKey(rat)) {
                 context.getAccountSyncContext(rat).setAssigned(true);
@@ -198,18 +197,18 @@ public class AssignmentProcessor {
                 // Account added
                 processAccountAssign(context, rat, accountDeltaSetTriple, attributeValueDeltaMap, result);
                 context.getAccountSyncContext(rat).setAssigned(true);
-                continue;
 
             } else if (minusAccountMap.containsKey(rat)) {
                 context.getAccountSyncContext(rat).setAssigned(false);
                 // Account removed
                 processAccountUnassign(context, rat, accountDeltaSetTriple, attributeValueDeltaMap, result);
-                continue;
 
             } else {
                 throw new IllegalStateException("Account " + rat + " went looney");
             }
 
+            context.getAccountSyncContext(rat).addToAttributeValueDeltaSetTripleMap(attributeValueDeltaMap);
+            
         }
     }
 

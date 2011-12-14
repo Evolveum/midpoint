@@ -1512,6 +1512,9 @@ public class TestSanity extends AbstractIntegrationTest {
         // The "l" attribute is assigned indirectly through schemaHandling and
         // config object
         OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
+        
+        // Set by the role
+        OpenDJController.assertAttribute(entry, "carLicense", "C4PT41N");
 
         String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull("Pasword was not set on create", guybrushPassword);

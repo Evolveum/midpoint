@@ -129,6 +129,12 @@ public class DeltaSetTriple<T> implements Dumpable {
             minusSet.add(myMember);
         }
     }
+    
+	public void merge(DeltaSetTriple<T> triple) {
+		zeroSet.addAll(triple.zeroSet);
+		plusSet.addAll(triple.plusSet);
+		minusSet.addAll(triple.minusSet);
+	}
 
     @Override
     public String toString() {

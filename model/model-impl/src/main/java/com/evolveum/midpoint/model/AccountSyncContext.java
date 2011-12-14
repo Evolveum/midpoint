@@ -38,6 +38,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import javax.xml.namespace.QName;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Account synchronization context that is part of SyncContext. Synchronization context that is passed inside the model
@@ -237,6 +239,21 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     public Map<QName, DeltaSetTriple<ValueConstruction>> getAttributeValueDeltaSetTripleMap() {
         return attributeValueDeltaSetTripleMap;
     }
+    
+	public void addToAttributeValueDeltaSetTripleMap(
+			Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap) {
+		
+		for (Entry<QName, DeltaSetTriple<ValueConstruction>> entry: attributeValueDeltaMap.entrySet()) {
+			QName attrName = entry.getKey();
+			DeltaSetTriple<ValueConstruction> triple = entry.getValue();
+			if (attributeValueDeltaSetTripleMap.containsKey(attrName)) {
+				attributeValueDeltaSetTripleMap.get(attrName).merge(triple);
+			} else {
+				attributeValueDeltaSetTripleMap.put(attrName, triple);	
+			}
+		}
+		
+	}
 
     public ResourceAccountTypeDefinitionType getResourceAccountTypeDefinitionType() {
         return ResourceTypeUtil.getResourceAccountTypeDefinitionType(resource, resourceAccountType.getAccountType());
