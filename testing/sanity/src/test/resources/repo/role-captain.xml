@@ -19,10 +19,10 @@
 <!-- Portions Copyrighted 2011 lazyman                       -->
 <!-- Portions Copyrighted 2011 Radovan Semancik              -->
 <!--                                                         -->
-<role oid="12345678-d34d-b33f-f00d-987987987988"
+<role oid="12345678-d34d-b33f-f00d-987987cccccc"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
-    <name>Pirate Role</name>    
+    <name>Captain Role</name>    
     <assignment>
     	<accountConstruction>
     		<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="ResourceType"/>
@@ -32,8 +32,14 @@
             </attribute>
     		<attribute>
                 <ref>ri:title</ref>
-				<value>Bloody Pirate</value>
+				<value>Honorable Captain</value>
             </attribute>    		
+    		<attribute>
+                <ref>ri:carLicense</ref>
+				<value>
+				  <ri:carLicense>C4PT41N</ri:carLicense>
+				</value>
+               </attribute>    		
     	</accountConstruction>
     </assignment>    
 </role>

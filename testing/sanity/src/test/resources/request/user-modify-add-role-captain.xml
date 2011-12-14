@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright (c) 2011 Evolveum                             -->
 <!--                                                         -->
 <!-- The contents of this file are subject to the terms      -->
@@ -16,24 +17,17 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2011 lazyman                       -->
-<!-- Portions Copyrighted 2011 Radovan Semancik              -->
 <!--                                                         -->
-<role oid="12345678-d34d-b33f-f00d-987987987988"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
-    <name>Pirate Role</name>    
-    <assignment>
-    	<accountConstruction>
-    		<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="ResourceType"/>
-    		<attribute>
-                <ref>ri:employeeType</ref>
-				<value>sailor</value>
-            </attribute>
-    		<attribute>
-                <ref>ri:title</ref>
-				<value>Bloody Pirate</value>
-            </attribute>    		
-    	</accountConstruction>
-    </assignment>    
-</role>
+
+<!-- Object modification description that is changing user "guybrush" by adding a new role (using assignment) -->
+
+<objectModification xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'>
+	<oid>c0c010c0-d34d-b33f-f00d-111111111222</oid>
+	<propertyModification modificationType="add">
+		<value>
+			<assignment>
+				<targetRef oid="12345678-d34d-b33f-f00d-987987cccccc" type="RoleType"/>
+			</assignment>
+		</value>
+	</propertyModification>
+</objectModification>

@@ -32,6 +32,7 @@ import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -44,6 +45,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
@@ -508,10 +510,34 @@ public class OpenDJController {
 		return attribute.iterator().next().getValue().toString();
 	}
 
-	public static void assertAttribute(SearchResultEntry response, String name, String value) {
-		String attrValue = getAttributeValue(response, name);
-		assertNotNull("No attribute "+name+" in LDAP response", attrValue);
-		assertEquals("Attribute "+name+" does not match: ",value, attrValue);
+	public static void assertAttribute(SearchResultEntry response, String name, String... values) {
+		List<Attribute> attrs = response.getAttribute(name.toLowerCase());
+		if (attrs == null || attrs.size() == 0) {
+			if (values.length == 0) {
+				return;
+			} else {
+				AssertJUnit.fail("Attribute "+name+" does not have any value");
+			}
+		}
+		assertEquals("Too many \"attributes\" for "+name+": ",
+				1, attrs.size());
+		Attribute attribute = response.getAttribute(name.toLowerCase()).get(0);
+		if (values.length != attribute.size()) {
+			AssertJUnit.fail("Wrong number of values for attribute "+name+", expected "+values.length+" values but got "+attribute.size()+" values");
+		}
+		for (String value: values) {
+			boolean found = false;
+			Iterator<AttributeValue> iterator = attribute.iterator();
+			while (iterator.hasNext()) {
+				AttributeValue attributeValue = iterator.next();
+				if (attributeValue.toString().equals(value)) {
+					found = true;
+				}
+			}
+			if (!found) {
+				AssertJUnit.fail("Attribute "+name+" does not contain value "+value);
+			}
+		}
 	}
 
 }

@@ -140,6 +140,9 @@ public class TestSanity extends AbstractIntegrationTest {
     private static final String ROLE_PIRATE_FILENAME = "src/test/resources/repo/role-pirate.xml";
     private static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-987987987988";
 
+    private static final String ROLE_CAPTAIN_FILENAME = "src/test/resources/repo/role-captain.xml";
+    private static final String ROLE_CAPTAIN_OID = "12345678-d34d-b33f-f00d-987987cccccc";
+    
     private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account.xml";
     private static final String USER_JACK_LDAP_UID = "jack";
     private static final String USER_JACK_LDAP_DN = "uid=" + USER_JACK_LDAP_UID
@@ -153,8 +156,10 @@ public class TestSanity extends AbstractIntegrationTest {
     private static final String REQUEST_USER_MODIFY_ACTIVATION_DISABLE_FILENAME = "src/test/resources/request/user-modify-activation-disable.xml";
     private static final String REQUEST_USER_MODIFY_ACTIVATION_ENABLE_FILENAME = "src/test/resources/request/user-modify-activation-enable.xml";
 
-    private static final String REQUEST_USER_MODIFY_ADD_ROLE_FILENAME = "src/test/resources/request/user-modify-add-role.xml";
-    private static final String REQUEST_USER_MODIFY_DELETE_ROLE_FILENAME = "src/test/resources/request/user-modify-delete-role.xml";
+    private static final String REQUEST_USER_MODIFY_ADD_ROLE_PIRATE_FILENAME = "src/test/resources/request/user-modify-add-role-pirate.xml";
+    private static final String REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_FILENAME = "src/test/resources/request/user-modify-add-role-captain.xml";
+    private static final String REQUEST_USER_MODIFY_DELETE_ROLE_PIRATE_FILENAME = "src/test/resources/request/user-modify-delete-role-pirate.xml";
+    private static final String REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_FILENAME = "src/test/resources/request/user-modify-delete-role-captain.xml";
 
     private static final String LDIF_WILL_FILENAME = "src/test/resources/request/will.ldif";
     private static final String WILL_NAME = "wturner";
@@ -213,6 +218,7 @@ public class TestSanity extends AbstractIntegrationTest {
         addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, initResult);
         addObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
         addObjectFromFile(ROLE_PIRATE_FILENAME, initResult);
+        addObjectFromFile(ROLE_CAPTAIN_FILENAME, initResult);
     }
 
     /**
@@ -1417,9 +1423,9 @@ public class TestSanity extends AbstractIntegrationTest {
     }
 
     @Test
-    public void test050AssignRole() throws FileNotFoundException, JAXBException, FaultMessage,
+    public void test050AssignRolePirate() throws FileNotFoundException, JAXBException, FaultMessage,
             ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
-        displayTestTile("test050AssignRole");
+        displayTestTile("test050AssignRolePirate");
 
         // GIVEN
 
@@ -1443,7 +1449,7 @@ public class TestSanity extends AbstractIntegrationTest {
         assertSuccess("addObject has failed", resultHolder.value);
 
         ObjectModificationType objectChange = unmarshallJaxbFromFile(
-                REQUEST_USER_MODIFY_ADD_ROLE_FILENAME, ObjectModificationType.class);
+                REQUEST_USER_MODIFY_ADD_ROLE_PIRATE_FILENAME, ObjectModificationType.class);
 
         // WHEN
         result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
@@ -1514,7 +1520,8 @@ public class TestSanity extends AbstractIntegrationTest {
         OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
         
         // Set by the role
-        OpenDJController.assertAttribute(entry, "carLicense", "C4PT41N");
+        OpenDJController.assertAttribute(entry, "employeeType", "sailor");
+        OpenDJController.assertAttribute(entry, "title", "Bloody Pirate");
 
         String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull("Pasword was not set on create", guybrushPassword);
@@ -1549,11 +1556,83 @@ public class TestSanity extends AbstractIntegrationTest {
         System.out.println("Account " + accountShadowOidGuybrushOpendj + " has owner " + ObjectTypeUtil.toShortString(user));
     }
 
+    
+    @Test
+    public void test052AssignRoleCaptain() throws FileNotFoundException, JAXBException, FaultMessage,
+            ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
+        displayTestTile("test052AssignRoleCaptain");
+
+        // GIVEN
+
+        ObjectModificationType objectChange = unmarshallJaxbFromFile(
+                REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_FILENAME, ObjectModificationType.class);
+
+        // WHEN
+        OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+
+        // THEN
+        assertCache();
+        displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
+        assertSuccess("modifyObject has failed", result);
+
+        // Check if user object was modified in the repo
+
+        OperationResult repoResult = new OperationResult("getObject");
+        PropertyReferenceListType resolve = new PropertyReferenceListType();
+
+        UserType repoUser = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, resolve, repoResult);
+
+        repoResult.computeStatus();
+        displayJaxb("User (repository)", repoUser, new QName("user"));
+
+        List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+        assertEquals(1, accountRefs.size());
+        ObjectReferenceType accountRef = accountRefs.get(0);
+        assertEquals(accountShadowOidGuybrushOpendj,accountRef.getOid());
+
+        // Check if shadow is still in the repo
+
+        repoResult = new OperationResult("getObject");
+
+        AccountShadowType repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
+                resolve, repoResult);
+        repoResult.computeStatus();
+        assertSuccess("getObject has failed", repoResult);
+        displayJaxb("Shadow (repository)", repoShadow, new QName("shadow"));
+        assertNotNull(repoShadow);
+        assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
+
+        // check if account is still in LDAP
+
+        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
+
+        display("LDAP account", entry);
+
+        OpenDJController.assertAttribute(entry, "uid", "guybrush");
+        OpenDJController.assertAttribute(entry, "givenName", "Guybrush");
+        OpenDJController.assertAttribute(entry, "sn", "Threepwood");
+        OpenDJController.assertAttribute(entry, "cn", "Guybrush Threepwood");
+        // The "l" attribute is assigned indirectly through schemaHandling and
+        // config object
+        OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
+        
+        // Set by the role
+        OpenDJController.assertAttribute(entry, "employeeType", "sailor");
+        OpenDJController.assertAttribute(entry, "title", "Bloody Pirate", "Honorable Captain");
+        OpenDJController.assertAttribute(entry, "carLicense", "C4PT41N");
+
+        String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
+        assertNotNull("Pasword disappeared", guybrushPassword);
+
+        // TODO: Derby
+
+    }
+
 
     @Test
-    public void test058UnassignRole() throws FileNotFoundException, JAXBException, FaultMessage,
+    public void test057UnassignRolePirate() throws FileNotFoundException, JAXBException, FaultMessage,
             ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
-        displayTestTile("test058UnassignRole");
+        displayTestTile("test057UnassignRolePirate");
 
         // GIVEN
 
@@ -1561,7 +1640,84 @@ public class TestSanity extends AbstractIntegrationTest {
         assertCache();
 
         ObjectModificationType objectChange = unmarshallJaxbFromFile(
-                REQUEST_USER_MODIFY_DELETE_ROLE_FILENAME, ObjectModificationType.class);
+                REQUEST_USER_MODIFY_DELETE_ROLE_PIRATE_FILENAME, ObjectModificationType.class);
+
+        // WHEN
+        result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+
+        // THEN
+        assertCache();
+        displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
+        assertSuccess("modifyObject has failed", result);
+
+        // Check if user object was modified in the repo
+
+        OperationResult repoResult = new OperationResult("getObject");
+        PropertyReferenceListType resolve = new PropertyReferenceListType();
+
+        UserType repoUser = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, resolve, repoResult);
+
+        repoResult.computeStatus();
+        displayJaxb("User (repository)", repoUser, new QName("user"));
+
+
+        
+        List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+        assertEquals(1, accountRefs.size());
+        ObjectReferenceType accountRef = accountRefs.get(0);
+        assertEquals(accountShadowOidGuybrushOpendj,accountRef.getOid());
+
+        // Check if shadow is still in the repo
+
+        repoResult = new OperationResult("getObject");
+
+        AccountShadowType repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
+                resolve, repoResult);
+        repoResult.computeStatus();
+        assertSuccess("getObject has failed", repoResult);
+        displayJaxb("Shadow (repository)", repoShadow, new QName("shadow"));
+        assertNotNull(repoShadow);
+        assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
+
+        // check if account is still in LDAP
+
+        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
+
+        display("LDAP account", entry);
+
+        OpenDJController.assertAttribute(entry, "uid", "guybrush");
+        OpenDJController.assertAttribute(entry, "givenName", "Guybrush");
+        OpenDJController.assertAttribute(entry, "sn", "Threepwood");
+        OpenDJController.assertAttribute(entry, "cn", "Guybrush Threepwood");
+        // The "l" attribute is assigned indirectly through schemaHandling and
+        // config object
+        OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
+        
+        // Set by the role
+        OpenDJController.assertAttribute(entry, "employeeType", "sailor");
+        OpenDJController.assertAttribute(entry, "title", "Honorable Captain");
+        OpenDJController.assertAttribute(entry, "carLicense", "C4PT41N");
+
+        String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
+        assertNotNull("Pasword disappeared", guybrushPassword);
+
+        // TODO: Derby        
+        
+        
+    }
+
+    @Test
+    public void test058UnassignRoleCaptain() throws FileNotFoundException, JAXBException, FaultMessage,
+            ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
+        displayTestTile("test058UnassignRoleCaptain");
+
+        // GIVEN
+
+        OperationResultType result = new OperationResultType();
+        assertCache();
+
+        ObjectModificationType objectChange = unmarshallJaxbFromFile(
+                REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_FILENAME, ObjectModificationType.class);
 
         // WHEN
         result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
