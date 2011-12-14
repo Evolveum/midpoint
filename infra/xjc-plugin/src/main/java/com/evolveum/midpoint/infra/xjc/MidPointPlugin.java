@@ -21,18 +21,21 @@
 
 package com.evolveum.midpoint.infra.xjc;
 
-import com.evolveum.midpoint.util.DOMUtil;
-import com.sun.codemodel.JBlock;
-import com.sun.codemodel.JFieldVar;
-import com.sun.codemodel.JMethod;
+import com.sun.codemodel.JClass;
+import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMod;
 import com.sun.tools.xjc.Options;
+import com.sun.tools.xjc.model.CClassInfo;
+import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
-import java.util.List;
+import javax.xml.namespace.QName;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Simple proof of concept for our custom XJC plugin.
@@ -50,24 +53,27 @@ public class MidPointPlugin {
     }
 
     public boolean run(Outline outline, Options options, ErrorHandler errorHandler) throws SAXException {
-        //todo remove this if, it's here just till we create real implementation
-        if (1 == 1) {
-            return true;
-        }
+        Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
+        for (Map.Entry<NClass, CClassInfo> entry : set) {
+            ClassOutline classOutline = outline.getClazz(entry.getValue());
+            QName qname = entry.getValue().getTypeName();
 
-        for (ClassOutline classOutline : outline.getClasses()) {
-            JFieldVar field = classOutline.implClass.field(JMod.PRIVATE, DOMUtil.class, "lazyman");
-            List<JMethod> methods = (List) classOutline.implClass.methods();
-            for (JMethod method : methods) {
-                if (!method.name().equals("getFullName")) {
-                    continue;
-                }
-
-                JBlock body = method.body();
-                //do stuff with method body
+            if (qname != null) {
+                createPSFField(outline, classOutline, "ELEMENT_TYPE", qname);
             }
         }
 
         return true;
+    }
+
+    private void createPSFField(Outline outline, ClassOutline classOutline, String fieldName, QName reference) {
+        JClass clazz = (JClass) outline.getModel().codeModel._ref(QName.class);
+
+        JInvocation invocation = (JInvocation) JExpr._new(clazz);
+        invocation.arg(reference.getNamespaceURI());
+        invocation.arg(reference.getLocalPart());
+
+        int psf = JMod.PUBLIC | JMod.STATIC | JMod.FINAL;
+        classOutline.implClass.field(psf, QName.class, fieldName, invocation);
     }
 }
