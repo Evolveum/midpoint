@@ -42,15 +42,31 @@ import java.util.*;
  */
 public class MidPointPlugin {
 
+    private static final QName QNAME_OBJECT_TYPE = new QName(PrefixMapper.C.getNamespace(), "ObjectType");
+
     public String getOptionName() {
         return "Xmidpoint";
     }
 
     public String getUsage() {
-        return "-Xmidpoint";
+        return "-" + getOptionName();
     }
 
     public boolean run(Outline outline, Options options, ErrorHandler errorHandler) throws SAXException {
+        try {
+            addElementTypes(outline);
+
+            createSchemaConstants(outline);
+
+            updateObjectType(outline);
+        } catch (Exception ex) {
+            throw new RuntimeException("Couldn't process MidPoint JAXB customisation, reason: " + ex.getMessage(), ex);
+        }
+
+        return true;
+    }
+
+    private void addElementTypes(Outline outline) {
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
@@ -60,14 +76,6 @@ public class MidPointPlugin {
                 createPSFField(outline, classOutline.implClass, "ELEMENT_TYPE", qname);
             }
         }
-
-        try {
-            createSchemaConstants(outline);
-        } catch (Exception ex) {
-            throw new RuntimeException("Couldn't process MidPoint JAXB customisation, reason: " + ex.getMessage(), ex);
-        }
-
-        return true;
     }
 
     private void createPSFField(Outline outline, JDefinedClass definedClass, String fieldName, QName reference) {
@@ -117,5 +125,26 @@ public class MidPointPlugin {
         String prefix = PrefixMapper.getPrefix(qname.getNamespaceURI());
 
         return prefix + newName;
+    }
+
+    private void updateObjectType(Outline outline) {
+        ClassOutline objectTypeClassOutline = null;
+        Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
+        for (Map.Entry<NClass, CClassInfo> entry : set) {
+            ClassOutline classOutline = outline.getClazz(entry.getValue());
+            QName qname = entry.getValue().getTypeName();
+            if (!QNAME_OBJECT_TYPE.equals(qname)) {
+                continue;
+            }
+
+            objectTypeClassOutline = classOutline;
+            break;
+        }
+
+        if (objectTypeClassOutline == null) {
+            throw new IllegalStateException("Object type class outline was not found.");
+        }
+
+        //todo insert MidPointObject field into ObjectType class
     }
 }
