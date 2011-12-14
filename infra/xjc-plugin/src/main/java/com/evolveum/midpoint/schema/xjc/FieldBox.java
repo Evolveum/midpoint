@@ -19,34 +19,38 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  */
 
-package com.sun.tools.xjc.addon.apache_cxf.midpoint;
+package com.evolveum.midpoint.schema.xjc;
 
-import com.sun.tools.xjc.Options;
-import com.sun.tools.xjc.Plugin;
-import com.sun.tools.xjc.outline.Outline;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
+import org.apache.commons.lang.Validate;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
  */
-public class MidPointPlugin extends Plugin {
+public class FieldBox implements Comparable<FieldBox> {
 
-    private com.evolveum.midpoint.schema.xjc.MidPointPlugin plugin =
-            new com.evolveum.midpoint.schema.xjc.MidPointPlugin();
+    private String fieldName;
+    private QName qname;
 
-    @Override
-    public String getOptionName() {
-        return plugin.getOptionName();
+    public FieldBox(String fieldName, QName qname) {
+        Validate.notEmpty(fieldName, "Field name must not be null or empty.");
+        Validate.notNull("QName must not be null.");
+
+        this.fieldName = fieldName;
+        this.qname = qname;
+    }
+
+    String getFieldName() {
+        return fieldName;
+    }
+
+    QName getQname() {
+        return qname;
     }
 
     @Override
-    public String getUsage() {
-        return plugin.getUsage();
-    }
-
-    @Override
-    public boolean run(Outline outline, Options opt, ErrorHandler errorHandler) throws SAXException {
-        return plugin.run(outline, opt, errorHandler);
+    public int compareTo(FieldBox fieldBox) {
+        return String.CASE_INSENSITIVE_ORDER.compare(getFieldName(), fieldBox.getFieldName());
     }
 }

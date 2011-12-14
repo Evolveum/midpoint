@@ -19,7 +19,7 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.infra.xjc;
+package com.evolveum.midpoint.schema.xjc;
 
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;

@@ -19,38 +19,24 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.infra.xjc;
-
-import org.apache.commons.lang.Validate;
+package com.evolveum.midpoint.schema.processor;
 
 import javax.xml.namespace.QName;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author lazyman
  */
-public class FieldBox implements Comparable<FieldBox> {
+public class TestMidpointObject {
 
-    private String fieldName;
-    private QName qname;
+    private Map<QName, Object> values = new HashMap<QName, Object>();
 
-    public FieldBox(String fieldName, QName qname) {
-        Validate.notEmpty(fieldName, "Field name must not be null or empty.");
-        Validate.notNull("QName must not be null.");
-
-        this.fieldName = fieldName;
-        this.qname = qname;
+    public <T> T getValue(QName key, Class<T> type) {
+        return (T) values.get(key);
     }
 
-    String getFieldName() {
-        return fieldName;
-    }
-
-    QName getQname() {
-        return qname;
-    }
-
-    @Override
-    public int compareTo(FieldBox fieldBox) {
-        return String.CASE_INSENSITIVE_ORDER.compare(getFieldName(), fieldBox.getFieldName());
+    public void setValue(QName key, Object value) {
+        values.put(key, value);
     }
 }
