@@ -186,6 +186,9 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 	public PropertyContainerDefinition findContainerDefinition(Class<? extends ObjectType> type, PropertyPath path) {
 		ObjectTypes objectType = ObjectTypes.getObjectType(type);
 		ObjectDefinition objectDefinition = findObjectDefinitionByType(objectType.getTypeQName());
+		if (objectDefinition == null) {
+			throw new IllegalArgumentException("The definition of object type "+type.getSimpleName()+" not found in the schema");
+		}
 		return objectDefinition.findItemDefinition(path, PropertyContainerDefinition.class);
 	}
 
