@@ -161,6 +161,8 @@ public class TestSanity extends AbstractIntegrationTest {
     private static final String REQUEST_USER_MODIFY_DELETE_ROLE_PIRATE_FILENAME = "src/test/resources/request/user-modify-delete-role-pirate.xml";
     private static final String REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_FILENAME = "src/test/resources/request/user-modify-delete-role-captain.xml";
 
+    private static final String REQUEST_ACCOUNT_MODIFY_ATTRS_FILENAME = "src/test/resources/request/account-modify-attrs.xml";
+    
     private static final String LDIF_WILL_FILENAME = "src/test/resources/request/will.ldif";
     private static final String WILL_NAME = "wturner";
 
@@ -1625,6 +1627,52 @@ public class TestSanity extends AbstractIntegrationTest {
         assertNotNull("Pasword disappeared", guybrushPassword);
 
         // TODO: Derby
+
+    }
+
+    
+    @Test
+    public void test055ModifyAccount() throws FileNotFoundException, JAXBException, FaultMessage,
+            ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
+        displayTestTile("test055ModifyAccount");
+
+        // GIVEN
+
+        ObjectModificationType objectChange = unmarshallJaxbFromFile(
+                REQUEST_ACCOUNT_MODIFY_ATTRS_FILENAME, ObjectModificationType.class);
+        objectChange.setOid(accountShadowOidGuybrushOpendj);
+
+        // WHEN
+        OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+
+        // THEN
+        assertCache();
+        displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
+        assertSuccess("modifyObject has failed", result);
+
+        // check if LDAP account was modified
+
+        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
+
+        display("LDAP account", entry);
+
+        OpenDJController.assertAttribute(entry, "uid", "guybrush");
+        OpenDJController.assertAttribute(entry, "givenName", "Guybrush");
+        OpenDJController.assertAttribute(entry, "sn", "Threepwood");
+        OpenDJController.assertAttribute(entry, "cn", "Guybrush Threepwood");
+        // The "l" attribute is assigned indirectly through schemaHandling and
+        // config object
+        OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
+        
+        OpenDJController.assertAttribute(entry, "roomNumber", "captain's cabin");
+        
+        // Set by the role
+        OpenDJController.assertAttribute(entry, "employeeType", "sailor");
+        OpenDJController.assertAttribute(entry, "title", "Bloody Pirate", "Honorable Captain");
+        OpenDJController.assertAttribute(entry, "carLicense", "C4PT41N");
+
+        String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
+        assertNotNull("Pasword disappeared", guybrushPassword);
 
     }
 

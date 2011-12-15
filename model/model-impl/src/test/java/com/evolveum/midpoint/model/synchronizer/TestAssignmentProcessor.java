@@ -317,7 +317,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
     private ObjectDelta<UserType> addModification(SyncContext context, String filename) throws JAXBException, SchemaException {
         Schema commonSchema = schemaRegistry.getCommonSchema();
         JAXBElement<ObjectModificationType> modElement = (JAXBElement<ObjectModificationType>) JAXBUtil.unmarshal(new File(filename));
-        ObjectDelta<UserType> userDelta = ObjectDelta.createDelta(UserType.class, modElement.getValue(), commonSchema);
+        ObjectDelta<UserType> userDelta = ObjectDelta.createDelta(modElement.getValue(), commonSchema, UserType.class);
         context.addPrimaryUserDelta(userDelta);
         return userDelta;
     }

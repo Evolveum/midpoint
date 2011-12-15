@@ -621,7 +621,7 @@ public class ModelController implements ModelService {
                 }
 
             } else {
-                objectDelta = ObjectDelta.createDelta(type, change, commonSchema);
+                objectDelta = ObjectDelta.createDelta(change, commonSchema, type);
                 Collection<ObjectDelta<?>> changes = new HashSet<ObjectDelta<?>>();
                 changes.add(objectDelta);
 
@@ -705,7 +705,7 @@ public class ModelController implements ModelService {
 
         syncContext.setUserOld(null);
         syncContext.setUserNew(null);
-        ObjectDelta<UserType> userDelta = ObjectDelta.createDelta(UserType.class, change, commonSchema);
+        ObjectDelta<UserType> userDelta = ObjectDelta.createDelta(change, commonSchema, UserType.class);
         syncContext.setUserPrimaryDelta(userDelta);
 
         return syncContext;

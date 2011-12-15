@@ -249,11 +249,16 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
      * Creates delta from PropertyModificationType (XML). The values inside the PropertyModificationType are converted to java.
      * That's the reason this method needs schema and objectType (to locate the appropriate definitions).
      */
-    public static PropertyDelta createDelta(Class<? extends ObjectType> objectType, PropertyModificationType propMod, Schema schema) throws SchemaException {
+    public static PropertyDelta createDelta(PropertyModificationType propMod, Schema schema, Class<? extends ObjectType> objectType) throws SchemaException {
+    	ObjectDefinition<? extends ObjectType> objectDefinition = schema.findObjectDefinition(objectType);
+    	return createDelta(propMod,objectDefinition);
+    }	
+    	
+    public static PropertyDelta createDelta(PropertyModificationType propMod, PropertyContainerDefinition pcDef) throws SchemaException {
         XPathHolder xpath = new XPathHolder(propMod.getPath());
         PropertyPath parentPath = new PropertyPath(xpath);
-        PropertyContainerDefinition pcd = schema.findContainerDefinition(objectType, parentPath);
-        Collection<? extends Item> items = pcd.parseItems(propMod.getValue().getAny());
+        PropertyContainerDefinition containingPcd = pcDef.findPropertyContainerDefinition(parentPath);
+        Collection<? extends Item> items = containingPcd.parseItems(propMod.getValue().getAny());
         if (items.size() > 1) {
             throw new SchemaException("Expected presence of a single property in a object modification, but found " + items.size() + " instead");
         }

@@ -32,7 +32,9 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyPath;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -359,12 +361,16 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
 	 * Creates new delta from the ObjectModificationType (XML). Object type and schema are used to locate definitions
 	 * needed to convert properties from XML.
 	 */
-	public static <T extends ObjectType> ObjectDelta<T> createDelta(Class<T> type, ObjectModificationType objectModification, Schema schema) throws SchemaException {
-		ObjectDelta<T> objectDelta = new ObjectDelta<T>(type, ChangeType.MODIFY);
+	public static <T extends ObjectType> ObjectDelta<T> createDelta(ObjectModificationType objectModification, Schema schema, Class<T> type) throws SchemaException {
+		return createDelta(objectModification, schema.findObjectDefinition(type));
+	}
+		
+	public static <T extends ObjectType> ObjectDelta<T> createDelta(ObjectModificationType objectModification, ObjectDefinition<T> objDef) throws SchemaException {
+		ObjectDelta<T> objectDelta = new ObjectDelta<T>(objDef.getJaxbClass(), ChangeType.MODIFY);
 		objectDelta.setOid(objectModification.getOid());
 		
 		for (PropertyModificationType propMod: objectModification.getPropertyModification()) {
-			PropertyDelta propDelta = PropertyDelta.createDelta(type, propMod, schema);
+			PropertyDelta propDelta = PropertyDelta.createDelta(propMod, objDef);
 			objectDelta.addModification(propDelta);
 		}
 		

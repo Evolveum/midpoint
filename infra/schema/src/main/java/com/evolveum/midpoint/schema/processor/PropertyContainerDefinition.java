@@ -194,6 +194,18 @@ public class PropertyContainerDefinition extends ItemDefinition {
     }
 
     /**
+     * Finds an inner PropertyContainerDefinition by following the property container path.
+     * <p/>
+     * Returns null if nothing is found.
+     *
+     * @param path property container path
+     * @return found property container definition or null
+     */
+    public PropertyContainerDefinition findPropertyContainerDefinition(PropertyPath path) {
+        return findItemDefinition(path, PropertyContainerDefinition.class);
+    }
+
+    /**
      * Returns set of property definitions.
      * <p/>
      * WARNING: This may return definitions from the associated complex type.
@@ -231,6 +243,10 @@ public class PropertyContainerDefinition extends ItemDefinition {
             }
         }
         return props;
+    }
+    
+    public void replaceDefintion(QName itemName, ItemDefinition replacement) {
+    	
     }
 
     public boolean isDynamic() {

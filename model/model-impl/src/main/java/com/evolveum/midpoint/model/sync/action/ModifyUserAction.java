@@ -171,7 +171,7 @@ public class ModifyUserAction extends BaseAction {
         } else if (change instanceof ObjectChangeModificationType) {
             ObjectChangeModificationType modificationChange = (ObjectChangeModificationType) change;
             ObjectModificationType modification = modificationChange.getObjectModification();
-            account = ObjectDelta.createDelta(AccountShadowType.class, modification, schema);
+            account = ObjectDelta.createDelta(modification, schema, AccountShadowType.class);
         }
 
         if (account == null) {
