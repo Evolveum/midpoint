@@ -26,6 +26,7 @@ import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.model.CClassInfo;
 import com.sun.tools.xjc.model.CElementInfo;
+import com.sun.tools.xjc.model.CPropertyInfo;
 import com.sun.tools.xjc.model.Model;
 import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.outline.ClassOutline;
@@ -175,6 +176,9 @@ public class MidPointPlugin {
     private void updateUserType(Outline outline, JMethod getContainer) {
         ClassOutline userType = findClassOutline(outline, QNAME_USER_TYPE);
         JDefinedClass user = userType.implClass;
+
+        //all class properties (xml properties) are in this list, can be used for automatic updating
+        List<CPropertyInfo> properties = userType.target.getProperties();
 
         //update field
         JFieldVar field = user.fields().get("fullName");

@@ -155,41 +155,28 @@ public class ModifyUserAction extends BaseAction {
     }
 
     private ObjectDelta<AccountShadowType> createObjectDelta(ObjectChangeType change, Schema schema) throws SchemaException {
-        ChangeType changeType = null;
-        if (change instanceof ObjectChangeAdditionType) {
-            changeType = ChangeType.ADD;
-        } else if (change instanceof ObjectChangeDeletionType) {
-            changeType = ChangeType.DELETE;
-        } else if (change instanceof ObjectChangeModificationType) {
-            changeType = ChangeType.MODIFY;
-        }
-
-        if (changeType == null) {
-            throw new IllegalArgumentException("Unknown object change type instance '"
-                    + change.getClass() + "',it's not add, delete nor modify.");
-        }
-
         ObjectDelta<AccountShadowType> account = null;
         if (change instanceof ObjectChangeAdditionType) {
-            //todo
-            account = new ObjectDelta<AccountShadowType>(AccountShadowType.class, changeType);
+            ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change;
+
+            account = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.ADD);
+            MidPointObject<AccountShadowType> object = new MidPointObject<AccountShadowType>(SchemaConstants.I_ACCOUNT_SHADOW_TYPE);
+            object.setObjectType((AccountShadowType) addition.getObject());
+            account.setObjectToAdd(object);
         } else if (change instanceof ObjectChangeDeletionType) {
-            //todo
-            account = new ObjectDelta<AccountShadowType>(AccountShadowType.class, changeType);
+            ObjectChangeDeletionType deletion = (ObjectChangeDeletionType) change;
+
+            account = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.DELETE);
+            account.setOid(deletion.getOid());
         } else if (change instanceof ObjectChangeModificationType) {
             ObjectChangeModificationType modificationChange = (ObjectChangeModificationType) change;
             ObjectModificationType modification = modificationChange.getObjectModification();
             account = ObjectDelta.createDelta(AccountShadowType.class, modification, schema);
+        }
 
-//            account.setOid(modification.getOid());
-//            for (PropertyModificationType propModification : modification.getPropertyModification()) {
-//                if (PropertyModificationTypeType.add.equals(propModification.getModificationType())
-//                        && (propModification.getValue() == null || propModification.getValue().getAny().isEmpty())) {
-//                    continue;
-//                }
-//                PropertyDelta propDelta = PropertyDelta.createDelta(AccountShadowType.class, propModification, schema);
-//                account.addModification(propDelta);
-//            }
+        if (account == null) {
+            throw new IllegalArgumentException("Unknown object change type instance '"
+                    + change.getClass() + "',it's not add, delete nor modify.");
         }
 
         return account;
