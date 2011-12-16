@@ -22,13 +22,14 @@
 package com.evolveum.midpoint.schema.processor;
 
 import javax.xml.namespace.QName;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * @author lazyman
  */
-public class TestMidpointObject {
+public class TestMidpointObject implements Serializable {
 
     private Map<QName, Object> values = new HashMap<QName, Object>();
 

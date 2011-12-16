@@ -33,7 +33,7 @@ import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.MidPointObject;
-import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -141,20 +141,22 @@ public class ModifyUserAction extends BaseAction {
         accountContext.setActivationDecision(getActivationDecision());
         accountContext.setOid(account.getOid());
 
-        Schema schema;
+        ObjectDefinition<AccountShadowType> definition;
         if (resource instanceof EnhancedResourceType) {
-            schema = ((EnhancedResourceType) resource).getParsedSchema();
+            definition = ((EnhancedResourceType) resource).getRefinedSchema().getObjectDefinition(account);
         } else {
-            schema = Schema.parse(resource.getSchema().getAny().get(0));
+            throw new IllegalStateException("Resource type is not type of EnhancedResourceType");
         }
 
-        ObjectDelta<AccountShadowType> delta = createObjectDelta(change.getObjectChange(), schema);
+        ObjectDelta<AccountShadowType> delta = createObjectDelta(change.getObjectChange(), definition);
         accountContext.setAccountPrimaryDelta(delta);
 
         return accountContext;
     }
 
-    private ObjectDelta<AccountShadowType> createObjectDelta(ObjectChangeType change, Schema schema) throws SchemaException {
+    private ObjectDelta<AccountShadowType> createObjectDelta(ObjectChangeType change,
+                                                             ObjectDefinition<AccountShadowType> definition) throws SchemaException {
+
         ObjectDelta<AccountShadowType> account = null;
         if (change instanceof ObjectChangeAdditionType) {
             ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change;
@@ -171,7 +173,7 @@ public class ModifyUserAction extends BaseAction {
         } else if (change instanceof ObjectChangeModificationType) {
             ObjectChangeModificationType modificationChange = (ObjectChangeModificationType) change;
             ObjectModificationType modification = modificationChange.getObjectModification();
-            account = ObjectDelta.createDelta(modification, schema, AccountShadowType.class);
+            account = ObjectDelta.createDelta(modification, definition);
         }
 
         if (account == null) {
