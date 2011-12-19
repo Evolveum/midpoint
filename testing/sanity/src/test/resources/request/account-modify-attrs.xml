@@ -31,4 +31,11 @@
 			<ri:roomNumber>captain's cabin</ri:roomNumber>
 		</value>
 	</propertyModification>
+	<propertyModification modificationType="add">
+		<path>attributes</path>
+		<value>
+			<ri:businessCategory>capsize</ri:businessCategory>
+			<ri:businessCategory>fighting</ri:businessCategory>
+		</value>
+	</propertyModification>
 </objectModification>
