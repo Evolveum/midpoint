@@ -72,6 +72,7 @@ import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -621,7 +622,18 @@ public class ModelController implements ModelService {
                 }
 
             } else {
-                objectDelta = ObjectDelta.createDelta(change, commonSchema, type);
+            	if (AccountShadowType.class.isAssignableFrom(type)) {
+            		// Need to read the shadow to get reference to resource and account type
+            		AccountShadowType shadow = (AccountShadowType) cacheRepositoryService.getObject(type, change.getOid(), null, result);
+            		String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
+            		ResourceType resource = provisioning.getObject(ResourceType.class, resourceOid, null, result);
+            		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, schemaRegistry);
+            		ObjectDefinition<AccountShadowType> accountDefinition = refinedSchema.getObjectDefinition(shadow);
+            		
+            		objectDelta = (ObjectDelta<T>) ObjectDelta.createDelta(change, accountDefinition);
+            	} else {
+            		objectDelta = ObjectDelta.createDelta(change, commonSchema, type);
+            	}
                 Collection<ObjectDelta<?>> changes = new HashSet<ObjectDelta<?>>();
                 changes.add(objectDelta);
 

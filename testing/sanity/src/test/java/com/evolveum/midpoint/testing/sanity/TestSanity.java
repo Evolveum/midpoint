@@ -1643,7 +1643,7 @@ public class TestSanity extends AbstractIntegrationTest {
         objectChange.setOid(accountShadowOidGuybrushOpendj);
 
         // WHEN
-        OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+        OperationResultType result = modelWeb.modifyObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), objectChange);
 
         // THEN
         assertCache();

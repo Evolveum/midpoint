@@ -258,6 +258,9 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         XPathHolder xpath = new XPathHolder(propMod.getPath());
         PropertyPath parentPath = new PropertyPath(xpath);
         PropertyContainerDefinition containingPcd = pcDef.findPropertyContainerDefinition(parentPath);
+        if (containingPcd == null) {
+        	throw new SchemaException("No container definition for "+parentPath+" (while creating delta for "+pcDef+")");
+        }
         Collection<? extends Item> items = containingPcd.parseItems(propMod.getValue().getAny());
         if (items.size() > 1) {
             throw new SchemaException("Expected presence of a single property in a object modification, but found " + items.size() + " instead");
