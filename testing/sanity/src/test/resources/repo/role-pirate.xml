@@ -34,6 +34,13 @@
                 <ref>ri:title</ref>
 				<value>Bloody Pirate</value>
             </attribute>    		
+    		<attribute>
+                <ref>ri:businessCategory</ref>
+				<value>
+					<ri:businessCategory>loot</ri:businessCategory>
+					<ri:businessCategory>murder</ri:businessCategory>
+				</value>
+            </attribute>    		
     	</accountConstruction>
     </assignment>    
 </role>

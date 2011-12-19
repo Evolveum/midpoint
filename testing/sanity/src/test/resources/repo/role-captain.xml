@@ -39,7 +39,13 @@
 				<value>
 				  <ri:carLicense>C4PT41N</ri:carLicense>
 				</value>
-               </attribute>    		
+            </attribute>    		
+    		<attribute>
+                <ref>ri:businessCategory</ref>
+				<value>
+					<ri:businessCategory>cruise</ri:businessCategory>
+				</value>
+            </attribute>    		
     	</accountConstruction>
     </assignment>    
 </role>

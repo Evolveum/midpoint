@@ -1524,6 +1524,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // Set by the role
         OpenDJController.assertAttribute(entry, "employeeType", "sailor");
         OpenDJController.assertAttribute(entry, "title", "Bloody Pirate");
+        OpenDJController.assertAttribute(entry, "businessCategory", "loot", "murder");
 
         String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull("Pasword was not set on create", guybrushPassword);
@@ -1622,6 +1623,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OpenDJController.assertAttribute(entry, "employeeType", "sailor");
         OpenDJController.assertAttribute(entry, "title", "Bloody Pirate", "Honorable Captain");
         OpenDJController.assertAttribute(entry, "carLicense", "C4PT41N");
+        OpenDJController.assertAttribute(entry, "businessCategory", "loot", "murder", "cruise");
 
         String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull("Pasword disappeared", guybrushPassword);
@@ -1670,6 +1672,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OpenDJController.assertAttribute(entry, "employeeType", "sailor");
         OpenDJController.assertAttribute(entry, "title", "Bloody Pirate", "Honorable Captain");
         OpenDJController.assertAttribute(entry, "carLicense", "C4PT41N");
+        OpenDJController.assertAttribute(entry, "businessCategory", "loot", "murder", "cruise");
 
         String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull("Pasword disappeared", guybrushPassword);
@@ -1745,6 +1748,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OpenDJController.assertAttribute(entry, "employeeType", "sailor");
         OpenDJController.assertAttribute(entry, "title", "Honorable Captain");
         OpenDJController.assertAttribute(entry, "carLicense", "C4PT41N");
+        OpenDJController.assertAttribute(entry, "cruise");
 
         String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull("Pasword disappeared", guybrushPassword);
