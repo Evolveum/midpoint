@@ -35,6 +35,7 @@ public interface Action {
 
     String ACTION_ADD_USER = Action.class.getName() + ".addUserAction";
     String ACTION_MODIFY_USER = Action.class.getName() + ".modifyUserAction";
+    String ACTION_DISABLE_USER = Action.class.getName() + ".disableUserAction";
     String ACTION_DELETE_USER = Action.class.getName() + ".deleteUser";
     String ACTION_ADD_ACCOUNT = Action.class.getName() + ".addAccount";
     String ACTION_LINK_ACCOUNT = Action.class.getName() + ".linkAccount";

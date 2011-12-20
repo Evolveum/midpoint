@@ -48,30 +48,38 @@ public class ModifyUserAction extends BaseAction {
     private static final Trace LOGGER = TraceManager.getTrace(ModifyUserAction.class);
     private final String actionName;
     private PolicyDecision policyDecision;
-    private ActivationDecision activationDecision;
+    private ActivationDecision userActivationDecision;
+    private ActivationDecision accountActivationDecision;
 
     public ModifyUserAction() {
         this(PolicyDecision.KEEP, ACTION_MODIFY_USER);
     }
 
     public ModifyUserAction(PolicyDecision policyDecision, String actionName) {
-        this(policyDecision, null, actionName);
-    }
-
-    public ModifyUserAction(PolicyDecision policyDecision, ActivationDecision activationDecision, String actionName) {
         Validate.notEmpty(actionName, "Action name must not be null or empty.");
 
         this.policyDecision = policyDecision;
-        this.activationDecision = activationDecision;
         this.actionName = actionName;
+    }
+
+    protected void setAccountActivationDecision(ActivationDecision decision) {
+        this.accountActivationDecision = decision;
+    }
+
+    protected void setUserActivationDecision(ActivationDecision decision) {
+        this.userActivationDecision = decision;
     }
 
     protected PolicyDecision getPolicyDecision() {
         return policyDecision;
     }
 
-    public ActivationDecision getActivationDecision() {
-        return activationDecision;
+    protected ActivationDecision getUserActivationDecision() {
+        return userActivationDecision;
+    }
+
+    protected ActivationDecision getAccountActivationDecision() {
+        return accountActivationDecision;
     }
 
     @Override
@@ -120,11 +128,17 @@ public class ModifyUserAction extends BaseAction {
 
     private SyncContext createSyncContext(UserType user, ResourceType resource) {
         SyncContext context = new SyncContext();
-        MidPointObject<UserType> oldUser = new MidPointObject<UserType>(SchemaConstants.I_USER_TYPE);
+        ObjectDefinition<UserType> userDefinition = getSchemaRegistry().getCommonSchema().findObjectDefinitionByType(
+                SchemaConstants.I_USER_TYPE);
+        MidPointObject<UserType> oldUser = userDefinition.instantiate(SchemaConstants.I_USER_TYPE);
         oldUser.setObjectType(user);
         context.setUserOld(oldUser);
         context.setUserTypeOld(user);
         context.rememberResource(resource);
+
+        if (getUserActivationDecision() != null) {
+            //todo enable or disable user
+        }
 
         return context;
     }
@@ -138,7 +152,7 @@ public class ModifyUserAction extends BaseAction {
         AccountSyncContext accountContext = context.createAccountSyncContext(resourceAccount);
         accountContext.setResource(resource);
         accountContext.setPolicyDecision(getPolicyDecision());
-        accountContext.setActivationDecision(getActivationDecision());
+        accountContext.setActivationDecision(getAccountActivationDecision());
         accountContext.setOid(account.getOid());
 
         ObjectDefinition<AccountShadowType> definition;

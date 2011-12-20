@@ -22,14 +22,15 @@
 package com.evolveum.midpoint.model.sync.action;
 
 import com.evolveum.midpoint.model.ActivationDecision;
+import com.evolveum.midpoint.model.PolicyDecision;
 
 /**
- * @author Vilo Repan
+ * @author lazyman
  */
-public class DisableAccountAction extends ModifyUserAction {
+public class DisableUserAction extends ModifyUserAction {
 
-    public DisableAccountAction() {
-        super(null, ACTION_DISABLE_ACCOUNT);
-        setAccountActivationDecision(ActivationDecision.DISABLE);
+    public DisableUserAction() {
+        super(PolicyDecision.KEEP, ACTION_DISABLE_USER);
+        setUserActivationDecision(ActivationDecision.DISABLE);
     }
 }
