@@ -26,6 +26,7 @@ import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.sync.Action;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
+import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
@@ -46,6 +47,7 @@ public abstract class BaseAction implements Action {
     private ChangeExecutor executor;
     @Deprecated
     private ModelController model;
+    private SchemaRegistry schemaRegistry;
     private List<Object> parameters;
 
     @Override
@@ -134,5 +136,13 @@ public abstract class BaseAction implements Action {
 
     public void setExecutor(ChangeExecutor executor) {
         this.executor = executor;
+    }
+
+    public SchemaRegistry getSchemaRegistry() {
+        return schemaRegistry;
+    }
+
+    public void setSchemaRegistry(SchemaRegistry schemaRegistry) {
+        this.schemaRegistry = schemaRegistry;
     }
 }

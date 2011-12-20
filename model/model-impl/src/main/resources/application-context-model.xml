@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <!--
   ~ Copyright (c) 2011 Evolveum
   ~
@@ -19,6 +20,7 @@
   ~
   ~ Portions Copyrighted 2011 [name of copyright owner]
   -->
+
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
@@ -106,6 +108,9 @@
         </property>
         <property name="changeExecutor">
             <ref bean="changeExecutor"/>
+        </property>
+        <property name="schemaRegistry">
+            <ref bean="schemaRegistry"/>
         </property>
     </bean>
 

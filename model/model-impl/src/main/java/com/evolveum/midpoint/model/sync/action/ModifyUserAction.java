@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
-import com.evolveum.midpoint.common.refinery.EnhancedResourceType;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.ActivationDecision;
@@ -142,11 +142,7 @@ public class ModifyUserAction extends BaseAction {
         accountContext.setOid(account.getOid());
 
         ObjectDefinition<AccountShadowType> definition;
-        if (resource instanceof EnhancedResourceType) {
-            definition = ((EnhancedResourceType) resource).getRefinedSchema().getObjectDefinition(account);
-        } else {
-            throw new IllegalStateException("Resource type is not type of EnhancedResourceType");
-        }
+        definition = RefinedResourceSchema.getRefinedSchema(resource, getSchemaRegistry()).getObjectDefinition(account);
 
         ObjectDelta<AccountShadowType> delta = createObjectDelta(change.getObjectChange(), definition);
         accountContext.setAccountPrimaryDelta(delta);

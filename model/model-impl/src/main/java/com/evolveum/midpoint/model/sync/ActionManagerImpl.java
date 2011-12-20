@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.sync.action.BaseAction;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
+import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -41,6 +42,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
     private Map<String, Class<T>> actionMap;
     private UserSynchronizer synchronizer;
     private ChangeExecutor changeExecutor;
+    private SchemaRegistry schemaRegistry;
     @Deprecated
     private ModelController model;
 
@@ -65,6 +67,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
                 BaseAction baseAction = (BaseAction) action;
                 baseAction.setSynchronizer(synchronizer);
                 baseAction.setExecutor(changeExecutor);
+                baseAction.setSchemaRegistry(schemaRegistry);
                 baseAction.setModel(model);
             }
         } catch (Exception ex) {
@@ -85,5 +88,9 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
     @Deprecated
     public void setModel(ModelController model) {
         this.model = model;
+    }
+
+    public void setSchemaRegistry(SchemaRegistry schemaRegistry) {
+        this.schemaRegistry = schemaRegistry;
     }
 }
