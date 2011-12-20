@@ -113,9 +113,23 @@ public class SyncContext implements Dumpable, DebugDumpable {
      */
     private Map<String, ResourceType> resourceCache;
 
+    /**
+     * Decision regarding the user. If set to null account activation won't be changed. If set to
+     * {@link ActivationDecision#DISABLE} ({@link ActivationDecision#ENABLE}) user will be disabled (enabled),
+     */
+    private ActivationDecision activationDecision;
+
     public SyncContext() {
         accountContextMap = new HashMap<ResourceAccountType, AccountSyncContext>();
         resourceCache = new HashMap<String, ResourceType>();
+    }
+
+    public ActivationDecision getActivationDecision() {
+        return activationDecision;
+    }
+
+    public void setActivationDecision(ActivationDecision activationDecision) {
+        this.activationDecision = activationDecision;
     }
 
     public UserType getUserTypeOld() {

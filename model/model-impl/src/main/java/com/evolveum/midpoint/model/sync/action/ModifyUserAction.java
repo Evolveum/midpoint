@@ -134,6 +134,7 @@ public class ModifyUserAction extends BaseAction {
         oldUser.setObjectType(user);
         context.setUserOld(oldUser);
         context.setUserTypeOld(user);
+        context.setActivationDecision(getUserActivationDecision());
         context.rememberResource(resource);
 
         if (getUserActivationDecision() != null) {

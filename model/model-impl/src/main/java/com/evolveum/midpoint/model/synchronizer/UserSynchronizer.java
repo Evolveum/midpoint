@@ -83,6 +83,9 @@ public class UserSynchronizer {
     private OutboundProcessor outboundProcessor;
 
     @Autowired(required = true)
+    private ReconciliationProcessor reconciliationProcessor;
+
+    @Autowired(required = true)
     private CredentialsProcessor credentialsProcessor;
 
     @Autowired(required = true)
@@ -126,6 +129,10 @@ public class UserSynchronizer {
         outboundProcessor.processOutbound(context, result);
         context.recomputeNew();
         traceContext("Context after OUTBOUND and recompute:\n{}", context);
+
+        reconciliationProcessor.processReconciliation(context, result);
+        context.recomputeNew();
+        traceContext("Context after RECONCILIATION and recompute:\n{}", context);
 
         consolidateValues(context, result);
         context.recomputeNew();
