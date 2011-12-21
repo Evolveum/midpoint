@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (c) 2011 Evolveum                             -->
-<!--                                                         -->
-<!-- The contents of this file are subject to the terms      -->
-<!-- of the Common Development and Distribution License      -->
-<!-- (the License). You may not use this file except in      -->
-<!-- compliance with the License.                            -->
-<!--                                                         -->
-<!-- You can obtain a copy of the License at                 -->
-<!-- http://www.opensource.org/licenses/cddl1 or             -->
-<!-- CDDLv1.0.txt file in the source code distribution.      -->
-<!-- See the License for the specific language governing     -->
-<!-- permission and limitations under the License.           -->
-<!--                                                         -->
-<!-- If applicable, add the following below the CDDL Header, -->
-<!-- with the fields enclosed by brackets [] replaced by     -->
-<!-- your own identifying information:                       -->
-<!--                                                         -->
-<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
-<!--                                                         -->
+<!--
+  ~ Copyright (c) 2011 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2011 [name of copyright owner]
+  -->
 
 
 <!--
@@ -37,7 +37,6 @@ object.
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
          xmlns:my="http://myself.me/schemas/whatever"
          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
@@ -73,7 +72,8 @@ object.
         </connectorRef>
 
         <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
-        <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
+        <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2
+        </namespace>
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
@@ -141,7 +141,6 @@ object.
         <schema>
 
             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
                         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
                         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
                         xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
@@ -418,7 +417,7 @@ object.
                         </description>
                         <target>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            $i:user/i:fullName
+                            i:fullName
                         </target>
                     </inbound>
 
@@ -443,7 +442,7 @@ object.
                         <description>sn will be synchronized to user's familyName</description>
                         <target>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            $i:user/i:familyName
+                            i:familyName
                         </target>
                     </inbound>
                 </attribute>
@@ -467,7 +466,7 @@ object.
                         <description>givenName will be synchronized to user's givenName</description>
                         <target>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            $i:user/i:givenName
+                            i:givenName
                         </target>
                     </inbound>
                 </attribute>
@@ -498,7 +497,7 @@ object.
                         </description>
                         <target>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            $i:user/i:name
+                            i:name
                         </target>
                     </inbound>
                 </attribute>
@@ -516,23 +515,23 @@ object.
                         <value>Created by IDM</value>
                     </outbound>
 
-                    <inbound>
-                        <valueFilter
-                                type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter"
-                                xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd">
-                            <f:replace>
-                                <!-- Replaces all unicode control characters with emtpty string -->
-                                <f:pattern>\p{C}</f:pattern>
-                                <f:replacement></f:replacement>
-                            </f:replace>
-                        </valueFilter>
-                        <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            declare namespace
-                            my="http://whatever.com/my";
-                            $i:user/i:extension/my:description
-                        </target>
-                    </inbound>
+                    <!--<inbound>-->
+                    <!--<valueFilter-->
+                    <!--type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter"-->
+                    <!--xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd">-->
+                    <!--<f:replace>-->
+                    <!--&lt;!&ndash; Replaces all unicode control characters with emtpty string &ndash;&gt;-->
+                    <!--<f:pattern>\p{C}</f:pattern>-->
+                    <!--<f:replacement></f:replacement>-->
+                    <!--</f:replace>-->
+                    <!--</valueFilter>-->
+                    <!--<target>-->
+                    <!--declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";-->
+                    <!--declare namespace-->
+                    <!--my="http://whatever.com/my";-->
+                    <!--i:extension/my:description-->
+                    <!--</target>-->
+                    <!--</inbound>-->
                     <!-- No inbound expression for description. We don't want to synchronize that -->
                 </attribute>
 

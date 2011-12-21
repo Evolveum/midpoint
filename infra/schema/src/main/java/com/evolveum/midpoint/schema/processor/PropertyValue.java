@@ -88,6 +88,10 @@ public class PropertyValue<T> implements Dumpable, DebugDumpable {
         return hash;
     }
 
+    public boolean equalsRealValue(T value) {
+        return getValue() == null ? value == null : getValue().equals(value);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof PropertyValue)) {

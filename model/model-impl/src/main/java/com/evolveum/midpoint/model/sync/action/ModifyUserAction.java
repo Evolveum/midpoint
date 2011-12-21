@@ -104,8 +104,10 @@ public class ModifyUserAction extends BaseAction {
             throw new SynchronizationException(message);
         }
 
-        SyncContext context = createSyncContext(userType, change.getResource());
+        SyncContext context = null;
         try {
+            context = createSyncContext(userType, change.getResource());
+
             createAccountSyncContext(context, change, (AccountShadowType) shadowAfterChange);
 
             getSynchronizer().synchronizeUser(context, subResult);
@@ -126,21 +128,15 @@ public class ModifyUserAction extends BaseAction {
         return userOid;
     }
 
-    private SyncContext createSyncContext(UserType user, ResourceType resource) {
+    private SyncContext createSyncContext(UserType user, ResourceType resource) throws SchemaException {
         SyncContext context = new SyncContext();
         ObjectDefinition<UserType> userDefinition = getSchemaRegistry().getCommonSchema().findObjectDefinitionByType(
                 SchemaConstants.I_USER_TYPE);
-        MidPointObject<UserType> oldUser = userDefinition.instantiate(SchemaConstants.I_USER_TYPE);
-        oldUser.setOid(user.getOid());
-        oldUser.setObjectType(user);
+
+        MidPointObject<UserType> oldUser = userDefinition.parseObjectType(user);
         context.setUserOld(oldUser);
-        context.setUserTypeOld(user);
         context.setActivationDecision(getUserActivationDecision());
         context.rememberResource(resource);
-
-        if (getUserActivationDecision() != null) {
-            //todo enable or disable user
-        }
 
         return context;
     }
@@ -156,8 +152,6 @@ public class ModifyUserAction extends BaseAction {
         accountContext.setPolicyDecision(getPolicyDecision());
         accountContext.setActivationDecision(getAccountActivationDecision());
         accountContext.setOid(account.getOid());
-
-        accountContext.setDoReconciliation(true);
 
         ObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(resource,
                 getSchemaRegistry()).getObjectDefinition(account);

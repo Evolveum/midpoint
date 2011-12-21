@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.model.synchronizer;
 
+import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -40,7 +41,18 @@ public class ReconciliationProcessor {
         OperationResult subResult = result.createSubresult(PROCESS_RECONCILIATION);
 
         try {
-            //todo implement this
+            for (AccountSyncContext accContext : context.getAccountContexts()) {
+                if (!accContext.isDoReconciliation()) {
+                    continue;
+                }
+
+                if (accContext.getAccountOld() == null) {
+                    throw new IllegalStateException("Account context doesn't contain old version of account.");
+                }
+
+                //todo implement this
+
+            }
         } finally {
             subResult.computeStatus();
         }
