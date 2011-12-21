@@ -133,12 +133,21 @@ public class PropertyContainerDefinition extends ItemDefinition {
         if (name == null) {
             throw new IllegalArgumentException("name not specified while searching in " + this);
         }
+
+        if (isItemValid(this, name, clazz)) {
+            return (T) this;
+        }
+
         for (ItemDefinition def : getDefinitions()) {
-            if (clazz.isAssignableFrom(def.getClass()) && name.equals(def.getName())) {
+            if (isItemValid(def, name, clazz)) {
                 return (T) def;
             }
         }
         return null;
+    }
+
+    private <T extends ItemDefinition> boolean isItemValid(ItemDefinition def, QName name, Class<T> clazz) {
+        return clazz.isAssignableFrom(def.getClass()) && name.equals(def.getName());
     }
 
     public <T extends ItemDefinition> T findItemDefinition(PropertyPath path, Class<T> clazz) {
@@ -244,9 +253,9 @@ public class PropertyContainerDefinition extends ItemDefinition {
         }
         return props;
     }
-    
+
     public void replaceDefintion(QName itemName, ItemDefinition replacement) {
-    	
+
     }
 
     public boolean isDynamic() {
