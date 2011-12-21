@@ -131,6 +131,7 @@ public class ModifyUserAction extends BaseAction {
         ObjectDefinition<UserType> userDefinition = getSchemaRegistry().getCommonSchema().findObjectDefinitionByType(
                 SchemaConstants.I_USER_TYPE);
         MidPointObject<UserType> oldUser = userDefinition.instantiate(SchemaConstants.I_USER_TYPE);
+        oldUser.setOid(user.getOid());
         oldUser.setObjectType(user);
         context.setUserOld(oldUser);
         context.setUserTypeOld(user);
@@ -156,8 +157,10 @@ public class ModifyUserAction extends BaseAction {
         accountContext.setActivationDecision(getAccountActivationDecision());
         accountContext.setOid(account.getOid());
 
-        ObjectDefinition<AccountShadowType> definition;
-        definition = RefinedResourceSchema.getRefinedSchema(resource, getSchemaRegistry()).getObjectDefinition(account);
+        accountContext.setDoReconciliation(true);
+
+        ObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(resource,
+                getSchemaRegistry()).getObjectDefinition(account);
 
         ObjectDelta<AccountShadowType> delta = createObjectDelta(change.getObjectChange(), definition);
         accountContext.setAccountPrimaryDelta(delta);

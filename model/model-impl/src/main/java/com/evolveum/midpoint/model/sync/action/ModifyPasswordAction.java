@@ -34,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import java.util.List;
 
 /**
- * @author Vilo Repan
+ * @author lazyman
  */
 public class ModifyPasswordAction extends BaseAction {
 
@@ -57,32 +57,13 @@ public class ModifyPasswordAction extends BaseAction {
                     + ObjectChangeModificationType.class.getName());
         }
 
-        PropertyModificationType pwd = getPasswordFromModification((ObjectChangeModificationType) change
-                .getObjectChange());
-        if (pwd == null) {
-            trace.error("Couldn't find property modification with password change, returning.");
-            return userOid;
-        }
-
         try {
-            ObjectModificationType changes = createPasswordModification(userType, pwd);
-
-            // getModel().modifyObjectWithExclusion(changes,
-            // change.getShadow().getOid(),
-            // new Holder<OperationResultType>(resultType));
-        } catch (Exception ex) {
-            throw new SynchronizationException("Can't save user", ex);
+            //TODO: create sync context and modify password
+        } finally {
+            subResult.computeStatus();
         }
 
         return userOid;
-    }
-
-    private ObjectModificationType createPasswordModification(UserType user, PropertyModificationType password) {
-        ObjectModificationType changes = new ObjectModificationType();
-        changes.setOid(user.getOid());
-        changes.getPropertyModification().add(password);
-
-        return changes;
     }
 
     private PropertyModificationType getPasswordFromModification(ObjectChangeModificationType objectChange) {

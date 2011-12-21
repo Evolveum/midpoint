@@ -54,6 +54,8 @@ public class DeleteUserAction extends BaseAction {
         }
 
         try {
+            //todo create sync context, delete user throught it
+
             getModel().deleteObject(UserType.class, userOid, result);
             userOid = null;
             subResult.recordSuccess();
@@ -62,6 +64,8 @@ public class DeleteUserAction extends BaseAction {
             subResult.recordFatalError("Couldn't delete user '" + userOid + "'.", ex);
             throw new SynchronizationException("Couldn't delete user '" + userOid + "', reason: "
                     + ex.getMessage(), ex);
+        } finally {
+            subResult.recomputeStatus();
         }
 
         return userOid;

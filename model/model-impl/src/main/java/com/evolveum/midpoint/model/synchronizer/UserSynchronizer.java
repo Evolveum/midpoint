@@ -22,11 +22,13 @@
 package com.evolveum.midpoint.model.synchronizer;
 
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SchemaRegistry;
@@ -159,9 +161,11 @@ public class UserSynchronizer {
 
                 AccountShadowType account = provisioningService.getObject(AccountShadowType.class, accContext.getOid(),
                         null, subResult);
+                ResourceType resource = Utils.getResource(account, provisioningService, result);
+                ObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(
+                        resource, schemaRegistry).getObjectDefinition(account);
 
-                MidPointObject<AccountShadowType> object = new MidPointObject<AccountShadowType>(
-                        SchemaConstants.I_ACCOUNT_SHADOW_TYPE);
+                MidPointObject<AccountShadowType> object = definition.instantiate(SchemaConstants.I_ACCOUNT_SHADOW_TYPE);
                 object.setOid(account.getOid());
                 object.setObjectType(account);
                 accContext.setAccountOld(object);

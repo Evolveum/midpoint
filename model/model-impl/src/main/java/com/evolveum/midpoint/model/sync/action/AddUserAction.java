@@ -18,12 +18,14 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
+
 package com.evolveum.midpoint.model.sync.action;
 
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -52,7 +54,9 @@ public class AddUserAction extends BaseAction {
                 user = new ObjectFactory().createUserType();
 
                 SyncContext context = new SyncContext();
-                MidPointObject<UserType> oldUser = new MidPointObject<UserType>(SchemaConstants.I_USER_TYPE);
+                ObjectDefinition<UserType> userDefinition = getSchemaRegistry().getCommonSchema().findObjectDefinitionByType(
+                        SchemaConstants.I_USER_TYPE);
+                MidPointObject<UserType> oldUser = userDefinition.instantiate(SchemaConstants.I_USER_TYPE);
                 oldUser.setObjectType(user);
                 context.setUserOld(oldUser);
                 context.setUserTypeOld(user);
@@ -71,6 +75,8 @@ public class AddUserAction extends BaseAction {
                     "Couldn't perform Add User Action for shadow '" + shadowAfterChange.getName()
                             + "', oid '" + shadowAfterChange.getOid() + "'.", ex);
             throw new SynchronizationException(ex.getMessage(), ex);
+        } finally {
+            subResult.recomputeStatus();
         }
 
         return userOid;
