@@ -22,6 +22,9 @@ package com.evolveum.midpoint.schema;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -137,6 +140,21 @@ public class SchemaRegistry implements LSResourceResolver {
 	 */
 	public void registerSchema(Node node, String sourceDescription, String usualPrefix) {
 		schemaDescriptions.add(new SchemaDescription(node, usualPrefix, sourceDescription));
+	}
+	
+	public void registerSchemaFile(File file) {
+		schemaDescriptions.add(new SchemaDescription(file, "file "+file.getPath()));
+	}
+	
+	public void registerSchemasFromDirectory(File directory) {
+		for (File file: directory.listFiles()) {
+			if (file.isDirectory()) {
+				registerSchemasFromDirectory(file);
+			}
+			if (file.isFile()) {
+				registerSchemaFile(file);
+			}
+		}
 	}
 	
 	public void initialize() throws SAXException, IOException, SchemaException {
@@ -265,6 +283,7 @@ public class SchemaRegistry implements LSResourceResolver {
 		private String namespace;
 		private String sourceDescription;
 		private Node node;
+		private File file;
 		private boolean isMidPointSchema = false;
 
 		public SchemaDescription(String resourcePath, String usualPrefix, String namespace, String sourceDescription) {
@@ -302,6 +321,12 @@ public class SchemaRegistry implements LSResourceResolver {
 			this.node = node;
 			this.sourceDescription = sourceDescription;
 		}
+		
+		public SchemaDescription(File file, String sourceDescription) {
+			super();
+			this.file = file;
+			this.sourceDescription = sourceDescription;
+		}
 
 		public String getResourcePath() {
 			return resourcePath;
@@ -330,16 +355,37 @@ public class SchemaRegistry implements LSResourceResolver {
 		public boolean isMidPointSchema() {
 			return isMidPointSchema;
 		}
+		
+		public boolean canInputStream() {
+			return (resourcePath != null || file != null);
+		}
+		
+		public InputStream getInputStream() {
+			if (resourcePath != null) {			
+				InputStream inputStream = SchemaRegistry.class.getClassLoader().getResourceAsStream(resourcePath);
+				if (inputStream == null) {
+					throw new IllegalStateException("Cannot fetch system resource for schema " + resourcePath);
+				}
+				return inputStream;
+			}
+			if (file != null) {
+				InputStream inputStream;
+				try {
+					inputStream = new FileInputStream(file);
+				} catch (FileNotFoundException e) {
+					throw new IllegalStateException("Cannot open schema file "+file,e);
+				}
+				return inputStream;
+			}
+			throw new IllegalStateException("Cannot produce input stream");
+		}
 
 		public Source getSource() {
 			if (node != null) {
 				return new DOMSource(node);
 			}
-			if (resourcePath != null) {			
-				InputStream inputStream = SchemaRegistry.class.getClassLoader().getResourceAsStream(resourcePath);
-				if (inputStream==null) {
-					throw new IllegalStateException("Cannot fetch system resource for schema " + resourcePath);
-				}
+			if (canInputStream()) {			
+				InputStream inputStream = getInputStream();
 				return new StreamSource(inputStream);
 			}
 			throw new IllegalStateException("Cannot determine source for schema " + namespace);
@@ -347,19 +393,16 @@ public class SchemaRegistry implements LSResourceResolver {
 		
 		public Element getDomElement() {
 			if (node == null) {
-				if (resourcePath != null) {			
-					InputStream inputStream = SchemaRegistry.class.getClassLoader().getResourceAsStream(resourcePath);
-					if (inputStream==null) {
-						throw new IllegalStateException("Cannot fetch system resource " + resourcePath + " for schema " + namespace);
-					}
+				if (canInputStream()) {			
+					InputStream inputStream = getInputStream();
 					try {
 						node = DOMUtil.parse(inputStream);
 					} catch (IOException e) {
-						throw new IllegalStateException("Cannot fetch and parse system resource " + resourcePath 
-								+ " for schema " + namespace + ": "+e.getMessage(), e);
+						throw new IllegalStateException("Cannot fetch and parse " + sourceDescription 
+								+ " for namespace " + namespace + ": "+e.getMessage(), e);
 					}
 				} else {
-					throw new IllegalStateException("Cannot parse schema " + namespace + ": no DOM node and no resource");
+					throw new IllegalStateException("Cannot parse schema from " + sourceDescription + ": no DOM node and no resource");
 				}
 			}
 			if (node instanceof Element) {

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema 
+	xmlns="http://www.w3.org/2001/XMLSchema" 
+	targetNamespace="http://example.com/xml/ns/foo"
+	xmlns:tns="http://example.com/xml/ns/foo"
+	xmlns:ext="http://example.com/xml/ns/user-extension"
+	elementFormDefault="qualified">
+	
+	<import namespace="http://example.com/xml/ns/user-extension" />
+	
+	<complexType name="FooType">
+		<sequence>
+			<element name="foo" type="string"/>
+			<element name="bar" type="integer" minOccurs="0"/>
+		</sequence>
+	</complexType>
+	
+	<element name="extension" type="ext:UserExtensionType"/>
+	
+	<complexType name="RootType">
+		<sequence>
+			<element ref="tns:extension"/>
+			<element name="foo" type="tns:FooType"/>
+		</sequence>
+	</complexType>
+	
+	<element name="root" type="tns:RootType"/>
+</schema>

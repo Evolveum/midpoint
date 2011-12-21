@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root xmlns="http://example.com/xml/ns/foo"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:ext="http://example.com/xml/ns/user-extension">
+	<extension>
+		<ext:foo>FOOO</ext:foo>
+		<ext:foobar>FooBar</ext:foobar>
+	</extension>
+	<foo>
+		<foo>foo</foo>
+		<bar>42</bar>
+	</foo>
+</root>

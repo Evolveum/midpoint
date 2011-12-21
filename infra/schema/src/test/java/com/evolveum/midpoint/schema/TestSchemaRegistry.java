@@ -7,6 +7,7 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
 
+import java.io.File;
 import java.io.IOException;
 
 import javax.xml.namespace.QName;
@@ -68,7 +69,25 @@ public class TestSchemaRegistry {
 		System.out.println("Validation result:");
 		System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
 	}
-	
+
+	@Test
+	public void testExtraSchemaDir() throws SAXException, IOException, SchemaException {
+		File extraSchemaDir = new File("src/test/resources/schema-registry/schema-dir");
+		Document dataDoc = DOMUtil.parseFile("src/test/resources/schema-registry/data-schemadir.xml");
+
+		SchemaRegistry reg = new SchemaRegistry();
+		reg.registerSchemasFromDirectory(extraSchemaDir);
+		reg.initialize();
+		Schema javaxSchema = reg.getJavaxSchema();
+		assertNotNull(javaxSchema);
+		
+		Validator validator = javaxSchema.newValidator();
+		DOMResult validationResult = new DOMResult();
+		validator.validate(new DOMSource(dataDoc),validationResult);
+		System.out.println("Validation result:");
+		System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
+	}
+
 	@Test
 	public void testCommonSchemaUserType() throws SchemaException, SAXException, IOException {
 
