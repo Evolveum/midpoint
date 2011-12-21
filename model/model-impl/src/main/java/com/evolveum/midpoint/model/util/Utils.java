@@ -25,6 +25,8 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -40,7 +42,7 @@ public final class Utils {
     }
 
     public static void resolveResource(ResourceObjectShadowType shadow, ProvisioningService provisioning,
-                                       OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException {
+            OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException {
 
         Validate.notNull(shadow, "Resource object shadow must not be null.");
         Validate.notNull(provisioning, "Provisioning service must not be null.");
@@ -51,7 +53,7 @@ public final class Utils {
     }
 
     public static ResourceType getResource(ResourceObjectShadowType shadow, ProvisioningService provisioning,
-                                           OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException {
+            OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException {
 
         if (shadow.getResource() != null) {
             return shadow.getResource();
@@ -64,5 +66,28 @@ public final class Utils {
 
         ObjectReferenceType resourceRef = shadow.getResourceRef();
         return provisioning.getObject(ResourceType.class, resourceRef.getOid(), null, result);
+    }
+
+    /**
+     * Method tests if {@link Property} contains {@link PropertyValue} with wrapped value like defined in parameter.
+     * For comparation is used method {@link PropertyValue#equalsRealValue(Object)}.
+     *
+     * @param property {@link Property} object where are we looking for value, can be null.
+     * @param value    {@link PropertyValue} what are we looking for in property
+     * @return
+     */
+    public static boolean hasPropertyValue(Property property, PropertyValue<Object> value) {
+        Validate.notNull(value, "Property value must not be null.");
+        if (property == null || property.getValues() == null) {
+            return false;
+        }
+
+        for (PropertyValue val : property.getValues()) {
+            if (val.equalsRealValue(value.getValue())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.controller.Filter;
 import com.evolveum.midpoint.model.controller.FilterManager;
+import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
@@ -111,15 +112,17 @@ public class InboundProcessor {
     }
 
     private PropertyDelta createUserPropertyDelta(Element inbound, PropertyDelta propertyDelta,
-                                                  MidPointObject<UserType> newUser) {
+            MidPointObject<UserType> newUser) {
         ValueAssignmentHolder holder = new ValueAssignmentHolder(inbound);
+
+        //todo apply filters
 
         PropertyPath targetUserAttribute = createPropertyPath(holder);
         PropertyDelta delta = new PropertyDelta(targetUserAttribute);
         if (propertyDelta.getValuesToAdd() != null) {
             for (PropertyValue<Object> value : propertyDelta.getValuesToAdd()) {
                 Property property = newUser.findProperty(targetUserAttribute);
-                if (!hasPropertyValue(property, value)) {
+                if (!Utils.hasPropertyValue(property, value)) {
                     delta.addValueToAdd(value);
                 }
             }
@@ -127,27 +130,14 @@ public class InboundProcessor {
         if (propertyDelta.getValuesToDelete() != null) {
             for (PropertyValue<Object> value : propertyDelta.getValuesToDelete()) {
                 Property property = newUser.findProperty(targetUserAttribute);
-                if (hasPropertyValue(property, value)) {
+                if (Utils.hasPropertyValue(property, value)) {
                     delta.addValueToDelete(value);
                 }
             }
         }
 
+        //if nothing changes was generated return null
         return delta.getValues(Object.class).isEmpty() ? null : delta;
-    }
-
-    private boolean hasPropertyValue(Property property, PropertyValue<Object> value) {
-        if (property == null || property.getValues() == null) {
-            return false;
-        }
-
-        for (PropertyValue val : property.getValues()) {
-            if (val.equalsRealValue(value.getValue())) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private PropertyPath createPropertyPath(ValueAssignmentHolder holder) {

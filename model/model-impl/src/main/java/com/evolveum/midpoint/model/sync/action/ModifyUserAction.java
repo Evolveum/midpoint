@@ -28,17 +28,21 @@ import com.evolveum.midpoint.model.ActivationDecision;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
+import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.ChangeType;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
-import com.evolveum.midpoint.schema.processor.ObjectDefinition;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.Validate;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -84,8 +88,8 @@ public class ModifyUserAction extends BaseAction {
 
     @Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
-                                 SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
-                                 OperationResult result) throws SynchronizationException {
+            SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
+            OperationResult result) throws SynchronizationException {
         super.executeChanges(userOid, change, situation, shadowAfterChange, result);
 
         if (!(shadowAfterChange instanceof AccountShadowType)) {
@@ -142,28 +146,31 @@ public class ModifyUserAction extends BaseAction {
     }
 
     private AccountSyncContext createAccountSyncContext(SyncContext context,
-                                                        ResourceObjectShadowChangeDescriptionType change,
-                                                        AccountShadowType account) throws SchemaException {
+            ResourceObjectShadowChangeDescriptionType change,
+            AccountShadowType shadowAfterChange) throws SchemaException {
         ResourceType resource = change.getResource();
 
-        ResourceAccountType resourceAccount = new ResourceAccountType(resource.getOid(), account.getAccountType());
+        ResourceAccountType resourceAccount = new ResourceAccountType(resource.getOid(), shadowAfterChange.getAccountType());
         AccountSyncContext accountContext = context.createAccountSyncContext(resourceAccount);
         accountContext.setResource(resource);
         accountContext.setPolicyDecision(getPolicyDecision());
         accountContext.setActivationDecision(getAccountActivationDecision());
-        accountContext.setOid(account.getOid());
+        accountContext.setOid(shadowAfterChange.getOid());
 
         ObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(resource,
-                getSchemaRegistry()).getObjectDefinition(account);
+                getSchemaRegistry()).getObjectDefinition(shadowAfterChange);
 
-        ObjectDelta<AccountShadowType> delta = createObjectDelta(change.getObjectChange(), definition);
+        MidPointObject<AccountShadowType> shadowObject = definition.parseObjectType(shadowAfterChange);
+
+        ObjectDelta<AccountShadowType> delta = createObjectDelta(change.getObjectChange(), definition, shadowObject);
         accountContext.setAccountPrimaryDelta(delta);
 
         return accountContext;
     }
 
     private ObjectDelta<AccountShadowType> createObjectDelta(ObjectChangeType change,
-                                                             ObjectDefinition<AccountShadowType> definition) throws SchemaException {
+            ObjectDefinition<AccountShadowType> definition,
+            MidPointObject<AccountShadowType> shadowObject) throws SchemaException {
 
         ObjectDelta<AccountShadowType> account = null;
         if (change instanceof ObjectChangeAdditionType) {
@@ -182,6 +189,8 @@ public class ModifyUserAction extends BaseAction {
             ObjectChangeModificationType modificationChange = (ObjectChangeModificationType) change;
             ObjectModificationType modification = modificationChange.getObjectModification();
             account = ObjectDelta.createDelta(modification, definition);
+
+            deltaCleanup(account, shadowObject);
         }
 
         if (account == null) {
@@ -190,5 +199,40 @@ public class ModifyUserAction extends BaseAction {
         }
 
         return account;
+    }
+
+    private void deltaCleanup(ObjectDelta<AccountShadowType> account, MidPointObject<AccountShadowType> shadowObject) {
+        if (account.getModifications() == null) {
+            return;
+        }
+
+        List<PropertyDelta> deltaToBeRemoved = new ArrayList<PropertyDelta>();
+        for (PropertyDelta delta : account.getModifications()) {
+            if (delta.getValuesToAdd() != null) {
+                Iterator<PropertyValue<Object>> iterator = delta.getValuesToAdd().iterator();
+                while (iterator.hasNext()) {
+                    PropertyValue<Object> value = iterator.next();
+                    Property property = shadowObject.findProperty(delta.getPath());
+                    if (Utils.hasPropertyValue(property, value)) {
+                        iterator.remove();
+                    }
+                }
+            }
+            if (delta.getValuesToDelete() != null) {
+                Iterator<PropertyValue<Object>> iterator = delta.getValuesToDelete().iterator();
+                while (iterator.hasNext()) {
+                    PropertyValue<Object> value = iterator.next();
+                    Property property = shadowObject.findProperty(delta.getPath());
+                    if (!Utils.hasPropertyValue(property, value)) {
+                        iterator.remove();
+                    }
+                }
+            }
+
+            if (delta.getValues(Object.class).isEmpty()) {
+                deltaToBeRemoved.add(delta);
+            }
+        }
+        account.getModifications().removeAll(deltaToBeRemoved);
     }
 }
