@@ -87,56 +87,56 @@ public class SchemaRegistry implements LSResourceResolver {
 	private void registerBuiltinSchemas() {
 		String prefix;
 		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_C);
-		registerMidPointSchema("xml/ns/public/common/common-1.xsd",prefix,SchemaConstants.NS_C);
+		registerMidPointSchemaResource("xml/ns/public/common/common-1.xsd",prefix,SchemaConstants.NS_C);
 		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_ANNOTATION);
-		registerMidPointSchema("xml/ns/public/common/annotation-1.xsd",prefix,SchemaConstants.NS_ANNOTATION);
+		registerMidPointSchemaResource("xml/ns/public/common/annotation-1.xsd",prefix,SchemaConstants.NS_ANNOTATION);
 		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_RESOURCE);
-		registerMidPointSchema("xml/ns/public/resource/resource-schema-1.xsd",prefix,SchemaConstants.NS_RESOURCE);
+		registerMidPointSchemaResource("xml/ns/public/resource/resource-schema-1.xsd",prefix,SchemaConstants.NS_RESOURCE);
 		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_CAPABILITIES);
-		registerMidPointSchema("xml/ns/public/resource/capabilities-1.xsd",prefix,SchemaConstants.NS_CAPABILITIES);
+		registerMidPointSchemaResource("xml/ns/public/resource/capabilities-1.xsd",prefix,SchemaConstants.NS_CAPABILITIES);
 		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_ICF_CONFIGURATION);
-		registerMidPointSchema("xml/ns/public/connector/icf-1/connector-schema-1.xsd",prefix,SchemaConstants.NS_ICF_CONFIGURATION);
+		registerMidPointSchemaResource("xml/ns/public/connector/icf-1/connector-schema-1.xsd",prefix,SchemaConstants.NS_ICF_CONFIGURATION);
 		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_ICF_SCHEMA);
-		registerMidPointSchema("xml/ns/public/connector/icf-1/resource-schema-1.xsd",prefix,SchemaConstants.NS_ICF_SCHEMA);
+		registerMidPointSchemaResource("xml/ns/public/connector/icf-1/resource-schema-1.xsd",prefix,SchemaConstants.NS_ICF_SCHEMA);
 		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(W3C_XML_SCHEMA_NS_URI);
-		registerSchema("xml/ns/standard/XMLSchema.xsd",prefix,W3C_XML_SCHEMA_NS_URI);
+		registerSchemaResource("xml/ns/standard/XMLSchema.xsd",prefix,W3C_XML_SCHEMA_NS_URI);
 	}
 	
 	/**
 	 * Must be called before call to initialize()
 	 */
-	public void registerSchema(String resourcePath, String usualPrefix) {
-		schemaDescriptions.add(new SchemaDescription(resourcePath, usualPrefix));
+	public void registerSchemaResource(String resourcePath, String usualPrefix) {
+		schemaDescriptions.add(new SchemaDescription(resourcePath, usualPrefix, "system resource "+resourcePath));
 	}
 
 	/**
 	 * Must be called before call to initialize()
 	 */
-	public void registerSchema(String resourcePath, String usualPrefix, String namespace) {
-		schemaDescriptions.add(new SchemaDescription(resourcePath, usualPrefix, namespace));
+	public void registerSchemaResource(String resourcePath, String usualPrefix, String namespace) {
+		schemaDescriptions.add(new SchemaDescription(resourcePath, usualPrefix, namespace, "system resource "+resourcePath));
 	}
 	
 	/**
 	 * Must be called before call to initialize()
 	 */
-	public void registerMidPointSchema(String resourcePath, String usualPrefix, String namespace) {
-		schemaDescriptions.add(new SchemaDescription(resourcePath, usualPrefix, namespace, true));
+	public void registerMidPointSchemaResource(String resourcePath, String usualPrefix, String namespace) {
+		schemaDescriptions.add(new SchemaDescription(resourcePath, usualPrefix, namespace, "system resource "+resourcePath, true));
 	}
 
 	/**
 	 * Must be called before call to initialize()
 	 * @param node
 	 */
-	public void registerSchema(Node node) {
-		schemaDescriptions.add(new SchemaDescription(node));
+	public void registerSchema(Node node, String sourceDescription) {
+		schemaDescriptions.add(new SchemaDescription(node, sourceDescription));
 	}
 
 	/**
 	 * Must be called before call to initialize()
 	 * @param node
 	 */
-	public void registerSchema(Node node, String usualPrefix) {
-		schemaDescriptions.add(new SchemaDescription(node, usualPrefix));
+	public void registerSchema(Node node, String sourceDescription, String usualPrefix) {
+		schemaDescriptions.add(new SchemaDescription(node, usualPrefix, sourceDescription));
 	}
 	
 	public void initialize() throws SAXException, IOException, SchemaException {
@@ -263,39 +263,44 @@ public class SchemaRegistry implements LSResourceResolver {
 		private String resourcePath;
 		private String usualPrefix;
 		private String namespace;
+		private String sourceDescription;
 		private Node node;
 		private boolean isMidPointSchema = false;
 
-		public SchemaDescription(String resourcePath, String usualPrefix, String namespace) {
+		public SchemaDescription(String resourcePath, String usualPrefix, String namespace, String sourceDescription) {
 			super();
 			this.resourcePath = resourcePath;
 			this.namespace = namespace;
 			this.usualPrefix = usualPrefix;
 		}
 
-		public SchemaDescription(String resourcePath, String usualPrefix, String namespace, boolean isMidPointSchema) {
+		public SchemaDescription(String resourcePath, String usualPrefix, String namespace, String sourceDescription, boolean isMidPointSchema) {
 			super();
 			this.resourcePath = resourcePath;
 			this.namespace = namespace;
 			this.usualPrefix = usualPrefix;
+			this.sourceDescription = sourceDescription;
 			this.isMidPointSchema = isMidPointSchema;
 		}
 		
-		public SchemaDescription(String resourcePath, String usualPrefix) {
+		public SchemaDescription(String resourcePath, String usualPrefix, String sourceDescription) {
 			super();
 			this.resourcePath = resourcePath;
 			this.usualPrefix = usualPrefix;
+			this.sourceDescription = sourceDescription;
 		}
 
-		public SchemaDescription(Node node, String usualPrefix) {
+		public SchemaDescription(Node node, String usualPrefix, String sourceDescription) {
 			super();
 			this.node = node;
 			this.usualPrefix = usualPrefix;
+			this.sourceDescription = sourceDescription;
 		}
 		
-		public SchemaDescription(Node node) {
+		public SchemaDescription(Node node, String sourceDescription) {
 			super();
 			this.node = node;
+			this.sourceDescription = sourceDescription;
 		}
 
 		public String getResourcePath() {

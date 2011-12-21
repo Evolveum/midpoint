@@ -421,7 +421,7 @@ class SchemaToDomProcessor {
 	 * Create schema XSD DOM document.
 	 */
 	private void init() throws ParserConfigurationException {
-		registry.registerSchema(null, "tns", schema.getNamespace());
+		registry.registerSchemaResource(null, "tns", schema.getNamespace());
 
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		dbf.setNamespaceAware(true);

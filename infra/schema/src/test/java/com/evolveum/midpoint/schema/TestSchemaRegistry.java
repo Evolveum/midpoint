@@ -57,7 +57,7 @@ public class TestSchemaRegistry {
 		Document dataDoc = DOMUtil.parseFile("src/test/resources/schema-registry/data.xml");
 
 		SchemaRegistry reg = new SchemaRegistry();
-		reg.registerSchema(extraSchemaDoc);
+		reg.registerSchema(extraSchemaDoc, "extra schema extra-schema.xsd");
 		reg.initialize();
 		Schema midPointSchema = reg.getJavaxSchema();
 		assertNotNull(midPointSchema);

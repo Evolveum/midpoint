@@ -327,7 +327,7 @@ public class PropertyContainer extends Item implements Serializable {
 
     public PropertyContainer createPropertyContainer(QName containerName) {
         if (getDefinition() == null) {
-            throw new IllegalStateException("No definition");
+            throw new IllegalStateException("No definition of container "+containerName);
         }
         PropertyContainerDefinition containerDefinition = getDefinition().findPropertyContainerDefinition(containerName);
         if (containerDefinition == null) {
