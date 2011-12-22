@@ -24,6 +24,7 @@ package com.evolveum.midpoint.schema.processor;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.*;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -101,7 +102,7 @@ class SchemaToDomProcessor {
 			
 			init();
 			
-			Set<Definition> definitions = schema.getDefinitions();
+			Collection<Definition> definitions = schema.getDefinitions();
 			for (Definition definition : definitions) {
 				
 				if (definition instanceof PropertyContainerDefinition) {

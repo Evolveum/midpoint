@@ -96,13 +96,23 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 	 * 
 	 * @return set of definitions
 	 */
-	public Set<Definition> getDefinitions() {
+	public Collection<Definition> getDefinitions() {
 		if (definitions == null) {
 			definitions = new HashSet<Definition>();
 		}
 		return definitions;
 	}
 
+	public <T extends Definition> Collection<T> getDefinitions(Class<T> type) {
+		Collection<T> defs = new HashSet<T>();
+		for (Definition def: getDefinitions()) {
+			if (type.isAssignableFrom(def.getClass())) {
+				defs.add((T) def);
+			}
+		}
+		return defs;
+	}
+	
 	public static Schema parse(Element schema) throws SchemaException {
 		if (schema == null) {
 			throw new IllegalArgumentException("Schema DOM element must not be null.");

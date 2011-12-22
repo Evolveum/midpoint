@@ -44,6 +44,23 @@
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
+	
+	<xsd:complexType name="ExtensionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="ref" type="xsd:QName">
+			<xsd:annotation>
+				<xsd:documentation>
+					TODO
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:element name="extension" type="tns:ExtensionType"/>
 
 </xsd:schema>
 

@@ -4,6 +4,7 @@
 	targetNamespace="http://example.com/xml/ns/user-extension"
 	xmlns:tns="http://example.com/xml/ns/user-extension"
 	xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	elementFormDefault="qualified">
 	
 	<import namespace="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd" />
@@ -11,7 +12,7 @@
 	<complexType name="UserExtensionType">
 		<annotation>
 			<appinfo>
-				<!-- TODO -->
+				<a:extension ref="c:UserType"/>
 			</appinfo>
 		</annotation>
 		<sequence>

@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -52,10 +53,13 @@ import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
+import com.evolveum.midpoint.schema.processor.ComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -76,6 +80,7 @@ public class SchemaRegistry implements LSResourceResolver {
 	private EntityResolver builtinSchemaResolver;	
 	private List<SchemaDescription> schemaDescriptions;
 	private Map<String,Schema> parsedSchemas;
+	private Map<String,PropertyContainerDefinition> extensionSchemas;
 	private boolean initialized = false;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaRegistry.class);
@@ -148,6 +153,10 @@ public class SchemaRegistry implements LSResourceResolver {
 	
 	public void registerSchemasFromDirectory(File directory) {
 		for (File file: directory.listFiles()) {
+			if (file.getName().startsWith(".")) {
+				// skip dotfiles. this will skip SVN data and similar things
+				continue;
+			}
 			if (file.isDirectory()) {
 				registerSchemasFromDirectory(file);
 			}
@@ -158,10 +167,20 @@ public class SchemaRegistry implements LSResourceResolver {
 	}
 	
 	public void initialize() throws SAXException, IOException, SchemaException {
-		initResolver();
-		parseJavaxSchema();
-		parseMidPointSchema();
-		initialized = true;
+		try {
+			
+			initResolver();
+			parseJavaxSchema();
+			parseMidPointSchema();
+			initialized = true;
+			
+		} catch (SAXException ex) {
+			if (ex instanceof SAXParseException) {
+				SAXParseException sex = (SAXParseException)ex;
+				throw new SchemaException("Error parsing schema "+sex.getSystemId()+" line "+sex.getLineNumber()+": "+sex.getMessage());
+			}
+			throw ex;
+		}
 	}
 	
 	private void parseJavaxSchema() throws SAXException, IOException {
@@ -189,9 +208,17 @@ public class SchemaRegistry implements LSResourceResolver {
 				namespace = schema.getNamespace();
 			}
 			parsedSchemas.put(namespace, schema);
+			detectExtensionSchema(schema);
 		}
 	}
 	
+	private void detectExtensionSchema(Schema schema) {
+		for (ComplexTypeDefinition def: schema.getDefinitions(ComplexTypeDefinition.class)) {
+			
+		}
+		// TODO
+	}
+
 	private void initResolver() throws IOException {
 		CatalogManager catalogManager = new CatalogManager();
 		catalogManager.setUseStaticCatalog(true);
@@ -386,7 +413,14 @@ public class SchemaRegistry implements LSResourceResolver {
 			}
 			if (canInputStream()) {			
 				InputStream inputStream = getInputStream();
-				return new StreamSource(inputStream);
+				 StreamSource source = new StreamSource(inputStream);
+				 if (file != null) {
+					 source.setSystemId(file);
+				 }
+				 if (resourcePath != null) {
+					 source.setSystemId(resourcePath);
+				 }
+				 return source;
 			}
 			throw new IllegalStateException("Cannot determine source for schema " + namespace);
 		}

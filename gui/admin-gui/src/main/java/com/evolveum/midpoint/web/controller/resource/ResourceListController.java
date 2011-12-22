@@ -206,7 +206,7 @@ public class ResourceListController extends SortableListController<ResourceListI
 				LOGGER.debug("Schema for resource {} was null.", new Object[] { resource.getName() });
 				return item;
 			}
-			Set<Definition> definitions = schema.getDefinitions();
+			Collection<Definition> definitions = schema.getDefinitions();
 			for (Definition definition : definitions) {
 				if (!(definition instanceof ResourceObjectDefinition)) {
 					continue;

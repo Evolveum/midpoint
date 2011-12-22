@@ -242,7 +242,7 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 					"Can't be default account type, flat account type (boolean) not set.");
 		}
 		if (defaultAccountType) {
-			Set<Definition> definitions = schema.getDefinitions();
+			Collection<Definition> definitions = schema.getDefinitions();
 			for (Definition definition : definitions) {
 				if (this == definition) {
 					continue;
