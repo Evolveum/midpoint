@@ -77,6 +77,11 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     private MidPointObject<AccountShadowType> accountNew;
 
     /**
+     * Synchronization account delta. This describe changes that already happened.
+     */
+    private ObjectDelta<AccountShadowType> accountSyncDelta;
+
+    /**
      * Primary account delta. This describe the change that the user explicitly requested (e.g. from GUI).
      */
     private ObjectDelta<AccountShadowType> accountPrimaryDelta;
@@ -126,6 +131,14 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
         this.resourceAccountType = resourceAccountType;
         this.attributeValueDeltaSetTripleMap = new HashMap<QName, DeltaSetTriple<ValueConstruction>>();
         this.isAssigned = false;
+    }
+
+    public ObjectDelta<AccountShadowType> getAccountSyncDelta() {
+        return accountSyncDelta;
+    }
+
+    public void setAccountSyncDelta(ObjectDelta<AccountShadowType> accountSyncDelta) {
+        this.accountSyncDelta = accountSyncDelta;
     }
 
     public ActivationDecision getActivationDecision() {

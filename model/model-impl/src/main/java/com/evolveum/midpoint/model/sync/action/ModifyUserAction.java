@@ -163,7 +163,7 @@ public class ModifyUserAction extends BaseAction {
         MidPointObject<AccountShadowType> shadowObject = definition.parseObjectType(shadowAfterChange);
 
         ObjectDelta<AccountShadowType> delta = createObjectDelta(change.getObjectChange(), definition, shadowObject);
-        accountContext.setAccountPrimaryDelta(delta);
+        accountContext.setAccountSyncDelta(delta);
 
         return accountContext;
     }
@@ -189,8 +189,6 @@ public class ModifyUserAction extends BaseAction {
             ObjectChangeModificationType modificationChange = (ObjectChangeModificationType) change;
             ObjectModificationType modification = modificationChange.getObjectModification();
             account = ObjectDelta.createDelta(modification, definition);
-
-            deltaCleanup(account, shadowObject);
         }
 
         if (account == null) {
@@ -199,40 +197,5 @@ public class ModifyUserAction extends BaseAction {
         }
 
         return account;
-    }
-
-    private void deltaCleanup(ObjectDelta<AccountShadowType> account, MidPointObject<AccountShadowType> shadowObject) {
-        if (account.getModifications() == null) {
-            return;
-        }
-
-        List<PropertyDelta> deltaToBeRemoved = new ArrayList<PropertyDelta>();
-        for (PropertyDelta delta : account.getModifications()) {
-            if (delta.getValuesToAdd() != null) {
-                Iterator<PropertyValue<Object>> iterator = delta.getValuesToAdd().iterator();
-                while (iterator.hasNext()) {
-                    PropertyValue<Object> value = iterator.next();
-                    Property property = shadowObject.findProperty(delta.getPath());
-                    if (Utils.hasPropertyValue(property, value)) {
-                        iterator.remove();
-                    }
-                }
-            }
-            if (delta.getValuesToDelete() != null) {
-                Iterator<PropertyValue<Object>> iterator = delta.getValuesToDelete().iterator();
-                while (iterator.hasNext()) {
-                    PropertyValue<Object> value = iterator.next();
-                    Property property = shadowObject.findProperty(delta.getPath());
-                    if (!Utils.hasPropertyValue(property, value)) {
-                        iterator.remove();
-                    }
-                }
-            }
-
-            if (delta.getValues(Object.class).isEmpty()) {
-                deltaToBeRemoved.add(delta);
-            }
-        }
-        account.getModifications().removeAll(deltaToBeRemoved);
     }
 }

@@ -46,6 +46,8 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -87,7 +89,7 @@ public class InboundProcessor {
                             + " not found in the context, but it should be there");
                 }
 
-                ObjectDelta<AccountShadowType> accountDelta = accountContext.getAccountDelta();
+                ObjectDelta<AccountShadowType> accountDelta = accountContext.getAccountSyncDelta();
                 for (QName name : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
                     PropertyDelta propertyDelta = accountDelta.getPropertyDelta(attributes, name);
                     if (propertyDelta == null) {
@@ -118,18 +120,26 @@ public class InboundProcessor {
         //todo apply filters
 
         PropertyPath targetUserAttribute = createPropertyPath(holder);
+        Property property = newUser.findProperty(targetUserAttribute);
+
         PropertyDelta delta = new PropertyDelta(targetUserAttribute);
         if (propertyDelta.getValuesToAdd() != null) {
             for (PropertyValue<Object> value : propertyDelta.getValuesToAdd()) {
-                Property property = newUser.findProperty(targetUserAttribute);
-                if (!Utils.hasPropertyValue(property, value)) {
+                if (Utils.hasPropertyValue(property, value)) {
+                    continue;
+                }
+
+                if (property != null && !property.getDefinition().isMultiValue() && !property.isEmpty()) {
+                    Collection<PropertyValue<Object>> replace = new ArrayList<PropertyValue<Object>>();
+                    replace.add(value);
+                    delta.setValuesToReplace(replace);
+                } else {
                     delta.addValueToAdd(value);
                 }
             }
         }
         if (propertyDelta.getValuesToDelete() != null) {
             for (PropertyValue<Object> value : propertyDelta.getValuesToDelete()) {
-                Property property = newUser.findProperty(targetUserAttribute);
                 if (Utils.hasPropertyValue(property, value)) {
                     delta.addValueToDelete(value);
                 }
