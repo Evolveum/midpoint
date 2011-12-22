@@ -23,6 +23,7 @@ package com.evolveum.midpoint.model.controller;
 
 import java.util.List;
 
+import com.evolveum.midpoint.schema.processor.PropertyValue;
 import org.w3c.dom.Node;
 
 /**
@@ -36,5 +37,5 @@ public interface Filter {
 
 	List<Object> getParameters();
 
-	Node apply(Node node);
+	<T extends  Object> PropertyValue<T> apply(PropertyValue<T> value);
 }

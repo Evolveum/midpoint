@@ -22,30 +22,27 @@
 
 package com.evolveum.midpoint.model.filter;
 
-import org.apache.commons.lang.Validate;
-import org.w3c.dom.Node;
-
-import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.commons.lang.Validate;
 
 /**
- * Empty filter. It does not tranformate the value at all. It only logs it. Can
+ * Empty filter. It does not transform the value at all. It only logs it. Can
  * be used in tests and for diagnostics.
- * 
+ *
  * @author Igor Farinic
  * @author Radovan Semancik
- * 
  */
 public class EmptyFilter extends AbstractFilter {
 
-	private static final Trace LOGGER = TraceManager.getTrace(EmptyFilter.class);
+    private static final Trace LOGGER = TraceManager.getTrace(EmptyFilter.class);
 
-	@Override
-	public Node apply(Node node) {
-		Validate.notNull(node, "Node must not be null.");
-		
-		LOGGER.debug("EmptyFilter see {}", DebugUtil.prettyPrint(node));
-		return node;
-	}
+    @Override
+    public <T extends Object> PropertyValue<T> apply(PropertyValue<T> value) {
+        Validate.notNull(value, "Node must not be null.");
+
+        LOGGER.debug("EmptyFilter see {}", value.toString());
+        return value;
+    }
 }

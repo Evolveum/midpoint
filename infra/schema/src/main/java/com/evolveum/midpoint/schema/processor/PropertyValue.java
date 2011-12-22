@@ -50,6 +50,18 @@ public class PropertyValue<T> implements Dumpable, DebugDumpable {
         this.source = source;
     }
 
+    public void setSource(ObjectType source) {
+        this.source = source;
+    }
+
+    public void setType(SourceType type) {
+        this.type = type;
+    }
+
+    public void setValue(T value) {
+        this.value = value;
+    }
+
     public T getValue() {
         return value;
     }
@@ -127,5 +139,10 @@ public class PropertyValue<T> implements Dumpable, DebugDumpable {
     @Override
     public String dump() {
         return toString();
+    }
+
+    @Override
+    public PropertyValue<T> clone() {
+        return new PropertyValue(getValue(), getType(), getSource());
     }
 }

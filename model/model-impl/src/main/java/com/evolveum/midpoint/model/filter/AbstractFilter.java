@@ -22,63 +22,47 @@
 
 package com.evolveum.midpoint.model.filter;
 
+import com.evolveum.midpoint.model.controller.Filter;
+import com.evolveum.midpoint.schema.processor.PropertyValue;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.Text;
-
-import com.evolveum.midpoint.model.controller.Filter;
-
 /**
- * 
  * @author Igor Farinic
- * 
  */
 public abstract class AbstractFilter implements Filter {
 
-	private List<Object> parameters;
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractFilter.class);
+    private List<Object> parameters;
 
-	@Override
-	public List<Object> getParameters() {
-		if (parameters == null) {
-			parameters = new ArrayList<Object>();
-		}
-		return parameters;
-	}
+    @Override
+    public List<Object> getParameters() {
+        if (parameters == null) {
+            parameters = new ArrayList<Object>();
+        }
+        return parameters;
+    }
 
-	@Override
-	public void setParameters(List<Object> parameters) {
-		this.parameters = parameters;
-	}
+    @Override
+    public void setParameters(List<Object> parameters) {
+        this.parameters = parameters;
+    }
 
-	protected String getValue(Node node) {
-		String value = null;
-		if (node.getNodeType() == Node.TEXT_NODE) {
-			value = ((Text) node).getData();
-		} else if (node.getNodeType() == Node.ELEMENT_NODE) {
-			// Little bit simplistic
-			// TODO: look inside the node
-			value = node.getTextContent();
-		} else {
-			throw new IllegalArgumentException(
-					"PatternFilter can only work with text or element nodes, got node type "
-							+ node.getNodeType() + " (" + node + ")");
-		}
+    protected <T extends Object> String getStringValue(PropertyValue<T> propertyValue) {
+        Object value = propertyValue.getValue();
+        String text = null;
+        if (value != null) {
+            if (value instanceof String) {
+                text = (String) value;
+            } else {
+                LOGGER.warn("Trying to get String value from value that is not String type but '"
+                        + value.getClass() + "'.");
+            }
+        }
 
-		return value;
-	}
-
-	protected Node createReturnNode(Node node, String newValue) {
-		Node newNode = node.cloneNode(false);
-		if (node.getNodeType() == Node.TEXT_NODE) {
-			newNode.setTextContent(newValue);
-		} else {
-			// Element Node
-			((Element) newNode).setTextContent(newValue);
-		}
-
-		return newNode;
-	}
+        return text;
+    }
 }

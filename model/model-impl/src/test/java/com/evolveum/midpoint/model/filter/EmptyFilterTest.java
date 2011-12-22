@@ -21,6 +21,9 @@
 package com.evolveum.midpoint.model.filter;
 
 import static org.testng.AssertJUnit.assertEquals;
+
+import com.evolveum.midpoint.schema.processor.PropertyValue;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
 import org.w3c.dom.Node;
@@ -29,30 +32,28 @@ import com.evolveum.midpoint.model.controller.Filter;
 import com.evolveum.midpoint.util.DOMUtil;
 
 /**
- * 
  * @author lazyman
- * 
  */
 public class EmptyFilterTest {
 
-	private Filter filter;
+    private Filter filter;
 
-	@BeforeMethod
-	public void before() {
-		filter = new EmptyFilter();
-	}
+    @BeforeMethod
+    public void before() {
+        filter = new EmptyFilter();
+    }
 
-	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void testNullNode() {
-		filter.apply(null);
-	}
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testNullNode() {
+        filter.apply(null);
+    }
 
-	@Test
-	public void testNode() {
-		String input = "test content";
-		Node testNode = DOMUtil.getDocument().createTextNode(input);
-		Node node = filter.apply(testNode);
+    @Test
+    public void testNode() {
+        String input = "test content";
+        PropertyValue<String> value = new PropertyValue<String>(input);
+        value = filter.apply(value);
 
-		assertEquals(input, node.getNodeValue());
-	}
+        AssertJUnit.assertEquals(input, value.getValue());
+    }
 }

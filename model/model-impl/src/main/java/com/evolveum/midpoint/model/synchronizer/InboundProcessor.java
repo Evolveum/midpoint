@@ -41,6 +41,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueFilterType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
@@ -118,6 +119,8 @@ public class InboundProcessor {
         ValueAssignmentHolder holder = new ValueAssignmentHolder(inbound);
 
         //todo apply filters
+        
+        List<ValueFilterType> filters = holder.getFilter();
 
         PropertyPath targetUserAttribute = createPropertyPath(holder);
         Property property = newUser.findProperty(targetUserAttribute);
@@ -125,6 +128,8 @@ public class InboundProcessor {
         PropertyDelta delta = new PropertyDelta(targetUserAttribute);
         if (propertyDelta.getValuesToAdd() != null) {
             for (PropertyValue<Object> value : propertyDelta.getValuesToAdd()) {
+                PropertyValue<Object> filteredValue = filterValue(value, filters);
+
                 if (Utils.hasPropertyValue(property, value)) {
                     continue;
                 }
@@ -140,6 +145,8 @@ public class InboundProcessor {
         }
         if (propertyDelta.getValuesToDelete() != null) {
             for (PropertyValue<Object> value : propertyDelta.getValuesToDelete()) {
+                PropertyValue<Object> filteredValue = filterValue(value, filters);
+
                 if (Utils.hasPropertyValue(property, value)) {
                     delta.addValueToDelete(value);
                 }
@@ -158,5 +165,19 @@ public class InboundProcessor {
         }
 
         return path;
+    }
+    
+    private PropertyValue<Object> filterValue(PropertyValue<Object> propertyValue, List<ValueFilterType> filters) {
+        PropertyValue<Object> filteredValue = propertyValue.clone();
+        if (filters == null || filters.isEmpty()) {
+            return filteredValue;
+        }
+
+        for(ValueFilterType filter : filters) {
+            Filter filterInstance = filterManager.getFilterInstance(filter.getType(), filter.getAny());
+            filterInstance.apply(filteredValue);
+        }
+
+        return filteredValue;
     }
 }

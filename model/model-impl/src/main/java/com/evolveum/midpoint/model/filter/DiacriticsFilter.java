@@ -20,31 +20,35 @@
  */
 package com.evolveum.midpoint.model.filter;
 
+import com.evolveum.midpoint.schema.processor.PropertyValue;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+
 import java.text.Normalizer;
 import java.text.Normalizer.Form;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.w3c.dom.Node;
-
 /**
- * 
  * @author lazyman
- * 
  */
 public class DiacriticsFilter extends AbstractFilter {
 
-	@Override
-	public Node apply(Node node) {
-		Validate.notNull(node, "Node must not be null.");
-		String value = getValue(node);
-		if (StringUtils.isEmpty(value)) {
-			return node;
-		}
+    private static final Trace LOGGER = TraceManager.getTrace(DiacriticsFilter.class);
 
-		String newValue = Normalizer.normalize(value, Form.NFD).replaceAll(
-				"\\p{InCombiningDiacriticalMarks}+", "");
+    @Override
+    public <T extends Object> PropertyValue<T> apply(PropertyValue<T> propertyValue) {
+        Validate.notNull(propertyValue, "Node must not be null.");
 
-		return createReturnNode(node, newValue);
-	}
+        String text = getStringValue(propertyValue);
+        if (StringUtils.isEmpty(text)) {
+            return propertyValue;
+        }
+
+        String newValue = Normalizer.normalize(text, Form.NFD).replaceAll(
+                "\\p{InCombiningDiacriticalMarks}+", "");
+        propertyValue.setValue((T) newValue);
+
+        return propertyValue;
+    }
 }

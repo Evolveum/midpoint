@@ -20,71 +20,42 @@
  */
 package com.evolveum.midpoint.model.filter;
 
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
-import org.testng.AssertJUnit;
-import org.w3c.dom.Node;
-
 import com.evolveum.midpoint.model.controller.Filter;
-import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.schema.processor.PropertyValue;
+import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 /**
- * 
  * @author lazyman
- * 
  */
 public class DiacriticsFilterTest {
 
-	private static final String input = "čišćeľščťžýáíéäöåøřĺąćęłńóśźżrůāēīūŗļķņģšžčāäǟḑēīļņōȯȱõȭŗšțūžÇĞIİÖŞÜáàâéèêíìîóòôúùûáâãçéêíóôõú";
-	private static final String expected = "ciscelsctzyaieaoaørlacełnoszzruaeiurlkngszcaaadeilnooooorstuzCGIIOSUaaaeeeiiiooouuuaaaceeiooou";
-	private Filter filter;
+    private static final String input = "čišćeľščťžýáíéäöåøřĺąćęłńóśźżrůāēīūŗļķņģšžčāäǟḑēīļņōȯȱõȭŗšțūžÇĞIİÖŞÜáàâéèêíìîóòôúùûáâãçéêíóôõú";
+    private static final String expected = "ciscelsctzyaieaoaørlacełnoszzruaeiurlkngszcaaadeilnooooorstuzCGIIOSUaaaeeeiiiooouuuaaaceeiooou";
+    private Filter filter;
 
-	@BeforeMethod
-	public void before() {
-		filter = new DiacriticsFilter();
-	}
+    @BeforeMethod
+    public void before() {
+        filter = new DiacriticsFilter();
+    }
 
-	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void testNullNode() {
-		filter.apply(null);
-	}
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testNullNode() {
+        filter.apply(null);
+    }
 
-	@Test
-	public void testNullValue() {
-		Node testNode = DOMUtil.getDocument().createElement("testTag");
-		testNode.setTextContent(null);
-		Node node = filter.apply(testNode);
-		AssertJUnit.assertEquals(node, testNode);
-	}
+    @Test
+    public void testEmptyValue() {
+        PropertyValue<String> value = new PropertyValue<String>("");
+        value = filter.apply(value);
+        AssertJUnit.assertEquals("", value.getValue());
+    }
 
-	@Test
-	public void testEmptyValue() {
-		Node testNode = DOMUtil.getDocument().createElement("testTag");
-		testNode.setTextContent("");
-		Node node = filter.apply(testNode);
-		AssertJUnit.assertEquals(node, testNode);
-	}
-
-	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void testValueInBadElementType() {
-		Node testNode = DOMUtil.getDocument().createComment(input);
-		filter.apply(testNode);
-	}
-
-	@Test
-	public void testValueInElement() {
-		Node testNode = DOMUtil.getDocument().createElement("tag");
-		testNode.setTextContent(input);
-		Node node = filter.apply(testNode);
-
-		AssertJUnit.assertEquals(expected, node.getTextContent());
-	}
-
-	@Test
-	public void testValueInTextNode() {
-		Node testNode = DOMUtil.getDocument().createTextNode(input);
-		Node node = filter.apply(testNode);
-
-		AssertJUnit.assertEquals(expected, node.getNodeValue());
-	}
+    @Test
+    public void testValueTextNode() {
+        PropertyValue<String> value = new PropertyValue<String>(input);
+        value = filter.apply(value);
+        AssertJUnit.assertEquals(expected, value.getValue());
+    }
 }
