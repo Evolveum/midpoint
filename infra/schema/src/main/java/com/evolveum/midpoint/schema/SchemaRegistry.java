@@ -78,7 +78,7 @@ public class SchemaRegistry implements LSResourceResolver {
 	private javax.xml.validation.Schema javaxSchema;
 	private EntityResolver builtinSchemaResolver;	
 	private List<SchemaDescription> schemaDescriptions;
-	private Map<String,Schema> parsedSchemas;
+	private Map<String,SchemaDescription> parsedSchemas;
 	private Map<String,PropertyContainerDefinition> extensionSchemas;
 	private boolean initialized = false;
 	
@@ -87,7 +87,7 @@ public class SchemaRegistry implements LSResourceResolver {
 	public SchemaRegistry() {
 		super();
 		this.schemaDescriptions = new ArrayList<SchemaDescription>();
-		this.parsedSchemas = new HashMap<String, Schema>();
+		this.parsedSchemas = new HashMap<String, SchemaDescription>();
 		try {
 			registerBuiltinSchemas();
 		} catch (SchemaException e) {
@@ -179,8 +179,8 @@ public class SchemaRegistry implements LSResourceResolver {
 		try {
 			
 			initResolver();
-			parseJavaxSchema();
 			parseMidPointSchema();
+			parseJavaxSchema();
 			initialized = true;
 			
 		} catch (SAXException ex) {
@@ -207,18 +207,21 @@ public class SchemaRegistry implements LSResourceResolver {
 
 	private void parseMidPointSchema() throws SchemaException {
 		for (SchemaDescription schemaDescription : schemaDescriptions) {
-			if (!schemaDescription.isMidPointSchema()) {
-				continue;
-			}
-			Element domElement = schemaDescription.getDomElement();
-			Schema schema = Schema.parse(domElement);
+			
 			String namespace = schemaDescription.getNamespace();
-			if (namespace == null) {
-				namespace = schema.getNamespace();
+			
+			if (schemaDescription.isMidPointSchema()) {
+				Element domElement = schemaDescription.getDomElement();
+				Schema schema = Schema.parse(domElement);
+				if (namespace == null) {
+					namespace = schema.getNamespace();
+				}
+				LOGGER.trace("Parsed schema {}, namespace: {}",schemaDescription.getSourceDescription(),namespace);
+				schemaDescription.setSchema(schema);
+				detectExtensionSchema(schema);
 			}
-			LOGGER.trace("Parsed schema {}, namespace: {}",schemaDescription.getSourceDescription(),namespace);
-			parsedSchemas.put(namespace, schema);
-			detectExtensionSchema(schema);
+			
+			parsedSchemas.put(namespace, schemaDescription);
 		}
 	}
 	
@@ -253,7 +256,7 @@ public class SchemaRegistry implements LSResourceResolver {
 	}
 	
 	public Schema getSchema(String namespace) {
-		return parsedSchemas.get(namespace);
+		return parsedSchemas.get(namespace).getSchema();
 	}
 	
 	// Convenience and safety
@@ -261,7 +264,7 @@ public class SchemaRegistry implements LSResourceResolver {
 		if (!initialized) {
 			throw new IllegalStateException("Attempt to get common schema from uninitialized Schema Registry");
 		}
-		return parsedSchemas.get(SchemaConstants.NS_C);
+		return parsedSchemas.get(SchemaConstants.NS_C).getSchema();
 	}
 		
 	private SchemaDescription lookupSchemaDescription(String namespace) {
@@ -279,9 +282,41 @@ public class SchemaRegistry implements LSResourceResolver {
 	@Override
 	public LSInput resolveResource(String type, String namespaceURI, String publicId, String systemId,
 			String baseURI) {
+		InputSource inputSource = resolveResourceFromRegisteredSchemas(type,namespaceURI,publicId,systemId,baseURI);
+		if (inputSource == null) {
+			inputSource = resolveResourceUsingBuiltinResolver(type,namespaceURI,publicId,systemId,baseURI);
+		}
+		if (inputSource == null) {
+			LOGGER.error("Unable to resolve reference of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI});
+			return null;
+		}
+		return new Input(publicId, systemId, inputSource.getByteStream());
+	}
+		
+	private InputSource resolveResourceFromRegisteredSchemas(String type, String namespaceURI,
+			String publicId, String systemId, String baseURI) {
+		if (namespaceURI != null) {
+			if (parsedSchemas.containsKey(namespaceURI)) {
+				SchemaDescription schemaDescription = parsedSchemas.get(namespaceURI);
+				if (schemaDescription.canInputStream()) {
+					InputStream inputStream = schemaDescription.openInputStream();
+					InputSource source = new InputSource();
+					source.setByteStream(inputStream);
+					source.setSystemId(schemaDescription.getPath());
+					return source;
+				} else {
+					throw new IllegalStateException("Requested resolution of schema "+schemaDescription.getSourceDescription()+" that does not support input stream");
+				}
+			}
+		}
+		return null;
+	}
+
+	public InputSource resolveResourceUsingBuiltinResolver(String type, String namespaceURI, String publicId, String systemId,
+				String baseURI) {
 		InputSource inputSource = null;
 		try {
-			if (namespaceURI!=null) {
+			if (namespaceURI != null) {
 				// The systemId will be populated by schema location, not namespace URI.
 				// As we use catalog resolver as the default one, we need to pass it the namespaceURI in place of systemId
 				inputSource = builtinSchemaResolver.resolveEntity(publicId, namespaceURI);
@@ -297,12 +332,7 @@ public class SchemaRegistry implements LSResourceResolver {
 			// TODO: better error handling
 			return null;
 		}		
-		if (inputSource==null) {
-			LOGGER.error("Unable to resolve reference of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI});
-			return null;
-		}
-		LOGGER.trace("Resolved reference of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {} -> publicID: {}, systemID: {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI, inputSource.getPublicId(), inputSource.getSystemId()});
-		return new Input(publicId, systemId, inputSource.getByteStream());
+		return inputSource;
 	}
 	
 	class Input implements LSInput {

@@ -27,12 +27,14 @@ import java.io.InputStream;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamSource;
 
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 
@@ -41,8 +43,10 @@ public class SchemaDescription {
 	private String usualPrefix;
 	private String namespace;
 	private String sourceDescription;
+	private InputStreamable streamable; 
 	private Node node;
 	private boolean isMidPointSchema = false;
+	private Schema schema;
 
 	private SchemaDescription(String sourceDescription) {
 		this.sourceDescription = sourceDescription;
@@ -92,33 +96,58 @@ public class SchemaDescription {
 		this.isMidPointSchema = isMidPointSchema;
 	}
 	
-	public static SchemaDescription parseResource(String resourcePath) throws SchemaException {
-		SchemaDescription desc = new SchemaDescription("system resource "+resourcePath);
-		desc.path = resourcePath;
-		InputStream inputStream = SchemaRegistry.class.getClassLoader().getResourceAsStream(resourcePath);
-		if (inputStream == null) {
-			throw new IllegalStateException("Cannot fetch system resource for schema " + resourcePath);
-		}
-		try {
-			desc.node = DOMUtil.parse(inputStream);
-		} catch (IOException e) {
-			throw new IllegalStateException("Cannot parse system resource for schema " + resourcePath, e);
-		}
-		desc.fetchBasicInfoFromSchema();
-		return desc;
+	public Schema getSchema() {
+		return schema;
 	}
 
-	public static SchemaDescription parseFile(File file) throws FileNotFoundException, SchemaException {
+	public void setSchema(Schema schema) {
+		this.schema = schema;
+	}
+
+	public static SchemaDescription parseResource(final String resourcePath) throws SchemaException {
+		SchemaDescription desc = new SchemaDescription("system resource "+resourcePath);
+		desc.path = resourcePath;
+		desc.streamable = new InputStreamable() {
+			@Override
+			public InputStream openInputStream() {
+				InputStream inputStream = SchemaRegistry.class.getClassLoader().getResourceAsStream(resourcePath);
+				if (inputStream == null) {
+					throw new IllegalStateException("Cannot fetch system resource for schema " + resourcePath);
+				}
+				return inputStream;
+			}
+		};
+		desc.parseFromInputStream();
+		return desc;
+	}
+		
+	public static SchemaDescription parseFile(final File file) throws FileNotFoundException, SchemaException {
 		SchemaDescription desc = new SchemaDescription("file "+file.getPath());
 		desc.path = file.getPath();
-		InputStream inputStream = new FileInputStream(file);
-		try {
-			desc.node = DOMUtil.parse(inputStream);
-		} catch (IOException e) {
-			throw new IllegalStateException("Cannot parse file for schema " + file, e);
-		}
-		desc.fetchBasicInfoFromSchema();
+		desc.streamable = new InputStreamable() {
+			@Override
+			public InputStream openInputStream() {
+				InputStream inputStream;
+				try {
+					inputStream = new FileInputStream(file);
+				} catch (FileNotFoundException e) {
+					throw new IllegalStateException("Cannot fetch file for schema " + file,e);
+				}
+				return inputStream;
+			}
+		};
+		desc.parseFromInputStream();
 		return desc;
+	}
+	
+	private void parseFromInputStream() throws SchemaException {
+		InputStream inputStream = streamable.openInputStream();
+		try {
+			node = DOMUtil.parse(inputStream);
+		} catch (IOException e) {
+			throw new SchemaException("Cannot parse schema from " + sourceDescription, e);
+		}
+		fetchBasicInfoFromSchema();
 	}
 
 	public static SchemaDescription parseNode(Node node, String sourceDescription) throws SchemaException {
@@ -146,9 +175,28 @@ public class SchemaDescription {
 			throw new SchemaException("Schema "+sourceDescription+" does not start with xsd:schema element");
 		}
 	}
+	
+	public boolean canInputStream() {
+		return (streamable != null);
+	}
+	
+	public InputStream openInputStream() {
+		if (!canInputStream()) {
+			throw new IllegalStateException("Schema "+sourceDescription+" cannot provide input stream");
+		}
+		return streamable.openInputStream();
+	}
 
 	public Source getSource() {
-		DOMSource source = new DOMSource(node);
+		Source source = null;
+		if (canInputStream()) {
+			InputStream inputStream = openInputStream();
+			// Return stream source as a first option. It is less effcient,
+			// but it provides information about line numbers
+			source = new StreamSource(inputStream);
+		} else {
+			source = new DOMSource(node);
+		}
 		source.setSystemId(path);
 		return source;
 	}
@@ -158,6 +206,10 @@ public class SchemaDescription {
 			return (Element)node;
 		}
 		return DOMUtil.getFirstChildElement(node);
+	}
+	
+	private interface InputStreamable {
+		InputStream openInputStream();
 	}
 
 }
