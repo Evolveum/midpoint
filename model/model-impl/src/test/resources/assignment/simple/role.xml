@@ -18,9 +18,10 @@
   ~
   ~ Portions Copyrighted 2011 [name of copyright owner]
   -->
-<role oid="12345678-d34d-b33f-f00d-987987987988"
+
+<role oid="12345678-d34d-b33f-f00d-987987987988" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-        >
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
     <name>simple role</name>
     <assignment>
         <accountConstruction>
