@@ -52,6 +52,9 @@ import java.util.Collection;
 import java.util.List;
 
 /**
+ * Processor that takes changes from synchronization and updates user attributes if necessary
+ * (by creating user object delta {@link ObjectDelta}).
+ *
  * @author lazyman
  */
 @Component
@@ -117,9 +120,6 @@ public class InboundProcessor {
     private PropertyDelta createUserPropertyDelta(Element inbound, PropertyDelta propertyDelta,
             MidPointObject<UserType> newUser) {
         ValueAssignmentHolder holder = new ValueAssignmentHolder(inbound);
-
-        //todo apply filters
-        
         List<ValueFilterType> filters = holder.getFilter();
 
         PropertyPath targetUserAttribute = createPropertyPath(holder);
@@ -130,16 +130,17 @@ public class InboundProcessor {
             for (PropertyValue<Object> value : propertyDelta.getValuesToAdd()) {
                 PropertyValue<Object> filteredValue = filterValue(value, filters);
 
-                if (Utils.hasPropertyValue(property, value)) {
+                if (Utils.hasPropertyValue(property, filteredValue)) {
                     continue;
                 }
 
+                //if property is not multivalue replace existing attribute
                 if (property != null && !property.getDefinition().isMultiValue() && !property.isEmpty()) {
                     Collection<PropertyValue<Object>> replace = new ArrayList<PropertyValue<Object>>();
-                    replace.add(value);
+                    replace.add(filteredValue);
                     delta.setValuesToReplace(replace);
                 } else {
-                    delta.addValueToAdd(value);
+                    delta.addValueToAdd(filteredValue);
                 }
             }
         }
@@ -147,8 +148,8 @@ public class InboundProcessor {
             for (PropertyValue<Object> value : propertyDelta.getValuesToDelete()) {
                 PropertyValue<Object> filteredValue = filterValue(value, filters);
 
-                if (Utils.hasPropertyValue(property, value)) {
-                    delta.addValueToDelete(value);
+                if (Utils.hasPropertyValue(property, filteredValue)) {
+                    delta.addValueToDelete(filteredValue);
                 }
             }
         }
@@ -166,14 +167,14 @@ public class InboundProcessor {
 
         return path;
     }
-    
+
     private PropertyValue<Object> filterValue(PropertyValue<Object> propertyValue, List<ValueFilterType> filters) {
         PropertyValue<Object> filteredValue = propertyValue.clone();
         if (filters == null || filters.isEmpty()) {
             return filteredValue;
         }
 
-        for(ValueFilterType filter : filters) {
+        for (ValueFilterType filter : filters) {
             Filter filterInstance = filterManager.getFilterInstance(filter.getType(), filter.getAny());
             filterInstance.apply(filteredValue);
         }

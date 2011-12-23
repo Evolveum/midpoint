@@ -73,7 +73,8 @@ public class AssignmentProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
 
-    public void processAssignments(SyncContext context, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+    public void processAssignments(SyncContext context, OperationResult result) throws SchemaException,
+            ObjectNotFoundException, ExpressionEvaluationException {
 
         AccountSynchronizationSettingsType accountSynchronizationSettings = context.getAccountSynchronizationSettings();
         if (accountSynchronizationSettings != null) {
@@ -103,7 +104,7 @@ public class AssignmentProcessor {
 
         LOGGER.trace("Assignment delta {}", assignmentDelta.dump());
 
-        // TODO: preprocess assignment delta. It is is replace, then we need to convert it to: delete all existing assignments, add all new assignments
+        // TODO: preprocess assignment delta. If it is replace, then we need to convert it to: delete all existing assignments, add all new assignments
         Collection<PropertyValue<AssignmentType>> changedAssignments = assignmentDelta.getValues(AssignmentType.class);
 
         AssignmentEvaluator assignmentEvaluator = new AssignmentEvaluator();
@@ -178,9 +179,9 @@ public class AssignmentProcessor {
                     plusAccountMap.get(rat), minusAccountMap.get(rat));
 
             Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap = computeAttributeValueDeltaMap(accountDeltaSetTriple);
-			LOGGER.trace("Account {}: accountDeltaSetTriple=\n{}", rat, accountDeltaSetTriple.dump());
-			LOGGER.trace("Account {}: attributeValueDeltaMap=\n{}: ", rat, attributeValueDeltaMap);
-			
+            LOGGER.trace("Account {}: accountDeltaSetTriple=\n{}", rat, accountDeltaSetTriple.dump());
+            LOGGER.trace("Account {}: attributeValueDeltaMap=\n{}: ", rat, attributeValueDeltaMap);
+
             if (zeroAccountMap.containsKey(rat)) {
                 context.getAccountSyncContext(rat).setAssigned(true);
                 // The account existed before the change and should still exist
@@ -208,12 +209,13 @@ public class AssignmentProcessor {
             }
 
             context.getAccountSyncContext(rat).addToAttributeValueDeltaSetTripleMap(attributeValueDeltaMap);
-            
+
         }
     }
 
-    private void collectToAccountMap(Map<ResourceAccountType, Collection<PropertyValue<AccountConstruction>>> accountMap,
-                                     Assignment evaluatedAssignment, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private void collectToAccountMap(
+            Map<ResourceAccountType, Collection<PropertyValue<AccountConstruction>>> accountMap,
+            Assignment evaluatedAssignment, OperationResult result) throws ObjectNotFoundException, SchemaException {
         for (AccountConstruction accountConstruction : evaluatedAssignment.getAccountConstructions()) {
             String resourceOid = accountConstruction.getResource(result).getOid();
             String accountType = accountConstruction.getAccountType();
@@ -245,9 +247,9 @@ public class AssignmentProcessor {
     }
 
     private void processAccountAssign(SyncContext context, ResourceAccountType rat,
-                                      DeltaSetTriple<AccountConstruction> accountDeltaSetTriple,
-                                      Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap,
-                                      OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+            DeltaSetTriple<AccountConstruction> accountDeltaSetTriple,
+            Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap,
+            OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
         AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
         if (accountSyncContext == null) {
@@ -260,8 +262,9 @@ public class AssignmentProcessor {
     }
 
     private void processAccountKeep(SyncContext context,
-                                    ResourceAccountType rat, DeltaSetTriple<AccountConstruction> accountDeltaSetTriple,
-                                    Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap, OperationResult result) throws SchemaException {
+            ResourceAccountType rat, DeltaSetTriple<AccountConstruction> accountDeltaSetTriple,
+            Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap, OperationResult result) throws
+            SchemaException {
 
         AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
         if (accountSyncContext.getPolicyDecision() == null) {
@@ -272,8 +275,8 @@ public class AssignmentProcessor {
 
 
     private void processAccountUnassign(SyncContext context, ResourceAccountType rat,
-                                        DeltaSetTriple<AccountConstruction> accountDeltaSetTriple,
-                                        Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap, OperationResult result) {
+            DeltaSetTriple<AccountConstruction> accountDeltaSetTriple,
+            Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap, OperationResult result) {
 
         AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
         if (accountSyncContext.getPolicyDecision() == null) {
@@ -283,7 +286,8 @@ public class AssignmentProcessor {
     }
 
 
-    private Map<QName, DeltaSetTriple<ValueConstruction>> computeAttributeValueDeltaMap(DeltaSetTriple<AccountConstruction> accountDeltaSetTriple) {
+    private Map<QName, DeltaSetTriple<ValueConstruction>> computeAttributeValueDeltaMap(
+            DeltaSetTriple<AccountConstruction> accountDeltaSetTriple) {
 
         Map<QName, DeltaSetTriple<ValueConstruction>> attrMap = new HashMap<QName, DeltaSetTriple<ValueConstruction>>();
 
