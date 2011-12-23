@@ -29,7 +29,9 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -155,7 +157,11 @@ public class SchemaRegistry implements LSResourceResolver {
 	}
 	
 	public void registerSchemasFromDirectory(File directory) throws FileNotFoundException, SchemaException {
-		for (File file: directory.listFiles()) {
+		List<File> files = Arrays.asList(directory.listFiles());
+		// Sort the filenames so we have deterministic order of loading
+		// This is useful in tests but may come handy also during customization
+		Collections.sort(files);
+		for (File file: files) {
 			if (file.getName().startsWith(".")) {
 				// skip dotfiles. this will skip SVN data and similar things
 				continue;
@@ -210,7 +216,7 @@ public class SchemaRegistry implements LSResourceResolver {
 			if (namespace == null) {
 				namespace = schema.getNamespace();
 			}
-			System.out.println("Parsed schema "+schemaDescription.getSourceDescription()+", namespace: "+namespace);
+			LOGGER.trace("Parsed schema {}, namespace: {}",schemaDescription.getSourceDescription(),namespace);
 			parsedSchemas.put(namespace, schema);
 			detectExtensionSchema(schema);
 		}
