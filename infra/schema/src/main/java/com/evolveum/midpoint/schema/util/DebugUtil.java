@@ -539,7 +539,11 @@ public class DebugUtil implements ObjectFormatter {
 		StringBuilder sb = new StringBuilder();
 		if (displayTag) {
 			sb.append("<");
-			sb.append(new QName(element.getNamespaceURI(), element.getLocalName()));
+			if (element.getLocalName() != null) {
+				sb.append(new QName(element.getNamespaceURI(), element.getLocalName()));
+			} else {
+				sb.append("<null>");
+			}
 			sb.append(">");
 		}
 		NamedNodeMap attributes = element.getAttributes();

@@ -76,6 +76,9 @@ public class DOMUtil {
 	public static final String NS_W3C_XML_SCHEMA_PREFIX = "xsd";
 	public static final QName XSD_SCHEMA_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "schema",
 			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_ATTR_TARGET_NAMESPACE = new QName(W3C_XML_SCHEMA_NS_URI, "targetNamespace",
+			NS_W3C_XML_SCHEMA_PREFIX);
+	
 	public static final QName XSD_STRING = new QName(W3C_XML_SCHEMA_NS_URI, "string",
 			NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_INTEGER = new QName(W3C_XML_SCHEMA_NS_URI, "integer",
@@ -159,6 +162,12 @@ public class DOMUtil {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setNamespaceAware(true);
+			factory.setFeature("http://xml.org/sax/features/namespaces", true);
+			// voodoo to turn off reading of DTDs during parsing. This is needed e.g. to pre-parse schemas
+			factory.setValidating(false);
+			factory.setFeature("http://xml.org/sax/features/validation", false);
+			factory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
+			factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
 			DocumentBuilder loader = factory.newDocumentBuilder();
 			return loader.parse(inputStream);
 		} catch (SAXException ex) {
@@ -530,6 +539,9 @@ public class DOMUtil {
 	}
 
 	public static QName getQName(Element element) {
+		if (element.getLocalName() == null) {
+			return null;
+		}
 		if (element.getPrefix() == null) {
 			return new QName(element.getNamespaceURI(), element.getLocalName());
 		}

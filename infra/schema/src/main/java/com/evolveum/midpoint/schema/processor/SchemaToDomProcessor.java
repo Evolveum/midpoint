@@ -45,6 +45,7 @@ import org.w3c.dom.NodeList;
 import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -69,15 +70,14 @@ class SchemaToDomProcessor {
 	public static final String RESOURCE_OBJECT_CLASS = "ResourceObjectClass";
 	private static final String MAX_OCCURS_UNBOUNDED = "unbounded";
 	private boolean attributeQualified = false;
-	private SchemaRegistry registry;
+	private MidPointNamespacePrefixMapper nsMapper;
 	private Schema schema;
 	private Element rootXsdElement;
 	private Set<String> importNamespaces;
 	private Document document;
 
 	SchemaToDomProcessor() {
-		registry = new SchemaRegistry();
-		// No need to initialize registry. We just need to schema prefix map
+		nsMapper = new MidPointNamespacePrefixMapper();
 		importNamespaces = new HashSet<String>();
 	}
 
@@ -422,7 +422,7 @@ class SchemaToDomProcessor {
 	 * Create schema XSD DOM document.
 	 */
 	private void init() throws ParserConfigurationException {
-		registry.registerSchemaResource(null, "tns", schema.getNamespace());
+		nsMapper.registerPrefix(schema.getNamespace(), "tns");
 
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		dbf.setNamespaceAware(true);
@@ -455,7 +455,7 @@ class SchemaToDomProcessor {
 	 * @return created DOM element
 	 */
 	private Element createElement(QName qname) {
-		QName qnameWithPrefix = registry.setQNamePrefix(qname);
+		QName qnameWithPrefix = nsMapper.setQNamePrefix(qname);
 		addToImport(qname.getNamespaceURI());
 		if (rootXsdElement!=null) {
 			return DOMUtil.createElement(document, qnameWithPrefix, rootXsdElement, rootXsdElement);
@@ -499,7 +499,7 @@ class SchemaToDomProcessor {
 	 * @param value attribute value (Qname)
 	 */
 	private void setQNameAttribute(Element element, String attrName, QName value) {
-		QName valueWithPrefix = registry.setQNamePrefix(value);
+		QName valueWithPrefix = nsMapper.setQNamePrefix(value);
 		DOMUtil.setQNameAttribute(element, attrName, valueWithPrefix, rootXsdElement);
 		addToImport(value.getNamespaceURI());
 	}

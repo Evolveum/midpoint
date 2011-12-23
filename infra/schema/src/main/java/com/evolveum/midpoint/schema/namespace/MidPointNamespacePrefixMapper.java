@@ -24,7 +24,12 @@ package com.evolveum.midpoint.schema.namespace;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+
+import javax.xml.namespace.QName;
+
 import org.apache.cxf.common.util.StringUtils;
+
+import com.evolveum.midpoint.schema.SchemaDescription;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI;
@@ -33,14 +38,41 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI;
  * Maps namespaces to preferred prefixes. Should be used through the code to
  * avoid generation of prefixes.
  * 
+ * Although this is usually used as singleton (static), it can also be instantiated to locally
+ * override some namespace mappings. This is useful for prefixes like "tns" (schema) or "ri" (resource schema).
+ * 
  * @see MID-349
  * 
  * @author Igor Farinic
+ * @author Radovan Semancik
  * 
  */
 public class MidPointNamespacePrefixMapper {
 
-	private static final Map<String, String> namespacePrefixMap = new HashMap<String, String>();
+	private static final Map<String, String> globalNamespacePrefixMap = new HashMap<String, String>();
+	private final Map<String, String> localNamespacePrefixMap = new HashMap<String, String>();
+	
+	
+	public void registerPrefix(String namespace, String prefix) {
+		localNamespacePrefixMap.put(prefix,namespace);
+	}
+	
+	public String getPrefix(String namespace) {
+		String prefix = localNamespacePrefixMap.get(namespace);
+		if (prefix == null) {
+			return getPreferredPrefix(namespace);
+		}
+		return prefix;
+	}
+	
+	public QName setQNamePrefix(QName qname) {
+		String namespace = qname.getNamespaceURI();
+		String prefix = getPrefix(namespace);
+		if (prefix == null) {
+			return qname;
+		}
+		return new QName(qname.getNamespaceURI(),qname.getLocalPart(),prefix);
+	}
 
 	/**
 	 * 
@@ -61,21 +93,21 @@ public class MidPointNamespacePrefixMapper {
 	 *         other namespace).
 	 */
 	public static synchronized String getPreferredPrefix(String namespace, String hintPrefix) {
-		String prefix = namespacePrefixMap.get(namespace);
+		String prefix = globalNamespacePrefixMap.get(namespace);
 
 		if (StringUtils.isEmpty(prefix)) {
 			if (StringUtils.isEmpty(hintPrefix)) {
 				// FIXME: improve new prefix assignment
 				prefix = "gen" + (new Random()).nextInt(999);
 			} else {
-				if (namespacePrefixMap.containsValue(hintPrefix)) {
+				if (globalNamespacePrefixMap.containsValue(hintPrefix)) {
 					// FIXME: improve new prefix assignment
 					prefix = "gen" + (new Random()).nextInt(999);
 				} else {
 					prefix = hintPrefix;
 				}
 			}
-			namespacePrefixMap.put(namespace, prefix);
+			globalNamespacePrefixMap.put(namespace, prefix);
 		}
 
 		return prefix;
@@ -83,23 +115,23 @@ public class MidPointNamespacePrefixMapper {
 	}
 
 	public static void initialize() {
-		namespacePrefixMap.clear();
-		namespacePrefixMap.put(SchemaConstants.NS_C, SchemaConstants.NS_C_PREFIX);
-		namespacePrefixMap.put(SchemaConstants.NS_ANNOTATION, "a");
-		namespacePrefixMap.put(SchemaConstants.NS_ICF_SCHEMA, "icfs");
-		namespacePrefixMap.put(SchemaConstants.NS_ICF_CONFIGURATION, "icfc");
-		namespacePrefixMap.put(SchemaConstants.NS_CAPABILITIES, "cap");
-		namespacePrefixMap.put(SchemaConstants.NS_RESOURCE, "r");
-		namespacePrefixMap.put(SchemaConstants.NS_FILTER, "f");
-		namespacePrefixMap.put(SchemaConstants.NS_PROVISIONING_LIVE_SYNC, "ls");
-		namespacePrefixMap.put(SchemaConstants.NS_SITUATION, "sit");
-		namespacePrefixMap.put(
+		globalNamespacePrefixMap.clear();
+		globalNamespacePrefixMap.put(SchemaConstants.NS_C, SchemaConstants.NS_C_PREFIX);
+		globalNamespacePrefixMap.put(SchemaConstants.NS_ANNOTATION, "a");
+		globalNamespacePrefixMap.put(SchemaConstants.NS_ICF_SCHEMA, "icfs");
+		globalNamespacePrefixMap.put(SchemaConstants.NS_ICF_CONFIGURATION, "icfc");
+		globalNamespacePrefixMap.put(SchemaConstants.NS_CAPABILITIES, "cap");
+		globalNamespacePrefixMap.put(SchemaConstants.NS_RESOURCE, "r");
+		globalNamespacePrefixMap.put(SchemaConstants.NS_FILTER, "f");
+		globalNamespacePrefixMap.put(SchemaConstants.NS_PROVISIONING_LIVE_SYNC, "ls");
+		globalNamespacePrefixMap.put(SchemaConstants.NS_SITUATION, "sit");
+		globalNamespacePrefixMap.put(
 				"http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd",
 				"ids");
-		namespacePrefixMap.put(W3C_XML_SCHEMA_INSTANCE_NS_URI, "xsi");
-		namespacePrefixMap.put(W3C_XML_SCHEMA_NS_URI, "xsd");
-		namespacePrefixMap.put("http://www.w3.org/2001/04/xmlenc#", "enc");
-		namespacePrefixMap.put("http://www.w3.org/2000/09/xmldsig#", "ds");
+		globalNamespacePrefixMap.put(W3C_XML_SCHEMA_INSTANCE_NS_URI, "xsi");
+		globalNamespacePrefixMap.put(W3C_XML_SCHEMA_NS_URI, "xsd");
+		globalNamespacePrefixMap.put("http://www.w3.org/2001/04/xmlenc#", "enc");
+		globalNamespacePrefixMap.put("http://www.w3.org/2000/09/xmldsig#", "ds");
 	}
 	
 	static {

@@ -113,13 +113,13 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 		return defs;
 	}
 	
-	public static Schema parse(Element schema) throws SchemaException {
-		if (schema == null) {
+	public static Schema parse(Element element) throws SchemaException {
+		if (element == null) {
 			throw new IllegalArgumentException("Schema DOM element must not be null.");
 		}
 
 		DomToSchemaProcessor processor = new DomToSchemaProcessor();
-		return processor.parseDom(schema);
+		return processor.parseDom(element);
 	}
 
 	public Document serializeToXsd() throws SchemaException {
