@@ -72,12 +72,15 @@ public class TestSchemaRegistry {
 
 	@Test
 	public void testExtraSchemaDir() throws SAXException, IOException, SchemaException {
+		System.out.println("===[ testExtraSchemaDir ]===");
 		File extraSchemaDir = new File("src/test/resources/schema-registry/schema-dir");
 		Document dataDoc = DOMUtil.parseFile("src/test/resources/schema-registry/data-schemadir.xml");
 
 		SchemaRegistry reg = new SchemaRegistry();
-		reg.registerSchemasFromDirectory(extraSchemaDir);
+		reg.registerMidPointSchemasFromDirectory(extraSchemaDir);
 		reg.initialize();
+		System.out.println("Initialized registry");
+		System.out.println(reg.dump());
 		Schema javaxSchema = reg.getJavaxSchema();
 		assertNotNull(javaxSchema);
 		

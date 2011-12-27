@@ -37,8 +37,9 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.Dumpable;
 
-public class SchemaDescription {
+public class SchemaDescription implements Dumpable {
 	private String path;
 	private String usualPrefix;
 	private String namespace;
@@ -210,6 +211,20 @@ public class SchemaDescription {
 	
 	private interface InputStreamable {
 		InputStream openInputStream();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.util.Dumpable#dump()
+	 */
+	@Override
+	public String dump() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(path);
+		if (schema != null) {
+			sb.append(" ");
+			sb.append(schema.toString());
+		}
+		return sb.toString();
 	}
 
 }

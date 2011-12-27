@@ -33,6 +33,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.EntityResolver;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -114,11 +115,16 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 	}
 	
 	public static Schema parse(Element element) throws SchemaException {
+		return parse(element,null);
+	}
+	
+	public static Schema parse(Element element, EntityResolver resolver) throws SchemaException {
 		if (element == null) {
 			throw new IllegalArgumentException("Schema DOM element must not be null.");
 		}
 
 		DomToSchemaProcessor processor = new DomToSchemaProcessor();
+		processor.setEntityResolver(resolver);
 		return processor.parseDom(element);
 	}
 

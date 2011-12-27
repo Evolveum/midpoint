@@ -57,6 +57,7 @@
 	<system systemId="datatypes" uri="../xml/ns/standard/datatypes.dtd" />
 
 	<public publicId="-//W3C//DTD XMLSchema 200102//EN" uri="../xml/ns/standard/XMLSchema.dtd" />
+	<public publicId="-//W3C//DTD XMLSCHEMA 200102//EN" uri="../xml/ns/standard/XMLSchema.dtd" />
 	<system systemId="-//W3C//DTD XMLSCHEMA 200102//EN" uri="../xml/ns/standard/XMLSchema.dtd" />
 
 	<public publicId="XMLSchema.dtd" uri="../xml/ns/standard/XMLSchema.dtd" />

@@ -45,6 +45,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -79,7 +80,16 @@ class DomToSchemaProcessor {
 	private static final Trace LOGGER = TraceManager.getTrace(DomToSchemaProcessor.class);
 	
 	private Schema schema;
+	private EntityResolver entityResolver;
 	
+	public EntityResolver getEntityResolver() {
+		return entityResolver;
+	}
+
+	public void setEntityResolver(EntityResolver entityResolver) {
+		this.entityResolver = entityResolver;
+	}
+
 	/**
 	 * Main entry point.
 	 * 
@@ -156,7 +166,11 @@ class DomToSchemaProcessor {
 	
 	private XSOMParser createSchemaParser() {
 		XSOMParser parser = new XSOMParser();
-		SchemaHandler errorHandler = new SchemaHandler(SchemaConstants.getEntityResolver());
+		EntityResolver resolver = entityResolver;
+		if (resolver == null) {
+			resolver = SchemaConstants.getEntityResolver();
+		}
+		SchemaHandler errorHandler = new SchemaHandler(resolver);
 		parser.setErrorHandler(errorHandler);
 		parser.setAnnotationParser(new DomAnnotationParserFactory());
 		parser.setEntityResolver(errorHandler);

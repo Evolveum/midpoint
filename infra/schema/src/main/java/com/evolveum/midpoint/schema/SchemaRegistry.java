@@ -61,6 +61,7 @@ import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.processor.ComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.sun.xml.txw2.Document;
@@ -72,7 +73,7 @@ import com.sun.xml.txw2.Document;
  * @author Radovan Semancik
  *
  */
-public class SchemaRegistry implements LSResourceResolver {
+public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpable {
 	
 	private javax.xml.validation.SchemaFactory schemaFactory;
 	private javax.xml.validation.Schema javaxSchema;
@@ -151,12 +152,13 @@ public class SchemaRegistry implements LSResourceResolver {
 		schemaDescriptions.add(desc);
 	}
 	
-	public void registerSchemaFile(File file) throws FileNotFoundException, SchemaException {
+	public void registerMidPointSchemaFile(File file) throws FileNotFoundException, SchemaException {
 		SchemaDescription desc = SchemaDescription.parseFile(file);
+		desc.setMidPointSchema(true);
 		schemaDescriptions.add(desc);
 	}
 	
-	public void registerSchemasFromDirectory(File directory) throws FileNotFoundException, SchemaException {
+	public void registerMidPointSchemasFromDirectory(File directory) throws FileNotFoundException, SchemaException {
 		List<File> files = Arrays.asList(directory.listFiles());
 		// Sort the filenames so we have deterministic order of loading
 		// This is useful in tests but may come handy also during customization
@@ -167,10 +169,10 @@ public class SchemaRegistry implements LSResourceResolver {
 				continue;
 			}
 			if (file.isDirectory()) {
-				registerSchemasFromDirectory(file);
+				registerMidPointSchemasFromDirectory(file);
 			}
 			if (file.isFile()) {
-				registerSchemaFile(file);
+				registerMidPointSchemaFile(file);
 			}
 		}
 	}
@@ -179,6 +181,7 @@ public class SchemaRegistry implements LSResourceResolver {
 		try {
 			
 			initResolver();
+			preParseSchemas();
 			parseMidPointSchema();
 			parseJavaxSchema();
 			initialized = true;
@@ -192,6 +195,13 @@ public class SchemaRegistry implements LSResourceResolver {
 		}
 	}
 	
+	private void preParseSchemas() {
+		for (SchemaDescription schemaDescription : schemaDescriptions) {	
+			String namespace = schemaDescription.getNamespace();
+			parsedSchemas.put(namespace, schemaDescription);
+		}		
+	}
+
 	private void parseJavaxSchema() throws SAXException, IOException {
 		schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 		Source[] sources = new Source[schemaDescriptions.size()];
@@ -212,7 +222,8 @@ public class SchemaRegistry implements LSResourceResolver {
 			
 			if (schemaDescription.isMidPointSchema()) {
 				Element domElement = schemaDescription.getDomElement();
-				Schema schema = Schema.parse(domElement);
+				Schema schema = Schema.parse(domElement, this);
+				//Schema schema = Schema.parse(domElement);
 				if (namespace == null) {
 					namespace = schema.getNamespace();
 				}
@@ -220,8 +231,6 @@ public class SchemaRegistry implements LSResourceResolver {
 				schemaDescription.setSchema(schema);
 				detectExtensionSchema(schema);
 			}
-			
-			parsedSchemas.put(namespace, schemaDescription);
 		}
 	}
 	
@@ -277,6 +286,24 @@ public class SchemaRegistry implements LSResourceResolver {
 	}
 
 	/* (non-Javadoc)
+	 * @see org.xml.sax.EntityResolver#resolveEntity(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
+		InputSource inputSource = resolveResourceFromRegisteredSchemas(null, publicId, publicId, systemId, null);
+		if (inputSource == null) {
+			inputSource = resolveResourceUsingBuiltinResolver(null, null, publicId, systemId, null);
+		}
+		if (inputSource == null) {
+			LOGGER.error("Unable to resolve resource with publicID: {}, systemID: {}",new Object[]{publicId, systemId});
+			return null;
+		}
+		LOGGER.trace("Resolved resource with publicID: {}, systemID: {} : {}",new Object[]{publicId, systemId, inputSource});
+		return inputSource;
+	}
+
+	
+	/* (non-Javadoc)
 	 * @see org.w3c.dom.ls.LSResourceResolver#resolveResource(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String)
 	 */
 	@Override
@@ -287,9 +314,10 @@ public class SchemaRegistry implements LSResourceResolver {
 			inputSource = resolveResourceUsingBuiltinResolver(type,namespaceURI,publicId,systemId,baseURI);
 		}
 		if (inputSource == null) {
-			LOGGER.error("Unable to resolve reference of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI});
+			LOGGER.error("Unable to resolve resource of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI});
 			return null;
 		}
+		LOGGER.trace("Resolved resource of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {} : {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI, inputSource});
 		return new Input(publicId, systemId, inputSource.getByteStream());
 	}
 		
@@ -302,7 +330,9 @@ public class SchemaRegistry implements LSResourceResolver {
 					InputStream inputStream = schemaDescription.openInputStream();
 					InputSource source = new InputSource();
 					source.setByteStream(inputStream);
-					source.setSystemId(schemaDescription.getPath());
+					//source.setSystemId(schemaDescription.getPath());
+					source.setSystemId(systemId);
+					source.setPublicId(publicId);
 					return source;
 				} else {
 					throw new IllegalStateException("Requested resolution of schema "+schemaDescription.getSourceDescription()+" that does not support input stream");
@@ -424,4 +454,23 @@ public class SchemaRegistry implements LSResourceResolver {
 		    this.inputStream = new BufferedInputStream(input);
 		}
 	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.util.Dumpable#dump()
+	 */
+	@Override
+	public String dump() {
+		StringBuilder sb = new StringBuilder("SchemaRegistry:");
+		
+		sb.append("  Parsed Schemas:\n");
+		for (String namespace: parsedSchemas.keySet()) {
+			sb.append("    ");
+			sb.append(namespace);
+			sb.append(": ");
+			sb.append(parsedSchemas.get(namespace).dump());
+			sb.append("\n");
+		}
+		return sb.toString();
+	}
+	
 }
