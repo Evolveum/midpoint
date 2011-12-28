@@ -134,7 +134,7 @@ public class ModifyUserAction extends BaseAction {
 
     private SyncContext createSyncContext(UserType user, ResourceType resource) throws SchemaException {
         SyncContext context = new SyncContext();
-        ObjectDefinition<UserType> userDefinition = getSchemaRegistry().getCommonSchema().findObjectDefinitionByType(
+        ObjectDefinition<UserType> userDefinition = getSchemaRegistry().getObjectSchema().findObjectDefinitionByType(
                 SchemaConstants.I_USER_TYPE);
 
         MidPointObject<UserType> oldUser = userDefinition.parseObjectType(user);

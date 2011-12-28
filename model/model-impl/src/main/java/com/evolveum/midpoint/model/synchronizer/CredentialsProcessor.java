@@ -75,7 +75,7 @@ public class CredentialsProcessor {
         }
         Property userPasswordNew = context.getUserNew().findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
 
-        Schema commonSchema = schemaRegistry.getCommonSchema();
+        Schema commonSchema = schemaRegistry.getObjectSchema();
 
         ObjectDefinition<AccountShadowType> accountDefinition = commonSchema.findObjectDefinition(AccountShadowType.class);
         PropertyDefinition accountPasswordPropertyDefinition = accountDefinition.findPropertyDefinition(SchemaConstants.PATH_PASSWORD_VALUE);

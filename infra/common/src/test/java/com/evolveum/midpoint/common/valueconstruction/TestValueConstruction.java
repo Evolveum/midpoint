@@ -83,7 +83,7 @@ public class TestValueConstruction {
                 new File(TEST_DIR, "construction-value.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getCommonSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         OperationResult opResult = new OperationResult("testConstructionValue");
@@ -104,7 +104,7 @@ public class TestValueConstruction {
                 new File(TEST_DIR, "construction-value-multi.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getCommonSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "telephoneNumber"));
 
         OperationResult opResult = new OperationResult("testConstructionValueMulti");
@@ -129,7 +129,7 @@ public class TestValueConstruction {
                 new File(TEST_DIR, "construction-asis.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getCommonSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         Property givenName = givenNameDef.instantiate();
@@ -154,7 +154,7 @@ public class TestValueConstruction {
                 new File(TEST_DIR, "construction-expression-simple.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getCommonSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         OperationResult opResult = new OperationResult("testConstructionExpressionSimple");
@@ -174,7 +174,7 @@ public class TestValueConstruction {
                 new File(TEST_DIR, "construction-expression-variables.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getCommonSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         OperationResult opResult = new OperationResult("testConstructionExpressionVariables");
@@ -195,7 +195,7 @@ public class TestValueConstruction {
                 new File(TEST_DIR, "construction-expression-system-variables.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getCommonSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         OperationResult opResult = new OperationResult("testConstructionExpressionSystemVariables");
@@ -226,7 +226,7 @@ public class TestValueConstruction {
                 new File(OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111111.xml"), UserType.class);
         UserType userType = userTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getCommonSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         OperationResult opResult = new OperationResult("testConstructionExpressionSystemVariables");
@@ -254,7 +254,7 @@ public class TestValueConstruction {
                 new File(OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111111.xml"), UserType.class);
         UserType userType = userTypeElement.getValue();
 
-        ObjectDefinition<UserType> userDef = schemaRegistry.getCommonSchema().findObjectDefinition(UserType.class);
+        ObjectDefinition<UserType> userDef = schemaRegistry.getObjectSchema().findObjectDefinition(UserType.class);
         PropertyDefinition givenNameDef = userDef.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         OperationResult opResult = new OperationResult("testConstructionExpressionSystemVariables");
@@ -278,7 +278,7 @@ public class TestValueConstruction {
                 new File(TEST_DIR, "construction-expression-root-node.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getCommonSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PropertyDefinition localityDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "locality"));
 
         OperationResult opResult = new OperationResult("testConstructionRootNode");
@@ -308,7 +308,7 @@ public class TestValueConstruction {
                 new File(TEST_DIR, "construction-expression-list.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getCommonSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PropertyDefinition ouDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "organizationalUnit"));
 
         OperationResult opResult = new OperationResult("testConstructionExpressionList");
@@ -338,7 +338,7 @@ public class TestValueConstruction {
                 new File(TEST_DIR, "construction-expression-scalar-list.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getCommonSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PropertyDefinition ouDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "organizationalUnit"));
 
         OperationResult opResult = new OperationResult("testConstructionExpressionScalarList");

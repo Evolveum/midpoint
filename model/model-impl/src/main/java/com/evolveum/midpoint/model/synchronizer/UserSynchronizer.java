@@ -200,7 +200,7 @@ public class UserSynchronizer {
 
         UserType userType = cacheRepositoryService.getObject(UserType.class, userOid, null, result);
         context.setUserTypeOld(userType);
-        Schema commonSchema = schemaRegistry.getCommonSchema();
+        Schema commonSchema = schemaRegistry.getObjectSchema();
         MidPointObject<UserType> user = commonSchema.parseObjectType(userType);
         context.setUserOld(user);
     }

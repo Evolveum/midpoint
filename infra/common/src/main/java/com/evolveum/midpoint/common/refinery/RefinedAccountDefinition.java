@@ -277,7 +277,7 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
 
     private void constructObjectDefinition() {
         // Almost-shallow clone of object definition and complex type
-        ObjectDefinition<AccountShadowType> originalObjectDefinition = schemaRegistry.getCommonSchema().findObjectDefinition(AccountShadowType.class);
+        ObjectDefinition<AccountShadowType> originalObjectDefinition = schemaRegistry.getObjectSchema().findObjectDefinition(AccountShadowType.class);
         ObjectDefinition<AccountShadowType> refinedObjectDef = originalObjectDefinition.clone();
         ComplexTypeDefinition originalComplexTypeDefinition = refinedObjectDef.getComplexTypeDefinition();
         ComplexTypeDefinition refinedComplexTypeDefinition = originalComplexTypeDefinition.clone();

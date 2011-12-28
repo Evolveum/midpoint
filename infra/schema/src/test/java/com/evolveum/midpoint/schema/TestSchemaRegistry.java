@@ -108,7 +108,7 @@ public class TestSchemaRegistry {
 		assertEquals("Extension type ref does not match", ObjectTypes.USER.getTypeQName(),userExtComplexType.getExtensionForType());
 		
 		// Try to fetch object schema, the extension of UserType should be there
-		schema = reg.getCommonSchema();
+		schema = reg.getObjectSchema();
 		System.out.println("Object schema:");
 		System.out.println(schema.dump());
 		ObjectDefinition<UserType> userDef = schema.findObjectDefinition(UserType.class);
@@ -132,7 +132,7 @@ public class TestSchemaRegistry {
 		SchemaRegistry reg = new SchemaRegistry();
 		reg.initialize();
 		
-		com.evolveum.midpoint.schema.processor.Schema commonSchema = reg.getCommonSchema();
+		com.evolveum.midpoint.schema.processor.Schema commonSchema = reg.getObjectSchema();
 		assertNotNull("No parsed common schema", commonSchema);
 		System.out.println("Parsed common schema:");
 		System.out.println(commonSchema.dump());
@@ -162,7 +162,7 @@ public class TestSchemaRegistry {
 		SchemaRegistry reg = new SchemaRegistry();
 		reg.initialize();
 		
-		com.evolveum.midpoint.schema.processor.Schema commonSchema = reg.getCommonSchema();
+		com.evolveum.midpoint.schema.processor.Schema commonSchema = reg.getObjectSchema();
 		assertNotNull("No parsed common schema", commonSchema);
 		
 		ObjectDefinition<AccountShadowType> accountDef = commonSchema.findObjectDefinition(ObjectTypes.ACCOUNT, AccountShadowType.class);

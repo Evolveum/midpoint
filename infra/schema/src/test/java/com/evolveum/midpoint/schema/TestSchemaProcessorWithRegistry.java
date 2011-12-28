@@ -59,7 +59,7 @@ public class TestSchemaProcessorWithRegistry {
 
         SchemaRegistry reg = new SchemaRegistry();
         reg.initialize();
-        Schema commonSchema = reg.getCommonSchema();
+        Schema commonSchema = reg.getObjectSchema();
         assertNotNull(commonSchema);
 
         // Try to use the schema to validate Jack
@@ -112,7 +112,7 @@ public class TestSchemaProcessorWithRegistry {
 
         SchemaRegistry reg = new SchemaRegistry();
         reg.initialize();
-        Schema commonSchema = reg.getCommonSchema();
+        Schema commonSchema = reg.getObjectSchema();
         assertNotNull(commonSchema);
 
         // Try to use the schema to validate Jack

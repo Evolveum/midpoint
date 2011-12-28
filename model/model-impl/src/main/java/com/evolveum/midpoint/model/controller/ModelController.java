@@ -290,7 +290,7 @@ public class ModelController implements ModelService {
             }
 
             ObjectDelta<T> objectDelta = null;
-            Schema commonSchema = schemaRegistry.getCommonSchema();
+            Schema commonSchema = schemaRegistry.getObjectSchema();
 
             if (object instanceof UserType) {
                 UserType userType = (UserType) object;
@@ -605,7 +605,7 @@ public class ModelController implements ModelService {
         try {
 
             ObjectDelta<T> objectDelta = null;
-            Schema commonSchema = schemaRegistry.getCommonSchema();
+            Schema commonSchema = schemaRegistry.getObjectSchema();
 
             if (UserType.class.isAssignableFrom(type)) {
                 SyncContext syncContext = userTypeModifyToContext(change, commonSchema, result);

@@ -92,7 +92,7 @@ public class TestAssignmentEvaluator extends AbstractModelIntegrationTest {
 		AssignmentEvaluator assignmentEvaluator = new AssignmentEvaluator();
 		assignmentEvaluator.setRepository(repositoryService);
 		
-		MidPointObject<UserType> userJack = schemaRegistry.getCommonSchema().findObjectDefinition(UserType.class).parseObjectType(userTypeJack);
+		MidPointObject<UserType> userJack = schemaRegistry.getObjectSchema().findObjectDefinition(UserType.class).parseObjectType(userTypeJack);
 		assignmentEvaluator.setUser(userJack);
 		
 		assignmentEvaluator.setObjectResolver(objectResolver);

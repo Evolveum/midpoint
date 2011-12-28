@@ -147,7 +147,7 @@ public class TestSynchronizerAddUser extends AbstractTestNGSpringContextTests {
 		SyncContext syncContext = new SyncContext();
 
 		ObjectDelta<UserType> objectDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD);
-		Schema commonSchema = schemaRegistry.getCommonSchema();
+		Schema commonSchema = schemaRegistry.getObjectSchema();
 		MidPointObject<UserType> user = commonSchema.parseObjectType(userType);
 		objectDelta.setObjectToAdd(user);
 		

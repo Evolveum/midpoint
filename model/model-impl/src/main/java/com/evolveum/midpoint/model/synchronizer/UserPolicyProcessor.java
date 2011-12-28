@@ -123,7 +123,7 @@ public class UserPolicyProcessor {
 	}
 
 	private ObjectDefinition<UserType> getUserDefinition() {
-		return schemaRegistry.getCommonSchema().findObjectDefinition(UserType.class);
+		return schemaRegistry.getObjectSchema().findObjectDefinition(UserType.class);
 	}
 
 	private void evaluateUserTemplateValueConstruction(

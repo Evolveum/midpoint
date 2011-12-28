@@ -71,7 +71,7 @@ public class ActivationProcessor {
         }
         Property userEnabledNew = userNew.findProperty(SchemaConstants.PATH_ACTIVATION_ENABLE);
 
-        Schema commonSchema = schemaRegistry.getCommonSchema();
+        Schema commonSchema = schemaRegistry.getObjectSchema();
 
         ObjectDefinition<AccountShadowType> accountDefinition = commonSchema.findObjectDefinition(AccountShadowType.class);
         PropertyDefinition accountEnabledPropertyDefinition = accountDefinition.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_ENABLE);

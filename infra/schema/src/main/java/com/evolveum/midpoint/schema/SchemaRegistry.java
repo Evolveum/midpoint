@@ -279,8 +279,15 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		return parsedSchemas.get(namespace).getSchema();
 	}
 	
-	// Convenience and safety
-	public Schema getCommonSchema() {
+	/**
+	 * Returns a schema that contains all the object definitions augmented with
+	 * extension definitions as appropriate. This is the method intended for common
+	 * usage in the code.
+	 * 
+	 * The returned schema is considered to be immutable. Any attempt to change it
+	 * may lead to unexpected results. 
+	 */
+	public Schema getObjectSchema() {
 		if (!initialized) {
 			throw new IllegalStateException("Attempt to get common schema from uninitialized Schema Registry");
 		}
