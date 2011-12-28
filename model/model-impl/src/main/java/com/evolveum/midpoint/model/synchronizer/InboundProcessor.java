@@ -94,22 +94,24 @@ public class InboundProcessor {
                 }
 
                 ObjectDelta<AccountShadowType> accountDelta = accountContext.getAccountSyncDelta();
-                for (QName name : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
-                    PropertyDelta propertyDelta = accountDelta.getPropertyDelta(attributes, name);
-                    if (propertyDelta == null) {
-                        continue;
-                    }
-
-                    RefinedAttributeDefinition attrDef = accountDefinition.getAttributeDefinition(name);
-                    List<Element> inbounds = attrDef.getInboundAssignmentTypes();
-
-                    for (Element inbound : inbounds) {
-                        PropertyDelta delta = createUserPropertyDelta(inbound, propertyDelta, context.getUserNew());
-                        if (delta != null) {
-                            userDelta.addModification(delta);
-                            context.recomputeUserNew();
-                        }
-                    }
+                if (accountDelta != null) {
+	                for (QName name : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
+	                    PropertyDelta propertyDelta = accountDelta.getPropertyDelta(attributes, name);
+	                    if (propertyDelta == null) {
+	                        continue;
+	                    }
+	
+	                    RefinedAttributeDefinition attrDef = accountDefinition.getAttributeDefinition(name);
+	                    List<Element> inbounds = attrDef.getInboundAssignmentTypes();
+	
+	                    for (Element inbound : inbounds) {
+	                        PropertyDelta delta = createUserPropertyDelta(inbound, propertyDelta, context.getUserNew());
+	                        if (delta != null) {
+	                            userDelta.addModification(delta);
+	                            context.recomputeUserNew();
+	                        }
+	                    }
+	                }
                 }
             }
         } finally {
