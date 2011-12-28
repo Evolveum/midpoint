@@ -4,9 +4,11 @@
 	targetNamespace="http://example.com/xml/ns/foo"
 	xmlns:tns="http://example.com/xml/ns/foo"
 	xmlns:ext="http://example.com/xml/ns/user-extension"
+	xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
 	elementFormDefault="qualified">
 	
 	<import namespace="http://example.com/xml/ns/user-extension" />
+	<import namespace="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd" />
 	
 	<complexType name="FooType">
 		<sequence>
@@ -18,6 +20,11 @@
 	<element name="extension" type="ext:UserExtensionType"/>
 	
 	<complexType name="RootType">
+		<annotation>
+			<appinfo>
+				<a:propertyContainer/>
+			</appinfo>
+		</annotation>
 		<sequence>
 			<element ref="tns:extension"/>
 			<element name="foo" type="tns:FooType"/>

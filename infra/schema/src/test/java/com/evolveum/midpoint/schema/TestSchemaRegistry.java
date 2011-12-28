@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
+import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -34,6 +35,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
  *
  */
 public class TestSchemaRegistry {
+
+	private static final String FOO_NAMESPACE = "http://example.com/xml/ns/foo";
 
 	@Test
 	public void testBasic() throws SAXException, IOException, SchemaException {
@@ -48,8 +51,8 @@ public class TestSchemaRegistry {
 		Validator validator = midPointSchema.newValidator();
 		DOMResult validationResult = new DOMResult();
 		validator.validate(new DOMSource(document),validationResult);
-		System.out.println("Validation result:");
-		System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
+//		System.out.println("Validation result:");
+//		System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
 	}
 	
 	@Test
@@ -66,8 +69,8 @@ public class TestSchemaRegistry {
 		Validator validator = midPointSchema.newValidator();
 		DOMResult validationResult = new DOMResult();
 		validator.validate(new DOMSource(dataDoc),validationResult);
-		System.out.println("Validation result:");
-		System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
+//		System.out.println("Validation result:");
+//		System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
 	}
 
 	@Test
@@ -81,14 +84,26 @@ public class TestSchemaRegistry {
 		reg.initialize();
 		System.out.println("Initialized registry");
 		System.out.println(reg.dump());
+		
+		// Try midpoint schemas by parsing a XML file
+		com.evolveum.midpoint.schema.processor.Schema schema = reg.getSchema(FOO_NAMESPACE);
+		System.out.println("Parsed schema:");
+		System.out.println(schema.dump());
+		QName rootType = new QName(FOO_NAMESPACE, "RootType");
+		PropertyContainerDefinition rootDef = schema.findContainerDefinitionByType(rootType);
+		assertNotNull("No parsed definition for type "+rootType,rootDef);
+		PropertyContainer parsedRoot = rootDef.parseItem(DOMUtil.getFirstChildElement(dataDoc));
+		System.out.println("Parsed container:");
+		System.out.println(parsedRoot.dump());
+		
+		// Try javax schemas by validating a XML file
 		Schema javaxSchema = reg.getJavaxSchema();
 		assertNotNull(javaxSchema);
-		
 		Validator validator = javaxSchema.newValidator();
 		DOMResult validationResult = new DOMResult();
 		validator.validate(new DOMSource(dataDoc),validationResult);
-		System.out.println("Validation result:");
-		System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
+//		System.out.println("Validation result:");
+//		System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
 	}
 
 	@Test

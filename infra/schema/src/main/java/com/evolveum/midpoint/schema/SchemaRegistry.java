@@ -290,9 +290,13 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	 */
 	@Override
 	public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
-		InputSource inputSource = resolveResourceFromRegisteredSchemas(null, publicId, publicId, systemId, null);
+		// Prefer built-in resolution over the pre-parsed one. This is less efficient, but if the order is swapped
+		// the parsers complaints about re-definition of the elements
+		InputSource inputSource = resolveResourceUsingBuiltinResolver(null, null, publicId, systemId, null);
+		//InputSource inputSource = resolveResourceFromRegisteredSchemas(null, publicId, publicId, systemId, null);
 		if (inputSource == null) {
-			inputSource = resolveResourceUsingBuiltinResolver(null, null, publicId, systemId, null);
+			//inputSource = resolveResourceUsingBuiltinResolver(null, null, publicId, systemId, null);
+			inputSource = resolveResourceFromRegisteredSchemas(null, publicId, publicId, systemId, null);
 		}
 		if (inputSource == null) {
 			LOGGER.error("Unable to resolve resource with publicID: {}, systemID: {}",new Object[]{publicId, systemId});
@@ -309,9 +313,13 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	@Override
 	public LSInput resolveResource(String type, String namespaceURI, String publicId, String systemId,
 			String baseURI) {
-		InputSource inputSource = resolveResourceFromRegisteredSchemas(type,namespaceURI,publicId,systemId,baseURI);
+		// Prefer built-in resolution over the pre-parsed one. This is less efficient, but if the order is swapped
+		// the parsers complaints about re-definition of the elements
+		InputSource inputSource = resolveResourceUsingBuiltinResolver(type,namespaceURI,publicId,systemId,baseURI);
+		// InputSource inputSource = resolveResourceFromRegisteredSchemas(type,namespaceURI,publicId,systemId,baseURI);
 		if (inputSource == null) {
-			inputSource = resolveResourceUsingBuiltinResolver(type,namespaceURI,publicId,systemId,baseURI);
+			//inputSource = resolveResourceUsingBuiltinResolver(type,namespaceURI,publicId,systemId,baseURI);
+			inputSource = resolveResourceFromRegisteredSchemas(type,namespaceURI,publicId,systemId,baseURI);
 		}
 		if (inputSource == null) {
 			LOGGER.error("Unable to resolve resource of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI});
