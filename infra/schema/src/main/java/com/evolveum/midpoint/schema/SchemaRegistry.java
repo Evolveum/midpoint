@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -59,6 +60,9 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.processor.ComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.Definition;
+import com.evolveum.midpoint.schema.processor.ItemDefinition;
+import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.util.Dumpable;
@@ -80,7 +84,8 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	private EntityResolver builtinSchemaResolver;	
 	private List<SchemaDescription> schemaDescriptions;
 	private Map<String,SchemaDescription> parsedSchemas;
-	private Map<String,PropertyContainerDefinition> extensionSchemas;
+	private Map<QName,ComplexTypeDefinition> extensionSchemas;
+	private Schema objectSchema = null;
 	private boolean initialized = false;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaRegistry.class);
@@ -89,6 +94,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		super();
 		this.schemaDescriptions = new ArrayList<SchemaDescription>();
 		this.parsedSchemas = new HashMap<String, SchemaDescription>();
+		this.extensionSchemas = new HashMap<QName, ComplexTypeDefinition>();
 		try {
 			registerBuiltinSchemas();
 		} catch (SchemaException e) {
@@ -234,11 +240,16 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		}
 	}
 	
-	private void detectExtensionSchema(Schema schema) {
+	private void detectExtensionSchema(Schema schema) throws SchemaException {
 		for (ComplexTypeDefinition def: schema.getDefinitions(ComplexTypeDefinition.class)) {
-			
+			QName extType = def.getExtensionForType();
+			if (extType != null) {
+				if (extensionSchemas.containsKey(extType)) {
+					throw new SchemaException("Duplicate definition of extension for type "+extType+": "+def+" and "+extensionSchemas.get(extType));
+				}
+				extensionSchemas.put(extType, def);
+			}
 		}
-		// TODO
 	}
 
 	private void initResolver() throws IOException {
@@ -273,7 +284,30 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		if (!initialized) {
 			throw new IllegalStateException("Attempt to get common schema from uninitialized Schema Registry");
 		}
-		return parsedSchemas.get(SchemaConstants.NS_C).getSchema();
+		if (objectSchema == null) {
+			initializeObjectSchema();
+		}
+		return objectSchema;
+	}
+	
+	private void initializeObjectSchema() {
+		Schema commonSchema = parsedSchemas.get(SchemaConstants.NS_C).getSchema();
+		// FIXME
+		objectSchema = new Schema("NO NAMESPACE");
+		for (Definition def: commonSchema.getDefinitions()) {
+			if (def instanceof ObjectDefinition<?>) {
+				QName typeName = def.getTypeName();
+				if (extensionSchemas.containsKey(typeName)) {
+					LOGGER.trace("Applying extension type for {}: {}", typeName, extensionSchemas.get(typeName));
+					ObjectDefinition<?> objDef = (ObjectDefinition<?>)def;
+					ObjectDefinition<?> enhDef = objDef.clone();
+					enhDef.setExtensionDefinition(extensionSchemas.get(typeName));
+					def = enhDef;
+					LOGGER.trace("Resuting object type def:\n{}", enhDef.dump());
+				}
+			}
+			objectSchema.getDefinitions().add(def);
+		}
 	}
 		
 	private SchemaDescription lookupSchemaDescription(String namespace) {

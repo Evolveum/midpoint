@@ -254,9 +254,6 @@ public class PropertyContainerDefinition extends ItemDefinition {
         return props;
     }
 
-    public void replaceDefintion(QName itemName, ItemDefinition replacement) {
-
-    }
 
     public boolean isDynamic() {
         return dynamic;

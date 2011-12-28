@@ -27,6 +27,7 @@ import java.lang.reflect.InvocationTargetException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -111,6 +112,13 @@ public class ObjectDefinition<T extends ObjectType> extends PropertyContainerDef
 		ObjectDefinition<T> clone = new ObjectDefinition<T>(name, complexTypeDefinition);
 		copyDefinitionData(clone);
 		return clone;
+	}
+
+	public void setExtensionDefinition(ComplexTypeDefinition extensionComplexTypeDefinition) {
+		PropertyContainerDefinition newExtensionDef = new PropertyContainerDefinition(SchemaConstants.C_EXTENSION, extensionComplexTypeDefinition);
+		ComplexTypeDefinition newCtd = this.complexTypeDefinition.clone();
+		newCtd.replaceDefinition(SchemaConstants.C_EXTENSION, newExtensionDef);
+		this.complexTypeDefinition = newCtd;
 	}
 	
 }

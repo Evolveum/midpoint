@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * @author Radovan Semancik
@@ -105,6 +106,15 @@ public class TestSchemaRegistry {
 		QName userExtTypeQName = new QName(USER_EXT_NAMESPACE,"UserExtensionType");
 		ComplexTypeDefinition userExtComplexType = schema.findComplexTypeDefinition(userExtTypeQName);
 		assertEquals("Extension type ref does not match", ObjectTypes.USER.getTypeQName(),userExtComplexType.getExtensionForType());
+		
+		// Try to fetch object schema, the extension of UserType should be there
+		schema = reg.getCommonSchema();
+		System.out.println("Object schema:");
+		System.out.println(schema.dump());
+		ObjectDefinition<UserType> userDef = schema.findObjectDefinition(UserType.class);
+		PropertyContainerDefinition extDef = userDef.findPropertyContainerDefinition(SchemaConstants.C_EXTENSION);
+		assertFalse("Extension is dynamic", extDef.isDynamic());
+		assertEquals("Wrong extension type", userExtTypeQName, extDef.getTypeName());
 		
 		// Try javax schemas by validating a XML file
 		Schema javaxSchema = reg.getJavaxSchema();
