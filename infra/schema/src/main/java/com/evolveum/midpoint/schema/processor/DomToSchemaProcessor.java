@@ -185,7 +185,7 @@ class DomToSchemaProcessor {
 	 * 
 	 * @param set XS Schema Set
 	 */
-	private void createComplexTypeDefinitions(XSSchemaSet set) {
+	private void createComplexTypeDefinitions(XSSchemaSet set) throws SchemaException {
 		Iterator<XSComplexType> iterator = set.iterateComplexTypes();
 		while (iterator.hasNext()) {
 			XSComplexType complexType = iterator.next();
@@ -219,9 +219,8 @@ class DomToSchemaProcessor {
 	/**
 	 * Creates ComplexTypeDefinition object from a single XSD complexType definition.
 	 * @param complexType XS complex type definition
-	 * @return
 	 */
-	private ComplexTypeDefinition createComplexTypeDefinition(XSComplexType complexType, boolean isResourceObject) {
+	private ComplexTypeDefinition createComplexTypeDefinition(XSComplexType complexType, boolean isResourceObject) throws SchemaException {
 		QName typeName = new QName(complexType.getTargetNamespace(),complexType.getName());
 		ComplexTypeDefinition ctd = new ComplexTypeDefinition(null, typeName, schema.getNamespace());
 				
@@ -234,6 +233,16 @@ class DomToSchemaProcessor {
 				if (term.isModelGroup()) {
 					addPropertyDefinitionListFromGroup(term.asModelGroup(), ctd, isResourceObject);
 				}
+			}
+			
+			XSAnnotation annotation = complexType.getAnnotation();
+			Element extensionAnnotationElement = getAnnotationElement(annotation, A_EXTENSION);
+			if (extensionAnnotationElement != null) {
+				QName extensionType = DOMUtil.getQNameAttribute(extensionAnnotationElement, A_EXTENSION_REF.getLocalPart());
+				if (extensionType == null) {
+					throw new SchemaException("The "+A_EXTENSION+"annontation on "+typeName+" complex type does not have "+A_EXTENSION_REF.getLocalPart()+" attribute",A_EXTENSION_REF);
+				}
+				ctd.setExtensionForType(extensionType);
 			}
 		}
 		
@@ -248,7 +257,7 @@ class DomToSchemaProcessor {
 	 * @param group XSD XSModelGroup
 	 * @param ctd ComplexTypeDefinition that will hold the definitions
 	 */
-	private void addPropertyDefinitionListFromGroup(XSModelGroup group, ComplexTypeDefinition ctd, boolean isResourceObject) {
+	private void addPropertyDefinitionListFromGroup(XSModelGroup group, ComplexTypeDefinition ctd, boolean isResourceObject) throws SchemaException {
 
 		XSParticle[] particles = group.getChildren();
 		for (XSParticle p : particles) {

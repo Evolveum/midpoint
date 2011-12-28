@@ -41,8 +41,10 @@ public class DOMUtilTest {
 	private static final String ELEMENT_LOCAL = "el";
 	private static final String DEFAULT_NS = "http://foo.com/default";
 	private static final String ELEMENT_TOP_LOCAL = "top";
+	private static final String FOO_NS = "http://foo.com/foo";
 	
 	private static final String XSD_TYPE_FILENAME = "src/test/resources/domutil/xsi-type.xml";
+	private static final String QNAMES_FILENAME = "src/test/resources/domutil/qnames.xml";
 	
 	public static final String NS_W3C_XML_SCHEMA_PREFIX = "xsd";
 	public static final QName XSD_SCHEMA_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "schema",
@@ -140,6 +142,20 @@ public class DOMUtilTest {
 		
 		AssertJUnit.assertTrue("Failed to detect xsi:type",DOMUtil.hasXsiType(el1));
 		
+	}
+	
+	@Test
+	public void testQNameMethods() {
+		Document doc = DOMUtil.parseFile(QNAMES_FILENAME);
+		Element root = DOMUtil.getFirstChildElement(doc);
+		
+		Element el1 = (Element) root.getElementsByTagNameNS(DEFAULT_NS, "el1").item(0);
+		QName refAttrValue = DOMUtil.getQNameAttribute(el1, "ref");
+		assertEquals("getQNameAttribute failed",new QName(FOO_NS,"bar"),refAttrValue);
+		
+		Element el2 = (Element) root.getElementsByTagNameNS(DEFAULT_NS, "el2").item(0);
+		QName el2Value = DOMUtil.getQNameValue(el2);
+		assertEquals("getQNameValue failed",new QName(FOO_NS,"BAR"),el2Value);
 	}
 
 }

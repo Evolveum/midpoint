@@ -24,6 +24,7 @@ package com.evolveum.midpoint.schema.processor;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -51,6 +52,7 @@ public class ComplexTypeDefinition extends Definition {
 	private static final long serialVersionUID = 2655797837209175037L;
 	private Set<ItemDefinition> itemDefinitions;
 	private String schemaNamespace;
+	private QName extensionForType;
 
 	ComplexTypeDefinition(QName defaultName, QName typeName) {
 		super(defaultName, typeName);
@@ -80,22 +82,15 @@ public class ComplexTypeDefinition extends Definition {
 			itemDefinitions = new HashSet<ItemDefinition>();
 		}
 		return itemDefinitions;
-	}	
+	}
 	
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		for (int i=0; i<indent; i++) {
-			sb.append(DebugDumpable.INDENT_STRING);
-		}
-		sb.append(toString());
-		sb.append("\n");
-		for (ItemDefinition def : getDefinitions()) {
-			sb.append(def.debugDump(indent+1));
-		}
-		return sb.toString();
+	public QName getExtensionForType() {
+		return extensionForType;
 	}
 
+	public void setExtensionForType(QName extensionForType) {
+		this.extensionForType = extensionForType;
+	}
 		
 	public PropertyDefinition createPropertyDefinifion(QName name, QName typeName) {
 		PropertyDefinition propDef = new PropertyDefinition(name, typeName);
@@ -157,5 +152,24 @@ public class ComplexTypeDefinition extends Definition {
 		}
 		throw new IllegalArgumentException("The definition with name "+propertyName+" was not found in complex type "+getTypeName());
 	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		for (int i=0; i<indent; i++) {
+			sb.append(DebugDumpable.INDENT_STRING);
+		}
+		sb.append(toString());
+		if (extensionForType != null) {
+			sb.append(" ext:");
+			sb.append(DebugUtil.prettyPrint(extensionForType));
+		}
+		sb.append("\n");
+		for (ItemDefinition def : getDefinitions()) {
+			sb.append(def.debugDump(indent+1));
+		}
+		return sb.toString();
+	}
+
 
 }

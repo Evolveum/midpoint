@@ -85,4 +85,7 @@ final class ProcessorConstants {
 	static final QName A_PROPERTY_CONTAINER = new QName(SchemaConstants.NS_ANNOTATION,"propertyContainer");
 	
 	static final QName A_IGNORE = new QName(SchemaConstants.NS_C, "ignore");
+	
+	static final QName A_EXTENSION = new QName(SchemaConstants.NS_ANNOTATION,"extension");
+	static final QName A_EXTENSION_REF = new QName(SchemaConstants.NS_ANNOTATION,"ref");
 }

@@ -3,6 +3,7 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -23,6 +24,7 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.processor.ComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
@@ -37,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 public class TestSchemaRegistry {
 
 	private static final String FOO_NAMESPACE = "http://example.com/xml/ns/foo";
+	private static final String USER_EXT_NAMESPACE = "http://example.com/xml/ns/user-extension";
 
 	@Test
 	public void testBasic() throws SAXException, IOException, SchemaException {
@@ -87,14 +90,21 @@ public class TestSchemaRegistry {
 		
 		// Try midpoint schemas by parsing a XML file
 		com.evolveum.midpoint.schema.processor.Schema schema = reg.getSchema(FOO_NAMESPACE);
-		System.out.println("Parsed schema:");
+		System.out.println("Parsed foo schema:");
 		System.out.println(schema.dump());
 		QName rootType = new QName(FOO_NAMESPACE, "RootType");
 		PropertyContainerDefinition rootDef = schema.findContainerDefinitionByType(rootType);
 		assertNotNull("No parsed definition for type "+rootType,rootDef);
 		PropertyContainer parsedRoot = rootDef.parseItem(DOMUtil.getFirstChildElement(dataDoc));
-		System.out.println("Parsed container:");
+		System.out.println("Parsed root container:");
 		System.out.println(parsedRoot.dump());
+
+		schema = reg.getSchema(USER_EXT_NAMESPACE);
+		System.out.println("Parsed user ext schema:");
+		System.out.println(schema.dump());
+		QName userExtTypeQName = new QName(USER_EXT_NAMESPACE,"UserExtensionType");
+		ComplexTypeDefinition userExtComplexType = schema.findComplexTypeDefinition(userExtTypeQName);
+		assertEquals("Extension type ref does not match", ObjectTypes.USER.getTypeQName(),userExtComplexType.getExtensionForType());
 		
 		// Try javax schemas by validating a XML file
 		Schema javaxSchema = reg.getJavaxSchema();

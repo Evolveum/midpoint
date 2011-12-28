@@ -551,6 +551,22 @@ public class DOMUtil {
 	public static QName getQNameValue(Element element) {
 		return resolveQName(element, element.getTextContent());
 	}
+	
+	public static QName getQNameAttribute(Element element, String attributeName) {
+		String attrContent = element.getAttribute(attributeName);
+		if (attrContent == null) {
+			return null;
+		}
+		return resolveQName(element, attrContent);
+	}
+	
+	public static QName getQNameAttribute(Element element, QName attributeName) {
+		String attrContent = element.getAttributeNS(attributeName.getNamespaceURI(), attributeName.getLocalPart());
+		if (attrContent == null) {
+			return null;
+		}
+		return resolveQName(element, attrContent);
+	}
 
 	public static void copyContent(Element source, Element destination) {
 		NamedNodeMap attributes = source.getAttributes();
