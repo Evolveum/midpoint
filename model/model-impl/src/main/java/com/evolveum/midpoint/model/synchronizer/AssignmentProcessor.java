@@ -183,7 +183,11 @@ public class AssignmentProcessor {
             LOGGER.trace("Account {}: attributeValueDeltaMap=\n{}: ", rat, attributeValueDeltaMap);
 
             if (zeroAccountMap.containsKey(rat)) {
-                context.getAccountSyncContext(rat).setAssigned(true);
+                AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
+                if (accountSyncContext == null) {
+                	throw new IllegalStateException("No account sync context for account type "+rat);
+                }
+                accountSyncContext.setAssigned(true);
                 // The account existed before the change and should still exist
                 processAccountKeep(context, rat, accountDeltaSetTriple, attributeValueDeltaMap, result);
 
