@@ -21,7 +21,6 @@
 package com.evolveum.midpoint.web.jsf.messages;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -217,13 +216,14 @@ public class MidPointFacesMessages extends HtmlMessages {
 		writer.startElement("li", null);
 		writer.writeAttribute("class", getOperationResultStatusClass(result.getStatus()), null);
 
-		StringBuilder opTitleSb = new StringBuilder(FacesUtils.translateKey("operation." + result.getOperation()));
-		
+		StringBuilder opTitleSb = new StringBuilder(FacesUtils.translateKey("operation."
+				+ result.getOperation()));
+
 		if (result.getMessage() != null) {
 			opTitleSb.append(": ");
 			opTitleSb.append(result.getMessage());
 		}
-		
+
 		writeMessageDetailBold(opTitleSb.toString(), writer);
 
 		// message error details
@@ -249,7 +249,8 @@ public class MidPointFacesMessages extends HtmlMessages {
 		writer.writeAttribute("style", "display: none;", null);
 		writeMessageDetailNormal(result.getMessageCode(), writer);
 		writeMessageDetailNormal(getSummary(result), writer);
-		// Do not display the token. It is not logged, therefore it has no information value now.
+		// Do not display the token. It is not logged, therefore it has no
+		// information value now.
 		// writeMessageDetailNormal("(" + result.getToken() + ")", writer);
 		writeMessageDetailsParams(result.getParams(), writer);
 		writeMessageDetailsContext(result.getContext(), writer);
@@ -343,9 +344,22 @@ public class MidPointFacesMessages extends HtmlMessages {
 			writer.writeAttribute("style", "display: none;", null);
 
 			writer.startElement("span", null);
-			PrintWriter printWriter = new PrintWriter(writer);
-			th.printStackTrace(printWriter);
-			writer.writeText(writer.toString(), null);
+			Throwable ourCause = th.getCause();
+			StackTraceElement[] trace = th.getStackTrace();
+			for (int i = 0; i < trace.length; i++) {
+				writer.write("&nbsp;&nbsp;&nbsp;&nbsp; at " + trace[i] + "<br />");
+			}
+			writer.write("<br />");
+
+			if (ourCause != null) {
+				StackTraceElement[] causedTrace = ourCause.getStackTrace();
+				writer.write("Caused by:<br />");
+				for (int i = 0; i < causedTrace.length; i++) {
+					writer.write("&nbsp;&nbsp;&nbsp;&nbsp; at " + causedTrace[i] + "<br />");
+				}
+				writer.write("<br />");
+			}
+
 			writer.endElement("span");
 			writer.endElement("div");
 			writer.endElement("li");
