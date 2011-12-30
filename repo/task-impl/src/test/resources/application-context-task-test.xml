@@ -42,5 +42,6 @@
 	<context:annotation-config />
 	<!-- <context:spring-configured/> -->
 	<context:component-scan base-package="com.evolveum.midpoint.task.impl" />
+	<context:component-scan base-package="com.evolveum.midpoint.audit.impl"/>
 
 </beans>
