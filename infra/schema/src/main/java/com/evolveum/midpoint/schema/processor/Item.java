@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.schema.processor;
@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.Dumpable;
 import org.w3c.dom.Node;
 
 import javax.xml.namespace.QName;
+import java.io.Serializable;
 
 
 /**
@@ -40,7 +41,7 @@ import javax.xml.namespace.QName;
  *
  * @author Radovan Semancik
  */
-public abstract class Item implements Dumpable, DebugDumpable {
+public abstract class Item implements Dumpable, DebugDumpable, Serializable {
 
     protected QName name;
     protected Definition definition;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.schema.processor;
@@ -31,7 +31,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.xml.namespace.QName;
-import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -55,7 +54,7 @@ import java.util.*;
  *
  * @author Radovan Semancik
  */
-public class PropertyContainer extends Item implements Serializable {
+public class PropertyContainer extends Item {
     private static final long serialVersionUID = 5206821250098051028L;
 
     private Set<Item> items = new HashSet<Item>();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.schema.processor;
@@ -26,10 +26,12 @@ import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.Validate;
 
+import java.io.Serializable;
+
 /**
  * @author lazyman
  */
-public class PropertyValue<T> implements Dumpable, DebugDumpable {
+public class PropertyValue<T> implements Dumpable, DebugDumpable, Serializable {
 
     private T value;
     private SourceType type;
@@ -40,9 +42,9 @@ public class PropertyValue<T> implements Dumpable, DebugDumpable {
     }
 
     public PropertyValue(T value, SourceType type, ObjectType source) {
-        Validate.notNull(value, "Value must not be null.");
         if (value instanceof PropertyValue) {
-            throw new IllegalArgumentException("Probably problem somewhere, encapsulating property value object to another property value.");
+            throw new IllegalArgumentException("Probably problem somewhere, encapsulating property " +
+                    "value object to another property value.");
         }
 
         this.value = value;
@@ -77,7 +79,11 @@ public class PropertyValue<T> implements Dumpable, DebugDumpable {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("PropertyValue[ ");
-        builder.append(getValue().toString());
+        if (getValue()!= null) {
+            builder.append(getValue().toString());
+        } else {
+            builder.append("null");
+        }
         builder.append(", type: ");
         builder.append(getType());
         builder.append(", source: ");
@@ -89,7 +95,11 @@ public class PropertyValue<T> implements Dumpable, DebugDumpable {
 
     @Override
     public int hashCode() {
-        int hash = 11 + getValue().hashCode();
+        int hash = 11;
+        if (getValue() != null) {
+            hash += getValue().hashCode();
+        }
+
         if (getSource() != null) {
             hash = hash * 13 + getSource().hashCode();
         }
