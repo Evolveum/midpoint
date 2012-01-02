@@ -39,6 +39,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
@@ -166,6 +170,9 @@ public class ModelController implements ModelService {
     
     @Autowired(required = true)
     private TaskManager taskManager;
+    
+    @Autowired(required = true)
+    private AuditService auditService;
 
     @Override
     public <T extends ObjectType> T getObject(Class<T> clazz, String oid, PropertyReferenceListType resolve,
@@ -266,7 +273,7 @@ public class ModelController implements ModelService {
     }
 
     @Override
-    public <T extends ObjectType> String addObject(T object, OperationResult parentResult)
+    public <T extends ObjectType> String addObject(T object, Task task, OperationResult parentResult)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException {
         Validate.notNull(object, "Object must not be null.");
         Validate.notNull(parentResult, "Result type must not be null.");
@@ -279,8 +286,13 @@ public class ModelController implements ModelService {
         result.addParams(new String[]{"object"}, object);
         String oid = null;
         
-        Task task = taskManager.createTaskInstance();		// in the future, this task instance will come from GUI 
+        //Task task = taskManager.createTaskInstance();		// in the future, this task instance will come from GUI 
 
+        AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.ADD_OBJECT, AuditEventStage.REQUEST);
+        auditRecord.setTarget(object);
+        // TODO: delta and others ....
+		auditService.audit(auditRecord , task);
+        
         RepositoryCache.enter();
         try {
             LOGGER.trace("Entering addObject with {}", ObjectTypeUtil.toShortString(object));
@@ -352,6 +364,10 @@ public class ModelController implements ModelService {
         } finally {
             RepositoryCache.exit();
         }
+        
+        auditRecord.setEventStage(AuditEventStage.EXECUTION);
+        auditRecord.setResult(result);
+        auditService.audit(auditRecord , task);
 
         return oid;
     }

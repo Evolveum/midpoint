@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -160,9 +161,11 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 		LOGGER.debug("Adding object '" + object.getName() + "'.");
 
 		OperationResult result = new OperationResult(ADD);
+		Task task = taskManager.createTaskInstance();
+		// TODO: task initialization
 		String oid = null;
 		try {
-			oid = getModel().addObject(object.getXmlObject(), result);
+			oid = getModel().addObject(object.getXmlObject(), task, result);
 			result.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't add object {} to model", ex, object.getName());

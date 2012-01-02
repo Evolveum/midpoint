@@ -152,11 +152,11 @@ public interface Task extends Dumpable {
 	
 	// TODO
 	public TaskType getTaskTypeObject();
-	
+		
 	/**
 	 * Returns task OID.
 	 * 
-	 * This returns null if the task is not persistent.
+	 * Only persistent tasks have OID. This returns null if the task is not persistent.
 	 * 
 	 * @return task OID
 	 * 

@@ -27,6 +27,8 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
@@ -71,6 +73,9 @@ public class TestAssignment extends AbstractTestNGSpringContextTests {
     @Autowired(required = true)
     private ProvisioningService provisioning;
 
+    @Autowired(required = true)
+    private TaskManager taskManager;
+    
     @BeforeMethod
     public void before() {
         Mockito.reset(repository, provisioning);
@@ -127,10 +132,11 @@ public class TestAssignment extends AbstractTestNGSpringContextTests {
                 });
 
         OperationResult result = new OperationResult("Simple Role Assignment");
+        Task task = taskManager.createTaskInstance();
         try {
 
             //WHEN
-            model.addObject(user, result);
+            model.addObject(user, task, result);
 
         } finally {
             LOGGER.debug(result.dump());
@@ -194,8 +200,9 @@ public class TestAssignment extends AbstractTestNGSpringContextTests {
                     });
 
             OperationResult result = new OperationResult("Account Assignment");
+            Task task = taskManager.createTaskInstance();
             try {
-                model.addObject(user, result);
+                model.addObject(user, task, result);
             } finally {
                 LOGGER.debug(result.dump());
             }

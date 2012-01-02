@@ -29,6 +29,7 @@
 
 	<bean id="initialDataImport" class="com.evolveum.midpoint.init.InitialDataImport" init-method="init" scope="singleton">
 		<property name="model" ref="modelController" />
+		<property name="taskManager" ref="taskManager" />
 	</bean>
 
 	<bean name="modelInitialSetup" class="com.evolveum.midpoint.init.ModelInitialSetup" depends-on="loggingManager"

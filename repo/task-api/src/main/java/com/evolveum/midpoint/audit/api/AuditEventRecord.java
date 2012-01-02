@@ -22,6 +22,7 @@ package com.evolveum.midpoint.audit.api;
 import java.text.SimpleDateFormat;
 
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -69,6 +70,7 @@ public class AuditEventRecord {
 	private AuditEventType eventType;
 	
 	// event stage (request, execution)
+	private AuditEventStage eventStage;
 	
 	// delta
 	private ObjectDelta<?> delta;
@@ -87,6 +89,11 @@ public class AuditEventRecord {
 	
 	public AuditEventRecord(AuditEventType eventType) {
 		this.eventType = eventType;
+	}
+
+	public AuditEventRecord(AuditEventType eventType, AuditEventStage eventStage) {
+		this.eventType = eventType;
+		this.eventStage = eventStage;
 	}
 
 	public Long getTimestamp() {
@@ -169,6 +176,14 @@ public class AuditEventRecord {
 		this.eventType = eventType;
 	}
 
+	public AuditEventStage getEventStage() {
+		return eventStage;
+	}
+
+	public void setEventStage(AuditEventStage eventStage) {
+		this.eventStage = eventStage;
+	}
+
 	public ObjectDelta<?> getDelta() {
 		return delta;
 	}
@@ -184,14 +199,18 @@ public class AuditEventRecord {
 	public void setOutcome(OperationResultStatus outcome) {
 		this.outcome = outcome;
 	}
+	
+	public void setResult(OperationResult result) {
+		outcome = result.getStatus();
+	}
 
 	@Override
 	public String toString() {
 		return "AUDIT[" + formatTimestamp(timestamp) + " " + eventIdentifier
-				+ " s=" + sessionIdentifier + " t=" + taskIdentifier
-				+ " toid=" + taskOID + " h=" + hostIdentifier + " I=" + formatObject(initiator)
-				+ " T=" + formatObject(target) + ", O=" + formatObject(targetOwner) + ", e=" + eventType
-				+ ", D=" + delta + ", o=" + outcome + "]";
+				+ " s=" + sessionIdentifier + ", t=" + taskIdentifier
+				+ " toid=" + taskOID + ", h=" + hostIdentifier + ", I=" + formatObject(initiator)
+				+ ", T=" + formatObject(target) + ", O=" + formatObject(targetOwner) + ", e=" + eventType
+				+ ", g=" + eventStage + ", D=" + delta + ", o=" + outcome + "]";
 	}
 
 	private String formatTimestamp(Long timestamp) {

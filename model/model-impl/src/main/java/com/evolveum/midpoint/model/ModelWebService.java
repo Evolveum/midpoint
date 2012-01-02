@@ -80,8 +80,10 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		notNullArgument(object, "Object must not be null.");
 
 		OperationResult operationResult = new OperationResult(ADD_OBJECT);
+		// TODO: better task initialization
+		Task task = taskManager.createTaskInstance();
 		try {
-			String oid = model.addObject(object, operationResult);
+			String oid = model.addObject(object, task, operationResult);
 			handleOperationResult(operationResult, result);
 			oidHolder.value = oid;
 			return;

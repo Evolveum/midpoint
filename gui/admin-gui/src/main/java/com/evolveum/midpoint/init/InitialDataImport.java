@@ -31,6 +31,8 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -49,6 +51,12 @@ public class InitialDataImport {
 	private final String[] FILES_FOR_IMPORT = new String[] { "systemConfiguration.xml", "admin.xml" };
 
 	private ModelService model;
+	private TaskManager taskManager;
+    
+    public void setTaskManager(TaskManager taskManager) {
+    	Validate.notNull(taskManager, "Task manager must not be null.");
+    	this.taskManager = taskManager;
+    }
 	
 	public void setModel(ModelService model) {
 		Validate.notNull(model, "Model service must not be null.");
@@ -62,7 +70,9 @@ public class InitialDataImport {
 		OperationResult mainResult = new OperationResult("Initial Objects Import");
 		for (String file : FILES_FOR_IMPORT) {
 			OperationResult result = mainResult.createSubresult("Import Object");
-
+			Task task = taskManager.createTaskInstance();
+			// TODO: task initialization
+			
 			InputStream stream = null;
 			try {
 				stream = getResource(file);
@@ -88,7 +98,7 @@ public class InitialDataImport {
 					continue;
 				}
 
-				model.addObject(object, result);
+				model.addObject(object, task, result);
 				result.recordSuccess();
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't import file {}", ex, file);
