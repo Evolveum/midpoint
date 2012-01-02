@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.model;
@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.*;
 import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.MidPointObject;
@@ -42,7 +43,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author semancik
@@ -182,8 +186,16 @@ public class ChangeExecutor {
     private void executeAddition(ObjectDelta<?> change, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException {
 
         MidPointObject<?> mpObject = change.getObjectToAdd();
+        
+        if (change.getModifications() != null) {
+            for (PropertyDelta delta : change.getModifications()) {
+                delta.applyTo(mpObject);
+            }
+            change.getModifications().clear();
+        }
+        
         mpObject.setObjectType(null);
-        ObjectType object = mpObject.getOrParseObjectType();
+        ObjectType object = mpObject.getOrParseObjectType();        
 
         String oid = null;
         if (object instanceof TaskType) {

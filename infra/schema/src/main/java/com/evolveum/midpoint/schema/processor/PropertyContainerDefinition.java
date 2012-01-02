@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.schema.processor;
@@ -609,7 +609,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
         } catch (SecurityException e) {
             throw new SchemaException("Access denied while trying to execute getter " + ANY_GETTER_NAME + " in " + getName() + ": " + e.getMessage(), e);
         } catch (NoSuchMethodException e) {
-            throw new SchemaException("Metod not found while trying to execute getter " + ANY_GETTER_NAME + " in " + getName() + ": " + e.getMessage(), e);
+            throw new SchemaException("Method not found while trying to execute getter " + ANY_GETTER_NAME + " in " + getName() + ": " + e.getMessage(), e);
         } catch (IllegalArgumentException e) {
             throw new SchemaException("Illegal argument while trying to execute getter " + ANY_GETTER_NAME + " in " + getName() + ": " + e.getMessage(), e);
         } catch (IllegalAccessException e) {

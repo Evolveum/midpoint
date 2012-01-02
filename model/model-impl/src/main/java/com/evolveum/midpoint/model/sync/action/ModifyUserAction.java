@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.model.sync.action;
@@ -38,6 +38,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import java.util.ArrayList;
@@ -100,6 +101,11 @@ public class ModifyUserAction extends BaseAction {
 
         OperationResult subResult = result.createSubresult(actionName);
         result.addSubresult(subResult);
+        if (StringUtils.isEmpty(userOid)) {
+            String message = "Can't modify user, user oid is empty or null.";
+            subResult.computeStatus(message);
+            throw new SynchronizationException(message);
+        }
 
         UserType userType = getUser(userOid, subResult);
         if (userType == null) {
@@ -112,7 +118,9 @@ public class ModifyUserAction extends BaseAction {
         try {
             context = createSyncContext(userType, change.getResource());
 
-            createAccountSyncContext(context, change, (AccountShadowType) shadowAfterChange);
+            AccountSyncContext accountContext = createAccountSyncContext(context, change, (AccountShadowType) shadowAfterChange);
+            accountContext.setPolicyDecision(getPolicyDecision());
+            accountContext.setActivationDecision(getAccountActivationDecision());
 
             getSynchronizer().synchronizeUser(context, subResult);
         } catch (Exception ex) {
@@ -143,59 +151,5 @@ public class ModifyUserAction extends BaseAction {
         context.rememberResource(resource);
 
         return context;
-    }
-
-    private AccountSyncContext createAccountSyncContext(SyncContext context,
-            ResourceObjectShadowChangeDescriptionType change,
-            AccountShadowType shadowAfterChange) throws SchemaException {
-        ResourceType resource = change.getResource();
-
-        ResourceAccountType resourceAccount = new ResourceAccountType(resource.getOid(), shadowAfterChange.getAccountType());
-        AccountSyncContext accountContext = context.createAccountSyncContext(resourceAccount);
-        accountContext.setResource(resource);
-        accountContext.setPolicyDecision(getPolicyDecision());
-        accountContext.setActivationDecision(getAccountActivationDecision());
-        accountContext.setOid(shadowAfterChange.getOid());
-
-        ObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(resource,
-                getSchemaRegistry()).getObjectDefinition(shadowAfterChange);
-
-        MidPointObject<AccountShadowType> shadowObject = definition.parseObjectType(shadowAfterChange);
-
-        ObjectDelta<AccountShadowType> delta = createObjectDelta(change.getObjectChange(), definition, shadowObject);
-        accountContext.setAccountSyncDelta(delta);
-
-        return accountContext;
-    }
-
-    private ObjectDelta<AccountShadowType> createObjectDelta(ObjectChangeType change,
-            ObjectDefinition<AccountShadowType> definition,
-            MidPointObject<AccountShadowType> shadowObject) throws SchemaException {
-
-        ObjectDelta<AccountShadowType> account = null;
-        if (change instanceof ObjectChangeAdditionType) {
-            ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change;
-
-            account = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.ADD);
-            MidPointObject<AccountShadowType> object = new MidPointObject<AccountShadowType>(SchemaConstants.I_ACCOUNT_SHADOW_TYPE);
-            object.setObjectType((AccountShadowType) addition.getObject());
-            account.setObjectToAdd(object);
-        } else if (change instanceof ObjectChangeDeletionType) {
-            ObjectChangeDeletionType deletion = (ObjectChangeDeletionType) change;
-
-            account = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.DELETE);
-            account.setOid(deletion.getOid());
-        } else if (change instanceof ObjectChangeModificationType) {
-            ObjectChangeModificationType modificationChange = (ObjectChangeModificationType) change;
-            ObjectModificationType modification = modificationChange.getObjectModification();
-            account = ObjectDelta.createDelta(modification, definition);
-        }
-
-        if (account == null) {
-            throw new IllegalArgumentException("Unknown object change type instance '"
-                    + change.getClass() + "',it's not add, delete nor modify.");
-        }
-
-        return account;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,18 +16,28 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.model.sync.action;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.ChangeExecutor;
+import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.sync.Action;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
 import com.evolveum.midpoint.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.processor.ChangeType;
+import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.StringUtils;
@@ -45,7 +55,6 @@ public abstract class BaseAction implements Action {
 
     private UserSynchronizer synchronizer;
     private ChangeExecutor executor;
-    @Deprecated
     private ModelController model;
     private SchemaRegistry schemaRegistry;
     private List<Object> parameters;
@@ -112,12 +121,10 @@ public abstract class BaseAction implements Action {
         return null;
     }
 
-    @Deprecated
     public void setModel(ModelController model) {
         this.model = model;
     }
 
-    @Deprecated
     protected ModelController getModel() {
         return model;
     }
@@ -144,5 +151,57 @@ public abstract class BaseAction implements Action {
 
     public void setSchemaRegistry(SchemaRegistry schemaRegistry) {
         this.schemaRegistry = schemaRegistry;
+    }
+
+    protected AccountSyncContext createAccountSyncContext(SyncContext context,
+            ResourceObjectShadowChangeDescriptionType change,
+            AccountShadowType shadowAfterChange) throws SchemaException {
+        ResourceType resource = change.getResource();
+
+        ResourceAccountType resourceAccount = new ResourceAccountType(resource.getOid(), shadowAfterChange.getAccountType());
+        AccountSyncContext accountContext = context.createAccountSyncContext(resourceAccount);
+        accountContext.setResource(resource);
+        accountContext.setOid(shadowAfterChange.getOid());
+
+        ObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(resource,
+                getSchemaRegistry()).getObjectDefinition(shadowAfterChange);
+
+        MidPointObject<AccountShadowType> shadowObject = definition.parseObjectType(shadowAfterChange);
+
+        ObjectDelta<AccountShadowType> delta = createObjectDelta(change.getObjectChange(), definition, shadowObject);
+        accountContext.setAccountSyncDelta(delta);
+
+        return accountContext;
+    }
+
+    private ObjectDelta<AccountShadowType> createObjectDelta(ObjectChangeType change,
+            ObjectDefinition<AccountShadowType> definition,
+            MidPointObject<AccountShadowType> shadowObject) throws SchemaException {
+
+        ObjectDelta<AccountShadowType> account = null;
+        if (change instanceof ObjectChangeAdditionType) {
+            ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change;
+
+            account = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.ADD);
+            MidPointObject<AccountShadowType> object = new MidPointObject<AccountShadowType>(SchemaConstants.I_ACCOUNT_SHADOW_TYPE);
+            object.setObjectType((AccountShadowType) addition.getObject());
+            account.setObjectToAdd(object);
+        } else if (change instanceof ObjectChangeDeletionType) {
+            ObjectChangeDeletionType deletion = (ObjectChangeDeletionType) change;
+
+            account = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.DELETE);
+            account.setOid(deletion.getOid());
+        } else if (change instanceof ObjectChangeModificationType) {
+            ObjectChangeModificationType modificationChange = (ObjectChangeModificationType) change;
+            ObjectModificationType modification = modificationChange.getObjectModification();
+            account = ObjectDelta.createDelta(modification, definition);
+        }
+
+        if (account == null) {
+            throw new IllegalArgumentException("Unknown object change type instance '"
+                    + change.getClass() + "',it's not add, delete nor modify.");
+        }
+
+        return account;
     }
 }

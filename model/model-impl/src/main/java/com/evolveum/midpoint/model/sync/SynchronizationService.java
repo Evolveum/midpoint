@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,21 +16,28 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
+
 package com.evolveum.midpoint.model.sync;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.patch.PatchXml;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.expr.ExpressionException;
 import com.evolveum.midpoint.model.expr.ExpressionHandler;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
+import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.DebugUtil;
@@ -73,6 +80,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     private ExpressionHandler expressionHandler;
     @Autowired
     private ChangeNotificationDispatcher notificationManager;
+    @Autowired
+    private SchemaRegistry schemaRegistry;
 
     @PostConstruct
     public void registerForResourceObjectChangeNotifications() {
@@ -122,7 +131,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                 throw new IllegalArgumentException("Change doesn't contain ResourceObjectShadow.");
             }
 
-            ResourceObjectShadowType objectShadowAfterChange = getObjectAfterChange(objectShadow,
+            ResourceObjectShadowType objectShadowAfterChange = getObjectAfterChange(change.getResource(), objectShadow,
                     change.getObjectChange());
 
             if (LOGGER.isTraceEnabled()) {
@@ -134,6 +143,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             LOGGER.debug("SITUATION: {} ()", situation.getSituation().value(), ObjectTypeUtil.toShortString(situation.getUser()));
 
             notifyChange(change, situation, resource, objectShadowAfterChange, subResult);
+        } catch (Exception ex) {
+            throw new SystemException(ex);
         } finally {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace(subResult.dump());
@@ -148,8 +159,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
      * @param change       changes to be applied
      */
     @SuppressWarnings("unchecked")
-    private ResourceObjectShadowType getObjectAfterChange(ResourceObjectShadowType objectShadow,
-                                                          ObjectChangeType change) {
+    private ResourceObjectShadowType getObjectAfterChange(ResourceType resource, ResourceObjectShadowType objectShadow,
+                                                          ObjectChangeType change) throws SchemaException {
         LOGGER.trace("Resolving resource object shadow after change.");
         if (change instanceof ObjectChangeAdditionType) {
             ObjectChangeAdditionType objectAddition = (ObjectChangeAdditionType) change;
@@ -161,18 +172,33 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                         + object.getClass().getName());
             }
         } else if (change instanceof ObjectChangeModificationType) {
-            try {
-                ObjectChangeModificationType objectModification = (ObjectChangeModificationType) change;
-                ObjectModificationType modification = objectModification.getObjectModification();
-                PatchXml patchXml = new PatchXml();
+//            try {
+                AccountShadowType account = (AccountShadowType)objectShadow;
+                ObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(resource,
+                        schemaRegistry).getObjectDefinition(account);
 
-                String patchedXml = patchXml.applyDifferences(modification, objectShadow);
-                ResourceObjectShadowType changedResourceShadow = ((JAXBElement<ResourceObjectShadowType>) JAXBUtil
-                        .unmarshal(patchedXml)).getValue();
-                return changedResourceShadow;
-            } catch (Exception ex) {
-                throw new SystemException(ex.getMessage(), ex);
-            }
+                MidPointObject<AccountShadowType> shadowObject = definition.parseObjectType(account);
+
+                ObjectChangeModificationType objectModification = (ObjectChangeModificationType) change;
+                ObjectDelta<AccountShadowType> delta = ObjectDelta.createDelta(objectModification.getObjectModification(), definition);
+                
+                delta.applyTo(shadowObject);
+
+                //we set object type to null, than it will be parsed, not only returned
+                shadowObject.setObjectType(null);
+                return shadowObject.getOrParseObjectType();
+
+                
+//                ObjectModificationType modification = objectModification.getObjectModification();
+//                PatchXml patchXml = new PatchXml();
+//
+//                String patchedXml = patchXml.applyDifferences(modification, objectShadow);
+//                ResourceObjectShadowType changedResourceShadow = ((JAXBElement<ResourceObjectShadowType>) JAXBUtil
+//                        .unmarshal(patchedXml)).getValue();
+//                return changedResourceShadow;
+//            } catch (Exception ex) {
+//                throw new SystemException(ex.getMessage(), ex);
+//            }
         } else if (change instanceof ObjectChangeDeletionType) {
             // in case of deletion the object has already all that it can have
             return objectShadow;
@@ -272,7 +298,6 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         ResourceType resource = change.getResource();
         SynchronizationType synchronization = resource.getSynchronization();
 
-        UserType user = null;
         SynchronizationSituationType state = null;
         LOGGER.debug("CORRELATION: Looking for list of users based on correlation rule.");
         List<UserType> users = findUsersByCorrelationRule(objectShadowAfterChange,
@@ -289,6 +314,12 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             users = findUserByConfirmationRule(users, objectShadowAfterChange,
                     synchronization.getConfirmation(), result);
         }
+
+        if (users == null) {
+            return new SynchronizationSituation(null, SynchronizationSituationType.UNMATCHED);
+        }
+
+        UserType user = null;
         switch (users.size()) {
             case 0:
                 state = SynchronizationSituationType.UNMATCHED;
