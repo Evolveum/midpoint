@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.model.synchronizer;
@@ -205,7 +205,8 @@ public class UserSynchronizer {
         context.setUserOld(user);
     }
 
-    private void loadAccountRefs(SyncContext context, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException {
+    private void loadAccountRefs(SyncContext context, OperationResult result) throws ObjectNotFoundException,
+            SchemaException, CommunicationException {
         PolicyDecision policyDecision = null;
         if (context.getUserPrimaryDelta() != null && context.getUserPrimaryDelta().getChangeType() == ChangeType.DELETE) {
             // If user is deleted, all accounts should also be deleted
@@ -232,7 +233,8 @@ public class UserSynchronizer {
     /**
      * Does not overwrite existing account contexts, just adds new ones.
      */
-    private void loadAccountRefsFromUser(SyncContext context, UserType userType, PolicyDecision policyDecision, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException {
+    private void loadAccountRefsFromUser(SyncContext context, UserType userType, PolicyDecision policyDecision,
+            OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException {
         for (ObjectReferenceType accountRef : userType.getAccountRef()) {
             String oid = accountRef.getOid();
             // Fetching from repository instead of provisioning so we avoid reading in a full account
@@ -256,7 +258,8 @@ public class UserSynchronizer {
         }
     }
 
-    private void loadFromSystemConfig(SyncContext context, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private void loadFromSystemConfig(SyncContext context, OperationResult result) throws ObjectNotFoundException,
+            SchemaException {
         SystemConfigurationType systemConfigurationType = cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
         if (systemConfigurationType == null) {
             // throw new SystemException("System configuration object is null (should not happen!)");
@@ -281,7 +284,9 @@ public class UserSynchronizer {
     /**
      * Converts delta set triples to a secondary account deltas.
      */
-    private void consolidateValues(SyncContext context, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+    private void consolidateValues(SyncContext context, OperationResult result) throws SchemaException,
+            ExpressionEvaluationException {
+        //todo filter changes which were already in account sync delta
 
         for (AccountSyncContext accCtx : context.getAccountContexts()) {
 
@@ -302,7 +307,8 @@ public class UserSynchronizer {
 
     }
 
-    private void consolidateValuesAddAccount(SyncContext context, AccountSyncContext accCtx, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+    private void consolidateValuesAddAccount(SyncContext context, AccountSyncContext accCtx,
+            OperationResult result) throws SchemaException, ExpressionEvaluationException {
 
         ObjectDelta<AccountShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, true, result);
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accCtx.getAccountSecondaryDelta();
@@ -332,7 +338,7 @@ public class UserSynchronizer {
     }
 
     private void consolidateValuesModifyAccount(SyncContext context, AccountSyncContext accCtx,
-                                                OperationResult result) throws SchemaException, ExpressionEvaluationException {
+            OperationResult result) throws SchemaException, ExpressionEvaluationException {
 
         ObjectDelta<AccountShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, false, result);
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accCtx.getAccountSecondaryDelta();
@@ -344,14 +350,15 @@ public class UserSynchronizer {
     }
 
     private void consolidateValuesDeleteAccount(SyncContext context, AccountSyncContext accCtx,
-                                                OperationResult result) {
+            OperationResult result) {
         ObjectDelta<AccountShadowType> deleteDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.DELETE);
         deleteDelta.setOid(accCtx.getOid());
         accCtx.setAccountSecondaryDelta(deleteDelta);
     }
 
-    private ObjectDelta<AccountShadowType> consolidateValuesToModifyDelta(SyncContext context, AccountSyncContext accCtx,
-                                                                          boolean addUnchangedValues, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+    private ObjectDelta<AccountShadowType> consolidateValuesToModifyDelta(SyncContext context,
+            AccountSyncContext accCtx,
+            boolean addUnchangedValues, OperationResult result) throws SchemaException, ExpressionEvaluationException {
 
         Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap = accCtx.getAttributeValueDeltaSetTripleMap();
         ResourceAccountType rat = accCtx.getResourceAccountType();
@@ -464,7 +471,8 @@ public class UserSynchronizer {
         return allValues;
     }
 
-    private void collectAllValuesFromSet(Collection<PropertyValue<Object>> allValues, Collection<PropertyValue<ValueConstruction>> set) {
+    private void collectAllValuesFromSet(Collection<PropertyValue<Object>> allValues,
+            Collection<PropertyValue<ValueConstruction>> set) {
         if (set == null) {
             return;
         }
@@ -474,7 +482,7 @@ public class UserSynchronizer {
     }
 
     private void collectAllValuesFromValueConstruction(Collection<PropertyValue<Object>> allValues,
-                                                       PropertyValue<ValueConstruction> valConstr) {
+            PropertyValue<ValueConstruction> valConstr) {
         Property output = valConstr.getValue().getOutput();
         if (output == null) {
             return;
@@ -489,7 +497,8 @@ public class UserSynchronizer {
         return allValues.contains(value);
     }
 
-    private Collection<PropertyValue<ValueConstruction>> collectValueConstructionsFromSet(Object value, Collection<PropertyValue<ValueConstruction>> set) {
+    private Collection<PropertyValue<ValueConstruction>> collectValueConstructionsFromSet(Object value,
+            Collection<PropertyValue<ValueConstruction>> set) {
         Collection<PropertyValue<ValueConstruction>> contructions = new HashSet<PropertyValue<ValueConstruction>>();
         for (PropertyValue<ValueConstruction> valConstr : set) {
             Property output = valConstr.getValue().getOutput();

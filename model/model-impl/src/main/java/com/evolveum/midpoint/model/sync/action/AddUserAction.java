@@ -62,8 +62,6 @@ public class AddUserAction extends BaseAction {
         try {
             UserType user = getUser(userOid, subResult);
             if (user == null) {
-//                user = new ObjectFactory().createUserType();
-
                 SyncContext context = new SyncContext();
                 //set user template to context from action configuration
                 context.setUserTemplate(getUserTemplate(subResult));
@@ -83,7 +81,7 @@ public class AddUserAction extends BaseAction {
                 ObjectDelta<UserType> delta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD);
                 delta.setObjectToAdd(oldUser);
                 context.setUserSecondaryDelta(delta);
-                
+
                 context.rememberResource(change.getResource());
 
                 getSynchronizer().synchronizeUser(context, subResult);
