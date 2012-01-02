@@ -42,6 +42,7 @@ public class TaskItem implements Serializable {
 	private String objectRef;
 	private String oid;
 	private String name;
+	private boolean selected;
 	private String lastRunStartTimestamp;
 	private String lastRunFinishTimestamp;
 	private TaskItemExecutionStatus executionStatus;
@@ -230,6 +231,14 @@ public class TaskItem implements Serializable {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+	
+	public boolean isSelected() {
+		return selected;
+	}
+
+	public void setSelected(boolean selected) {
+		this.selected = selected;
 	}
 
 	public String getLastRunStartTimestamp() {

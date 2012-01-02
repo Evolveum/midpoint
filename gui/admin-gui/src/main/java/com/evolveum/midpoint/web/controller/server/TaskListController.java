@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import javax.faces.event.ValueChangeEvent;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -14,8 +16,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.bean.ResourceListItem;
+import com.evolveum.midpoint.web.bean.Selectable;
 import com.evolveum.midpoint.web.bean.TaskItem;
 import com.evolveum.midpoint.web.controller.resource.ResourceDetailsController;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.controller.util.ListController;
 import com.evolveum.midpoint.web.repo.RepositoryManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
@@ -36,6 +40,7 @@ public class TaskListController extends ListController<TaskItem> {
 	@Autowired(required = true)
 	private transient RepositoryManager repositoryManager;
 	private boolean listAll = false;
+	private boolean selectAll = false;
 
 	// private Set<TaskItem> runningTasks;
 	private boolean activated;
@@ -165,6 +170,24 @@ public class TaskListController extends ListController<TaskItem> {
 			getResult(result, opResultList, token);
 		}
 
+	}
+	
+	public boolean isSelectAll() {
+		return selectAll;
+	}
+
+	public void setSelectAll(boolean selectAll) {
+		this.selectAll = selectAll;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void selectAllPerformed(ValueChangeEvent event) {
+		ControllerUtil.selectAllPerformed(event, (List<? extends Selectable>) getObjects());
+	}
+
+	@SuppressWarnings("unchecked")
+	public void selectPerformed(ValueChangeEvent evt) {
+		this.selectAll = ControllerUtil.selectPerformed(evt, (List<? extends Selectable>) getObjects());
 	}
 
 	public TaskManager getTaskManager() {
