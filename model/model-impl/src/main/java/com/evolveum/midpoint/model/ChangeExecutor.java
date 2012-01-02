@@ -43,10 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * @author semancik
@@ -66,7 +63,8 @@ public class ChangeExecutor {
     @Autowired(required = true)
     private ProvisioningService provisioning;
 
-    public void executeChanges(Collection<ObjectDelta<?>> changes, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException {
+    public void executeChanges(Collection<ObjectDelta<?>> changes, OperationResult result) throws
+            ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException {
         for (ObjectDelta<?> change : changes) {
             executeChange(change, result);
         }
@@ -105,10 +103,10 @@ public class ChangeExecutor {
     }
 
     /**
-     * Make sure that the account is linked (or unliknked) as needed.
+     * Make sure that the account is linked (or unlinked) as needed.
      */
     private void updateAccountLinks(MidPointObject<UserType> userNew, AccountSyncContext accCtx,
-                                    OperationResult result) throws ObjectNotFoundException, SchemaException {
+            OperationResult result) throws ObjectNotFoundException, SchemaException {
         UserType userTypeNew = userNew.getOrParseObjectType();
         String accountOid = accCtx.getOid();
         if (accountOid == null) {
@@ -138,7 +136,8 @@ public class ChangeExecutor {
         }
     }
 
-    private void linkAccount(String userOid, String accountOid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private void linkAccount(String userOid, String accountOid, OperationResult result) throws ObjectNotFoundException,
+            SchemaException {
 
         LOGGER.trace("Linking account " + accountOid + " to user " + userOid);
         ObjectReferenceType accountRef = new ObjectReferenceType();
@@ -152,7 +151,8 @@ public class ChangeExecutor {
         cacheRepositoryService.modifyObject(UserType.class, objectChange, result);
     }
 
-    private void unlinkAccount(String userOid, String accountOid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private void unlinkAccount(String userOid, String accountOid, OperationResult result) throws
+            ObjectNotFoundException, SchemaException {
 
         LOGGER.trace("Unlinking account " + accountOid + " to user " + userOid);
         ObjectReferenceType accountRef = new ObjectReferenceType();
@@ -166,7 +166,8 @@ public class ChangeExecutor {
         cacheRepositoryService.modifyObject(UserType.class, objectChange, result);
     }
 
-    public void executeChange(ObjectDelta<?> change, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException {
+    public void executeChange(ObjectDelta<?> change, OperationResult result) throws ObjectAlreadyExistsException,
+            ObjectNotFoundException, SchemaException, CommunicationException {
 
         if (change == null) {
             throw new IllegalArgumentException("Null change");
@@ -183,19 +184,20 @@ public class ChangeExecutor {
         }
     }
 
-    private void executeAddition(ObjectDelta<?> change, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException {
+    private void executeAddition(ObjectDelta<?> change, OperationResult result) throws ObjectAlreadyExistsException,
+            ObjectNotFoundException, SchemaException, CommunicationException {
 
         MidPointObject<?> mpObject = change.getObjectToAdd();
-        
+
         if (change.getModifications() != null) {
             for (PropertyDelta delta : change.getModifications()) {
                 delta.applyTo(mpObject);
             }
             change.getModifications().clear();
         }
-        
+
         mpObject.setObjectType(null);
-        ObjectType object = mpObject.getOrParseObjectType();        
+        ObjectType object = mpObject.getOrParseObjectType();
 
         String oid = null;
         if (object instanceof TaskType) {
@@ -209,7 +211,8 @@ public class ChangeExecutor {
 
     }
 
-    private void executeDeletion(ObjectDelta<? extends ObjectType> change, OperationResult result) throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException {
+    private void executeDeletion(ObjectDelta<? extends ObjectType> change, OperationResult result) throws
+            ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException {
 
         String oid = change.getOid();
         Class<? extends ObjectType> objectTypeClass = change.getObjectTypeClass();
@@ -223,7 +226,8 @@ public class ChangeExecutor {
         }
     }
 
-    private void executeModification(ObjectDelta<?> change, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private void executeModification(ObjectDelta<?> change, OperationResult result) throws ObjectNotFoundException,
+            SchemaException {
         if (change.isEmpty()) {
             // Nothing to do
             return;
@@ -281,7 +285,7 @@ public class ChangeExecutor {
     }
 
     private void deleteProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid,
-                                          OperationResult result) throws ObjectNotFoundException, ObjectAlreadyExistsException,
+            OperationResult result) throws ObjectNotFoundException, ObjectAlreadyExistsException,
             SchemaException {
 
         try {
@@ -295,7 +299,7 @@ public class ChangeExecutor {
     }
 
     private void modifyProvisioningObject(Class<? extends ObjectType> objectTypeClass,
-                                          ObjectModificationType objectChange, OperationResult result) throws ObjectNotFoundException {
+            ObjectModificationType objectChange, OperationResult result) throws ObjectNotFoundException {
 
         try {
             // TODO: scripts
@@ -307,7 +311,8 @@ public class ChangeExecutor {
         }
     }
 
-    private ScriptsType getScripts(ObjectType object, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException {
+    private ScriptsType getScripts(ObjectType object, OperationResult result) throws ObjectNotFoundException,
+            SchemaException, CommunicationException {
         ScriptsType scripts = null;
         if (object instanceof ResourceType) {
             ResourceType resource = (ResourceType) object;
