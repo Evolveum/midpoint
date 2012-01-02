@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,10 +16,14 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 package com.evolveum.midpoint.web.model.impl;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
+import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -27,40 +31,34 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.controller.util.ControllerUtil;
-import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
-
 /**
- * 
  * @author lazyman
- *
  */
 
-@ContextConfiguration(locations = { "file:src/main/webapp/WEB-INF/application-context-webapp.xml",
-		"file:src/main/webapp/WEB-INF/application-context-init.xml",
-		"file:src/main/webapp/WEB-INF/application-context-security.xml",
-		"classpath:application-context-test.xml",
-		"classpath:application-context-repository.xml",
-		"classpath:application-context-configuration-test.xml" })
-public class UserManagerImplTest extends AbstractTestNGSpringContextTests  {
+@ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/application-context-webapp.xml",
+        "file:src/main/webapp/WEB-INF/application-context-init.xml",
+        "file:src/main/webapp/WEB-INF/application-context-security.xml",
+        "classpath:application-context-test.xml",
+        "classpath:application-context-repository.xml",
+        "classpath:application-context-task.xml",
+        "classpath:application-context-configuration-test.xml"})
+public class UserManagerImplTest extends AbstractTestNGSpringContextTests {
 
-	private static final Trace LOGGER = TraceManager.getTrace(UserManagerImplTest.class);
-	@Autowired(required = true)
-	private transient ObjectTypeCatalog catalog;
-	
-	@BeforeMethod
-	public void before(){ 
-		AssertJUnit.assertNotNull(catalog);
-		AssertJUnit.assertNotNull(ControllerUtil.getUserManager(catalog));
-	}
-	
-	@Test
-	public void userManagerExists() {
+    private static final Trace LOGGER = TraceManager.getTrace(UserManagerImplTest.class);
+    @Autowired(required = true)
+    private transient ObjectTypeCatalog catalog;
+
+    @BeforeMethod
+    public void before() {
+        AssertJUnit.assertNotNull(catalog);
+        AssertJUnit.assertNotNull(ControllerUtil.getUserManager(catalog));
+    }
+
+    @Test
+    public void userManagerExists() {
 //		UserManager manager = ControllerUtil.getUserManager(catalog);
 //		
 //		manager.g
-		LOGGER.info(ControllerUtil.getUserManager(catalog).toString());
-	}
+        LOGGER.info(ControllerUtil.getUserManager(catalog).toString());
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,14 +16,11 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 package com.evolveum.midpoint.web.controller;
 
-import static org.testng.AssertJUnit.assertNotNull;
-
-import java.util.List;
-
+import com.evolveum.midpoint.web.controller.AboutController.SystemItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -31,42 +28,43 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.web.controller.AboutController.SystemItem;
+import java.util.List;
+
+import static org.testng.AssertJUnit.assertNotNull;
 
 /**
- * 
  * @author lazyman
- *
  */
-@ContextConfiguration(locations = { "file:src/main/webapp/WEB-INF/application-context-webapp.xml",
-		"file:src/main/webapp/WEB-INF/application-context-init.xml",
-		"file:src/main/webapp/WEB-INF/application-context-security.xml",
-		"classpath:application-context-test.xml",
-		"classpath:application-context-repository.xml",
-		"classpath:application-context-configuration-test.xml" })
+@ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/application-context-webapp.xml",
+        "file:src/main/webapp/WEB-INF/application-context-init.xml",
+        "file:src/main/webapp/WEB-INF/application-context-security.xml",
+        "classpath:application-context-test.xml",
+        "classpath:application-context-repository.xml",
+        "classpath:application-context-task.xml",
+        "classpath:application-context-configuration-test.xml"})
 public class AboutControllerTest extends AbstractTestNGSpringContextTests {
 
-	@Autowired(required = true)
-	AboutController controller;
+    @Autowired(required = true)
+    AboutController controller;
 
-	@BeforeMethod
-	public void before() {
-		AssertJUnit.assertNotNull(controller);
-	}
+    @BeforeMethod
+    public void before() {
+        AssertJUnit.assertNotNull(controller);
+    }
 
-	@Test
-	public void getItems() {
-		List<SystemItem> items = controller.getItems();
-		AssertJUnit.assertNotNull(items);
-		AssertJUnit.assertEquals(11, items.size());
+    @Test
+    public void getItems() {
+        List<SystemItem> items = controller.getItems();
+        AssertJUnit.assertNotNull(items);
+        AssertJUnit.assertEquals(11, items.size());
 
-		for (SystemItem item : items) {
-			AssertJUnit.assertNotNull(item);
-			assertNotNull(item.getProperty());
-			assertNotNull(item.getValue());
+        for (SystemItem item : items) {
+            AssertJUnit.assertNotNull(item);
+            assertNotNull(item.getProperty());
+            assertNotNull(item.getValue());
 
-			AssertJUnit.assertFalse("".equals(item.getProperty()));
-			AssertJUnit.assertFalse("".equals(item.getValue()));
-		}
-	}
+            AssertJUnit.assertFalse("".equals(item.getProperty()));
+            AssertJUnit.assertFalse("".equals(item.getValue()));
+        }
+    }
 }
