@@ -149,7 +149,7 @@ public class TaskScanner extends Thread {
 										LOGGER.debug("Task scanner is passing task to task manager:  "
 												+ DebugUtil.prettyPrint(task));
 
-										taskManagerImpl.processRunnableTaskType(task);
+										taskManagerImpl.processRunnableTaskType(task, loopResult);
 
 										// TODO: Remember the start time
 										// only if

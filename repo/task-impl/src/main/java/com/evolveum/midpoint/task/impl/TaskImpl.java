@@ -31,12 +31,14 @@ import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.processor.ExtensionProcessor;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.PropertyModification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -55,6 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UriStack;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * Implementation of a Task.
@@ -68,6 +71,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UriStack;
  */
 public class TaskImpl implements Task {
 	
+	private String taskIdentifier;
+	private UserType owner;
 	private TaskExecutionStatus executionStatus;
 	private TaskExclusivityStatus exclusivityStatus;
 	private TaskPersistenceStatus persistenceStatus;
@@ -95,7 +100,8 @@ public class TaskImpl implements Task {
 	 * @param taskType
 	 * @param repositoryService
 	 */	
-	TaskImpl(TaskManagerImpl taskManager) {
+	TaskImpl(TaskManagerImpl taskManager, LightweightIdentifier taskIdentifier) {
+		this.taskIdentifier = taskIdentifier.toString();
 		this.taskManager = taskManager;
 		executionStatus = TaskExecutionStatus.RUNNING;
 		exclusivityStatus = TaskExclusivityStatus.CLAIMED;
@@ -123,7 +129,9 @@ public class TaskImpl implements Task {
 		canRun = true;
 	}
 		
-	void initialize(TaskType taskType) throws SchemaException {
+	void initialize(TaskType taskType, OperationResult initResult) throws SchemaException {
+		taskIdentifier = taskType.getTaskIdentifier();
+		owner = resolveOwnerRef(taskType.getOwnerRef(), initResult);
 		executionStatus = TaskExecutionStatus.fromTaskType(taskType.getExecutionStatus());
 		exclusivityStatus = TaskExclusivityStatus.fromTaskType(taskType.getExclusivityStatus());
 		recurrenceStatus = TaskRecurrence.fromTaskType(taskType.getRecurrence());
@@ -161,12 +169,35 @@ public class TaskImpl implements Task {
 		extension = ExtensionProcessor.parseExtension(taskType.getExtension());
 	}
 	
+	private UserType resolveOwnerRef(ObjectReferenceType ownerRef, OperationResult result) throws SchemaException {
+		try {
+			return repositoryService.getObject(UserType.class, ownerRef.getOid(), null, result);
+		} catch (ObjectNotFoundException e) {
+			throw new SystemException("The owner of task "+oid+" cannot be found (owner OID: "+ownerRef.getOid()+")",e);
+		}
+	}
+
 	RepositoryService getRepositoryService() {
 		return repositoryService;
 	}
 	
 	void setRepositoryService(RepositoryService repositoryService) {
 		this.repositoryService = repositoryService;
+	}
+	
+	@Override
+	public String getTaskIdentifier() {
+		return taskIdentifier;
+	}
+	
+	@Override
+	public UserType getOwner() {
+		return owner;
+	}
+
+	@Override
+	public void setOwner(UserType owner) {
+		this.owner = owner;
 	}
 
 	/* (non-Javadoc)
@@ -567,7 +598,7 @@ public class TaskImpl implements Task {
 			throw ex;			
 		}
 		TaskType taskType = (TaskType)repoObj;
-		initialize(taskType);
+		initialize(taskType, result);
 		result.recordSuccess();
 	}
 	
@@ -631,7 +662,7 @@ public class TaskImpl implements Task {
 	 */
 	@Override
 	public String toString() {
-		return "Task(name:" + name + ", oid:" + oid + ")";
+		return "Task(id:" + taskIdentifier + ", name:" + name + ", oid:" + oid + ")";
 	}
 
 	/* (non-Javadoc)

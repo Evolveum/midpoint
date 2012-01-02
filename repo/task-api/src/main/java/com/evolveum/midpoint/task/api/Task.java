@@ -36,6 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UriStack;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * Task instance - a logical unit of work that is either done synchronously, asynchronously, it is deferred, scheduled, etc.
@@ -152,7 +153,29 @@ public interface Task extends Dumpable {
 	
 	// TODO
 	public TaskType getTaskTypeObject();
-		
+	
+	/**
+	 * Returns task (lightweight) identifier. This is an unique identification of any task,
+	 * regardless whether it is persistent or transient (cf. OID). Therefore this can be used
+	 * to identify all tasks, e.g. for the purposes of auditing and logging.
+	 *  
+	 * Task identifier is assigned automatically when the task is created. It is immutable.
+	 *  
+	 * @return task (lightweight) identifier
+	 */
+	public String getTaskIdentifier();
+	
+	/**
+	 * Returns user that owns this task. It usually means the user that started the task
+     * or a system used that is used to execute the task. The owner will be used to
+     * determine access rights of the task, will be used for auditing, etc.
+     * 
+	 * @return task owner
+	 */
+	public UserType getOwner();
+	
+	public void setOwner(UserType owner);
+	
 	/**
 	 * Returns task OID.
 	 * 

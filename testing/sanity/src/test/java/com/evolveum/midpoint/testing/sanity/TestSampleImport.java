@@ -74,6 +74,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 public class TestSampleImport extends AbstractIntegrationTest {
 	
 	private static final String SAMPLE_DIRECTORY_NAME = "../../samples/";
+	private static final String USER_ADMINISTRATOR_FILENAME = "src/test/resources/repo/user-administrator.xml";
 	
 	private static final Trace LOGGER = TraceManager.getTrace(TestSampleImport.class);
 	
@@ -86,6 +87,9 @@ public class TestSampleImport extends AbstractIntegrationTest {
 
 	@Override
 	public void initSystem(OperationResult initResult) throws Exception {
+		// Necessary to avoid warnings about missing user in task owner references
+		addObjectFromFile(USER_ADMINISTRATOR_FILENAME, initResult);
+		
 		// This should discover the connectors
 		LOGGER.trace("initSystem: trying modelService.postInit()");
 		modelService.postInit(initResult);

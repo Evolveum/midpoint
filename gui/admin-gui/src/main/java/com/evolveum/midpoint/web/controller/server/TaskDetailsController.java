@@ -173,8 +173,11 @@ public class TaskDetailsController implements Serializable {
 
 	public void createInstance() {
 
+		// TODO: fix result
+		OperationResult result = new OperationResult("Create task instance");
+		
 		try {
-			taskManager.createTaskInstance(task.toTaskType());
+			taskManager.createTaskInstance(task.toTaskType(), result);
 			FacesUtils.addSuccessMessage("Task instance created sucessfully");
 			
 		} catch (SchemaException ex) {

@@ -43,6 +43,8 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.LightweightIdentifier;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -87,6 +89,9 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	
 	@Autowired(required=true)
 	private RepositoryService repositoryService;
+	
+	@Autowired(required=true)
+	private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerImpl.class);
 	private static final String TASK_THREAD_NAME_PREFIX = "midpoint-task-";
@@ -138,7 +143,8 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	 */
 	@Override
 	public Task createTaskInstance() {
-		return new TaskImpl(this);
+		LightweightIdentifier taskIdentifier = generateTaskIdentifier();
+		return new TaskImpl(this, taskIdentifier);
 	}
 	
 	/* (non-Javadoc)
@@ -146,17 +152,22 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	 */
 	@Override
 	public Task createTaskInstance(String operationName) {
-		TaskImpl taskImpl = new TaskImpl(this);
+		LightweightIdentifier taskIdentifier = generateTaskIdentifier();
+		TaskImpl taskImpl = new TaskImpl(this, taskIdentifier);
 		taskImpl.setResult(new OperationResult(operationName));
 		return taskImpl;
 	}
 	
+	private LightweightIdentifier generateTaskIdentifier() {
+		return lightweightIdentifierGenerator.generate();
+	}
+
 	@Override
-	public Task createTaskInstance(TaskType taskType) throws SchemaException {
+	public Task createTaskInstance(TaskType taskType, OperationResult parentResult) throws SchemaException {
 		//Note: we need to be Spring Bean Factory Aware, because some repo implementations are in scope prototype
 		RepositoryService repoService = (RepositoryService) this.beanFactory.getBean("repositoryService");
 		TaskImpl task = new TaskImpl(this,repoService);
-		task.initialize(taskType);
+		task.initialize(taskType, parentResult);
 		return task;
 	}
 	
@@ -164,9 +175,9 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	 * @see com.evolveum.midpoint.task.api.TaskManager#createTaskInstance(com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType, java.lang.String)
 	 */
 	@Override
-	public Task createTaskInstance(TaskType taskType, String operationName) throws SchemaException {
+	public Task createTaskInstance(TaskType taskType, String operationName, OperationResult parentResult) throws SchemaException {
 		RepositoryService repoService = (RepositoryService) this.beanFactory.getBean("repositoryService");
-		TaskImpl taskImpl = (TaskImpl)createTaskInstance(taskType);
+		TaskImpl taskImpl = (TaskImpl)createTaskInstance(taskType, parentResult);
 		if (taskImpl.getResult()==null) {
 			taskImpl.setResult(new OperationResult(operationName));
 		}
@@ -204,7 +215,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		ObjectType object = repositoryService.getObject(ObjectType.class, taskOid, resolve, result);
 		TaskType taskType = (TaskType) object;
 		//Note: we need to be Spring Bean Factory Aware, because some repo implementations are in scope prototype
-		return createTaskInstance(taskType);
+		return createTaskInstance(taskType, result);
 	}
 
 	/* (non-Javadoc)
@@ -419,8 +430,8 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	 * 
 	 * @param task XML TaskType object 
 	 */
-	public void processRunnableTaskType(TaskType taskType) throws SchemaException {
-		Task task = createTaskInstance(taskType);
+	public void processRunnableTaskType(TaskType taskType, OperationResult parentResult) throws SchemaException {
+		Task task = createTaskInstance(taskType, parentResult);
 		processRunnableTask(task);
 	}
 

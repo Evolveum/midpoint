@@ -38,6 +38,8 @@
 		<my:dead xsi:type="xsd:integer">42</my:dead>
 	</extension>
 	
+	<taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
+	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>running</executionStatus>
 	<exclusivityStatus>released</exclusivityStatus>
 	<handlerUri>http://midpoint.evolveum.com/model/sync/handler-1</handlerUri>

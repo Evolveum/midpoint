@@ -1565,6 +1565,26 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ExtensibleObjectType">
                 <xsd:sequence>
+                	<xsd:element name="taskIdentifier" type="xsd:string">
+                		<xsd:annotation>
+                			<xsd:documentation>
+                				Task (lightweight) identifier. This is an unique identification of any task,
+								regardless whether it is persistent or transient (cf. OID). Therefore this can be used
+								to identify all tasks, e.g. for the purposes of auditing and logging.
+								
+								Task identifier is assigned automatically when the task is created. It is immutable.
+                			</xsd:documentation>
+                		</xsd:annotation>
+                	</xsd:element>
+                    <xsd:element name="ownerRef" type="tns:ObjectReferenceType">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			The user that owns this task. It usually means the user that started the task
+                    			or a system used that is used to execute the task. The owner will be used to
+                    			determine access rights of the task, will be used for auditing, etc.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="executionStatus" type="tns:TaskExecutionStatusType">
                         <xsd:annotation>
                             <xsd:documentation>

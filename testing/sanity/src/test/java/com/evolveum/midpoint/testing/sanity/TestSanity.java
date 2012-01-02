@@ -131,6 +131,9 @@ public class TestSanity extends AbstractIntegrationTest {
     private static final String USER_TEMPLATE_FILENAME = "src/test/resources/repo/user-template.xml";
     private static final String USER_TEMPLATE_OID = "c0c010c0-d34d-b33f-f00d-777111111111";
 
+    private static final String USER_ADMINISTRATOR_FILENAME = "src/test/resources/repo/user-administrator.xml";
+    private static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
+    
     private static final String USER_JACK_FILENAME = "src/test/resources/repo/user-jack.xml";
     private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 
@@ -205,6 +208,7 @@ public class TestSanity extends AbstractIntegrationTest {
     public void initSystem(OperationResult initResult) throws Exception {
         LOGGER.trace("initSystem");
         addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, initResult);
+        addObjectFromFile(USER_ADMINISTRATOR_FILENAME, initResult);
 
         // This should discover the connectors
         LOGGER.trace("initSystem: trying modelService.postInit()");
@@ -2027,7 +2031,7 @@ public class TestSanity extends AbstractIntegrationTest {
         displayJaxb("importFromResource result", taskType.getResult(), SchemaConstants.C_RESULT);
         AssertJUnit.assertEquals("importFromResource has failed", OperationResultStatusType.IN_PROGRESS, taskType.getResult().getStatus());
         // Convert the returned TaskType to a more usable Task
-        Task task = taskManager.createTaskInstance(taskType);
+        Task task = taskManager.createTaskInstance(taskType, result);
         AssertJUnit.assertNotNull(task);
         assertNotNull(task.getOid());
         AssertJUnit.assertTrue(task.isAsynchronous());
@@ -2049,13 +2053,14 @@ public class TestSanity extends AbstractIntegrationTest {
             public boolean check() throws Exception {
                 Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
                 Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+                OperationResult opResult = new OperationResult("import check");
                 assertCache();
                 modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), taskOid,
                         new PropertyReferenceListType(), objectHolder, resultHolder);
                 assertCache();
 //				display("getObject result (wait loop)",resultHolder.value);
                 assertSuccess("getObject has failed", resultHolder.value);
-                Task task = taskManager.createTaskInstance((TaskType) objectHolder.value);
+                Task task = taskManager.createTaskInstance((TaskType) objectHolder.value, opResult);
                 System.out.println(new Date() + ": Import task status: " + task.getExecutionStatus() + ", progress: " + task.getProgress());
                 if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
                     // Task closed, wait finished
@@ -2080,7 +2085,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         assertCache();
         assertSuccess("getObject has failed", resultHolder.value);
-        task = taskManager.createTaskInstance((TaskType) objectHolder.value);
+        task = taskManager.createTaskInstance((TaskType) objectHolder.value, result);
 
         display("Import task after finish (fetched from model)", task);
 
@@ -2095,13 +2100,14 @@ public class TestSanity extends AbstractIntegrationTest {
             public boolean check() throws Exception {
                 Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
                 Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+                OperationResult opResult = new OperationResult("import check");
                 assertCache();
                 modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), taskOid,
                         new PropertyReferenceListType(), objectHolder, resultHolder);
                 assertCache();
 //				display("getObject result (wait loop)",resultHolder.value);
                 assertSuccess("getObject has failed", resultHolder.value);
-                Task task = taskManager.createTaskInstance((TaskType) objectHolder.value);
+                Task task = taskManager.createTaskInstance((TaskType) objectHolder.value, opResult);
                 System.out.println("Import task status: " + task.getExecutionStatus());
                 if (task.getExclusivityStatus() == TaskExclusivityStatus.RELEASED) {
                     // Task closed and released, wait finished

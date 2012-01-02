@@ -80,7 +80,7 @@ public interface TaskManager {
 	 * @return new Java representation of the task
 	 * @throws SchemaException The provided taskType is not compliant to schema
 	 */
-	public Task createTaskInstance(TaskType taskType) throws SchemaException;
+	public Task createTaskInstance(TaskType taskType, OperationResult parentResult) throws SchemaException;
 
 	/**
 	 * Creates new transient, running, claimed task instance.
@@ -110,7 +110,7 @@ public interface TaskManager {
 	 * @return new Java representation of the task
 	 * @throws SchemaException The provided taskType is not compliant to schema
 	 */
-	public Task createTaskInstance(TaskType taskType, String operationName) throws SchemaException;
+	public Task createTaskInstance(TaskType taskType, String operationName, OperationResult parentResult) throws SchemaException;
 	
 	/**
 	 * Returns a task with specified OID.
