@@ -45,6 +45,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -74,6 +75,8 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 	private RepositoryService repository;
 	@Autowired(required = true)
 	private ProvisioningService provisioning;
+	@Autowired(required = true)
+	private TaskManager taskManager;
 
 	@BeforeMethod
 	public void before() {
@@ -82,17 +85,17 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullOid() throws Exception {
-		controller.deleteObject(UserType.class, null, null);
+		controller.deleteObject(UserType.class, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void emptyOid() throws Exception {
-		controller.deleteObject(UserType.class, "", null);
+		controller.deleteObject(UserType.class, "", null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
-		controller.deleteObject(UserType.class, "1", null);
+		controller.deleteObject(UserType.class, "1", null, null);
 	}
 
 	@Test
@@ -108,7 +111,7 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 						any(OperationResult.class))).thenReturn(expectedUser);
 		OperationResult result = new OperationResult("Delete Object From Repo");
 		try {
-			controller.deleteObject(UserType.class, oid, result);
+			controller.deleteObject(UserType.class, oid, taskManager.createTaskInstance(), result);
 		} finally {
 			LOGGER.debug(result.dump());
 		}
@@ -128,7 +131,7 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 						any(OperationResult.class))).thenReturn(expectedResource);
 		OperationResult result = new OperationResult("Delete Object From Provisioning");
 		try {
-			controller.deleteObject(ResourceType.class, oid, result);
+			controller.deleteObject(ResourceType.class, oid, taskManager.createTaskInstance(), result);
 		} finally {
 			LOGGER.debug(result.dump());
 		}

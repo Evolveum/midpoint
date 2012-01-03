@@ -56,7 +56,8 @@ public class DeleteUserAction extends BaseAction {
         try {
             //todo create sync context, delete user throught it
 
-            getModel().deleteObject(UserType.class, userOid, result);
+        	// TODO: replace "null" with actual task
+            getModel().deleteObject(UserType.class, userOid, null, result);
             userOid = null;
             subResult.recordSuccess();
         } catch (Exception ex) {

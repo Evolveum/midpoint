@@ -247,7 +247,7 @@ public interface ModelService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	<T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult)
+	<T extends ObjectType> void deleteObject(Class<T> type, String oid, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, ConsistencyViolationException, CommunicationException;
 
 	/**

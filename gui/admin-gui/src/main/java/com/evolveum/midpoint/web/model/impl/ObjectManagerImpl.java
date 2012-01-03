@@ -140,9 +140,10 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 		Validate.notEmpty(oid, "Object oid must not be null or empty.");
 		LOGGER.debug("Deleting object '" + oid + "'.");
 
-		OperationResult result = new OperationResult(DELETE);
+		Task task = taskManager.createTaskInstance(DELETE);
+		OperationResult result = task.getResult();
 		try {
-			getModel().deleteObject(getSupportedObjectClass(), oid, result);
+			getModel().deleteObject(getSupportedObjectClass(), oid, task, result);
 			result.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't delete object {} from model", ex, oid);

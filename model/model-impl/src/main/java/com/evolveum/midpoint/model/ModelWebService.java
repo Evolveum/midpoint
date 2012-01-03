@@ -79,8 +79,8 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	public void addObject(ObjectType object, Holder<String> oidHolder, Holder<OperationResultType> result) throws FaultMessage {
 		notNullArgument(object, "Object must not be null.");
 
-		OperationResult operationResult = new OperationResult(ADD_OBJECT);
-		Task task = createTaskInstance();
+		Task task = createTaskInstance(ADD_OBJECT);
+		OperationResult operationResult = task.getResult();
 		try {
 			String oid = model.addObject(object, task, operationResult);
 			handleOperationResult(operationResult, result);
@@ -162,8 +162,8 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	public OperationResultType modifyObject(String objectTypeUri, ObjectModificationType change) throws FaultMessage {
 		notNullArgument(change, "Object modification must not be null.");
 
-		OperationResult operationResult = new OperationResult(MODIFY_OBJECT);
-		Task task = createTaskInstance();
+		Task task = createTaskInstance(MODIFY_OBJECT);
+		OperationResult operationResult = task.getResult();
 		try {
 			model.modifyObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), change,
 					task, operationResult);
@@ -180,10 +180,11 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		notEmptyArgument(oid, "Oid must not be null or empty.");
 		notEmptyArgument(objectTypeUri, "objectType must not be null or empty.");
 
-		OperationResult operationResult = new OperationResult(DELETE_OBJECT);
+		Task task = createTaskInstance(DELETE_OBJECT);
+		OperationResult operationResult = task.getResult();
 		try {
 			model.deleteObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), oid,
-					operationResult);
+					task, operationResult);
 			return handleOperationResult(operationResult);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL deleteObject() failed", ex);
@@ -375,9 +376,9 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		}
 	}
 	
-	private Task createTaskInstance() {
+	private Task createTaskInstance(String operationName) {
 		// TODO: better task initialization
-		return taskManager.createTaskInstance();
+		return taskManager.createTaskInstance(operationName);
 	}
 	
 	/**

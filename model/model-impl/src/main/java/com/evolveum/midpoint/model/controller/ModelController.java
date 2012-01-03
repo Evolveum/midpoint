@@ -767,7 +767,7 @@ public class ModelController implements ModelService {
     }
 
     @Override
-    public <T extends ObjectType> void deleteObject(Class<T> clazz, String oid, OperationResult parentResult)
+    public <T extends ObjectType> void deleteObject(Class<T> clazz, String oid, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, ConsistencyViolationException, CommunicationException {
         Validate.notNull(clazz, "Class must not be null.");
         Validate.notEmpty(oid, "Oid must not be null or empty.");
