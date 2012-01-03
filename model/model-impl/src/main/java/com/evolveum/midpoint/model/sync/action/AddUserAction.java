@@ -74,8 +74,8 @@ public class AddUserAction extends BaseAction {
                 Schema schema = getSchemaRegistry().getObjectSchema();
                 ObjectDefinition<UserType> userDefinition = schema.findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
                 MidPointObject<UserType> oldUser = userDefinition.instantiate(SchemaConstants.I_USER_TYPE);
-                context.setUserOld(oldUser);
-                context.setUserTypeOld(user);
+//                context.setUserOld(oldUser);
+//                context.setUserTypeOld(user);
 
                 //we set secondary delta to create user when executing changes
                 ObjectDelta<UserType> delta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD);
@@ -86,6 +86,8 @@ public class AddUserAction extends BaseAction {
 
                 getSynchronizer().synchronizeUser(context, subResult);
                 getExecutor().executeChanges(context, subResult);
+
+                userOid = context.getUserSecondaryDelta().getOid();
             } else {
                 LOGGER.debug("User with oid {} already exists, skipping create.",
                         new Object[]{user.getOid()});

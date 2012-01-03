@@ -187,6 +187,12 @@ public class UserSynchronizer {
             // already loaded
             return;
         }
+        if (context.getUserDelta().getObjectToAdd() != null) {
+            //we're adding user
+            //todo it's only fast fix - how to check that we're adding user
+            return;
+        }
+
         ObjectDelta<UserType> userPrimaryDelta = context.getUserPrimaryDelta();
         if (userPrimaryDelta == null) {
             // no change to user

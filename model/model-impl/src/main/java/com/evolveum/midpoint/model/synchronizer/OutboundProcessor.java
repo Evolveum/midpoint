@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 package com.evolveum.midpoint.model.synchronizer;
 
@@ -65,7 +65,8 @@ public class OutboundProcessor {
     @Autowired(required = true)
     private ValueConstructionFactory valueConstructionFactory;
 
-    void processOutbound(SyncContext context, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    void processOutbound(SyncContext context, OperationResult result) throws SchemaException,
+            ExpressionEvaluationException, ObjectNotFoundException {
 
         for (AccountSyncContext accCtx : context.getAccountContexts()) {
 
@@ -94,7 +95,11 @@ public class OutboundProcessor {
 
                 // TODO: check access
 
-                ValueConstruction evaluatedOutboundValueConstructionOld = evaluateOutboundValueConstruction(context.getUserOld(), refinedAttributeDefinition, rAccount, result);
+                MidPointObject<UserType> user = context.getUserOld();
+                if (user == null) {
+                    user = context.getUserNew();
+                }
+                ValueConstruction evaluatedOutboundValueConstructionOld = evaluateOutboundValueConstruction(user, refinedAttributeDefinition, rAccount, result);
                 ValueConstruction evaluatedOutboundValueConstructionNew = evaluateOutboundValueConstruction(context.getUserNew(), refinedAttributeDefinition, rAccount, result);
 
                 LOGGER.trace("Processing outbound expressions for account {}, attribute {}\nOLD:\n{}\nNEW\n{}",
@@ -144,8 +149,10 @@ public class OutboundProcessor {
 
     }
 
-    private ValueConstruction evaluateOutboundValueConstruction(MidPointObject<UserType> user, RefinedAttributeDefinition refinedAttributeDefinition,
-                                                                RefinedAccountDefinition refinedAccountDefinition, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    private ValueConstruction evaluateOutboundValueConstruction(MidPointObject<UserType> user,
+            RefinedAttributeDefinition refinedAttributeDefinition,
+            RefinedAccountDefinition refinedAccountDefinition, OperationResult result) throws
+            ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
         ValueConstructionType outboundValueConstructionType = refinedAttributeDefinition.getOutboundValueConstructionType();
         if (outboundValueConstructionType == null) {

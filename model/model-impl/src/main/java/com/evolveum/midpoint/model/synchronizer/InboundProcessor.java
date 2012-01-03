@@ -53,7 +53,7 @@ import java.util.List;
 
 /**
  * Processor that takes changes from synchronization and updates user attributes if necessary
- * (by creating user object delta {@link ObjectDelta}).
+ * (by creating secondary user object delta {@link ObjectDelta}).
  *
  * @author lazyman
  */
