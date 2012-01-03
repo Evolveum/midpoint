@@ -21,29 +21,22 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.ActivationDecision;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
-import com.evolveum.midpoint.model.util.Utils;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * @author lazyman
@@ -88,10 +81,12 @@ public class ModifyUserAction extends BaseAction {
     }
 
     @Override
-    public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
-            SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
-            OperationResult result) throws SynchronizationException {
-        super.executeChanges(userOid, change, situation, shadowAfterChange, result);
+    public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
+            SynchronizationSituationType situation, OperationResult result) throws SynchronizationException {
+        super.executeChanges(userOid, change, situation, result);
+
+        //todo fix this
+        ResourceObjectShadowType shadowAfterChange = change.getCurrentShadow();
 
         if (!(shadowAfterChange instanceof AccountShadowType)) {
             throw new SynchronizationException("Couldn't synchronize shadow of type '"
@@ -118,7 +113,7 @@ public class ModifyUserAction extends BaseAction {
         try {
             context = createSyncContext(userType, change.getResource());
 
-            AccountSyncContext accountContext = createAccountSyncContext(context, change, (AccountShadowType) shadowAfterChange);
+            AccountSyncContext accountContext = createAccountSyncContext(context, change);
             accountContext.setPolicyDecision(getPolicyDecision());
             accountContext.setActivationDecision(getAccountActivationDecision());
 

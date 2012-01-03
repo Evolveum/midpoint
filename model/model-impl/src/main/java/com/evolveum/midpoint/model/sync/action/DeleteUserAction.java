@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,18 +16,17 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.model.sync.action;
 
 import com.evolveum.midpoint.model.sync.SynchronizationException;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.commons.lang.StringUtils;
@@ -40,10 +39,10 @@ public class DeleteUserAction extends BaseAction {
     private static final Trace LOGGER = TraceManager.getTrace(DeleteUserAction.class);
 
     @Override
-    public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
-                                 SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
-                                 OperationResult result) throws SynchronizationException {
-        super.executeChanges(userOid, change, situation, shadowAfterChange, result);
+    public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
+            SynchronizationSituationType situation,
+            OperationResult result) throws SynchronizationException {
+        super.executeChanges(userOid, change, situation, result);
 
         OperationResult subResult = result.createSubresult(ACTION_DELETE_USER);
 
@@ -54,9 +53,9 @@ public class DeleteUserAction extends BaseAction {
         }
 
         try {
-            //todo create sync context, delete user throught it
+            //todo create sync context, delete user through it
 
-        	// TODO: replace "null" with actual task
+            // TODO: replace "null" with actual task
             getModel().deleteObject(UserType.class, userOid, null, result);
             userOid = null;
             subResult.recordSuccess();

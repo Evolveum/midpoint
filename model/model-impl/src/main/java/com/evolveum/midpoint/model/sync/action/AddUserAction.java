@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -37,7 +38,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
@@ -51,10 +55,9 @@ public class AddUserAction extends BaseAction {
     private static final Trace LOGGER = TraceManager.getTrace(AddUserAction.class);
 
     @Override
-    public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
-            SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
-            OperationResult result) throws SynchronizationException {
-        super.executeChanges(userOid, change, situation, shadowAfterChange, result);
+    public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
+            SynchronizationSituationType situation, OperationResult result) throws SynchronizationException {
+        super.executeChanges(userOid, change, situation, result);
 
         OperationResult subResult = new OperationResult(ACTION_ADD_USER);
         result.addSubresult(subResult);
@@ -67,7 +70,7 @@ public class AddUserAction extends BaseAction {
                 context.setUserTemplate(getUserTemplate(subResult));
 
                 //add account sync context for inbound processing
-                AccountSyncContext accountContext = createAccountSyncContext(context, change, (AccountShadowType) shadowAfterChange);
+                AccountSyncContext accountContext = createAccountSyncContext(context, change);
                 accountContext.setPolicyDecision(PolicyDecision.KEEP);
 
                 //create empty user
@@ -94,6 +97,9 @@ public class AddUserAction extends BaseAction {
             }
             subResult.recordSuccess();
         } catch (Exception ex) {
+            //todo fix this
+            ResourceObjectShadowType shadowAfterChange = change.getCurrentShadow();
+
             LoggingUtils.logException(LOGGER, "Couldn't perform Add User Action for shadow '{}', oid '{}'.",
                     ex, shadowAfterChange.getName(), shadowAfterChange.getOid());
             subResult.recordFatalError(

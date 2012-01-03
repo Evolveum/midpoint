@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,17 +16,22 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.model.synchronizer;
 
+import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.schema.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.springframework.stereotype.Component;
+
+import javax.xml.namespace.QName;
+import java.util.Map;
 
 /**
  * @author lazyman
@@ -48,6 +53,11 @@ public class ReconciliationProcessor {
 
                 if (accContext.getAccountOld() == null) {
                     throw new IllegalStateException("Account context doesn't contain old version of account.");
+                }
+
+                Map<QName, DeltaSetTriple<ValueConstruction>> map = accContext.getAttributeValueDeltaSetTripleMap();
+                if (map.isEmpty()) {
+                    return;
                 }
 
                 //todo implement this

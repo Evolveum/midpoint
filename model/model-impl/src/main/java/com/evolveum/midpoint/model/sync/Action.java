@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,14 +16,13 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.model.sync;
 
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
 
 import java.util.List;
@@ -45,9 +44,8 @@ public interface Action {
     String ACTION_MODIFY_PASSWORD = Action.class.getName() + ".modifyPassword";
 
 
-    String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
-                          SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
-                          OperationResult result) throws SynchronizationException;
+    String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
+            SynchronizationSituationType situation, OperationResult result) throws SynchronizationException;
 
     void setParameters(List<Object> parameters);
 

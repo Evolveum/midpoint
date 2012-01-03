@@ -22,26 +22,20 @@
 package com.evolveum.midpoint.model.sync;
 
 import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.expr.ExpressionException;
 import com.evolveum.midpoint.model.expr.ExpressionHandler;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
-import com.evolveum.midpoint.schema.processor.ObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.DebugUtil;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -79,8 +73,6 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     private ExpressionHandler expressionHandler;
     @Autowired
     private ChangeNotificationDispatcher notificationManager;
-    @Autowired
-    private SchemaRegistry schemaRegistry;
 
     @PostConstruct
     public void registerForResourceObjectChangeNotifications() {
@@ -117,78 +109,17 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             }
             LOGGER.trace("Synchronization is enabled.");
 
-            ResourceObjectShadowType objectShadow = change.getShadow();
-            if (objectShadow == null && (change.getObjectChange() instanceof ObjectChangeAdditionType)) {
-                // There may not be a previous shadow in addition. But in that
-                // case we have (almost) everything in the ObjectChangeType -
-                // almost everything except OID. But we can live with that.
-                objectShadow = (ResourceObjectShadowType) ((ObjectChangeAdditionType) change
-                        .getObjectChange()).getObject();
-            }
-            if (objectShadow == null) {
-                throw new IllegalArgumentException("Change doesn't contain ResourceObjectShadow.");
-            }
+            SynchronizationSituation situation = checkSituation(change, subResult);
+            LOGGER.debug("SITUATION: {} {}",
+                    situation.getSituation().value(), ObjectTypeUtil.toShortString(situation.getUser()));
 
-            ResourceObjectShadowType objectShadowAfterChange = getObjectAfterChange(change.getResource(), objectShadow,
-                    change.getObjectChange());
-
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Resource object shadow after change resolved.");
-                LOGGER.trace(JAXBUtil.silentMarshalWrap(objectShadowAfterChange));
-            }
-            SynchronizationSituation situation = checkSituation(change, objectShadowAfterChange, subResult);
-
-            LOGGER.debug("SITUATION: {} ()", situation.getSituation().value(), ObjectTypeUtil.toShortString(situation.getUser()));
-
-            notifyChange(change, situation, resource, objectShadowAfterChange, subResult);
+            notifyChange(change, situation, resource, subResult);
         } catch (Exception ex) {
             throw new SystemException(ex);
         } finally {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace(subResult.dump());
             }
-        }
-    }
-
-    /**
-     * Apply the changes to the provided shadow.
-     *
-     * @param objectShadow shadow with some data
-     * @param change       changes to be applied
-     */
-    @SuppressWarnings("unchecked")
-    private ResourceObjectShadowType getObjectAfterChange(ResourceType resource, ResourceObjectShadowType objectShadow,
-            ObjectChangeType change) throws SchemaException {
-        LOGGER.trace("Resolving resource object shadow after change.");
-        if (change instanceof ObjectChangeAdditionType) {
-            ObjectChangeAdditionType objectAddition = (ObjectChangeAdditionType) change;
-            ObjectType object = objectAddition.getObject();
-            if (object instanceof ResourceObjectShadowType) {
-                return (ResourceObjectShadowType) object;
-            } else {
-                throw new IllegalArgumentException("The changed object is not a shadow, it is "
-                        + object.getClass().getName());
-            }
-        } else if (change instanceof ObjectChangeModificationType) {
-            AccountShadowType account = (AccountShadowType) objectShadow;
-            ObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(resource,
-                    schemaRegistry).getObjectDefinition(account);
-
-            MidPointObject<AccountShadowType> shadowObject = definition.parseObjectType(account);
-
-            ObjectChangeModificationType objectModification = (ObjectChangeModificationType) change;
-            ObjectDelta<AccountShadowType> delta = ObjectDelta.createDelta(objectModification.getObjectModification(), definition);
-
-            delta.applyTo(shadowObject);
-
-            //we set object type to null, than it will be parsed, not only returned
-            shadowObject.setObjectType(null);
-            return shadowObject.getOrParseObjectType();
-        } else if (change instanceof ObjectChangeDeletionType) {
-            // in case of deletion the object has already all that it can have
-            return objectShadow;
-        } else {
-            throw new IllegalArgumentException("Unknown change type " + change.getClass().getName());
         }
     }
 
@@ -202,21 +133,20 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     // XXX: in situation when one account belongs to two different idm users
     // (repository returns only first user). It should be changed because
     // otherwise we can't check SynchronizationSituationType.CONFLICT situation
-    private SynchronizationSituation checkSituation(ResourceObjectShadowChangeDescriptionType change,
-            ResourceObjectShadowType objectShadowAfterChange, OperationResult result) {
-        OperationResult subResult = result.createSubresult(CHECK_SITUATION);
+    private SynchronizationSituation checkSituation(ResourceObjectShadowChangeDescription change,
+            OperationResult result) {
 
-        if (change.getShadow() != null) {
-            LOGGER.trace("Determining situation for OID {}.", new Object[]{change.getShadow().getOid()});
-        } else {
-            LOGGER.trace("Determining situation for new resource object (shadow OID {}).", objectShadowAfterChange.getOid());
-        }
-        ModificationType modification = getModificationType(change.getObjectChange());
+        OperationResult subResult = result.createSubresult(CHECK_SITUATION);
+        LOGGER.trace("Determining situation for resource object shadow.");
+
+        //todo fix this - shadow and delta both are not always available, this is old implementation updated only to compile
+        ResourceObjectShadowType objectShadowAfterChange = change.getCurrentShadow();
+
         SynchronizationSituation situation = null;
         try {
             UserType user = null;
             ResourceObjectShadowType shadow = null;
-            ResourceObjectShadowType shadowFromChange = change.getShadow();
+            ResourceObjectShadowType shadowFromChange = change.getCurrentShadow();
             if (shadowFromChange != null && shadowFromChange.getOid() != null
                     && !shadowFromChange.getOid().isEmpty()) {
                 user = controller.listAccountShadowOwner(shadowFromChange.getOid(), subResult);
@@ -231,7 +161,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             if (user != null) {
                 LOGGER.trace("Shadow OID {} does have owner: {}", shadow.getOid(), user.getOid());
                 SynchronizationSituationType state = null;
-                switch (modification) {
+                switch (getModificationType(change)) {
                     case ADD:
                     case MODIFY:
                         // if user is found it means account/group is linked to
@@ -244,8 +174,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                 situation = new SynchronizationSituation(user, state);
             } else {
                 LOGGER.trace("Resource object shadow doesn't have owner.");
-                situation = checkSituationWithCorrelation(change, objectShadowAfterChange, modification,
-                        result);
+                situation = checkSituationWithCorrelation(change, result);
             }
         } catch (Exception ex) {
             LOGGER.error("Error occurred during resource object shadow owner lookup.");
@@ -273,11 +202,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
      * @throws SynchronizationException
      */
     private SynchronizationSituation checkSituationWithCorrelation(
-            ResourceObjectShadowChangeDescriptionType change,
-            ResourceObjectShadowType objectShadowAfterChange, ModificationType modification,
-            OperationResult result) throws SynchronizationException {
-
-        ResourceObjectShadowType resourceShadow = change.getShadow();
+            ResourceObjectShadowChangeDescription change, OperationResult result) throws SynchronizationException {
+        //todo fix thisss
+        ResourceObjectShadowType resourceShadow = change.getCurrentShadow();
         // It is better to get resource from change. The resource object may
         // have only resourceRef
         ResourceType resource = change.getResource();
@@ -285,7 +212,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
         SynchronizationSituationType state = null;
         LOGGER.debug("CORRELATION: Looking for list of users based on correlation rule.");
-        List<UserType> users = findUsersByCorrelationRule(objectShadowAfterChange,
+        List<UserType> users = findUsersByCorrelationRule(resourceShadow,
                 synchronization.getCorrelation(), result);
         if (synchronization.getConfirmation() == null) {
             if (resourceShadow != null) {
@@ -296,7 +223,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             }
         } else {
             LOGGER.debug("CONFIRMATION: Checking users from correlation with confirmation rule.");
-            users = findUserByConfirmationRule(users, objectShadowAfterChange,
+            users = findUserByConfirmationRule(users, resourceShadow,
                     synchronization.getConfirmation(), result);
         }
 
@@ -310,7 +237,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                 state = SynchronizationSituationType.UNMATCHED;
                 break;
             case 1:
-                switch (modification) {
+                switch (getModificationType(change)) {
                     case ADD:
                         state = SynchronizationSituationType.UNLINKED;
                         break;
@@ -331,26 +258,20 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         return new SynchronizationSituation(user, state);
     }
 
-    private ModificationType getModificationType(ObjectChangeType change) {
-        if (change instanceof ObjectChangeAdditionType) {
-            return ModificationType.ADD;
-        } else if (change instanceof ObjectChangeModificationType) {
-            return ModificationType.MODIFY;
-        } else if (change instanceof ObjectChangeDeletionType) {
-            return ModificationType.DELETE;
+    private ChangeType getModificationType(ResourceObjectShadowChangeDescription change) {
+        if (change.getObjectDelta() != null) {
+            return change.getObjectDelta().getChangeType();
         }
 
-        throw new SystemException("Unknown modification type - change '" + change.getClass() + "'.");
+        //todo now what to do? do we have modify or add?
+        return ChangeType.MODIFY;
     }
 
-    private enum ModificationType {
-
-        ADD, DELETE, MODIFY;
-    }
-
-    private void notifyChange(ResourceObjectShadowChangeDescriptionType change,
+    private void notifyChange(ResourceObjectShadowChangeDescription change,
             SynchronizationSituation situation, ResourceType resource,
-            ResourceObjectShadowType objectShadowAfterChange, OperationResult parentResult) {
+            OperationResult parentResult) {
+        //todo review fix this implementation
+
         SynchronizationType synchronization = resource.getSynchronization();
         List<Action> actions = findActionsForReaction(synchronization.getReaction(), situation.getSituation());
         if (actions.isEmpty()) {
@@ -359,27 +280,13 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             return;
         }
 
-        if (change.getShadow() != null && change.getShadow().getResource() == null) {
-            // This should hold under interface contract, but let's be on the
-            // safe side
-            if (change.getShadow().getResourceRef() != null) {
-                if (!change.getShadow().getResourceRef().getOid().equals(resource.getOid())) {
-                    String message = "OID of resource does not match OID in shadow resourceRef";
-                    parentResult.recordFatalError(message);
-                    throw new SystemException(message);
-                }
-            }
-            change.getShadow().setResource(resource);
-        }
-
         try {
             LOGGER.trace("Updating user started.");
             String userOid = situation.getUser() == null ? null : situation.getUser().getOid();
             for (Action action : actions) {
                 LOGGER.debug("ACTION: Executing: {}.", new Object[]{action.getClass()});
 
-                userOid = action.executeChanges(userOid, change, situation.getSituation(),
-                        objectShadowAfterChange, parentResult);
+                userOid = action.executeChanges(userOid, change, situation.getSituation(), parentResult);
             }
             LOGGER.trace("Updating user finished.");
         } catch (SynchronizationException ex) {

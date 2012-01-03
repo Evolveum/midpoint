@@ -30,6 +30,7 @@ import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.sync.Action;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
@@ -110,12 +111,10 @@ public abstract class BaseAction implements Action {
     }
 
     @Override
-    public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
-                                 SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
-                                 OperationResult result) throws SynchronizationException {
+    public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
+            SynchronizationSituationType situation, OperationResult result) throws SynchronizationException {
         Validate.notNull(change, "Resource object change description must not be null.");
         Validate.notNull(situation, "Synchronization situation must not be null.");
-        Validate.notNull(shadowAfterChange, "Resource object shadow after change must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
         return null;
@@ -154,10 +153,10 @@ public abstract class BaseAction implements Action {
     }
 
     protected AccountSyncContext createAccountSyncContext(SyncContext context,
-            ResourceObjectShadowChangeDescriptionType change,
-            AccountShadowType shadowAfterChange) throws SchemaException {
+            ResourceObjectShadowChangeDescription change) throws SchemaException {
         ResourceType resource = change.getResource();
-
+        //todo fix - shadow after change can be null
+        AccountShadowType shadowAfterChange = (AccountShadowType) change.getCurrentShadow();
         ResourceAccountType resourceAccount = new ResourceAccountType(resource.getOid(), shadowAfterChange.getAccountType());
         AccountSyncContext accountContext = context.createAccountSyncContext(resourceAccount);
         accountContext.setResource(resource);
@@ -168,7 +167,7 @@ public abstract class BaseAction implements Action {
 
         MidPointObject<AccountShadowType> shadowObject = definition.parseObjectType(shadowAfterChange);
 
-        ObjectDelta<AccountShadowType> delta = createObjectDelta(change.getObjectChange(), definition, shadowObject);
+        ObjectDelta<AccountShadowType> delta = (ObjectDelta<AccountShadowType>) change.getObjectDelta();
         accountContext.setAccountSyncDelta(delta);
 
         return accountContext;

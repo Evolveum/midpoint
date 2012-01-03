@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,12 +16,13 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.model.sync.action;
 
 import com.evolveum.midpoint.model.sync.SynchronizationException;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
@@ -41,10 +42,10 @@ public class ModifyPasswordAction extends BaseAction {
     private static final Trace trace = TraceManager.getTrace(ModifyPasswordAction.class);
 
     @Override
-    public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
-                                 SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
-                                 OperationResult result) throws SynchronizationException {
-
+    public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
+            SynchronizationSituationType situation,
+            OperationResult result) throws SynchronizationException {
+        ResourceObjectShadowType shadowAfterChange = change.getCurrentShadow();
         OperationResult subResult = result.createSubresult(ACTION_MODIFY_PASSWORD);
 
         UserType userType = getUser(userOid, subResult);
@@ -52,10 +53,10 @@ public class ModifyPasswordAction extends BaseAction {
             throw new SynchronizationException("Can't find user with oid '" + userOid + "'.");
         }
 
-        if (!(change.getObjectChange() instanceof ObjectChangeModificationType)) {
-            throw new SynchronizationException("Object change is not instacne of "
-                    + ObjectChangeModificationType.class.getName());
-        }
+//        if (!(change.getObjectChange() instanceof ObjectChangeModificationType)) {
+//            throw new SynchronizationException("Object change is not instacne of "
+//                    + ObjectChangeModificationType.class.getName());
+//        }
 
         try {
             //TODO: create sync context and modify password
