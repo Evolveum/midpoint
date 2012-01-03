@@ -30,9 +30,10 @@ This resource definition contains only the very basic definitions for midPoint t
 
 -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" xmlns:my="http://myself.me/schemas/whatever"
+        xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
 
     <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef">
 
@@ -52,14 +53,13 @@ This resource definition contains only the very basic definitions for midPoint t
         </connectorRef>
 
         <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
-        <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef
-        </namespace>
+        <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef</namespace>
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
         <configuration
                 xmlns:icfcad="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/ActiveDirectory.Connector/Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector"
-                >
+                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
 
             <!-- Configuration specific for the LDAP connector -->
             <icfcad:configurationProperties>

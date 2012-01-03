@@ -36,14 +36,15 @@ object.
 <c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1aa"
+           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+           xmlns:my="http://myself.me/schemas/whatever"
            xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
 
-
     <c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1aa">
-
         <!-- Resource name. It will be displayed in GUI.  -->
         <name>Localhost ODSEE7</name>
-
         <!-- Reference to the ICF LDAP connector. This is dynamic reference, it will be translated to
            OID during import. -->
         <connectorRef type="ConnectorType">
@@ -56,10 +57,8 @@ object.
                 </equal>
             </and>
         </connectorRef>
-
         <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
-        <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1aa
-        </namespace>
+        <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1aa</namespace>
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
@@ -351,8 +350,7 @@ object.
                         <ref>c:name</ref>
                         <code>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            declare namespace
-                            dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
+                            declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
                             $i:account/i:attributes/dj:uid
                         </code>
                     </valueExpression>

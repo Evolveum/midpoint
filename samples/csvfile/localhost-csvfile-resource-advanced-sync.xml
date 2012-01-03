@@ -32,11 +32,14 @@ object.
 
 -->
 
-<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe"
+           xmlns:idfs="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
+           xmlns:my="http://myself.me/schemas/whatever"
+           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
            xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
-
 
     <c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe">
 
@@ -56,14 +59,13 @@ object.
         </connectorRef>
 
         <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
-        <c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe
-        </c:namespace>
+        <c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe</c:namespace>
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
         <c:configuration
                 xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.file.csvfile/org.forgerock.openicf.csvfile.CSVFileConnector"
-                >
+                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
 
             <!-- Configuration specific for the CSVfile connector -->
             <icfccsvfile:configurationProperties>

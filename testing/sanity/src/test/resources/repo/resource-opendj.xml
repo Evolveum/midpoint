@@ -25,11 +25,12 @@
      tests. -->
 
 <resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd
-							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+          xmlns:my="http://myself.me/schemas/whatever"
+          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 
     <!-- Resource printable name -->
     <name>Embedded Test OpenDJ</name>
@@ -48,8 +49,7 @@
     </connectorRef>
 
     <!-- Connector namespace -->
-    <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff
-    </namespace>
+    <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace>
 
     <!-- Resource configuration section -->
     <configuration
@@ -182,7 +182,6 @@ This is now the only account type that midPoint can work with. -->
             <!-- Definition of cn attribute handling. -->
             <attribute>
                 <ref>ri:cn</ref>
-
                 <displayName>Common Name</displayName>
                 <access>create</access>
                 <access>read</access>
@@ -312,7 +311,7 @@ This is now the only account type that midPoint can work with. -->
                             type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter"
                             xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd">
                         <f:replace>
-                            <!-- Replaces all unicode control characters with emtpty string -->
+                            <!-- Replaces all unicode control characters with empty string -->
                             <f:pattern>\p{C}</f:pattern>
                             <f:replacement></f:replacement>
                         </f:replace>
@@ -360,9 +359,9 @@ This is now the only account type that midPoint can work with. -->
                             declare namespace my="http://myself.me/schemas/whatever";
 
                             if ($my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]) then
-                            $my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]
+                                $my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]
                             else
-                            $my:defaultLocation
+                                $my:defaultLocation
                         </c:code>
                     </expression>
                 </outbound>
@@ -418,7 +417,7 @@ This is now the only account type that midPoint can work with. -->
         -->
         <c:correlation> <!-- Correlation rule is a search query -->
             <!-- The clause <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#UserType"/> is implicit in correlation rules -->
-            <!-- Following search queury will look for users that have "name"
+            <!-- Following search query will look for users that have "name"
 equal to the "uid" attribute of the account. Simply speaking,
 it will look for match in usernames in the IDM and the resource. -->
             <c:equal>
