@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 package com.evolveum.midpoint.common.expression;
 
@@ -125,7 +125,8 @@ public class Expression {
         variables.put(name, value);
     }
 
-    public <T> PropertyValue<T> evaluateScalar(Class<T> type, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public <T> PropertyValue<T> evaluateScalar(Class<T> type, OperationResult result) throws
+            ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
         // Return type override
         if (returnType == ExpressionReturnTypeType.LIST) {
@@ -164,13 +165,16 @@ public class Expression {
         }
     }
 
-    public <T> List<PropertyValue<T>> evaluateList(Class<T> type, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public <T> List<PropertyValue<T>> evaluateList(Class<T> type, OperationResult result) throws
+            ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
         // Return type override
         if (returnType == ExpressionReturnTypeType.SCALAR) {
             PropertyValue<T> ret = evaluateScalar(type, result);
             List<PropertyValue<T>> retList = new ArrayList<PropertyValue<T>>(1);
-            retList.add(ret);
+            if (ret != null) {
+                retList.add(ret);
+            }
             return retList;
         }
 

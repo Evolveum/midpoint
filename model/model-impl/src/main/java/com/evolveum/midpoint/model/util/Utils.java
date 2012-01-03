@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.model.util;
@@ -70,7 +70,7 @@ public final class Utils {
 
     /**
      * Method tests if {@link Property} contains {@link PropertyValue} with wrapped value like defined in parameter.
-     * For comparation is used method {@link PropertyValue#equalsRealValue(Object)}.
+     * For comparation is used method {@link PropertyValue#equalsRealValue(com.evolveum.midpoint.schema.processor.PropertyValue)}.
      *
      * @param property {@link Property} object where are we looking for value, can be null.
      * @param value    {@link PropertyValue} what are we looking for in property
@@ -83,7 +83,7 @@ public final class Utils {
         }
 
         for (PropertyValue val : property.getValues()) {
-            if (val.equalsRealValue(value.getValue())) {
+            if (val.equalsRealValue(value)) {
                 return true;
             }
         }

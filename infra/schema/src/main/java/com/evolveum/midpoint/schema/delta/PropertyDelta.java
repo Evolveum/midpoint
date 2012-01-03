@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 package com.evolveum.midpoint.schema.delta;
 
@@ -238,6 +238,20 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         return valuesToAdd.contains(value);
     }
 
+    public boolean isRealValueToAdd(PropertyValue<?> value) {
+        if (valuesToAdd == null) {
+            return false;
+        }
+
+        for (PropertyValue valueToAdd : valuesToAdd) {
+            if (valueToAdd.equalsRealValue(value)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public boolean isValueToDelete(PropertyValue<?> value) {
         if (valuesToDelete == null) {
             return false;
@@ -245,21 +259,37 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         return valuesToDelete.contains(value);
     }
 
+    public boolean isRealValueToDelete(PropertyValue<?> value) {
+        if (valuesToDelete == null) {
+            return false;
+        }
+
+        for (PropertyValue valueToAdd : valuesToDelete) {
+            if (valueToAdd.equalsRealValue(value)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * Creates delta from PropertyModificationType (XML). The values inside the PropertyModificationType are converted to java.
      * That's the reason this method needs schema and objectType (to locate the appropriate definitions).
      */
-    public static PropertyDelta createDelta(PropertyModificationType propMod, Schema schema, Class<? extends ObjectType> objectType) throws SchemaException {
-    	ObjectDefinition<? extends ObjectType> objectDefinition = schema.findObjectDefinition(objectType);
-    	return createDelta(propMod,objectDefinition);
-    }	
-    	
-    public static PropertyDelta createDelta(PropertyModificationType propMod, PropertyContainerDefinition pcDef) throws SchemaException {
+    public static PropertyDelta createDelta(PropertyModificationType propMod, Schema schema,
+            Class<? extends ObjectType> objectType) throws SchemaException {
+        ObjectDefinition<? extends ObjectType> objectDefinition = schema.findObjectDefinition(objectType);
+        return createDelta(propMod, objectDefinition);
+    }
+
+    public static PropertyDelta createDelta(PropertyModificationType propMod, PropertyContainerDefinition pcDef) throws
+            SchemaException {
         XPathHolder xpath = new XPathHolder(propMod.getPath());
         PropertyPath parentPath = new PropertyPath(xpath);
         PropertyContainerDefinition containingPcd = pcDef.findPropertyContainerDefinition(parentPath);
         if (containingPcd == null) {
-        	throw new SchemaException("No container definition for "+parentPath+" (while creating delta for "+pcDef+")");
+            throw new SchemaException("No container definition for " + parentPath + " (while creating delta for " + pcDef + ")");
         }
         Collection<? extends Item> items = containingPcd.parseItems(propMod.getValue().getAny());
         if (items.size() > 1) {
@@ -331,7 +361,7 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
     }
 
     private void addModValues(PropertyModificationType mod, Collection<PropertyValue<Object>> values,
-                              Document document) throws SchemaException {
+            Document document) throws SchemaException {
         Value modValue = new Value();
         mod.setValue(modValue);
         for (PropertyValue<Object> value : values) {

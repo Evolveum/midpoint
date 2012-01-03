@@ -54,6 +54,7 @@ import org.springframework.stereotype.Component;
 import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -454,6 +455,8 @@ public class UserSynchronizer {
                 }
             }
 
+            propDelta = consolidateWithSync(accCtx, propDelta);
+
             if (propDelta != null) {
                 objectDelta.addModification(propDelta);
             }
@@ -461,6 +464,62 @@ public class UserSynchronizer {
         }
 
         return objectDelta;
+    }
+
+    /**
+     * This method checks {@link PropertyDelta} created during consolidation with account sync deltas.
+     * If changes from property delta are in account sync deltas than they must be removed, because they
+     * already had been applied (they came from sync).
+     *
+     * @param accCtx current account sync context
+     * @param delta  new delta created during consolidation process
+     * @return method return updated delta, or null if delta was empty after filtering (removing unnecessary values).
+     */
+    private PropertyDelta consolidateWithSync(AccountSyncContext accCtx, PropertyDelta delta) {
+        if (delta == null) {
+            return null;
+        }
+
+        ObjectDelta<AccountShadowType> syncDelta = accCtx.getAccountSyncDelta();
+        if (syncDelta == null) {
+            return delta;
+        }
+
+        PropertyDelta alreadyDoneDelta = syncDelta.getPropertyDelta(delta.getPath());
+        if (alreadyDoneDelta == null) {
+            return delta;
+        }
+
+        cleanupValues(delta.getValuesToAdd(), alreadyDoneDelta);
+        cleanupValues(delta.getValuesToDelete(), alreadyDoneDelta);
+
+        if (delta.getValues(Object.class).isEmpty()) {
+            return null;
+        }
+
+        return delta;
+    }
+
+    /**
+     * Simple util method which checks property values against already done delta from sync. See method
+     * {@link UserSynchronizer#consolidateWithSync(com.evolveum.midpoint.model.AccountSyncContext,
+     * com.evolveum.midpoint.schema.delta.PropertyDelta)}.
+     *
+     * @param values           collection which has to be filtered
+     * @param alreadyDoneDelta already applied delta from sync
+     */
+    private void cleanupValues(Collection<PropertyValue<Object>> values, PropertyDelta alreadyDoneDelta) {
+        if (values == null) {
+            return;
+        }
+
+        Iterator<PropertyValue<Object>> iterator = values.iterator();
+        while (iterator.hasNext()) {
+            PropertyValue<Object> valueToAdd = iterator.next();
+            if (alreadyDoneDelta.isRealValueToAdd(valueToAdd)) {
+                iterator.remove();
+            }
+        }
     }
 
     private Collection<PropertyValue<Object>> collectAllValues(DeltaSetTriple<ValueConstruction> triple) {

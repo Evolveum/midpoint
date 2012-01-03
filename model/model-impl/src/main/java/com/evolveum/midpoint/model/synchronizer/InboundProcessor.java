@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.model.synchronizer;
@@ -72,11 +72,13 @@ public class InboundProcessor {
     void processInbound(SyncContext context, OperationResult result) throws SchemaException {
         OperationResult subResult = result.createSubresult(PROCESS_INBOUND_HANDLING);
 
-        ObjectDelta<UserType> userDelta = context.getUserDelta();
+        ObjectDelta<UserType> userDelta = context.getUserSecondaryDelta();
         if (userDelta == null) {
             userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY);
-            userDelta.setOid(context.getUserOld().getOid());
-            context.setUserPrimaryDelta(userDelta);
+            if (context.getUserOld() != null) {
+                userDelta.setOid(context.getUserOld().getOid());
+            }
+            context.setUserSecondaryDelta(userDelta);
         }
 
         final PropertyPath attributes = new PropertyPath(SchemaConstants.I_ATTRIBUTES);
@@ -95,23 +97,23 @@ public class InboundProcessor {
 
                 ObjectDelta<AccountShadowType> accountDelta = accountContext.getAccountSyncDelta();
                 if (accountDelta != null) {
-	                for (QName name : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
-	                    PropertyDelta propertyDelta = accountDelta.getPropertyDelta(attributes, name);
-	                    if (propertyDelta == null) {
-	                        continue;
-	                    }
-	
-	                    RefinedAttributeDefinition attrDef = accountDefinition.getAttributeDefinition(name);
-	                    List<Element> inbounds = attrDef.getInboundAssignmentTypes();
-	
-	                    for (Element inbound : inbounds) {
-	                        PropertyDelta delta = createUserPropertyDelta(inbound, propertyDelta, context.getUserNew());
-	                        if (delta != null) {
-	                            userDelta.addModification(delta);
-	                            context.recomputeUserNew();
-	                        }
-	                    }
-	                }
+                    for (QName name : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
+                        PropertyDelta propertyDelta = accountDelta.getPropertyDelta(attributes, name);
+                        if (propertyDelta == null) {
+                            continue;
+                        }
+
+                        RefinedAttributeDefinition attrDef = accountDefinition.getAttributeDefinition(name);
+                        List<Element> inbounds = attrDef.getInboundAssignmentTypes();
+
+                        for (Element inbound : inbounds) {
+                            PropertyDelta delta = createUserPropertyDelta(inbound, propertyDelta, context.getUserNew());
+                            if (delta != null) {
+                                userDelta.addModification(delta);
+                                context.recomputeUserNew();
+                            }
+                        }
+                    }
                 }
             }
         } finally {

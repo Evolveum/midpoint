@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 package com.evolveum.midpoint.common.expression.xpath;
 
@@ -53,14 +53,21 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
 
     @Override
     public <T> PropertyValue<T> evaluateScalar(Class<T> type, Element code, Map<QName, Object> variables,
-                                               ObjectResolver objectResolver, String contextDescription, OperationResult result) throws ExpressionEvaluationException,
+            ObjectResolver objectResolver, String contextDescription, OperationResult result) throws
+            ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException {
 
         QName returnType = determineRerturnType(type);
 
         Object evaluatedExpression = evaluate(returnType, code, variables, objectResolver, contextDescription, result);
 
-        return convertScalar(type, returnType, evaluatedExpression, contextDescription);
+        PropertyValue<T> propertyValue = convertScalar(type, returnType, evaluatedExpression, contextDescription);
+        T value = propertyValue.getValue();
+        if (value == null || ((value instanceof String) && ((String) value).isEmpty())) {
+            return null;
+        }
+
+        return propertyValue;
     }
 
     /* (non-Javadoc)
@@ -68,7 +75,8 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
       */
     @Override
     public <T> List<PropertyValue<T>> evaluateList(Class<T> type, Element code, Map<QName, Object> variables,
-                                                   ObjectResolver objectResolver, String contextDescription, OperationResult result) throws ExpressionEvaluationException,
+            ObjectResolver objectResolver, String contextDescription, OperationResult result) throws
+            ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException {
 
         Object evaluatedExpression = evaluate(XPathConstants.NODESET, code, variables, objectResolver, contextDescription, result);
@@ -81,7 +89,8 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
     }
 
 
-    private Object evaluate(QName returnType, Element code, Map<QName, Object> variables, ObjectResolver objectResolver, String contextDescription, OperationResult result)
+    private Object evaluate(QName returnType, Element code, Map<QName, Object> variables, ObjectResolver objectResolver,
+            String contextDescription, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
         XPathExpressionCodeHolder codeHolder = new XPathExpressionCodeHolder(code);
@@ -180,7 +189,8 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
         throw new ExpressionEvaluationException("Unsupported return type " + type);
     }
 
-    private <T> PropertyValue<T> convertScalar(Class<T> type, QName returnType, Object value, String contextDescription) throws ExpressionEvaluationException {
+    private <T> PropertyValue<T> convertScalar(Class<T> type, QName returnType, Object value,
+            String contextDescription) throws ExpressionEvaluationException {
         if (type.isAssignableFrom(value.getClass())) {
             return new PropertyValue<T>((T) value);
         }
@@ -201,7 +211,8 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
         }
     }
 
-    private <T> List<PropertyValue<T>> convertList(Class<T> type, NodeList valueNodes, String contextDescription) throws ExpressionEvaluationException {
+    private <T> List<PropertyValue<T>> convertList(Class<T> type, NodeList valueNodes, String contextDescription) throws
+            ExpressionEvaluationException {
         List<PropertyValue<T>> values = new ArrayList<PropertyValue<T>>();
         if (valueNodes == null) {
             return values;
@@ -210,6 +221,9 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
         try {
             List<T> list = XsdTypeConverter.convertValueElementAsList(valueNodes, type);
             for (T item : list) {
+                if (item == null || ((item instanceof String) && ((String) item).isEmpty())) {
+                    continue;
+                }
                 values.add(new PropertyValue<T>(item));
             }
             return values;

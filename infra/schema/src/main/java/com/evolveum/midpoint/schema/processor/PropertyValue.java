@@ -24,7 +24,6 @@ package com.evolveum.midpoint.schema.processor;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import org.apache.commons.lang.Validate;
 
 import java.io.Serializable;
 
@@ -78,8 +77,8 @@ public class PropertyValue<T> implements Dumpable, DebugDumpable, Serializable {
 
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("PropertyValue[ ");
-        if (getValue()!= null) {
+        builder.append("PropertyValue[");
+        if (getValue() != null) {
             builder.append(getValue().toString());
         } else {
             builder.append("null");
@@ -110,8 +109,12 @@ public class PropertyValue<T> implements Dumpable, DebugDumpable, Serializable {
         return hash;
     }
 
-    public boolean equalsRealValue(T value) {
-        return getValue() == null ? value == null : getValue().equals(value);
+    public boolean equalsRealValue(PropertyValue<T> value) {
+        if (value == null) {
+            return false;
+        }
+
+        return getValue() == null ? value.getValue() == null : getValue().equals(value.getValue());
     }
 
     @Override
