@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.model.sync.action;
@@ -88,7 +88,7 @@ public class AddUserActionTest extends BaseActionTest {
                         any(OperationResult.class))).thenReturn(user);
         try {
             ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
-            action.executeChanges(userOid, change, SynchronizationSituationType.CONFIRMED,
+            action.executeChanges(userOid, change, SynchronizationSituationType.LINKED,
                     (ResourceObjectShadowType) addition.getObject(), result);
         } finally {
             LOGGER.debug(result.dump());
@@ -125,7 +125,7 @@ public class AddUserActionTest extends BaseActionTest {
 
         try {
             ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
-            action.executeChanges(null, change, SynchronizationSituationType.CONFIRMED,
+            action.executeChanges(null, change, SynchronizationSituationType.LINKED,
                     (ResourceObjectShadowType) addition.getObject(), result);
         } finally {
             LOGGER.debug(result.dump());
@@ -176,7 +176,7 @@ public class AddUserActionTest extends BaseActionTest {
 
         try {
             ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
-            action.executeChanges(null, change, SynchronizationSituationType.CONFIRMED,
+            action.executeChanges(null, change, SynchronizationSituationType.LINKED,
                     (ResourceObjectShadowType) addition.getObject(), result);
         } finally {
             LOGGER.debug(result.dump());

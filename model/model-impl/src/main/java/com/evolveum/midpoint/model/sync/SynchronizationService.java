@@ -22,7 +22,6 @@
 package com.evolveum.midpoint.model.sync;
 
 import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.expr.ExpressionException;
@@ -60,7 +59,6 @@ import org.w3c.dom.NodeList;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
@@ -160,7 +158,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
      */
     @SuppressWarnings("unchecked")
     private ResourceObjectShadowType getObjectAfterChange(ResourceType resource, ResourceObjectShadowType objectShadow,
-                                                          ObjectChangeType change) throws SchemaException {
+            ObjectChangeType change) throws SchemaException {
         LOGGER.trace("Resolving resource object shadow after change.");
         if (change instanceof ObjectChangeAdditionType) {
             ObjectChangeAdditionType objectAddition = (ObjectChangeAdditionType) change;
@@ -172,33 +170,20 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                         + object.getClass().getName());
             }
         } else if (change instanceof ObjectChangeModificationType) {
-//            try {
-                AccountShadowType account = (AccountShadowType)objectShadow;
-                ObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(resource,
-                        schemaRegistry).getObjectDefinition(account);
+            AccountShadowType account = (AccountShadowType) objectShadow;
+            ObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(resource,
+                    schemaRegistry).getObjectDefinition(account);
 
-                MidPointObject<AccountShadowType> shadowObject = definition.parseObjectType(account);
+            MidPointObject<AccountShadowType> shadowObject = definition.parseObjectType(account);
 
-                ObjectChangeModificationType objectModification = (ObjectChangeModificationType) change;
-                ObjectDelta<AccountShadowType> delta = ObjectDelta.createDelta(objectModification.getObjectModification(), definition);
-                
-                delta.applyTo(shadowObject);
+            ObjectChangeModificationType objectModification = (ObjectChangeModificationType) change;
+            ObjectDelta<AccountShadowType> delta = ObjectDelta.createDelta(objectModification.getObjectModification(), definition);
 
-                //we set object type to null, than it will be parsed, not only returned
-                shadowObject.setObjectType(null);
-                return shadowObject.getOrParseObjectType();
+            delta.applyTo(shadowObject);
 
-                
-//                ObjectModificationType modification = objectModification.getObjectModification();
-//                PatchXml patchXml = new PatchXml();
-//
-//                String patchedXml = patchXml.applyDifferences(modification, objectShadow);
-//                ResourceObjectShadowType changedResourceShadow = ((JAXBElement<ResourceObjectShadowType>) JAXBUtil
-//                        .unmarshal(patchedXml)).getValue();
-//                return changedResourceShadow;
-//            } catch (Exception ex) {
-//                throw new SystemException(ex.getMessage(), ex);
-//            }
+            //we set object type to null, than it will be parsed, not only returned
+            shadowObject.setObjectType(null);
+            return shadowObject.getOrParseObjectType();
         } else if (change instanceof ObjectChangeDeletionType) {
             // in case of deletion the object has already all that it can have
             return objectShadow;
@@ -218,7 +203,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     // (repository returns only first user). It should be changed because
     // otherwise we can't check SynchronizationSituationType.CONFLICT situation
     private SynchronizationSituation checkSituation(ResourceObjectShadowChangeDescriptionType change,
-                                                    ResourceObjectShadowType objectShadowAfterChange, OperationResult result) {
+            ResourceObjectShadowType objectShadowAfterChange, OperationResult result) {
         OperationResult subResult = result.createSubresult(CHECK_SITUATION);
 
         if (change.getShadow() != null) {
@@ -251,7 +236,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                     case MODIFY:
                         // if user is found it means account/group is linked to
                         // resource
-                        state = SynchronizationSituationType.CONFIRMED;
+                        state = SynchronizationSituationType.LINKED;
                         break;
                     case DELETE:
                         state = SynchronizationSituationType.DELETED;
@@ -263,8 +248,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                         result);
             }
         } catch (Exception ex) {
-            LOGGER.error("Error occured during resource object shadow owner lookup.");
-            throw new SystemException("Error occured during resource object shadow owner lookup, reason: "
+            LOGGER.error("Error occurred during resource object shadow owner lookup.");
+            throw new SystemException("Error occurred during resource object shadow owner lookup, reason: "
                     + ex.getMessage(), ex);
         } finally {
             subResult.computeStatus();
@@ -279,7 +264,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
     /**
      * account is not linked to user. you have to use correlation and
-     * confirmation rule to be shure user for this account doesn't exists
+     * confirmation rule to be sure user for this account doesn't exists
      * resourceShadow only contains the data that were in the repository before
      * the change. But the correlation/confirmation should work on the updated
      * data. Therefore let's apply the changes before running
@@ -364,8 +349,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     }
 
     private void notifyChange(ResourceObjectShadowChangeDescriptionType change,
-                              SynchronizationSituation situation, ResourceType resource,
-                              ResourceObjectShadowType objectShadowAfterChange, OperationResult parentResult) {
+            SynchronizationSituation situation, ResourceType resource,
+            ResourceObjectShadowType objectShadowAfterChange, OperationResult parentResult) {
         SynchronizationType synchronization = resource.getSynchronization();
         List<Action> actions = findActionsForReaction(synchronization.getReaction(), situation.getSituation());
         if (actions.isEmpty()) {
@@ -404,9 +389,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             throw new SystemException("Synchronization action failed, reason: " + ex.getMessage(), ex);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "### SYNCHRONIZATION # notifyChange(..): Unexpected "
-                    + "error occured, synchronization action failed", ex);
-            parentResult.recordFatalError("Unexpected error occured, synchronization action failed.", ex);
-            throw new SystemException("Unexpected error occured, synchronization action failed, reason: "
+                    + "error occurred, synchronization action failed", ex);
+            parentResult.recordFatalError("Unexpected error occurred, synchronization action failed.", ex);
+            throw new SystemException("Unexpected error occurred, synchronization action failed, reason: "
                     + ex.getMessage(), ex);
         }
 
@@ -414,7 +399,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     }
 
     private List<Action> findActionsForReaction(List<Reaction> reactions,
-                                                SynchronizationSituationType situation) {
+            SynchronizationSituationType situation) {
         List<Action> actions = new ArrayList<Action>();
         if (reactions == null) {
             return actions;
@@ -453,7 +438,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
             Action action = actionManager.getActionInstance(actionXml.getRef());
             if (action == null) {
-                LOGGER.warn("Couln't create action with uri '{}' for reaction {}, skipping action.",
+                LOGGER.warn("Couldn't create action with uri '{}' for reaction {}, skipping action.",
                         new Object[]{actionXml.getRef(), reactions.indexOf(reaction)});
                 continue;
             }
@@ -465,17 +450,17 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     }
 
     private List<UserType> findUsersByCorrelationRule(ResourceObjectShadowType resourceShadow,
-                                                      QueryType query, OperationResult result) throws SynchronizationException {
+            QueryType query, OperationResult result) throws SynchronizationException {
 
         if (query == null) {
-            LOGGER.error("Corrrelation rule for resource '{}' doesn't contain query, "
+            LOGGER.error("Correlation rule for resource '{}' doesn't contain query, "
                     + "returning empty list of users.", resourceShadow.getName());
             return null;
         }
 
         Element element = query.getFilter();
         if (element == null) {
-            LOGGER.error("Corrrelation rule for resource '{}' doesn't contain query, "
+            LOGGER.error("Correlation rule for resource '{}' doesn't contain query, "
                     + "returning empty list of users.", resourceShadow.getName());
             return null;
         }
@@ -512,8 +497,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     }
 
     private List<UserType> findUserByConfirmationRule(List<UserType> users,
-                                                      ResourceObjectShadowType resourceObjectShadowType, ExpressionType expression,
-                                                      OperationResult result) throws SynchronizationException {
+            ResourceObjectShadowType resourceObjectShadowType, ExpressionType expression,
+            OperationResult result) throws SynchronizationException {
         List<UserType> list = new ArrayList<UserType>();
         if (users == null) {
             LOGGER.debug("Correlation list is null or empty. Returning empty confirmation list.");
@@ -538,7 +523,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     }
 
     private Element updateFilterWithAccountValues(ResourceObjectShadowType resourceObjectShadow,
-                                                  Element filter, OperationResult result) throws SynchronizationException {
+            Element filter, OperationResult result) throws SynchronizationException {
         LOGGER.trace("updateFilterWithAccountValues::begin");
         if (filter == null) {
             return null;

@@ -1,26 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (c) 2011 Evolveum                             -->
-<!--                                                         -->
-<!-- The contents of this file are subject to the terms      -->
-<!-- of the Common Development and Distribution License      -->
-<!-- (the License). You may not use this file except in      -->
-<!-- compliance with the License.                            -->
-<!--                                                         -->
-<!-- You can obtain a copy of the License at                 -->
-<!-- http://www.opensource.org/licenses/cddl1 or             -->
-<!-- CDDLv1.0.txt file in the source code distribution.      -->
-<!-- See the License for the specific language governing     -->
-<!-- permission and limitations under the License.           -->
-<!--                                                         -->
-<!-- If applicable, add the following below the CDDL Header, -->
-<!-- with the fields enclosed by brackets [] replaced by     -->
-<!-- your own identifying information:                       -->
-<!--                                                         -->
-<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
-<!-- Portions Copyrighted 2011 Ivan Noris                    -->
-<!-- Portions Copyrighted 2011 Peter Prochazka               -->
-<!--                                                         -->
+<!--
+  ~ Copyright (c) 2012 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2012 [name of copyright owner]
+  -->
 
 
 <!--
@@ -32,50 +30,50 @@ This resource definition contains only the very basic definitions for midPoint t
 
 -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" xmlns:my="http://myself.me/schemas/whatever"
-	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
 
-	<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef">
-    
-    	<!-- Resource name. It will be displayed in GUI.  -->
-		<name>Active Directory Advanced</name>
-     
-     	<!-- Reference to the ICF AD connector. OID is "virtual" for now. -->
-		<connectorRef type="ConnectorType">
-			<and>
-				<type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType" />
-				<equal>
-					<value>
-						<connectorType>Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector</connectorType>
-					</value>
-				</equal>
-			</and>
-		</connectorRef>
+    <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef">
+
+        <!-- Resource name. It will be displayed in GUI.  -->
+        <name>Active Directory Advanced</name>
+
+        <!-- Reference to the ICF AD connector. OID is "virtual" for now. -->
+        <connectorRef type="ConnectorType">
+            <and>
+                <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
+                <equal>
+                    <value>
+                        <connectorType>Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector</connectorType>
+                    </value>
+                </equal>
+            </and>
+        </connectorRef>
 
         <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
-		<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef</namespace>
+        <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef
+        </namespace>
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-		<configuration
-			xmlns:icfcad="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/ActiveDirectory.Connector/Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector"
-			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
+        <configuration
+                xmlns:icfcad="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/ActiveDirectory.Connector/Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector"
+                >
 
             <!-- Configuration specific for the LDAP connector -->
-			<icfcad:configurationProperties>
-				<icfcad:DirectoryAdminName>administrator</icfcad:DirectoryAdminName>
-				<icfcad:DirectoryAdminPassword>secret</icfcad:DirectoryAdminPassword>
-				<icfcad:ObjectClass>User</icfcad:ObjectClass>
-				<icfcad:Container>cn=Users,dc=example,dc=com</icfcad:Container>
-				<icfcad:CreateHomeDirectory>true</icfcad:CreateHomeDirectory>
-				<icfcad:LDAPHostName>localhost</icfcad:LDAPHostName>
-				<icfcad:SearchChildDomains>false</icfcad:SearchChildDomains>
-				<icfcad:DomainName>example.com</icfcad:DomainName>
-			</icfcad:configurationProperties>
+            <icfcad:configurationProperties>
+                <icfcad:DirectoryAdminName>administrator</icfcad:DirectoryAdminName>
+                <icfcad:DirectoryAdminPassword>secret</icfcad:DirectoryAdminPassword>
+                <icfcad:ObjectClass>User</icfcad:ObjectClass>
+                <icfcad:Container>cn=Users,dc=example,dc=com</icfcad:Container>
+                <icfcad:CreateHomeDirectory>true</icfcad:CreateHomeDirectory>
+                <icfcad:LDAPHostName>localhost</icfcad:LDAPHostName>
+                <icfcad:SearchChildDomains>false</icfcad:SearchChildDomains>
+                <icfcad:DomainName>example.com</icfcad:DomainName>
+            </icfcad:configurationProperties>
 
-		</configuration>
+        </configuration>
 
         <!-- Resource schema definition.
              It defines all the object classes that are available to midPoint
@@ -100,225 +98,227 @@ This resource definition contains only the very basic definitions for midPoint t
              
         -->
 
-		<schemaHandling>
-			<accountType>
-				<name>user</name>
-				<displayName>Default Account</displayName>
-				<default>true</default>
-				<objectClass>ri:AccountObjectClass</objectClass>
+        <schemaHandling>
+            <accountType>
+                <name>user</name>
+                <displayName>Default Account</displayName>
+                <default>true</default>
+                <objectClass>ri:AccountObjectClass</objectClass>
 
-				<attribute>
-					<ref>ri:givenName</ref> <!-- required attribute on AD -->
-					<displayName>Given Name</displayName>
-					<outbound>
-						<initial>true</initial>
-						<expression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-							<code>
-								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-								$i:user/i:givenName
-							</code>
-						</expression>
-					</outbound>
-					<inbound>
-						<target>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-							$i:user/i:givenName
-						</target>
-					</inbound>
-				</attribute>
-				<attribute>
-					<ref>ri:sn</ref>
-					<displayName>Surname</displayName>
-					<outbound>
-						<initial>true</initial>
-						<expression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-							<code>
-								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-								$i:user/i:familyName
-							</code>
-						</expression>
-					</outbound>
-					<inbound>
-						<target>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-							$i:user/i:familyName
-						</target>
-					</inbound>
-				</attribute>
-				<attribute>
-					<ref>ri:sAMAccountName</ref> <!-- required attribute on AD -->
-					<displayName>Login name</displayName>
-					<outbound>
-						<initial>true</initial>
-						<expression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-							<code>
-								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-								$i:user/i:name
-							</code>
-						</expression>
-					</outbound>
-					<inbound>
-						<target>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-							$i:user/i:name
-						</target>
-					</inbound>
-				</attribute>
+                <attribute>
+                    <ref>ri:givenName</ref>
+                    <!-- required attribute on AD -->
+                    <displayName>Given Name</displayName>
+                    <outbound>
+                        <initial>true</initial>
+                        <expression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                            <code>
+                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                                $i:user/i:givenName
+                            </code>
+                        </expression>
+                    </outbound>
+                    <inbound>
+                        <target>
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            $i:user/i:givenName
+                        </target>
+                    </inbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:sn</ref>
+                    <displayName>Surname</displayName>
+                    <outbound>
+                        <initial>true</initial>
+                        <expression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                            <code>
+                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                                $i:user/i:familyName
+                            </code>
+                        </expression>
+                    </outbound>
+                    <inbound>
+                        <target>
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            $i:user/i:familyName
+                        </target>
+                    </inbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:sAMAccountName</ref>
+                    <!-- required attribute on AD -->
+                    <displayName>Login name</displayName>
+                    <outbound>
+                        <initial>true</initial>
+                        <expression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                            <code>
+                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                                $i:user/i:name
+                            </code>
+                        </expression>
+                    </outbound>
+                    <inbound>
+                        <target>
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            $i:user/i:name
+                        </target>
+                    </inbound>
+                </attribute>
 
-				<attribute>
-					<ref>ri:mail</ref>
-					<displayName>Email address</displayName>
-<!-- FIXME if eMailAddress is null, create crashes
-					<outbound default="true">
-						<expression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-							<code>
-								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-								$i:user/i:eMailAddress
-							</code>
-						</expression>
-					</outbound>-->
-					<inbound>
-						<target>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-							$i:user/i:eMailAddress
-						</target>
-					</inbound>
-				</attribute>
+                <attribute>
+                    <ref>ri:mail</ref>
+                    <displayName>Email address</displayName>
+                    <!-- FIXME if eMailAddress is null, create crashes
+                         <outbound default="true">
+                             <expression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                                 <code>
+                                     declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                                     $i:user/i:eMailAddress
+                                 </code>
+                             </expression>
+                         </outbound>-->
+                    <inbound>
+                        <target>
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            $i:user/i:eMailAddress
+                        </target>
+                    </inbound>
+                </attribute>
 
-				<attribute>
-					<ref>icfs:name</ref>
-					<displayName>Distinguished Name</displayName>
+                <attribute>
+                    <ref>icfs:name</ref>
+                    <displayName>Distinguished Name</displayName>
 
-					<access>create</access>
-					<access>read</access>
+                    <access>create</access>
+                    <access>read</access>
 
-					<outbound>
-						<initial>true</initial>
-						<expression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-							<code>
-								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-								concat('cn=',
-								$i:user/i:givenName, ' ', $i:user/i:familyName, ',cn=Users,dc=example,dc=com')
-							</code>
-						</expression>
-					</outbound>
-				</attribute>
-				<credentials>
-					<password>
-						<outbound>
-							<asIs/>
-						</outbound>
-					</password>
-				</credentials>
-				<activation>
-					<enabled>
-						<outbound>
-							<asIs/>
-						</outbound>
-					</enabled>
-				</activation>
-			</accountType>
-		</schemaHandling>
-<!--
-		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd">
-			<cap:credentials>
-				<cap:password/>
-			</cap:credentials>
-			<cap:liveSync/>
-			<cap:testConnection/>
-		</capabilities>
--->
-		<scripts>
-			<script>
-				<operation>modify</operation>
-				<order>after</order>
-				<host>resource</host>
-				<language>Shell</language>
-				<argument>
-					<value>jbond</value>
-					<name>HOMEDIR</name>
-				</argument>
-				<code>
-echo "after modify," >> C:\a.txt
-exit
-		</code>
-			</script>
-<!--
-		<script>
-		<operation>modify</operation>
-		<order>before</order>	
-<language>Shell</language>	
-<host>resource</host>	
-		<argument>
-		    <value>jbond</value>
-		    <name>HOMEDIR</name>
-		</argument>
-		<code>
-echo "before modify," >> C:\a.txt
-exit
-		</code>
-		</script>
+                    <outbound>
+                        <initial>true</initial>
+                        <expression>
+                            <code>
+                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                                concat('cn=',
+                                $i:user/i:givenName, ' ', $i:user/i:familyName, ',cn=Users,dc=example,dc=com')
+                            </code>
+                        </expression>
+                    </outbound>
+                </attribute>
+                <credentials>
+                    <password>
+                        <outbound>
+                            <asIs/>
+                        </outbound>
+                    </password>
+                </credentials>
+                <activation>
+                    <enabled>
+                        <outbound>
+                            <asIs/>
+                        </outbound>
+                    </enabled>
+                </activation>
+            </accountType>
+        </schemaHandling>
+        <!--
+                <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd">
+                    <cap:credentials>
+                        <cap:password/>
+                    </cap:credentials>
+                    <cap:liveSync/>
+                    <cap:testConnection/>
+                </capabilities>
+        -->
+        <scripts>
+            <script>
+                <operation>modify</operation>
+                <order>after</order>
+                <host>resource</host>
+                <language>Shell</language>
+                <argument>
+                    <value>jbond</value>
+                    <name>HOMEDIR</name>
+                </argument>
+                <code>
+                    echo "after modify," >> C:\a.txt
+                    exit
+                </code>
+            </script>
+            <!--
+           <script>
+           <operation>modify</operation>
+           <order>before</order>
+   <language>Shell</language>
+   <host>resource</host>
+           <argument>
+               <value>jbond</value>
+               <name>HOMEDIR</name>
+           </argument>
+           <code>
+   echo "before modify," >> C:\a.txt
+   exit
+           </code>
+           </script>
 
-		<script>
-		<operation>add</operation>
-		<order>after</order>
-<language>Shell</language>	
-<host>resource</host>			
-		<argument>
-		    <value>jbond</value>
-		    <name>HOMEDIR</name>
-		</argument>
-		<code>
-echo "after create," >> C:\a.txt
-exit
-		</code>
-		</script>
+           <script>
+           <operation>add</operation>
+           <order>after</order>
+   <language>Shell</language>
+   <host>resource</host>
+           <argument>
+               <value>jbond</value>
+               <name>HOMEDIR</name>
+           </argument>
+           <code>
+   echo "after create," >> C:\a.txt
+   exit
+           </code>
+           </script>
 
-		<script>
-		<operation>add</operation>
-		<order>before</order>
-<language>Shell</language>	
-<host>resource</host>	
-		<argument>
-		    <value>jbond</value>
-		    <name>HOMEDIR</name>
-		</argument>		
-<code>
-echo "before create," >> C:\a.txt
-exit
-		</code>
-		</script>-->
-		</scripts>
+           <script>
+           <operation>add</operation>
+           <order>before</order>
+   <language>Shell</language>
+   <host>resource</host>
+           <argument>
+               <value>jbond</value>
+               <name>HOMEDIR</name>
+           </argument>
+   <code>
+   echo "before create," >> C:\a.txt
+   exit
+           </code>
+           </script>-->
+        </scripts>
         <!--
             Synchronization section describes the synchronization policy, timing,
             reactions and similar synchronization settings.
         -->
-		<synchronization>
+        <synchronization>
             <!--
                 The synchronization for this resource is enabled.
                 It means that the synchronization will react to changes detected by
                 the system (live sync task, discovery or reconciliation) -->
-			<enabled>true</enabled>
+            <enabled>true</enabled>
 
-			<correlation> 
-				<description>
-					Correlation expression is a search query.
-                	Following search queury will look for users that have "name"
+            <correlation>
+                <description>
+                    Correlation expression is a search query.
+                    Following search queury will look for users that have "name"
                     equal to the "sAMAccountName" attribute of the account. Simply speaking,
                     it will look for match in usernames in the IDM and the resource.
                     The correlation rule always looks for users, so it will not match
-                    any other object type. 
-				</description>
-				<equal>
-					<path>.</path>
-					<valueExpression>
-						<ref>name</ref>
-						<code>
-							$account/attributes/ri:sAMAccountName
-						</code>
-		        		</valueExpression>
-				</equal>
-			</correlation>
+                    any other object type.
+                </description>
+                <equal>
+                    <path>.</path>
+                    <valueExpression>
+                        <ref>name</ref>
+                        <code>
+                            $account/attributes/ri:sAMAccountName
+                        </code>
+                    </valueExpression>
+                </equal>
+            </correlation>
 
             <!-- Confirmation rule may be here, but as the search above will
                  always return at most one match, the confirmation rule is not needed. -->
@@ -329,55 +329,47 @@ exit
                  reflected as new users in IDM.
                  See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
              -->
-			<reaction>
-				<situation>confirmed</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser"/>
-			</reaction>
-			<reaction>
-				<situation>deleted</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
-			</reaction>
-			<reaction>
-				<situation>missing</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addAccount"/>
-			</reaction>
-			<reaction>
-				<situation>found</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
-			</reaction>
-			<reaction>
-				<situation>unassigned</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
-			</reaction>
-			<reaction>
-				<situation>unmatched</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addUser">
+            <reaction>
+                <situation>linked</situation>
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser"/>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addUser">
                     <!-- Reference to the User Template is here. If the user would be
                          created as a result of this action, it will be created according
                          to this template. -->
-					<userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
-				</action>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
-			</reaction>
+                    <userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
+                </action>
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+            </reaction>
 
-		</synchronization>
-	</resource>
+        </synchronization>
+    </resource>
 
-	<task oid="91919191-76e0-59e2-86d6-444f02d3ffff">
-		<name>Synchronization: Active Directory</name>
-		<description>
-			Definition of a live sychnronization task. It will poll changelog and pull in changes
-		</description>
-		<taskIdentifier>91919191-76e0-59e2-86d6-444f02d3ffff</taskIdentifier>
-	    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>	
-		<executionStatus>running</executionStatus>
-		<exclusivityStatus>released</exclusivityStatus>
-		<handlerUri>http://midpoint.evolveum.com/model/sync/handler-1</handlerUri>
-		<objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef"/>
-		<recurrence>recurring</recurrence>
-		<binding>tight</binding>
-		<schedule>
-			<interval>5</interval>
-		</schedule>
-	</task>
+    <task oid="91919191-76e0-59e2-86d6-444f02d3ffff">
+        <name>Synchronization: Active Directory</name>
+        <description>
+            Definition of a live sychnronization task. It will poll changelog and pull in changes
+        </description>
+        <taskIdentifier>91919191-76e0-59e2-86d6-444f02d3ffff</taskIdentifier>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+        <executionStatus>running</executionStatus>
+        <exclusivityStatus>released</exclusivityStatus>
+        <handlerUri>http://midpoint.evolveum.com/model/sync/handler-1</handlerUri>
+        <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef"/>
+        <recurrence>recurring</recurrence>
+        <binding>tight</binding>
+        <schedule>
+            <interval>5</interval>
+        </schedule>
+    </task>
 </objects>

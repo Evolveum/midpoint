@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2011 Evolveum
+  ~ Copyright (c) 2012 Evolveum
   ~
   ~ The contents of this file are subject to the terms
   ~ of the Common Development and Distribution License
@@ -17,7 +17,7 @@
   ~ with the fields enclosed by brackets [] replaced by
   ~ your own identifying information:
   ~
-  ~ Portions Copyrighted 2011 [name of copyright owner]
+  ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
 
 
@@ -37,7 +37,6 @@ object.
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
          xmlns:my="http://myself.me/schemas/whatever"
          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
@@ -73,7 +72,8 @@ object.
         </connectorRef>
 
         <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
-        <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
+        <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2
+        </namespace>
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
@@ -142,7 +142,6 @@ object.
 
             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-                        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
                         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
                         xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
                         elementFormDefault="qualified"
@@ -658,7 +657,7 @@ object.
                  See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
              -->
             <reaction>
-                <situation>confirmed</situation>
+                <situation>linked</situation>
                 <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser"/>
             </reaction>
             <reaction>
@@ -666,16 +665,8 @@ object.
                 <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
             </reaction>
             <reaction>
-                <situation>missing</situation>
+                <situation>unlinked</situation>
                 <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addAccount"/>
-            </reaction>
-            <reaction>
-                <situation>found</situation>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
-            </reaction>
-            <reaction>
-                <situation>unassigned</situation>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
             </reaction>
             <reaction>
                 <situation>unmatched</situation>
@@ -797,7 +788,7 @@ object.
             Definition of a live sychnronization task. It will poll changelog and pull in changes
         </description>
         <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
-	    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>running</executionStatus>
         <exclusivityStatus>released</exclusivityStatus>
         <handlerUri>http://midpoint.evolveum.com/model/sync/handler-1</handlerUri>

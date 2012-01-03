@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- Copyright (c) 2011 Evolveum                             -->
-<!--                                                         -->
-<!-- The contents of this file are subject to the terms      -->
-<!-- of the Common Development and Distribution License      -->
-<!-- (the License). You may not use this file except in      -->
-<!-- compliance with the License.                            -->
-<!--                                                         -->
-<!-- You can obtain a copy of the License at                 -->
-<!-- http://www.opensource.org/licenses/cddl1 or             -->
-<!-- CDDLv1.0.txt file in the source code distribution.      -->
-<!-- See the License for the specific language governing     -->
-<!-- permission and limitations under the License.           -->
-<!--                                                         -->
-<!-- If applicable, add the following below the CDDL Header, -->
-<!-- with the fields enclosed by brackets [] replaced by     -->
-<!-- your own identifying information:                       -->
-<!--                                                         -->
-<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!--                                                         -->
-<!-- Portions Copyrighted 2010-2011 ForgeRock, Inc.          -->
+<!--
+  ~ Copyright (c) 2012 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2012 [name of copyright owner]
+  -->
 
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
@@ -1565,25 +1565,25 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ExtensibleObjectType">
                 <xsd:sequence>
-                	<xsd:element name="taskIdentifier" type="xsd:string">
-                		<xsd:annotation>
-                			<xsd:documentation>
-                				Task (lightweight) identifier. This is an unique identification of any task,
-								regardless whether it is persistent or transient (cf. OID). Therefore this can be used
-								to identify all tasks, e.g. for the purposes of auditing and logging.
-								
-								Task identifier is assigned automatically when the task is created. It is immutable.
-                			</xsd:documentation>
-                		</xsd:annotation>
-                	</xsd:element>
+                    <xsd:element name="taskIdentifier" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Task (lightweight) identifier. This is an unique identification of any task,
+                                regardless whether it is persistent or transient (cf. OID). Therefore this can be used
+                                to identify all tasks, e.g. for the purposes of auditing and logging.
+
+                                Task identifier is assigned automatically when the task is created. It is immutable.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="ownerRef" type="tns:ObjectReferenceType">
-                    	<xsd:annotation>
-                    		<xsd:documentation>
-                    			The user that owns this task. It usually means the user that started the task
-                    			or a system used that is used to execute the task. The owner will be used to
-                    			determine access rights of the task, will be used for auditing, etc.
-                    		</xsd:documentation>
-                    	</xsd:annotation>
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The user that owns this task. It usually means the user that started the task
+                                or a system used that is used to execute the task. The owner will be used to
+                                determine access rights of the task, will be used for auditing, etc.
+                            </xsd:documentation>
+                        </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="executionStatus" type="tns:TaskExecutionStatusType">
                         <xsd:annotation>
@@ -1703,11 +1703,11 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 The state of the current operation on the model (EXPERIMENTAL, maybe
-                                will be moved into extension). 
+                                will be moved into extension).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -1899,7 +1899,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-	<xsd:complexType name="UriStack">
+    <xsd:complexType name="UriStack">
         <xsd:annotation>
             <xsd:documentation>
                 A stack of URIs (used e.g. for managing a stack of handlers to be called when a task is to be run).
@@ -1911,24 +1911,24 @@
             <xsd:element name="uri" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        A URI that is a part of the stack. 
+                        A URI that is a part of the stack.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    
+
     <xsd:complexType name="ModelOperationStateType">
         <xsd:annotation>
             <xsd:documentation>
-            	A state of a (possibly long-running) operation within the model.
-            	
-            	The purpose of this data structure is to keep a state of a possibly long-running operation
-            	at the level of the model. It is expected to be stored within a task, and used by ModelController to 
-            	 (1) remember its state between invocation of various hooks, which may interrupt the operation
-            	     execution and defer it until some event occurs (e.g. the workflow hook, which may request
-            	     a user approval in order to the operation be continued)
-            	 (2) *MAYBE* transfer information between ModelControl and its hooks
+                A state of a (possibly long-running) operation within the model.
+
+                The purpose of this data structure is to keep a state of a possibly long-running operation
+                at the level of the model. It is expected to be stored within a task, and used by ModelController to
+                (1) remember its state between invocation of various hooks, which may interrupt the operation
+                execution and defer it until some event occurs (e.g. the workflow hook, which may request
+                a user approval in order to the operation be continued)
+                (2) *MAYBE* transfer information between ModelControl and its hooks
 
                 EXPERIMENTAL. This type may change.
             </xsd:documentation>
@@ -1937,28 +1937,28 @@
             <xsd:element name="kindOfOperation" type="tns:ModelOperationKindType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        A kind of operation that is to be (being) executed. 
+                        A kind of operation that is to be (being) executed.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="stage" type="tns:ModelOperationStageType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        In which stage is this operation? 
+                        In which stage is this operation?
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="operationData" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                         Serialized version of operation's data. Most typically, it is an array of
-                         ObjectDelta's, or a SyncContext (all serialized as String, for now).
+                        Serialized version of operation's data. Most typically, it is an array of
+                        ObjectDelta's, or a SyncContext (all serialized as String, for now).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    
+
     <xsd:simpleType name="ModelOperationKindType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1992,7 +1992,7 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="ModelOperationStageType">
         <xsd:annotation>
             <xsd:documentation>
@@ -4098,28 +4098,6 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="confirmed">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The account exists as it should.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="CONFIRMED"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="collision">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The account is assigned to two or more IDM
-                        users.
-                        TODO: Do we need this situation?
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="COLLISION"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
             <xsd:enumeration value="deleted">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -4128,48 +4106,6 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="DELETED"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="missing">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The account should exist on the resource but it
-                        does not.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="MISSING"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="found">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The new account is found on the resource (it
-                        exists) and
-                        IDM determines exactly one owner for
-                        that account
-                        in IDM
-                        and that owner should have the account (e.g. has a valid
-                        assignment that implies such account).
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="FOUND"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="unassigned">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The new account is found on the resource (it
-                        exists) and
-                        IDM determines exactly one owner for
-                        that account
-                        in IDM
-                        and that owner should not have the account.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="UNASSIGNED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -5575,7 +5511,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="modelHooks" type="tns:ModelHooksType" minOccurs="0" />
+                    <xsd:element name="modelHooks" type="tns:ModelHooksType" minOccurs="0"/>
                     <xsd:element name="logging" type="tns:LoggingConfigurationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -5714,38 +5650,38 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-	<xsd:complexType name="ModelHooksType">
-		<xsd:annotation>
-			<xsd:documentation>
-				TODO
-			</xsd:documentation>			
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="change" type="tns:HookListType" minOccurs="0" />
-		</xsd:sequence>
-	</xsd:complexType>
-	
-	<xsd:complexType name="HookListType">
-		<xsd:annotation>
-			<xsd:documentation>
-				TODO
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="hook" type="tns:HookType"/>
-		</xsd:sequence>
-	</xsd:complexType>
+    <xsd:complexType name="ModelHooksType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="change" type="tns:HookListType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
 
-	<xsd:complexType name="HookType">
-		<xsd:annotation>
-			<xsd:documentation>
-				TODO
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="ref" type="xsd:anyURI"/>
-		</xsd:sequence>
-	</xsd:complexType>
+    <xsd:complexType name="HookListType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="hook" type="tns:HookType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="HookType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ref" type="xsd:anyURI"/>
+        </xsd:sequence>
+    </xsd:complexType>
 
     <xsd:complexType name="LoggingConfigurationType">
         <xsd:annotation>
