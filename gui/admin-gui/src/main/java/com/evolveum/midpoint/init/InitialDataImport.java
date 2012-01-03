@@ -103,7 +103,6 @@ public class InitialDataImport {
 					continue;
 				}
 				
-				System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 				task.setOwner(accountManager.listOwner(secUtils.getUserOid()));
 				model.addObject(object, task, result);
 				result.recordSuccess();
