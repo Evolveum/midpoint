@@ -36,13 +36,15 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.model.AccountManager;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 
 /**
  * 
  * @author lazyman
- *
+ * 
  */
 public class InitialDataImport {
 
@@ -52,12 +54,14 @@ public class InitialDataImport {
 
 	private ModelService model;
 	private TaskManager taskManager;
-    
-    public void setTaskManager(TaskManager taskManager) {
-    	Validate.notNull(taskManager, "Task manager must not be null.");
-    	this.taskManager = taskManager;
-    }
-	
+	private AccountManager accountManager;
+	private SecurityUtils secUtils;
+
+	public void setTaskManager(TaskManager taskManager) {
+		Validate.notNull(taskManager, "Task manager must not be null.");
+		this.taskManager = taskManager;
+	}
+
 	public void setModel(ModelService model) {
 		Validate.notNull(model, "Model service must not be null.");
 		this.model = model;
@@ -70,9 +74,10 @@ public class InitialDataImport {
 		OperationResult mainResult = new OperationResult("Initial Objects Import");
 		for (String file : FILES_FOR_IMPORT) {
 			OperationResult result = mainResult.createSubresult("Import Object");
+			
 			Task task = taskManager.createTaskInstance();
 			// TODO: task initialization
-			
+
 			InputStream stream = null;
 			try {
 				stream = getResource(file);
@@ -97,7 +102,9 @@ public class InitialDataImport {
 				if (!importObject) {
 					continue;
 				}
-
+				
+				System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+				task.setOwner(accountManager.listOwner(secUtils.getUserOid()));
 				model.addObject(object, task, result);
 				result.recordSuccess();
 			} catch (Exception ex) {

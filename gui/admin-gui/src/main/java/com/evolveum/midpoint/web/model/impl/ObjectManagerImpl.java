@@ -39,9 +39,11 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
+import com.evolveum.midpoint.web.model.AccountManager;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.dto.ObjectDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
@@ -61,6 +63,8 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 	private transient ModelService model;
 	@Autowired(required = true)
 	private transient TaskManager taskManager;
+	private AccountManager accountManager;
+	private SecurityUtils secUtils;
 
 	protected ModelService getModel() {
 		return model;
@@ -166,6 +170,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 		// TODO: task initialization
 		String oid = null;
 		try {
+			task.setOwner(accountManager.listOwner(secUtils.getUserOid()));
 			oid = getModel().addObject(object.getXmlObject(), task, result);
 			result.recordSuccess();
 		} catch (Exception ex) {

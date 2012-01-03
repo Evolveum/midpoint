@@ -41,7 +41,7 @@ public class MidpointAspect {
 	private static AtomicInteger idcounter = new AtomicInteger(0);
 	private static AtomicInteger subidcounter = new AtomicInteger(0);
 
-	//This logger provide profiling informations
+	// This logger provide profiling informations
 	private static final org.slf4j.Logger LOGGER_PROFILING = org.slf4j.LoggerFactory.getLogger("PROFILING");
 
 	// FIXME: try to switch to spring injection. Note: infra components
@@ -51,6 +51,7 @@ public class MidpointAspect {
 
 	/**
 	 * Register new formatter
+	 * 
 	 * @param formatter
 	 */
 	public static void registerFormatter(ObjectFormatter formatter) {
@@ -90,7 +91,7 @@ public class MidpointAspect {
 	@Around("entriesIntoUcf()")
 	public Object processUcfNdc(ProceedingJoinPoint pjp) throws Throwable {
 		return markSubsystem(pjp, "UCF");
-	}	
+	}
 
 	private Object markSubsystem(ProceedingJoinPoint pjp, String subsystem) throws Throwable {
 		Object retValue = null;
@@ -99,13 +100,14 @@ public class MidpointAspect {
 		int d = 1;
 		boolean exc = false;
 		String excName = null;
-		//Profiling start
+		// Profiling start
 		long startTime = System.nanoTime();
 
 		final StringBuilder infoLog = new StringBuilder("#### Entry: ");
 
 		try {
-			//Marking MDC->Subsystem with current one subsystem and mark previous
+			// Marking MDC->Subsystem with current one subsystem and mark
+			// previous
 			prev = (String) MDC.get("subsystem");
 			MDC.put("subsystem", subsystem);
 
@@ -129,17 +131,19 @@ public class MidpointAspect {
 				}
 			}
 
-			//is profiling info is needed
+			// is profiling info is needed
 			if (LOGGER_PROFILING.isInfoEnabled()) {
 				infoLog.append(getClassName(pjp));
 				LOGGER_PROFILING.info("{}->{}", infoLog, pjp.getSignature().getName());
 
-				//If debug enable get entry parameters and log them
+				// If debug enable get entry parameters and log them
 				if (LOGGER_PROFILING.isTraceEnabled()) {
 					final Object[] args = pjp.getArgs();
-					//	final String[] names = ((CodeSignature) pjp.getSignature()).getParameterNames();
-					//	@SuppressWarnings("unchecked")
-					//	final Class<CodeSignature>[] types = ((CodeSignature) pjp.getSignature()).getParameterTypes();
+					// final String[] names = ((CodeSignature)
+					// pjp.getSignature()).getParameterNames();
+					// @SuppressWarnings("unchecked")
+					// final Class<CodeSignature>[] types = ((CodeSignature)
+					// pjp.getSignature()).getParameterTypes();
 					final StringBuffer sb = new StringBuffer();
 					sb.append("###### args: ");
 					sb.append("(");
@@ -154,26 +158,26 @@ public class MidpointAspect {
 				}
 			}
 
-			//Process original call
+			// Process original call
 			try {
-			retValue = pjp.proceed();
-			
+				retValue = pjp.proceed();
+
 			} catch (Exception e) {
 				excName = e.getClass().getName();
 				exc = true;
 				throw e;
 			}
-			//Return original response
+			// Return original response
 			return retValue;
 
 		} finally {
-			//Depth -1
+			// Depth -1
 			if (LOGGER_PROFILING.isTraceEnabled()) {
 				d--;
 				MDC.put("depth", Integer.toString(d));
 			}
 
-			//Restore previously marked subsystem executed before return
+			// Restore previously marked subsystem executed before return
 			if (LOGGER_PROFILING.isInfoEnabled()) {
 				StringBuilder sb = new StringBuilder();
 				sb.append("##### Exit: ");
@@ -181,7 +185,7 @@ public class MidpointAspect {
 					sb.append(id);
 					sb.append(" ");
 				}
-				//sb.append("/");
+				// sb.append("/");
 				if (LOGGER_PROFILING.isTraceEnabled()) {
 					for (int i = 0; i < d + 1; i++) {
 						sb.append("   ");
@@ -193,7 +197,7 @@ public class MidpointAspect {
 
 				if (LOGGER_PROFILING.isDebugEnabled()) {
 					sb.append(" etime: ");
-					//Mark end of processing
+					// Mark end of processing
 					long elapsed = System.nanoTime() - startTime;
 					sb.append((long) (elapsed / 1000000));
 					sb.append('.');
@@ -211,13 +215,13 @@ public class MidpointAspect {
 				LOGGER_PROFILING.info(sb.toString());
 				if (LOGGER_PROFILING.isTraceEnabled()) {
 					if (exc) {
-						LOGGER_PROFILING.trace("###### return exception: {}", excName );
+						LOGGER_PROFILING.trace("###### return exception: {}", excName);
 					} else {
 						LOGGER_PROFILING.trace("###### retval: {}", formatVal(retValue));
 					}
 				}
 			}
-			//Restore MDC
+			// Restore MDC
 			if (prev == null) {
 				MDC.remove("subsystem");
 			} else {
@@ -246,7 +250,11 @@ public class MidpointAspect {
 	public void entriesIntoModel() {
 	}
 
-	@Pointcut("execution(* com.evolveum.midpoint.web.controller..*.*(..))")
+	/*@Pointcut("execution(* com.evolveum.midpoint.web.controller..*.*(..))")
+	public void entriesIntoWeb() {
+	}*/
+
+	@Pointcut("execution(* com.evolveum.midpoint.web.model.impl..*.*(..))")
 	public void entriesIntoWeb() {
 	}
 
@@ -256,6 +264,7 @@ public class MidpointAspect {
 
 	/**
 	 * Get joinpoint class name if available
+	 * 
 	 * @param pjp
 	 * @return
 	 */
@@ -268,6 +277,7 @@ public class MidpointAspect {
 
 	/**
 	 * Debug output formater
+	 * 
 	 * @param value
 	 * @return
 	 */
