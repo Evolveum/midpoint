@@ -28,11 +28,11 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 
 /**
  * @author Radovan Semancik
@@ -73,7 +73,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyChange(com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType, com.evolveum.midpoint.common.result.OperationResult)
 	 */
 	@Override
-	public void notifyChange(ResourceObjectShadowChangeDescriptionType change, OperationResult parentResult) {
+	public void notifyChange(ResourceObjectShadowChangeDescription change, OperationResult parentResult) {
 		Validate.notNull(change, "Change description of resource object shadow must not be null.");
 		
 		LOGGER.trace("Notifying change {} ", DebugUtil.prettyPrint(change));

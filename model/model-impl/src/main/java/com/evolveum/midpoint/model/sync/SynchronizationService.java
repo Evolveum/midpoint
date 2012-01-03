@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.expr.ExpressionException;
 import com.evolveum.midpoint.model.expr.ExpressionHandler;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -92,9 +93,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     }
 
     @Override
-    public void notifyChange(ResourceObjectShadowChangeDescriptionType change, OperationResult parentResult) {
+    public void notifyChange(ResourceObjectShadowChangeDescription change, OperationResult parentResult) {
         Validate.notNull(change, "Resource object shadow change description must not be null.");
-        Validate.notNull(change.getObjectChange(), "Object change in change description must not be null.");
         Validate.notNull(change.getResource(), "Resource in change must not be null.");
         Validate.notNull(parentResult, "Parent operation result must not be null.");
 

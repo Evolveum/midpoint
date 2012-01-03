@@ -36,6 +36,7 @@ import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -47,6 +48,7 @@ import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyModification;
 import com.evolveum.midpoint.schema.processor.PropertyModification.ModificationType;
@@ -68,7 +70,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
@@ -329,7 +330,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			//for each change from the connector create change description
 			for (Change change : changes) {
-				if (change.getChange() instanceof ObjectChangeDeletionType && change.getOldShadow() == null){
+				if (change.getObjectDelta().getChangeType() == ChangeType.DELETE && change.getOldShadow() == null){
 					Property newToken = change.getToken();
 					PropertyModification modificatedToken = getTokenModification(newToken);
 					modifications.add(modificatedToken);
@@ -337,7 +338,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					continue;
 				}
 
-				ResourceObjectShadowChangeDescriptionType shadowChangeDescription = createResourceShadowChangeDescription(
+				ResourceObjectShadowChangeDescription shadowChangeDescription = createResourceShadowChangeDescription(
 						change, resourceType);
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("**PROVISIONING: Created resource object shadow change description {}",
@@ -773,17 +774,18 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.recordSuccess();
 	}
 
-	private synchronized void notifyResourceObjectChangeListeners(ResourceObjectShadowChangeDescriptionType change,
+	private synchronized void notifyResourceObjectChangeListeners(ResourceObjectShadowChangeDescription change,
 			OperationResult parentResult) {
 		changeNotificationDispatcher.notifyChange(change, parentResult);
 	}
 
-	private ResourceObjectShadowChangeDescriptionType createResourceShadowChangeDescription(Change change,
+	private ResourceObjectShadowChangeDescription createResourceShadowChangeDescription(Change change,
 			ResourceType resourceType) {
-		ResourceObjectShadowChangeDescriptionType shadowChangeDescription = new ResourceObjectShadowChangeDescriptionType();
-		shadowChangeDescription.setObjectChange(change.getChange());
+		ResourceObjectShadowChangeDescription shadowChangeDescription = new ResourceObjectShadowChangeDescription();
+		shadowChangeDescription.setObjectDelta(change.getObjectDelta());
 		shadowChangeDescription.setResource(resourceType);
-		shadowChangeDescription.setShadow(change.getOldShadow());
+		shadowChangeDescription.setOldShadow(change.getOldShadow());
+		shadowChangeDescription.setCurrentShadow(change.getCurrentShadow());
 		shadowChangeDescription.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_SYNC));
 		return shadowChangeDescription;
 

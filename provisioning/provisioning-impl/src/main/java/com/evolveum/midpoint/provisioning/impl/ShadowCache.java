@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -567,7 +568,7 @@ public class ShadowCache {
         // if object doesn't exist, create it now
         if (accountList.isEmpty()) {
 
-            if (!(change.getChange() instanceof ObjectChangeDeletionType)) {
+            if (!(change.getObjectDelta().getChangeType() == ChangeType.DELETE)) {
                 try {
                     newShadow = shadowConverter.createNewAccountFromChange(change, resource, parentResult);
                     try {
@@ -587,7 +588,7 @@ public class ShadowCache {
             newShadow = accountList.get(0);
             // if the fetched change was one of the deletion type, delete
             // corresponding account from repo now
-            if (change.getChange() instanceof ObjectChangeDeletionType) {
+            if (change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
                 try {
                     getRepositoryService().deleteObject(AccountShadowType.class, newShadow.getOid(),
                             parentResult);

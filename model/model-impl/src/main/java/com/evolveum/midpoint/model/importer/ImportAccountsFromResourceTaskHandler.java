@@ -21,9 +21,12 @@
 package com.evolveum.midpoint.model.importer;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
+import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -87,6 +90,9 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 
     @Autowired(required = true)
     private TaskManager taskManager;
+    
+    @Autowired(required = true)
+    private SchemaRegistry schemaRegistry;
 
     @Autowired(required = true)
     private ChangeNotificationDispatcher changeNotificationDispatcher;
@@ -232,11 +238,22 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
+        
+        RefinedResourceSchema refinedSchema;
+		try {
+			refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, schemaRegistry);
+		} catch (SchemaException e) {
+			LOGGER.error("Import: Schema error during processing account definition: {}",e.getMessage());
+            opResult.recordFatalError("Schema error during processing account definition: "+e.getMessage(),e);
+            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+            return runResult;
+		}
+        RefinedAccountDefinition refinedAccountDefinition = refinedSchema.getDefaultAccountDefinition();
 
         LOGGER.info("Start executing import from resource {}, importing object class {}", ObjectTypeUtil.toShortString(resource), objectclass);
 
         // Instantiate result handler. This will be called with every search result in the following iterative search
-        ImportAccountsFromResourceResultHandler handler = new ImportAccountsFromResourceResultHandler(resource, task, changeNotificationDispatcher);
+        ImportAccountsFromResourceResultHandler handler = new ImportAccountsFromResourceResultHandler(resource, refinedAccountDefinition, task, changeNotificationDispatcher);
 
         // TODO: error checking - already running
         handlers.put(task, handler);

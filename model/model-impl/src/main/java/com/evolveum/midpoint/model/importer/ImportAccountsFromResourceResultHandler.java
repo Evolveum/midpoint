@@ -20,9 +20,15 @@
  */
 package com.evolveum.midpoint.model.importer;
 
+import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.processor.ChangeType;
+import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -30,6 +36,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
@@ -53,18 +60,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ImportAccountsFromResourceResultHandler.class);
+	
 	private ResourceObjectChangeListener objectChangeListener;
 	private Task task;
 	private ResourceType resource;
+	private RefinedAccountDefinition refinedAccountDefinition;
 	private long progress;
 	private long errors;
 	private boolean stopOnError;
 
-	public ImportAccountsFromResourceResultHandler(ResourceType resource, Task task,
+	public ImportAccountsFromResourceResultHandler(ResourceType resource, RefinedAccountDefinition refinedAccountDefinition, Task task,
 			ResourceObjectChangeListener objectChangeListener) {
 		this.objectChangeListener = objectChangeListener;
 		this.task = task;
 		this.resource = resource;
+		this.refinedAccountDefinition = refinedAccountDefinition;
 		progress = 0;
 		errors = 0;
 		stopOnError = true;
@@ -102,23 +112,25 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 		// We are going to pretend that all of the objects were just created.
 		// That will efficiently import them to the IDM repository
 
-		// TODO: Error handling
-		ResourceObjectShadowType newShadow = (ResourceObjectShadowType) object;
-
-		ResourceObjectShadowChangeDescriptionType change = new ResourceObjectShadowChangeDescriptionType();
-		change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_IMPORT));
-		change.setResource(resource);
-		ObjectChangeAdditionType addChange = new ObjectChangeAdditionType();
-		addChange.setObject(newShadow);
-		change.setObjectChange(addChange);
-		// We should provide shadow in the state before the change. But we are
-		// pretending that it has
-		// not existed before, so we will not provide it.
-
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.trace("Going to call notification with new object: " + DebugUtil.prettyPrint(newShadow));
-		}
 		try {
+			AccountShadowType newShadow = (AccountShadowType) object;
+	
+			ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
+			change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_IMPORT));
+			change.setResource(resource);
+			ObjectDelta<AccountShadowType> shadowDelta = new ObjectDelta<AccountShadowType>(
+					AccountShadowType.class, ChangeType.ADD);
+			MidPointObject<AccountShadowType> shadowToAdd = refinedAccountDefinition.getObjectDefinition().parseObjectType(newShadow);
+			shadowDelta.setObjectToAdd(shadowToAdd);		
+			
+			// We should provide shadow in the state before the change. But we are
+			// pretending that it has
+			// not existed before, so we will not provide it.
+	
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.trace("Going to call notification with new object: " + DebugUtil.prettyPrint(newShadow));
+			}
+		
 
 			// Invoke the change notification
 			objectChangeListener.notifyChange(change, result);
@@ -131,11 +143,11 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 			errors++;
 			if (LOGGER.isErrorEnabled()) {
 				LOGGER.error("Import of object {} from resource {} failed: {}", new Object[] {
-					ObjectTypeUtil.toShortString(newShadow), ObjectTypeUtil.toShortString(resource), ex.getMessage(), ex });
+					ObjectTypeUtil.toShortString(object), ObjectTypeUtil.toShortString(resource), ex.getMessage(), ex });
 			}
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Change notication listener failed for import of object {}: {}: ", new Object[] {
-					newShadow, ex.getClass().getSimpleName(), ex.getMessage(), ex });
+						object, ex.getClass().getSimpleName(), ex.getMessage(), ex });
 			}
 			result.recordPartialError("failed to import", ex);
 			return !isStopOnError();

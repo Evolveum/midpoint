@@ -46,6 +46,6 @@ public interface ResourceObjectChangeListener {
 	 * @param change
 	 *            change description
 	 */
-	public void notifyChange(ResourceObjectShadowChangeDescriptionType change, OperationResult parentResult);
+	public void notifyChange(ResourceObjectShadowChangeDescription change, OperationResult parentResult);
 
 }

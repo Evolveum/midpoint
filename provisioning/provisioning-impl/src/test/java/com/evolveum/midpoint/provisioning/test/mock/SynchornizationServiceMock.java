@@ -8,11 +8,10 @@ import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 
 
 @Service(value = "syncServiceMock")
@@ -36,7 +35,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener{
 	}
 	
 	@Override
-	public void notifyChange(ResourceObjectShadowChangeDescriptionType change, OperationResult parentResult) {
+	public void notifyChange(ResourceObjectShadowChangeDescription change, OperationResult parentResult) {
 		LOGGER.debug("Notify change in model called");
 		called= true;
 	}

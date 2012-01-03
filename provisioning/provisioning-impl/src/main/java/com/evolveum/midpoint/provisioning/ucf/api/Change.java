@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
+import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeType;
@@ -27,34 +28,45 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import java.util.Set;
 
 /**
+ * FIXME: this is somehow wrong. It is using concept of Shadow. Universal API should not use that.
+ * But it works for now.
  * @author Radovan Semancik
  *
  */
 public final class Change {
 	
     private Set<ResourceObjectAttribute> identifiers;
-    private ObjectChangeType change;
+    private ObjectDelta<? extends ResourceObjectShadowType> objectDelta;
     private Property token;
     private ResourceObjectShadowType oldShadow;
+    private ResourceObjectShadowType currentShadow;
 //    private Token token;
 
-    public Change(Set<ResourceObjectAttribute> identifiers, ObjectChangeType change, Property token) {
+    public Change(Set<ResourceObjectAttribute> identifiers, ObjectDelta<? extends ResourceObjectShadowType> change, Property token) {
         this.identifiers = identifiers;
-        this.change = change;
-        this.token = token;
-    }
-    
-    public Change(ObjectChangeType change, Property token) {
-        this.change = change;
+        this.objectDelta = change;
+        this.currentShadow = null;
         this.token = token;
     }
 
-    public ObjectChangeType getChange() {
-        return change;
+    public Change(Set<ResourceObjectAttribute> identifiers, ResourceObjectShadowType currentShadow, Property token) {
+        this.identifiers = identifiers;
+        this.objectDelta = null;
+        this.currentShadow = currentShadow;
+        this.token = token;
     }
 
-    public void setChange(ObjectChangeType change) {
-        this.change = change;
+    public Change(ObjectDelta<? extends ResourceObjectShadowType> change, Property token) {
+        this.objectDelta = change;
+        this.token = token;
+    }
+
+    public ObjectDelta<? extends ResourceObjectShadowType> getObjectDelta() {
+        return objectDelta;
+    }
+
+    public void setObjectDelta(ObjectDelta<? extends ResourceObjectShadowType> change) {
+        this.objectDelta = change;
     }
 
     public Set<ResourceObjectAttribute> getIdentifiers() {
@@ -81,14 +93,12 @@ public final class Change {
 		this.oldShadow = oldShadow;
 	}
 
-    
-    
-//    public Token getToken() {
-//        return token;
-//    }
-//
-//    public void setToken(Token token) {
-//        this.token = token;
-//    }
+	public ResourceObjectShadowType getCurrentShadow() {
+		return currentShadow;
+	}
 
+	public void setCurrentShadow(ResourceObjectShadowType currentShadow) {
+		this.currentShadow = currentShadow;
+	}
+	
 }
