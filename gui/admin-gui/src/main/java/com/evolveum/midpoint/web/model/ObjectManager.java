@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
@@ -116,7 +117,7 @@ public interface ObjectManager<T> {
 	 *            new state of the object
 	 * @return relative changes that will be applied to the object
 	 */
-	Set<PropertyChange> submit(T changedObject, OperationResult parentResult);
+	Set<PropertyChange> submit(T changedObject, Task task, OperationResult parentResult);
 
 	/**
 	 * Deletes object from the repository.

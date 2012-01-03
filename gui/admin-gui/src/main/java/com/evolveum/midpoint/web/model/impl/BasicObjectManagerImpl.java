@@ -25,6 +25,7 @@ import java.util.Set;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.model.dto.ObjectDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -45,7 +46,7 @@ public class BasicObjectManagerImpl extends ObjectManagerImpl<ObjectType, Object
 	}
 
 	@Override
-	public Set<PropertyChange> submit(ObjectDto<ObjectType> changedObject, OperationResult parentResult) {
+	public Set<PropertyChange> submit(ObjectDto<ObjectType> changedObject, Task task, OperationResult parentResult) {
 		throw new UnsupportedOperationException("Not implemented yet.");
 	}
 

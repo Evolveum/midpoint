@@ -596,7 +596,7 @@ public class ModelController implements ModelService {
     }
 
     @Override
-    public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType change,
+    public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType change, Task task,
                                                     OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException {
 
         Validate.notNull(change, "Object modification must not be null.");
@@ -618,6 +618,11 @@ public class ModelController implements ModelService {
 
         RepositoryCache.enter();
 
+        AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.MODIFY_OBJECT, AuditEventStage.REQUEST);
+        //auditRecord.setTarget(object);
+        // TODO: delta and others ....
+		auditService.audit(auditRecord , task);
+        
         try {
 
             ObjectDelta<T> objectDelta = null;

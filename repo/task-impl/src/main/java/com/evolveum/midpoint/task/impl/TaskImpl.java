@@ -131,6 +131,10 @@ public class TaskImpl implements Task {
 		
 	void initialize(TaskType taskType, OperationResult initResult) throws SchemaException {
 		taskIdentifier = taskType.getTaskIdentifier();
+		ObjectReferenceType ownerRef = taskType.getOwnerRef();
+		if (ownerRef == null) {
+			throw new SchemaException("Task "+taskType.getOid()+" does not have an owner (missing ownerRef)");
+		}
 		owner = resolveOwnerRef(taskType.getOwnerRef(), initResult);
 		executionStatus = TaskExecutionStatus.fromTaskType(taskType.getExecutionStatus());
 		exclusivityStatus = TaskExclusivityStatus.fromTaskType(taskType.getExclusivityStatus());

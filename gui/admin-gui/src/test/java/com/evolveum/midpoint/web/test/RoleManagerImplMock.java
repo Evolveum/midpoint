@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.model.RoleManager;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
@@ -70,7 +71,7 @@ public class RoleManagerImplMock implements RoleManager {
 	}
 
 	@Override
-	public Set<PropertyChange> submit(RoleDto changedObject, OperationResult result) {
+	public Set<PropertyChange> submit(RoleDto changedObject, Task task, OperationResult result) {
 		// TODO Auto-generated method stub
 		return null;
 	}

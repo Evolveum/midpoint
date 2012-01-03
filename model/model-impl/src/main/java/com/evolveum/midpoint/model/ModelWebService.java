@@ -80,8 +80,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		notNullArgument(object, "Object must not be null.");
 
 		OperationResult operationResult = new OperationResult(ADD_OBJECT);
-		// TODO: better task initialization
-		Task task = taskManager.createTaskInstance();
+		Task task = createTaskInstance();
 		try {
 			String oid = model.addObject(object, task, operationResult);
 			handleOperationResult(operationResult, result);
@@ -164,9 +163,10 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		notNullArgument(change, "Object modification must not be null.");
 
 		OperationResult operationResult = new OperationResult(MODIFY_OBJECT);
+		Task task = createTaskInstance();
 		try {
 			model.modifyObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), change,
-					operationResult);
+					task, operationResult);
 			return handleOperationResult(operationResult);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL modifyObject() failed", ex);
@@ -373,6 +373,11 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			LoggingUtils.logException(LOGGER, "# MODEL importFromResource() failed", ex);
 			throw createSystemFault(ex, operationResult);
 		}
+	}
+	
+	private Task createTaskInstance() {
+		// TODO: better task initialization
+		return taskManager.createTaskInstance();
 	}
 	
 	/**

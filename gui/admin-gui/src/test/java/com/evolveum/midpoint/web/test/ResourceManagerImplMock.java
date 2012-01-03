@@ -35,6 +35,7 @@ import javax.xml.namespace.QName;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.model.dto.ConnectorHostDto;
@@ -87,7 +88,7 @@ public class ResourceManagerImplMock implements ResourceManager {
 	}
 
 	@Override
-	public Set<PropertyChange> submit(GuiResourceDto changedObject, OperationResult result) {
+	public Set<PropertyChange> submit(GuiResourceDto changedObject, Task task, OperationResult result) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

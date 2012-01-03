@@ -220,7 +220,7 @@ public interface ModelService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	<T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType change,
+	<T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType change, Task task,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException;
 
 	/**

@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -101,7 +102,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 	}
 
 	@Override
-	public Set<PropertyChange> submit(GuiUserDto changedObject, OperationResult parentResult) {
+	public Set<PropertyChange> submit(GuiUserDto changedObject, Task task, OperationResult parentResult) {
 		Validate.notNull(changedObject, "User object must not be null.");
 
 		Set<PropertyChange> set = null;
@@ -148,7 +149,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 					changes.getPropertyModification().add(passwordChange);
 				}
 				if (changes.getOid() != null && changes.getPropertyModification().size() > 0) {
-					getModel().modifyObject(UserType.class, changes, result);
+					getModel().modifyObject(UserType.class, changes, task, result);
 				}
 
 			}

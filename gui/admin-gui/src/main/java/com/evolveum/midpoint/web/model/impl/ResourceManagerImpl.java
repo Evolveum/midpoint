@@ -51,7 +51,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 	}
 
 	@Override
-	public Set<PropertyChange> submit(GuiResourceDto changedObject , OperationResult parentResult) {
+	public Set<PropertyChange> submit(GuiResourceDto changedObject , Task task, OperationResult parentResult) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

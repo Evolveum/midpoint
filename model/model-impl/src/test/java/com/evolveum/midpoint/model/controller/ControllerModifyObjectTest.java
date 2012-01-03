@@ -27,6 +27,7 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -51,6 +52,8 @@ public class ControllerModifyObjectTest extends AbstractTestNGSpringContextTests
 	private RepositoryService repository;
 	@Autowired(required = true)
 	private ProvisioningService provisioning;
+	@Autowired(required = true)
+	private TaskManager taskManager;
 
 	@BeforeMethod
 	public void before() {
@@ -59,25 +62,25 @@ public class ControllerModifyObjectTest extends AbstractTestNGSpringContextTests
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullChange() throws Exception {
-		controller.modifyObject(UserType.class, null, null);
+		controller.modifyObject(UserType.class, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullChangeOid() throws Exception {
-		controller.modifyObject(UserType.class, new ObjectModificationType(), null);
+		controller.modifyObject(UserType.class, new ObjectModificationType(), taskManager.createTaskInstance(), null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void emptyChangeOid() throws Exception {
 		ObjectModificationType change = new ObjectModificationType();
 		change.setOid("");
-		controller.modifyObject(UserType.class, change, null);
+		controller.modifyObject(UserType.class, change, taskManager.createTaskInstance(), null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
 		ObjectModificationType change = new ObjectModificationType();
 		change.setOid("1");
-		controller.modifyObject(UserType.class, change, null);
+		controller.modifyObject(UserType.class, change, taskManager.createTaskInstance(), null);
 	}
 }

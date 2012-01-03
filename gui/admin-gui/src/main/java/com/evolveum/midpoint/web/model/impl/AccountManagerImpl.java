@@ -36,6 +36,7 @@ import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -84,7 +85,7 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 	}
 
 	@Override
-	public Set<PropertyChange> submit(AccountShadowDto changedObject, OperationResult parentResult) {
+	public Set<PropertyChange> submit(AccountShadowDto changedObject, Task task, OperationResult parentResult) {
 		Validate.notNull(changedObject, "Changed account must not be null.");
 
 		AccountShadowDto oldObject = get(changedObject.getOid(), Utils.getResolveResourceList());
@@ -124,7 +125,7 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 				if (changes.getOid() != null) {
 					LOGGER.debug("Modifying account submited in gui. {}",
 							ObjectTypeUtil.toShortString(changedObject.getXmlObject()));
-					getModel().modifyObject(AccountShadowType.class, changes, result);
+					getModel().modifyObject(AccountShadowType.class, changes, task, result);
 				}
 			} else {
 				LOGGER.debug("No account changes detected.");

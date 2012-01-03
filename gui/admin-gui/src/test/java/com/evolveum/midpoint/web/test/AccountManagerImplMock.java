@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.bean.ResourceCapability;
 import com.evolveum.midpoint.web.model.AccountManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
@@ -78,7 +79,7 @@ public class AccountManagerImplMock implements AccountManager {
 	}
 
 	@Override
-	public Set<PropertyChange> submit(AccountShadowDto changedObject, OperationResult result) {
+	public Set<PropertyChange> submit(AccountShadowDto changedObject, Task task, OperationResult result) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

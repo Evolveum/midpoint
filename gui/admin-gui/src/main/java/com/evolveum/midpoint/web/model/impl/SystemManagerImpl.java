@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Document;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -15,6 +16,8 @@ import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.model.SystemManager;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
@@ -33,6 +36,9 @@ public class SystemManagerImpl extends ObjectManagerImpl<SystemConfigurationType
 
 	private static final long serialVersionUID = 7510934216789096238L;
 
+	@Autowired(required=true)
+	TaskManager taskManager;
+	
 	@Override
 	public Collection<SystemConfigurationDto> list(PagingType paging) {
 		SystemConfigurationType config = null;
@@ -63,14 +69,15 @@ public class SystemManagerImpl extends ObjectManagerImpl<SystemConfigurationType
 	}
 
 	@Override
-	public Set<PropertyChange> submit(SystemConfigurationDto changedObject, OperationResult parentResult) {
+	public Set<PropertyChange> submit(SystemConfigurationDto changedObject, Task task, OperationResult parentResult) {
 		throw new UnsupportedOperationException("Not implemented yet.");
 	}
 
 	@Override
 	public boolean updateLoggingConfiguration(LoggingConfigurationType configuration) {
 		boolean updated = false;
-		OperationResult result = new OperationResult(UPDATE_LOGGING_CONFIGURATION);
+		Task task = taskManager.createTaskInstance(UPDATE_LOGGING_CONFIGURATION);
+		OperationResult result = task.getResult();
 		try {
 			String xml = JAXBUtil.marshalWrap(configuration, SchemaConstants.LOGGING);
 			Document document = DOMUtil.parseDocument(xml);
@@ -84,7 +91,7 @@ public class SystemManagerImpl extends ObjectManagerImpl<SystemConfigurationType
 					ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace,
 							xpath, document.getDocumentElement()));
 
-			getModel().modifyObject(SystemConfigurationType.class, change, result);
+			getModel().modifyObject(SystemConfigurationType.class, change, task, result);
 			updated = true;
 		} catch (Exception ex) {
 			ex.printStackTrace();

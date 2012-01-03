@@ -46,6 +46,8 @@ import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -90,6 +92,7 @@ public class UserDetailsController implements Serializable {
 	private static final long serialVersionUID = -4537350724118181063L;
 	private static final Trace LOGGER = TraceManager.getTrace(UserDetailsController.class);
 	private static final String TAB_USER = "0";
+	
 	@Autowired(required = true)
 	private transient TemplateController template;
 	@Autowired(required = true)
@@ -98,6 +101,9 @@ public class UserDetailsController implements Serializable {
 	private ObjectTypeCatalog objectTypeCatalog;
 	@Autowired(required = true)
 	private Protector protector;
+	@Autowired(required = true)
+	private TaskManager taskManager;
+	
 	private boolean editMode = false;
 	private GuiUserDto user;
 	private List<AccountFormBean> accountList;
@@ -221,7 +227,8 @@ public class UserDetailsController implements Serializable {
 	 * accounts from accountList save user attributes from form
 	 */
 	public void savePerformed(ActionEvent evt) {
-		OperationResult result = new OperationResult("Save User Changes");
+		Task task = taskManager.createTaskInstance("Save User Changes");
+		OperationResult result = task.getResult();
 		if (user != null) {
 			LOGGER.debug("Normalizing user assignments");
 			user.normalizeAssignments();
@@ -240,7 +247,7 @@ public class UserDetailsController implements Serializable {
 			// modification of account attributes are submited later ->
 			// updateAccounts method
 			LOGGER.debug("Submit user modified in GUI");
-			Set<PropertyChange> userChanges = userManager.submit(user, result);
+			Set<PropertyChange> userChanges = userManager.submit(user, task, result);
 			LOGGER.debug("Modified user in GUI submitted ");
 
 			// now we need to delete accounts from repository and also from
@@ -252,7 +259,7 @@ public class UserDetailsController implements Serializable {
 			LOGGER.debug("Finished processing of deleted accounts");
 			
 			//check if account was changed, if does, execute them..
-			updateAccounts(accountList, result);
+			updateAccounts(accountList, task, result);
 			
 			clearController();
 			result.recordSuccess();
@@ -342,7 +349,7 @@ public class UserDetailsController implements Serializable {
 		LOGGER.debug("Finished processing of deleted accounts");
 	}
 
-	private void updateAccounts(List<AccountFormBean> accountBeans, OperationResult result) throws WebModelException {
+	private void updateAccounts(List<AccountFormBean> accountBeans, Task task, OperationResult result) throws WebModelException {
 		LOGGER.debug("Start processing accounts with outbound schema handling");
 		for (AccountFormBean bean : accountBeans) {
 			if (bean.isNew()) {
@@ -360,7 +367,7 @@ public class UserDetailsController implements Serializable {
 			}
 
 			AccountManager accountManager = ControllerUtil.getAccountManager(objectTypeCatalog);
-			accountManager.submit(account, result);
+			accountManager.submit(account, task, result);
 		}
 		LOGGER.debug("Finished processing accounts with outbound schema handling");
 	}

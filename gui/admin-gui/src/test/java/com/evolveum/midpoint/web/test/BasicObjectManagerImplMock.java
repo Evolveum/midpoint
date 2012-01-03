@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
@@ -65,7 +66,7 @@ public class BasicObjectManagerImplMock implements ObjectManager<ObjectType> {
 	}
 
 	@Override
-	public Set<PropertyChange> submit(ObjectType changedObject, OperationResult result) {
+	public Set<PropertyChange> submit(ObjectType changedObject, Task task, OperationResult result) {
 		throw new UnsupportedOperationException("Not implemented yet.");
 	}
 

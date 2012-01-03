@@ -29,6 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -69,7 +70,7 @@ public class RoleManagerImpl extends ObjectManagerImpl<RoleType, RoleDto> implem
 	}
 
 	@Override
-	public Set<PropertyChange> submit(RoleDto newRole, OperationResult parentResult) {
+	public Set<PropertyChange> submit(RoleDto newRole, Task task, OperationResult parentResult) {
 		boolean isNew = false;
 		if (StringUtils.isEmpty(newRole.getOid())) {
 			isNew = true;
@@ -84,7 +85,7 @@ public class RoleManagerImpl extends ObjectManagerImpl<RoleType, RoleDto> implem
 						newRole.getXmlObject());
 				if (changes != null && changes.getOid() != null
 						&& changes.getPropertyModification().size() > 0) {
-					getModel().modifyObject(RoleType.class, changes, result);
+					getModel().modifyObject(RoleType.class, changes, task, result);
 				}
 				result.recordSuccess();
 			} else {

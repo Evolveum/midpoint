@@ -34,6 +34,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -67,6 +69,8 @@ public class RoleEditController implements Serializable {
 	private transient TemplateController template;
 	@Autowired(required = true)
 	private transient AssignmentEditor<RoleDto> assignmentEditor;
+	@Autowired(required = true)
+	private transient TaskManager taskManager;
 	private boolean newRole = true;
 	private RoleDto role;
 	
@@ -122,8 +126,8 @@ public class RoleEditController implements Serializable {
 	}
 
 	public void save(ActionEvent evt) {
-		
-		OperationResult result = new OperationResult("Save Role Changes.");		
+		Task task = taskManager.createTaskInstance("Save Role Changes.");
+		OperationResult result = task.getResult();		
 		if (role == null) {
 			FacesUtils.addErrorMessage("Role must not be null.");
 			return;
@@ -135,7 +139,7 @@ public class RoleEditController implements Serializable {
 			if (isNewRole()) {
 				manager.add(role);
 			} else {
-				manager.submit(getRole(), result);
+				manager.submit(getRole(), task, result);
 			}
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't submit role {}", ex, role.getName());

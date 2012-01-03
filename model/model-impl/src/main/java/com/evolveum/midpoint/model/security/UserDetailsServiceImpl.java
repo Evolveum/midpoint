@@ -41,6 +41,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -69,7 +70,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 	private static final Trace LOGGER = TraceManager.getTrace(UserDetailsServiceImpl.class);
 	@Autowired(required = true)
-	private transient ModelService modelService;
+	private transient RepositoryService repositoryService;
 
 	@Override
 	public PrincipalUser getUser(String principal) {
@@ -99,7 +100,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		query.setFilter(createQuery(username));
 		LOGGER.trace("Looking for user, query:\n" + DOMUtil.printDom(query.getFilter()));
 
-		List<UserType> list = modelService.searchObjects(UserType.class, query, new PagingType(),
+		List<UserType> list = repositoryService.searchObjects(UserType.class, query, new PagingType(),
 				new OperationResult("Find by username"));
 		if (list == null) {
 			return null;
@@ -174,7 +175,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 			ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldUserType, userType);
 			if (modification != null && modification.getOid() != null) {
-				modelService.modifyObject(UserType.class, modification, new OperationResult("Save user"));
+				repositoryService.modifyObject(UserType.class, modification, new OperationResult("Save user"));
 			}
 
 		} catch (DiffException ex) {
@@ -190,7 +191,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	}
 
 	private UserType getUserByOid(String oid) throws ObjectNotFoundException, SchemaException {
-		ObjectType object = modelService.getObject(UserType.class, oid, new PropertyReferenceListType(),
+		ObjectType object = repositoryService.getObject(UserType.class, oid, new PropertyReferenceListType(),
 				new OperationResult("Get user by oid"));
 		if (object != null && (object instanceof UserType)) {
 			return (UserType) object;

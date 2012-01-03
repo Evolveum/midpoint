@@ -44,6 +44,8 @@ import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -88,6 +90,8 @@ public class EndUserDetailsController implements Serializable {
 	private ObjectTypeCatalog objectTypeCatalog;
 	@Autowired(required = true)
 	private AssignmentEditor<UserDto> assignmentEditor;
+	@Autowired(required = true)
+	private TaskManager taskManager;
 	private Protector protector;
 	private List<AccountFormBean> accountList;
 	private List<AccountFormBean> accountListDeleted = new ArrayList<AccountFormBean>();
@@ -223,7 +227,8 @@ public class EndUserDetailsController implements Serializable {
 	 * accounts from accountList save user attributes from form
 	 */
 	public void saveProfilePerformed(ActionEvent evt) {
-		OperationResult result = new OperationResult("Save User Changes");
+		Task task = taskManager.createTaskInstance("Save User Changes");
+		OperationResult result = task.getResult();
 		if (user != null) {
 			LOGGER.debug("Normalizing user assignments");
 			user.normalizeAssignments();
@@ -237,7 +242,7 @@ public class EndUserDetailsController implements Serializable {
 			processUnlinkedAccounts();
 
 			LOGGER.debug("Submit user modified in GUI");
-			Set<PropertyChange> userChanges = userManager.submit(user, result);
+			Set<PropertyChange> userChanges = userManager.submit(user, task, result);
 			LOGGER.debug("Modified user in GUI submitted ");
 
 			LOGGER.debug("Start processing of deleted accounts");
@@ -256,7 +261,8 @@ public class EndUserDetailsController implements Serializable {
 	}
 
 	public void savePasswordPerformed(ActionEvent evt) {
-		OperationResult result = new OperationResult("Save User Changes");
+		Task task = taskManager.createTaskInstance("Save User Changes");
+		OperationResult result = task.getResult();
 		if (user != null) {
 			LOGGER.debug("Normalizing user assignments");
 			user.normalizeAssignments();
@@ -270,7 +276,7 @@ public class EndUserDetailsController implements Serializable {
 			processUnlinkedAccounts();
 
 			LOGGER.debug("Submit user modified in GUI");
-			Set<PropertyChange> userChanges = userManager.submit(user, result);
+			Set<PropertyChange> userChanges = userManager.submit(user, task, result);
 			LOGGER.debug("Modified user in GUI submitted ");
 
 			LOGGER.debug("Start processing of deleted accounts");
