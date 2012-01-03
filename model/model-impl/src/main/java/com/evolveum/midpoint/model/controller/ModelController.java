@@ -363,12 +363,11 @@ public class ModelController implements ModelService {
             throw ex;
         } finally {
             RepositoryCache.exit();
+            auditRecord.setEventStage(AuditEventStage.EXECUTION);
+            auditRecord.setResult(result);
+            auditService.audit(auditRecord , task);
         }
         
-        auditRecord.setEventStage(AuditEventStage.EXECUTION);
-        auditRecord.setResult(result);
-        auditService.audit(auditRecord , task);
-
         return oid;
     }
     
@@ -619,7 +618,23 @@ public class ModelController implements ModelService {
         RepositoryCache.enter();
 
         AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.MODIFY_OBJECT, AuditEventStage.REQUEST);
-        //auditRecord.setTarget(object);
+        ObjectType objectType = null;
+        try {
+        	objectType = cacheRepositoryService.getObject(type, change.getOid(), null, result);
+        } catch (ObjectNotFoundException e) {
+        	result.recordFatalError(e);
+			RepositoryCache.exit();
+			throw e;
+		} catch (SchemaException e) {
+			result.recordFatalError(e);
+			RepositoryCache.exit();
+			throw e;
+		} catch (RuntimeException e) {
+			result.recordFatalError(e);
+			RepositoryCache.exit();
+			throw e;
+		}
+        auditRecord.setTarget(objectType);
         // TODO: delta and others ....
 		auditService.audit(auditRecord , task);
         
@@ -688,6 +703,9 @@ public class ModelController implements ModelService {
             throw ex;
         } finally {
             RepositoryCache.exit();
+            auditRecord.setEventStage(AuditEventStage.EXECUTION);
+            auditRecord.setResult(result);
+            auditService.audit(auditRecord , task);
         }
     }
 
@@ -768,7 +786,7 @@ public class ModelController implements ModelService {
 
     @Override
     public <T extends ObjectType> void deleteObject(Class<T> clazz, String oid, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, ConsistencyViolationException, CommunicationException {
+            throws ObjectNotFoundException, ConsistencyViolationException, CommunicationException, SchemaException {
         Validate.notNull(clazz, "Class must not be null.");
         Validate.notEmpty(oid, "Oid must not be null or empty.");
         Validate.notNull(parentResult, "Result type must not be null.");
@@ -777,6 +795,27 @@ public class ModelController implements ModelService {
         result.addParams(new String[]{"oid"}, oid);
 
         RepositoryCache.enter();
+        
+        AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.DELETE_OBJECT, AuditEventStage.REQUEST);
+        ObjectType objectType = null;
+		try {
+			objectType = cacheRepositoryService.getObject(clazz, oid, null, result);
+        } catch (ObjectNotFoundException e) {
+        	result.recordFatalError(e);
+			RepositoryCache.exit();
+			throw e;
+		} catch (SchemaException e) {
+			result.recordFatalError(e);
+			RepositoryCache.exit();
+			throw e;
+		} catch (RuntimeException e) {
+			result.recordFatalError(e);
+			RepositoryCache.exit();
+			throw e;
+		}
+        auditRecord.setTarget(objectType);
+        // TODO: delta and others ....
+		auditService.audit(auditRecord , task);
 
         try {
             LOGGER.trace("Deleting object with oid {}.", new Object[]{oid});
@@ -833,6 +872,9 @@ public class ModelController implements ModelService {
             throw ex;
         } finally {
             RepositoryCache.exit();
+            auditRecord.setEventStage(AuditEventStage.EXECUTION);
+            auditRecord.setResult(result);
+            auditService.audit(auditRecord , task);
         }
     }
 

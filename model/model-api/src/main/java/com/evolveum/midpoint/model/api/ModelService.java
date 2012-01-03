@@ -248,7 +248,7 @@ public interface ModelService {
 	 *             state
 	 */
 	<T extends ObjectType> void deleteObject(Class<T> type, String oid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, ConsistencyViolationException, CommunicationException;
+			throws ObjectNotFoundException, ConsistencyViolationException, CommunicationException, SchemaException;
 
 	/**
 	 * <p>
