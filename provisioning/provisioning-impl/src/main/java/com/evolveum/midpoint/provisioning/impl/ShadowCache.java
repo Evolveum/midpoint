@@ -568,7 +568,7 @@ public class ShadowCache {
         // if object doesn't exist, create it now
         if (accountList.isEmpty()) {
 
-            if (!(change.getObjectDelta().getChangeType() == ChangeType.DELETE)) {
+            if (change.getObjectDelta() != null && !(change.getObjectDelta().getChangeType() == ChangeType.DELETE)) {
                 try {
                     newShadow = shadowConverter.createNewAccountFromChange(change, resource, parentResult);
                     try {
