@@ -102,14 +102,13 @@ public class AddUserAction extends BaseAction {
             }
             subResult.recordSuccess();
         } catch (Exception ex) {
-            //todo fix this
-            ResourceObjectShadowType shadowAfterChange = change.getCurrentShadow();
+            ResourceObjectShadowType shadowAfterChange = getAccountShadowFromChange(change);
 
             LoggingUtils.logException(LOGGER, "Couldn't perform Add User Action for shadow '{}', oid '{}'.",
                     ex, shadowAfterChange.getName(), shadowAfterChange.getOid());
-            subResult.recordFatalError(
-                    "Couldn't perform Add User Action for shadow '" + shadowAfterChange.getName()
-                            + "', oid '" + shadowAfterChange.getOid() + "'.", ex);
+            subResult.recordFatalError("Couldn't perform Add User Action for shadow '" + shadowAfterChange.getName()
+                    + "', oid '" + shadowAfterChange.getOid() + "'.", ex);
+
             throw new SynchronizationException(ex.getMessage(), ex);
         } finally {
             subResult.recomputeStatus();
