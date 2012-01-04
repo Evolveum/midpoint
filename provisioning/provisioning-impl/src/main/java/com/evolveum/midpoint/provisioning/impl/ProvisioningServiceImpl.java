@@ -330,7 +330,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			//for each change from the connector create change description
 			for (Change change : changes) {
-				if (change.getObjectDelta().getChangeType() == ChangeType.DELETE && change.getOldShadow() == null){
+				if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE && change.getOldShadow() == null){
 					Property newToken = change.getToken();
 					PropertyModification modificatedToken = getTokenModification(newToken);
 					modifications.add(modificatedToken);
