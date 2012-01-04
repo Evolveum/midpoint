@@ -50,6 +50,9 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
+ * This processor consolidate delta set triples acquired from account sync context and transforms them to
+ * property deltas. It considers also property deltas from sync, which already happened.
+ *
  * @author lazyman
  */
 @Component
@@ -186,7 +189,6 @@ public class ConsolidationProcessor {
             if (propDelta != null) {
                 objectDelta.addModification(propDelta);
             }
-
         }
 
         return objectDelta;
@@ -219,7 +221,6 @@ public class ConsolidationProcessor {
                 accCtx.setAccountSecondaryDelta(modifyDelta);
             }
         }
-
     }
 
     private void consolidateValuesModifyAccount(SyncContext context, AccountSyncContext accCtx,
@@ -242,9 +243,9 @@ public class ConsolidationProcessor {
     }
 
     /**
-     * This method checks {@link com.evolveum.midpoint.schema.delta.PropertyDelta} created during consolidation with account sync deltas.
-     * If changes from property delta are in account sync deltas than they must be removed, because they
-     * already had been applied (they came from sync).
+     * This method checks {@link com.evolveum.midpoint.schema.delta.PropertyDelta} created during consolidation with
+     * account sync deltas. If changes from property delta are in account sync deltas than they must be removed,
+     * because they already had been applied (they came from sync, already happened).
      *
      * @param accCtx current account sync context
      * @param delta  new delta created during consolidation process
@@ -257,7 +258,7 @@ public class ConsolidationProcessor {
 
         ObjectDelta<AccountShadowType> syncDelta = accCtx.getAccountSyncDelta();
         if (syncDelta == null) {
-            return delta;
+            return consolidateWithSyncAbsolute(accCtx, delta);
         }
 
         PropertyDelta alreadyDoneDelta = syncDelta.getPropertyDelta(delta.getPath());
@@ -273,6 +274,61 @@ public class ConsolidationProcessor {
         }
 
         return delta;
+    }
+
+    /**
+     * This method consolidate property delta against account absolute state which came from sync (not as delta)
+     *
+     * @param accCtx
+     * @param delta
+     * @return method return updated delta, or null if delta was empty after filtering (removing unnecessary values).
+     */
+    private PropertyDelta consolidateWithSyncAbsolute(AccountSyncContext accCtx, PropertyDelta delta) {
+        if (delta == null || accCtx.getAccountOld() == null) {
+            return delta;
+        }
+
+        MidPointObject<AccountShadowType> absoluteAccountState = accCtx.getAccountOld();
+        Property absoluteProperty = absoluteAccountState.findProperty(delta.getPath());
+        if (absoluteProperty == null) {
+            return delta;
+        }
+
+        cleanupAbsoluteValues(delta.getValuesToAdd(), true, absoluteProperty);
+        cleanupAbsoluteValues(delta.getValuesToDelete(), false, absoluteProperty);
+
+        if (delta.getValues(Object.class).isEmpty()) {
+            return null;
+        }
+
+        return delta;
+    }
+
+    /**
+     * Method removes values from property delta values list (first parameter).
+     *
+     * @param values   collection with {@link PropertyValue} objects to add or delete (from {@link PropertyDelta}
+     * @param adding   if true we removing {@link PropertyValue} from {@link Collection} values parameter if they
+     *                 already are in {@link Property} parameter. Otherwise we're removing {@link PropertyValue}
+     *                 from {@link Collection} values parameter if they already are not in {@link Property} parameter.
+     * @param property property with absolute state
+     */
+    private void cleanupAbsoluteValues(Collection<PropertyValue<Object>> values, boolean adding, Property property) {
+        if (values == null) {
+            return;
+        }
+
+        Iterator<PropertyValue<Object>> iterator = values.iterator();
+        while (iterator.hasNext()) {
+            PropertyValue<Object> value = iterator.next();
+            if (adding && property.hasRealValue(value)) {
+                iterator.remove();
+            }
+
+            if (!adding && !property.hasRealValue(value)) {
+                iterator.remove();
+            }
+        }
     }
 
     /**

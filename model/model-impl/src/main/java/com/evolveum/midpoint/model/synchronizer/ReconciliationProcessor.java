@@ -25,9 +25,11 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.schema.delta.DeltaSetTriple;
+import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
@@ -52,13 +54,16 @@ public class ReconciliationProcessor {
                 }
 
                 if (accContext.getAccountOld() == null) {
-                    throw new IllegalStateException("Account context doesn't contain old version of account.");
+                    LOGGER.warn("Can't do reconciliation. Account context doesn't contain old version of account.");
+                    return;
                 }
 
                 Map<QName, DeltaSetTriple<ValueConstruction>> map = accContext.getAttributeValueDeltaSetTripleMap();
                 if (map.isEmpty()) {
                     return;
                 }
+
+                MidPointObject<AccountShadowType> oldAccount = accContext.getAccountOld();
 
                 //todo implement this
 

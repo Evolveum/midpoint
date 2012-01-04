@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,17 +16,16 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.model.sync;
 
+import java.util.List;
 import java.util.Map;
 
 
 /**
- *
  * @author Vilo Repan
  */
 public interface ActionManager<T extends Action> {
@@ -35,4 +34,5 @@ public interface ActionManager<T extends Action> {
 
     Action getActionInstance(String uri);
 
+    List<String> getAvailableActions();
 }

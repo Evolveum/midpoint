@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.schema.processor;
@@ -206,16 +206,32 @@ public class Property extends Item {
         addValues(valuesToReplace);
     }
 
+    public boolean hasValue(PropertyValue<Object> value) {
+        return values.contains(value);
+    }
+
+    public boolean hasRealValue(PropertyValue<Object> value) {
+        for (PropertyValue<Object> propVal : values) {
+            if (propVal.equalsRealValue(value)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public boolean isEmpty() {
         return (values == null || values.isEmpty());
     }
 
-    public PropertyModification createModification(PropertyModification.ModificationType modificationType, Set<PropertyValue<Object>> modifyValues) {
+    public PropertyModification createModification(PropertyModification.ModificationType modificationType,
+            Set<PropertyValue<Object>> modifyValues) {
 
         return new PropertyModification(this, modificationType, modifyValues);
     }
 
-    public PropertyModification createModification(PropertyModification.ModificationType modificationType, PropertyValue<Object> modifyValue) {
+    public PropertyModification createModification(PropertyModification.ModificationType modificationType,
+            PropertyValue<Object> modifyValue) {
         Set<PropertyValue<Object>> modifyValues = new HashSet<PropertyValue<Object>>();
         modifyValues.add(modifyValue);
         return new PropertyModification(this, modificationType, modifyValues);
@@ -226,7 +242,8 @@ public class Property extends Item {
         serializeToDom(parentNode, null, null, false);
     }
 
-    public void serializeToDom(Node parentNode, PropertyDefinition propDef, Set<PropertyValue<Object>> alternateValues, boolean recordType) throws SchemaException {
+    public void serializeToDom(Node parentNode, PropertyDefinition propDef, Set<PropertyValue<Object>> alternateValues,
+            boolean recordType) throws SchemaException {
 
         if (propDef == null) {
             propDef = getDefinition();
@@ -290,7 +307,8 @@ public class Property extends Item {
      * <p/>
      * Package-private. Useful for some internal calls inside schema processor.
      */
-    List<Object> serializeToJaxb(Document doc, PropertyDefinition propDef, Set<PropertyValue<Object>> alternateValues, boolean recordType) throws SchemaException {
+    List<Object> serializeToJaxb(Document doc, PropertyDefinition propDef, Set<PropertyValue<Object>> alternateValues,
+            boolean recordType) throws SchemaException {
 
 
         // Try to locate definition

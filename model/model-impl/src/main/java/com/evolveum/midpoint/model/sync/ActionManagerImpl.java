@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.model.sync;
@@ -31,6 +31,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.Validate;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -75,6 +77,16 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
         }
 
         return action;
+    }
+
+    @Override
+    public List<String> getAvailableActions() {
+        List<String> actions = new ArrayList<String>();
+        if (actionMap != null) {
+            actions.addAll(actionMap.keySet());
+        }
+
+        return actions;
     }
 
     public void setSynchronizer(UserSynchronizer synchronizer) {

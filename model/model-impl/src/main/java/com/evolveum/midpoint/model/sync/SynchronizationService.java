@@ -87,7 +87,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     @Override
     public void notifyChange(ResourceObjectShadowChangeDescription change, OperationResult parentResult) {
         Validate.notNull(change, "Resource object shadow change description must not be null.");
-        Validate.isTrue(change.getCurrentShadow() == null && change.getObjectDelta() == null,
+        Validate.isTrue(change.getCurrentShadow() != null || change.getObjectDelta() != null,
                 "Object delta and change are null. At least one must be provided.");
         Validate.notNull(change.getResource(), "Resource in change must not be null.");
         Validate.notNull(parentResult, "Parent operation result must not be null.");
@@ -126,8 +126,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     }
 
     /**
-     * XXX: in situation when one account belongs to two different idm users (repository returns only first user).
-     * It should be changed because otherwise we can't check SynchronizationSituationType.CONFLICT situation
+     * XXX: in situation when one account belongs to two different idm users (repository returns only first user,
+     * method {@link com.evolveum.midpoint.model.api.ModelService#listAccountShadowOwner(String, com.evolveum.midpoint.schema.result.OperationResult)}).
+     * It should be changed because otherwise we can't find {@link SynchronizationSituationType#DISPUTED} situation
      *
      * @param change
      * @param result
@@ -142,6 +143,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         SynchronizationSituation situation = null;
         try {
             String shadowOid = getOidFromChange(change);
+            Validate.notEmpty(shadowOid, "Couldn't get resource object shadow oid from change.");
             UserType user = controller.listAccountShadowOwner(shadowOid, subResult);
 
             if (user != null) {
