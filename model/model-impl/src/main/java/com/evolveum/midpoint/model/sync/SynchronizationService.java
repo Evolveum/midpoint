@@ -87,19 +87,14 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     @Override
     public void notifyChange(ResourceObjectShadowChangeDescription change, OperationResult parentResult) {
         Validate.notNull(change, "Resource object shadow change description must not be null.");
+        Validate.isTrue(change.getCurrentShadow() == null && change.getObjectDelta() == null,
+                "Object delta and change are null. At least one must be provided.");
         Validate.notNull(change.getResource(), "Resource in change must not be null.");
         Validate.notNull(parentResult, "Parent operation result must not be null.");
 
         OperationResult subResult = parentResult.createSubresult(NOTIFY_CHANGE);
         try {
             ResourceType resource = change.getResource();
-            if (resource == null) {
-                String message = "Resource definition not found in change.";
-                LOGGER.error(message);
-                subResult.recordFatalError(message);
-                return;
-            }
-            LOGGER.trace("Resource definition found in change.");
 
             if (!isSynchronizationEnabled(resource.getSynchronization())) {
                 String message = "Synchronization is not enabled for " + ObjectTypeUtil.toShortString(resource) + " ignoring change from channel " + change.getSourceChannel();
@@ -130,36 +125,27 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         return synchronization.isEnabled();
     }
 
-    // XXX: in situation when one account belongs to two different idm users
-    // (repository returns only first user). It should be changed because
-    // otherwise we can't check SynchronizationSituationType.CONFLICT situation
+    /**
+     * XXX: in situation when one account belongs to two different idm users (repository returns only first user).
+     * It should be changed because otherwise we can't check SynchronizationSituationType.CONFLICT situation
+     *
+     * @param change
+     * @param result
+     * @return
+     */
     private SynchronizationSituation checkSituation(ResourceObjectShadowChangeDescription change,
             OperationResult result) {
 
         OperationResult subResult = result.createSubresult(CHECK_SITUATION);
         LOGGER.trace("Determining situation for resource object shadow.");
 
-        //todo fix this - shadow and delta both are not always available, this is old implementation updated only to compile
-        ResourceObjectShadowType objectShadowAfterChange = change.getCurrentShadow();
-
         SynchronizationSituation situation = null;
         try {
-            UserType user = null;
-            ResourceObjectShadowType shadow = null;
-            ResourceObjectShadowType shadowFromChange = change.getCurrentShadow();
-            if (shadowFromChange != null && shadowFromChange.getOid() != null
-                    && !shadowFromChange.getOid().isEmpty()) {
-                user = controller.listAccountShadowOwner(shadowFromChange.getOid(), subResult);
-                shadow = shadowFromChange;
-
-            } else if (objectShadowAfterChange != null && objectShadowAfterChange.getOid() != null
-                    && !objectShadowAfterChange.getOid().isEmpty()) {
-                user = controller.listAccountShadowOwner(objectShadowAfterChange.getOid(), subResult);
-                shadow = objectShadowAfterChange;
-            }
+            String shadowOid = getOidFromChange(change);
+            UserType user = controller.listAccountShadowOwner(shadowOid, subResult);
 
             if (user != null) {
-                LOGGER.trace("Shadow OID {} does have owner: {}", shadow.getOid(), user.getOid());
+                LOGGER.trace("Shadow OID {} does have owner: {}", shadowOid, user.getName());
                 SynchronizationSituationType state = null;
                 switch (getModificationType(change)) {
                     case ADD:
@@ -191,6 +177,14 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         return situation;
     }
 
+    private String getOidFromChange(ResourceObjectShadowChangeDescription change) {
+        if (change.getCurrentShadow() != null) {
+            return change.getCurrentShadow().getOid();
+        }
+
+        return change.getObjectDelta().getOid();
+    }
+
     /**
      * account is not linked to user. you have to use correlation and
      * confirmation rule to be sure user for this account doesn't exists
@@ -203,32 +197,30 @@ public class SynchronizationService implements ResourceObjectChangeListener {
      */
     private SynchronizationSituation checkSituationWithCorrelation(
             ResourceObjectShadowChangeDescription change, OperationResult result) throws SynchronizationException {
-        //todo fix thisss
+
+        if (ChangeType.DELETE.equals(getModificationType(change))) {
+            //account was deleted and we know it didn't have owner
+            return new SynchronizationSituation(null, SynchronizationSituationType.DELETED);
+        }
+
         ResourceObjectShadowType resourceShadow = change.getCurrentShadow();
-        // It is better to get resource from change. The resource object may
-        // have only resourceRef
+        Validate.notNull(resourceShadow, "Current shadow must not be null.");
+        // It is better to get resource from change. The resource object may have only resourceRef
         ResourceType resource = change.getResource();
         SynchronizationType synchronization = resource.getSynchronization();
 
         SynchronizationSituationType state = null;
         LOGGER.debug("CORRELATION: Looking for list of users based on correlation rule.");
-        List<UserType> users = findUsersByCorrelationRule(resourceShadow,
-                synchronization.getCorrelation(), result);
-        if (synchronization.getConfirmation() == null) {
-            if (resourceShadow != null) {
-                LOGGER.debug("CONFIRMATION: No expression for {}, accepting all results of correlation",
-                        new Object[]{ObjectTypeUtil.toShortString(resourceShadow)});
+        List<UserType> users = findUsersByCorrelationRule(resourceShadow, synchronization.getCorrelation(), result);
+        if (users.size() > 1) {
+            if (synchronization.getConfirmation() == null) {
+                LOGGER.debug("CONFIRMATION: no confirmation defined.");
             } else {
-                LOGGER.debug("CONFIRMATION: No expression for [new resource object], accepting all results of correlation");
+                LOGGER.debug("CONFIRMATION: Checking users from correlation with confirmation rule.");
+                users = findUserByConfirmationRule(users, resourceShadow, synchronization.getConfirmation(), result);
             }
         } else {
-            LOGGER.debug("CONFIRMATION: Checking users from correlation with confirmation rule.");
-            users = findUserByConfirmationRule(users, resourceShadow,
-                    synchronization.getConfirmation(), result);
-        }
-
-        if (users == null) {
-            return new SynchronizationSituation(null, SynchronizationSituationType.UNMATCHED);
+            LOGGER.debug("CORRELATION: found {} users.", users.size());
         }
 
         UserType user = null;
@@ -239,13 +231,11 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             case 1:
                 switch (getModificationType(change)) {
                     case ADD:
+                    case MODIFY:
                         state = SynchronizationSituationType.UNLINKED;
                         break;
                     case DELETE:
                         state = SynchronizationSituationType.DELETED;
-                        break;
-                    case MODIFY:
-                        state = SynchronizationSituationType.LINKED;
                         break;
                 }
 
@@ -258,13 +248,16 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         return new SynchronizationSituation(user, state);
     }
 
+    /**
+     * @param change
+     * @return method checks change type in object delta if available, otherwise returns {@link ChangeType#ADD}
+     */
     private ChangeType getModificationType(ResourceObjectShadowChangeDescription change) {
         if (change.getObjectDelta() != null) {
             return change.getObjectDelta().getChangeType();
         }
 
-        //todo now what to do? do we have modify or add?
-        return ChangeType.MODIFY;
+        return ChangeType.ADD;
     }
 
     private void notifyChange(ResourceObjectShadowChangeDescription change,
@@ -356,22 +349,22 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         return actions;
     }
 
-    private List<UserType> findUsersByCorrelationRule(ResourceObjectShadowType resourceShadow,
+    private List<UserType> findUsersByCorrelationRule(ResourceObjectShadowType currentShadow,
             QueryType query, OperationResult result) throws SynchronizationException {
 
         if (query == null) {
             LOGGER.error("Correlation rule for resource '{}' doesn't contain query, "
-                    + "returning empty list of users.", resourceShadow.getName());
+                    + "returning empty list of users.", currentShadow.getName());
             return null;
         }
 
         Element element = query.getFilter();
         if (element == null) {
             LOGGER.error("Correlation rule for resource '{}' doesn't contain query, "
-                    + "returning empty list of users.", resourceShadow.getName());
+                    + "returning empty list of users.", currentShadow.getName());
             return null;
         }
-        Element filter = updateFilterWithAccountValues(resourceShadow, element, result);
+        Element filter = updateFilterWithAccountValues(currentShadow, element, result);
         if (filter == null) {
             LOGGER.error("Couldn't create search filter from correlation rule.");
             return null;
@@ -382,14 +375,14 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             query.setFilter(filter);
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("CORRELATION: expression for OID {} results in filter {}", new Object[]{
-                        resourceShadow.getOid(), DebugUtil.prettyPrint(query)});
+                        currentShadow.getOid(), DebugUtil.prettyPrint(query)});
             }
             PagingType paging = new PagingType();
             users = controller.searchObjects(UserType.class, query, paging, result);
-            if (users == null) {
-                return null;
-            }
 
+            if (users == null) {
+                users = new ArrayList<UserType>();
+            }
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER,
                     "Couldn't search users in repository, based on filter (simplified)\n{}.", ex,
@@ -399,22 +392,18 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         }
 
         LOGGER.debug("CORRELATION: expression for OID {} returned {} users.",
-                new Object[]{resourceShadow.getOid(), users.size()});
+                new Object[]{currentShadow.getOid(), users.size()});
         return users;
     }
 
-    private List<UserType> findUserByConfirmationRule(List<UserType> users,
-            ResourceObjectShadowType resourceObjectShadowType, ExpressionType expression,
-            OperationResult result) throws SynchronizationException {
+    private List<UserType> findUserByConfirmationRule(List<UserType> users, ResourceObjectShadowType currentShadow,
+            ExpressionType expression, OperationResult result) throws SynchronizationException {
+
         List<UserType> list = new ArrayList<UserType>();
-        if (users == null) {
-            LOGGER.debug("Correlation list is null or empty. Returning empty confirmation list.");
-            return list;
-        }
         for (UserType user : users) {
             try {
                 boolean confirmedUser = expressionHandler.evaluateConfirmationExpression(user,
-                        resourceObjectShadowType, expression, result);
+                        currentShadow, expression, result);
                 if (user != null && confirmedUser) {
                     list.add(user);
                 }
@@ -425,11 +414,11 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         }
 
         LOGGER.debug("CONFIRMATION: expression for OID {} matched {} users.", new Object[]{
-                resourceObjectShadowType.getOid(), list.size()});
+                currentShadow.getOid(), list.size()});
         return list;
     }
 
-    private Element updateFilterWithAccountValues(ResourceObjectShadowType resourceObjectShadow,
+    private Element updateFilterWithAccountValues(ResourceObjectShadowType currentShadow,
             Element filter, OperationResult result) throws SynchronizationException {
         LOGGER.trace("updateFilterWithAccountValues::begin");
         if (filter == null) {
@@ -468,7 +457,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                     Element attribute = document.createElementNS(ref.getNamespaceURI(), ref.getLocalPart());
                     ExpressionType valueExpression = XsdTypeConverter.toJavaValue(valueExpressionElement,
                             ExpressionType.class);
-                    String expressionResult = expressionHandler.evaluateExpression(resourceObjectShadow,
+                    String expressionResult = expressionHandler.evaluateExpression(currentShadow,
                             valueExpression, result);
 
                     if (StringUtils.isEmpty(expressionResult)) {
@@ -477,12 +466,12 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                     }
                     // TODO: log more context
                     LOGGER.debug("Search filter expression in the rule for OID {} evaluated to {}.",
-                            new Object[]{resourceObjectShadow.getOid(), expressionResult});
+                            new Object[]{currentShadow.getOid(), expressionResult});
                     attribute.setTextContent(expressionResult);
                     value.appendChild(attribute);
                     and.appendChild(equal);
                 } else {
-                    LOGGER.warn("No valueExpression in rule for OID {}", resourceObjectShadow.getOid());
+                    LOGGER.warn("No valueExpression in rule for OID {}", currentShadow.getOid());
                 }
             }
             filter = and;
