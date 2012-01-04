@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.ChangeExecutor;
@@ -32,14 +31,12 @@ import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.SchemaRegistry;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.ChangeType;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
-import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -53,6 +50,8 @@ import java.util.List;
  * @author Vilo Repan
  */
 public abstract class BaseAction implements Action {
+
+    private static final Trace LOGGER = TraceManager.getTrace(BaseAction.class);
 
     private UserSynchronizer synchronizer;
     private ChangeExecutor executor;
@@ -155,52 +154,45 @@ public abstract class BaseAction implements Action {
     protected AccountSyncContext createAccountSyncContext(SyncContext context,
             ResourceObjectShadowChangeDescription change) throws SchemaException {
         ResourceType resource = change.getResource();
-        //todo fix - shadow after change can be null
-        AccountShadowType shadowAfterChange = (AccountShadowType) change.getCurrentShadow();
-        ResourceAccountType resourceAccount = new ResourceAccountType(resource.getOid(), shadowAfterChange.getAccountType());
+
+        String accountType = getAccountTypeFromChange(change);
+        if (accountType == null) {
+            return null;
+        }
+
+        ResourceAccountType resourceAccount = new ResourceAccountType(resource.getOid(), accountType);
         AccountSyncContext accountContext = context.createAccountSyncContext(resourceAccount);
         accountContext.setResource(resource);
-        accountContext.setOid(shadowAfterChange.getOid());
+        accountContext.setOid(getOidFromChange(change));
 
-        ObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(resource,
-                getSchemaRegistry()).getObjectDefinition(shadowAfterChange);
-
-        MidPointObject<AccountShadowType> shadowObject = definition.parseObjectType(shadowAfterChange);
-
+        //todo fix: delta is now available only when deleting
         ObjectDelta<AccountShadowType> delta = (ObjectDelta<AccountShadowType>) change.getObjectDelta();
         accountContext.setAccountSyncDelta(delta);
 
         return accountContext;
     }
 
-    private ObjectDelta<AccountShadowType> createObjectDelta(ObjectChangeType change,
-            ObjectDefinition<AccountShadowType> definition,
-            MidPointObject<AccountShadowType> shadowObject) throws SchemaException {
-
-        ObjectDelta<AccountShadowType> account = null;
-        if (change instanceof ObjectChangeAdditionType) {
-            ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change;
-
-            account = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.ADD);
-            MidPointObject<AccountShadowType> object = new MidPointObject<AccountShadowType>(SchemaConstants.I_ACCOUNT_SHADOW_TYPE);
-            object.setObjectType((AccountShadowType) addition.getObject());
-            account.setObjectToAdd(object);
-        } else if (change instanceof ObjectChangeDeletionType) {
-            ObjectChangeDeletionType deletion = (ObjectChangeDeletionType) change;
-
-            account = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.DELETE);
-            account.setOid(deletion.getOid());
-        } else if (change instanceof ObjectChangeModificationType) {
-            ObjectChangeModificationType modificationChange = (ObjectChangeModificationType) change;
-            ObjectModificationType modification = modificationChange.getObjectModification();
-            account = ObjectDelta.createDelta(modification, definition);
+    private String getAccountTypeFromChange(ResourceObjectShadowChangeDescription change) {
+        if (change.getCurrentShadow() != null) {
+            AccountShadowType account = (AccountShadowType) change.getCurrentShadow();
+            return account.getAccountType();
         }
 
-        if (account == null) {
-            throw new IllegalArgumentException("Unknown object change type instance '"
-                    + change.getClass() + "',it's not add, delete nor modify.");
+        if (change.getOldShadow() != null) {
+            AccountShadowType account = (AccountShadowType) change.getOldShadow();
+            return account.getAccountType();
         }
 
-        return account;
+        LOGGER.warn("Can't get account type from change (resource {}), because current and old shadow are null. " +
+                "Therefore we can't create account sync context.", change.getResource().getName());
+        return null;
+    }
+
+    private String getOidFromChange(ResourceObjectShadowChangeDescription change) {
+        if (change.getObjectDelta() != null) {
+            return change.getObjectDelta().getOid();
+        }
+
+        return change.getCurrentShadow().getOid();
     }
 }

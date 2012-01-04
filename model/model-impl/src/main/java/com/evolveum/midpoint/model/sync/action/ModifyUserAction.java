@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
+import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -85,17 +86,13 @@ public class ModifyUserAction extends BaseAction {
             SynchronizationSituationType situation, OperationResult result) throws SynchronizationException {
         super.executeChanges(userOid, change, situation, result);
 
-        //todo fix this
-        ResourceObjectShadowType shadowAfterChange = change.getCurrentShadow();
-
-        if (!(shadowAfterChange instanceof AccountShadowType)) {
+        Class<? extends ResourceObjectShadowType> clazz = getClassFromChange(change);
+        if (!AccountShadowType.class.isAssignableFrom(clazz)) {
             throw new SynchronizationException("Couldn't synchronize shadow of type '"
-                    + shadowAfterChange.getClass().getName() + "', only '"
-                    + AccountShadowType.class.getName() + "' is supported.");
+                    + clazz + "', only '" + AccountShadowType.class.getName() + "' is supported.");
         }
 
         OperationResult subResult = result.createSubresult(actionName);
-        result.addSubresult(subResult);
         if (StringUtils.isEmpty(userOid)) {
             String message = "Can't modify user, user oid is empty or null.";
             subResult.computeStatus(message);
@@ -114,6 +111,11 @@ public class ModifyUserAction extends BaseAction {
             context = createSyncContext(userType, change.getResource());
 
             AccountSyncContext accountContext = createAccountSyncContext(context, change);
+            if (accountContext == null) {
+                LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
+                return userOid;
+            }
+
             accountContext.setPolicyDecision(getPolicyDecision());
             accountContext.setActivationDecision(getAccountActivationDecision());
 
@@ -135,11 +137,24 @@ public class ModifyUserAction extends BaseAction {
         return userOid;
     }
 
+    private Class<? extends ResourceObjectShadowType> getClassFromChange(ResourceObjectShadowChangeDescription change) {
+        if (change.getObjectDelta() != null) {
+            return change.getObjectDelta().getObjectTypeClass();
+        }
+
+        if (change.getCurrentShadow() != null) {
+            return change.getCurrentShadow().getClass();
+        }
+
+        return change.getOldShadow().getClass();
+    }
+
     private SyncContext createSyncContext(UserType user, ResourceType resource) throws SchemaException {
-        SyncContext context = new SyncContext();
-        ObjectDefinition<UserType> userDefinition = getSchemaRegistry().getObjectSchema().findObjectDefinitionByType(
+        Schema schema = getSchemaRegistry().getObjectSchema();
+        ObjectDefinition<UserType> userDefinition = schema.findObjectDefinitionByType(
                 SchemaConstants.I_USER_TYPE);
 
+        SyncContext context = new SyncContext();
         MidPointObject<UserType> oldUser = userDefinition.parseObjectType(user);
         context.setUserOld(oldUser);
         context.setActivationDecision(getUserActivationDecision());
