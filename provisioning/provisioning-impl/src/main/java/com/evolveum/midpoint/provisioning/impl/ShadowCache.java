@@ -554,7 +554,8 @@ public class ShadowCache {
                                                                   OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
             CommunicationException, GenericFrameworkException {
 
-        List<AccountShadowType> accountList = searchAccountByUid(change, parentResult);
+    	// Try to locate existing shadow in the repository
+        List<AccountShadowType> accountList = searchAccountByIdenifiers(change, parentResult);
 
         if (accountList.size() > 1) {
             String message = "Found more than one account with the identifier " + change.getIdentifiers()
@@ -565,30 +566,34 @@ public class ShadowCache {
         }
 
         ResourceObjectShadowType newShadow = null;
-        // if object doesn't exist, create it now
+        
         if (accountList.isEmpty()) {
+        	// account was not found in the repository, create it now
 
-            if (change.getObjectDelta() != null && !(change.getObjectDelta().getChangeType() == ChangeType.DELETE)) {
+            if (change.getObjectDelta() == null || !(change.getObjectDelta().getChangeType() == ChangeType.DELETE)) {
                 try {
                     newShadow = shadowConverter.createNewAccountFromChange(change, resource, parentResult);
-                    try {
-                        addShadowToRepository(newShadow, parentResult);
-                    } catch (ObjectAlreadyExistsException e) {
-                        parentResult.recordFatalError("Can't add account " + DebugUtil.prettyPrint(newShadow)
-                                + " to the repository. Reason: " + e.getMessage(), e);
-                        throw new IllegalStateException(e.getMessage(), e);
-                    }
                 } catch (ObjectNotFoundException ex) {
                     throw ex;
                 }
-                LOGGER.trace("Create account shadow object: {}", ObjectTypeUtil.toShortString(newShadow));
+
+                try {
+                    addShadowToRepository(newShadow, parentResult);
+                } catch (ObjectAlreadyExistsException e) {
+                    parentResult.recordFatalError("Can't add account " + DebugUtil.prettyPrint(newShadow)
+                            + " to the repository. Reason: " + e.getMessage(), e);
+                    throw new IllegalStateException(e.getMessage(), e);
+                }
+                LOGGER.trace("Created account shadow object: {}", ObjectTypeUtil.toShortString(newShadow));
             }
-            // if exist, set the old shadow to the change
+            
         } else {
+        	// Account was found in repository
+        	
             newShadow = accountList.get(0);
             // if the fetched change was one of the deletion type, delete
             // corresponding account from repo now
-            if (change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
+            if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
                 try {
                     getRepositoryService().deleteObject(AccountShadowType.class, newShadow.getOid(),
                             parentResult);
@@ -604,7 +609,7 @@ public class ShadowCache {
         return newShadow;
     }
 
-    private List<AccountShadowType> searchAccountByUid(Change change, OperationResult parentResult)
+    private List<AccountShadowType> searchAccountByIdenifiers(Change change, OperationResult parentResult)
             throws SchemaException {
 
         QueryType query = ShadowCacheUtil.createSearchShadowQuery(change.getIdentifiers(), parentResult);
