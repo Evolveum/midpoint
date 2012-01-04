@@ -44,6 +44,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType.EnableDisable;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ObjectFactory;
@@ -1664,7 +1665,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		ResourceObjectShadowType shadow = new ResourceObjectShadowType();
 		
 		Document doc = DOMUtil.getDocument();
-		shadow.getAttributes().getAny().addAll(resourceObject.serializePropertiesToJaxb(doc));
+		Attributes attrs = new Attributes();
+		shadow.setAttributes(attrs);
+		attrs.getAny().addAll(resourceObject.serializePropertiesToJaxb(doc));
 		
 		return shadow;
 		
