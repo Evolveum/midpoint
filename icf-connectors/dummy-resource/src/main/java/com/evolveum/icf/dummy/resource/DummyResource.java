@@ -24,6 +24,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.springframework.core.task.SyncTaskExecutor;
 
 /**
  * Resource for use with dummy ICF connector.
@@ -61,6 +65,9 @@ public class DummyResource {
 	private Map<String,DummyAccount> accounts;
 	private List<String> scriptHistory;
 	private DummyObjectClass accountObjectClass;
+	private DummySyncStyle syncStyle;
+	private List<DummyDelta> deltas;
+	private int latestSyncToken;
 	
 	private static DummyResource instance = null;
 	
@@ -68,6 +75,9 @@ public class DummyResource {
 		accounts = new HashMap<String, DummyAccount>();
 		scriptHistory = new ArrayList<String>();
 		accountObjectClass = new DummyObjectClass();
+		syncStyle = DummySyncStyle.NONE;
+		deltas = new ArrayList<DummyDelta>();
+		latestSyncToken = 0;
 	}
 	
 	public static DummyResource getInstance() {
@@ -94,7 +104,15 @@ public class DummyResource {
 		if (accounts.containsKey(id)) {
 			throw new ObjectAlreadyExistsException("Account with identifier "+id+" already exists");
 		}
+		
 		accounts.put(id, newAccount);
+		
+		if (syncStyle != DummySyncStyle.NONE) {
+			int syncToken = nextSyncToken();
+			DummyDelta delta = new DummyDelta(syncToken, id, DummyDeltaType.ADD);
+			deltas.add(delta);
+		}
+		
 		return id;
 	}
 	
@@ -103,6 +121,12 @@ public class DummyResource {
 			accounts.remove(id);
 		} else {
 			throw new ObjectDoesNotExistException("Account with identifier "+id+" does not exist");
+		}
+		
+		if (syncStyle != DummySyncStyle.NONE) {
+			int syncToken = nextSyncToken();
+			DummyDelta delta = new DummyDelta(syncToken, id, DummyDeltaType.DELETE);
+			deltas.add(delta);
 		}
 	}
 
@@ -141,6 +165,55 @@ public class DummyResource {
 		accountObjectClass.addAttributeDefinition("fullname", String.class, true, false);
 		accountObjectClass.addAttributeDefinition("description", String.class, false, false);
 		accountObjectClass.addAttributeDefinition("interests", String.class, false, true);
+	}
+
+	public DummySyncStyle getSyncStyle() {
+		return syncStyle;
+	}
+
+	public void setSyncStyle(DummySyncStyle syncStyle) {
+		this.syncStyle = syncStyle;
+	}
+
+	private synchronized int nextSyncToken() {
+		return ++latestSyncToken;
+	}
+
+	public int getLatestSyncToken() {
+		return latestSyncToken;
+	}
+	
+	public List<DummyDelta> getDeltasSince(int syncToken) {
+		List<DummyDelta> result = new ArrayList<DummyDelta>();
+		for (DummyDelta delta: deltas) {
+			if (delta.getSyncToken() > syncToken) {
+				result.add(delta);
+			}
+		}
+		return result;
+	}
+	
+	public String dump() {
+		StringBuilder sb = new StringBuilder(toString());
+		sb.append("\nAccounts:");
+		for (Entry<String, DummyAccount> entry: accounts.entrySet()) {
+			sb.append("\n  ");
+			sb.append(entry.getKey());
+			sb.append(": ");
+			sb.append(entry.getValue());
+		}
+		sb.append("\nDeltas:");
+		for (DummyDelta delta: deltas) {
+			sb.append("\n  ");
+			sb.append(delta);
+		}
+		sb.append("\nLatest token:").append(latestSyncToken);
+		return sb.toString();
+	}
+
+	@Override
+	public String toString() {
+		return "DummyResource("+accounts.size()+" accounts)";
 	}
 	
 }

@@ -117,6 +117,17 @@ public class DummyAccount {
 		}
 		currentValues.addAll(values);
 	}
+	
+	public void addAttributeValues(String name, String... values) {
+		Set<Object> currentValues = attributes.get(name);
+		if (currentValues == null) {
+			currentValues = new HashSet<Object>();
+			attributes.put(name, currentValues);
+		}
+		for (Object value: values) {
+			currentValues.add(value);
+		}
+	}
 
 	public void removeAttributeValues(String name, Collection<Object> values) {
 		Set<Object> currentValues = attributes.get(name);
@@ -125,6 +136,12 @@ public class DummyAccount {
 			attributes.put(name, currentValues);
 		}
 		currentValues.removeAll(values);
+	}
+
+	@Override
+	public String toString() {
+		return "DummyAccount(username=" + username + ", attributes=" + attributes + ", enabled=" + enabled
+				+ ", password=" + password + ")";
 	}
 	
 }

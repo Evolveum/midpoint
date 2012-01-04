@@ -28,6 +28,7 @@ import org.identityconnectors.framework.common.objects.*;
 import static com.evolveum.icf.dummy.connector.Utils.*;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -39,6 +40,8 @@ import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.common.objects.SchemaBuilder;
+import org.identityconnectors.framework.common.objects.SyncDelta;
+import org.identityconnectors.framework.common.objects.SyncDeltaBuilder;
 import org.identityconnectors.framework.common.objects.SyncResultsHandler;
 import org.identityconnectors.framework.common.objects.SyncToken;
 import org.identityconnectors.framework.common.objects.Uid;
@@ -59,6 +62,8 @@ import org.identityconnectors.framework.spi.operations.UpdateAttributeValuesOp;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
+import com.evolveum.icf.dummy.resource.DummyDelta;
+import com.evolveum.icf.dummy.resource.DummyDeltaType;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
@@ -381,7 +386,34 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     public void sync(ObjectClass objectClass, SyncToken token, SyncResultsHandler handler, final OperationOptions options) {
         log.info("sync::begin");
         isAccount(objectClass);
-        //TODO: implement
+        
+        int syncToken = (Integer)token.getValue();
+        List<DummyDelta> deltas = resource.getDeltasSince(syncToken);
+        for (DummyDelta delta: deltas) {
+        	
+        	SyncDeltaBuilder builder =  new SyncDeltaBuilder();
+        	
+        	SyncDeltaType deltaType;
+        	if (delta.getType() == DummyDeltaType.ADD || delta.getType() == DummyDeltaType.MODIFY) {
+        		deltaType = SyncDeltaType.CREATE_OR_UPDATE;
+        		DummyAccount account = resource.getAccountByUsername(delta.getAccountId());
+        		ConnectorObject cobject = convertToConnectorObject(account);
+				builder.setObject(cobject);
+        	} else if (delta.getType() == DummyDeltaType.DELETE) {
+        		deltaType = SyncDeltaType.DELETE;
+        	} else {
+        		throw new IllegalStateException("Unknown delta type "+delta.getType());
+        	}
+        	builder.setDeltaType(deltaType);
+        	
+        	builder.setToken(new SyncToken(delta.getSyncToken()));
+        	builder.setUid(new Uid(delta.getAccountId()));
+        	
+        	SyncDelta syncDelta = builder.build();
+        	log.info("sync::handle {0}",syncDelta);
+			handler.handle(syncDelta);
+        }
+        
         log.info("sync::end");
     }
 
@@ -391,10 +423,9 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     public SyncToken getLatestSyncToken(ObjectClass objectClass) {
         log.info("getLatestSyncToken::begin");
         isAccount(objectClass);
-        String token = null;
-        //TODO: implement
-        log.info("getLatestSyncToken::end, returning token {0}.", token);
-        return new SyncToken(token);
+        int latestSyncToken = resource.getLatestSyncToken();
+        log.info("getLatestSyncToken::end, returning token {0}.", latestSyncToken);
+        return new SyncToken(latestSyncToken);
     }
 
     /**

@@ -32,12 +32,14 @@ import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.EnhancedResourceType;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
+import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -56,6 +58,7 @@ import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -105,11 +108,13 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 	private ResourceType resource;
 	private static DummyResource dummyResource;
-
-	@Autowired
+	
+	@Autowired(required=true)
 	private ProvisioningService provisioningService;
-	@Autowired
+	@Autowired(required=true)
 	private ConnectorTypeManager connectorTypeManager;
+	@Autowired(required=true)
+	private SynchornizationServiceMock syncServiceMock; 
 
 	/**
 	 * @throws JAXBException
@@ -560,12 +565,12 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test31AddScript() throws FileNotFoundException, JAXBException, ObjectAlreadyExistsException,
+	public void test031AddScript() throws FileNotFoundException, JAXBException, ObjectAlreadyExistsException,
 			SchemaException, CommunicationException, ObjectNotFoundException {
-		displayTestTile("test31AddScript");
+		displayTestTile("test031AddScript");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test31AddScript");
+				+ ".test031AddScript");
 
 		AccountShadowType account = unmarshallJaxbFromFile(FILENAME_ACCOUNT_SCRIPT, AccountShadowType.class);
 
@@ -613,14 +618,63 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test32ModifyScript() {
+	public void test032ModifyScript() {
 		// TODO
 	}
 
 	@Test
-	public void test33DeleteScript() {
+	public void test033DeleteScript() {
 		// TODO
 	}
+	
+	@Test
+	public void test100LiveSyncDryRun() throws ObjectNotFoundException, CommunicationException, SchemaException {
+		displayTestTile("test100LiveSyncDryRun");
+		// GIVEN
+		Task task = taskManager.createTaskInstance(ProvisioningServiceImplDummyTest.class.getName() + ".test100LiveSyncDryRun");
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		
+		// WHEN
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, task, result);
+		
+		// THEN
+		
+		// No change, no fun
+		assertFalse(syncServiceMock.wasCalled());
+		
+	}
+
+	@Test
+	public void test101LiveSyncAdd() throws ObjectNotFoundException, CommunicationException, SchemaException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException {
+		displayTestTile("test101LiveSyncAdd");
+		// GIVEN
+		Task task = taskManager.createTaskInstance(ProvisioningServiceImplDummyTest.class.getName() + ".test101LiveSyncAdd");
+		OperationResult result = task.getResult();
+		
+		// Dry run to remember the current sync token in the task instance. Otherwise a last sync token whould be used and
+		// no change would be detected
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, task, result);
+		
+		syncServiceMock.reset();
+		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
+		DummyAccount newAccount = new DummyAccount("blackbeard");
+		newAccount.addAttributeValues("fullnameame", "Edward Teach");
+		newAccount.setEnabled(true);
+		newAccount.setPassword("shiverMEtimbers");
+		dummyResource.addAccount(newAccount);
+		
+		display("Resource before sync", dummyResource.dump());
+		
+		// WHEN
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, task, result);
+		
+		// THEN
+		
+		assertTrue("Sync service was not called", syncServiceMock.wasCalled());
+		
+	}
+
 	
 	private void checkConsistency() throws SchemaException {
 		

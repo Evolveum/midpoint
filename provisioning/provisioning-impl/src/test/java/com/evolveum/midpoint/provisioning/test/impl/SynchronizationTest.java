@@ -127,7 +127,7 @@ public class SynchronizationTest extends AbstractIntegrationTest {
 			provisioningService.synchronize(resource.getOid(), syncCycle, result);
 			SynchornizationServiceMock mock = (SynchornizationServiceMock) syncServiceMock;
 			
-			assertEquals("Synchronization service was not called.", true, mock.isCalled());
+			assertEquals("Synchronization service was not called.", true, mock.wasCalled());
 
 		} finally {
 			repositoryService.deleteObject(TaskType.class, SYNC_TASK_OID, result);
