@@ -25,9 +25,13 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.bean.TaskItem;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.controller.util.ListController;
+import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
+import com.evolveum.midpoint.web.model.UserManager;
+import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 import com.evolveum.midpoint.web.repo.RepositoryManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
@@ -45,205 +49,259 @@ import java.util.Set;
 @Controller("taskList")
 @Scope("session")
 public class TaskListController extends ListController<TaskItem> {
+	private static final long serialVersionUID = 1L;
+	@Autowired(required = true)
+	private transient TaskManager taskManager;
+	@Autowired(required = true)
+	private transient TaskDetailsController taskDetails;
+	private TaskItem selectedTask;
+	@Autowired(required = true)
+	private transient RepositoryManager repositoryManager;
+	@Autowired(required = true)
+	private transient ObjectTypeCatalog objectTypeCatalog;
+	private boolean listAll = false;
+	private boolean selectAll = false;
 
-    @Autowired(required = true)
-    private transient TaskManager taskManager;
-    @Autowired(required = true)
-    private transient TaskDetailsController taskDetails;
-    private TaskItem selectedTask;
-    @Autowired(required = true)
-    private transient RepositoryManager repositoryManager;
-    private boolean listAll = false;
-    private boolean selectAll = false;
+	// private Set<TaskItem> runningTasks;
+	private boolean activated;
 
-    // private Set<TaskItem> runningTasks;
-    private boolean activated;
+	public static final String PAGE_NAVIGATION = "/server/index?faces-redirect=true";
+	public static final String PAGE_LEFT_NAVIGATION = "leftRunnableTasks";
+	private static final String PARAM_TASK_OID = "taskOid";
 
-    public static final String PAGE_NAVIGATION = "/server/index?faces-redirect=true";
-    public static final String PAGE_LEFT_NAVIGATION = "leftRunnableTasks";
-    private static final String PARAM_TASK_OID = "taskOid";
+	public TaskListController() {
+		super();
+	}
 
-    public TaskListController() {
-        super();
-    }
+	@Override
+	protected String listObjects() {
+		List<TaskType> taskTypeList = repositoryManager.listObjects(TaskType.class, getOffset(),
+				getRowsCount());
+		List<TaskItem> runningTasks = getObjects();
+		runningTasks.clear();
+		for (TaskType taskType : taskTypeList) {
+			runningTasks.add(new TaskItem(taskType));
+		}
 
-    @Override
-    protected String listObjects() {
-        List<TaskType> taskTypeList = repositoryManager.listObjects(
-                TaskType.class, getOffset(), getRowsCount());
-        List<TaskItem> runningTasks = getObjects();
-        runningTasks.clear();
-        for (TaskType taskType : taskTypeList) {
-            runningTasks.add(new TaskItem(taskType));
-        }
+		listAll = false;
+		return PAGE_NAVIGATION;
+	}
 
-        listAll = false;
-        return PAGE_NAVIGATION;
-    }
+	public String listRunningTasks() {
+		Set<Task> tasks = taskManager.getRunningTasks();
+		List<TaskItem> runningTasks = getObjects();
+		runningTasks.clear();
+		for (Task task : tasks) {
+			runningTasks.add(new TaskItem(task));
+		}
+		listAll = true;
+		return PAGE_NAVIGATION;
+	}
 
-    public String listRunningTasks() {
-        Set<Task> tasks = taskManager.getRunningTasks();
-        List<TaskItem> runningTasks = getObjects();
-        runningTasks.clear();
-        for (Task task : tasks) {
-            runningTasks.add(new TaskItem(task));
-        }
-        listAll = true;
-        return PAGE_NAVIGATION;
-    }
+	private TaskItem getSelectedTaskItem() {
+		String taskOid = FacesUtils.getRequestParameter(PARAM_TASK_OID);
+		if (StringUtils.isEmpty(taskOid)) {
+			FacesUtils.addErrorMessage("Task oid not defined in request.");
+			return null;
+		}
 
-    private TaskItem getSelectedTaskItem() {
-        String taskOid = FacesUtils.getRequestParameter(PARAM_TASK_OID);
-        if (StringUtils.isEmpty(taskOid)) {
-            FacesUtils.addErrorMessage("Task oid not defined in request.");
-            return null;
-        }
+		TaskItem taskItem = getTaskItem(taskOid);
+		if (StringUtils.isEmpty(taskOid)) {
+			FacesUtils.addErrorMessage("Task for oid '" + taskOid + "' not found.");
+			return null;
+		}
 
-        TaskItem taskItem = getTaskItem(taskOid);
-        if (StringUtils.isEmpty(taskOid)) {
-            FacesUtils.addErrorMessage("Task for oid '" + taskOid
-                    + "' not found.");
-            return null;
-        }
+		if (taskDetails == null) {
+			FacesUtils.addErrorMessage("Task details controller was not autowired.");
+			return null;
+		}
 
-        if (taskDetails == null) {
-            FacesUtils
-                    .addErrorMessage("Task details controller was not autowired.");
-            return null;
-        }
+		return taskItem;
+	}
 
-        return taskItem;
-    }
+	private TaskItem getTaskItem(String resourceOid) {
+		for (TaskItem item : getObjects()) {
+			if (item.getOid().equals(resourceOid)) {
+				return item;
+			}
+		}
 
-    private TaskItem getTaskItem(String resourceOid) {
-        for (TaskItem item : getObjects()) {
-            if (item.getOid().equals(resourceOid)) {
-                return item;
-            }
-        }
+		return null;
+	}
 
-        return null;
-    }
+	public String deleteTask() {
 
-    public String deleteTask() {
+		if (selectedTask.getOid() == null) {
+			FacesUtils.addErrorMessage("No task to delete defined");
+			throw new IllegalArgumentException("No task to delete defined.");
+		}
 
-        if (selectedTask.getOid() == null) {
-            FacesUtils.addErrorMessage("No task to delete defined");
-            throw new IllegalArgumentException("No task to delete defined.");
-        }
+		OperationResult result = new OperationResult(TaskDetailsController.class.getName() + ".deleteTask");
+		result.addParam("taskOid", selectedTask.getOid());
 
-        OperationResult result = new OperationResult(
-                TaskDetailsController.class.getName() + ".deleteTask");
-        result.addParam("taskOid", selectedTask.getOid());
+		try {
+			taskManager.deleteTask(selectedTask.getOid(), result);
+			getObjects().remove(selectedTask);
+			FacesUtils.addSuccessMessage("Task deleted sucessfully");
+		} catch (ObjectNotFoundException ex) {
+			FacesUtils.addErrorMessage(
+					"Task with oid " + selectedTask.getOid() + " not found. Reason: " + ex.getMessage(), ex);
+			result.recordFatalError(
+					"Task with oid " + selectedTask.getOid() + " not found. Reason: " + ex.getMessage(), ex);
+			return null;
+		}
 
-        try {
-            taskManager.deleteTask(selectedTask.getOid(), result);
-            getObjects().remove(selectedTask);
-            FacesUtils.addSuccessMessage("Task deleted sucessfully");
-        } catch (ObjectNotFoundException ex) {
-            FacesUtils.addErrorMessage("Task with oid " + selectedTask.getOid()
-                    + " not found. Reason: " + ex.getMessage(), ex);
-            result.recordFatalError("Task with oid " + selectedTask.getOid()
-                    + " not found. Reason: " + ex.getMessage(), ex);
-            return null;
-        }
+		return PAGE_NAVIGATION;
+	}
 
-        return PAGE_NAVIGATION;
-    }
+	public String showTaskDetails() {
+		selectedTask = getSelectedTaskItem();
+		if (selectedTask == null) {
+			return null;
+		}
 
-    public String showTaskDetails() {
-        selectedTask = getSelectedTaskItem();
-        if (selectedTask == null) {
-            return null;
-        }
+		taskDetails.setTask(selectedTask);
+		List<OperationResultType> opResultList = new ArrayList<OperationResultType>();
+		if (selectedTask.getResult() != null) {
 
-        taskDetails.setTask(selectedTask);
-        List<OperationResultType> opResultList = new ArrayList<OperationResultType>();
-        if (selectedTask.getResult() != null) {
+			OperationResultType opResultType = selectedTask.getResult().createOperationResultType();
+			opResultList.add(opResultType);
+			long token = 1220000000000000000L;
+			getResult(opResultType, opResultList, token);
+			taskDetails.setResults(opResultList);
+		} else {
+			taskDetails.setResults(opResultList);
+		}
+		// template.setSelectedLeftId(ResourceDetailsController.NAVIGATION_LEFT);
+		return TaskDetailsController.PAGE_NAVIGATION;
+	}
 
-            OperationResultType opResultType = selectedTask.getResult()
-                    .createOperationResultType();
-            opResultList.add(opResultType);
-            long token = 1220000000000000000L;
-            getResult(opResultType, opResultList, token);
-            taskDetails.setResults(opResultList);
-        } else {
-            taskDetails.setResults(opResultList);
-        }
-        // template.setSelectedLeftId(ResourceDetailsController.NAVIGATION_LEFT);
-        return TaskDetailsController.PAGE_NAVIGATION;
-    }
+	public void getResult(OperationResultType opResult, List<OperationResultType> opResultList, long token) {
 
-    public void getResult(OperationResultType opResult,
-            List<OperationResultType> opResultList, long token) {
+		for (OperationResultType result : opResult.getPartialResults()) {
+			result.setToken(result.getToken() + token);
+			opResultList.add(result);
+			token += 1110000000000000000L;
+			getResult(result, opResultList, token);
+		}
 
-        for (OperationResultType result : opResult.getPartialResults()) {
-            result.setToken(result.getToken() + token);
-            opResultList.add(result);
-            token += 1110000000000000000L;
-            getResult(result, opResultList, token);
-        }
+	}
 
-    }
+	public boolean isSelectAll() {
+		return selectAll;
+	}
 
-    public boolean isSelectAll() {
-        return selectAll;
-    }
+	public void setSelectAll(boolean selectAll) {
+		this.selectAll = selectAll;
+	}
 
-    public void setSelectAll(boolean selectAll) {
-        this.selectAll = selectAll;
-    }
+	public void selectAllPerformed(ValueChangeEvent event) {
+		ControllerUtil.selectAllPerformed(event, getObjects());
+	}
 
-    @SuppressWarnings("unchecked")
-    public void selectAllPerformed(ValueChangeEvent event) {
-        ControllerUtil.selectAllPerformed(event, getObjects());
-    }
+	public void selectPerformed(ValueChangeEvent evt) {
+		this.selectAll = ControllerUtil.selectPerformed(evt, getObjects());
+	}
 
-    @SuppressWarnings("unchecked")
-    public void selectPerformed(ValueChangeEvent evt) {
-        this.selectAll = ControllerUtil.selectPerformed(evt, getObjects());
-    }
+	public TaskManager getTaskManager() {
+		return taskManager;
+	}
 
-    public TaskManager getTaskManager() {
-        return taskManager;
-    }
+	public void setTaskManager(TaskManager taskManager) {
+		this.taskManager = taskManager;
+	}
 
-    public void setTaskManager(TaskManager taskManager) {
-        this.taskManager = taskManager;
-    }
+	public String deactivate() {
+		boolean selected = false;
 
-    public void deactivate() {
-        taskManager.deactivateServiceThreads();
-        setActivated(isActivated());
-    }
+		for (TaskItem task : getObjects()) {
+			if (task != null && task.isSelected()) {
+				selected = true;
+				break;
+			}
+		}
 
-    public void reactivate() {
-        taskManager.reactivateServiceThreads();
-        setActivated(isActivated());
-    }
+		if (selected) {
+			//taskManager.deactivateServiceThreads();
 
-    public boolean isActivated() {
-        return taskManager.getServiceThreadsActivationState();
-    }
+			Set<Task> tasks = taskManager.getRunningTasks();
+			List<TaskItem> runningTasks = new ArrayList<TaskItem>();
+			//System.out.println(">>>>>>>>>>>>>>>> Filling runningTasks");
+			for (Task currTask : tasks) {
+				//System.out.println(">>>>>>>>>>>>>>>> start: " + currTask.getName());
+				runningTasks.add(new TaskItem(currTask));
+				//System.out.println(">>>>>>>>>>>>>>>> stop: " + currTask.getName());
+			}
 
-    public void setActivated(boolean activated) {
-        this.activated = activated;
-    }
+			for (TaskItem task : getObjects()) {
+				// LOGGER.info("delete user {} is selected {}",
+				// guiUserDto.getFullName(), guiUserDto.isSelected());
+				//System.out.println(">>>>>>>>>>>>>>>> aaa: "+task.getName());
+				
+				if (task.isSelected() && runningTasks.contains(task)) {
+					try {
+						//System.out.println(">>>>>>>>>>>>>>>> deactivate task");
+						taskManager.deactivateServiceThreads();
+						setActivated(isActivated());
+					} catch (Exception ex) {
+						// LoggingUtils.logException(LOGGER,
+						// "Delete user failed", ex);
+						FacesUtils.addErrorMessage("Deactivate task failed: " + ex.getMessage());
+					}
+				}
+			}
+			listAll = true;
+			setSelectAll(false);
+			return PAGE_NAVIGATION;
 
-    public TaskItem getSelectedTask() {
-        return selectedTask;
-    }
+		} else {
+			FacesUtils.addErrorMessage("No task selected.");
+		}
+		return null;
 
-    public void setSelectedTask(TaskItem selectedTask) {
-        this.selectedTask = selectedTask;
-    }
+	}
 
-    public boolean isListAll() {
-        return listAll;
-    }
+	public void reactivate() {
+		boolean selected = false;
 
-    public void setListAll(boolean listAll) {
-        this.listAll = listAll;
-    }
+		for (TaskItem task : getObjects()) {
+			if (task != null && task.isSelected()) {
+				selected = true;
+				break;
+			}
+		}
+
+		if (selected) {
+			taskManager.reactivateServiceThreads();
+			setActivated(isActivated());
+		} else {
+			FacesUtils.addErrorMessage("No task selected.");
+		}
+
+	}
+
+	public boolean isActivated() {
+		return taskManager.getServiceThreadsActivationState();
+	}
+
+	public void setActivated(boolean activated) {
+		this.activated = activated;
+	}
+
+	public TaskItem getSelectedTask() {
+		return selectedTask;
+	}
+
+	public void setSelectedTask(TaskItem selectedTask) {
+		this.selectedTask = selectedTask;
+	}
+
+	public boolean isListAll() {
+		return listAll;
+	}
+
+	public void setListAll(boolean listAll) {
+		this.listAll = listAll;
+	}
 
 }
