@@ -37,13 +37,14 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-public class TaskItem extends SelectableBean implements Serializable {
+public class TaskItem implements Serializable, Selectable {
 
     private static final long serialVersionUID = -8488920538885537525L;
     private String handlerUri;
     private String objectRef;
     private String oid;
     private String name;
+    private boolean selected;
     private String lastRunStartTimestamp;
     private String lastRunFinishTimestamp;
     private TaskItemExecutionStatus executionStatus;
@@ -305,5 +306,15 @@ public class TaskItem extends SelectableBean implements Serializable {
     public void setExtension(PropertyContainer extension) {
         this.extension = extension;
     }
+
+	@Override
+	public void setSelected(boolean selected) {
+		this.selected = selected;
+	}
+
+	@Override
+	public boolean isSelected() {
+		return selected;
+	}
 
 }
