@@ -23,6 +23,7 @@ package com.evolveum.midpoint.provisioning.ucf.impl;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
+import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -1668,19 +1669,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private ResourceObjectShadowType createModificationChange(SyncDelta delta,
 			ResourceObject resourceObject) throws SchemaException {
 		
-		ResourceObjectShadowType shadow;
+		ResourceObjectShadowType shadow = ShadowCacheUtil.createShadow(resourceObject, null, null);
+
 		
-		if (resourceObject.isAccountType()){
-			shadow = new AccountShadowType();
-		} else {
-			shadow = new ResourceObjectShadowType();
-		}
-		
-		
-		Document doc = DOMUtil.getDocument();
-		Attributes attrs = new Attributes();
-		shadow.setAttributes(attrs);
-		attrs.getAny().addAll(resourceObject.serializePropertiesToJaxb(doc));
+//		
+//		Document doc = DOMUtil.getDocument();
+//		Attributes attrs = new Attributes();
+//		shadow.setAttributes(attrs);
+//		attrs.getAny().addAll(resourceObject.serializePropertiesToJaxb(doc));
 		
 		return shadow;
 		
