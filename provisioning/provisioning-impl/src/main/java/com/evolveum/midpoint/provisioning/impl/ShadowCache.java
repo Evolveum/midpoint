@@ -395,6 +395,10 @@ public class ShadowCache {
                 try {
                     ResourceObjectShadowType newShadow = findOrCreateShadowFromChange(resourceType, change, parentResult);
                     change.setOldShadow(newShadow);
+                    // FIXME: hack. make sure that the current shadow has OID
+                    if (change.getCurrentShadow() != null) {
+                    	change.getCurrentShadow().setOid(newShadow.getOid());
+                    }
                 } catch (ObjectNotFoundException ex) {
                     parentResult
                             .recordPartialError("Couldn't find object defined in change. Skipping processing this change.");
