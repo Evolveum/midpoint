@@ -37,6 +37,7 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.EnhancedResourceType;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
@@ -672,6 +673,12 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		// THEN
 		
 		assertTrue("Sync service was not called", syncServiceMock.wasCalled());
+		
+		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
+//		assertNull("Old shadow present when not expecting it", lastChange.getOldShadow());
+		assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
+		assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
+		assertTrue("Wrong type of current shadow: "+ lastChange.getCurrentShadow().getClass().getName(), lastChange.getCurrentShadow() instanceof AccountShadowType);
 		
 	}
 
