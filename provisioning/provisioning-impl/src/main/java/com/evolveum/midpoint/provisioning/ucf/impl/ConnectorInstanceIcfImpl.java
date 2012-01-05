@@ -1496,9 +1496,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			QName qname = convertAttributeNameToQName(icfAttr.getName());
 
 			ResourceObjectAttribute roa = new ResourceObjectAttribute(qname);
-			
-			//if true, we need to convert whole connector object to the resource object also with the null-values attributes
-			if (full){
+
+			// if true, we need to convert whole connector object to the
+			// resource object also with the null-values attributes
+			if (full) {
 				if (icfAttr.getValue() != null) {
 					// Convert the values. While most values do not need
 					// conversions, some
@@ -1510,9 +1511,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				}
 
 				ro.add(roa);
-			
-			//in this case when false, we need only the attributes with the non-null values.
-			} else{
+
+				// in this case when false, we need only the attributes with the
+				// non-null values.
+			} else {
 				if (icfAttr.getValue() != null && !icfAttr.getValue().isEmpty()) {
 					// Convert the values. While most values do not need
 					// conversions, some
@@ -1520,15 +1522,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					for (Object icfValue : icfAttr.getValue()) {
 						Object value = convertValueFromIcf(icfValue, qname);
 						roa.getValues().add(new PropertyValue<Object>(value));
-						
+
 					}
-					
-						ro.add(roa);
-					
-					
+
+					ro.add(roa);
+
 				}
 			}
-			
+
 		}
 
 		return ro;
@@ -1641,20 +1642,20 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			} else {
 				// CREATE OR UPDATE
-				
+
 				ObjectClass objClass = delta.getObject().getObjectClass();
 				QName objectClass = objectClassToQname(objClass.getObjectClassValue());
 				ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
 						.findContainerDefinitionByType(objectClass);
 				ResourceObject resourceObject = convertToResourceObject(delta.getObject(), rod, false);
-				
-				ResourceObjectShadowType currentShadow = createModificationChange(delta,
-						resourceObject);
-				
+
+				ResourceObjectShadowType currentShadow = createModificationChange(delta, resourceObject);
+
 				LOGGER.trace("Got current shadow: {}", JAXBUtil.silentMarshalWrap(currentShadow));
-				
-				if (currentShadow instanceof AccountShadowType){
+
+				if (currentShadow instanceof AccountShadowType) {
 					currentShadow = (AccountShadowType) currentShadow;
+					
 				}
 
 				Change change = new Change(resourceObject.getIdentifiers(), currentShadow,
@@ -1671,7 +1672,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		
 		ResourceObjectShadowType shadow = ShadowCacheUtil.createShadow(resourceObject, null, null);
 
-		
+		shadow
 //		
 //		Document doc = DOMUtil.getDocument();
 //		Attributes attrs = new Attributes();
