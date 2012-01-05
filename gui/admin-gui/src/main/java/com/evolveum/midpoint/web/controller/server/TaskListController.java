@@ -21,34 +21,33 @@
 
 package com.evolveum.midpoint.web.controller.server;
 
-import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.web.bean.TaskItem;
-import com.evolveum.midpoint.web.controller.util.ControllerUtil;
-import com.evolveum.midpoint.web.controller.util.ListController;
-import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
-import com.evolveum.midpoint.web.model.UserManager;
-import com.evolveum.midpoint.web.model.dto.GuiUserDto;
-import com.evolveum.midpoint.web.repo.RepositoryManager;
-import com.evolveum.midpoint.web.util.FacesUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import javax.faces.event.ActionEvent;
+import javax.faces.event.ValueChangeEvent;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
-import javax.faces.event.ValueChangeEvent;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.web.bean.TaskItem;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
+import com.evolveum.midpoint.web.controller.util.SortableListController;
+import com.evolveum.midpoint.web.repo.RepositoryManager;
+import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 @Controller("taskList")
 @Scope("session")
-public class TaskListController extends ListController<TaskItem> {
+public class TaskListController extends SortableListController<TaskItem> {
 	private static final long serialVersionUID = 1L;
 	@Autowired(required = true)
 	private transient TaskManager taskManager;
@@ -57,8 +56,7 @@ public class TaskListController extends ListController<TaskItem> {
 	private TaskItem selectedTask;
 	@Autowired(required = true)
 	private transient RepositoryManager repositoryManager;
-	@Autowired(required = true)
-	private transient ObjectTypeCatalog objectTypeCatalog;
+
 	private boolean listAll = false;
 	private boolean selectAll = false;
 
@@ -187,6 +185,16 @@ public class TaskListController extends ListController<TaskItem> {
 
 	}
 
+	public void sortList(ActionEvent evt) {
+		sort();
+	}
+
+	@Override
+	protected void sort() {
+		//Collections.sort(getObjects(), new SortableListComparator<TaskItem>(getSortColumnName(),isAscending()));
+
+	}
+
 	public boolean isSelectAll() {
 		return selectAll;
 	}
@@ -222,25 +230,28 @@ public class TaskListController extends ListController<TaskItem> {
 		}
 
 		if (selected) {
-			//taskManager.deactivateServiceThreads();
+			// taskManager.deactivateServiceThreads();
 
 			Set<Task> tasks = taskManager.getRunningTasks();
-			List<TaskItem> runningTasks = new ArrayList<TaskItem>();
-			//System.out.println(">>>>>>>>>>>>>>>> Filling runningTasks");
+			List<TaskItem> runningTasks = getObjects();
+			runningTasks.clear();
+			// System.out.println(">>>>>>>>>>>>>>>> Filling runningTasks");
 			for (Task currTask : tasks) {
-				//System.out.println(">>>>>>>>>>>>>>>> start: " + currTask.getName());
+				// System.out.println(">>>>>>>>>>>>>>>> start: " +
+				// currTask.getName());
 				runningTasks.add(new TaskItem(currTask));
-				//System.out.println(">>>>>>>>>>>>>>>> stop: " + currTask.getName());
+				// System.out.println(">>>>>>>>>>>>>>>> stop: " +
+				// currTask.getName());
 			}
 
 			for (TaskItem task : getObjects()) {
 				// LOGGER.info("delete user {} is selected {}",
 				// guiUserDto.getFullName(), guiUserDto.isSelected());
-				//System.out.println(">>>>>>>>>>>>>>>> aaa: "+task.getName());
-				
+				// System.out.println(">>>>>>>>>>>>>>>> aaa: "+task.getName());
+
 				if (task.isSelected() && runningTasks.contains(task)) {
 					try {
-						//System.out.println(">>>>>>>>>>>>>>>> deactivate task");
+						// System.out.println(">>>>>>>>>>>>>>>> deactivate task");
 						taskManager.deactivateServiceThreads();
 						setActivated(isActivated());
 					} catch (Exception ex) {
@@ -250,7 +261,7 @@ public class TaskListController extends ListController<TaskItem> {
 					}
 				}
 			}
-			listAll = true;
+			listAll = false;
 			setSelectAll(false);
 			return PAGE_NAVIGATION;
 
@@ -258,7 +269,6 @@ public class TaskListController extends ListController<TaskItem> {
 			FacesUtils.addErrorMessage("No task selected.");
 		}
 		return null;
-
 	}
 
 	public void reactivate() {
@@ -303,5 +313,4 @@ public class TaskListController extends ListController<TaskItem> {
 	public void setListAll(boolean listAll) {
 		this.listAll = listAll;
 	}
-
 }
