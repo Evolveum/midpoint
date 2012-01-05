@@ -28,8 +28,7 @@ function setToCenter() {
 	var centerOfLoginDiv = jQuery(".loginDiv").width() / 2;
 	var loginForm = jQuery("#loginForm").width() / 2;
 	var loginButton = jQuery("#loginButton").width() / 2;
-	jQuery("#loginForm").css("margin-left",
-			centerOfLoginDiv - loginForm);
+	jQuery("#loginForm").css("margin-left", centerOfLoginDiv - loginForm);
 	jQuery("#loginButton").css("margin-left", loginForm - loginButton);
 
 }
@@ -49,12 +48,16 @@ function displayMessageDetails(id, showImage, hideImage) {
 
 function displayMessageErrorDetails(id) {
 	var blockElement = document.getElementById(id + "_block");
+	var img = "";
 	var value = blockElement.style.display;
 	if (value == 'none' || value == '') {
 		blockElement.style.display = 'block';
+		img = jQuery("#" + id + "").attr("src").replace("add.png", "delete.png");
 	} else {
 		blockElement.style.display = 'none';
+		img = jQuery("#" + id + "").attr("src").replace("delete.png", "add.png");
 	}
+	jQuery("#" + id + "").attr("src", img);
 }
 
 function displayMessageCauseDetails(id) {
@@ -73,7 +76,7 @@ function displayMessageCauseDetails(id) {
 /* //////////////////// jQuery ////////////////////////////// */
 jQuery(document).ready(function() {
 	jQuery.noConflict();
-	
+
 	jQuery().UItoTop();
 
 	highliteTableRows();
