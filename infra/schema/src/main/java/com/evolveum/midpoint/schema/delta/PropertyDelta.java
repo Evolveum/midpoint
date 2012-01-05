@@ -18,6 +18,7 @@
  *
  * Portions Copyrighted 2012 [name of copyright owner]
  */
+
 package com.evolveum.midpoint.schema.delta;
 
 import com.evolveum.midpoint.schema.XsdTypeConverter;
@@ -220,7 +221,7 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         valuesToReplace.addAll(newValues);
     }
 
-    private boolean isEmpty() {
+    public boolean isEmpty() {
         if (valuesToAdd == null && valuesToDelete == null && valuesToReplace == null) {
             return true;
         }

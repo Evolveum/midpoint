@@ -457,7 +457,7 @@ public class Property extends Item {
         if (other != null) {
             for (PropertyValue<Object> value : getValues()) {
                 if ((!compareReal && !other.hasValue(value))
-                        || (compareReal && other.hasRealValue(value))) {
+                        || (compareReal && !other.hasRealValue(value))) {
                     delta.addValueToAdd(value.clone());
                 }
             }

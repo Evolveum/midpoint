@@ -95,6 +95,10 @@ public class InboundProcessor {
 
                 processInboundForAccount(context, accountContext, accountDefinition);
             }
+
+            if (userDelta.isEmpty()) {
+                context.setUserSecondaryDelta(null);
+            }
         } finally {
             subResult.computeStatus();
         }
@@ -132,7 +136,8 @@ public class InboundProcessor {
                     Property oldAccountProperty = oldAccount.findProperty(new PropertyPath(SchemaConstants.I_ATTRIBUTES), name);
                     delta = createUserPropertyDelta(inbound, oldAccountProperty, context.getUserNew());
                 }
-                if (delta != null) {
+
+                if (delta != null && !delta.isEmpty()) {
                     userDelta.addModification(delta);
                     context.recomputeUserNew();
                 }
@@ -183,7 +188,7 @@ public class InboundProcessor {
                     continue;
                 }
 
-                //if property is not multivalue replace existing attribute
+                //if property is not multi value replace existing attribute
                 if (property != null && !property.getDefinition().isMultiValue() && !property.isEmpty()) {
                     Collection<PropertyValue<Object>> replace = new ArrayList<PropertyValue<Object>>();
                     replace.add(filteredValue);
@@ -219,6 +224,8 @@ public class InboundProcessor {
 
     private PropertyValue<Object> filterValue(PropertyValue<Object> propertyValue, List<ValueFilterType> filters) {
         PropertyValue<Object> filteredValue = propertyValue.clone();
+        filteredValue.setType(SourceType.INBOUND);
+
         if (filters == null || filters.isEmpty()) {
             return filteredValue;
         }
