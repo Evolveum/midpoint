@@ -1649,7 +1649,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				
 				ResourceObjectShadowType currentShadow = createModificationChange(delta,
 						resourceObject);
+				
 				LOGGER.trace("Got current shadow: {}", JAXBUtil.silentMarshalWrap(currentShadow));
+				
+				if (currentShadow instanceof AccountShadowType){
+					currentShadow = (AccountShadowType) currentShadow;
+				}
 
 				Change change = new Change(resourceObject.getIdentifiers(), currentShadow,
 						getToken(delta.getToken()));
