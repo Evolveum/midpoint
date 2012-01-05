@@ -1672,7 +1672,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		
 		ResourceObjectShadowType shadow = ShadowCacheUtil.createShadow(resourceObject, null, null);
 
-		shadow
+	
 //		
 //		Document doc = DOMUtil.getDocument();
 //		Attributes attrs = new Attributes();
