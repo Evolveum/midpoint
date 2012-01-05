@@ -1667,7 +1667,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	private ResourceObjectShadowType createModificationChange(SyncDelta delta,
 			ResourceObject resourceObject) throws SchemaException {
-		ResourceObjectShadowType shadow = new ResourceObjectShadowType();
+		
+		ResourceObjectShadowType shadow;
+		
+		if (resourceObject.isAccountType()){
+			shadow = new AccountShadowType();
+		} else {
+			shadow = new ResourceObjectShadowType();
+		}
+		
 		
 		Document doc = DOMUtil.getDocument();
 		Attributes attrs = new Attributes();
