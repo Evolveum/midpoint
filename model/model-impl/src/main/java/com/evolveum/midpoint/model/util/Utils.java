@@ -25,8 +25,6 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.Property;
-import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -66,28 +64,5 @@ public final class Utils {
 
         ObjectReferenceType resourceRef = shadow.getResourceRef();
         return provisioning.getObject(ResourceType.class, resourceRef.getOid(), null, result);
-    }
-
-    /**
-     * Method tests if {@link Property} contains {@link PropertyValue} with wrapped value like defined in parameter.
-     * For comparation is used method {@link PropertyValue#equalsRealValue(com.evolveum.midpoint.schema.processor.PropertyValue)}.
-     *
-     * @param property {@link Property} object where are we looking for value, can be null.
-     * @param value    {@link PropertyValue} what are we looking for in property
-     * @return
-     */
-    public static boolean hasPropertyValue(Property property, PropertyValue<Object> value) {
-        Validate.notNull(value, "Property value must not be null.");
-        if (property == null || property.getValues() == null) {
-            return false;
-        }
-
-        for (PropertyValue val : property.getValues()) {
-            if (val.equalsRealValue(value)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

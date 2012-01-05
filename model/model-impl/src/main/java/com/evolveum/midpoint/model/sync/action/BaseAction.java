@@ -159,9 +159,10 @@ public abstract class BaseAction implements Action {
         ResourceType resource = change.getResource();
 
         String accountType = getAccountTypeFromChange(change);
-        if (accountType == null) {
-            return null;
-        }
+//        if (accountType == null) {
+//            LOGGER.warn("Account type undefined.");
+//            return null;
+//        }
 
         ResourceAccountType resourceAccount = new ResourceAccountType(resource.getOid(), accountType);
         AccountSyncContext accountContext = context.createAccountSyncContext(resourceAccount);
@@ -195,16 +196,15 @@ public abstract class BaseAction implements Action {
     }
 
     protected AccountShadowType getAccountShadowFromChange(ResourceObjectShadowChangeDescription change) {
-        AccountShadowType account = null;
         if (change.getCurrentShadow() != null) {
-            account = (AccountShadowType) change.getCurrentShadow();
+            return (AccountShadowType) change.getCurrentShadow();
         }
 
         if (change.getOldShadow() != null) {
-            account = (AccountShadowType) change.getOldShadow();
+            return (AccountShadowType) change.getOldShadow();
         }
 
-        return account;
+        return null;
     }
 
     private String getAccountTypeFromChange(ResourceObjectShadowChangeDescription change) {

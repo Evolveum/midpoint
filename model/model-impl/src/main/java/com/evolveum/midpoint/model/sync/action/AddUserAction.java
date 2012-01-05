@@ -59,8 +59,8 @@ public class AddUserAction extends BaseAction {
             SynchronizationSituationType situation, OperationResult result) throws SynchronizationException {
         super.executeChanges(userOid, change, situation, result);
 
-        OperationResult subResult = new OperationResult(ACTION_ADD_USER);
-        result.addSubresult(subResult);
+        OperationResult subResult = result.createSubresult(ACTION_ADD_USER);
+
 
         try {
             UserType user = getUser(userOid, subResult);

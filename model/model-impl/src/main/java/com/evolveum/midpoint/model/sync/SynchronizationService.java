@@ -207,13 +207,19 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
         ResourceObjectShadowType resourceShadow = change.getCurrentShadow();
         Validate.notNull(resourceShadow, "Current shadow must not be null.");
-        // It is better to get resource from change. The resource object may have only resourceRef
+
         ResourceType resource = change.getResource();
+        validateResourceInShadow(resourceShadow, resource);
+
         SynchronizationType synchronization = resource.getSynchronization();
 
         SynchronizationSituationType state = null;
         LOGGER.debug("CORRELATION: Looking for list of users based on correlation rule.");
         List<UserType> users = findUsersByCorrelationRule(resourceShadow, synchronization.getCorrelation(), result);
+        if (users == null) {
+            users = new ArrayList<UserType>();
+        }
+
         if (users.size() > 1) {
             if (synchronization.getConfirmation() == null) {
                 LOGGER.debug("CONFIRMATION: no confirmation defined.");
@@ -248,6 +254,18 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         }
 
         return new SynchronizationSituation(user, state);
+    }
+
+    private void validateResourceInShadow(ResourceObjectShadowType shadow, ResourceType resource) {
+        if (shadow.getResource() != null || shadow.getResourceRef() != null) {
+            return;
+        }
+
+        ObjectReferenceType reference = new ObjectReferenceType();
+        reference.setOid(resource.getOid());
+        reference.setType(ObjectTypes.RESOURCE.getTypeQName());
+
+        shadow.setResourceRef(reference);
     }
 
     /**

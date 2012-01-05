@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
@@ -394,6 +395,9 @@ public class Property extends Item {
     protected void copyValues(Property clone) {
         super.copyValues(clone);
         clone.values = new HashSet<PropertyValue<Object>>();
+//        for (PropertyValue<Object> value : values) {
+//            clone.values.add(value.clone());
+//        }
         clone.values.addAll(values);
     }
 
@@ -420,6 +424,57 @@ public class Property extends Item {
         } else if (!values.equals(other.values))
             return false;
         return true;
+    }
+
+
+    /**
+     * This method compares "this" property with other property. Comparing only real values wrapped in
+     * {@link PropertyValue}.
+     *
+     * @param other can be null, property delta will be add all values from "this" property.
+     * @return The result is {@link PropertyDelta} which represents differences between them. That means when
+     *         resulting property delta is applied on other property then other property and "this" property
+     *         will be equal.
+     */
+    public PropertyDelta compareRealValuesTo(Property other) {
+        return compareTo(other, true);
+    }
+
+    /**
+     * This method compares "this" property with other property. Comparing property values as whole.
+     *
+     * @param other can be null, property delta will be add all values from "this" property.
+     * @return The result is {@link PropertyDelta} which represents differences between them. That means when
+     *         resulting property delta is applied on other property then other property and "this" property
+     *         will be equal.
+     */
+    public PropertyDelta compareTo(Property other) {
+        return compareTo(other, false);
+    }
+
+    private PropertyDelta compareTo(Property other, boolean compareReal) {
+        PropertyDelta delta = new PropertyDelta(getDefinition().getPath());
+        if (other != null) {
+            for (PropertyValue<Object> value : getValues()) {
+                if ((!compareReal && !other.hasValue(value))
+                        || (compareReal && other.hasRealValue(value))) {
+                    delta.addValueToAdd(value.clone());
+                }
+            }
+            for (PropertyValue<Object> value : other.getValues()) {
+                if ((!compareReal && !hasValue(value))
+                        || (compareReal && !hasRealValue(value))) {
+                    delta.addValueToDelete(value.clone());
+                }
+            }
+        } else {
+            //other doesn't exist, so delta means add all values
+            for (PropertyValue<Object> value : getValues()) {
+                delta.addValueToAdd(value.clone());
+            }
+        }
+
+        return delta;
     }
 
     @Override

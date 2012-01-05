@@ -28,7 +28,6 @@ import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.controller.Filter;
 import com.evolveum.midpoint.model.controller.FilterManager;
-import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
@@ -81,7 +80,6 @@ public class InboundProcessor {
             context.setUserSecondaryDelta(userDelta);
         }
 
-        final PropertyPath attributes = new PropertyPath(SchemaConstants.I_ATTRIBUTES);
         try {
             for (AccountSyncContext accountContext : context.getAccountContexts()) {
                 ResourceAccountType rat = accountContext.getResourceAccountType();
@@ -95,30 +93,77 @@ public class InboundProcessor {
                             + " not found in the context, but it should be there");
                 }
 
-                ObjectDelta<AccountShadowType> accountDelta = accountContext.getAccountSyncDelta();
-                if (accountDelta != null) {
-                    for (QName name : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
-                        PropertyDelta propertyDelta = accountDelta.getPropertyDelta(attributes, name);
-                        if (propertyDelta == null) {
-                            continue;
-                        }
-
-                        RefinedAttributeDefinition attrDef = accountDefinition.getAttributeDefinition(name);
-                        List<Element> inbounds = attrDef.getInboundAssignmentTypes();
-
-                        for (Element inbound : inbounds) {
-                            PropertyDelta delta = createUserPropertyDelta(inbound, propertyDelta, context.getUserNew());
-                            if (delta != null) {
-                                userDelta.addModification(delta);
-                                context.recomputeUserNew();
-                            }
-                        }
-                    }
-                }
+                processInboundForAccount(context, accountContext, accountDefinition);
             }
         } finally {
             subResult.computeStatus();
         }
+    }
+
+    private void processInboundForAccount(SyncContext context, AccountSyncContext accContext,
+            RefinedAccountDefinition accountDefinition) {
+
+        if (accContext.getAccountSyncDelta() == null && accContext.getAccountOld() == null) {
+            LOGGER.debug("Nothing to process in inbound, account sync delta and account old was null.");
+            return;
+        }
+
+        ObjectDelta<UserType> userDelta = context.getUserSecondaryDelta();
+
+        ObjectDelta<AccountShadowType> accountDelta = accContext.getAccountSyncDelta();
+        MidPointObject<AccountShadowType> oldAccount = accContext.getAccountOld();
+        for (QName name : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
+            PropertyDelta propertyDelta = null;
+            if (accountDelta != null) {
+                propertyDelta = accountDelta.getPropertyDelta(new PropertyPath(SchemaConstants.I_ATTRIBUTES), name);
+                if (propertyDelta == null) {
+                    continue;
+                }
+            }
+
+            RefinedAttributeDefinition attrDef = accountDefinition.getAttributeDefinition(name);
+            List<Element> inbounds = attrDef.getInboundAssignmentTypes();
+
+            for (Element inbound : inbounds) {
+                PropertyDelta delta = null;
+                if (accountDelta != null) {
+                    delta = createUserPropertyDelta(inbound, propertyDelta, context.getUserNew());
+                } else if (oldAccount != null) {
+                    Property oldAccountProperty = oldAccount.findProperty(new PropertyPath(SchemaConstants.I_ATTRIBUTES), name);
+                    delta = createUserPropertyDelta(inbound, oldAccountProperty, context.getUserNew());
+                }
+                if (delta != null) {
+                    userDelta.addModification(delta);
+                    context.recomputeUserNew();
+                }
+            }
+        }
+    }
+
+    private PropertyDelta createUserPropertyDelta(Element inbound, Property oldAccountProperty,
+            MidPointObject<UserType> newUser) {
+        ValueAssignmentHolder holder = new ValueAssignmentHolder(inbound);
+        List<ValueFilterType> filters = holder.getFilter();
+
+        PropertyPath targetUserAttribute = createUserPropertyPath(holder);
+        Property userProperty = newUser.findProperty(targetUserAttribute);
+
+        PropertyDelta delta = null;
+        if (oldAccountProperty != null) {
+            //simple property comparing if oldAccountProperty exists
+            delta = oldAccountProperty.compareRealValuesTo(userProperty);
+            delta.setName(targetUserAttribute.last());
+            delta.setParentPath(targetUserAttribute.allExceptLast());
+        } else {
+            if (userProperty != null) {
+                //if user property exists we have to delete it (as delta), because inbound say so
+                delta = new PropertyDelta(targetUserAttribute);
+                delta.addValuesToDelete(userProperty.getValues());
+            }
+            //we don't have to create delta, because everything is alright
+        }
+
+        return delta;
     }
 
     private PropertyDelta createUserPropertyDelta(Element inbound, PropertyDelta propertyDelta,
@@ -126,7 +171,7 @@ public class InboundProcessor {
         ValueAssignmentHolder holder = new ValueAssignmentHolder(inbound);
         List<ValueFilterType> filters = holder.getFilter();
 
-        PropertyPath targetUserAttribute = createPropertyPath(holder);
+        PropertyPath targetUserAttribute = createUserPropertyPath(holder);
         Property property = newUser.findProperty(targetUserAttribute);
 
         PropertyDelta delta = new PropertyDelta(targetUserAttribute);
@@ -134,7 +179,7 @@ public class InboundProcessor {
             for (PropertyValue<Object> value : propertyDelta.getValuesToAdd()) {
                 PropertyValue<Object> filteredValue = filterValue(value, filters);
 
-                if (Utils.hasPropertyValue(property, filteredValue)) {
+                if (property == null || property.hasRealValue(filteredValue)) {
                     continue;
                 }
 
@@ -152,7 +197,7 @@ public class InboundProcessor {
             for (PropertyValue<Object> value : propertyDelta.getValuesToDelete()) {
                 PropertyValue<Object> filteredValue = filterValue(value, filters);
 
-                if (Utils.hasPropertyValue(property, filteredValue)) {
+                if (property == null || property.hasRealValue(filteredValue)) {
                     delta.addValueToDelete(filteredValue);
                 }
             }
@@ -162,7 +207,7 @@ public class InboundProcessor {
         return delta.getValues(Object.class).isEmpty() ? null : delta;
     }
 
-    private PropertyPath createPropertyPath(ValueAssignmentHolder holder) {
+    private PropertyPath createUserPropertyPath(ValueAssignmentHolder holder) {
         PropertyPath path = new PropertyPath(holder.getTarget());
         List<QName> segments = path.getSegments();
         if (!segments.isEmpty() && SchemaConstants.I_USER.equals(segments.get(0))) {
