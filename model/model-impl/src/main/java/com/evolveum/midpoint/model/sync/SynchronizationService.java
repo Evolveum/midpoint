@@ -283,7 +283,6 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     private void notifyChange(ResourceObjectShadowChangeDescription change,
             SynchronizationSituation situation, ResourceType resource,
             OperationResult parentResult) {
-        //todo review fix this implementation
 
         SynchronizationType synchronization = resource.getSynchronization();
         List<Action> actions = findActionsForReaction(synchronization.getReaction(), situation.getSituation());

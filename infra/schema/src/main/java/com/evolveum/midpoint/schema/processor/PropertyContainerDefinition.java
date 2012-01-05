@@ -333,7 +333,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * @return created property definition
      */
     public PropertyDefinition createPropertyDefinition(QName name, QName typeName,
-                                                       int minOccurs, int maxOccurs) {
+            int minOccurs, int maxOccurs) {
         PropertyDefinition propDef = new PropertyDefinition(name, typeName);
         propDef.setMinOccurs(minOccurs);
         propDef.setMaxOccurs(maxOccurs);
@@ -391,7 +391,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * @return created property definition
      */
     public PropertyDefinition createPropertyDefinition(String localName, String localTypeName,
-                                                       int minOccurs, int maxOccurs) {
+            int minOccurs, int maxOccurs) {
         QName name = new QName(getSchemaNamespace(), localName);
         QName typeName = new QName(getSchemaNamespace(), localTypeName);
         PropertyDefinition propertyDefinition = createPropertyDefinition(name, typeName);
@@ -454,7 +454,8 @@ public class PropertyContainerDefinition extends ItemDefinition {
         return parseAsContent(name, contentElements, PropertyContainer.class);
     }
 
-    protected <T extends PropertyContainer> T parseAsContent(QName name, List<Object> contentElements, Class<T> type) throws SchemaException {
+    protected <T extends PropertyContainer> T parseAsContent(QName name, List<Object> contentElements,
+            Class<T> type) throws SchemaException {
         T container = (T) this.instantiate(name);
         container.getItems().addAll(parseItems(contentElements));
         return container;
@@ -485,7 +486,8 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * min/max constraints are not checked now
      * TODO: maybe we need to check them
      */
-    protected Collection<? extends Item> parseItems(List<Object> elements, Collection<? extends ItemDefinition> selection) throws SchemaException {
+    protected Collection<? extends Item> parseItems(List<Object> elements,
+            Collection<? extends ItemDefinition> selection) throws SchemaException {
 
         // TODO: more robustness in handling schema violations (min/max constraints, etc.)
 
@@ -537,7 +539,8 @@ public class PropertyContainerDefinition extends ItemDefinition {
         return parseItemFromJaxbObject(jaxbObject, PropertyContainer.class);
     }
 
-    protected <T extends PropertyContainer> T parseItemFromJaxbObject(Object jaxbObject, Class<T> type) throws SchemaException {
+    protected <T extends PropertyContainer> T parseItemFromJaxbObject(Object jaxbObject, Class<T> type) throws
+            SchemaException {
 
         if (isDynamic()) {
             return parseItemFromJaxbObjectDynamic(jaxbObject, type);
@@ -546,7 +549,8 @@ public class PropertyContainerDefinition extends ItemDefinition {
         }
     }
 
-    private <T extends PropertyContainer> T parseItemFromJaxbObjectStatic(Object jaxbObject, Class<T> type) throws SchemaException {
+    private <T extends PropertyContainer> T parseItemFromJaxbObjectStatic(Object jaxbObject, Class<T> type) throws
+            SchemaException {
 
         Class clazz = jaxbObject.getClass();
         T propertyContainer = (T) this.instantiate();
@@ -597,7 +601,8 @@ public class PropertyContainerDefinition extends ItemDefinition {
         return propertyContainer;
     }
 
-    private <T extends PropertyContainer> T parseItemFromJaxbObjectDynamic(Object jaxbObject, Class<T> type) throws SchemaException {
+    private <T extends PropertyContainer> T parseItemFromJaxbObjectDynamic(Object jaxbObject, Class<T> type) throws
+            SchemaException {
 
         Class clazz = jaxbObject.getClass();
         T propertyContainer = (T) this.instantiate();
@@ -709,17 +714,21 @@ public class PropertyContainerDefinition extends ItemDefinition {
             try {
 
                 if (item instanceof Property) {
+                    Property property = (Property) item;
                     if (((PropertyDefinition) itemDef).isMultiValue()) {
                         method = findGetter(clazz, itemName.getLocalPart());
                         Collection collection = (Collection) method.invoke(jaxbObject);
 
-                        Set<PropertyValue<Object>> values = ((Property) item).getValues();
+                        Set<PropertyValue<Object>> values = property.getValues();
                         for (PropertyValue<Object> value : values) {
                             collection.add(value.getValue());
                         }
                     } else {
-                        method = findSetter(clazz, itemName.getLocalPart());
-                        method.invoke(jaxbObject, ((Property) item).getValue().getValue());
+                        PropertyValue<Object> propertyValue = property.getValue();
+                        if (propertyValue != null) {
+                            method = findSetter(clazz, itemName.getLocalPart());
+                            method.invoke(jaxbObject, propertyValue.getValue());
+                        }
                     }
                 } else if (item instanceof PropertyContainer) {
                     method = findSetter(clazz, itemName.getLocalPart());
@@ -743,7 +752,8 @@ public class PropertyContainerDefinition extends ItemDefinition {
         }
     }
 
-    private Method findGetter(Class<? extends Object> clazz, String propName) throws SecurityException, NoSuchMethodException {
+    private Method findGetter(Class<? extends Object> clazz, String propName) throws SecurityException,
+            NoSuchMethodException {
         String getterName = "get" + StringUtils.capitalize(propName);
         return clazz.getMethod(getterName);
     }
