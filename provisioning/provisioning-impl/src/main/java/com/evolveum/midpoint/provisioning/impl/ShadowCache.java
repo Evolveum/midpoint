@@ -395,9 +395,10 @@ public class ShadowCache {
                 try {
                     ResourceObjectShadowType newShadow = findOrCreateShadowFromChange(resourceType, change, parentResult);
                     change.setOldShadow(newShadow);
-                    // FIXME: hack. make sure that the current shadow has OID
+                    // FIXME: hack. make sure that the current shadow has OID and resource ref
                     if (change.getCurrentShadow() != null) {
                     	change.getCurrentShadow().setOid(newShadow.getOid());
+                    	change.getCurrentShadow().setResourceRef(newShadow.getResourceRef());
                     }
                 } catch (ObjectNotFoundException ex) {
                     parentResult

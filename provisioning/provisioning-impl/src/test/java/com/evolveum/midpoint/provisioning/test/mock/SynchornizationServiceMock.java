@@ -48,9 +48,11 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener{
 		assertTrue("Either current shadow or delta must be present",change.getCurrentShadow() != null || change.getObjectDelta() != null);
 		if (change.getCurrentShadow() != null) {
 			assertNotNull("Current shadow does not have an OID", change.getCurrentShadow().getOid());
+			assertNotNull("Current shadow does not have resourceRef", change.getCurrentShadow().getResourceRef());
 		}
 		if (change.getOldShadow() != null) {
 			assertNotNull("Old shadow does not have an OID", change.getOldShadow().getOid());
+			assertNotNull("Old shadow does not have an resourceRef", change.getOldShadow().getResourceRef());
 		}
 		if (change.getObjectDelta() != null) {
 			assertNotNull("Delta has null OID", change.getObjectDelta().getOid());
