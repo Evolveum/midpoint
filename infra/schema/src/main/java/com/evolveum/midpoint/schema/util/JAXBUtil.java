@@ -189,11 +189,17 @@ public final class JAXBUtil {
 
 		return writer.getBuffer().toString();
 	}
+    
+    public static String marshalWrap(Object object, Map<String, Object> jaxbProperties) throws JAXBException {
+        JAXBElement<Object> element = new JAXBElement<Object>(new QName(SchemaConstants.NS_C, "object"),
+                Object.class, object);
+        return marshal(jaxbProperties, element);
+    }
 
 	public static String marshalWrap(Object object) throws JAXBException {
 		JAXBElement<Object> element = new JAXBElement<Object>(new QName(SchemaConstants.NS_C, "object"),
 				Object.class, object);
-		return marshal(element);
+		return marshal(null, element);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -531,7 +537,7 @@ public final class JAXBUtil {
 	}
 
 	/**
-	 * @param firstElement
+	 * @param element
 	 * @return
 	 */
 	public static Document getDocument(Object element) {
@@ -562,7 +568,7 @@ public final class JAXBUtil {
 	}
 
 	/**
-	 * @param configurationPropertiesElement
+	 * @param parentElement
 	 * @return
 	 */
 	public static List<Object> listChildElements(Object parentElement) {

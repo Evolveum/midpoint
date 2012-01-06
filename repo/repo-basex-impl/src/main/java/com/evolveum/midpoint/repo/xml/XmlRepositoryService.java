@@ -32,15 +32,23 @@ import java.util.UUID;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.ObjectDefinition;
+import com.evolveum.midpoint.schema.processor.Schema;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.pool.ObjectPool;
 import org.apache.commons.pool.PoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.apache.commons.pool.impl.GenericObjectPool.Config;
 import org.basex.core.BaseXException;
+import org.basex.query.expr.Catch;
 import org.basex.server.ClientQuery;
 import org.basex.server.ClientSession;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -87,6 +95,9 @@ public class XmlRepositoryService implements RepositoryService {
 	private static final String DECLARE_NAMESPACE_C = "declare namespace c='" + SchemaConstants.NS_C + "';\n";
 	private static final Trace LOGGER = TraceManager.getTrace(XmlRepositoryService.class);
 	private ObjectPool sessions;
+
+    @Autowired(required = true)
+    private SchemaRegistry schemaRegistry;
 
 	// TODO: inject from Configuration Object
 	private String host;
@@ -373,6 +384,26 @@ public class XmlRepositoryService implements RepositoryService {
 
 		String serializedObject = null;
 		try {
+            //todo uncomment this, if you want to modify object with object deltas
+//            Schema schema = schemaRegistry.getObjectSchema();
+//            ObjectDelta<T> delta = ObjectDelta.createDelta(objectChange, schema, type);
+//
+//            T objectType = this.getObject(type, delta.getOid(), null, result);
+//            ObjectDefinition<T> objectDef = schema.findObjectDefinition(type);
+//
+//            MidPointObject<T> midPointObject = objectDef.parseObjectType(objectType);
+//            delta.applyTo(midPointObject);
+//
+//            midPointObject.setObjectType(null);
+//            T updatedObject = midPointObject.getOrParseObjectType();
+//
+//            Map<String, Object> properties = new HashMap<String, Object>();
+//            properties.put(Marshaller.JAXB_FRAGMENT, true);
+//            serializedObject = JAXBUtil.marshalWrap(updatedObject, properties);
+//        } catch (JAXBException ex) {
+//            errorLogRecordAndRethrow("Failed to modify object", result, ex);
+//        }
+
 			// get object from repo
 			// FIXME: possible problems with resolving property reference before
 			// xml patching
@@ -382,17 +413,18 @@ public class XmlRepositoryService implements RepositoryService {
 			// modify the object
 			PatchXml xmlPatchTool = new PatchXml();
 			serializedObject = xmlPatchTool.applyDifferences(objectChange, objectType);
-
-		} catch (PatchException ex) {
-			errorLogRecordAndRethrow("Failed to modify object", result, ex);
-		}
+        } catch (PatchException ex) {
+            errorLogRecordAndRethrow("Failed to modify object", result, ex);
+        }
 
 		// store modified object in repo
 		EscapeStringBuilder query = new XQueryEscapeStringBuilder();
 		query.append(DECLARE_NAMESPACE_C).append("replace node //c:object[@oid=\"").eappend(objectChange.getOid())
 				.append("\"] with ").eappend(serializedObject);
 
-		LOGGER.trace("generated query: " + query);
+        if (LOGGER.isTraceEnabled()) {
+		    LOGGER.trace("generated query: " + query);
+        }
 
 		try {
 			executeQuery(query.toStringBuilder(), result);

@@ -453,6 +453,7 @@ public class Property extends Item {
     }
 
     private PropertyDelta compareTo(Property other, boolean compareReal) {
+        //todo don't create add/delete when we can create replace (single valued property) or something like that
         PropertyDelta delta = new PropertyDelta(getDefinition().getPath());
         if (other != null) {
             for (PropertyValue<Object> value : getValues()) {
