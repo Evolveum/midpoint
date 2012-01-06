@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,12 +16,13 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.schema.xjc;
 
 import com.evolveum.midpoint.schema.processor.TestMidpointObject;
+import com.evolveum.midpoint.schema.xjc.util.ProcessorUtils;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.model.CClassInfo;
@@ -44,20 +45,13 @@ import java.util.*;
  *
  * @author lazyman
  */
-public class MidPointPlugin {
+public class SchemaProcessor implements Processor {
 
     private static final QName QNAME_OBJECT_TYPE = new QName(PrefixMapper.C.getNamespace(), "ObjectType");
     private static final QName QNAME_USER_TYPE = new QName(PrefixMapper.C.getNamespace(), "UserType");
     private static final QName QNAME_FULL_NAME = new QName(PrefixMapper.C.getNamespace(), "fullName");
 
-    public String getOptionName() {
-        return "Xmidpoint";
-    }
-
-    public String getUsage() {
-        return "-" + getOptionName();
-    }
-
+    @Override
     public boolean run(Outline outline, Options options, ErrorHandler errorHandler) throws SAXException {
         try {
             addElementTypes(outline);
@@ -134,23 +128,8 @@ public class MidPointPlugin {
         return prefix + newName;
     }
 
-    private ClassOutline findClassOutline(Outline outline, QName type) {
-        Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
-        for (Map.Entry<NClass, CClassInfo> entry : set) {
-            ClassOutline classOutline = outline.getClazz(entry.getValue());
-            QName qname = entry.getValue().getTypeName();
-            if (!type.equals(qname)) {
-                continue;
-            }
-
-            return classOutline;
-        }
-
-        throw new IllegalStateException("Object type class outline was not found.");
-    }
-
     private void updateObjectType(Outline outline) {
-        ClassOutline objectTypeClassOutline = findClassOutline(outline, QNAME_OBJECT_TYPE);
+        ClassOutline objectTypeClassOutline = ProcessorUtils.findClassOutline(outline, QNAME_OBJECT_TYPE);
 
         JDefinedClass definedClass = objectTypeClassOutline.implClass;
 
@@ -174,7 +153,7 @@ public class MidPointPlugin {
     }
 
     private void updateUserType(Outline outline, JMethod getContainer) {
-        ClassOutline userType = findClassOutline(outline, QNAME_USER_TYPE);
+        ClassOutline userType = ProcessorUtils.findClassOutline(outline, QNAME_USER_TYPE);
         JDefinedClass user = userType.implClass;
 
         //all class properties (xml properties) are in this list, can be used for automatic updating

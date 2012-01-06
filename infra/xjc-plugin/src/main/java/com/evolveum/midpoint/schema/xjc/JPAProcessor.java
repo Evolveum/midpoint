@@ -19,13 +19,9 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.sun.tools.xjc.addon.apache_cxf.midpoint;
+package com.evolveum.midpoint.schema.xjc;
 
-import com.evolveum.midpoint.schema.xjc.JPAProcessor;
-import com.evolveum.midpoint.schema.xjc.Processor;
-import com.evolveum.midpoint.schema.xjc.SchemaProcessor;
 import com.sun.tools.xjc.Options;
-import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
@@ -33,29 +29,11 @@ import org.xml.sax.SAXException;
 /**
  * @author lazyman
  */
-public class MidPointPlugin extends Plugin {
-
-    private final Processor[] processors = {
-            new SchemaProcessor(),
-            new JPAProcessor()};
+public class JPAProcessor implements Processor {
 
     @Override
-    public String getOptionName() {
-        return "Xmidpoint";
-    }
+    public boolean run(Outline outline, Options options, ErrorHandler errorHandler) throws SAXException {
 
-    @Override
-    public String getUsage() {
-        return "-" + getOptionName();
-    }
-
-    @Override
-    public boolean run(Outline outline, Options opt, ErrorHandler errorHandler) throws SAXException {
-        boolean result = true;
-        for (Processor processor : processors) {
-            result &= processor.run(outline, opt, errorHandler);
-        }
-
-        return result;
+        return true;
     }
 }
