@@ -19,11 +19,13 @@
  */
 package com.evolveum.midpoint.audit.impl;
 
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
@@ -37,7 +39,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Service
 public class AuditServiceImpl implements AuditService {
 	
-	private static final Trace LOGGER = TraceManager.getTrace(AuditServiceImpl.class);
+	private static Logger LOGGER = org.slf4j.LoggerFactory.getLogger(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
 	@Autowired
 	private LightweightIdentifierGenerator lightweightIdentifierGenerator;

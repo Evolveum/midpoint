@@ -41,6 +41,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AuditingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.FileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
@@ -48,6 +49,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SubSystemLoggerConfi
 
 public class LoggingConfigurationManager {
 
+	public static final String AUDIT_LOGGER_NAME = "com.evolveum.midpoint.audit.log";
+	
 	final static Trace LOGGER = TraceManager.getTrace(LoggingConfigurationManager.class);
 
 	public static void configure(LoggingConfigurationType config, OperationResult result) {
@@ -235,6 +238,8 @@ public class LoggingConfigurationManager {
 				sb.append("/>\n");
 			}
 		}
+		
+		generateAuditingLogConfig(config.getAuditing(), sb);
 
 		if (null != config.getAdvanced()) {
 			for (Object item : config.getAdvanced().getContent()) {
@@ -244,6 +249,30 @@ public class LoggingConfigurationManager {
 		}
 		sb.append("</configuration>");
 		return sb.toString();
+	}
+
+	private static void generateAuditingLogConfig(AuditingConfigurationType auditing, StringBuilder sb) {
+		sb.append("\t<logger name=\"");
+		sb.append(AUDIT_LOGGER_NAME);
+		sb.append("\" level=\"");
+		if (auditing == null || auditing.isEnabled() == null || auditing.isEnabled()) {
+			sb.append("INFO");
+		} else {
+			sb.append("OFF");
+		}
+		sb.append("\"");
+		//if logger specific appender is defined
+		if (auditing != null && auditing.getAppender() != null && !auditing.getAppender().isEmpty()) {
+			sb.append(">\n");
+			for (String appenderName : auditing.getAppender()) {
+				sb.append("\t\t<appender-ref ref=\"");
+				sb.append(appenderName);
+				sb.append("\"/>");
+			}
+			sb.append("\t</logger>\n");
+		} else {
+			sb.append("/>\n");
+		}
 	}
 
 	private static void defineTurbo(StringBuilder sb, SubSystemLoggerConfigurationType ss) {
