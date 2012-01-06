@@ -96,8 +96,8 @@ public class XmlRepositoryService implements RepositoryService {
 	private static final Trace LOGGER = TraceManager.getTrace(XmlRepositoryService.class);
 	private ObjectPool sessions;
 
-    @Autowired(required = true)
-    private SchemaRegistry schemaRegistry;
+//    @Autowired(required = true)
+//    private SchemaRegistry schemaRegistry;
 
 	// TODO: inject from Configuration Object
 	private String host;
