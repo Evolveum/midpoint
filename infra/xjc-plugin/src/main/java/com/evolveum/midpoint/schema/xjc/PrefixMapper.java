@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.schema.xjc;
@@ -26,33 +26,39 @@ package com.evolveum.midpoint.schema.xjc;
  */
 public enum PrefixMapper {
 
-    W("http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd", "W_"),
+    W("http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd", "W_", "WORKFLOW"),
 
-    C("http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd", "C_"),
+    C("http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd", "C_", "COMMON"),
 
-    R("http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd", "R_"),
+    R("http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd", "R_", "RESOURCE"),
 
-    R_CAP("http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd", "R_CAP_"),
+    R_CAP("http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd", "R_CAP_", "CAPABILITIES"),
 
-    A("http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd", "A_"),
+    A("http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd", "A_", "ANNOTATION"),
 
-    S("http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd", "S_"),
+    S("http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd", "S_", "SITUATION"),
 
-    ICF_S("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd", "ICF_S_"),
+    ICF_S("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd", "ICF_S_", "ICF_RESOURCE"),
 
-    ICF_C("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd", "ICF_C_"),
+    ICF_C("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd", "ICF_C_", "ICF_SCHEMA"),
 
-    ENC("http://www.w3.org/2001/04/xmlenc#", "ENC_"),
+    ENC("http://www.w3.org/2001/04/xmlenc#", "ENC_", "XML_ENC"),
 
-    DSIG("http://www.w3.org/2000/09/xmldsig#", "DSIG_");
+    DSIG("http://www.w3.org/2000/09/xmldsig#", "DSIG_", "XML_DSIG");
 
     public static final String DEFAULT_PREFIX = "O_";
     private String namespace;
     private String prefix;
+    private String name;
 
-    private PrefixMapper(String namespace, String prefix) {
+    private PrefixMapper(String namespace, String prefix, String name) {
         this.namespace = namespace;
         this.prefix = prefix;
+        this.name = name;
+    }
+
+    public String getNamespaceName() {
+        return name;
     }
 
     public String getNamespace() {

@@ -23,7 +23,7 @@ package com.sun.tools.xjc.addon.apache_cxf.midpoint;
 
 import com.evolveum.midpoint.schema.xjc.JPAProcessor;
 import com.evolveum.midpoint.schema.xjc.Processor;
-import com.evolveum.midpoint.schema.xjc.SchemaProcessor;
+import com.evolveum.midpoint.schema.xjc.schema.SchemaProcessor;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.Outline;
@@ -52,8 +52,12 @@ public class MidPointPlugin extends Plugin {
     @Override
     public boolean run(Outline outline, Options opt, ErrorHandler errorHandler) throws SAXException {
         boolean result = true;
-        for (Processor processor : processors) {
-            result &= processor.run(outline, opt, errorHandler);
+        try {
+            for (Processor processor : processors) {
+                result &= processor.run(outline, opt, errorHandler);
+            }
+        } catch (Exception ex) {
+            throw new SAXException(ex.getMessage(), ex);
         }
 
         return result;

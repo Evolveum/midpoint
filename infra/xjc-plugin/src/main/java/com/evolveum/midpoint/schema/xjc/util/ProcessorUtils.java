@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.schema.xjc.util;
 
+import com.evolveum.midpoint.schema.xjc.PrefixMapper;
+import com.sun.codemodel.*;
 import com.sun.tools.xjc.model.CClassInfo;
 import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.outline.ClassOutline;
@@ -38,6 +40,27 @@ public final class ProcessorUtils {
     private ProcessorUtils() {
     }
 
+    public static String fieldFPrefixUnderscoredUpperCase(String fieldName) {
+        return "F_" + fieldUnderscoredUpperCase(fieldName);
+    }
+
+    public static String fieldPrefixedUnderscoredUpperCase(String fieldName, QName qname) {
+        String prefix = PrefixMapper.getPrefix(qname.getNamespaceURI());
+
+        return prefix + fieldUnderscoredUpperCase(fieldName);
+    }
+
+    public static String fieldUnderscoredUpperCase(String fieldName) {
+        return fieldName.replaceAll(
+                String.format("%s|%s|%s",
+                        "(?<=[A-Z])(?=[A-Z][a-z])",
+                        "(?<=[^A-Z])(?=[A-Z])",
+                        "(?<=[A-Za-z])(?=[^A-Za-z])"
+                ),
+                "_"
+        ).toUpperCase();
+    }
+
     public static ClassOutline findClassOutline(Outline outline, QName type) {
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
@@ -51,5 +74,17 @@ public final class ProcessorUtils {
         }
 
         throw new IllegalStateException("Object type class defined by qname '" + type + "' outline was not found.");
+    }
+
+    public static JFieldVar createPSFField(Outline outline, JDefinedClass definedClass, String fieldName,
+            QName reference) {
+        JClass clazz = (JClass) outline.getModel().codeModel._ref(QName.class);
+
+        JInvocation invocation = (JInvocation) JExpr._new(clazz);
+        invocation.arg(reference.getNamespaceURI());
+        invocation.arg(reference.getLocalPart());
+
+        int psf = JMod.PUBLIC | JMod.STATIC | JMod.FINAL;
+        return definedClass.field(psf, QName.class, fieldName, invocation);
     }
 }

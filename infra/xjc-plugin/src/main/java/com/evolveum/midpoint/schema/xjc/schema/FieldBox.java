@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,37 +16,35 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.schema.xjc;
+package com.evolveum.midpoint.schema.xjc.schema;
 
 import org.apache.commons.lang.Validate;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
  */
-public class FieldBox implements Comparable<FieldBox> {
+public class FieldBox<T> implements Comparable<FieldBox> {
 
     private String fieldName;
-    private QName qname;
+    private T value;
 
-    public FieldBox(String fieldName, QName qname) {
+    public FieldBox(String fieldName, T value) {
         Validate.notEmpty(fieldName, "Field name must not be null or empty.");
         Validate.notNull("QName must not be null.");
 
         this.fieldName = fieldName;
-        this.qname = qname;
+        this.value = value;
     }
 
     String getFieldName() {
         return fieldName;
     }
 
-    QName getQname() {
-        return qname;
+    T getValue() {
+        return value;
     }
 
     @Override

@@ -19,16 +19,16 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.schema.xjc;
+package com.evolveum.midpoint.schema.xjc.schema;
 
 import com.evolveum.midpoint.schema.processor.TestMidpointObject;
+import com.evolveum.midpoint.schema.xjc.PrefixMapper;
+import com.evolveum.midpoint.schema.xjc.Processor;
 import com.evolveum.midpoint.schema.xjc.util.ProcessorUtils;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.model.CClassInfo;
-import com.sun.tools.xjc.model.CElementInfo;
 import com.sun.tools.xjc.model.CPropertyInfo;
-import com.sun.tools.xjc.model.Model;
 import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
@@ -47,6 +47,8 @@ import java.util.*;
  */
 public class SchemaProcessor implements Processor {
 
+    private static final String COMPLEX_TYPE_FIELD = "COMPLEX_TYPE";
+
     private static final QName QNAME_OBJECT_TYPE = new QName(PrefixMapper.C.getNamespace(), "ObjectType");
     private static final QName QNAME_USER_TYPE = new QName(PrefixMapper.C.getNamespace(), "UserType");
     private static final QName QNAME_FULL_NAME = new QName(PrefixMapper.C.getNamespace(), "fullName");
@@ -54,12 +56,16 @@ public class SchemaProcessor implements Processor {
     @Override
     public boolean run(Outline outline, Options options, ErrorHandler errorHandler) throws SAXException {
         try {
-            addElementTypes(outline);
+            StepSchemaConstants stepSchemaConstants = new StepSchemaConstants();
+            stepSchemaConstants.run(outline, options, errorHandler);
 
-            createSchemaConstants(outline);
+            Map<String, JFieldVar> namespaceFields = stepSchemaConstants.getNamespaceFields();
+            addComplextType(outline, namespaceFields);
+            addFieldQNames(outline, namespaceFields);
 
             updateObjectType(outline);
         } catch (Exception ex) {
+            ex.printStackTrace();
             throw new RuntimeException("Couldn't process MidPoint JAXB customisation, reason: "
                     + ex.getMessage() + ", " + ex.getClass(), ex);
         }
@@ -67,65 +73,72 @@ public class SchemaProcessor implements Processor {
         return true;
     }
 
-    private void addElementTypes(Outline outline) {
+    private void addComplextType(Outline outline, Map<String, JFieldVar> namespaceFields) {
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
             QName qname = entry.getValue().getTypeName();
+            if (qname == null) {
+                continue;
+            }
 
-            if (qname != null) {
-                createPSFField(outline, classOutline.implClass, "ELEMENT_TYPE", qname);
+            JFieldVar var = namespaceFields.get(qname.getNamespaceURI());
+            if (var != null) {
+                createQNameDefinition(outline, classOutline.implClass, COMPLEX_TYPE_FIELD, var, qname);
+            } else {
+                ProcessorUtils.createPSFField(outline, classOutline.implClass, COMPLEX_TYPE_FIELD, qname);
             }
         }
     }
 
-    private JFieldVar createPSFField(Outline outline, JDefinedClass definedClass, String fieldName, QName reference) {
+    private JFieldVar createQNameDefinition(Outline outline, JDefinedClass definedClass, String fieldName,
+            JFieldVar namespaceField, QName reference) {
         JClass clazz = (JClass) outline.getModel().codeModel._ref(QName.class);
+        JClass schemaClass = (JClass) outline.getModel().codeModel._getClass(StepSchemaConstants.CLASS_NAME);
 
         JInvocation invocation = (JInvocation) JExpr._new(clazz);
-        invocation.arg(reference.getNamespaceURI());
+        invocation.arg(schemaClass.staticRef(namespaceField));
         invocation.arg(reference.getLocalPart());
 
         int psf = JMod.PUBLIC | JMod.STATIC | JMod.FINAL;
         return definedClass.field(psf, QName.class, fieldName, invocation);
     }
 
-    private void createSchemaConstants(Outline outline) throws JClassAlreadyExistsException {
-        Model model = outline.getModel();
-        JDefinedClass schemaConstants = model.codeModel._class("com.evolveum.midpoint.schema.SchemaConstants");
+    private void addFieldQNames(Outline outline, Map<String, JFieldVar> namespaceFields) {
+        Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
+        for (Map.Entry<NClass, CClassInfo> entry : set) {
+            ClassOutline classOutline = outline.getClazz(entry.getValue());
+            QName qname = entry.getValue().getTypeName();
+            if (qname == null) {
+                continue;
+            }
 
-        List<FieldBox> fields = new ArrayList<FieldBox>();
+            JDefinedClass implClass = classOutline.implClass;
+            Map<String, JFieldVar> fields = implClass.fields();
 
-        Map<QName, CElementInfo> map = model.getElementMappings(null);
-        Set<Map.Entry<QName, CElementInfo>> set = map.entrySet();
-        for (Map.Entry<QName, CElementInfo> entry : set) {
-            QName qname = entry.getKey();
-            CElementInfo info = entry.getValue();
-            String fieldName = transformFieldName(info.getSqueezedName(), qname);
+            if (fields == null) {
+                continue;
+            }
 
-            fields.add(new FieldBox(fieldName, qname));
+            List<FieldBox> boxes = new ArrayList<FieldBox>();
+            for (String field : fields.keySet()) {
+                if ("serialVersionUID".equals(field) || COMPLEX_TYPE_FIELD.equals(field)) {
+                    continue;
+                }
+
+                String fieldName = ProcessorUtils.fieldFPrefixUnderscoredUpperCase(field);
+                boxes.add(new FieldBox(fieldName, new QName(qname.getNamespaceURI(), field)));
+            }
+
+            for (FieldBox<QName> box : boxes) {
+                JFieldVar var = namespaceFields.get(qname.getNamespaceURI());
+                if (var != null) {
+                    createQNameDefinition(outline, implClass, box.getFieldName(), var, box.getValue());
+                } else {
+                    ProcessorUtils.createPSFField(outline, implClass, box.getFieldName(), box.getValue());
+                }
+            }
         }
-
-        //sort field by name and create field in class
-        Collections.sort(fields);
-        for (FieldBox field : fields) {
-            createPSFField(outline, schemaConstants, field.getFieldName(), field.getQname());
-        }
-    }
-
-    private String transformFieldName(String fieldName, QName qname) {
-        String newName = fieldName.replaceAll(
-                String.format("%s|%s|%s",
-                        "(?<=[A-Z])(?=[A-Z][a-z])",
-                        "(?<=[^A-Z])(?=[A-Z])",
-                        "(?<=[A-Za-z])(?=[^A-Za-z])"
-                ),
-                "_"
-        ).toUpperCase();
-
-        String prefix = PrefixMapper.getPrefix(qname.getNamespaceURI());
-
-        return prefix + newName;
     }
 
     private void updateObjectType(Outline outline) {
@@ -180,7 +193,7 @@ public class SchemaProcessor implements Processor {
 
     private void updateGetFullName(Outline outline, ClassOutline userType, JMethod getContainer) {
         JDefinedClass user = userType.implClass;
-        JFieldVar field = createPSFField(outline, user, "FULL_NAME", QNAME_FULL_NAME);
+        JFieldVar field = ProcessorUtils.createPSFField(outline, user, "FULL_NAME", QNAME_FULL_NAME);
 
         JMethod method = user.method(JMod.PUBLIC, String.class, "getFullName");
         JAnnotationUse annotation = method.annotate((JClass) outline.getModel().codeModel._ref(XmlElement.class));

@@ -24,12 +24,11 @@ package com.evolveum.midpoint.schema.xjc;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
 
 /**
  * @author lazyman
  */
 public interface Processor {
 
-    boolean run(Outline outline, Options opt, ErrorHandler errorHandler) throws SAXException;
+    boolean run(Outline outline, Options opt, ErrorHandler errorHandler) throws Exception;
 }
