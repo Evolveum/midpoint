@@ -21,8 +21,8 @@
 
 package com.sun.tools.xjc.addon.apache_cxf.midpoint;
 
-import com.evolveum.midpoint.schema.xjc.JPAProcessor;
 import com.evolveum.midpoint.schema.xjc.Processor;
+import com.evolveum.midpoint.schema.xjc.jpa.JPAProcessor;
 import com.evolveum.midpoint.schema.xjc.schema.SchemaProcessor;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;

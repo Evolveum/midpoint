@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,22 +16,28 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.schema.processor;
+package com.evolveum.midpoint.schema.processorFake;
 
 import javax.xml.namespace.QName;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Only till schema will be divided into multiple parts
+ *
  * @author lazyman
  */
-public class TestMidpointObject implements Serializable {
+@Deprecated
+public class MidpointObject extends PropertyContainer {
 
     private Map<QName, Object> values = new HashMap<QName, Object>();
+
+    public MidpointObject(QName qname) {
+        super(qname);
+    }
 
     public Object getValue(QName key) {
         return values.get(key);

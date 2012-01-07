@@ -19,8 +19,9 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.schema.xjc;
+package com.evolveum.midpoint.schema.xjc.jpa;
 
+import com.evolveum.midpoint.schema.xjc.Processor;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
