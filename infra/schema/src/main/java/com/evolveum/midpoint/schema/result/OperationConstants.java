@@ -29,9 +29,12 @@ public class OperationConstants {
 	public static final String PREFIX = "com.evolveum.midpoint.common.operation";
 	
 	public static final String LIVE_SYNC = PREFIX + ".liveSync";
+	public static final String RECONCILIATION = PREFIX + ".reconciliation";
 	
 	public static final String IMPORT_ACCOUNTS_FROM_RESOURCE = PREFIX + ".import.accountsFromResource";
 	public static final String IMPORT_OBJECTS_FROM_FILE = PREFIX + ".import.objectsFromFile";
 	public static final String IMPORT_OBJECTS_FROM_STREAM = PREFIX + ".import.objectsFromStream";
 	public static final String IMPORT_OBJECT = PREFIX + ".import.object";
+
+
 }
