@@ -22,8 +22,6 @@
 package com.evolveum.midpoint.schema.processorFake;
 
 import javax.xml.namespace.QName;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Only till schema will be divided into multiple parts
@@ -33,17 +31,17 @@ import java.util.Map;
 @Deprecated
 public class MidpointObject extends PropertyContainer {
 
-    private Map<QName, Object> values = new HashMap<QName, Object>();
+    private String oid;
 
     public MidpointObject(QName qname) {
         super(qname);
     }
 
-    public Object getValue(QName key) {
-        return values.get(key);
+    public String getOid() {
+        return oid;
     }
 
-    public void setValue(QName key, Object value) {
-        values.put(key, value);
+    public void setOid(String oid) {
+        this.oid = oid;
     }
 }

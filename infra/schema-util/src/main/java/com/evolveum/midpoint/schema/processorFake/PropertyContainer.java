@@ -23,6 +23,10 @@ package com.evolveum.midpoint.schema.processorFake;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Only till schema will be divided into multiple parts
@@ -33,6 +37,7 @@ import java.io.Serializable;
 public class PropertyContainer implements Serializable {
 
     private QName name;
+    private Map<QName, Set<Object>> values = new HashMap<QName, Set<Object>>();
 
     public PropertyContainer(QName name) {
         this.name = name;
@@ -44,5 +49,31 @@ public class PropertyContainer implements Serializable {
 
     public void setName(QName name) {
         this.name = name;
+    }
+
+    public Set<Object> getValues(QName key) {
+        return values.get(key);
+    }
+
+    public Object getValue(QName key) {
+        if (!values.containsKey(key)) {
+            return null;
+        }
+        Set<Object> objects = values.get(key);
+        if (objects.isEmpty()) {
+            return null;
+        }
+
+        return objects.iterator().next();
+    }
+
+    public void setValue(QName key, Object value) {
+        Set<Object> objects = values.get(key);
+        if (objects == null) {
+            objects = new HashSet<Object>();
+            values.put(key, objects);
+        }
+
+        objects.add(value);
     }
 }

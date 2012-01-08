@@ -41,10 +41,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Simple proof of concept for our custom XJC plugin.
@@ -54,6 +51,9 @@ import java.util.Set;
 public class SchemaProcessor implements Processor {
 
     private static final String COMPLEX_TYPE_FIELD = "COMPLEX_TYPE";
+    private static final String CONTAINER_FIELD_NAME = "container";
+    private static final QName PROPERTY_CONTAINER = new QName(PrefixMapper.A.getNamespace(), "propertyContainer");
+    private static final QName MIDPOINT_CONTAINER = new QName(PrefixMapper.A.getNamespace(), "midPointContainer");
 
     //todo change annotation on ObjectType in common-1.xsd to a:midPointContainer
 
@@ -67,12 +67,12 @@ public class SchemaProcessor implements Processor {
             addComplextType(outline, namespaceFields);
             addFieldQNames(outline, namespaceFields);
 
-            updateMidPointContainer(outline);
-            updatePropertyContainer(outline);
+            Set<JDefinedClass> containers = updateMidPointContainer(outline);
+            containers.addAll(updatePropertyContainer(outline));
 
             addContainerUtilMethodsToObjectType(outline);
 
-            updateFields(outline);
+            updateFields(outline, containers);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException("Couldn't process MidPoint JAXB customisation, reason: "
@@ -82,16 +82,18 @@ public class SchemaProcessor implements Processor {
         return true;
     }
 
-    private void updatePropertyContainer(Outline outline) {
-        updateContainer(outline, new QName(PrefixMapper.A.getNamespace(), "propertyContainer"), PropertyContainer.class);
+    private Set<JDefinedClass> updatePropertyContainer(Outline outline) {
+        return updateContainer(outline, PROPERTY_CONTAINER, PropertyContainer.class);
     }
 
-    private void updateMidPointContainer(Outline outline) {
-        updateContainer(outline, new QName(PrefixMapper.A.getNamespace(), "midPointContainer"), MidpointObject.class);
+    private Set<JDefinedClass> updateMidPointContainer(Outline outline) {
+        return updateContainer(outline, MIDPOINT_CONTAINER, MidpointObject.class);
     }
 
-    private void updateContainer(Outline outline, QName annotation,
+    private Set<JDefinedClass> updateContainer(Outline outline, QName annotation,
             Class<? extends PropertyContainer> containerClass) {
+
+        Set<JDefinedClass> containers = new HashSet<JDefinedClass>();
 
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
@@ -107,10 +109,11 @@ public class SchemaProcessor implements Processor {
             }
 
             JDefinedClass definedClass = classOutline.implClass;
+            containers.add(definedClass);
 
             //inserting MidPointObject field into ObjectType class
             JClass clazz = (JClass) outline.getModel().codeModel._ref(containerClass);
-            JVar container = definedClass.field(JMod.PRIVATE, containerClass, "container");
+            JVar container = definedClass.field(JMod.PRIVATE, containerClass, CONTAINER_FIELD_NAME);
             //adding XmlTransient annotation
             container.annotate((JClass) outline.getModel().codeModel._ref(XmlTransient.class));
 
@@ -128,30 +131,38 @@ public class SchemaProcessor implements Processor {
             body._return(container);
 
             //create setContainer
-            JMethod setContainer = definedClass.method(JMod.PUBLIC, void.class, "setContainer");
-            addDeprecation(outline, setContainer); //add deprecation
-            JVar methodContainer = setContainer.param(containerClass, "container");
-            //create method body
-            body = setContainer.body();
-            then = body._if(methodContainer.eq(JExpr._null()))._then();
-            then.assign(container, JExpr._null());
-            then._return();
-
-            JInvocation equals = JExpr.invoke(JExpr.ref(COMPLEX_TYPE_FIELD), "equals");
-            equals.arg(methodContainer.invoke("getName"));
-
-            then = body._if(equals.not())._then();
-            JClass illegalArgumentClass = (JClass) outline.getModel().codeModel._ref(IllegalArgumentException.class);
-            JInvocation exception = JExpr._new(illegalArgumentClass);
-
-            JExpression message = JExpr.lit("Container qname '").plus(JExpr.invoke(methodContainer, "getName"))
-                    .plus(JExpr.lit("' doesn't equals to '")).plus(JExpr.ref(COMPLEX_TYPE_FIELD))
-                    .plus(JExpr.lit("'."));
-            exception.arg(message);
-            then._throw(exception);
-
-            body.assign(JExpr._this().ref(container), methodContainer);
+            createSetContainerMethod(definedClass, container, containerClass, outline);
         }
+
+        return containers;
+    }
+
+    private void createSetContainerMethod(JDefinedClass definedClass, JVar container,
+            Class<? extends PropertyContainer> containerClass, Outline outline) {
+
+        JMethod setContainer = definedClass.method(JMod.PUBLIC, void.class, "setContainer");
+        addDeprecation(outline, setContainer); //add deprecation
+        JVar methodContainer = setContainer.param(containerClass, "container");
+        //create method body
+        JBlock body = setContainer.body();
+        JBlock then = body._if(methodContainer.eq(JExpr._null()))._then();
+        then.assign(container, JExpr._null());
+        then._return();
+
+        JInvocation equals = JExpr.invoke(JExpr.ref(COMPLEX_TYPE_FIELD), "equals");
+        equals.arg(methodContainer.invoke("getName"));
+
+        then = body._if(equals.not())._then();
+        JClass illegalArgumentClass = (JClass) outline.getModel().codeModel._ref(IllegalArgumentException.class);
+        JInvocation exception = JExpr._new(illegalArgumentClass);
+
+        JExpression message = JExpr.lit("Container qname '").plus(JExpr.invoke(methodContainer, "getName"))
+                .plus(JExpr.lit("' doesn't equals to '")).plus(JExpr.ref(COMPLEX_TYPE_FIELD))
+                .plus(JExpr.lit("'."));
+        exception.arg(message);
+        then._throw(exception);
+
+        body.assign(JExpr._this().ref(container), methodContainer);
     }
 
     private boolean hasAnnotation(ClassOutline classOutline, QName qname) {
@@ -253,7 +264,7 @@ public class SchemaProcessor implements Processor {
         }
     }
 
-    private void updateFields(Outline outline) {
+    private void updateFields(Outline outline, Set<JDefinedClass> containers) {
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
@@ -274,12 +285,25 @@ public class SchemaProcessor implements Processor {
                     continue;
                 }
 
-                if ("oid".equals(field)) {
-                    updateOidField(classOutline);
+                JFieldVar fieldVar = fields.get(field);
+                boolean isPublicStaticFinal = (fieldVar.mods().getValue() & (JMod.STATIC | JMod.FINAL)) != 0;
+                if (field.startsWith("F_") && isPublicStaticFinal) {
+                    //our QName constant fields
                     continue;
                 }
 
-                updateField(classOutline, field);
+                if (isPropertyContainer(fieldVar, outline)) {
+                    //it's PropertyContainer, MidPointObject
+                    continue;
+                }
+
+                if ("oid".equals(field)) {
+                    updateOidField(fieldVar, classOutline, outline);
+                } else if (isFieldTypeContainer(fieldVar, outline)) {
+                    updateContainerFieldType(fieldVar, outline);
+                } else {
+                    updateField(fieldVar, classOutline, outline);
+                }
             }
         }
     }
@@ -342,11 +366,43 @@ public class SchemaProcessor implements Processor {
         body._throw(exception);
     }
 
-    private void updateOidField(ClassOutline classOutline) {
+    private boolean isPropertyContainer(JFieldVar field, Outline outline) {
+        if (!CONTAINER_FIELD_NAME.equals(field.name())) {
+            return false;
+        }
+
+        JClass propertyContainer = (JClass) outline.getModel().codeModel._ref(PropertyContainer.class);
+        JClass midpointObject = (JClass) outline.getModel().codeModel._ref(MidpointObject.class);
+
+        JType type = field.type();
+        if (type.equals(propertyContainer) || type.equals(midpointObject)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean isFieldTypeContainer(JFieldVar field, Outline outline) {
+        JType type = field.type();
+
+        if (!(type instanceof JDefinedClass)) {
+            return false;
+        }
+        JDefinedClass clazz = (JDefinedClass) type;
+//        System.out.println(">>> " + field.name() + ": " + clazz.fullName());
+
+        return false;
+    }
+
+    private void updateOidField(JFieldVar field, ClassOutline classOutline, Outline outline) {
 
     }
 
-    private void updateField(ClassOutline classOutline, String field) {
+    private void updateContainerFieldType(JFieldVar field, Outline outline) {
+
+    }
+
+    private void updateField(JFieldVar field, ClassOutline classOutline, Outline outline) {
 
     }
 }
