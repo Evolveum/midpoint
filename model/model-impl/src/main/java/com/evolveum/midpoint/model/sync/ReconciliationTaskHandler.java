@@ -25,10 +25,20 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ResultList;
+import com.evolveum.midpoint.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
+import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -37,8 +47,12 @@ import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * The task hander for reconciliation.
@@ -61,7 +75,19 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	@Autowired(required=true)
 	private ProvisioningService provisioningService;
 	
+	@Autowired(required=true)
+	private RepositoryService repositoryService;
+	
+	@Autowired(required=true)
+	private SchemaRegistry schemaRegistry;
+	
+    @Autowired(required = true)
+    private UserSynchronizer userSynchronizer;
+
+	
 	private static final transient Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
+
+	private static final int SEARCH_MAX_SIZE = 100;
 
 	@PostConstruct
 	private void initialize() {
@@ -83,35 +109,41 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 			if (resourceOid==null) {
 				// This is a user reconciliation
-				performUserReconciliation();
+				performUserReconciliation(opResult);
 				return runResult;
 			} else {
-				performResourceReconciliation();
+				performResourceReconciliation(opResult);
 			}
 		
 			
-//		} catch (ObjectNotFoundException ex) {
-//			LOGGER.error("Reconciliation: Resource does not exist, OID: {}",resourceOid,ex);
-//			// This is bad. The resource does not exist. Permanent problem.
-//			opResult.recordFatalError("Resource does not exist, OID: "+resourceOid,ex);
-//			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-//			runResult.setProgress(progress);
-//			return runResult;
-//		} catch (CommunicationException ex) {
-//			LOGGER.error("Reconciliation: Communication error: {}",ex.getMessage(),ex);
-//			// Error, but not critical. Just try later.
-//			opResult.recordPartialError("Communication error: "+ex.getMessage(),ex);
-//			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-//			runResult.setProgress(progress);
-//			return runResult;
-//		} catch (SchemaException ex) {
-//			LOGGER.error("Reconciliation: Error dealing with schema: {}",ex.getMessage(),ex);
-//			// Not sure about this. But most likely it is a misconfigured resource or connector
-//			// It may be worth to retry. Error is fatal, but may not be permanent.
-//			opResult.recordFatalError("Error dealing with schema: "+ex.getMessage(),ex);
-//			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-//			runResult.setProgress(progress);
-//			return runResult;
+		} catch (ObjectNotFoundException ex) {
+			LOGGER.error("Reconciliation: Resource does not exist, OID: {}",resourceOid,ex);
+			// This is bad. The resource does not exist. Permanent problem.
+			opResult.recordFatalError("Resource does not exist, OID: "+resourceOid,ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
+		} catch (CommunicationException ex) {
+			LOGGER.error("Reconciliation: Communication error: {}",ex.getMessage(),ex);
+			// Error, but not critical. Just try later.
+			opResult.recordPartialError("Communication error: "+ex.getMessage(),ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
+		} catch (SchemaException ex) {
+			LOGGER.error("Reconciliation: Error dealing with schema: {}",ex.getMessage(),ex);
+			// Not sure about this. But most likely it is a misconfigured resource or connector
+			// It may be worth to retry. Error is fatal, but may not be permanent.
+			opResult.recordFatalError("Error dealing with schema: "+ex.getMessage(),ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
+		} catch (ExpressionEvaluationException ex) {
+			LOGGER.error("Reconciliation: Error evaluating expression: {}",ex.getMessage(),ex);
+			opResult.recordFatalError("Error evaluating expression: "+ex.getMessage(),ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
 		} catch (RuntimeException ex) {
 			LOGGER.error("Reconciliation: Internal Error: {}",ex.getMessage(),ex);
 			// Can be anything ... but we can't recover from that.
@@ -130,14 +162,54 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		return runResult;
 	}
 
-	private void performResourceReconciliation() {
+	private void performResourceReconciliation(OperationResult result) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	private void performUserReconciliation() {
-		// TODO Auto-generated method stub
+	/**
+	 * Iterate over all the users, trigger a reconciliation (recompute) of each of them
+	 * @throws SchemaException 
+	 */
+	private void performUserReconciliation(OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
 		
+		PagingType paging = new PagingType();
+		
+		int offset = 0;
+		while (true) {
+			paging.setOffset(offset);
+			paging.setMaxSize(SEARCH_MAX_SIZE);
+			ResultList<UserType> users = repositoryService.listObjects(UserType.class, paging, result);
+			if (users == null || users.isEmpty()) {
+				break;
+			}
+			for (UserType user : users) {
+				OperationResult subResult = result.createSubresult(OperationConstants.RECONCILE_USER);
+				reconcileUser(user, subResult);
+			}
+			offset += SEARCH_MAX_SIZE;
+		}
+		
+		// TODO: result
+		
+	}
+
+	private void reconcileUser(UserType user, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
+		LOGGER.trace("Reconciling user {}",ObjectTypeUtil.toShortString(user));
+		
+		SyncContext syncContext = new SyncContext();
+		syncContext.setUserTypeOld(user);
+		Schema objectSchema = schemaRegistry.getObjectSchema();
+		MidPointObject<UserType> mpUser = objectSchema.parseObjectType(user);
+		syncContext.setUserOld(mpUser);
+		syncContext.setUserOid(user.getOid());
+
+		syncContext.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
+		
+		userSynchronizer.synchronizeUser(syncContext, result);
+		
+		// TODO
+		LOGGER.trace("Reconciling of user {}: {}",ObjectTypeUtil.toShortString(user),result.getStatus());
 	}
 
 	@Override

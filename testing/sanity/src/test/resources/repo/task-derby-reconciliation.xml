@@ -20,9 +20,9 @@
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 
-<!-- Synchronization task definition for OpenDJ resource -->
+<!--Reconciliation task definition for Derby resource -->
 
-<task oid="91919191-76e0-59e2-86d6-3d4f02d3ffff"
+<task oid="91919191-76e0-59e2-86d6-3d4f02d3dddd"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -30,19 +30,18 @@
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
-	<name>Synchronization: Embedded Test OpenDJ</name>
+	<!-- Resource printable name -->
+	<name>Reconciliation: Derby</name>
 	
 	<extension>
-		<my:shipState>capsized</my:shipState>
-		<my:dead xsi:type="xsd:integer">42</my:dead>
 	</extension>
 	
-	<taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
+	<taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3dddd</taskIdentifier>
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>running</executionStatus>
 	<exclusivityStatus>released</exclusivityStatus>
-	<handlerUri>http://midpoint.evolveum.com/model/sync/handler-1</handlerUri>
-	<objectRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
+	<handlerUri>http://midpoint.evolveum.com/model/sync/reconciliation-handler-1</handlerUri>
+	<objectRef oid="ef2bc95b-76e0-59e2-86d6-999902d3abab"/>
 	<recurrence>recurring</recurrence>
 	<binding>tight</binding>
 	<schedule>

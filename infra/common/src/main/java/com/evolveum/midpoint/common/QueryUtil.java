@@ -218,4 +218,12 @@ public class QueryUtil {
         query.setFilter(filter);
         return query;
     }
+
+	/**
+	 * Returns query that returns all objects.
+	 */
+	public static QueryType createAllObjectsQuery() {
+		// Create empty filter. This returns all objects of a type given as an argument to searchObjects.
+		return new QueryType();
+	}
 }

@@ -125,6 +125,9 @@ public class TestSanity extends AbstractIntegrationTest {
     private static final String TASK_OPENDJ_SYNC_FILENAME = "src/test/resources/repo/opendj-sync-task.xml";
     private static final String TASK_OPENDJ_SYNC_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
 
+    private static final String TASK_USER_RECON_FILENAME = "src/test/resources/repo/task-user-reconciliation.xml";
+    private static final String TASK_USER_RECON_OID = "91919191-76e0-59e2-86d6-3d4f02d3aaaa";
+
     private static final String SAMPLE_CONFIGURATION_OBJECT_FILENAME = "src/test/resources/repo/sample-configuration-object.xml";
     private static final String SAMPLE_CONFIGURATION_OBJECT_OID = "c0c010c0-d34d-b33f-f00d-999111111111";
 
@@ -2012,6 +2015,21 @@ public class TestSanity extends AbstractIntegrationTest {
 
     // TODO: insert changes in OpenDJ, let the cycle pick them up
 
+    /**
+     * Not really a test. Just cleans up after live sync.
+     * @throws ObjectNotFoundException 
+     */
+    @Test
+    public void test199LiveSyncCleanup() throws ObjectNotFoundException {
+    	displayTestTile("test199LiveSyncCleanup");
+    	final OperationResult result = new OperationResult(TestSanity.class.getName()
+                + ".test199LiveSyncCleanup");
+
+        taskManager.deleteTask(TASK_OPENDJ_SYNC_OID, result);
+        
+        // TODO: check if the task is really stopped
+    }
+    
     @Test
     public void test200ImportFromResource() throws Exception {
         displayTestTile("test200ImportFromResource");
@@ -2198,6 +2216,80 @@ public class TestSanity extends AbstractIntegrationTest {
             }
         }
     }
+    
+    @Test
+    public void test300ReconcileUsers() throws Exception {
+    	displayTestTile("test300ReconcileUsers");
+        // GIVEN
+    	
+        final OperationResult result = new OperationResult(TestSanity.class.getName()
+                + ".test300ReconcileUsers");
+
+        addObjectFromFile(TASK_USER_RECON_FILENAME, result);
+
+
+        // We need to wait for a sync interval, so the task scanner has a chance
+        // to pick up this
+        // task
+
+        waitFor("Waiting for task manager to pick up the task", new Checker() {
+            public boolean check() throws ObjectNotFoundException, SchemaException {
+                Task task = taskManager.getTask(TASK_USER_RECON_OID, result);
+                display("Task while waiting for task manager to pick up the task", task);
+                // wait until the task is picked up
+                if (TaskExclusivityStatus.CLAIMED == task.getExclusivityStatus()) {
+                    // wait until the first run is finished
+                    if (task.getLastRunFinishTimestamp() == null) {
+                        return false;
+                    }
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public void timeout() {
+                // No reaction, the test will fail right after return from this
+            }
+        }, 20000);
+
+        // Check task status
+
+        Task task = taskManager.getTask(TASK_USER_RECON_OID, result);
+        result.computeStatus();
+        display("getTask result", result);
+        assertSuccess("getTask has failed", result);
+        AssertJUnit.assertNotNull(task);
+        display("Task after pickup", task);
+
+        ObjectType o = repositoryService.getObject(ObjectType.class, TASK_USER_RECON_OID, null, result);
+        display("Task after pickup in the repository", o);
+
+        // .. it should be running
+        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
+
+        // .. and claimed
+        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
+
+        // .. and last run should not be zero
+        assertNotNull(task.getLastRunStartTimestamp());
+        AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
+        assertNotNull(task.getLastRunFinishTimestamp());
+        AssertJUnit.assertFalse(task.getLastRunFinishTimestamp().longValue() == 0);
+
+        // The progress should be 0, as there were no changes yet
+        AssertJUnit.assertEquals(0, task.getProgress());
+
+        // Test for presence of a result. It should be there and it should
+        // indicate success
+        OperationResult taskResult = task.getResult();
+        AssertJUnit.assertNotNull(taskResult);
+
+        // Failure is expected here ... for now
+        // assertTrue(taskResult.isSuccess());
+
+    }
+
 
     @Test
     public void test999Shutdown() throws Exception {

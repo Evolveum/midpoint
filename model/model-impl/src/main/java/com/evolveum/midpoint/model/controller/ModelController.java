@@ -442,7 +442,7 @@ public class ModelController implements ModelService {
     	return executePostChange(deltas, task, result);
     }
 
-    private SyncContext userTypeAddToContext(UserType userType, Schema commonSchema, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException {
+    private SyncContext userTypeAddToContext(UserType userType, Schema objectSchema, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException {
 
         SyncContext syncContext = new SyncContext();
 
@@ -456,14 +456,14 @@ public class ModelController implements ModelService {
                     userType.getAccountRef().add(accountRef);
                 } else {
                     // new account (no OID)
-                    addAccountToContext(syncContext, accountType, ChangeType.ADD, commonSchema, result);
+                    addAccountToContext(syncContext, accountType, ChangeType.ADD, objectSchema, result);
                 }
                 userType.getAccount().remove(accountType);
             }
         }
 
         ObjectDelta<UserType> userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD);
-        MidPointObject<UserType> mpUser = commonSchema.parseObjectType(userType);
+        MidPointObject<UserType> mpUser = objectSchema.parseObjectType(userType);
         userDelta.setObjectToAdd(mpUser);
 
         syncContext.setUserOld(null);
