@@ -23,14 +23,16 @@ package com.evolveum.midpoint.schema.xjc.util;
 
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
 import com.sun.codemodel.*;
+import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.model.CClassInfo;
+import com.sun.tools.xjc.model.CPropertyInfo;
 import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
 
 import javax.xml.namespace.QName;
-import java.util.Map;
-import java.util.Set;
+import java.lang.reflect.Field;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -86,5 +88,117 @@ public final class ProcessorUtils {
 
         int psf = JMod.PUBLIC | JMod.STATIC | JMod.FINAL;
         return definedClass.field(psf, QName.class, fieldName, invocation);
+    }
+
+    public static String getGetterMethod(ClassOutline classOutline, JFieldVar field) {
+        CPropertyInfo prop = classOutline.target.getProperty(field.name());
+        JType type = field.type();
+        Options options = classOutline.parent().getModel().options;
+        JCodeModel codeModel = classOutline.parent().getCodeModel();
+
+        if (options.enableIntrospection) {
+            return ((type.isPrimitive() && type.boxify().getPrimitiveType() == codeModel.BOOLEAN) ?
+                    "is" : "get") + prop.getName(true);
+        } else {
+            return (type.boxify().getPrimitiveType() == codeModel.BOOLEAN ? "is" : "get") + prop.getName(true);
+        }
+    }
+
+    public static String getSetterMethod(ClassOutline classOutline, JFieldVar field) {
+        CPropertyInfo prop = classOutline.target.getProperty(field.name());
+
+        return "set" + prop.getName(true);
+    }
+
+    public static JMethod recreateMethod(JMethod method, JDefinedClass definedClass) {
+        Iterator<JMethod> methods = definedClass.methods().iterator();
+        while (methods.hasNext()) {
+            if (method.equals(methods.next())) {
+                methods.remove();
+                break;
+            }
+        }
+
+        JMods mods = method.mods();
+        JMethod newMethod = definedClass.method(mods.getValue(), method.type(), method.name());
+        JVar[] params = method.listParams();
+        if (params == null) {
+            return newMethod;
+        }
+
+        for (JVar param : params) {
+            newMethod.param(param.type(), param.name());
+        }
+
+        return newMethod;
+    }
+
+    public static void copyAnnotations(JAnnotatable to, JAnnotatable... froms) {
+        List<JAnnotationUse> annotations = new ArrayList<JAnnotationUse>();
+        for (JAnnotatable from : froms) {
+            List<JAnnotationUse> existingAnnotations = (List<JAnnotationUse>) getAnnotations(from);
+            if (existingAnnotations != null && !existingAnnotations.isEmpty()) {
+                annotations.addAll(existingAnnotations);
+            }
+        }
+        if (annotations.isEmpty()) {
+            return;
+        }
+
+        //let's try dirty copy (it's only inside class)
+        try {
+            Class clazz = to.getClass();
+            Field annotationsField = getField(clazz, "annotations");
+            if (annotationsField == null) {
+                throw new IllegalStateException("Couldn't find annotations field in " + froms);
+            }
+            annotationsField.setAccessible(true);
+            annotationsField.set(to, annotations);
+            annotationsField.setAccessible(false);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new IllegalStateException(ex.getMessage(), ex);
+        }
+    }
+
+    private static List<JAnnotationUse> getAnnotations(JAnnotatable from) {
+        List<JAnnotationUse> annotations = new ArrayList<JAnnotationUse>();
+
+        try {
+            Class clazz = from.getClass();
+            Field annotationsField = getField(clazz, "annotations");
+            if (annotationsField == null) {
+                throw new IllegalStateException("Couldn't find annotations field in " + from);
+            }
+
+            annotationsField.setAccessible(true);
+            List<JAnnotationUse> list = (List<JAnnotationUse>) annotationsField.get(from);
+            annotationsField.setAccessible(false);
+            if (list != null) {
+                annotations.addAll(list);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new IllegalStateException(ex.getMessage(), ex);
+        }
+
+        return annotations;
+    }
+
+    private static Field getField(Class clazz, String name) {
+        Field[] fields = clazz.getDeclaredFields();
+        if (fields != null) {
+            for (Field field : fields) {
+                if (field.getName().equals(name)) {
+                    return field;
+                }
+            }
+        }
+
+        if (clazz.getSuperclass() != null) {
+            return getField(clazz.getSuperclass(), name);
+        }
+
+        return null;
     }
 }

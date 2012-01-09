@@ -254,6 +254,8 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:propertyContainer/>
+                <!-- todo remove later -->
+                <a:midPointContainer/>
             </xsd:appinfo>
         </xsd:annotation>
 
@@ -5705,7 +5707,7 @@
                         THIS WILL CHANGE IN THE FUTURE.
                     </xsd:documentation>
                 </xsd:annotation>
-            </xsd:element>            
+            </xsd:element>
             <xsd:element name="advanced" type="tns:AdvancedLoggingConfigurationType" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>

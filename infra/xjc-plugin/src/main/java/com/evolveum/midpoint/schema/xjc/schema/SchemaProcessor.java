@@ -67,12 +67,12 @@ public class SchemaProcessor implements Processor {
             addComplextType(outline, namespaceFields);
             addFieldQNames(outline, namespaceFields);
 
-            Set<JDefinedClass> containers = updateMidPointContainer(outline);
-            containers.addAll(updatePropertyContainer(outline));
+//            Set<JDefinedClass> containers = updateMidPointContainer(outline);
+//            containers.addAll(updatePropertyContainer(outline));
 
-            addContainerUtilMethodsToObjectType(outline);
+//            addContainerUtilMethodsToObjectType(outline);
 
-            updateFields(outline, containers);
+//            updateFields(outline, containers);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException("Couldn't process MidPoint JAXB customisation, reason: "
@@ -108,33 +108,47 @@ public class SchemaProcessor implements Processor {
                 continue;
             }
 
+            //todo remove, only till propertyContainer annotation is on ObjectType
+            if (hasAnnotation(classOutline, MIDPOINT_CONTAINER) && hasAnnotation(classOutline, PROPERTY_CONTAINER)
+                    && annotation.equals(PROPERTY_CONTAINER)) {
+                continue;
+            }
+
             JDefinedClass definedClass = classOutline.implClass;
             containers.add(definedClass);
 
             //inserting MidPointObject field into ObjectType class
-            JClass clazz = (JClass) outline.getModel().codeModel._ref(containerClass);
             JVar container = definedClass.field(JMod.PRIVATE, containerClass, CONTAINER_FIELD_NAME);
             //adding XmlTransient annotation
             container.annotate((JClass) outline.getModel().codeModel._ref(XmlTransient.class));
 
             //create getContainer
-            JMethod getContainer = definedClass.method(JMod.PUBLIC, clazz, "getContainer");
-            addDeprecation(outline, getContainer); //add deprecation
-            //create method body
-            JBlock body = getContainer.body();
-            JBlock then = body._if(container.eq(JExpr._null()))._then();
-
-            JInvocation newContainer = (JInvocation) JExpr._new(clazz);
-            newContainer.arg(JExpr.ref(COMPLEX_TYPE_FIELD));
-            then.assign(container, newContainer);
-
-            body._return(container);
+            createGetContainerMethod(definedClass, container, containerClass, outline);
 
             //create setContainer
             createSetContainerMethod(definedClass, container, containerClass, outline);
         }
 
         return containers;
+    }
+
+    private void createGetContainerMethod(JDefinedClass definedClass, JVar container,
+            Class<? extends PropertyContainer> containerClass, Outline outline) {
+
+        JClass clazz = (JClass) outline.getModel().codeModel._ref(containerClass);
+        JMethod getContainer = definedClass.method(JMod.PUBLIC, clazz, "getContainer");
+        //add deprecation
+        addDeprecation(outline, getContainer);
+
+        //create method body
+        JBlock body = getContainer.body();
+        JBlock then = body._if(container.eq(JExpr._null()))._then();
+
+        JInvocation newContainer = (JInvocation) JExpr._new(clazz);
+        newContainer.arg(JExpr.ref(COMPLEX_TYPE_FIELD));
+        then.assign(container, newContainer);
+
+        body._return(container);
     }
 
     private void createSetContainerMethod(JDefinedClass definedClass, JVar container,
@@ -280,6 +294,15 @@ public class SchemaProcessor implements Processor {
                 continue;
             }
 
+            if (!isPropertyContainer(classOutline.implClass, outline)) {
+                //it's PropertyContainer, MidPointObject class
+                continue;
+            }
+
+            System.out.println("Updating container fields and get/set methods: " + classOutline.implClass.fullName());
+
+            List<JFieldVar> fieldsToBeRemoved = new ArrayList<JFieldVar>();
+            boolean remove;
             for (String field : fields.keySet()) {
                 if ("serialVersionUID".equals(field) || COMPLEX_TYPE_FIELD.equals(field)) {
                     continue;
@@ -292,18 +315,23 @@ public class SchemaProcessor implements Processor {
                     continue;
                 }
 
-                if (isPropertyContainer(fieldVar, outline)) {
-                    //it's PropertyContainer, MidPointObject
-                    continue;
+                System.out.println("Updating field: " + fieldVar.name());
+                if ("oid".equals(field)) {
+                    remove = updateOidField(fieldVar, classOutline);
+                } else if (isFieldTypeContainer(fieldVar, outline)) {
+                    remove = updateContainerFieldType(fieldVar, classOutline);
+                } else {
+                    remove = updateField(fieldVar, classOutline);
                 }
 
-                if ("oid".equals(field)) {
-                    updateOidField(fieldVar, classOutline, outline);
-                } else if (isFieldTypeContainer(fieldVar, outline)) {
-                    updateContainerFieldType(fieldVar, outline);
-                } else {
-                    updateField(fieldVar, classOutline, outline);
+                if (remove) {
+                    fieldsToBeRemoved.add(fieldVar);
                 }
+            }
+
+            //todo uncomment field removing
+            for (JFieldVar field : fieldsToBeRemoved) {
+                implClass.removeField(field);
             }
         }
     }
@@ -325,19 +353,19 @@ public class SchemaProcessor implements Processor {
         getPropertyValues.param(QName.class, "name");
         JClass clazz = (JClass) outline.getModel().codeModel.ref(Class.class).narrow(T);
         getPropertyValues.param(clazz, "clazz");
-        notYetImplementedException(outline, getPropertyValues);
+        createGetPropertiesBody(getPropertyValues, outline);
 
         JMethod getPropertyValue = implClass.method(JMod.NONE, Object.class, "getPropertyValue");
         T = getPropertyValue.generify("T");
         getPropertyValue.type(T);
         getPropertyValue.param(QName.class, "name");
-        notYetImplementedException(outline, getPropertyValue);
+        createGetPropertyBody(getPropertyValue, outline);
 
         JMethod setPropertyValue = implClass.method(JMod.NONE, void.class, "setPropertyValue");
         T = setPropertyValue.generify("T");
         setPropertyValue.param(QName.class, "name");
         setPropertyValue.param(T, "value");
-        notYetImplementedException(outline, setPropertyValue);
+        createSetPropertyBody(setPropertyValue, outline);
     }
 
     /**
@@ -366,7 +394,38 @@ public class SchemaProcessor implements Processor {
         body._throw(exception);
     }
 
-    private boolean isPropertyContainer(JFieldVar field, Outline outline) {
+    private boolean isPropertyContainer(JDefinedClass definedClass, Outline outline) {
+        if (definedClass == null) {
+            return false;
+        }
+
+        ClassOutline classOutline = null;
+        for (ClassOutline clazz : outline.getClasses()) {
+            if (definedClass.equals(clazz.implClass)) {
+                classOutline = clazz;
+                break;
+            }
+        }
+
+        if (classOutline == null) {
+            return false;
+        }
+
+        boolean isContainer = hasAnnotation(classOutline, PROPERTY_CONTAINER)
+                || hasAnnotation(classOutline, MIDPOINT_CONTAINER);
+
+        if (isContainer) {
+            return true;
+        }
+
+        if (!(definedClass._extends() instanceof JDefinedClass)) {
+            return false;
+        }
+
+        return isPropertyContainer((JDefinedClass) definedClass._extends(), outline);
+    }
+
+    private boolean isFieldTypeContainer(JFieldVar field, Outline outline) {
         if (!CONTAINER_FIELD_NAME.equals(field.name())) {
             return false;
         }
@@ -382,27 +441,76 @@ public class SchemaProcessor implements Processor {
         return false;
     }
 
-    private boolean isFieldTypeContainer(JFieldVar field, Outline outline) {
-        JType type = field.type();
+    private boolean updateOidField(JFieldVar field, ClassOutline classOutline) {
+        JDefinedClass definedClass = classOutline.implClass;
 
-        if (!(type instanceof JDefinedClass)) {
-            return false;
-        }
-        JDefinedClass clazz = (JDefinedClass) type;
-//        System.out.println(">>> " + field.name() + ": " + clazz.fullName());
+        Outline outline = classOutline.parent();
+        JClass string = (JClass) outline.getModel().codeModel._ref(String.class);
+        JMethod method = definedClass.getMethod("getOid", new JType[]{});
+        method = ProcessorUtils.recreateMethod(method, definedClass);
+        JBlock body = method.body();
+        body._return(JExpr.invoke("getContainer").invoke("getOid"));
+        ProcessorUtils.copyAnnotations(field, method);
 
+        method = definedClass.getMethod("setOid", new JType[]{string});
+        method = ProcessorUtils.recreateMethod(method, definedClass);
+        body = method.body();
+        JInvocation invocation = body.invoke(JExpr.invoke("getContainer"), method.name());
+        invocation.arg(method.listParams()[0]);
+
+        return true;
+    }
+
+    private void createGetPropertiesBody(JMethod method, Outline outline) {
+        //todo implement
+        notYetImplementedException(outline, method);
+    }
+
+    private void createGetPropertyBody(JMethod method, Outline outline) {
+        //todo implement
+        notYetImplementedException(outline, method);
+    }
+
+    private void createSetPropertyBody(JMethod method, Outline outline) {
+        //todo implement
+        notYetImplementedException(outline, method);
+    }
+
+    private boolean updateContainerFieldType(JFieldVar field, ClassOutline classOutline) {
         return false;
     }
 
-    private void updateOidField(JFieldVar field, ClassOutline classOutline, Outline outline) {
+    private boolean updateField(JFieldVar field, ClassOutline classOutline) {
+        JDefinedClass definedClass = classOutline.implClass;
+        //update getter
+        String methodName = ProcessorUtils.getGetterMethod(classOutline, field);
+        JMethod method = definedClass.getMethod(methodName, new JType[]{});
+        method = ProcessorUtils.recreateMethod(method, definedClass);
+        ProcessorUtils.copyAnnotations(field, method);
 
-    }
+        if (1 == 1) {
+            return false;
+        }
 
-    private void updateContainerFieldType(JFieldVar field, Outline outline) {
+        JClass list = (JClass) classOutline.parent().getModel().codeModel._ref(List.class);
+        JType type = field.type();
+        ////todo comparing types generics wont work...
+        boolean isList = list.equals(field.type());
 
-    }
+        //todo implement getter body
 
-    private void updateField(JFieldVar field, ClassOutline classOutline, Outline outline) {
+        //update setter
+        if (isList) {
+            //setter for list field members was not created
+            return true;
+        }
 
+        methodName = ProcessorUtils.getSetterMethod(classOutline, field);
+        method = definedClass.getMethod(methodName, new JType[]{field.type()});
+        method = ProcessorUtils.recreateMethod(method, definedClass);
+
+        //todo implement setter body
+
+        return true;
     }
 }
