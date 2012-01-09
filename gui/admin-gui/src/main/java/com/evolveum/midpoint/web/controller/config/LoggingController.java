@@ -52,6 +52,7 @@ import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AuditingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.FileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingComponentType;
@@ -95,6 +96,8 @@ public class LoggingController implements Serializable {
 
 	private boolean selectAllLoggers = false;
 	private boolean selectAllAppenders = false;
+	private boolean enableAuditLog = true;
+	private AuditingConfigurationType audit;
 
 	public List<SelectItem> getLevels() {
 		List<SelectItem> levels = new ArrayList<SelectItem>();
@@ -190,6 +193,24 @@ public class LoggingController implements Serializable {
 
 	public void selectAllLoggersPerformed(ValueChangeEvent evt) {
 		ControllerUtil.selectAllPerformed(evt, getLoggers());
+	}
+	
+	public List<String> getAuditAppenders() {
+		List<String> appendersList = new ArrayList<String>();
+		for (String item : audit.getAppender()) {
+			appendersList.add(item);
+		}
+
+		Collections.sort(appendersList);
+
+		if (appendersList.isEmpty()) {
+			appendersList.add("");
+		} else {
+			appendersList.add(0, "");
+		}
+
+		return appendersList;
+		//return auditAppenders;
 	}
 
 	public List<SelectItem> getAppenderNames() {
@@ -379,7 +400,9 @@ public class LoggingController implements Serializable {
 
 		selectAllAppenders = false;
 		selectAllLoggers = false;
-		
+		audit = new AuditingConfigurationType();
+		audit.setEnabled(enableAuditLog);
+
 		OperationResult result = new OperationResult("Load Logging Configuration");
 
 		
@@ -739,6 +762,14 @@ public class LoggingController implements Serializable {
 		configuration.getClassLogger().add(logger);
 
 		return configuration;
+	}
+	
+	public boolean isEnableAuditLog() {
+		return enableAuditLog;
+	}
+
+	public void setEnableAuditLog(boolean enableAuditLog) {
+		this.enableAuditLog = enableAuditLog;
 	}
 
 	public List<SubsystemLoggerListItem> getSubsystemLoggers() {
