@@ -353,7 +353,7 @@ public class MidPointFacesMessages extends HtmlMessages {
 
 			if (ourCause != null) {
 				StackTraceElement[] causedTrace = ourCause.getStackTrace();
-				writer.write("Caused by:<br />");
+				writer.write("Caused by: "+ourCause.getClass().getName()+": "+ourCause.getMessage()+"<br />");
 				for (int i = 0; i < causedTrace.length; i++) {
 					writer.write("&nbsp;&nbsp;&nbsp;&nbsp; at " + causedTrace[i] + "<br />");
 				}
