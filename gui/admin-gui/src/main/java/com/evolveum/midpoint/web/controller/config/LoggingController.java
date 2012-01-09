@@ -194,24 +194,6 @@ public class LoggingController implements Serializable {
 	public void selectAllLoggersPerformed(ValueChangeEvent evt) {
 		ControllerUtil.selectAllPerformed(evt, getLoggers());
 	}
-	
-	public List<String> getAuditAppenders() {
-		List<String> appendersList = new ArrayList<String>();
-		for (String item : audit.getAppender()) {
-			appendersList.add(item);
-		}
-
-		Collections.sort(appendersList);
-
-		if (appendersList.isEmpty()) {
-			appendersList.add("");
-		} else {
-			appendersList.add(0, "");
-		}
-
-		return appendersList;
-		//return auditAppenders;
-	}
 
 	public List<SelectItem> getAppenderNames() {
 		List<SelectItem> appenders = new ArrayList<SelectItem>();

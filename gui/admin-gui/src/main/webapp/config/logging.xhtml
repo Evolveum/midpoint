@@ -285,8 +285,8 @@
 					</ice:selectBooleanCheckbox>
 			<ice:outputLabel style="margin-left: 25px;"
 				value="#{msg['web.bean.basicLoggerListItem.appender']}" />
-			<ice:selectOneMenu>
-				<f:selectItems value="#{logging.auditAppenders}" />
+			<ice:selectOneMenu value="logging.audit.appender">
+				<f:selectItems value="#{logging.appenderNames}" />
 			</ice:selectOneMenu>
 
 			<div class="button-bar" style="margin-top: 20px;">
