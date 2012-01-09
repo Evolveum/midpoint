@@ -20,7 +20,6 @@
 package com.evolveum.midpoint.test.ldap;
 
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,6 +27,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.Enumeration;
@@ -196,8 +197,9 @@ public class OpenDJController {
 	 * templateServerRoot).
 	 * 
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
-	public void refreshFromTemplate() throws IOException {
+	public void refreshFromTemplate() throws IOException, URISyntaxException {
 		deleteDirectory(serverRoot);
 		extractTemplate(serverRoot);
 	}
@@ -207,8 +209,9 @@ public class OpenDJController {
 	 * 
 	 * @param destination
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
-	private void extractTemplate(File dst) throws IOException {
+	private void extractTemplate(File dst) throws IOException, URISyntaxException {
 
 		LOGGER.info("Extracting OpenDJ template....");
 		if (!dst.exists()) {
@@ -230,11 +233,15 @@ public class OpenDJController {
 		// file:/C:/.m2/repository/test-util/1.9-SNAPSHOT/test-util-1.9-SNAPSHOT.jar!/test-data/opendj.template
 		// output:
 		// /C:/.m2/repository/test-util/1.9-SNAPSHOT/test-util-1.9-SNAPSHOT.jar
+		//
+		// beware that in the URL there can be spaces encoded as %20, e.g.
+		// file:/C:/Documents%20and%20Settings/user/.m2/repository/com/evolveum/midpoint/infra/test-util/2.0-SNAPSHOT/test-util-2.0-SNAPSHOT.jar!/test-data/opendj.template
+		//
 		if (srcUrl.getPath().contains("!/")) {
-			String srcName = srcUrl.getPath().substring(5).split("!/")[0];
-
-			JarFile jar = new JarFile(srcName);
-			LOGGER.debug("Extracting OpenDJ from JAR file {} to {}", srcName, dst.getPath());
+			URI srcFileUri = new URI(srcUrl.getPath().split("!/")[0]);		// e.g. file:/C:/Documents%20and%20Settings/user/.m2/repository/com/evolveum/midpoint/infra/test-util/2.0-SNAPSHOT/test-util-2.0-SNAPSHOT.jar 
+			File srcFile = new File(srcFileUri);
+			JarFile jar = new JarFile(srcFile);
+			LOGGER.debug("Extracting OpenDJ from JAR file {} to {}", srcFile.getPath(), dst.getPath());
 
 			Enumeration<JarEntry> entries = jar.entries();
 
@@ -319,8 +326,9 @@ public class OpenDJController {
 	 * 
 	 * @return
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
-	public InternalClientConnection startCleanServer() throws IOException {
+	public InternalClientConnection startCleanServer() throws IOException, URISyntaxException {
 		refreshFromTemplate();
 		return start();
 	}
