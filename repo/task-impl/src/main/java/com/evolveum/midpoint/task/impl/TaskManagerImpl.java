@@ -22,6 +22,7 @@ package com.evolveum.midpoint.task.impl;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -35,8 +36,12 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ConcurrencyException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -49,11 +54,15 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExclusivityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 /**
@@ -106,6 +115,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	@PostConstruct
 	public void init() {
 		LOGGER.info("Task Manager initialization");
+		releaseClaimedTasks();
 		startInternalThreads();
 		LOGGER.info("Task Manager initialized");
 	}
@@ -254,13 +264,17 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		if (task.getPersistenceStatus() == TaskPersistenceStatus.TRANSIENT)
 			persist(task, result);
 
+		releaseTaskByOid(task.getOid(), result);
+	}
+	
+	private void releaseTaskByOid(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		try {
-			repositoryService.releaseTask(task.getOid(), result);
+			repositoryService.releaseTask(oid, result);
 		} catch (ObjectNotFoundException ex) {
-			result.recordFatalError("Task not found", ex);
+			result.recordFatalError("Cannot release task, as it was not found", ex);
 			throw ex;
 		} catch (SchemaException ex) {
-			result.recordPartialError("Schema error", ex);
+			result.recordPartialError("Cannot release task due to schema error", ex);
 			throw ex;
 		}
 	}
@@ -552,6 +566,58 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	public boolean getServiceThreadsActivationState() {
 		return threadsRunning;
 	}
+
+
+	/**
+	 * Releases all tasks that are errorneously claimed at the time of system startup.
+	 * (Works only as long as there is only one node executing tasks ... but that's ok for now.) 
+	 */
+	private void releaseClaimedTasks() {
+		
+		OperationResult result = new OperationResult(TaskManagerImpl.class.getName() + ".releaseClaimedTasks");
+		PagingType paging = new PagingType();
+		QueryType query;
+		List<TaskType> tasks = null;
+		try {
+			query = createQueryForClaimedTasks();
+			tasks = repositoryService.searchObjects(TaskType.class, query, paging, result);
+		} catch (SchemaException e) {
+			LOGGER.error("Task manager cannot search for tasks that were left claimed", e);
+			return;
+		}
+
+		if (tasks != null && tasks.size() > 0) {
+			LOGGER.info("Task manager found {} task(s) left in CLAIMED state, and is about to release them.", tasks.size());
+			for (TaskType task : tasks) {
+				LOGGER.info("Releasing task " + task.getName() + " (OID: " + task.getOid() + ")");
+				try {
+					releaseTaskByOid(task.getOid(), result);
+				} catch (Exception e) {
+					LOGGER.error("Task manager cannot release a task that was left claimed; OID = " + task.getOid(), e);
+				}
+			}
+		} else
+			LOGGER.info("Task manager found no tasks left in CLAIMED state.");
+	}
+	
+	private QueryType createQueryForClaimedTasks() throws SchemaException { // Look for claimed tasks
+
+		Document doc = DOMUtil.getDocument();
+
+		Element exclusivityStatusElement = doc.createElementNS(SchemaConstants.C_TASK_EXECLUSIVITY_STATUS.getNamespaceURI(),
+				SchemaConstants.C_TASK_EXECLUSIVITY_STATUS.getLocalPart());
+		exclusivityStatusElement.setTextContent(TaskExclusivityStatusType.CLAIMED.value());
+
+		// We have all the data, we can construct the filter now
+		Element filter = QueryUtil.createEqualFilter(doc, null, exclusivityStatusElement);
+
+		QueryType query = new QueryType();
+		query.setFilter(filter);
+		return query;
+	}
+
+
+
 
 	
 }

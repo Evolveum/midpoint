@@ -200,7 +200,7 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 	public void destroy() {
 		if (shutdown) {
 			if (server != null) {
-				LOGGER.info("Basex server commiting to shutdown.");
+				LOGGER.info("Basex server committing to shutdown.");
 				server.stop();
 				LOGGER.info("Basex server is down.");
 			}
