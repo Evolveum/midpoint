@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -294,15 +295,13 @@ public final class JAXBUtil {
 			// IllegalArgumentException("Not an xml string (doesn't start with < and finish with >.");
 		}
 
-		InputStream stream = null;
+		StringReader reader = null;
 		try {
-			stream = IOUtils.toInputStream(xmlString, "utf-8");
-			return unmarshal(type, stream);
-		} catch (IOException ex) {
-			throw new JAXBException(ex);
+			reader = new StringReader(xmlString); 
+			return unmarshal(type, reader);
 		} finally {
-			if (stream != null) {
-				IOUtils.closeQuietly(stream);
+			if (reader != null) {
+				IOUtils.closeQuietly(reader);
 			}
 		}
 	}
@@ -314,6 +313,13 @@ public final class JAXBUtil {
 	@SuppressWarnings("unchecked")
 	public static <T> JAXBElement<T> unmarshal(Class<T> type, InputStream input) throws JAXBException {
 		Object object = createUnmarshaller().unmarshal(input);
+		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
+		return jaxbElement;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> JAXBElement<T> unmarshal(Class<T> type, Reader reader) throws JAXBException {
+		Object object = createUnmarshaller().unmarshal(reader);
 		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
 		return jaxbElement;
 	}
@@ -359,15 +365,15 @@ public final class JAXBUtil {
 			throw new IllegalArgumentException("File argument can't be null.");
 		}
 
-		Reader reader = null;
+		InputStream is = null;
 		try {
-			reader = new InputStreamReader(new FileInputStream(file), "utf-8");
-			return createUnmarshaller().unmarshal(reader);
+			is = new FileInputStream(file);
+			return createUnmarshaller().unmarshal(is);
 		} catch (IOException ex) {
 			throw new JAXBException("Couldn't parse file: " + file.getAbsolutePath(), ex);
 		} finally {
-			if (reader != null) {
-				IOUtils.closeQuietly(reader);
+			if (is != null) {
+				IOUtils.closeQuietly(is);
 			}
 		}
 	}
