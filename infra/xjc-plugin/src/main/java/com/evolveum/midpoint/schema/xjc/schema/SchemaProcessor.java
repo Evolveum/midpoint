@@ -54,6 +54,9 @@ public class SchemaProcessor implements Processor {
     private static final String CONTAINER_FIELD_NAME = "container";
     private static final QName PROPERTY_CONTAINER = new QName(PrefixMapper.A.getNamespace(), "propertyContainer");
     private static final QName MIDPOINT_CONTAINER = new QName(PrefixMapper.A.getNamespace(), "midPointContainer");
+    private static final String METHOD_GET_PROPERTY_VALUE = "getPropertyValue";
+    private static final String METHOD_GET_PROPERTY_VALUES = "getPropertyValues";
+    private static final String METHOD_SET_PROPERTY_VALUE = "setPropertyValue";
 
     //todo change annotation on ObjectType in common-1.xsd to a:midPointContainer
 
@@ -69,9 +72,9 @@ public class SchemaProcessor implements Processor {
 
 //            Set<JDefinedClass> containers = updateMidPointContainer(outline);
 //            containers.addAll(updatePropertyContainer(outline));
-
+//
 //            addContainerUtilMethodsToObjectType(outline);
-
+//
 //            updateFields(outline, containers);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -259,7 +262,7 @@ public class SchemaProcessor implements Processor {
 
             List<FieldBox<QName>> boxes = new ArrayList<FieldBox<QName>>();
             for (String field : fields.keySet()) {
-                if ("serialVersionUID".equals(field) || COMPLEX_TYPE_FIELD.equals(field)) {
+                if ("serialVersionUID".equals(field) || "oid".equals(field) || COMPLEX_TYPE_FIELD.equals(field)) {
                     continue;
                 }
 
@@ -315,12 +318,15 @@ public class SchemaProcessor implements Processor {
                     continue;
                 }
 
-                System.out.println("Updating field: " + fieldVar.name());
+                remove = false;
                 if ("oid".equals(field)) {
+                    System.out.println("Updating oid field: " + fieldVar);
                     remove = updateOidField(fieldVar, classOutline);
                 } else if (isFieldTypeContainer(fieldVar, outline)) {
+                    System.out.println("Updating container field: " + fieldVar);
                     remove = updateContainerFieldType(fieldVar, classOutline);
                 } else {
+                    System.out.println("Updating field: " + fieldVar);
                     remove = updateField(fieldVar, classOutline);
                 }
 
@@ -346,7 +352,7 @@ public class SchemaProcessor implements Processor {
 
         JDefinedClass implClass = classOutline.implClass;
 
-        JMethod getPropertyValues = implClass.method(JMod.NONE, List.class, "getPropertyValues");
+        JMethod getPropertyValues = implClass.method(JMod.NONE, List.class, METHOD_GET_PROPERTY_VALUES);
         JTypeVar T = getPropertyValues.generify("T");
         JClass listClass = (JClass) outline.getModel().codeModel.ref(List.class).narrow(T);
         getPropertyValues.type(listClass);
@@ -355,13 +361,15 @@ public class SchemaProcessor implements Processor {
         getPropertyValues.param(clazz, "clazz");
         createGetPropertiesBody(getPropertyValues, outline);
 
-        JMethod getPropertyValue = implClass.method(JMod.NONE, Object.class, "getPropertyValue");
+        JMethod getPropertyValue = implClass.method(JMod.NONE, Object.class, METHOD_GET_PROPERTY_VALUE);
         T = getPropertyValue.generify("T");
         getPropertyValue.type(T);
         getPropertyValue.param(QName.class, "name");
+        clazz = (JClass) outline.getModel().codeModel.ref(Class.class).narrow(T);
+        getPropertyValue.param(clazz, "clazz");
         createGetPropertyBody(getPropertyValue, outline);
 
-        JMethod setPropertyValue = implClass.method(JMod.NONE, void.class, "setPropertyValue");
+        JMethod setPropertyValue = implClass.method(JMod.NONE, void.class, METHOD_SET_PROPERTY_VALUE);
         T = setPropertyValue.generify("T");
         setPropertyValue.param(QName.class, "name");
         setPropertyValue.param(T, "value");
@@ -446,11 +454,11 @@ public class SchemaProcessor implements Processor {
 
         Outline outline = classOutline.parent();
         JClass string = (JClass) outline.getModel().codeModel._ref(String.class);
-        JMethod method = definedClass.getMethod("getOid", new JType[]{});
-        method = ProcessorUtils.recreateMethod(method, definedClass);
+        JMethod oldMethod = definedClass.getMethod("getOid", new JType[]{});
+        JMethod method = ProcessorUtils.recreateMethod(oldMethod, definedClass);
         JBlock body = method.body();
         body._return(JExpr.invoke("getContainer").invoke("getOid"));
-        ProcessorUtils.copyAnnotations(field, method);
+        ProcessorUtils.copyAnnotations(method, field, oldMethod);
 
         method = definedClass.getMethod("setOid", new JType[]{string});
         method = ProcessorUtils.recreateMethod(method, definedClass);
@@ -477,6 +485,7 @@ public class SchemaProcessor implements Processor {
     }
 
     private boolean updateContainerFieldType(JFieldVar field, ClassOutline classOutline) {
+        //todo implement
         return false;
     }
 
@@ -484,20 +493,17 @@ public class SchemaProcessor implements Processor {
         JDefinedClass definedClass = classOutline.implClass;
         //update getter
         String methodName = ProcessorUtils.getGetterMethod(classOutline, field);
-        JMethod method = definedClass.getMethod(methodName, new JType[]{});
-        method = ProcessorUtils.recreateMethod(method, definedClass);
-        ProcessorUtils.copyAnnotations(field, method);
-
-        if (1 == 1) {
-            return false;
-        }
+        JMethod oldMethod = definedClass.getMethod(methodName, new JType[]{});
+        JMethod method = ProcessorUtils.recreateMethod(oldMethod, definedClass);
+        ProcessorUtils.copyAnnotations(method, field, oldMethod);
 
         JClass list = (JClass) classOutline.parent().getModel().codeModel._ref(List.class);
         JType type = field.type();
-        ////todo comparing types generics wont work...
-        boolean isList = list.equals(field.type());
-
-        //todo implement getter body
+        boolean isList = false;
+        if (type instanceof JClass) {
+            isList = list.equals(((JClass) type).erasure());
+        }
+        createFieldGetterBody(method, field, classOutline, isList);
 
         //update setter
         if (isList) {
@@ -508,9 +514,45 @@ public class SchemaProcessor implements Processor {
         methodName = ProcessorUtils.getSetterMethod(classOutline, field);
         method = definedClass.getMethod(methodName, new JType[]{field.type()});
         method = ProcessorUtils.recreateMethod(method, definedClass);
+        createFieldSetterBody(method, field, classOutline);
 
-        //todo implement setter body
 
         return true;
+    }
+
+    private void createFieldSetterBody(JMethod method, JFieldVar field, ClassOutline classOutline) {
+        JBlock body = method.body();
+
+        JInvocation invocation = body.invoke(METHOD_SET_PROPERTY_VALUE);
+        //push arguments
+        invocation.arg(JExpr.ref(ProcessorUtils.fieldFPrefixUnderscoredUpperCase(field.name())));
+        invocation.arg(method.listParams()[0]);
+    }
+
+    private void createFieldGetterBody(JMethod method, JFieldVar field, ClassOutline classOutline, boolean isList) {
+        JBlock body = method.body();
+
+        JInvocation invocation;
+        if (isList) {
+            invocation = JExpr.invoke(METHOD_GET_PROPERTY_VALUES);
+        } else {
+            invocation = JExpr.invoke(METHOD_GET_PROPERTY_VALUE);
+        }
+        //push arguments
+        invocation.arg(JExpr.ref(ProcessorUtils.fieldFPrefixUnderscoredUpperCase(field.name())));
+        JType type = field.type();
+        if (type.isPrimitive()) {
+            JPrimitiveType primitive = (JPrimitiveType) type;
+            invocation.arg(JExpr.dotclass(primitive.boxify()));
+        } else {
+            JClass clazz = (JClass) type;
+            if (isList) {
+                invocation.arg(JExpr.dotclass(clazz.getTypeParameters().get(0)));
+            } else {
+                invocation.arg(JExpr.dotclass(clazz));
+            }
+        }
+
+        body._return(invocation);
     }
 }

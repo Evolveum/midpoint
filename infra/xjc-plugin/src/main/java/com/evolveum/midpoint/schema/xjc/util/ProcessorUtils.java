@@ -145,6 +145,8 @@ public final class ProcessorUtils {
             return;
         }
 
+        System.out.println("Copying " + annotations.size() + " annotations.");
+
         //let's try dirty copy (it's only inside class)
         try {
             Class clazz = to.getClass();
