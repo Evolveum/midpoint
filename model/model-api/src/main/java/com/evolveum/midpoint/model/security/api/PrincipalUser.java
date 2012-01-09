@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,15 +16,15 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.model.security.api;
 
-import java.io.Serializable;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import org.apache.commons.lang.Validate;
 
-import org.apache.commons.lang.StringUtils;
+import java.io.Serializable;
 
 /**
  * Temporary place, till we create special component for it
@@ -34,76 +34,58 @@ import org.apache.commons.lang.StringUtils;
  */
 public class PrincipalUser implements Serializable {
 
-	private static final long serialVersionUID = 8299738301872077768L;
-	private String oid;
-	private String name;
-	private String givenName;
-	private String familyName;
-	private String fullName;
-	private Credentials credentials;
-	private boolean enabled;
+    private static final long serialVersionUID = 8299738301872077768L;
+    private UserType user;
+    private Credentials credentials;
+    private boolean enabled;
 
-	public PrincipalUser(String oid, String name, boolean enabled) {
-		if (StringUtils.isEmpty(oid)) {
-			throw new IllegalArgumentException("User oid can't be null, or empty.");
-		}
-		if (StringUtils.isEmpty(name)) {
-			throw new IllegalArgumentException("User name can't be null.");
-		}
-		this.oid = oid;
-		this.name = name;
-		this.enabled = enabled;
-	}
+    public PrincipalUser(UserType user, boolean enabled) {
+        Validate.notNull(user, "User must not be null.");
+        this.user = user;
+        this.enabled = enabled;
+    }
 
-	public String getFamilyName() {
-		return familyName;
-	}
+    public UserType getUser() {
+        return user;
+    }
 
-	public void setFamilyName(String familyName) {
-		this.familyName = familyName;
-	}
+    public String getName() {
+        return getUser().getName();
+    }
 
-	public String getFullName() {
-		return fullName;
-	}
+    public String getFamilyName() {
+        return getUser().getFamilyName();
+    }
 
-	public void setFullName(String fullName) {
-		this.fullName = fullName;
-	}
+    public String getFullName() {
+        return getUser().getFullName();
+    }
 
-	public String getGivenName() {
-		return givenName;
-	}
+    public String getGivenName() {
+        return getUser().getGivenName();
+    }
 
-	public void setGivenName(String givenName) {
-		this.givenName = givenName;
-	}
+    public Credentials getCredentials() {
+        if (credentials == null) {
+            credentials = new Credentials();
+        }
 
-	public Credentials getCredentials() {
-		if (credentials == null) {
-			credentials = new Credentials();
-		}
+        return credentials;
+    }
 
-		return credentials;
-	}
+    void setCredentials(Credentials credentials) {
+        this.credentials = credentials;
+    }
 
-	void setCredentials(Credentials credentials) {
-		this.credentials = credentials;
-	}
+    public boolean isEnabled() {
+        return enabled;
+    }
 
-	public boolean isEnabled() {
-		return enabled;
-	}
+    void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 
-	void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
-
-	public String getOid() {
-		return oid;
-	}
-
-	public String getName() {
-		return name;
-	}
+    public String getOid() {
+        return getUser().getOid();
+    }
 }

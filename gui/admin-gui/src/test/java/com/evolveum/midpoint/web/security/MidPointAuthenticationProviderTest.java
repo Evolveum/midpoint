@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.security;
 import com.evolveum.midpoint.model.security.api.Credentials;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -124,7 +125,7 @@ public class MidPointAuthenticationProviderTest extends AbstractTestNGSpringCont
         provider.setMaxFailedLogins(1);
 
         final String username = "administrator";
-        final PrincipalUser user = new PrincipalUser("1", username, true);
+        final PrincipalUser user = new PrincipalUser(new UserType(), true);
         Credentials credentials = user.getCredentials();
 //		credentials.setPassword("asdf", "base64");
         try {
@@ -147,7 +148,7 @@ public class MidPointAuthenticationProviderTest extends AbstractTestNGSpringCont
         provider.setMaxFailedLogins(1);
 
         final String username = "administrator";
-        final PrincipalUser user = new PrincipalUser("1", username, true);
+        final PrincipalUser user = new PrincipalUser(new UserType(), true);
         Credentials credentials = user.getCredentials();
 //		credentials.setPassword("asdf", "base64");
         try {
@@ -173,7 +174,7 @@ public class MidPointAuthenticationProviderTest extends AbstractTestNGSpringCont
         provider.setMaxFailedLogins(-3);
 
         final String username = "administrator";
-        final PrincipalUser user = new PrincipalUser("1", username, true);
+        final PrincipalUser user = new PrincipalUser(new UserType(), true);
         Credentials credentials = user.getCredentials();
 //		credentials.setPassword("asdf", "base64");
         try {
@@ -197,7 +198,7 @@ public class MidPointAuthenticationProviderTest extends AbstractTestNGSpringCont
         provider.setMaxFailedLogins(3);
 
         final String username = "administrator";
-        final PrincipalUser user = new PrincipalUser("1", username, true);
+        final PrincipalUser user = new PrincipalUser(new UserType(), true);
         Credentials credentials = user.getCredentials();
 //		credentials.setPassword("asdf", "base64");
         try {

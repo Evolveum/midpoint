@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,19 +16,12 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 package com.evolveum.midpoint.web.model.impl;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SystemException;
@@ -39,195 +32,198 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
-import com.evolveum.midpoint.web.model.AccountManager;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.dto.ObjectDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
- * 
  * @author lazyman
- * 
  */
 public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDto<C>> implements
-		ObjectManager<T>, Serializable {
+        ObjectManager<T>, Serializable {
 
-	private static final long serialVersionUID = -7853884441389039036L;
-	private static final Trace LOGGER = TraceManager.getTrace(ObjectManagerImpl.class);
-	@Autowired(required = true)
-	private transient ModelService model;
-	@Autowired(required = true)
-	private transient TaskManager taskManager;
-	private AccountManager accountManager;
-	private SecurityUtils secUtils;
+    private static final long serialVersionUID = -7853884441389039036L;
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectManagerImpl.class);
+    @Autowired(required = true)
+    private transient ModelService model;
+    @Autowired(required = true)
+    private transient TaskManager taskManager;
 
-	protected ModelService getModel() {
-		return model;
-	}
-	
-	protected TaskManager getTaskManager() {
-		return taskManager;
-	}
+    protected ModelService getModel() {
+        return model;
+    }
 
-	@Override
-	public Collection<T> list() {
-		return list(null);
-	}
+    protected TaskManager getTaskManager() {
+        return taskManager;
+    }
 
-	@Override
-	public List<PropertyAvailableValues> getPropertyAvailableValues(String oid, List<String> properties) {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
+    @Override
+    public Collection<T> list() {
+        return list(null);
+    }
 
-	protected <O extends ObjectType> O get(Class<O> objectClass, String oid, PropertyReferenceListType resolve)
-			throws ObjectNotFoundException {
-		Validate.notEmpty(oid, "Object oid must not be null or empty.");
-		Validate.notNull(resolve, "Property reference list must not be null.");
-		Validate.notNull(objectClass, "Object class must not be null.");
+    @Override
+    public List<PropertyAvailableValues> getPropertyAvailableValues(String oid, List<String> properties) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 
-		LOGGER.debug("Get object with oid {}.", new Object[] { oid });
-		OperationResult result = new OperationResult(GET);
+    protected <O extends ObjectType> O get(Class<O> objectClass, String oid, PropertyReferenceListType resolve)
+            throws ObjectNotFoundException {
+        Validate.notEmpty(oid, "Object oid must not be null or empty.");
+        Validate.notNull(resolve, "Property reference list must not be null.");
+        Validate.notNull(objectClass, "Object class must not be null.");
 
-		O objectType = null;
-		try {
-			objectType = getModel().getObject(objectClass, oid, resolve, result);
-			result.recordSuccess();
-		} catch (ObjectNotFoundException ex) {
-			throw ex;
-		} catch (SystemException ex) {
-			throw ex;
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get object {} from model", ex, oid);
-			result.recordFatalError(ex);
-			throw new SystemException("Couldn't get object with oid '" + oid + "'.", ex);
-		} finally {
-			result.computeStatus();
-		}
+        LOGGER.debug("Get object with oid {}.", new Object[]{oid});
+        OperationResult result = new OperationResult(GET);
 
-		ControllerUtil.printResults(LOGGER, result, null);
+        O objectType = null;
+        try {
+            objectType = getModel().getObject(objectClass, oid, resolve, result);
+            result.recordSuccess();
+        } catch (ObjectNotFoundException ex) {
+            throw ex;
+        } catch (SystemException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't get object {} from model", ex, oid);
+            result.recordFatalError(ex);
+            throw new SystemException("Couldn't get object with oid '" + oid + "'.", ex);
+        } finally {
+            result.computeStatus();
+        }
 
-		return objectType;
-	}
+        ControllerUtil.printResults(LOGGER, result, null);
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public T get(String oid, PropertyReferenceListType resolve) {
-		Validate.notEmpty(oid, "Object oid must not be null or empty.");
-		LOGGER.debug("Get object with oid {}.", new Object[] { oid });
-		OperationResult result = new OperationResult(GET);
+        return objectType;
+    }
 
-		T object = null;
-		try {
-			ObjectType objectType = get(getSupportedObjectClass(), oid, resolve);
-			isObjectTypeSupported(objectType);
-			object = createObject((C) objectType);
-			result.recordSuccess();
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get object {} from model", ex, oid);
-			result.recordFatalError(ex);
-		} finally {
-			result.computeStatus();
-		}
+    @SuppressWarnings("unchecked")
+    @Override
+    public T get(String oid, PropertyReferenceListType resolve) {
+        Validate.notEmpty(oid, "Object oid must not be null or empty.");
+        LOGGER.debug("Get object with oid {}.", new Object[]{oid});
+        OperationResult result = new OperationResult(GET);
 
-		ControllerUtil.printResults(LOGGER, result, null);
+        T object = null;
+        try {
+            ObjectType objectType = get(getSupportedObjectClass(), oid, resolve);
+            isObjectTypeSupported(objectType);
+            object = createObject((C) objectType);
+            result.recordSuccess();
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't get object {} from model", ex, oid);
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatus();
+        }
 
-		return object;
-	}
+        ControllerUtil.printResults(LOGGER, result, null);
 
-	@Override
-	public void delete(String oid) {
-		Validate.notEmpty(oid, "Object oid must not be null or empty.");
-		LOGGER.debug("Deleting object '" + oid + "'.");
+        return object;
+    }
 
-		Task task = taskManager.createTaskInstance(DELETE);
-		OperationResult result = task.getResult();
-		try {
-			getModel().deleteObject(getSupportedObjectClass(), oid, task, result);
-			result.recordSuccess();
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't delete object {} from model", ex, oid);
-			result.recordFatalError(ex);
-		} finally {
-			result.computeStatus();
-		}
+    @Override
+    public void delete(String oid) {
+        Validate.notEmpty(oid, "Object oid must not be null or empty.");
+        LOGGER.debug("Deleting object '" + oid + "'.");
 
-		ControllerUtil.printResults(LOGGER, result, null);
-	}
+        Task task = taskManager.createTaskInstance(DELETE);
+        OperationResult result = task.getResult();
+        try {
+            getModel().deleteObject(getSupportedObjectClass(), oid, task, result);
+            result.recordSuccess();
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't delete object {} from model", ex, oid);
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatus();
+        }
 
-	@Override
-	public String add(T object) {
-		Validate.notNull(object, "Object must not be null.");
-		Validate.notNull(object.getXmlObject(), "Xml object type in object must not be null.");
-		LOGGER.debug("Adding object '" + object.getName() + "'.");
+        ControllerUtil.printResults(LOGGER, result, null);
+    }
 
-		OperationResult result = new OperationResult(ADD);
-		Task task = taskManager.createTaskInstance();
-		// TODO: task initialization
-		String oid = null;
-		try {
-			task.setOwner(accountManager.listOwner(secUtils.getUserOid()));
-			oid = getModel().addObject(object.getXmlObject(), task, result);
-			result.recordSuccess();
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't add object {} to model", ex, object.getName());
-			result.recordFatalError(ex);
-		} finally {
-			result.computeStatus();
-		}
+    @Override
+    public String add(T object) {
+        Validate.notNull(object, "Object must not be null.");
+        Validate.notNull(object.getXmlObject(), "Xml object type in object must not be null.");
+        LOGGER.debug("Adding object '" + object.getName() + "'.");
 
-		ControllerUtil.printResults(LOGGER, result, null);
+        OperationResult result = new OperationResult(ADD);
+        Task task = taskManager.createTaskInstance();
+        // TODO: task initialization
+        String oid = null;
+        try {
+            SecurityUtils security = new SecurityUtils();
+            PrincipalUser principal = security.getPrincipalUser();
+            task.setOwner(principal.getUser());
+            oid = getModel().addObject(object.getXmlObject(), task, result);
+            result.recordSuccess();
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't add object {} to model", ex, object.getName());
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatus();
+        }
 
-		return oid;
-	}
+        ControllerUtil.printResults(LOGGER, result, null);
 
-	protected <O extends ObjectType> Collection<O> list(PagingType paging, Class<O> type) {
-		Validate.notNull(type, "Class object must not be null.");
+        return oid;
+    }
 
-		Collection<O> collection = new ArrayList<O>();
-		OperationResult result = new OperationResult(LIST);
-		try {
-			List<O> objectList = getModel().listObjects(type, paging, result);
-			LOGGER.debug("Found {} objects of type {}.", new Object[] { objectList.size(), type });
-			for (O objectType : objectList) {
-				collection.add(objectType);
-			}
-			result.recordSuccess();
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't list {} objects from model", ex, type);
-			result.recordFatalError(ex);
-		} finally {
-			result.computeStatus();
-		}
+    protected <O extends ObjectType> Collection<O> list(PagingType paging, Class<O> type) {
+        Validate.notNull(type, "Class object must not be null.");
 
-		ControllerUtil.printResults(LOGGER, result, null);
-		return collection;
-	}
+        Collection<O> collection = new ArrayList<O>();
+        OperationResult result = new OperationResult(LIST);
+        try {
+            List<O> objectList = getModel().listObjects(type, paging, result);
+            LOGGER.debug("Found {} objects of type {}.", new Object[]{objectList.size(), type});
+            for (O objectType : objectList) {
+                collection.add(objectType);
+            }
+            result.recordSuccess();
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't list {} objects from model", ex, type);
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatus();
+        }
 
-	@SuppressWarnings("unchecked")
-	protected Collection<T> list(PagingType paging, ObjectTypes type) {
-		Validate.notNull(type, "Object type must not be null.");
-		LOGGER.debug("Listing '" + type.getObjectTypeUri() + "' objects.");
+        ControllerUtil.printResults(LOGGER, result, null);
+        return collection;
+    }
 
-		Collection<T> collection = new ArrayList<T>();
-		Collection<ObjectType> objects = (Collection<ObjectType>) list(paging, type.getClassDefinition());
-		for (ObjectType objectType : objects) {
-			isObjectTypeSupported(objectType);
+    @SuppressWarnings("unchecked")
+    protected Collection<T> list(PagingType paging, ObjectTypes type) {
+        Validate.notNull(type, "Object type must not be null.");
+        LOGGER.debug("Listing '" + type.getObjectTypeUri() + "' objects.");
 
-			collection.add(createObject((C) objectType));
-		}
+        Collection<T> collection = new ArrayList<T>();
+        Collection<ObjectType> objects = (Collection<ObjectType>) list(paging, type.getClassDefinition());
+        for (ObjectType objectType : objects) {
+            isObjectTypeSupported(objectType);
 
-		return collection;
-	}
+            collection.add(createObject((C) objectType));
+        }
 
-	@Override
-	public T create() {
-		return createObject(null);
-	}
+        return collection;
+    }
+
+    @Override
+    public T create() {
+        return createObject(null);
+    }
 
 //	protected void printResults(Trace logger, OperationResult result) {
 //		if (result == null) {
@@ -242,17 +238,17 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 //		}
 //	}
 
-	private void isObjectTypeSupported(ObjectType object) {
-		Class<? extends ObjectType> type = getSupportedObjectClass();
-		Validate.notNull(type, "Supported object class must not be null.");
+    private void isObjectTypeSupported(ObjectType object) {
+        Class<? extends ObjectType> type = getSupportedObjectClass();
+        Validate.notNull(type, "Supported object class must not be null.");
 
-		if (!type.isAssignableFrom(object.getClass())) {
-			throw new IllegalArgumentException("Object type '" + object.getClass()
-					+ "' is not supported, supported class is '" + type + "'.");
-		}
-	}
+        if (!type.isAssignableFrom(object.getClass())) {
+            throw new IllegalArgumentException("Object type '" + object.getClass()
+                    + "' is not supported, supported class is '" + type + "'.");
+        }
+    }
 
-	protected abstract Class<? extends ObjectType> getSupportedObjectClass();
+    protected abstract Class<? extends ObjectType> getSupportedObjectClass();
 
-	protected abstract T createObject(C objectType);
+    protected abstract T createObject(C objectType);
 }
