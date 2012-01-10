@@ -45,8 +45,8 @@
         <intercept-url pattern="/error.iface" access="permitAll"/>
         <intercept-url pattern="/login.iface" access="permitAll"/>
         <intercept-url pattern="/j_spring_security_check" access="permitAll"/>
-        <intercept-url pattern="/user-gui/**" access="hasAnyRole('ROLE_USER','ROLE_ADMIN')"/>
-        <intercept-url pattern="/**" access="hasRole('ROLE_ADMIN')"/>
+        <intercept-url pattern="/user/**" access="hasAnyRole('ROLE_USER','ROLE_ADMIN')"/>
+        <intercept-url pattern="/admin/**" access="hasRole('ROLE_ADMIN')"/>
 
         <logout logout-url="/j_spring_security_logout" invalidate-session="true"
                 success-handler-ref="logoutSuccessHandler"/>
@@ -67,7 +67,7 @@
 
     <beans:bean name="savedRequestAwareAuthenticationSuccessHandler"
                 class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler">
-        <beans:property name="defaultTargetUrl" value="/user-gui/index.iface"/>
+        <beans:property name="defaultTargetUrl" value="/user/index.iface"/>
         <beans:property name="alwaysUseDefaultTargetUrl" value="false"/>
     </beans:bean>
 
