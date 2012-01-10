@@ -18,12 +18,13 @@
  * "Portions Copyrighted 2011 [name of copyright owner]"
  * 
  */
-package com.evolveum.midpoint.model.importer;
+package com.evolveum.midpoint.model.sync;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
@@ -46,22 +47,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 /**
- * Iterative search result handler for "import from resource" task.
+ * Iterative search result handler for account synchronization. Works both for
+ * reconciliation and import from resource.
  * 
  * This class is called back from the searchObjectsIterative() operation of the
- * provisioning service. It does most of the work of the "import" operation
- * 
- * It will actually setup the "create" change notification for all objects and
- * invoke a ResourceObjectChangeListener interface.
+ * provisioning service. It does most of the work of the "import" and resource
+ * reconciliation operations.
  * 
  * @see ImportAccountsFromResourceTaskHandler
+ * @see ReconciliationTaskHandler
  * 
  * @author Radovan Semancik
  * 
  */
-public class ImportAccountsFromResourceResultHandler implements ResultHandler {
+public class SynchronizeAccountResultHandler implements ResultHandler {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ImportAccountsFromResourceResultHandler.class);
+	private static final Trace LOGGER = TraceManager.getTrace(SynchronizeAccountResultHandler.class);
 	
 	private ResourceObjectChangeListener objectChangeListener;
 	private Task task;
@@ -73,7 +74,7 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 	private boolean stopOnError;
 	private boolean forceAdd;
 
-	public ImportAccountsFromResourceResultHandler(ResourceType resource, RefinedAccountDefinition refinedAccountDefinition, Task task,
+	public SynchronizeAccountResultHandler(ResourceType resource, RefinedAccountDefinition refinedAccountDefinition, Task task,
 			ResourceObjectChangeListener objectChangeListener) {
 		this.objectChangeListener = objectChangeListener;
 		this.task = task;
@@ -115,13 +116,13 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 		progress++;
 
 		long startTime = System.currentTimeMillis();
-		OperationResult result = parentResult.createSubresult(ImportAccountsFromResourceResultHandler.class
+		OperationResult result = parentResult.createSubresult(SynchronizeAccountResultHandler.class
 				.getName() + ".handle");
 		result.addParam("object", object);
 		result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Importing {} from {}",ObjectTypeUtil.toShortString(object),ObjectTypeUtil.toShortString(resource));
+			LOGGER.trace("Synchronizing {} from {}",ObjectTypeUtil.toShortString(object),ObjectTypeUtil.toShortString(resource));
 		}
 
 		if (objectChangeListener == null) {
@@ -164,20 +165,20 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 			objectChangeListener.notifyChange(change, result);
 			long endTime = System.currentTimeMillis();
 			if (LOGGER.isInfoEnabled()) {
-				LOGGER.info("Imported object {} from resource {} ({} ms)",new Object[]{ObjectTypeUtil.toShortString(newShadow),
+				LOGGER.info("Synchronized object {} from resource {} ({} ms)",new Object[]{ObjectTypeUtil.toShortString(newShadow),
 						ObjectTypeUtil.toShortString(resource), endTime - startTime});
 			}
 		} catch (Exception ex) {
 			errors++;
 			if (LOGGER.isErrorEnabled()) {
-				LOGGER.error("Import of object {} from resource {} failed: {}", new Object[] {
+				LOGGER.error("Synchronization of object {} from resource {} failed: {}", new Object[] {
 					ObjectTypeUtil.toShortString(object), ObjectTypeUtil.toShortString(resource), ex.getMessage(), ex });
 			}
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Change notication listener failed for import of object {}: {}: ", new Object[] {
+				LOGGER.trace("Change notication listener failed for synchronization of object {}: {}: ", new Object[] {
 						object, ex.getClass().getSimpleName(), ex.getMessage(), ex });
 			}
-			result.recordPartialError("failed to import", ex);
+			result.recordPartialError("failed to synchronize", ex);
 			return !isStopOnError();
 		}
 		
@@ -188,17 +189,17 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 
 		// Check if we haven't been interrupted
 		if (task.canRun()) {
-			result.computeStatus("Failed to import.");
+			result.computeStatus();
 			// Everything OK, signal to continue
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Import of {} finished, result: {}",ObjectTypeUtil.toShortString(object),result.dump());
+				LOGGER.trace("Synchronization of {} finished, result: {}",ObjectTypeUtil.toShortString(object),result.dump());
 			}
 			return true;
 		} else {
 			result.recordPartialError("Interrupted");
 			// Signal to stop
 			if (LOGGER.isWarnEnabled()) {
-				LOGGER.warn("Import from {} interrupted",ObjectTypeUtil.toShortString(resource));
+				LOGGER.warn("Synchronization from {} interrupted",ObjectTypeUtil.toShortString(resource));
 			}
 			return false;
 		}

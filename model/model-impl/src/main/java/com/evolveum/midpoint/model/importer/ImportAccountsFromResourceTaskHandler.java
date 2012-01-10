@@ -23,6 +23,7 @@ package com.evolveum.midpoint.model.importer;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.sync.SynchronizeAccountResultHandler;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
@@ -97,14 +98,14 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
     @Autowired(required = true)
     private ChangeNotificationDispatcher changeNotificationDispatcher;
 
-    private Map<Task, ImportAccountsFromResourceResultHandler> handlers;
+    private Map<Task, SynchronizeAccountResultHandler> handlers;
     private PropertyDefinition objectclassPropertyDefinition;
 
     private static final Trace LOGGER = TraceManager.getTrace(ImportAccountsFromResourceTaskHandler.class);
 
     public ImportAccountsFromResourceTaskHandler() {
         super();
-        handlers = new HashMap<Task, ImportAccountsFromResourceResultHandler>();
+        handlers = new HashMap<Task, SynchronizeAccountResultHandler>();
         objectclassPropertyDefinition = new PropertyDefinition(ImportConstants.OBJECTCLASS_PROPERTY_NAME, DOMUtil.XSD_QNAME);
     }
 
@@ -253,7 +254,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         LOGGER.info("Start executing import from resource {}, importing object class {}", ObjectTypeUtil.toShortString(resource), objectclass);
 
         // Instantiate result handler. This will be called with every search result in the following iterative search
-        ImportAccountsFromResourceResultHandler handler = new ImportAccountsFromResourceResultHandler(resource, refinedAccountDefinition, task, changeNotificationDispatcher);
+        SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, refinedAccountDefinition, task, changeNotificationDispatcher);
         handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
         handler.setForceAdd(true);
 
@@ -310,7 +311,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         return runResult;
     }
 
-    private ImportAccountsFromResourceResultHandler getHandler(Task task) {
+    private SynchronizeAccountResultHandler getHandler(Task task) {
         return handlers.get(task);
     }
 

@@ -31,7 +31,6 @@ import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.SyncContext;
-import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceResultHandler;
 import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
@@ -195,7 +194,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
         LOGGER.info("Start executing import from resource {}, importing object class {}", ObjectTypeUtil.toShortString(resource), refinedAccountDefinition);
 
         // Instantiate result handler. This will be called with every search result in the following iterative search
-        ImportAccountsFromResourceResultHandler handler = new ImportAccountsFromResourceResultHandler(resource, refinedAccountDefinition, task, changeNotificationDispatcher);
+        SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, refinedAccountDefinition, task, changeNotificationDispatcher);
         handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
         
 		QueryType query = createAccountSearchQuery(resource, refinedAccountDefinition);
