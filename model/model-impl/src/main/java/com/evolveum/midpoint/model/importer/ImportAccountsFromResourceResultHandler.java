@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.model.importer;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
@@ -65,9 +67,11 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 	private Task task;
 	private ResourceType resource;
 	private RefinedAccountDefinition refinedAccountDefinition;
+	private QName sourceChannel;
 	private long progress;
 	private long errors;
 	private boolean stopOnError;
+	private boolean forceAdd;
 
 	public ImportAccountsFromResourceResultHandler(ResourceType resource, RefinedAccountDefinition refinedAccountDefinition, Task task,
 			ResourceObjectChangeListener objectChangeListener) {
@@ -78,6 +82,23 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 		progress = 0;
 		errors = 0;
 		stopOnError = true;
+		forceAdd = false;
+	}
+
+	public boolean isForceAdd() {
+		return forceAdd;
+	}
+
+	public void setForceAdd(boolean forceAdd) {
+		this.forceAdd = forceAdd;
+	}
+	
+	public QName getSourceChannel() {
+		return sourceChannel;
+	}
+
+	public void setSourceChannel(QName sourceChannel) {
+		this.sourceChannel = sourceChannel;
 	}
 
 	/*
@@ -116,16 +137,23 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 			AccountShadowType newShadow = (AccountShadowType) object;
 	
 			ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-			change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_IMPORT));
+			change.setSourceChannel(QNameUtil.qNameToUri(sourceChannel));
 			change.setResource(resource);
-			ObjectDelta<AccountShadowType> shadowDelta = new ObjectDelta<AccountShadowType>(
-					AccountShadowType.class, ChangeType.ADD);
-			MidPointObject<AccountShadowType> shadowToAdd = refinedAccountDefinition.getObjectDefinition().parseObjectType(newShadow);
-			shadowDelta.setObjectToAdd(shadowToAdd);		
 			
-			// We should provide shadow in the state before the change. But we are
-			// pretending that it has
-			// not existed before, so we will not provide it.
+			if (forceAdd) {
+				ObjectDelta<AccountShadowType> shadowDelta = new ObjectDelta<AccountShadowType>(
+						AccountShadowType.class, ChangeType.ADD);
+				MidPointObject<AccountShadowType> shadowToAdd = refinedAccountDefinition.getObjectDefinition().parseObjectType(newShadow);
+				shadowDelta.setObjectToAdd(shadowToAdd);		
+				
+				// We should provide shadow in the state before the change. But we are
+				// pretending that it has
+				// not existed before, so we will not provide it.
+				
+			} else {
+				// No change, therefore the delta stays null. But we will set the current
+				change.setCurrentShadow(newShadow);
+			}
 	
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.trace("Going to call notification with new object: " + DebugUtil.prettyPrint(newShadow));

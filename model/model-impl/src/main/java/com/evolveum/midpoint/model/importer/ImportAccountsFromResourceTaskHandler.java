@@ -254,13 +254,15 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 
         // Instantiate result handler. This will be called with every search result in the following iterative search
         ImportAccountsFromResourceResultHandler handler = new ImportAccountsFromResourceResultHandler(resource, refinedAccountDefinition, task, changeNotificationDispatcher);
+        handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
+        handler.setForceAdd(true);
 
         // TODO: error checking - already running
         handlers.put(task, handler);
 
         try {
 
-            provisioning.searchObjectsIterative(createAccountShadowTypeQuery(resource, objectclass), null, handler, opResult);
+            provisioning.searchObjectsIterative(QueryUtil.createResourceAndAccountQuery(resource, objectclass, null), null, handler, opResult);
 
         } catch (ObjectNotFoundException ex) {
             LOGGER.error("Import: Object not found: {}", ex.getMessage(), ex);
@@ -306,24 +308,6 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         LOGGER.trace("Import from resource run finished (task {}, run result {})", task, runResult);
 
         return runResult;
-    }
-
-    private QueryType createAccountShadowTypeQuery(ResourceType resource, QName objectClass) throws SchemaException {
-
-        Document doc = DOMUtil.getDocument();
-        Element filter =
-                QueryUtil.createAndFilter(doc,
-                        // TODO: The account type is hardcoded now, it should determined
-                        // from the schema later, or maybe we can make it entirely
-                        // generic (use ResourceObjectShadowType instead).
-                        QueryUtil.createEqualRefFilter(doc, null, SchemaConstants.I_RESOURCE_REF, resource.getOid()),
-                        QueryUtil.createEqualFilter(doc, null, SchemaConstants.I_OBJECT_CLASS, objectClass)
-                );
-
-        QueryType query = new QueryType();
-        query.setFilter(filter);
-
-        return query;
     }
 
     private ImportAccountsFromResourceResultHandler getHandler(Task task) {

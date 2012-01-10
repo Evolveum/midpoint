@@ -28,6 +28,8 @@ import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -203,10 +205,19 @@ public class QueryUtil {
 //        return and;
 //    }
 
-    public static Element createNameAndClassFilter(ObjectType object) throws SchemaException {
-        return createNameAndClassFilter(object.getClass(), object.getName());
-    }
+	public static QueryType createNameQuery(String name) throws SchemaException {
+		Document doc = DOMUtil.getDocument();
+        Element filter = QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, name);
+        QueryType query = new QueryType();
+        query.setFilter(filter);
+        return query;
+	}
+	
+	public static QueryType createNameQuery(ObjectType object) throws SchemaException {
+		return createNameQuery(object.getName());
+	}
 
+    @Deprecated
     public static <T extends ObjectType> Element createNameAndClassFilter(Class<T> type, String name) throws
             SchemaException {
         Document doc = DOMUtil.getDocument();
@@ -226,4 +237,22 @@ public class QueryUtil {
 		// Create empty filter. This returns all objects of a type given as an argument to searchObjects.
 		return new QueryType();
 	}
+
+	public static QueryType createResourceAndAccountQuery(ResourceType resource, QName objectClass, String accountType) throws SchemaException {
+		Document doc = DOMUtil.getDocument();
+        Element filter =
+                QueryUtil.createAndFilter(doc,
+                        // TODO: The account type is hardcoded now, it should determined
+                        // from the schema later, or maybe we can make it entirely
+                        // generic (use ResourceObjectShadowType instead).
+                        QueryUtil.createEqualRefFilter(doc, null, SchemaConstants.I_RESOURCE_REF, resource.getOid()),
+                        QueryUtil.createEqualFilter(doc, null, SchemaConstants.I_OBJECT_CLASS, objectClass)
+                );
+
+        QueryType query = new QueryType();
+        query.setFilter(filter);
+
+        return query;
+	}
+
 }

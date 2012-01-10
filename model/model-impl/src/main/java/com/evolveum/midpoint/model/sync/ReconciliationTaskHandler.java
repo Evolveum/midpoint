@@ -21,15 +21,22 @@
 package com.evolveum.midpoint.model.sync;
 
 import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceResultHandler;
+import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
+import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.SchemaRegistry;
@@ -54,6 +61,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -88,6 +96,9 @@ public class ReconciliationTaskHandler implements TaskHandler {
     
     @Autowired
     private ChangeExecutor changeExecutor;
+    
+    @Autowired(required = true)
+    private ChangeNotificationDispatcher changeNotificationDispatcher;
 
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
@@ -114,10 +125,10 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 			if (resourceOid==null) {
 				// This is a user reconciliation
-				performUserReconciliation(opResult);
+				performUserReconciliation(task, opResult);
 				return runResult;
 			} else {
-				performResourceReconciliation(opResult);
+				performResourceReconciliation(resourceOid, task, opResult);
 			}
 		
 			
@@ -174,15 +185,34 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		return runResult;
 	}
 
-	private void performResourceReconciliation(OperationResult result) {
-		// TODO Auto-generated method stub
+	private void performResourceReconciliation(String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException {
 		
+		ResourceType resource = repositoryService.getObject(ResourceType.class, resourceOid, null, result);
+
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, schemaRegistry);
+		RefinedAccountDefinition refinedAccountDefinition = refinedSchema.getDefaultAccountDefinition();
+
+        LOGGER.info("Start executing import from resource {}, importing object class {}", ObjectTypeUtil.toShortString(resource), refinedAccountDefinition);
+
+        // Instantiate result handler. This will be called with every search result in the following iterative search
+        ImportAccountsFromResourceResultHandler handler = new ImportAccountsFromResourceResultHandler(resource, refinedAccountDefinition, task, changeNotificationDispatcher);
+        handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
+        
+		QueryType query = createAccountSearchQuery(resource, refinedAccountDefinition);
+		provisioningService.searchObjectsIterative(query , null, handler , result);
+		
+		// TODO: process result
+	}
+
+	private QueryType createAccountSearchQuery(ResourceType resource, RefinedAccountDefinition refinedAccountDefinition) throws SchemaException {
+		QName objectClass = refinedAccountDefinition.getObjectClassDefinition().getTypeName();
+		return QueryUtil.createResourceAndAccountQuery(resource, objectClass, null);
 	}
 
 	/**
 	 * Iterate over all the users, trigger a reconciliation (recompute) of each of them
 	 */
-	private void performUserReconciliation(OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException {
+	private void performUserReconciliation(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException {
 		
 		PagingType paging = new PagingType();
 		
@@ -225,7 +255,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		
 		changeExecutor.executeChanges(syncContext, result);
 		
-		// TODO
+		// TODO: process result
+		
 		LOGGER.trace("Reconciling of user {}: {}",ObjectTypeUtil.toShortString(user),result.getStatus());
 	}
 

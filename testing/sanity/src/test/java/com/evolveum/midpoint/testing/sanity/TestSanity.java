@@ -27,6 +27,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
@@ -128,6 +129,9 @@ public class TestSanity extends AbstractIntegrationTest {
     private static final String TASK_USER_RECON_FILENAME = "src/test/resources/repo/task-user-reconciliation.xml";
     private static final String TASK_USER_RECON_OID = "91919191-76e0-59e2-86d6-3d4f02d3aaaa";
 
+    private static final String TASK_OPENDJ_RECON_FILENAME = "src/test/resources/repo/task-opendj-reconciliation.xml";
+    private static final String TASK_OPENDJ_RECON_OID = "91919191-76e0-59e2-86d6-3d4f02d30000";
+    
     private static final String SAMPLE_CONFIGURATION_OBJECT_FILENAME = "src/test/resources/repo/sample-configuration-object.xml";
     private static final String SAMPLE_CONFIGURATION_OBJECT_OID = "c0c010c0-d34d-b33f-f00d-999111111111";
 
@@ -171,6 +175,9 @@ public class TestSanity extends AbstractIntegrationTest {
     
     private static final String LDIF_WILL_FILENAME = "src/test/resources/request/will.ldif";
     private static final String WILL_NAME = "wturner";
+    
+    private static final String LDIF_ELAINE_FILENAME = "src/test/resources/request/elaine.ldif";
+    private static final String ELAINE_NAME = "elaine";
 
     private static final QName IMPORT_OBJECTCLASS = new QName(
             "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
@@ -2297,6 +2304,9 @@ public class TestSanity extends AbstractIntegrationTest {
         // indicate success
         OperationResult taskResult = task.getResult();
         AssertJUnit.assertNotNull(taskResult);
+        
+        // STOP the task. We don't need it any more and we don't want to give it a chance to run more than once
+        taskManager.deleteTask(TASK_USER_RECON_OID, result);
 
         // CHECK RESULT: account created for user guybrush
         
@@ -2370,6 +2380,242 @@ public class TestSanity extends AbstractIntegrationTest {
         String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull("Pasword was not set on create", guybrushPassword);
 
+        
+    }
+
+    @Test
+    public void test310ReconcileResourceOpenDj() throws Exception {
+    	displayTestTile("test310ReconcileResourceOpenDj");
+        // GIVEN
+    	
+        final OperationResult result = new OperationResult(TestSanity.class.getName()
+                + ".test310ReconcileResourceOpenDj");
+
+        // Create LDAP account without an owner. The liveSync is off, so it will not be picked up
+        
+        LDIFImportConfig importConfig = new LDIFImportConfig(LDIF_ELAINE_FILENAME);
+        LDIFReader ldifReader = new LDIFReader(importConfig);
+        Entry ldifEntry = ldifReader.readEntry();
+        display("Entry from LDIF", ldifEntry);
+
+        AddOperation addOperation = openDJController.getInternalConnection().processAdd(ldifEntry);
+
+        AssertJUnit.assertEquals("LDAP add operation failed", ResultCode.SUCCESS,
+                addOperation.getResultCode());
+        
+        
+        
+        // TODO: setup more "inconsistent" state
+        
+        
+        
+        // Add reconciliation task. This will trigger reconciliation
+
+        addObjectFromFile(TASK_OPENDJ_RECON_FILENAME, result);
+
+
+        // We need to wait for a sync interval, so the task scanner has a chance
+        // to pick up this
+        // task
+
+        waitFor("Waiting for task manager to pick up the task", new Checker() {
+            public boolean check() throws ObjectNotFoundException, SchemaException {
+                Task task = taskManager.getTask(TASK_OPENDJ_RECON_OID, result);
+                display("Task while waiting for task manager to pick up the task", task);
+                // wait until the task is picked up
+                if (TaskExclusivityStatus.CLAIMED == task.getExclusivityStatus()) {
+                    // wait until the first run is finished
+                    if (task.getLastRunFinishTimestamp() == null) {
+                        return false;
+                    }
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public void timeout() {
+                // No reaction, the test will fail right after return from this
+            }
+        }, 20000);
+
+        // Check task status
+
+        Task task = taskManager.getTask(TASK_OPENDJ_RECON_OID, result);
+        result.computeStatus();
+        display("getTask result", result);
+        assertSuccess("getTask has failed", result);
+        AssertJUnit.assertNotNull(task);
+        display("Task after pickup", task);
+
+        ObjectType o = repositoryService.getObject(ObjectType.class, TASK_OPENDJ_RECON_OID, null, result);
+        display("Task after pickup in the repository", o);
+
+        // .. it should be running
+        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
+
+        // .. and claimed
+        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
+
+        // .. and last run should not be zero
+        assertNotNull(task.getLastRunStartTimestamp());
+        AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
+        assertNotNull(task.getLastRunFinishTimestamp());
+        AssertJUnit.assertFalse(task.getLastRunFinishTimestamp().longValue() == 0);
+
+        // The progress should be 0, as there were no changes yet
+        AssertJUnit.assertEquals(0, task.getProgress());
+
+        // Test for presence of a result. It should be there and it should
+        // indicate success
+        OperationResult taskResult = task.getResult();
+        AssertJUnit.assertNotNull(taskResult);
+        
+        // STOP the task. We don't need it any more and we don't want to give it a chance to run more than once
+        taskManager.deleteTask(TASK_OPENDJ_RECON_OID, result);
+
+        // CHECK RESULT: account for user guybrush should be still there and unchanged
+        
+        // Check if user object was modified in the repo
+
+        OperationResult repoResult = new OperationResult("getObject");
+        PropertyReferenceListType resolve = new PropertyReferenceListType();
+
+        UserType repoUser = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, resolve, repoResult);
+
+        repoResult.computeStatus();
+        displayJaxb("User (repository)", repoUser, new QName("user"));
+
+        List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+        assertEquals(1, accountRefs.size());
+        ObjectReferenceType accountRef = accountRefs.get(0);
+        accountShadowOidGuybrushOpendj = accountRef.getOid();
+        assertFalse(accountShadowOidGuybrushOpendj.isEmpty());
+
+        // Check if shadow was created in the repo
+
+        repoResult = new OperationResult("getObject");
+
+        AccountShadowType repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
+                resolve, repoResult);
+        repoResult.computeStatus();
+        assertSuccess("getObject has failed", repoResult);
+        displayJaxb("Shadow (repository)", repoShadow, new QName("shadow"));
+        assertNotNull(repoShadow);
+        assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
+
+        // check attributes in the shadow: should be only identifiers (ICF UID)
+        boolean hasOthers = false;
+        accountGuybrushOpendjEntryUuuid = null;
+        List<Object> xmlAttributes = repoShadow.getAttributes().getAny();
+        for (Object element : xmlAttributes) {
+            if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
+                if (accountGuybrushOpendjEntryUuuid != null) {
+                    AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
+                } else {
+                    accountGuybrushOpendjEntryUuuid = ((Element) element).getTextContent();
+                }
+            } else {
+                hasOthers = true;
+            }
+        }
+
+        assertFalse(hasOthers);
+        assertNotNull(accountGuybrushOpendjEntryUuuid);
+
+        // check if account was created in LDAP
+
+        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
+
+        display("LDAP account", entry);
+
+        OpenDJController.assertAttribute(entry, "uid", "guybrush");
+        OpenDJController.assertAttribute(entry, "givenName", "Guybrush");
+        OpenDJController.assertAttribute(entry, "sn", "Threepwood");
+        OpenDJController.assertAttribute(entry, "cn", "Guybrush Threepwood");
+        // The "l" attribute is assigned indirectly through schemaHandling and
+        // config object
+        OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
+        
+        // Set by the role
+        OpenDJController.assertAttribute(entry, "employeeType", "sailor");
+        OpenDJController.assertAttribute(entry, "title", "Honorable Captain");
+        OpenDJController.assertAttribute(entry, "carLicense", "C4PT41N");
+        OpenDJController.assertAttribute(entry, "businessCategory", "cruise");
+
+        String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
+        assertNotNull("Pasword was not set on create", guybrushPassword);
+
+
+        
+        QueryType query = QueryUtil.createNameQuery(ELAINE_NAME);
+		ResultList<UserType> users = repositoryService.searchObjects(UserType.class, query, null, repoResult);
+		assertEquals(1,users.size());
+        repoUser = users.get(0);
+
+        repoResult.computeStatus();
+        displayJaxb("User (repository)", repoUser, new QName("user"));
+
+        accountRefs = repoUser.getAccountRef();
+        assertEquals(1, accountRefs.size());
+        accountRef = accountRefs.get(0);
+        String accountShadowOidElaineOpendj = accountRef.getOid();
+        assertFalse(accountShadowOidElaineOpendj.isEmpty());
+
+        // Check if shadow was created in the repo
+
+        repoResult = new OperationResult("getObject");
+
+        repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidElaineOpendj,
+                resolve, repoResult);
+        repoResult.computeStatus();
+        assertSuccess("getObject has failed", repoResult);
+        displayJaxb("Shadow (repository)", repoShadow, new QName("shadow"));
+        assertNotNull(repoShadow);
+        assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
+
+        // check attributes in the shadow: should be only identifiers (ICF UID)
+        hasOthers = false;
+        String accountElainehOpendjEntryUuuid = null;
+        xmlAttributes = repoShadow.getAttributes().getAny();
+        for (Object element : xmlAttributes) {
+            if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
+                if (accountShadowOidElaineOpendj != null) {
+                    AssertJUnit.fail("Multiple values for ICF UID in shadow attributes (Elaine)");
+                } else {
+                	accountShadowOidElaineOpendj = ((Element) element).getTextContent();
+                }
+            } else {
+                hasOthers = true;
+            }
+        }
+
+        assertFalse(hasOthers);
+        assertNotNull(accountShadowOidElaineOpendj);
+
+        // check if account is still in LDAP
+
+        entry = openDJController.searchAndAssertByEntryUuid(accountShadowOidElaineOpendj);
+
+        display("LDAP account", entry);
+
+        OpenDJController.assertAttribute(entry, "uid", ELAINE_NAME);
+        OpenDJController.assertAttribute(entry, "givenName", "Elaine");
+        OpenDJController.assertAttribute(entry, "sn", "Marley");
+        OpenDJController.assertAttribute(entry, "cn", "Elaine Marley");
+        // The "l" attribute is assigned indirectly through schemaHandling and
+        // config object
+        OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
+        
+        // Set by the role
+        OpenDJController.assertAttribute(entry, "employeeType", "governor");
+        OpenDJController.assertAttribute(entry, "title", "Governor");
+        OpenDJController.assertAttribute(entry, "businessCategory", "state");
+
+        String elainePassword = OpenDJController.getAttributeValue(entry, "userPassword");
+        assertNotNull("Pasword of Elaine has disappeared", elainePassword);
+
+        
         
     }
 

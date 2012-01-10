@@ -210,7 +210,7 @@ public class ObjectImporter {
             // The conflict was obviously name. As we have no explicit OID in the object to import
             // it is pretty safe to try to delete the conflicting object
             // look for an object by name and type and delete it
-            QueryType query = QueryUtil.createQuery(QueryUtil.createNameAndClassFilter(object));
+            QueryType query = QueryUtil.createNameQuery(object);
             List<? extends ObjectType> objects = repository.searchObjects(object.getClass(), query, null, objectResult);
             if (objects.size() != 1) {
                 // too few or too much results, not safe to delete
