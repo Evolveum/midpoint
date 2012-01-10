@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui:composition template="/resources/templates/template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:comp="http://java.sun.com/jsf/composite/components" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+
+	<ui:define name="title">#{msg['page.account.create.title']}</ui:define>
+
+	<ui:define name="menu">
+		<ui:include src="./menu.xhtml" />
+	</ui:define>
+
+	<ui:define name="content">
+		<ice:form id="createUserForm">
+			<ice:panelGrid columns="3">
+				<ice:outputLabel value="#{msg['page.account.create.name']}">
+					<span style="color: red;">*</span>
+				</ice:outputLabel>
+				<ice:inputText id="name" value="#{userCreate.user.name}" required="true"
+					requiredMessage="#{msg['page.jsf.field.required']}" />
+				<ice:message for="familyName" errorClass="error" />
+
+				<ice:outputLabel value="#{msg['page.account.create.givenName']}">
+					<span style="color: red;">*</span>
+				</ice:outputLabel>
+				<ice:inputText id="givenName" value="#{userCreate.user.givenName}" required="true"
+					requiredMessage="#{msg['page.jsf.field.required']}" />
+				<ice:message for="givenName" errorClass="error" />
+
+				<ice:outputLabel value="#{msg['page.account.create.familyName']}">
+					<span style="color: red;">*</span>
+				</ice:outputLabel>
+				<ice:inputText id="familyName" value="#{userCreate.user.familyName}" required="true"
+					requiredMessage="#{msg['page.jsf.field.required']}" />
+				<ice:message for="familyName" errorClass="error" />
+
+				<ice:outputLabel value="#{msg['page.account.create.fullName']}">
+					<span style="color: red;">*</span>
+				</ice:outputLabel>
+				<ice:inputText id="fullName" value="#{userCreate.user.fullName}" required="true"
+					requiredMessage="#{msg['page.jsf.field.required']}" />
+				<ice:message for="fullName" errorClass="error" />
+
+				<ice:outputLabel value="#{msg['page.account.create.email']}" />
+				<ice:inputText id="email" value="#{userCreate.user.email}" />
+				<ice:message for="email" errorClass="error" />
+
+				<ice:outputLabel value="#{msg['page.account.create.locality']}" />
+				<ice:inputText id="locality" value="#{userCreate.user.locality}" />
+				<ice:message for="locality" errorClass="error" />
+
+				<ice:outputLabel value="#{msg['page.account.create.password1']}">
+					<span style="color: red;">*</span>
+				</ice:outputLabel>
+				<ice:inputSecret id="password1" value="#{userCreate.user.password1}" required="true"
+					requiredMessage="#{msg['page.jsf.field.required']}">
+					<f:validator validatorId="PasswordValidator" />
+					<f:attribute name="otherComponentId" value="password2" />
+				</ice:inputSecret>
+				<ice:message for="password1" errorClass="error" />
+
+				<ice:outputLabel value="#{msg['page.account.create.password2']}">
+					<span style="color: red;">*</span>
+				</ice:outputLabel>
+				<ice:inputSecret id="password2" immediate="true" value="#{userCreate.user.password2}" required="true"
+					requiredMessage="#{msg['page.jsf.field.required']}" />
+				<ice:message for="password2" errorClass="error" />
+
+				<ice:outputLabel value="#{msg['page.account.create.enabled']}" />
+				<ice:selectBooleanCheckbox id="enabled" value="#{userCreate.user.enabled}" required="true"
+					requiredMessage="#{msg['page.jsf.field.required']}" />
+				<ice:message for="enabled" errorClass="error" />
+
+				<ice:outputLabel value="#{msg['page.account.create.webAccessEnabled']}" />
+				<ice:selectBooleanCheckbox id="webAccessEnabled" value="#{userCreate.user.webAccessEnabled}" required="true"
+					requiredMessage="#{msg['page.jsf.field.required']}" />
+				<ice:message for="webAccessEnabled" errorClass="error" />
+			</ice:panelGrid>
+			<div class="button-bar">
+				<idm:button action="#{userList.fillTableList}"
+					value="#{msg['page.account.create.button.cancel']}" img="/resources/images/door_in.png"
+					id="cancelCreateUser" immediate="true" />
+
+				<idm:button action="#{userCreate.create}" id="createUser" buttonType="positive"
+					value="#{msg['page.account.create.button.create']}" img="/resources/images/user_add.png" />
+			</div>
+		</ice:form>
+	</ui:define>
+</ui:composition>

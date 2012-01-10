@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui:composition template="/resources/templates/template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:comp="http://java.sun.com/jsf/composite/components" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+
+	<ui:define name="title">About midPoint</ui:define>
+
+	<ui:define name="menu">
+		<ui:include src="./menu.xhtml" />
+	</ui:define>
+
+	<ui:define name="content">
+		<div id="about">
+			<p>midPoint is an open standards based Identity Management, Provisioning and Compliance solution.
+				Experience shows that the most important features of an identity management product are: high flexibility
+				in Business Process handling and compliance with open standards and interfaces. A highly flexible user
+				interface combined with a very robust workflow engine make midPoint ready for any Identity Management
+				project.</p>
+
+			<p>The provisioning services of midPoint are open for several identity related components: Role
+				Management, Identity Management, Compliance Calibration and others. With this kind of open architecture,
+				the provisioning service can be used for all user-related data like user objects, as well as user group
+				memberships or role memberships.</p>
+
+			<h3>Key Features</h3>
+			<ul>
+				<li>User account livecycle handling</li>
+				<li>Role handling, both in openIDM and external systems and role based access control (RBAC)</li>
+				<li>Flexible resource connection architecture</li>
+				<li>Organizational hierarchy of all objects</li>
+				<li>Access control through through flexible capabilities</li>
+				<li>Object relation handling</li>
+				<li>Extended Auditing</li>
+				<li>Password Synchronization</li>
+				<li>Reconciliation</li>
+				<li>Pickup of external changes in near Real Time</li>
+			</ul>
+
+			<h3>Currently Supported External Resources</h3>
+			<ul>
+				<li>Active Directory (ADSI and LDAP)</li>
+				<li>Database Table</li>
+				<li>DB2</li>
+				<li>Domino</li>
+				<li>Exchange</li>
+				<li>Google Apps</li>
+				<li>LDAP</li>
+				<li>MySQLUser</li>
+				<li>Oracle</li>
+				<li>RSA Authentication Manager</li>
+				<li>SAP</li>
+				<li>SPML</li>
+				<li>Web TimeSheet</li>
+				<li>Web Services (Generic or Skeleton)</li>
+			</ul>
+		</div>
+		<ice:outputLink value="http://wiki.evolveum.com">#{msg['page.help.index.help']}</ice:outputLink>
+	</ui:define>
+</ui:composition>

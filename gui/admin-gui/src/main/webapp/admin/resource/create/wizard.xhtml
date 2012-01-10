@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui:composition template="/resources/templates/template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:comp="http://java.sun.com/jsf/composite/components" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+
+	<ui:define name="title">Create Resource</ui:define>
+
+	<ui:define name="menu">
+		<ui:include src="./../menu.xhtml" />
+	</ui:define>
+
+	<ui:define name="content">
+		<h3>
+			<ui:insert name="wizard-title">Sample Title</ui:insert>
+		</h3>
+		<p>
+			<ui:insert name="wizard-description">Sample description</ui:insert>
+		</p>
+		<ice:form>
+			<ui:insert name="wizard-content">Sample body</ui:insert>
+			<div class="button-bar">
+				<idm:button value="Cancel" rendered="#{resourceWizard.actualShowCancel}" buttonType="negative"
+					immediate="true" img="/resources/images/delete.png" action="#{resourceWizard.cancel}"
+					style="margin-right: 50px;" />
+
+				<idm:button value="Previous" rendered="#{resourceWizard.actualShowBack}" action="#{resourceWizard.back}" />
+
+				<idm:button value="Next" rendered="#{resourceWizard.actualShowNext}" action="#{resourceWizard.next}" />
+
+				<idm:button value="Finish" rendered="#{resourceWizard.actualShowFinish}" buttonType="positive"
+					action="#{resourceWizard.finish}" img="/resources/images/accept.png" />
+			</div>
+		</ice:form>
+	</ui:define>
+</ui:composition>

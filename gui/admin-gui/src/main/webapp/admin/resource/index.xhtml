@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui:composition template="/resources/templates/template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:comp="http://java.sun.com/jsf/composite/components" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+
+	<ui:define name="title">#{msg['page.resource.index.title']}</ui:define>
+
+	<ui:define name="menu">
+		<ui:include src="./menu.xhtml" />
+	</ui:define>
+
+	<ui:define name="content">
+		<ice:form>
+			<ice:panelPopup modal="true" autoCentre="true" visible="#{resourceList.showPopup}">
+				<f:facet name="header">
+					<ice:outputText value="#{msg['page.resource.index.popup.title']}" />
+				</f:facet>
+				<f:facet id="confirm" name="body">
+					<ice:outputText value="#{msg['page.resource.index.popup.message']}" />
+					<div class="button-bar">
+						<ice:commandButton id="deleteResourceYes" value="#{msg['page.button.yes']}" action="#{resourceList.deleteResources}" />
+						<ice:commandButton id="deleteResourceNo" value="#{msg['page.button.no']}" action="#{resourceList.hideConfirmDelete}" />
+					</div>
+				</f:facet>
+			</ice:panelPopup>
+
+			<ice:dataTable id="resourceTable" rows="50" value="#{resourceList.objects}" var="item"
+				sortColumn="#{resourceList.sortColumnName}" sortAscending="#{resourceList.ascending}"
+				columnClasses="iceDatTblCol1" rowClasses="iceDatTblRow1 iceDatTblRow2"
+				columnWidths="auto, 200px, 220px, 120px, 40px, 40px, 40px, 225px" resizable="false">
+				<ice:column>
+					<f:facet name="header">
+						<ice:selectBooleanCheckbox id="selectAllCheckbox" value="#{resourceList.selectAll}"
+							valueChangeListener="#{resourceList.selectAllPerformed}" immediate="true" partialSubmit="true" />
+					</f:facet>
+					<ice:selectBooleanCheckbox id="selectCheckbox" value="#{item.selected}" partialSubmit="true"
+						immediate="true" valueChangeListener="#{resourceList.selectPerformed}" />
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:commandSortHeader columnName="name" arrow="true" actionListener="#{resourceList.sortList}">
+							<ice:outputText id="nameTxt" value="Name" />
+						</ice:commandSortHeader>
+					</f:facet>
+					<ice:outputText>
+						<ice:commandLink styleClass="iceOutTxt" style="text-decoration: underline;" id="name"
+							value="#{item.name}" action="#{resourceList.showResourceDetails}">
+							<f:param name="resourceOid" value="#{item.oid}" />
+						</ice:commandLink>
+					</ice:outputText>
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:commandSortHeader columnName="type" arrow="true" actionListener="#{resourceList.sortList}">
+							<ice:outputText id="bundleTxt" value="Bundle" />
+						</ice:commandSortHeader>
+					</f:facet>
+					<ice:outputText value="#{item.type}" />
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:commandSortHeader columnName="version" arrow="true" actionListener="#{resourceList.sortList}">
+							<ice:outputText id="versionTxt" value="Version" />
+						</ice:commandSortHeader>
+					</f:facet>
+					<ice:outputText value="#{item.version}" />
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:commandSortHeader columnName="state" arrow="true" actionListener="#{resourceList.sortList}">
+							<ice:outputText id="statusTxt" value="Status" />
+						</ice:commandSortHeader>
+					</f:facet>
+					<ice:commandLink actionListener="#{resourceList.testConnection}" immediate="true"
+						style="display: block; width: 100%; text-align: center;">
+						<f:param name="resourceOid" value="#{item.oid}" />
+						<ice:graphicImage value="/resources/images/#{item.overallStatus.icon}" alt="#{item.overallStatus.title}" />
+					</ice:commandLink>
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:commandSortHeader columnName="sync" arrow="true" actionListener="#{resourceList.sortList}">
+							<ice:outputText id="syncTxt" value="Sync" />
+						</ice:commandSortHeader>
+					</f:facet>
+					<ice:commandLink immediate="true" action="#{resourceList.showSyncStatus}"
+						style="display: block; width: 100%; text-align: center;">
+						<f:param name="resourceOid" value="#{item.oid}" />
+						<ice:graphicImage title="#{item.sync.syncTitle}" alt="#{item.sync.syncTitle}"
+							value="/resources/images/#{item.sync.enabled eq 'true' ? 'arrow_refresh.png' : 'arrow_refresh_gray.png'}" />
+					</ice:commandLink>
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:commandSortHeader columnName="import" arrow="true" actionListener="#{resourceList.sortList}">
+							<ice:outputText id="importTxt" value="Import" />
+						</ice:commandSortHeader>
+					</f:facet>
+					<ice:commandLink immediate="true" action="/resource/import?faces-redirect=true"
+						style="display: block; width: 100%; text-align: center;">
+						<f:param name="resourceOid" value="#{item.oid}" />
+						<ice:graphicImage title="#{item.resImport.importTitle}" alt="#{item.resImport.importTitle}"
+							value="/resources/images/#{item.resImport.enabled eq 'true' ? 'drive_go.png' : 'drive_go_gray.png'}" />
+					</ice:commandLink>
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:outputText id="progressTxt" value="Progress" />
+						<!-- progress bar -->
+					</f:facet>
+				</ice:column>
+			</ice:dataTable>
+
+			<div class="button-bar">
+				<ui:remove>
+					<idm:button value="Disable" img="/resources/images/drive_burn.png" id="disableResource" immediate="true" />
+				</ui:remove>
+
+				<idm:button id="deleteResource" buttonType="negative" value="Delete"
+					img="/resources/images/drive_delete.png" action="#{resourceList.deletePerformed}" />
+			</div>
+
+			<ice:dataTable id="connectorHostTable" rows="10" value="#{resourceList.connectorHosts}" var="item"
+				columnClasses="iceDatTblCol1" rowClasses="iceDatTblRow1 iceDatTblRow2"
+				columnWidths="350px, 300px, 100px, auto" resizable="false">
+				<ice:column>
+					<f:facet name="header">
+						<ice:outputText id="nameHeader" value="Name" />
+					</f:facet>
+					<ice:outputText id="nameValue" value="#{item.name}" />
+				</ice:column>
+
+				<ice:column>
+					<f:facet name="header">
+						<ice:outputText id="urlHeader" value="URL" />
+					</f:facet>
+					<ice:outputText id="urlValue" value="#{item.URL}" />
+				</ice:column>
+
+				<ice:column>
+					<f:facet name="header">
+						<ice:outputText id="timeoutHeader" value="Timeout" />
+					</f:facet>
+					<ice:outputText id="timeoutValue" value="#{item.timeout}" />
+				</ice:column>
+
+				<ice:column>
+					<f:facet name="header">
+					</f:facet>
+					<idm:button id="discoverButton" value="Discover" img="/resources/images/database_lightning.png"
+						action="#{resourceList.discoverPerformed}">
+						<f:param name="connectorHostOid" value="#{item.oid}" />
+					</idm:button>
+				</ice:column>
+			</ice:dataTable>
+		</ice:form>
+	</ui:define>
+</ui:composition>

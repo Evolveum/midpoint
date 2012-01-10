@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui:composition template="/resources/templates/template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:comp="http://java.sun.com/jsf/composite/components" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+
+	<ui:define name="title">#{msg['page.account.index.title']}</ui:define>
+
+	<ui:define name="menu">
+		<ui:include src="./menu.xhtml" />
+	</ui:define>
+
+	<ui:define name="content">
+		<ice:panelGroup>
+			<ice:form id="admin-content">
+				<ice:panelPopup modal="true" autoCentre="true" visible="#{userList.showPopup}">
+					<f:facet name="header">
+						<ice:outputText value="#{msg['page.account.index.confirm.title']}" />
+					</f:facet>
+					<f:facet id="confirm" name="body">
+						<ice:outputText value="#{msg['page.account.index.confirm']}" />
+						<div class="button-bar">
+							<ice:commandButton id="deleteUserYes" value="#{msg['page.account.index.confirm.yes']}"
+								action="#{userList.deleteUsers}" />
+							<ice:commandButton id="deleteUserNo" value="#{msg['page.account.index.confirm.no']}"
+								action="#{userList.hideConfirmDelete}" />
+						</div>
+					</f:facet>
+				</ice:panelPopup>
+				<ice:panelGrid column="1">
+					<ice:panelGroup>
+						<idm:button action="#{userList.showConfirmDelete}" id="deleteUser" buttonType="negative"
+							value="#{msg['page.account.index.button.delete']}" img="/resources/images/user_delete.png" />
+
+						<div style="width: 50px; display: inline-block;" />
+
+						<ice:outputText value="#{msg['page.account.index.rowsCount']}" />
+						<ice:inputText id="pageSize" value="#{userList.rowsCount}" size="1" />
+						<idm:button value="#{msg['page.account.index.refresh']}" action="#{userList.listFirst}"
+							id="relistButton" img="/resources/images/arrow_rotate_clockwise.png" />
+
+						<div style="width: 20px; display: inline-block;" />
+
+						<ice:outputText value="#{msg['page.account.index.searchName']}" />
+						<ice:inputText id="searchName" value="#{userList.searchName}" immediate="true" />
+						<idm:button actionListener="#{userList.searchUser}"
+							value="#{msg['page.account.index.search']}" id="searchButton"
+							img="/resources/images/magnifier.png" />
+					</ice:panelGroup>
+
+					<ice:dataTable id="userTable" rows="#{userList.rowsCount}" value="#{userList.objects}" var="user"
+						sortColumn="#{userList.sortColumnName}" sortAscending="#{userList.ascending}"
+						columnClasses="iceDatTblCol1" rowClasses="iceDatTblRow1 iceDatTblRow2"
+						columnWidths="auto, 140px, 140px, 140px, 220px, 230px" resizable="false">
+						<ice:column>
+							<f:facet name="header">
+								<ice:selectBooleanCheckbox id="deleteAllCheckbox" value="#{userList.selectAll}"
+									valueChangeListener="#{userList.selectAllPerformed}" immediate="true" partialSubmit="true" />
+							</f:facet>
+							<ice:selectBooleanCheckbox id="deleteCheckbox" value="#{user.selected}" valueChangeListener="#{userList.selectPerformed}" immediate="true"
+								partialSubmit="true" />
+						</ice:column>
+						<ice:column>
+							<f:facet name="header">
+								<ice:commandSortHeader columnName="name" arrow="true" actionListener="#{userList.sortItem}">
+									<ice:outputText id="userName" value="#{msg['page.account.index.table.name']}" />
+								</ice:commandSortHeader>
+							</f:facet>
+							<ice:outputText>
+								<ice:commandLink styleClass="iceOutTxt" style="text-decoration: underline;" id="name"
+									value="#{user.name}" action="#{userList.showUserDetails}">
+									<f:param name="userOid" value="#{user.oid}" />
+								</ice:commandLink>
+							</ice:outputText>
+						</ice:column>
+						<ice:column>
+							<f:facet name="header">
+								<ice:commandSortHeader columnName="givenName" arrow="true" actionListener="#{userList.sortItem}">
+									<ice:outputText id="userGivenName" value="#{msg['page.account.index.table.given']}" />
+								</ice:commandSortHeader>
+							</f:facet>
+							<ice:outputText id="givenName" value="#{user.givenName}" />
+						</ice:column>
+						<ice:column>
+							<f:facet name="header">
+								<ice:commandSortHeader columnName="familyName" arrow="true" actionListener="#{userList.sortItem}">
+									<ice:outputText id="userFamilyName" value="#{msg['page.account.index.table.familyname']}" />
+								</ice:commandSortHeader>
+							</f:facet>
+							<ice:outputText id="familyName" value="#{user.familyName}" />
+						</ice:column>
+						<ice:column>
+							<f:facet name="header">
+								<ice:commandSortHeader columnName="fullName" arrow="true" actionListener="#{userList.sortItem}">
+									<ice:outputText id="userFullName" value="#{msg['page.account.index.table.fullname']}" />
+								</ice:commandSortHeader>
+							</f:facet>
+							<ice:outputText id="fullName" value="#{user.fullName}" />
+						</ice:column>
+						<ice:column>
+							<f:facet name="header">
+								<ice:commandSortHeader columnName="email" arrow="true" actionListener="#{userList.sortItem}">
+									<ice:outputText id="userEmail" value="#{msg['page.account.index.table.email']}" />
+								</ice:commandSortHeader>
+							</f:facet>
+							<ice:outputText id="email" value="#{user.email}" />
+						</ice:column>
+					</ice:dataTable>
+					<ice:panelGroup styleClass="container-auto" style="text-align: center;">
+						<idm:button id="goToFirst" img="/resources/images/resultset_first.png" value="#{msg['page.paginator.first']}"
+							action="#{userList.listFirst}" />
+						<idm:button id="goToPrevious" img="/resources/images/resultset_previous.png"
+							value="#{msg['page.paginator.previous']}" action="#{userList.listPrevious}" />
+						<idm:button id="goToNext" img="/resources/images/resultset_next.png" value="#{msg['page.paginator.next']}"
+							action="#{userList.listNext}" />
+						<idm:button id="goToLast" img="/resources/images/resultset_last.png" value="#{msg['page.paginator.last']}"
+							action="#{userList.listLast}" />
+					</ice:panelGroup>
+				</ice:panelGrid>
+			</ice:form>
+		</ice:panelGroup>
+	</ui:define>
+</ui:composition>

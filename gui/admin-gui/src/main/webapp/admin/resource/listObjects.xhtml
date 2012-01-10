@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui:composition template="/resources/templates/template.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:comp="http://java.sun.com/jsf/composite/components"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:c="http://java.sun.com/jsp/jstl/core"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+
+	<ui:define name="title">#{msg['page.resource.listObjects.title']} for resource: #{listObjects.resource.name} 
+	<br/>Connector type: #{listObjects.resource.type}</ui:define>
+
+	<ui:define name="menu">
+		<ui:include src="./menu.xhtml" />
+		<ui:include src="./menuDetails.xhtml" />
+	</ui:define>
+
+	<ui:define name="content">
+		<ice:form>
+			<ice:dataTable rows="#{listObjects.rowsCount}"
+				value="#{listObjects.rowModel}" var="item" resizable="false">
+				<ui:remove>
+					<ice:column>
+						<f:facet name="header">
+							<ice:outputLabel value="Oid" />
+						</f:facet>
+						<ice:outputText value="#{item.oid}" />
+					</ice:column>
+					<ice:column>
+						<f:facet name="header">
+							<ice:outputLabel value="Name" />
+						</f:facet>
+						<ice:outputText value="#{item.name}" />
+					</ice:column>
+				</ui:remove>
+				<ice:columns value="#{listObjects.columnModel}" var="column"
+					varStatus="status">
+					<f:facet name="header">
+						<ice:outputLabel value="#{column}" />
+					</f:facet>
+					<ice:outputText value="#{listObjects.attributeValue}" />
+				</ice:columns>
+			</ice:dataTable>
+
+			<comp:paging bean="#{listObjects}" />
+
+			<div class="button-bar">
+				<idm:button value="#{msg['page.button.back']}"
+					img="/resources/images/door_in.png"
+					action="#{listObjects.backPerformed}" />
+			</div>
+		</ice:form>
+	</ui:define>
+</ui:composition>
