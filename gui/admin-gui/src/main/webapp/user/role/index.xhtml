@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2011 Michal Serbak			     -->
+<!--                                                         -->
+
+<ui:composition template="/resources/templates/template_user.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:comp="http://java.sun.com/jsf/composite/components"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+
+	<ui:define name="title">Roles</ui:define>
+
+	<ui:define name="menu">
+		<div id="sidebarImage"></div>
+	</ui:define>
+
+	<ui:define name="content">
+		<ice:outputText style="margin-bottom: 10px; display: block;"
+			value="This page shows your roles." />
+		<ice:dataTable rows="20" style="width: 100%;"
+			value="#{endUserDetails.assignmentEditor.containsAssignment.assignments}"
+			var="item" columnWidths="auto, auto, auto" resizable="false">
+			<ice:column>
+				<f:facet name="header">
+					<ice:outputLabel value="Type" />
+				</f:facet>
+				<ice:outputText value="#{item.objectTypeString}" />
+			</ice:column>
+			<ice:column>
+				<f:facet name="header">
+					<ice:outputLabel value="Name" />
+				</f:facet>
+				<ice:outputText value="#{item.objectString}" />
+			</ice:column>
+			<ice:column>
+				<f:facet name="header">
+					<ice:outputLabel value="Description" />
+				</f:facet>
+				<ice:outputText value="#{item.description}" />
+			</ice:column>
+		</ice:dataTable>
+	</ui:define>
+</ui:composition>
