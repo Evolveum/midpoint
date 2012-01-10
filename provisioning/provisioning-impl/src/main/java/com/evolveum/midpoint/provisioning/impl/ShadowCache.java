@@ -24,6 +24,7 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -416,6 +417,10 @@ public class ShadowCache {
 					}
 					//FIXME: hack. the object delta must have oid specified.
 					if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null){
+						if (newShadow instanceof AccountShadowType){
+							ObjectDelta<AccountShadowType> objDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.DELETE);
+							change.setObjectDelta(objDelta);
+						}
 						change.getObjectDelta().setOid(newShadow.getOid());
 					}
 				} catch (ObjectNotFoundException ex) {
