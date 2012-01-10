@@ -220,73 +220,86 @@ public class TaskListController extends SortableListController<TaskItem> {
 	}
 
 	public String deactivate() {
-		boolean selected = false;
-
-		for (TaskItem task : getObjects()) {
-			if (task != null && task.isSelected()) {
-				selected = true;
-				break;
-			}
-		}
-
-		if (selected) {
-			// taskManager.deactivateServiceThreads();
-
-			Set<Task> tasks = taskManager.getRunningTasks();
-			List<TaskItem> runningTasks = getObjects();
-			runningTasks.clear();
-			// System.out.println(">>>>>>>>>>>>>>>> Filling runningTasks");
-			for (Task currTask : tasks) {
-				// System.out.println(">>>>>>>>>>>>>>>> start: " +
-				// currTask.getName());
-				runningTasks.add(new TaskItem(currTask));
-				// System.out.println(">>>>>>>>>>>>>>>> stop: " +
-				// currTask.getName());
-			}
-
-			for (TaskItem task : getObjects()) {
-				// LOGGER.info("delete user {} is selected {}",
-				// guiUserDto.getFullName(), guiUserDto.isSelected());
-				// System.out.println(">>>>>>>>>>>>>>>> aaa: "+task.getName());
-
-				if (task.isSelected() && runningTasks.contains(task)) {
-					try {
-						// System.out.println(">>>>>>>>>>>>>>>> deactivate task");
-						taskManager.deactivateServiceThreads();
-						setActivated(isActivated());
-					} catch (Exception ex) {
-						// LoggingUtils.logException(LOGGER,
-						// "Delete user failed", ex);
-						FacesUtils.addErrorMessage("Deactivate task failed: " + ex.getMessage());
-					}
-				}
-			}
-			listAll = false;
-			setSelectAll(false);
-			return PAGE_NAVIGATION;
-
-		} else {
-			FacesUtils.addErrorMessage("No task selected.");
-		}
+		
+		// temporary solution: deactivates all running task manager threads
+		
+		taskManager.deactivateServiceThreads();
+		FacesUtils.addWarnMessage("All task manager threads have been stopped. Is this what you wanted to achieve?");
 		return null;
+		
+//		boolean selected = false;
+//
+//		for (TaskItem task : getObjects()) {
+//			if (task != null && task.isSelected()) {
+//				selected = true;
+//				break;
+//			}
+//		}
+//
+//		if (selected) {
+//			// taskManager.deactivateServiceThreads();
+//
+//			Set<Task> tasks = taskManager.getRunningTasks();
+//			List<TaskItem> runningTasks = getObjects();
+//			runningTasks.clear();
+//			// System.out.println(">>>>>>>>>>>>>>>> Filling runningTasks");
+//			for (Task currTask : tasks) {
+//				// System.out.println(">>>>>>>>>>>>>>>> start: " +
+//				// currTask.getName());
+//				runningTasks.add(new TaskItem(currTask));
+//				// System.out.println(">>>>>>>>>>>>>>>> stop: " +
+//				// currTask.getName());
+//			}
+//
+//			for (TaskItem task : getObjects()) {
+//				// LOGGER.info("delete user {} is selected {}",
+//				// guiUserDto.getFullName(), guiUserDto.isSelected());
+//				// System.out.println(">>>>>>>>>>>>>>>> aaa: "+task.getName());
+//
+//				if (task.isSelected() && runningTasks.contains(task)) {
+//					try {
+//						// System.out.println(">>>>>>>>>>>>>>>> deactivate task");
+//						taskManager.deactivateServiceThreads();
+//						setActivated(isActivated());
+//					} catch (Exception ex) {
+//						// LoggingUtils.logException(LOGGER,
+//						// "Delete user failed", ex);
+//						FacesUtils.addErrorMessage("Deactivate task failed: " + ex.getMessage());
+//					}
+//				}
+//			}
+//			listAll = false;
+//			setSelectAll(false);
+//			return PAGE_NAVIGATION;
+//
+//		} else {
+//			FacesUtils.addErrorMessage("No task selected.");
+//		}
+//		return null;
 	}
 
 	public void reactivate() {
-		boolean selected = false;
 
-		for (TaskItem task : getObjects()) {
-			if (task != null && task.isSelected()) {
-				selected = true;
-				break;
-			}
-		}
+		taskManager.reactivateServiceThreads();
+		FacesUtils.addSuccessMessage("All task manager threads have been reactivated.");
+		return;
 
-		if (selected) {
-			taskManager.reactivateServiceThreads();
-			setActivated(isActivated());
-		} else {
-			FacesUtils.addErrorMessage("No task selected.");
-		}
+//		
+//		boolean selected = false;
+//
+//		for (TaskItem task : getObjects()) {
+//			if (task != null && task.isSelected()) {
+//				selected = true;
+//				break;
+//			}
+//		}
+//
+//		if (selected) {
+//			taskManager.reactivateServiceThreads();
+//			setActivated(isActivated());
+//		} else {
+//			FacesUtils.addErrorMessage("No task selected.");
+//		}
 
 	}
 
