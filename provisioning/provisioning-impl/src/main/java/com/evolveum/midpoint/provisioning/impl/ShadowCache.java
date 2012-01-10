@@ -414,6 +414,10 @@ public class ShadowCache {
 									.setAccountType(((AccountShadowType) newShadow).getAccountType());
 						}
 					}
+					//FIXME: hack. the object delta must have oid specified.
+					if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null){
+						change.getObjectDelta().setOid(newShadow.getOid());
+					}
 				} catch (ObjectNotFoundException ex) {
 					parentResult
 							.recordPartialError("Couldn't find object defined in change. Skipping processing this change.");
