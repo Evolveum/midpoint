@@ -63,8 +63,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 @Scope("session")
 public class UserListController extends SearchableListController<GuiUserDto> {
 
-	public static final String PAGE_NAVIGATION = "/account/index?faces-redirect=true";
-	public static final String PAGE_NAVIGATION_DELETE = "/account/deleteUser?faces-redirect=true";
+	public static final String PAGE_NAVIGATION = "/admin/account/index?faces-redirect=true";
+	public static final String PAGE_NAVIGATION_DELETE = "/admin/account/deleteUser?faces-redirect=true";
 	private static final long serialVersionUID = -6520469747022260260L;
 	private static final Trace LOGGER = TraceManager.getTrace(UserListController.class);
 	private static final String PARAM_USER_OID = "userOid";

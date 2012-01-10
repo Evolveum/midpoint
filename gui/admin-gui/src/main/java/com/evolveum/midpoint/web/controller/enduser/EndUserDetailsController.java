@@ -82,9 +82,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 public class EndUserDetailsController implements Serializable {
 
 	private static final long serialVersionUID = 7795454033519006167L;
-	public static final String PAGE_NAVIGATION_TO_USER = "/user-gui/profile/index?faces-redirect=true";
-	public static final String PAGE_NAVIGATION_TO_ACCOUNT = "/user-gui/account/index?faces-redirect=true";
-	public static final String PAGE_NAVIGATION_TO_ROLE = "/user-gui/role/index?faces-redirect=true";
+	public static final String PAGE_NAVIGATION_TO_USER = "/user/profile/index?faces-redirect=true";
+	public static final String PAGE_NAVIGATION_TO_ACCOUNT = "/user/account/index?faces-redirect=true";
+	public static final String PAGE_NAVIGATION_TO_ROLE = "/user/role/index?faces-redirect=true";
 	private static final Trace LOGGER = TraceManager.getTrace(EndUserDetailsController.class);
 	@Autowired(required = true)
 	private ObjectTypeCatalog objectTypeCatalog;

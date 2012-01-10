@@ -230,9 +230,9 @@ public class ControllerUtil {
 				status = ResourceStatus.ERROR;
 		}
 
-//		if (!resultFound.isSuccess() && !resultFound.isUnknown()) {
-//			FacesUtils.addErrorMessage(resultFound.getMessage());
-//		}
+		// if (!resultFound.isSuccess() && !resultFound.isUnknown()) {
+		// FacesUtils.addErrorMessage(resultFound.getMessage());
+		// }
 
 		return status;
 	}
@@ -252,17 +252,17 @@ public class ControllerUtil {
 	public static Date parseCalendarToDate(XMLGregorianCalendar calendar) {
 		return calendar.toGregorianCalendar().getTime();
 	}
-	
+
 	public static void printResults(Trace logger, OperationResult result, String successMessage) {
 		if (result == null) {
 			return;
 		}
 		if (!result.isSuccess()) {
 			FacesUtils.addMessage(result);
-		} else if (StringUtils.isNotEmpty(successMessage)){
+		} else if (StringUtils.isNotEmpty(successMessage)) {
 			FacesUtils.addSuccessMessage(successMessage);
 		}
-		
+
 		if (logger.isDebugEnabled()) {
 			logger.debug(result.dump());
 		}

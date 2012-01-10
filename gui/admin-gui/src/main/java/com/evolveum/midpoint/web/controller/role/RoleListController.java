@@ -57,7 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 @Scope("session")
 public class RoleListController extends SearchableListController<RoleListItem> {
 
-	public static final String PAGE_NAVIGATION_LIST = "/role/index?faces-redirect=true";
+	public static final String PAGE_NAVIGATION_LIST = "/admin/role/index?faces-redirect=true";
 	private static final long serialVersionUID = -2220151123394281052L;
 	private static final Trace LOGGER = TraceManager.getTrace(RoleListController.class);
 	private static final String PARAM_ROLE_OID = "roleOid";
@@ -131,6 +131,11 @@ public class RoleListController extends SearchableListController<RoleListItem> {
 			LoggingUtils.logException(LOGGER, "Couldn't show role '{}' details", ex, item.getName());
 			FacesUtils.addErrorMessage("Couldn't show details for role '" + item.getName() + "'.", ex);
 		}
+		
+		String returnPage = roleEditor.viewObject();
+		/*if (PAGE_NAVIGATION_VIEW.equals(returnPage) && template != null) {
+			template.setSelectedLeftId("leftViewEdit");
+		}*/
 
 		return nextPage;
 	}

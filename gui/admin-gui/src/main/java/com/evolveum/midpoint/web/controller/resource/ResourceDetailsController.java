@@ -52,7 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 @Scope("session")
 public class ResourceDetailsController implements Serializable {
 
-	public static final String PAGE_NAVIGATION = "/resource/resourceDetails?faces-redirect=true";
+	public static final String PAGE_NAVIGATION = "/admin/resource/resourceDetails?faces-redirect=true";
 	public static final String NAVIGATION_LEFT = "leftResourceDetails";
 	public static final String PARAM_OBJECT_TYPE = "objectType";
 	private static final long serialVersionUID = 8325385127604325634L;

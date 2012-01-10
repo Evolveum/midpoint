@@ -39,7 +39,7 @@ import com.evolveum.midpoint.web.controller.util.WizardPage;
 @Scope("session")
 public class ResourceWizard extends Wizard {
 
-	static final String PAGE_NAVIGATION_BASE = "/resource/create";
+	static final String PAGE_NAVIGATION_BASE = "/admin/resource/create";
 	private static final long serialVersionUID = -8327099988202610912L;
 	@Autowired(required = true)
 	private transient TemplateController template;

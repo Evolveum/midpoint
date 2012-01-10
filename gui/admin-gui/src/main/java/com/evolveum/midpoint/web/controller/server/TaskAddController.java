@@ -38,7 +38,7 @@ import com.evolveum.midpoint.web.util.FacesUtils;
 public class TaskAddController implements Serializable {
 
 	private static final long serialVersionUID = -6056027549741234709L;
-	public static final String PAGE_NAVIGATION = "/server/taskAdd?faces-redirect=true";
+	public static final String PAGE_NAVIGATION = "/admin/server/taskAdd?faces-redirect=true";
 	@Autowired(required = true)
 	private transient TaskManager taskManager;
 	private TaskItem task;

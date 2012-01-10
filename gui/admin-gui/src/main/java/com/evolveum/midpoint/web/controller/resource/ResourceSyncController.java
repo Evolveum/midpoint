@@ -38,7 +38,7 @@ import com.evolveum.midpoint.web.controller.TemplateController;
 @Scope("session")
 public class ResourceSyncController implements Serializable {
 
-	public static final String PAGE_NAVIGATION = "/resource/synchronization?faces-redirect=true";
+	public static final String PAGE_NAVIGATION = "/admin/resource/synchronization?faces-redirect=true";
 	public static final String NAVIGATION_LEFT = "leftSyncStatus";
 	private static final long serialVersionUID = 7495585784483264032L;
 	@Autowired(required = true)

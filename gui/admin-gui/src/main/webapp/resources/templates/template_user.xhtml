@@ -56,7 +56,7 @@
 				<f:verbatim styleClass="delimiter"
 					rendered="#{security.isUserLoggedIn}">|</f:verbatim>
 				<ice:outputLink id="topHelpLink"
-					value="#{facesContext.externalContext.requestContextPath}/user-gui/help/index.iface"
+					value="#{facesContext.externalContext.requestContextPath}/user/help/index.iface"
 					rendered="#{security.isUserLoggedIn}">
 					<span id="helpSpan">#{msg['page.template.help']}</span>
 				</ice:outputLink>
@@ -75,7 +75,7 @@
 					<div id="navBar">
 						<div id="topHomeButtonLeft"></div>
 						<idm:topMenuItem id="topHome" style="margin-left: 30px;"
-							action="/user-gui/index?faces-redirect=true"
+							action="/user/index?faces-redirect=true"
 							name="#{msg['page.template.top.home']}"
 							description="#{msg['page.template.top.description.home']}" />
 
@@ -91,7 +91,7 @@
 							name="Profile" description="User profile" />
 
 						<idm:topMenuItem id="topSearch"
-							action="/user-gui/search/index?faces-redirect=true" name="Search"
+							action="/user/search/index?faces-redirect=true" name="Search"
 							description="Search user" />
 
 						<div id="topConfigurationButtonRight"></div>

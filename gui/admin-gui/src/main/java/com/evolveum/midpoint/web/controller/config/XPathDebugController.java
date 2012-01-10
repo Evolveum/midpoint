@@ -68,7 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 @Scope("session")
 public class XPathDebugController implements Serializable {
 
-	public static final String PAGE_NAVIGATION_XPATH_DEBUG = "/config/debugXPath?faces-redirect=true";
+	public static final String PAGE_NAVIGATION_XPATH_DEBUG = "/admin/config/debugXPath?faces-redirect=true";
 	private static final long serialVersionUID = 7295076387943631763L;
 	private static final String PARAM_VARIABLE_NAME = "variableName";
 	private static final Trace LOGGER = TraceManager.getTrace(XPathDebugController.class);

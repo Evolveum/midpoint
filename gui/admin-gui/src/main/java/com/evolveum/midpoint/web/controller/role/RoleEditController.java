@@ -27,6 +27,7 @@ import java.util.List;
 
 import javax.faces.event.ActionEvent;
 import javax.faces.model.SelectItem;
+import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,13 +35,16 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.AssignmentBeanType;
+import com.evolveum.midpoint.web.bean.ObjectBean;
 import com.evolveum.midpoint.web.controller.TemplateController;
+import com.evolveum.midpoint.web.controller.config.DebugListController;
 import com.evolveum.midpoint.web.controller.util.AssignmentEditor;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
@@ -48,6 +52,8 @@ import com.evolveum.midpoint.web.model.RoleManager;
 import com.evolveum.midpoint.web.model.dto.RoleDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 
 /**
@@ -59,7 +65,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 @Scope("session")
 public class RoleEditController implements Serializable {
 
-	public static final String PAGE_NAVIGATION = "/role/roleEdit?faces-redirect=true";
+	public static final String PAGE_NAVIGATION = "/admin/role/roleEdit?faces-redirect=true";
 	public static final String PARAM_ASSIGNMENT_ID = "assignmentId";
 	private static final long serialVersionUID = 6390559677870495118L;
 	private static final Trace LOGGER = TraceManager.getTrace(RoleEditController.class);
@@ -149,5 +155,34 @@ public class RoleEditController implements Serializable {
 			result.computeStatus();
 			ControllerUtil.printResults(LOGGER, result, "Role changes saved sucessfully.");
 		}
+	}
+	
+	public String viewObject() {
+		if (role == null) {
+			FacesUtils.addErrorMessage("Debug role not defined.");
+			return DebugListController.PAGE_NAVIGATION;
+		}
+
+		/*try {
+			ObjectType objectType = repositoryManager.getObject(object.getOid());
+			if (objectType == null) {
+				return DebugListController.PAGE_NAVIGATION;
+			}
+
+			role = new ObjectBean(objectType.getOid(), objectType.getName());
+			xml = JAXBUtil.marshal(new ObjectFactory().createObject(objectType));
+		} catch (JAXBException ex) {
+			LoggingUtils.logException(TRACE, "Couldn't show object {} in editor", ex, object.getName());
+			FacesUtils.addErrorMessage("Couldn't show object '" + object.getName() + "' in editor.", ex);
+
+			return DebugListController.PAGE_NAVIGATION;
+		} catch (Exception ex) {
+			LoggingUtils.logException(TRACE, "Unknown error occured.", ex);
+			FacesUtils.addErrorMessage("Unknown error occured.", ex);
+
+			return DebugListController.PAGE_NAVIGATION;
+		}*/
+
+		return PAGE_NAVIGATION;
 	}
 }

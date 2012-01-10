@@ -60,7 +60,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 @Scope("session")
 public class DebugViewController implements Serializable {
 
-	public static final String PAGE_NAVIGATION = "/config/debugView?faces-redirect=true";
+	public static final String PAGE_NAVIGATION = "/admin/config/debugView?faces-redirect=true";
 	public static final String NAVIGATION_LEFT = "leftViewEdit";
 	private static final long serialVersionUID = -6260309359121248206L;
 	private static final Trace TRACE = TraceManager.getTrace(DebugViewController.class);

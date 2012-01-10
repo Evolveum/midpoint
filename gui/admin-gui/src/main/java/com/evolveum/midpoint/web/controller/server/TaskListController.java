@@ -63,7 +63,7 @@ public class TaskListController extends SortableListController<TaskItem> {
 	// private Set<TaskItem> runningTasks;
 	private boolean activated;
 
-	public static final String PAGE_NAVIGATION = "/server/index?faces-redirect=true";
+	public static final String PAGE_NAVIGATION = "/admin/server/index?faces-redirect=true";
 	public static final String PAGE_LEFT_NAVIGATION = "leftRunnableTasks";
 	private static final String PARAM_TASK_OID = "taskOid";
 

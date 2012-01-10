@@ -69,7 +69,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SubSystemLoggerConfi
 @Scope("session")
 public class LoggingController implements Serializable {
 
-	public static final String PAGE_NAVIGATION = "/config/logging?faces-redirect=true";
+	public static final String PAGE_NAVIGATION = "/admin/config/logging?faces-redirect=true";
 	public static final String PARAM_APPENDER_ID = "appenderName";
 	public static final String PARAM_LOGGER_ID = "loggerId";
 	private static final Trace LOGGER = TraceManager.getTrace(LoggingController.class);

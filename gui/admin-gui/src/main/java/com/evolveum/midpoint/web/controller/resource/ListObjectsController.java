@@ -74,7 +74,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 @Scope("session")
 public class ListObjectsController extends ListController<ResourceObjectBean> implements Serializable {
 
-	public static final String PAGE_NAVIGATION = "/resource/listObjects?faces-redirect=true";
+	public static final String PAGE_NAVIGATION = "/admin/resource/listObjects?faces-redirect=true";
 	private static final long serialVersionUID = -3538520581983462635L;
 	private static final Trace LOGGER = TraceManager.getTrace(ListObjectsController.class);
 	private static final int MAX_COLUMNS = 6;

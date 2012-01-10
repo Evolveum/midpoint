@@ -52,8 +52,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 @Scope("session")
 public class DebugListController extends ListController<ObjectBean> {
 
-	public static final String PAGE_NAVIGATION = "/config/debugList?faces-redirect=true";
-	public static final String PAGE_NAVIGATION_VIEW = "/config/debugView?faces-redirect=true";
+	public static final String PAGE_NAVIGATION = "/admin/config/debugList?faces-redirect=true";
+	public static final String PAGE_NAVIGATION_VIEW = "/admin/config/debugView?faces-redirect=true";
 	public static final String PARAM_DELETE_OBJECT_OID = "deleteObjectOid";
 	public static final String PARAM_VIEW_OBJECT_OID = "viewObjectOid";
 	private static final long serialVersionUID = -6260309359121248205L;

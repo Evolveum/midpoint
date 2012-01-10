@@ -69,7 +69,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 @Scope("session")
 public class ResourceListController extends SortableListController<ResourceListItem> {
 
-	public static final String PAGE_NAVIGATION = "/resource/index?faces-redirect=true";
+	public static final String PAGE_NAVIGATION = "/admin/resource/index?faces-redirect=true";
 	public static final String NAVIGATION_LEFT = "leftResourceList";
 	private static final String PARAM_RESOURCE_OID = "resourceOid";
 	private static final String PARAM_CONNECTOR_HOST_OID = "connectorHostOid";
