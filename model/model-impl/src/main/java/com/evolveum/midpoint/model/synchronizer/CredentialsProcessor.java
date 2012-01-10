@@ -61,11 +61,12 @@ public class CredentialsProcessor {
     public void processCredentials(SyncContext context, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
         ObjectDelta<UserType> userDelta = context.getUserDelta();
-        if (userDelta == null) {
-            LOGGER.trace("userDelta is null, skipping credentials processing");
-            return;
+        PropertyDelta passwordValueDelta = null;
+        if (userDelta != null) {
+        	passwordValueDelta = userDelta.getPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
         }
-        PropertyDelta passwordValueDelta = userDelta.getPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
+//            LOGGER.trace("userDelta is null, skipping credentials processing");
+//            return;
 
         MidPointObject<UserType> userNew = context.getUserNew();
         if (userNew == null) {
