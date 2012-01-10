@@ -1536,7 +1536,6 @@ public class TestSanity extends AbstractIntegrationTest {
         String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull("Pasword was not set on create", guybrushPassword);
 
-        // TODO: attributes in role definition
         // TODO: Derby
 
     }
@@ -2224,6 +2223,20 @@ public class TestSanity extends AbstractIntegrationTest {
     	
         final OperationResult result = new OperationResult(TestSanity.class.getName()
                 + ".test300ReconcileUsers");
+        
+        // Assign role to a user, but we do this using a repository instead of model.
+        // The role assignment will not be executed and this created an inconsistent state.
+        ObjectModificationType changeAddRoleCaptain = unmarshallJaxbFromFile(
+                REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_FILENAME, ObjectModificationType.class);
+        repositoryService.modifyObject(UserType.class, changeAddRoleCaptain, result);
+        
+        
+        
+        // TODO: setup more "inconsistent" state
+        
+        
+        
+        // Add reconciliation task. This will trigger reconciliation
 
         addObjectFromFile(TASK_USER_RECON_FILENAME, result);
 
@@ -2285,9 +2298,79 @@ public class TestSanity extends AbstractIntegrationTest {
         OperationResult taskResult = task.getResult();
         AssertJUnit.assertNotNull(taskResult);
 
-        // Failure is expected here ... for now
-        // assertTrue(taskResult.isSuccess());
+        // CHECK RESULT: account created for user guybrush
+        
+        // Check if user object was modified in the repo
 
+        OperationResult repoResult = new OperationResult("getObject");
+        PropertyReferenceListType resolve = new PropertyReferenceListType();
+
+        UserType repoUser = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, resolve, repoResult);
+
+        repoResult.computeStatus();
+        displayJaxb("User (repository)", repoUser, new QName("user"));
+
+        List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+        assertEquals(1, accountRefs.size());
+        ObjectReferenceType accountRef = accountRefs.get(0);
+        accountShadowOidGuybrushOpendj = accountRef.getOid();
+        assertFalse(accountShadowOidGuybrushOpendj.isEmpty());
+
+        // Check if shadow was created in the repo
+
+        repoResult = new OperationResult("getObject");
+
+        AccountShadowType repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
+                resolve, repoResult);
+        repoResult.computeStatus();
+        assertSuccess("getObject has failed", repoResult);
+        displayJaxb("Shadow (repository)", repoShadow, new QName("shadow"));
+        assertNotNull(repoShadow);
+        assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
+
+        // check attributes in the shadow: should be only identifiers (ICF UID)
+        boolean hasOthers = false;
+        accountGuybrushOpendjEntryUuuid = null;
+        List<Object> xmlAttributes = repoShadow.getAttributes().getAny();
+        for (Object element : xmlAttributes) {
+            if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
+                if (accountGuybrushOpendjEntryUuuid != null) {
+                    AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
+                } else {
+                    accountGuybrushOpendjEntryUuuid = ((Element) element).getTextContent();
+                }
+            } else {
+                hasOthers = true;
+            }
+        }
+
+        assertFalse(hasOthers);
+        assertNotNull(accountGuybrushOpendjEntryUuuid);
+
+        // check if account was created in LDAP
+
+        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
+
+        display("LDAP account", entry);
+
+        OpenDJController.assertAttribute(entry, "uid", "guybrush");
+        OpenDJController.assertAttribute(entry, "givenName", "Guybrush");
+        OpenDJController.assertAttribute(entry, "sn", "Threepwood");
+        OpenDJController.assertAttribute(entry, "cn", "Guybrush Threepwood");
+        // The "l" attribute is assigned indirectly through schemaHandling and
+        // config object
+        OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
+        
+        // Set by the role
+        OpenDJController.assertAttribute(entry, "employeeType", "sailor");
+        OpenDJController.assertAttribute(entry, "title", "Honorable Captain");
+        OpenDJController.assertAttribute(entry, "carLicense", "C4PT41N");
+        OpenDJController.assertAttribute(entry, "businessCategory", "cruise");
+
+        String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
+        assertNotNull("Pasword was not set on create", guybrushPassword);
+
+        
     }
 
 

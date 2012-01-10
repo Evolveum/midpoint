@@ -116,7 +116,7 @@ public class UserSynchronizer {
         context.recomputeUserNew();
         traceContext("Context after USER POLICY and recompute:\n{}", context);
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("User delta:\n{}", context.getUserDelta().dump());
+            LOGGER.trace("User delta:\n{}", context.getUserDelta() == null ? "null" : context.getUserDelta().dump());
         }
 
         assignmentProcessor.processAssignments(context, result);
@@ -256,6 +256,9 @@ public class UserSynchronizer {
                 }
             }
             accountSyncContext.setOid(oid);
+            if (context.isDoReconciliationForAllAccounts()) {
+            	accountSyncContext.setDoReconciliation(true);
+            }
         }
     }
 

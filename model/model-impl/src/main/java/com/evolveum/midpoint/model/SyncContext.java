@@ -118,6 +118,11 @@ public class SyncContext implements Dumpable, DebugDumpable {
      * {@link ActivationDecision#DISABLE} ({@link ActivationDecision#ENABLE}) user will be disabled (enabled),
      */
     private ActivationDecision activationDecision;
+    
+    /**
+     * True if we want to reconcile all accounts in this context.
+     */
+    private boolean doReconciliationForAllAccounts = false;
 
     public SyncContext() {
         accountContextMap = new HashMap<ResourceAccountType, AccountSyncContext>();
@@ -196,8 +201,16 @@ public class SyncContext implements Dumpable, DebugDumpable {
             AccountSynchronizationSettingsType accountSynchronizationSettings) {
         this.accountSynchronizationSettings = accountSynchronizationSettings;
     }
+    
+    public boolean isDoReconciliationForAllAccounts() {
+		return doReconciliationForAllAccounts;
+	}
 
-    /**
+	public void setDoReconciliationForAllAccounts(boolean doReconciliationForAllAccounts) {
+		this.doReconciliationForAllAccounts = doReconciliationForAllAccounts;
+	}
+
+	/**
      * Returns one aspect from the synchronization settings (with respect to default value).
      * TODO: maybe this is redundant?
      */

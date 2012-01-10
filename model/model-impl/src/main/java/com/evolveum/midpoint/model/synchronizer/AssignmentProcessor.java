@@ -185,11 +185,15 @@ public class AssignmentProcessor {
             if (zeroAccountMap.containsKey(rat)) {
                 AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
                 if (accountSyncContext == null) {
-                	throw new IllegalStateException("No account sync context for account type "+rat);
+                	// The account should exist before the change but it does not
+                	// This happens during reconciliation if there is an inconsistency. Pretend that the assignment was just added. That should do.
+                	processAccountAssign(context, rat, accountDeltaSetTriple, attributeValueDeltaMap, result);
+                    context.getAccountSyncContext(rat).setAssigned(true);
+                } else {
+                	// The account existed before the change and should still exist
+	                accountSyncContext.setAssigned(true);
+	                processAccountKeep(context, rat, accountDeltaSetTriple, attributeValueDeltaMap, result);
                 }
-                accountSyncContext.setAssigned(true);
-                // The account existed before the change and should still exist
-                processAccountKeep(context, rat, accountDeltaSetTriple, attributeValueDeltaMap, result);
 
             } else if (plusAccountMap.containsKey(rat) && minusAccountMap.containsKey(rat)) {
                 context.getAccountSyncContext(rat).setAssigned(true);

@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.MidPointObject;
@@ -83,6 +85,9 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	
     @Autowired(required = true)
     private UserSynchronizer userSynchronizer;
+    
+    @Autowired
+    private ChangeExecutor changeExecutor;
 
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
@@ -120,6 +125,13 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			LOGGER.error("Reconciliation: Resource does not exist, OID: {}",resourceOid,ex);
 			// This is bad. The resource does not exist. Permanent problem.
 			opResult.recordFatalError("Resource does not exist, OID: "+resourceOid,ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
+		} catch (ObjectAlreadyExistsException ex) {
+			LOGGER.error("Reconciliation: Object already exist: {}",ex.getMessage(),ex);
+			// This is bad. The resource does not exist. Permanent problem.
+			opResult.recordFatalError("Object already exist: "+ex.getMessage(),ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
@@ -169,9 +181,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 	/**
 	 * Iterate over all the users, trigger a reconciliation (recompute) of each of them
-	 * @throws SchemaException 
 	 */
-	private void performUserReconciliation(OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
+	private void performUserReconciliation(OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException {
 		
 		PagingType paging = new PagingType();
 		
@@ -185,6 +196,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			}
 			for (UserType user : users) {
 				OperationResult subResult = result.createSubresult(OperationConstants.RECONCILE_USER);
+				subResult.addContext(OperationResult.CONTEXT_OBJECT, user);
 				reconcileUser(user, subResult);
 			}
 			offset += SEARCH_MAX_SIZE;
@@ -194,7 +206,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		
 	}
 
-	private void reconcileUser(UserType user, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
+	private void reconcileUser(UserType user, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException {
 		LOGGER.trace("Reconciling user {}",ObjectTypeUtil.toShortString(user));
 		
 		SyncContext syncContext = new SyncContext();
@@ -205,8 +217,13 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		syncContext.setUserOid(user.getOid());
 
 		syncContext.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
+		syncContext.setDoReconciliationForAllAccounts(true);
 		
 		userSynchronizer.synchronizeUser(syncContext, result);
+		
+		LOGGER.trace("Reconciling of user {}: context:\n{}",ObjectTypeUtil.toShortString(user),syncContext.dump());
+		
+		changeExecutor.executeChanges(syncContext, result);
 		
 		// TODO
 		LOGGER.trace("Reconciling of user {}: {}",ObjectTypeUtil.toShortString(user),result.getStatus());
