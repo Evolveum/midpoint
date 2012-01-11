@@ -25,7 +25,8 @@
      tests. -->
 
 <resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
@@ -425,7 +426,7 @@ it will look for match in usernames in the IDM and the resource. -->
                 <c:valueExpression>
                     <ref>c:name</ref>
                     <c:code>
-                        $i:account/i:attributes/dj:uid
+                        $c:account/c:attributes/dj:uid
                     </c:code>
                 </c:valueExpression>
             </c:equal>

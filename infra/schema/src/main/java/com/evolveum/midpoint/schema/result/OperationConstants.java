@@ -30,7 +30,9 @@ public class OperationConstants {
 	
 	public static final String LIVE_SYNC = PREFIX + ".liveSync";
 	public static final String RECONCILIATION = PREFIX + ".reconciliation";
-	public static final String RECONCILE_USER = PREFIX + ".reconciliation.user";
+	public static final String RECONCILE_ACCOUNT = PREFIX + ".reconciliation.account";
+	public static final String RECOMPUTE = PREFIX + ".reconciliation";
+	public static final String RECOMPUTE_USER = PREFIX + ".reconciliation.user";
 	
 	public static final String IMPORT_ACCOUNTS_FROM_RESOURCE = PREFIX + ".import.accountsFromResource";
 	public static final String IMPORT_OBJECTS_FROM_FILE = PREFIX + ".import.objectsFromFile";

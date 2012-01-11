@@ -19,7 +19,7 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
 
-<!-- User reconciliation task definition -->
+<!-- User recompute task definition -->
 
 <task oid="91919191-76e0-59e2-86d6-3d4f02d3aaaa"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
@@ -29,7 +29,7 @@
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
-	<name>User Reconciliation</name>
+	<name>User Recompute</name>
 	
 	<extension>
 	</extension>
@@ -38,11 +38,8 @@
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>running</executionStatus>
 	<exclusivityStatus>released</exclusivityStatus>
-	<handlerUri>http://midpoint.evolveum.com/model/sync/reconciliation-handler-1</handlerUri>
-	<recurrence>recurring</recurrence>
+	<handlerUri>http://midpoint.evolveum.com/model/sync/recompute-handler-1</handlerUri>
+	<recurrence>single</recurrence>
 	<binding>tight</binding>
-	<schedule>
-		<interval>5</interval>
-	</schedule>
 
 </task>

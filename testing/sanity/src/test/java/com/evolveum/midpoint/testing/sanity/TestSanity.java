@@ -126,8 +126,8 @@ public class TestSanity extends AbstractIntegrationTest {
     private static final String TASK_OPENDJ_SYNC_FILENAME = "src/test/resources/repo/opendj-sync-task.xml";
     private static final String TASK_OPENDJ_SYNC_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
 
-    private static final String TASK_USER_RECON_FILENAME = "src/test/resources/repo/task-user-reconciliation.xml";
-    private static final String TASK_USER_RECON_OID = "91919191-76e0-59e2-86d6-3d4f02d3aaaa";
+    private static final String TASK_USER_RECOMPUTE_FILENAME = "src/test/resources/repo/task-user-recompute.xml";
+    private static final String TASK_USER_RECOMPUTE_OID = "91919191-76e0-59e2-86d6-3d4f02d3aaaa";
 
     private static final String TASK_OPENDJ_RECON_FILENAME = "src/test/resources/repo/task-opendj-reconciliation.xml";
     private static final String TASK_OPENDJ_RECON_OID = "91919191-76e0-59e2-86d6-3d4f02d30000";
@@ -2224,12 +2224,12 @@ public class TestSanity extends AbstractIntegrationTest {
     }
     
     @Test
-    public void test300ReconcileUsers() throws Exception {
-    	displayTestTile("test300ReconcileUsers");
+    public void test300RecomputeUsers() throws Exception {
+    	displayTestTile("test300RecomputeUsers");
         // GIVEN
     	
         final OperationResult result = new OperationResult(TestSanity.class.getName()
-                + ".test300ReconcileUsers");
+                + ".test300RecomputeUsers");
         
         // Assign role to a user, but we do this using a repository instead of model.
         // The role assignment will not be executed and this created an inconsistent state.
@@ -2245,7 +2245,7 @@ public class TestSanity extends AbstractIntegrationTest {
         
         // Add reconciliation task. This will trigger reconciliation
 
-        addObjectFromFile(TASK_USER_RECON_FILENAME, result);
+        addObjectFromFile(TASK_USER_RECOMPUTE_FILENAME, result);
 
 
         // We need to wait for a sync interval, so the task scanner has a chance
@@ -2254,7 +2254,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         waitFor("Waiting for task manager to pick up the task", new Checker() {
             public boolean check() throws ObjectNotFoundException, SchemaException {
-                Task task = taskManager.getTask(TASK_USER_RECON_OID, result);
+                Task task = taskManager.getTask(TASK_USER_RECOMPUTE_OID, result);
                 display("Task while waiting for task manager to pick up the task", task);
                 // wait until the task is picked up
                 if (TaskExclusivityStatus.CLAIMED == task.getExclusivityStatus()) {
@@ -2275,14 +2275,14 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // Check task status
 
-        Task task = taskManager.getTask(TASK_USER_RECON_OID, result);
+        Task task = taskManager.getTask(TASK_USER_RECOMPUTE_OID, result);
         result.computeStatus();
         display("getTask result", result);
         assertSuccess("getTask has failed", result);
         AssertJUnit.assertNotNull(task);
         display("Task after pickup", task);
 
-        ObjectType o = repositoryService.getObject(ObjectType.class, TASK_USER_RECON_OID, null, result);
+        ObjectType o = repositoryService.getObject(ObjectType.class, TASK_USER_RECOMPUTE_OID, null, result);
         display("Task after pickup in the repository", o);
 
         // .. it should be running
@@ -2306,7 +2306,7 @@ public class TestSanity extends AbstractIntegrationTest {
         AssertJUnit.assertNotNull(taskResult);
         
         // STOP the task. We don't need it any more and we don't want to give it a chance to run more than once
-        taskManager.deleteTask(TASK_USER_RECON_OID, result);
+        taskManager.deleteTask(TASK_USER_RECOMPUTE_OID, result);
 
         // CHECK RESULT: account created for user guybrush
         
@@ -2487,7 +2487,7 @@ public class TestSanity extends AbstractIntegrationTest {
         displayJaxb("User (repository)", repoUser, new QName("user"));
 
         List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
-        assertEquals(1, accountRefs.size());
+        assertEquals("Guybrush has wrong number of accounts",1, accountRefs.size());
         ObjectReferenceType accountRef = accountRefs.get(0);
         accountShadowOidGuybrushOpendj = accountRef.getOid();
         assertFalse(accountShadowOidGuybrushOpendj.isEmpty());
@@ -2550,14 +2550,14 @@ public class TestSanity extends AbstractIntegrationTest {
         
         QueryType query = QueryUtil.createNameQuery(ELAINE_NAME);
 		ResultList<UserType> users = repositoryService.searchObjects(UserType.class, query, null, repoResult);
-		assertEquals(1,users.size());
+		assertEquals("Wrong number of Elaines",1,users.size());
         repoUser = users.get(0);
 
         repoResult.computeStatus();
         displayJaxb("User (repository)", repoUser, new QName("user"));
 
         accountRefs = repoUser.getAccountRef();
-        assertEquals(1, accountRefs.size());
+        assertEquals("Elaine has wrong number of accounts",1, accountRefs.size());
         accountRef = accountRefs.get(0);
         String accountShadowOidElaineOpendj = accountRef.getOid();
         assertFalse(accountShadowOidElaineOpendj.isEmpty());
@@ -2590,8 +2590,8 @@ public class TestSanity extends AbstractIntegrationTest {
             }
         }
 
-        assertFalse(hasOthers);
-        assertNotNull(accountShadowOidElaineOpendj);
+        assertFalse("Elaine has unexpected attributes in shadow", hasOthers);
+        assertNotNull("Elaine does not have an OID in shadow", accountShadowOidElaineOpendj);
 
         // check if account is still in LDAP
 

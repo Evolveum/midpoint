@@ -64,25 +64,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
- * The task hander for reconciliation.
+ * The task hander for user recompute.
  * 
- *  This handler takes care of executing reconciliation "runs". It means that the handler "run" method will
- *  be as scheduled (every few days). The responsibility is to iterate over accounts and compare the
- *  real state with the assumed IDM state.
+ *  This handler takes care of executing recompute "runs". The task will iterate over all users
+ *  and recompute their assignments and expressions. This is needed after the expressions are changed,
+ *  e.g in resource outbound expressions or in a role definition.
  * 
  * @author Radovan Semancik
  *
  */
 @Component
-public class ReconciliationTaskHandler implements TaskHandler {
+public class RecomputeTaskHandler implements TaskHandler {
 	
-	public static final String HANDLER_URI = "http://midpoint.evolveum.com/model/sync/reconciliation-handler-1";
+	public static final String HANDLER_URI = "http://midpoint.evolveum.com/model/sync/recompute-handler-1";
 	
 	@Autowired(required=true)
 	private TaskManager taskManager;
-	
-	@Autowired(required=true)
-	private ProvisioningService provisioningService;
 	
 	@Autowired(required=true)
 	private RepositoryService repositoryService;
@@ -95,12 +92,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
     
     @Autowired
     private ChangeExecutor changeExecutor;
-    
-    @Autowired(required = true)
-    private ChangeNotificationDispatcher changeNotificationDispatcher;
-
-	
-	private static final transient Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
+    	
+	private static final transient Trace LOGGER = TraceManager.getTrace(RecomputeTaskHandler.class);
 
 	private static final int SEARCH_MAX_SIZE = 100;
 
@@ -111,37 +104,33 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	
 	@Override
 	public TaskRunResult run(Task task) {
-		LOGGER.trace("ReconciliationTaskHandler.run starting");
+		LOGGER.trace("RecomputeTaskHandler.run starting");
 		
 		long progress = task.getProgress();
-		OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION);
+		OperationResult opResult = new OperationResult(OperationConstants.RECOMPUTE);
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
-		String resourceOid = task.getObjectOid();
-		opResult.addContext("resourceOid", resourceOid);
+//		String roleOid = task.getObjectOid();
+//		opResult.addContext("roleOid", roleOid);
 
-		if (resourceOid==null) {
-			throw new IllegalArgumentException("Resource OID is missing in task extension");
-		}
-			
 		try {
 
-			performResourceReconciliation(resourceOid, task, opResult);
-			
+			performUserRecompute(task, opResult);
+					
 		} catch (ObjectNotFoundException ex) {
-			LOGGER.error("Reconciliation: Resource does not exist, OID: {}",resourceOid,ex);
+			LOGGER.error("Recompute: Object does not exist: {}",ex.getMessage(),ex);
 			// This is bad. The resource does not exist. Permanent problem.
-			opResult.recordFatalError("Resource does not exist, OID: "+resourceOid,ex);
+			opResult.recordFatalError("Object does not exist: "+ex.getMessage(),ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
-//		} catch (ObjectAlreadyExistsException ex) {
-//			LOGGER.error("Reconciliation: Object already exist: {}",ex.getMessage(),ex);
-//			// This is bad. The resource does not exist. Permanent problem.
-//			opResult.recordFatalError("Object already exist: "+ex.getMessage(),ex);
-//			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-//			runResult.setProgress(progress);
-//			return runResult;
+		} catch (ObjectAlreadyExistsException ex) {
+			LOGGER.error("Reconciliation: Object already exist: {}",ex.getMessage(),ex);
+			// This is bad. The resource does not exist. Permanent problem.
+			opResult.recordFatalError("Object already exist: "+ex.getMessage(),ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
 		} catch (CommunicationException ex) {
 			LOGGER.error("Reconciliation: Communication error: {}",ex.getMessage(),ex);
 			// Error, but not critical. Just try later.
@@ -157,12 +146,12 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
-//		} catch (ExpressionEvaluationException ex) {
-//			LOGGER.error("Reconciliation: Error evaluating expression: {}",ex.getMessage(),ex);
-//			opResult.recordFatalError("Error evaluating expression: "+ex.getMessage(),ex);
-//			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-//			runResult.setProgress(progress);
-//			return runResult;
+		} catch (ExpressionEvaluationException ex) {
+			LOGGER.error("Reconciliation: Error evaluating expression: {}",ex.getMessage(),ex);
+			opResult.recordFatalError("Error evaluating expression: "+ex.getMessage(),ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
 		} catch (RuntimeException ex) {
 			LOGGER.error("Reconciliation: Internal Error: {}",ex.getMessage(),ex);
 			// Can be anything ... but we can't recover from that.
@@ -181,28 +170,56 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		return runResult;
 	}
 
-	private void performResourceReconciliation(String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException {
+
+	/**
+	 * Iterate over all the users, trigger a recompute of each of them
+	 */
+	private void performUserRecompute(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException {
 		
-		ResourceType resource = repositoryService.getObject(ResourceType.class, resourceOid, null, result);
-
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, schemaRegistry);
-		RefinedAccountDefinition refinedAccountDefinition = refinedSchema.getDefaultAccountDefinition();
-
-        LOGGER.info("Start executing import from resource {}, importing object class {}", ObjectTypeUtil.toShortString(resource), refinedAccountDefinition);
-
-        // Instantiate result handler. This will be called with every search result in the following iterative search
-        SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, refinedAccountDefinition, task, changeNotificationDispatcher);
-        handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
-        
-		QueryType query = createAccountSearchQuery(resource, refinedAccountDefinition);
-		provisioningService.searchObjectsIterative(query , null, handler , result);
+		PagingType paging = new PagingType();
 		
-		// TODO: process result
+		int offset = 0;
+		while (true) {
+			paging.setOffset(offset);
+			paging.setMaxSize(SEARCH_MAX_SIZE);
+			ResultList<UserType> users = repositoryService.listObjects(UserType.class, paging, result);
+			if (users == null || users.isEmpty()) {
+				break;
+			}
+			for (UserType user : users) {
+				OperationResult subResult = result.createSubresult(OperationConstants.RECOMPUTE_USER);
+				subResult.addContext(OperationResult.CONTEXT_OBJECT, user);
+				recomputeUser(user, subResult);
+			}
+			offset += SEARCH_MAX_SIZE;
+		}
+		
+		// TODO: result
+		
 	}
 
-	private QueryType createAccountSearchQuery(ResourceType resource, RefinedAccountDefinition refinedAccountDefinition) throws SchemaException {
-		QName objectClass = refinedAccountDefinition.getObjectClassDefinition().getTypeName();
-		return QueryUtil.createResourceAndAccountQuery(resource, objectClass, null);
+	private void recomputeUser(UserType user, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException {
+		LOGGER.trace("Reconciling user {}",ObjectTypeUtil.toShortString(user));
+		
+		SyncContext syncContext = new SyncContext();
+		syncContext.setUserTypeOld(user);
+		Schema objectSchema = schemaRegistry.getObjectSchema();
+		MidPointObject<UserType> mpUser = objectSchema.parseObjectType(user);
+		syncContext.setUserOld(mpUser);
+		syncContext.setUserOid(user.getOid());
+
+		syncContext.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
+		syncContext.setDoReconciliationForAllAccounts(true);
+		
+		userSynchronizer.synchronizeUser(syncContext, result);
+		
+		LOGGER.trace("Reconciling of user {}: context:\n{}",ObjectTypeUtil.toShortString(user),syncContext.dump());
+		
+		changeExecutor.executeChanges(syncContext, result);
+		
+		// TODO: process result
+		
+		LOGGER.trace("Reconciling of user {}: {}",ObjectTypeUtil.toShortString(user),result.getStatus());
 	}
 
 	@Override
