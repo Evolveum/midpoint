@@ -38,6 +38,8 @@ import org.springframework.core.annotation.Order;
 @Order(value = Ordered.HIGHEST_PRECEDENCE)
 public class MidpointAspect {
 
+	public static final String INDENT_STRING = " ";
+	
 	private static AtomicInteger idcounter = new AtomicInteger(0);
 	private static AtomicInteger subidcounter = new AtomicInteger(0);
 
@@ -127,14 +129,14 @@ public class MidpointAspect {
 				d++;
 				MDC.put("depth", Integer.toString(d));
 				for (int i = 0; i < d; i++) {
-					infoLog.append("   ");
+					infoLog.append(INDENT_STRING);
 				}
 			}
 
 			// is profiling info is needed
-			if (LOGGER_PROFILING.isInfoEnabled()) {
+			if (LOGGER_PROFILING.isDebugEnabled()) {
 				infoLog.append(getClassName(pjp));
-				LOGGER_PROFILING.info("{}->{}", infoLog, pjp.getSignature().getName());
+				LOGGER_PROFILING.debug("{}->{}", infoLog, pjp.getSignature().getName());
 
 				// If debug enable get entry parameters and log them
 				if (LOGGER_PROFILING.isTraceEnabled()) {
@@ -178,7 +180,7 @@ public class MidpointAspect {
 			}
 
 			// Restore previously marked subsystem executed before return
-			if (LOGGER_PROFILING.isInfoEnabled()) {
+			if (LOGGER_PROFILING.isDebugEnabled()) {
 				StringBuilder sb = new StringBuilder();
 				sb.append("##### Exit: ");
 				if (LOGGER_PROFILING.isDebugEnabled()) {
@@ -188,7 +190,7 @@ public class MidpointAspect {
 				// sb.append("/");
 				if (LOGGER_PROFILING.isTraceEnabled()) {
 					for (int i = 0; i < d + 1; i++) {
-						sb.append("   ");
+						sb.append(INDENT_STRING);
 					}
 				}
 				sb.append(getClassName(pjp));
@@ -212,7 +214,7 @@ public class MidpointAspect {
 					sb.append(" ms");
 				}
 
-				LOGGER_PROFILING.info(sb.toString());
+				LOGGER_PROFILING.debug(sb.toString());
 				if (LOGGER_PROFILING.isTraceEnabled()) {
 					if (exc) {
 						LOGGER_PROFILING.trace("###### return exception: {}", excName);
@@ -269,10 +271,12 @@ public class MidpointAspect {
 	 * @return
 	 */
 	private String getClassName(ProceedingJoinPoint pjp) {
+		String className = null;
 		if (pjp.getThis() != null) {
-			return pjp.getThis().getClass().getName();
+			className = pjp.getThis().getClass().getName();
+			className = className.replaceFirst("com.evolveum.midpoint", "..");
 		}
-		return null;
+		return className;
 	}
 
 	/**
