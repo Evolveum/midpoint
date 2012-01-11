@@ -68,7 +68,7 @@ public class GuiUserDto extends UserDto implements Selectable {
 		this.getAccount().addAll(user.getAccount());
 		this.getAccountRef().addAll(user.getAccountRef());
 		this.setEnabled(user.isEnabled());
-		this.setWebAccessEnabled(user.isWebAccessEnabled());
+		this.setAdminWebAccessEnabled(user.isAdminWebAccessEnabled());
 	}
 
 	public GuiUserDto() {
@@ -100,12 +100,12 @@ public class GuiUserDto extends UserDto implements Selectable {
 		CredentialsType credentials = getXmlObject().getCredentials();
 		if (credentials == null) {
 			credentials = new CredentialsType();
-			
+
 		}
 		PasswordType password = credentials.getPassword();
 		if (password == null) {
 			password = new PasswordType();
-			
+
 		}
 
 		try {
@@ -147,31 +147,31 @@ public class GuiUserDto extends UserDto implements Selectable {
 		activation.setEnabled(enabled);
 	}
 
-	public void setWebAccessEnabled(boolean webAccessEnabled) {
+	public void setAdminWebAccessEnabled(boolean adminWebAccessEnabled) {
 		UserType user = (UserType) this.getXmlObject();
 		CredentialsType credentials = user.getCredentials();
 		if (credentials == null) {
 			credentials = new CredentialsType();
 			user.setCredentials(credentials);
 		}
-		credentials.setAllowedIdmGuiAccess(webAccessEnabled);
+		credentials.setAllowedIdmAdminGuiAccess(adminWebAccessEnabled);
 	}
 
-	public boolean isWebAccessEnabled() {
+	public boolean isAdminWebAccessEnabled() {
 		UserType user = (UserType) this.getXmlObject();
 		CredentialsType credentials = user.getCredentials();
 
-		if (credentials == null || credentials.isAllowedIdmGuiAccess() == null) {
+		if (credentials == null || credentials.isAllowedIdmAdminGuiAccess() == null) {
 			return false;
 		}
 
-		return credentials.isAllowedIdmGuiAccess();
+		return credentials.isAllowedIdmAdminGuiAccess();
 	}
-	
+
 	@Override
 	public List<AccountShadowDto> getAccount() {
 		// TODO Auto-generated method stub
 		return super.getAccount();
 	}
-	
+
 }

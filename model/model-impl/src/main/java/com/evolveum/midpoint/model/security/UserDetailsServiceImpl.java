@@ -101,13 +101,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     private PrincipalUser createUser(UserType userType) {
-        boolean enabled = false;
         CredentialsType credentialsType = userType.getCredentials();
-        if (credentialsType != null && credentialsType.isAllowedIdmGuiAccess() != null) {
-            enabled = credentialsType.isAllowedIdmGuiAccess();
-        }
-
-        PrincipalUser user = new PrincipalUser(userType, enabled);
+        
+        PrincipalUser user = new PrincipalUser(userType, true);
         if (credentialsType != null && credentialsType.getPassword() != null) {
             PasswordType password = credentialsType.getPassword();
 

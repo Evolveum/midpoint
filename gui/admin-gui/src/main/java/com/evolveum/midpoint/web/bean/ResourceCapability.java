@@ -31,18 +31,15 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.crypto.AESProtector;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.schema.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
 
@@ -67,12 +64,10 @@ public class ResourceCapability implements Serializable {
 	// credentials
 	private String password1;
 	private String password2;
-	private boolean oldAllowedIdmGuiAccess;
-	private boolean allowedIdmGuiAccess;
-//	@Autowired(required = true)
-//	private transient Protector protector;
-	
-	
+	private boolean allowedIdmAdminGuiAccess;
+
+	// @Autowired(required = true)
+	// private transient Protector protector;
 
 	@SuppressWarnings("rawtypes")
 	public void setAccount(AccountShadowDto account, CapabilitiesType capabilities) {
@@ -102,50 +97,48 @@ public class ResourceCapability implements Serializable {
 		}
 		CredentialsType credentials = account.getCredentials();
 		if (credentials != null) {
-			oldAllowedIdmGuiAccess = allowedIdmGuiAccess = credentials.isAllowedIdmGuiAccess() == null ? false
-					: credentials.isAllowedIdmGuiAccess();
+			allowedIdmAdminGuiAccess = credentials.isAllowedIdmAdminGuiAccess() == null ? false : credentials
+					.isAllowedIdmAdminGuiAccess();
 		}
 	}
 
 	public CredentialsType getCredentialsType() {
-		if (StringUtils.isEmpty(password1) && (oldAllowedIdmGuiAccess == allowedIdmGuiAccess)) {
+		if (StringUtils.isEmpty(password1)) {
 			return null;
 		}
-		
-		if (StringUtils.isEmpty(password1)){
-			return null;
-		}
-		
-		//TODO: refactor this: the same mathod is in the GuiUserDto class -> encryptCredentials
+
+		// TODO: refactor this: the same mathod is in the GuiUserDto class ->
+		// encryptCredentials
 		CredentialsType credentials = new CredentialsType();
-		credentials.setAllowedIdmGuiAccess(allowedIdmGuiAccess);
-		
+		credentials.setAllowedIdmAdminGuiAccess(allowedIdmAdminGuiAccess);
+
 		PasswordType password = new PasswordType();
-		
-		
-		try{
+
+		try {
 			Protector protector = new AESProtector();
-		password.setProtectedString(protector.encryptString(password1));
-		credentials.setPassword(password);
-//		protectedString.setClearValue(password1);
-		} catch(Exception ex){
-//			LoggingUtils.logException(LOGGER, "Couldn't encrypt credentials", ex);
+			password.setProtectedString(protector.encryptString(password1));
+			credentials.setPassword(password);
+			// protectedString.setClearValue(password1);
+		} catch (Exception ex) {
+			// LoggingUtils.logException(LOGGER, "Couldn't encrypt credentials",
+			// ex);
 			throw new SystemException(ex.getMessage(), ex);
 		}
 		return credentials;
 	}
 
-	public ActivationType getActivationType() {	
-		//TODO: now wse do not support activation date...only simple enable/disable account is supported
-//		if (enabled && !activationUsed) {
-//			return null;
-//		}
+	public ActivationType getActivationType() {
+		// TODO: now wse do not support activation date...only simple
+		// enable/disable account is supported
+		// if (enabled && !activationUsed) {
+		// return null;
+		// }
 
 		ActivationType activation = new ActivationType();
 		activation.setEnabled(enabled);
-//		if (!enabled) {
-//			activation.setEnabled(false);
-//		}
+		// if (!enabled) {
+		// activation.setEnabled(false);
+		// }
 
 		if (activationUsed) {
 			try {
@@ -230,11 +223,11 @@ public class ResourceCapability implements Serializable {
 		this.password2 = password2;
 	}
 
-	public boolean isAllowedIdmGuiAccess() {
-		return allowedIdmGuiAccess;
+	public boolean isAllowedIdmAdminGuiAccess() {
+		return allowedIdmAdminGuiAccess;
 	}
 
-	public void setAllowedIdmGuiAccess(boolean allowedIdmGuiAccess) {
-		this.allowedIdmGuiAccess = allowedIdmGuiAccess;
+	public void setAllowedIdmAdminGuiAccess(boolean allowedIdmAdminGuiAccess) {
+		this.allowedIdmAdminGuiAccess = allowedIdmAdminGuiAccess;
 	}
 }

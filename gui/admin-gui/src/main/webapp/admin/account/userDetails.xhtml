@@ -152,12 +152,12 @@
 						<ice:outputLabel
 							value="#{msg['page.account.detail.tab.user.webAccessEnabled']}" />
 						<ice:panelGroup>
-							<ice:selectBooleanCheckbox id="webAccessEnabled"
-								value="#{userDetails.user.webAccessEnabled}" required="true"
+							<ice:selectBooleanCheckbox id="adminWebAccessEnabled"
+								value="#{userDetails.user.adminWebAccessEnabled}" required="true"
 								requiredMessage="#{msg['field.required']}"
 								readonly="#{not userDetails.editMode}"
 								disabled="#{not userDetails.editMode}" />
-							<ice:message for="webAccessEnabled" errorClass="error" />
+							<ice:message for="adminWebAccessEnabled" errorClass="error" />
 						</ice:panelGroup>
 
 					</ice:panelGrid>

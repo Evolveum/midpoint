@@ -39,6 +39,6 @@
 				</enc:EncryptedData>
 			</c:protectedString>
 		</c:password>
-		<c:allowedIdmGuiAccess>true</c:allowedIdmGuiAccess>
+		<c:allowedIdmAdminGuiAccess>true</c:allowedIdmAdminGuiAccess>
 	</c:credentials>
 </c:user>

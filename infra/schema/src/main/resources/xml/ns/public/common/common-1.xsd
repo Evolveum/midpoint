@@ -2408,11 +2408,11 @@
             <xsd:element name="password" type="tns:PasswordType" minOccurs="0" maxOccurs="1"/>
             <!-- More credentail types may be here, such as OTP seeds, X.509 credentials, 
 				etc. -->
-            <xsd:element name="allowedIdmGuiAccess" type="xsd:boolean" minOccurs="0" default="false">
+            <xsd:element name="allowedIdmAdminGuiAccess" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
                         If true, the user will have access to the IDM
-                        GUI. The
+                        ADMIN GUI. The
                         access will provide access to all
                         functions,
                         therefore

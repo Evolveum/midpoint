@@ -73,7 +73,7 @@
 				<ice:message for="enabled" errorClass="error" />
 
 				<ice:outputLabel value="#{msg['page.account.create.webAccessEnabled']}" />
-				<ice:selectBooleanCheckbox id="webAccessEnabled" value="#{userCreate.user.webAccessEnabled}" required="true"
+				<ice:selectBooleanCheckbox id="webAccessEnabled" value="#{userCreate.user.adminWebAccessEnabled}" required="true"
 					requiredMessage="#{msg['page.jsf.field.required']}" />
 				<ice:message for="webAccessEnabled" errorClass="error" />
 			</ice:panelGrid>

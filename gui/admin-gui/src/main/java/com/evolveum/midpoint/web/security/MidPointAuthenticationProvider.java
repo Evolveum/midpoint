@@ -26,9 +26,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import com.evolveum.midpoint.model.security.api.Credentials;
-import com.evolveum.midpoint.model.security.api.PrincipalUser;
-import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -42,9 +39,14 @@ import org.springframework.security.core.authority.GrantedAuthorityImpl;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.model.security.api.Credentials;
+import com.evolveum.midpoint.model.security.api.PrincipalUser;
+import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * 
@@ -80,7 +82,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 				|| StringUtils.isBlank((String) authentication.getCredentials())) {
 			throw new BadCredentialsException("web.security.provider.invalid");
 		}
-
+		//throw new BadCredentialsException("web.security.provider.illegal");
 		PrincipalUser user = null;
 		List<GrantedAuthority> grantedAuthorities = null;
 		try {
@@ -97,32 +99,41 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 
 			throw ex;
 		} catch (Exception ex) {
-			LOGGER.error("Can't get user with username '{}'. Unknown error occured, reason {}.", new Object[] {
-					authentication.getPrincipal(), ex.getMessage() });
+			LOGGER.error("Can't get user with username '{}'. Unknown error occured, reason {}.",
+					new Object[] { authentication.getPrincipal(), ex.getMessage() });
 			LOGGER.debug("Can't authenticate user '{}'.", new Object[] { authentication.getPrincipal() }, ex);
 			throw new AuthenticationServiceException("web.security.provider.unavailable");
 		}
 
 		if (user != null) {
+			System.out.println("ccc");
 			grantedAuthorities = new ArrayList<GrantedAuthority>();
+			UserType userType = user.getUser();
+			CredentialsType credentials = userType.getCredentials();
 
-			if (user.getName().contains("administrator")) {
+			if (credentials == null) {
+				credentials = new CredentialsType();
+				userType.setCredentials(credentials);
+			}
+
+			if (credentials.isAllowedIdmAdminGuiAccess()) {
 				grantedAuthorities.add(new GrantedAuthorityImpl("ROLE_ADMIN"));
 			} else {
+				System.out.println("dddd");
 				grantedAuthorities.add(new GrantedAuthorityImpl("ROLE_USER"));
 			}
-			
-			/*List<Role> roles = new ArrayList<Role>(0);
-			//user.getAssociatedRoles();
-			for (Role role : roles) {
-			GrantedAuthority authority = new
-			SimpleGrantedAuthority(role.getRoleName());
-			grantedAuthorities.add(authority);
-			}*/
+
+			/*
+			 * List<Role> roles = new ArrayList<Role>(0);
+			 * //user.getAssociatedRoles(); for (Role role : roles) {
+			 * GrantedAuthority authority = new
+			 * SimpleGrantedAuthority(role.getRoleName());
+			 * grantedAuthorities.add(authority); }
+			 */
 		} else {
 			throw new BadCredentialsException("web.security.provider.invalid");
 		}
-
+		System.out.println("eeee");
 		return new UsernamePasswordAuthenticationToken(user, authentication.getCredentials(),
 				grantedAuthorities);
 	}
@@ -162,11 +173,11 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 		if (protectedString == null) {
 			throw new BadCredentialsException("web.security.provider.password.bad");
 		}
-
+		
 		if (StringUtils.isEmpty(password)) {
 			throw new BadCredentialsException("web.security.provider.password.encoding");
 		}
-
+		
 		try {
 			String decoded = protector.decryptString(protectedString);
 			if (password.equals(decoded)) {
@@ -179,7 +190,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 		} catch (EncryptionException ex) {
 			throw new AuthenticationServiceException("web.security.provider.unavailable", ex);
 		}
-
+		
 		throw new BadCredentialsException("web.security.provider.invalid");
 	}
 }
