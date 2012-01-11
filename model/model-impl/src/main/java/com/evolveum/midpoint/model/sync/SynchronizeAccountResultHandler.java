@@ -155,12 +155,13 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 				// No change, therefore the delta stays null. But we will set the current
 				change.setCurrentShadow(newShadow);
 			}
-	
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.trace("Going to call notification with new object: " + DebugUtil.prettyPrint(newShadow));
-			}
-		
 
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.trace("Going to call notification with: {}", change.dump());
+			}
+			
+			change.assertCorrectness();
+			
 			// Invoke the change notification
 			objectChangeListener.notifyChange(change, result);
 			long endTime = System.currentTimeMillis();

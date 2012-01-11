@@ -22,6 +22,10 @@
 package com.evolveum.midpoint.provisioning.api;
 
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
@@ -36,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
  *
  * @author Radovan Semancik
  */
-public class ResourceObjectShadowChangeDescription {
+public class ResourceObjectShadowChangeDescription implements Dumpable, DebugDumpable {
 
     private ObjectDelta<? extends ResourceObjectShadowType> objectDelta;
     private ResourceObjectShadowType currentShadow;
@@ -83,5 +87,89 @@ public class ResourceObjectShadowChangeDescription {
     public void setResource(ResourceType resource) {
         this.resource = resource;
     }
+    
+    public void assertCorrectness() {
+    	if (resource == null) {
+    		throw new IllegalArgumentException("No resource in "+this.getClass().getSimpleName());
+    	}
+    	if (sourceChannel == null) {
+    		throw new IllegalArgumentException("No sourceChannel in "+this.getClass().getSimpleName());
+    	}
+    	if (objectDelta == null && currentShadow == null) {
+    		throw new IllegalArgumentException("Either objectDelta or currentShadow must be set in "+this.getClass().getSimpleName());
+    	}
+    }
+
+	@Override
+	public String toString() {
+		return "ResourceObjectShadowChangeDescription(objectDelta=" + objectDelta + ", currentShadow="
+				+ DebugUtil.prettyPrint(currentShadow) + ", oldShadow=" + DebugUtil.prettyPrint(oldShadow) + ", sourceChannel=" + sourceChannel
+				+ ", resource=" + ObjectTypeUtil.toShortString(resource) + ")";
+	}
+    
+    @Override
+    public String dump() {
+    	return debugDump(0);
+    }
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump()
+	 */
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump(int)
+	 */
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("ResourceObjectShadowChangeDescription(");
+		sb.append(sourceChannel);
+		sb.append(")\n");
+		
+		DebugUtil.indentDebugDump(sb, indent+1);
+		sb.append("resource:");
+		if (resource == null) {
+			sb.append(" null");
+		} else {
+			sb.append(ObjectTypeUtil.toShortString(resource));
+		}
+		
+		sb.append("\n");
+		DebugUtil.indentDebugDump(sb, indent+1);
+		
+		sb.append("objectDelta:");
+		if (objectDelta == null) {
+			sb.append(" null");
+		} else {
+			sb.append(objectDelta.debugDump(indent+2));
+		}
+		sb.append("\n");
+		DebugUtil.indentDebugDump(sb, indent+1);
+		
+		sb.append("oldShadow:");
+		if (oldShadow == null) {
+			sb.append(" null");
+		} else {
+			sb.append(DebugUtil.debugDump(oldShadow, indent+2));
+		}
+		
+		sb.append("\n");
+		DebugUtil.indentDebugDump(sb, indent+1);
+		
+		sb.append("currentShadow:");
+		if (currentShadow == null) {
+			sb.append(" null\n");
+		} else {
+			sb.append("\n");
+			sb.append(DebugUtil.debugDump(currentShadow, indent+2));
+		}
+
+		return sb.toString();
+	}
 
 }

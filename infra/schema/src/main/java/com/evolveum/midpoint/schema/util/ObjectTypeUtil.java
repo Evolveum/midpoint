@@ -243,7 +243,7 @@ public class ObjectTypeUtil {
         StringBuilder sb = new StringBuilder();
         sb.append("objectRef oid=").append(objectRef.getOid());
         if (objectRef.getType() != null) {
-            sb.append(" type=").append(objectRef.getType());
+            sb.append(" type=").append(DebugUtil.prettyPrint(objectRef.getType()));
         }
         return sb.toString();
     }

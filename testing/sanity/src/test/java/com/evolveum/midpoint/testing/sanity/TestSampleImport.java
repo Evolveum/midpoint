@@ -127,7 +127,7 @@ public class TestSampleImport extends AbstractIntegrationTest {
 		display("Result after good import", result);
 		assertSuccess("Import has failed (result)", result,1);
 
-		QueryType query = QueryUtil.createQuery(QueryUtil.createNameAndClassFilter(type, objectName));
+		QueryType query = QueryUtil.createNameQuery(objectName);
 		
 		List<T> objects = repositoryService.searchObjects(type, query, null, result);
 		for (T object : objects) {

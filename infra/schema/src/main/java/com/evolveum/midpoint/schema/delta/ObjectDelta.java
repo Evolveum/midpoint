@@ -22,6 +22,7 @@ package com.evolveum.midpoint.schema.delta;
 
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -438,12 +439,12 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        indent(sb, indent);
+        DebugUtil.indentDebugDump(sb, indent);
         sb.append("ObjectDelta(oid=");
         sb.append(oid).append(",").append(changeType).append("):\n");
         if (changeType == ChangeType.ADD) {
             if (objectToAdd == null) {
-                indent(sb, indent + 1);
+            	DebugUtil.indentDebugDump(sb, indent + 1);
                 sb.append("null");
             } else {
                 sb.append(objectToAdd.debugDump(indent + 1));
@@ -464,12 +465,6 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
     @Override
     public String dump() {
         return debugDump(0);
-    }
-
-    private void indent(StringBuilder sb, int indent) {
-        for (int i = 0; i < indent; i++) {
-            sb.append(INDENT_STRING);
-        }
     }
 
 }

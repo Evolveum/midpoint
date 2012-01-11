@@ -35,6 +35,7 @@ import static org.testng.AssertJUnit.*;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
+import org.testng.AssertJUnit;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -168,8 +169,13 @@ public class IntegrationTestTools {
 
 	public static void assertAttribute(ResourceObjectShadowType repoShadow, QName name, String value) {
 		List<String> values = getAttributeValues(repoShadow, name);
-		assertEquals(1, values.size());
-		assertEquals(value, values.get(0));
+		if (values == null || values.isEmpty()) {
+			AssertJUnit.fail("Attribute "+name+" is not present in "+ObjectTypeUtil.toShortString(repoShadow));
+		}
+		if (values.size() > 1) {
+			AssertJUnit.fail("Too many values for attribute "+name+" in "+ObjectTypeUtil.toShortString(repoShadow));	
+		}
+		assertEquals("Wrong value for attribute "+name+" in "+ObjectTypeUtil.toShortString(repoShadow), value, values.get(0));
 	}
 
 	public static void assertAttribute(String message, ResourceObjectShadowType repoShadow, QName name, String value) {
@@ -199,6 +205,18 @@ public class IntegrationTestTools {
 			}			
 		}
 		return values;
+	}
+
+	public static String getAttributeValue(ResourceObjectShadowType repoShadow, QName name) {
+		
+		List<String> values = getAttributeValues(repoShadow, name);
+		if (values == null || values.isEmpty()) {
+			AssertJUnit.fail("Attribute "+name+" not found in shadow "+ObjectTypeUtil.toShortString(repoShadow));
+		}
+		if (values.size() > 1) {
+			AssertJUnit.fail("Too many values for attribute "+name+" in shadow "+ObjectTypeUtil.toShortString(repoShadow));
+		}
+		return values.get(0);
 	}
 
 	public static void displayTestTile(String title) {

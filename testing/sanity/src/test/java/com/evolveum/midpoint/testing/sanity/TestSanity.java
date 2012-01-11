@@ -22,12 +22,15 @@ package com.evolveum.midpoint.testing.sanity;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.ResultList;
+import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
@@ -206,6 +209,8 @@ public class TestSanity extends AbstractIntegrationTest {
     private ModelService modelService;
     @Autowired(required = true)
     private ProvisioningService provisioningService;
+    @Autowired(required = true)
+    private SchemaRegistry schemaRegistry;
 
     public TestSanity() throws JAXBException {
         super();
@@ -841,6 +846,55 @@ public class TestSanity extends AbstractIntegrationTest {
         assertEquals(USER_JACK_OID, user.getOid());
 
         System.out.println("Account " + accountShadowOidOpendj + " has owner " + ObjectTypeUtil.toShortString(user));
+    }
+    
+    @Test
+    public void test016ProvisioningSearchAccountsIterative() throws SchemaException, ObjectNotFoundException, CommunicationException {
+    	displayTestTile("test016ProvisioningSearchAccountsIterative");
+		
+    	// GIVEN
+    	OperationResult result = new OperationResult(TestSanity.class.getName()+".test016ProvisioningSearchAccountsIterative");
+    	
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceOpenDj, schemaRegistry);
+		RefinedAccountDefinition refinedAccountDefinition = refinedSchema.getDefaultAccountDefinition();
+		
+    	QName objectClass = refinedAccountDefinition.getObjectClassDefinition().getTypeName();
+		QueryType query = QueryUtil.createResourceAndAccountQuery(resourceOpenDj, objectClass, null);
+
+		final Collection<ObjectType> objects = new HashSet<ObjectType>();
+		
+		ResultHandler handler = new ResultHandler() {
+			
+			@Override
+			public boolean handle(ObjectType object, OperationResult parentResult) {
+				
+				objects.add(object);
+				
+				display("Found object",object);
+				
+				assertTrue(object instanceof AccountShadowType);
+				AccountShadowType shadow = (AccountShadowType)object;
+				assertNotNull(shadow.getOid());
+				assertNotNull(shadow.getName());
+				assertEquals(new QName(resourceOpenDj.getNamespace(),"AccountObjectClass"), shadow.getObjectClass());
+				assertEquals(RESOURCE_OPENDJ_OID,shadow.getResourceRef().getOid());
+				String icfUid = getAttributeValue(shadow, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"uid"));
+				assertNotNull(icfUid);
+				assertAttribute(shadow, new QName(resourceOpenDj.getNamespace(),"uid"), shadow.getName());
+				
+				// TODO
+				
+				return true;
+			}
+		};
+		
+		// WHEN
+		
+		provisioningService.searchObjectsIterative(query , null, handler , result);
+        
+		// THEN
+		
+		display("Count",objects.size());
     }
 
     /**
@@ -2252,16 +2306,12 @@ public class TestSanity extends AbstractIntegrationTest {
         // to pick up this
         // task
 
-        waitFor("Waiting for task manager to pick up the task", new Checker() {
+        waitFor("Waiting for task to finish", new Checker() {
             public boolean check() throws ObjectNotFoundException, SchemaException {
                 Task task = taskManager.getTask(TASK_USER_RECOMPUTE_OID, result);
-                display("Task while waiting for task manager to pick up the task", task);
-                // wait until the task is picked up
-                if (TaskExclusivityStatus.CLAIMED == task.getExclusivityStatus()) {
-                    // wait until the first run is finished
-                    if (task.getLastRunFinishTimestamp() == null) {
-                        return false;
-                    }
+                //display("Task while waiting for task manager to pick up the task", task);
+                // wait until the task is finished
+                if (TaskExecutionStatus.CLOSED == task.getExecutionStatus()) {
                     return true;
                 }
                 return false;
@@ -2284,12 +2334,9 @@ public class TestSanity extends AbstractIntegrationTest {
 
         ObjectType o = repositoryService.getObject(ObjectType.class, TASK_USER_RECOMPUTE_OID, null, result);
         display("Task after pickup in the repository", o);
-
-        // .. it should be running
-        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
-
-        // .. and claimed
-        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
+ 
+        AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
 
         // .. and last run should not be zero
         assertNotNull(task.getLastRunStartTimestamp());

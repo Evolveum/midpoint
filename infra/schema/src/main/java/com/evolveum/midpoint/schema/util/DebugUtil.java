@@ -74,6 +74,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UnknownJavaObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -166,6 +167,17 @@ public class DebugUtil implements ObjectFormatter {
 				sb.append("\n");
 			}
 		}
+	}
+	
+	public static String debugDump(ObjectType objectType, int indent) {
+		if (objectType instanceof AccountShadowType) {
+			return debugDump((AccountShadowType)objectType,indent);
+		}
+		StringBuilder sb = new StringBuilder();
+		indentDebugDump(sb, indent);
+		// TODO: better dumping
+		sb.append(prettyPrint(objectType));
+		return sb.toString();
 	}
 
 	public static String prettyPrint(Collection<?> collection) {
@@ -407,6 +419,10 @@ public class DebugUtil implements ObjectFormatter {
 		return sb.toString();
 	}
 
+	public static String prettyPrint(AccountShadowType object) {
+		return prettyPrint(object,false);
+	}
+	
 	public static String prettyPrint(AccountShadowType object, boolean showContent) {
 		if (object == null) {
 			return "null";
@@ -437,6 +453,54 @@ public class DebugUtil implements ObjectFormatter {
 			// TODO: more
 		}
 		sb.append(")");
+		return sb.toString();
+	}
+
+	public static String debugDump(AccountShadowType object, int indent) {
+		StringBuilder sb = new StringBuilder();
+		indentDebugDump(sb, indent);
+		if (object == null) {
+			sb.append("null");
+			return sb.toString();
+		}
+		sb.append(object.getClass().getSimpleName());
+		sb.append("(");
+		sb.append(object.getOid());
+		sb.append(",name=");
+		sb.append(object.getName());
+		
+		if (object.getResource() != null) {
+			sb.append("\n");
+			indentDebugDump(sb, indent + 1);
+			sb.append("resource: ");
+			sb.append(ObjectTypeUtil.toShortString(object.getResource()));
+		}
+		if (object.getResourceRef() != null) {
+			sb.append("\n");
+			indentDebugDump(sb, indent + 1);
+			sb.append("resourceRef: ");
+			sb.append(ObjectTypeUtil.toShortString(object.getResourceRef()));
+		}
+		
+		sb.append("\n");
+		indentDebugDump(sb, indent + 1);
+		sb.append("objectClass: ");
+		sb.append(object.getObjectClass());
+
+		sb.append("\n");
+		indentDebugDump(sb, indent + 1);
+		sb.append("attributes:");
+		Attributes attributes = object.getAttributes();
+		if (attributes == null) {
+			sb.append("null");
+		} else {
+			sb.append("\n");
+			indentDebugDump(sb, indent + 2);
+			sb.append(prettyPrint(attributes.getAny()));
+		}
+		
+		// TODO: more
+		
 		return sb.toString();
 	}
 
