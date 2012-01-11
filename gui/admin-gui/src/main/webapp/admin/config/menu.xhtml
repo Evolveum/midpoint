@@ -26,7 +26,7 @@
 
 	<idm:leftMenuContainer name="#{msg['page.template.top.configuration']}">
 		<idm:leftMenuItem id="leftBasic" name="#{msg['page.config.index.title']}"
-			action="/config/index?faces-redirect=true" />
+			action="/admin/config/index?faces-redirect=true" />
 		<idm:leftMenuItem id="leftEncryption" name="#{msg['page.config.encryption.title']}"
 			action="#{encryption.init}" />
 		<idm:leftMenuItem id="leftLogging" name="#{msg['page.config.logging.title']}"
@@ -43,6 +43,6 @@
 	</idm:leftMenuContainer>
 	<idm:leftMenuContainer name="#{msg['page.config.menu.import']}">
 		<idm:leftMenuItem id="leftImport" name="#{msg['page.config.import.title']}"
-			action="/config/import?faces-redirect=true" />
+			action="/admin/config/import?faces-redirect=true" />
 	</idm:leftMenuContainer>
 </ui:composition>
