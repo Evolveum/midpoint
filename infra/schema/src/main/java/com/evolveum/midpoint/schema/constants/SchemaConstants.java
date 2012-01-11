@@ -132,6 +132,7 @@ public abstract class SchemaConstants {
 	public static final QName C_ACTIVATION = new QName(NS_C, "activation");
 	public static final QName C_ACTIVATION_ENABLED = new QName(NS_C, "enabled");
 	public static final QName C_OBJECT_MODIFICATION = new QName(NS_C, "objectModification");
+	public static final QName C_FAILED_OPERATION_TYPE = new QName(NS_C, "failedOperationType");
 	
 	public static final QName X_ANNOTATION = new QName(W3C_XML_SCHEMA_NS_URI, "annotation");
 	public static final QName X_APPINFO = new QName(W3C_XML_SCHEMA_NS_URI, "appinfo");

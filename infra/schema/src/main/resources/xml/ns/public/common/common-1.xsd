@@ -633,8 +633,7 @@
     <xsd:complexType name="PropertyAvailableValuesType">
         <xsd:annotation>
             <xsd:documentation>
-                Describe available or proposed values of an
-                attribute.
+                Describe available or proposed values of an attribute.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -651,20 +650,13 @@
                 <xsd:attribute name="closed" type="xsd:boolean">
                     <xsd:annotation>
                         <xsd:documentation>
-                            True if property can contain only the values
-                            listed
+                            True if property can contain only the values listed
                             in the instance of this type.
 
-                            False is
-                            property can
-                            contain
-                            other values as well.
-                            In such case the list of values listed in
-                            the
-                            instance of this type
-                            should be considered only a
-                            list of
-                            suggested values.
+                            False is property can contain other values as well.
+                            In such case the list of values listed in the
+                            instance of this type should be considered only a
+                            list of suggested values.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
@@ -739,20 +731,13 @@
     <xsd:complexType name="ObjectModificationType">
         <xsd:annotation>
             <xsd:documentation>
-                Describes a change of attributes of a specific
-                object.
-                All changes are expected to happen
-                atomically, but
-                there may be
-                exceptions. Please check with the
-                documentation of the interface
-                using this type for
-                more
-                details.
+                Describes a change of attributes of a specific object.
+                All changes are expected to happen atomically, but
+                there may be exceptions. Please check with the
+                documentation of the interface using this type for
+                more details.
 
-                This should
-                probably go to some kind
-                of common schema.
+                This should probably go to some kind of common schema.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -761,12 +746,8 @@
                     <xsd:documentation>
                         OID of the object to modify.
 
-                        Due to consistency
-                        reasons this should rather be
-                        an attribute. But it
-                        is an
-                        element
-                        because of
+                        Due to consistency reasons this should rather be
+                        an attribute. But it is an element because of
                         OpenESB bug with attributes in message parts.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -774,8 +755,7 @@
             <xsd:element ref="tns:propertyModification" minOccurs="1" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Describe a change to a single attribute of an
-                        object.
+                        Describe a change to a single attribute of an object.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -788,11 +768,8 @@
         <xsd:annotation>
             <xsd:documentation>
                 Describe a change to a single attribute.
-                In this
-                case the path expression used in the "property"
-                attribute
-                must select
-                exactly one property.
+                In this case the path expression used in the "property"
+                attribute must select exactly one property.
             </xsd:documentation>
         </xsd:annotation>
 
@@ -805,22 +782,14 @@
                                 <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
                                     <xsd:annotation>
                                         <xsd:documentation>
-                                            The elements and values of changed
-                                            properties.
-                                            Multi-valued properties are expressed as
-                                            usual,
-                                            that
-                                            means by repeating the element containing
-                                            the property
-                                            value.
-                                            All the elements must have the same
-                                            QName and be
-                                            of the
-                                            same
-                                            type.
+                                            The elements and values of changed properties.
+                                            Multi-valued properties are expressed as usual,
+                                            that means by repeating the element containing
+                                            the property value.
+                                            All the elements must have the same QName and be 
+                                            of the same type.
                                             If more than one property is changed, the entire
-                                            PropertyChangeType element must
-                                            be repeated.
+                                            PropertyChangeType element must be repeated.
                                         </xsd:documentation>
                                     </xsd:annotation>
                                 </xsd:any>
@@ -849,13 +818,9 @@
             <xsd:documentation>
                 TODO
 
-                The "TypeType" in the name is correct. This is
-                the
-                type for "change type" therefore the name is
-                OK
-                although
-                it looks
-                strange.
+                The "TypeType" in the name is correct. This is the
+                type for "change type" therefore the name is OK
+                although it looks strange.
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
@@ -899,8 +864,7 @@
     <xsd:complexType name="ObjectChangeAdditionType">
         <xsd:annotation>
             <xsd:documentation>
-                Describes object addition (creation, operation
-                "add").
+                Describes object addition (creation, operation "add").
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -915,8 +879,7 @@
     <xsd:complexType name="ObjectChangeModificationType">
         <xsd:annotation>
             <xsd:documentation>
-                Describes object modification (operation
-                "modify").
+                Describes object modification (operation "modify").
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -954,29 +917,19 @@
         <xsd:annotation>
             <xsd:documentation>
                 Describes a change of a specific resource object
-                together with
-                definitions of the source.
+                together with definitions of the source.
 
-                Note: This
-                is quite
-                an
-                atrificial structure. In fact it should
-                be splint into WSDL message
-                parts instead one XSD type. But the
-                ObjectChangeType
-                is
-                polymorphic
-                and OpenESB has problems with such types if placed
-                directly into
-                message parts.
+                Note: This is quite an atrificial structure. In fact it should
+                be splint into WSDL message parts instead one XSD type. But the
+                ObjectChangeType is polymorphic and OpenESB has problems with such types if placed
+                directly into message parts.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="objectChange" type="tns:ObjectChangeType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Description of changes that happened to an
-                        resource
+                        Description of changes that happened to an resource
                         object shadow.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -984,73 +937,42 @@
             <xsd:element name="sourceChannel" type="xsd:anyURI">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Definition of source channel (e.g.
-                        synchronization,
+                        Definition of source channel (e.g. synchronization,
                         reconciliation, discovery, ...)
-                        Should in fact
-                        be
-                        QName.
-                        But OpenESB has problems with
-                        QNames.
+                        Should in fact be QName.
+                        But OpenESB has problems with QNames.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="shadow" type="tns:ResourceObjectShadowType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Resource object shadow as seen by the component
-                        before the
-                        change, if possible. This object is
-                        mandatory.
+                        Resource object shadow as seen by the component before 
+                        the change, if possible. This object is mandatory.
 
-                        In some
-                        cases (e.g. addition) the object may not exist
-                        before the change.
-                        In such a case the caller is
-                        reponsible
-                        to create
-                        such object in the
-                        repository before calling
-                        this operation (see the note before).
+                        In some cases (e.g. addition) the object may not exist 
+                        before the change. In such a case the caller is
+                        reponsible to create such object in the repository 
+                        before calling this operation (see the note before).
 
-                        Even thought
-                        this object is mandatory, it
-                        may not be
-                        complete. The
-                        content of this object depends on how the
-                        change was detected,
-                        configuration of a calling component
-                        and so on. On the very
-                        minimum, the shadow object must
+                        Even thought this object is mandatory, it may not be 
+                        complete. The content of this object depends on how the
+                        change was detected, configuration of a calling component 
+                        and so on. On the very minimum, the shadow object must
                         contain:
-                        * OID
-                        *
-                        Identifiers necessary
-                        to locate the associated resource
-                        object on the resource.
+                        	* OID
+                        	* Identifiers necessary to locate the associated 
+                        	resource object on the resource.
 
-                        Note: This
-                        is actually the shadow
-                        object that was stored
-                        in the repository at
-                        the time the change was
-                        detected
+                        Note: This is actually the shadow object that was stored 
+                        in the repository at the time the change was detected 
                         (or created at that moment).
 
-                        Note:
-                        This
-                        was orginally defined as an object before the
-                        change and it was
-                        option. Such
-                        definition does not allow
-                        some
-                        operations, such as
-                        create a user and link account
-                        (because the objectChange does not
-                        have OID
-                        and therefore
-                        cannot
-                        be linked to).
+                        Note: This was orginally defined as an object before the 
+                        change and it was option. Such definition does not allow
+                        some operations, such as create a user and link account 
+                        (because the objectChange does not have OID and therefore
+                        cannot be linked to).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1213,12 +1135,8 @@
                     <xsd:element ref="c:path" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                XPath to the containing XML element for the
-                                queried propoerty. If not specified, defatults
-                                to
-                                "." (which
-                                is
-                                also the most usual value).
+                                XPath to the containing XML element for the queried propoerty. 
+                                If not specified, defatults to "." (which is also the most usual value).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -1229,13 +1147,9 @@
                                     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
                                         <xsd:annotation>
                                             <xsd:documentation>
-                                                The elements and values of queried
-                                                properties.
-                                                Multi-valued properties are not allowed
-                                                here.
-                                                Use
-                                                "and"
-                                                or "or" clauses if needed.
+                                                The elements and values of queried properties.
+                                                Multi-valued properties are not allowed here.
+                                                Use "and" or "or" clauses if needed.
                                             </xsd:documentation>
                                             <xsd:appinfo>
                                                 <xjc:dom/>
@@ -1250,9 +1164,7 @@
                                 <xsd:documentation>
                                     The expression that can be used to
                                     dynamically evaluate the value. It may or
-                                    may not be used,
-                                    depending
-                                    on where is this
+                                    may not be used, depending on where is this
                                     type used.
                                 </xsd:documentation>
                             </xsd:annotation>
@@ -1271,11 +1183,8 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 XPath to the property being queried.
-                                It is
-                                mandatory, as there is no reasonable
-                                default as in
-                                the case of
-                                path.
+                                It is mandatory, as there is no reasonable
+                                default as in the case of path.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -1283,12 +1192,9 @@
                         <xsd:element name="value" type="xsd:anyType">
                             <xsd:annotation>
                                 <xsd:documentation>
-                                    The elements and values of queried
-                                    properties.
+                                    The elements and values of queried properties.
                                     Multi-valued properties are not allowed here.
-                                    Use
-                                    "and" or
-                                    "or" clauses if needed.
+                                    Use "and" or "or" clauses if needed.
                                 </xsd:documentation>
                             </xsd:annotation>
                         </xsd:element>
@@ -1297,9 +1203,7 @@
                                 <xsd:documentation>
                                     The expression that can be used to
                                     dynamically evaluate the value. It may or
-                                    may not be used,
-                                    depending
-                                    on where is this
+                                    may not be used, depending on where is this
                                     type used.
                                 </xsd:documentation>
                             </xsd:annotation>
@@ -1370,9 +1274,7 @@
                 Parameters limiting the number of returned
                 entries, offset, etc.
                 Used in the web service operations
-                such as
-                list
-                or search
+                such as list or search
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -1381,13 +1283,9 @@
                     <xsd:documentation>
                         Property by which the results should be sorted.
                         Reference to a property (XPath).
-                        Just one property
-                        for now.
-                        Maybe we
-                        will change this to a
-                        list later.
-                        If not specified, the ordering is
-                        arbitrary.
+                        Just one property for now.
+                        Maybe we will change this to a list later.
+                        If not specified, the ordering is arbitrary.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1395,12 +1293,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Direction of ordering (ascending or descending).
-                        Only
-                        valid if "orderBy" element is specified.
-                        If
-                        not
-                        specified, the
-                        ordering order is ascending.
+                        Only valid if "orderBy" element is specified.
+                        If not specified, the ordering order is ascending.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1408,17 +1302,9 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         The index of the first returned entry, starting
-                        with zero.
-                        Therefore if 0 is specified, the
-                        resulting list
-                        will
-                        start
-                        with first entry. If 1 is specified, the resulting set will
-                        start with second entry.
-                        If not
-                        specified, value of zero
-                        (0) is
-                        assumed.
+                        with zero. Therefore if 0 is specified, the resulting list
+                        will start with first entry. If 1 is specified, the resulting set will
+                        start with second entry. If not specified, value of zero (0) is assumed.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1426,11 +1312,9 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         The maximum number of entries returned. The
-                        operation may
-                        return specified number of number of
-                        entries or
-                        less.
-                        If not specified, unlimited maximum size is assumed.
+                        operation may return specified number of number of
+                        entries or less. If not specified, unlimited maximum 
+                        size is assumed.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1440,10 +1324,8 @@
     <xsd:simpleType name="OrderDirectionType">
         <xsd:annotation>
             <xsd:documentation>
-                Type of an operation (change). It defines
-                operations to change
-                object, it is not limited to object
-                modifications.
+                Type of an operation (change). It defines operations to change          
+                object, it is not limited to object modifications.
                 TODO: How to handle renames?
             </xsd:documentation>
         </xsd:annotation>
@@ -2058,8 +1940,7 @@
 
                 TODO: More details
 
-                Inspired by FOAF, but still
-                quite LDAP-ish.
+                Inspired by FOAF, but still quite LDAP-ish.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -2068,25 +1949,19 @@
                     <xsd:element name="fullName" type="xsd:string">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Full name of the user with all the
-                                decorations,
+                                Full name of the user with all the decorations,
                                 middle name initials, honorific title and any
-                                other
-                                structure that is usual in the cultural
-                                environment that the
-                                system operates in. This
-                                element is intended to
-                                be displayed to
-                                a
-                                common
-                                user of the system.
+                                other structure that is usual in the cultural
+                                environment that the system operates in. This
+                                element is intended to be displayed to
+                                a common user of the system.
 
                                 Examples: cpt. Jack Sparrow,
-                                William
-                                "Bootstrap" Turner,
-                                James W.
-                                Random, PhD.,
-                                Chuck Norris
+                                          William
+                                		  "Bootstrap" Turner,
+                                		  James W.
+                                		  Random, PhD.,
+                                		  Chuck Norris
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -2094,17 +1969,12 @@
                     <xsd:element name="givenName" type="xsd:string">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Given name of the user. It is usually the
-                                first
+                                Given name of the user. It is usually the first
                                 name of the user, but the order of names may
-                                differ in
-                                various cultural environments. This
-                                element will always contain
-                                the name that was
-                                given to the user at
-                                birth or was chosen
-                                by the
-                                user.
+                                differ in various cultural environments. This
+                                element will always contain the name that was
+                                given to the user at birth or was chosen
+                                by the user.
 
                                 Examples: Jack, Chuck
                             </xsd:documentation>
@@ -2114,17 +1984,12 @@
                     <xsd:element name="familyName" type="xsd:string">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Family name of the user. It is usually the
-                                last
+                                Family name of the user. It is usually the last
                                 name of the user, but the order of names may
-                                differ in
-                                various cultural environments. This
-                                element will always contain
-                                the name that was
-                                inherited from the
-                                family or was assigned
-                                to a
-                                user by some other means.
+                                differ in various cultural environments. This
+                                element will always contain the name that was
+                                inherited from the family or was assigned
+                                to a user by some other means.
 
                                 Examples: Sparrow, Norris
                             </xsd:documentation>
@@ -2139,15 +2004,10 @@
 
                                 Examples: "Bootstrap", Walker
 
-                                Multi-valued
-                                property.
-                                Please note that the order
-                                of additional names may not be
-                                preserved. If
-                                the order is
-                                important, the use a single
-                                value with
-                                all the names concatenated as
+                                Multi-valued property. Please note that the order
+                                of additional names may not be preserved. If
+                                the order is important, the use a single
+                                value with all the names concatenated as
                                 appropriate.
                             </xsd:documentation>
                         </xsd:annotation>
@@ -2160,14 +2020,9 @@
 
                                 Examples: cpt., Ing., Sir
 
-                                This property is
-                                single-valued.
-                                If
-                                more
+                                This property is single-valued. If more
                                 than one title is applicable, they have to be represented in
-                                a
-                                single string (concatenated)
-                                form in the correct order.
+                                a single string (concatenated) form in the correct order.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -2179,13 +2034,9 @@
 
                                 Examples: PhD., KBE
 
-                                This property is single-valued.
-                                If
-                                more than
+                                This property is single-valued. If more than
                                 one title is applicable, they have to be represented in
-                                a single
-                                string (concatenated) form in the
-                                correct order.
+                                a single string (concatenated) form in the correct order.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -2193,25 +2044,15 @@
                     <xsd:element name="eMailAddress" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                E-Mail address of the user. This is the
-                                address
+                                E-Mail address of the user. This is the address
                                 supposed to be used for communication with the
-                                user. E.g.
-                                IDM system may send notifications
-                                to the e-mail address. It is
-                                NOT supposed to be
-                                full-featured e-mail
-                                address data
-                                structure
-                                e.g.
-                                for the purpose of comlex address-book application.
+                                user. E.g. IDM system may send notifications
+                                to the e-mail address. It is NOT supposed to be
+                                full-featured e-mail address data structure
+                                e.g. for the purpose of comlex address-book application.
 
-                                This is
-                                mult-valued property. In
-                                case more than
-                                one e-mail
-                                address is
-                                specified, the same message
+                                This is mult-valued property. In case more than
+                                one e-mail address is specified, the same message
                                 should be sent to all the addresses.
                             </xsd:documentation>
                         </xsd:annotation>
@@ -2222,12 +2063,8 @@
                             <xsd:documentation>
                                 Primary telephone number of the user.
 
-                                This is
-                                multi-valued attribute. In case more than
-                                one
-                                telephone
-                                number is
-                                specified, all telephone
+                                This is multi-valued attribute. In case more than
+                                one telephone number is specified, all telephone
                                 numbers are considered equivalent.
                             </xsd:documentation>
                         </xsd:annotation>
@@ -2236,13 +2073,10 @@
                     <xsd:element name="employeeNumber" type="xsd:string" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Unique, business-oriented identifier of the
-                                employee.
-                                Typically used as correlation identifier
-                                and for
+                                Unique, business-oriented identifier of the employee.
+                                Typically used as correlation identifier and for
                                 auditing purposes. Should be immutable, but the
-                                specefic
-                                properties and usage are deployment-specific.
+                                specefic properties and usage are deployment-specific.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -2250,10 +2084,8 @@
                     <xsd:element name="employeeType" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Employee type specification such as internal
-                                employee,
-                                external or partner. The specific values
-                                are
+                                Employee type specification such as internal employee,
+                                external or partner. The specific values are
                                 deployment-specific.
                             </xsd:documentation>
                         </xsd:annotation>
@@ -2264,13 +2096,10 @@
                             <xsd:documentation>
                                 Name or (preferrably) immutable identifier of
                                 organizational unit that the user belongs to.
-                                The
-                                format is
-                                deployment-specific.
+                                The format is deployment-specific.
 
                                 This is multi-valued property to allow
-                                membership
-                                of a user to several
+                                membership of a user to several
                                 organizational units.
                             </xsd:documentation>
                         </xsd:annotation>
@@ -2281,11 +2110,8 @@
                             <xsd:documentation>
                                 Primary locality of the user, the place where
                                 the user usually works, the contry, city or
-                                building that
-                                he
-                                belongs to. The specific meaning
-                                and form of this property is
-                                deployment-specific.
+                                building that he belongs to. The specific meaning
+                                and form of this property is deployment-specific.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -2322,26 +2148,16 @@
                             <xsd:documentation>
                                 Set of user's accounts. This is the set of
                                 accounts that belongs to the user in a sense
-                                that
-                                these
-                                accounts
-                                represents the user (the
-                                same physical person, they are
-                                analogous).
-                                This element contains full
-                                AccountType XML
+                                that these accounts represents the user (the
+                                same physical person, they are analogous).
+                                This element contains full AccountType XML
                                 elements.
-                                This version will
-                                probably be used in workflows and
-                                business
-                                logic.
+                                This version will probably be used in workflows and
+                                business logic.
 
-                                If this attribute is
-                                present in the User object,
-                                the
-                                accountRef attribute for the same account
-                                OID must not be
-                                present.
+                                If this attribute is present in the User object,
+                                the accountRef attribute for the same account
+                                OID must not be present.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -2351,24 +2167,14 @@
                             <xsd:documentation>
                                 Set of user's accounts. This is the set of
                                 accounts that belongs to the user in a sense
-                                that
-                                these
-                                accounts
-                                represents the user (the
-                                same physical person, they are
-                                analogous).
-                                This element contains a set of
-                                pointers to
-                                Account
-                                objects (by OID) this version
-                                will be used in repository (for
-                                storage).
+                                that these accounts represents the user (the
+                                same physical person, they are analogous).
+                                This element contains a set of pointers to
+                                Account objects (by OID) this version
+                                will be used in repository (for storage).
 
-                                If this attribute is
-                                present in the User
-                                object,
-                                the
-                                account attribute for the same account
+                                If this attribute is present in the User
+                                object, the account attribute for the same account
                                 OID must not be present.
                             </xsd:documentation>
                         </xsd:annotation>
@@ -2411,19 +2217,12 @@
             <xsd:element name="allowedIdmAdminGuiAccess" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If true, the user will have access to the IDM
-                        ADMIN GUI. The
-                        access will provide access to all
-                        functions,
-                        therefore
-                        this
-                        is kind of "superuser" flag.
+                        If true, the user will have access to the IDM ADMIN GUI. The
+                        access will provide access to all functions, therefore
+                        this is kind of "superuser" flag.
 
-                        This is a temporary solution until we
-                        implement
-                        fully-featured
-                        authorization
-                        mechanism.
+                        This is a temporary solution until we implement
+                        fully-featured authorization mechanism.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2443,25 +2242,17 @@
                     <xsd:documentation>
                         The number of failed logins. It should be
                         increased after every unsuccessful use of
-                        the
-                        credential. It
-                        may
-                        be reset after
+                        the credential. It may be reset after
                         successful login or a time-out or may not.
-                        It
-                        depends on the policy setting.
-                        If
-                        not present, value of zero
-                        (0)
-                        is assumed.
+                        It depends on the policy setting. If
+                        not present, value of zero (0) is assumed.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="lastFailedLoginTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The date and time of last failed login
-                        attempt.
+                        The date and time of last failed login attempt.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2594,29 +2385,16 @@
     <xsd:complexType name="ResourceType">
         <xsd:annotation>
             <xsd:documentation>
-                Resource represents a system or component external
-                to the IDM
-                system which we manage. It is
-                sometimes called
-                _IT
-                resource_,
+                Resource represents a system or component external to the IDM
+                system which we manage. It is sometimes called _IT resource_,
                 _target system_, _source system_, _provisioning target_,
                 etc.
-                IDM system connects to
-                it to create accounts, assign
-                accounts
-                to
-                groups, etc. But it also may be an authoritative source of
-                data,
-                system that
-                maintains lookup tables, database that
-                contains
-                organizational structure, etc. The {{Resource}} will
-                most likely
-                provide a combination of several functions (e.g.
-                both
-                provisioning
-                and authoritative data for some attributes).
+                IDM system connects to it to create accounts, assign
+                accounts to groups, etc. But it also may be an authoritative source of
+                data, system that maintains lookup tables, database that
+                contains organizational structure, etc. The {{Resource}} will
+                most likely provide a combination of several functions (e.g.
+                both provisioning and authoritative data for some attributes).
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -2625,49 +2403,33 @@
                     <xsd:element name="connector" type="tns:ConnectorType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                "Composite" version of the ConnectorType
-                                reference. See below for more details.
+                                "Composite" version of the ConnectorType reference. See below for more details.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="connectorRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Reference to the connector that implements
-                                specified resource.
+                                Reference to the connector that implements specified resource.
 
-                                Connector reference is MANDATORY.
-                                Although the
+                                Connector reference is MANDATORY. Although the
                                 schema does not enforce it (due to various JAXB
-                                reasons), exactly
-                                one of the
-                                connecotor or
-                                connectorRef MUST be
-                                present in the
-                                resource
-                                object.
+                                reasons), exactly one of the connecotor or
+                                connectorRef MUST be present in the resource object.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="namespace" type="xsd:anyURI">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Resource private namespace. This is the
-                                namespace
-                                that is private for a specific resource
-                                INSTANCE.
-                                It may
-                                be used by the connector e.g. to generate
-                                instance-specific
-                                resource schema or for other
-                                purposes. It should be set by the
-                                system
+                                Resource private namespace. This is the namespace            
+                                that is private for a specific resource INSTANCE.
+                                It may be used by the connector e.g. to generate
+                                instance-specific resource schema or for other
+                                purposes. It should be set by the system
                                 administrator to a unique value for each resource
-                                instance. The
-                                configuration tools (e.g. admin GUI)
-                                should provide
-                                a
-                                reasonable default value.
+                                instance. The configuration tools (e.g. admin GUI)
+                                should provide a reasonable default value.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -2677,57 +2439,33 @@
                             <xsd:documentation>
                                 Schema for resource objects.
 
-                                This element
-                                contains the XSD-formatted definition
-                                of resource
-                                schema. It
-                                defines data types for
+                                This element contains the XSD-formatted definition
+                                of resource schema. It defines data types for
                                 accounts, groups, roles, entitlements,
                                 organizational units or any other objects
-                                related to identity
-                                management that the resource
+                                related to identity management that the resource
                                 supports.
 
-                                Resource schema will be
-                                only available at run-time
-                                and
-                                can be diffrent for every
-                                resource
-                                instance,
+                                Resource schema will be only available at run-time
+                                and can be diffrent for every resource instance,
                                 even for resource instances of the same type.
-                                It is
-                                supposed to be
-                                dynamically interpreted in
+                                It is supposed to be dynamically interpreted in
                                 run-time.
 
-                                Schema defines
-                                data types (XSD types), but it
-                                does NOT define how these types
-                                are handled.
-                                E.g. it defines attributes and
-                                object class for
+                                Schema defines data types (XSD types), but it
+                                does NOT define how these types are handled.
+                                E.g. it defines attributes and object class for
                                 inetOrgPerson, it defines that inetOrgPerson
-                                extends
-                                organizationalPerson and persona, that
-                                cn is
-                                multi-valued string
-                                attributed of Person,
-                                etc. But it does NOT define
-                                that
-                                inetOrgPerson
-                                object class should be used as
-                                account and that
+                                extends organizationalPerson and persona, that
+                                cn is multi-valued string attributed of Person,  
+                                etc. But it does NOT define that inetOrgPerson
+                                object class should be used as account and that
                                 modifyTimestamp attribute is read-only. Such
-                                additional details
-                                are specified in
-                                schemaHandling element
-                                defined below.
+                                additional details are specified 
+                                in schemaHandling element defined below.
 
-                                Resource
-                                schema is read-only. Changing
-                                resource
-                                schema is
-                                not supported.
+                                Resource schema is read-only. Changing resource
+                                schema is not supported.
 
                                 TODO: annotations in the schema
                             </xsd:documentation>
@@ -2770,36 +2508,19 @@
     <xsd:complexType name="XmlSchemaType">
         <xsd:annotation>
             <xsd:documentation>
-                This element contains the XSD-formatted definition
-                of schema.
+                This element contains the XSD-formatted definition of schema.
 
-                The schema available in this
-                definition is
-                expeceted to
-                comply
-                to the usual midPoint schema structure (properties,
-                property
-                containers), although it
-                should not contain
-                objects (persistent
+                The schema available in this definition is expeceted to comply
+                to the usual midPoint schema structure (properties, property
+                containers), although it should not contain objects (persistent
                 objects identified by OID).
-
-                Note: This schema is considered to be
-                available
-                only in run-time.
-                Therefore
-                code-generation methods such as
-                JAXB cannot be
-                applied
+                
+                Note: This schema is considered to be available only in run-time.
+                Therefore code-generation methods such as JAXB cannot be applied
                 here.
 
-                Note: xsd:any is here, but
-                maybe a stricter
-                type would be
-                preferable.
-                However xsd:any seems to be a common
-                practice
-                (e.g. SPML, WSDL).
+                Note: xsd:any is here, but maybe a stricter type would be preferable.
+                However xsd:any seems to be a common practice (e.g. SPML, WSDL).
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -2820,18 +2541,13 @@
             <xsd:documentation>
                 Specification of handling details for resource
                 schema. E.g. read-only or read-write attributes,
-                account
-                object
-                classes, etc.
+                account object classes, etc.
 
                 TODO: more details
 
-                This element belongs to ResourceType
-                and should
-                not be used elsewhere.
-                This is a top-level
-                element to make
-                the implementation
+                This element belongs to ResourceType and should
+                not be used elsewhere. This is a top-level
+                element to make the implementation
                 (JAXB marshall/unmarshall) easier.
             </xsd:documentation>
         </xsd:annotation>
@@ -2844,10 +2560,7 @@
                         Type of entitlements such as groups, roles
                         entitlements, organizatrions, etc.
 
-                        Not yet fully
-                        figured out.
-                        Please
-                        ignore for now.
+                        Not yet fully figured out. Please ignore for now.
 
                         TODO
                     </xsd:documentation>
@@ -2857,8 +2570,7 @@
                         <xsd:element ref="c:name" minOccurs="0" maxOccurs="1">
                             <xsd:annotation>
                                 <xsd:documentation>
-                                    Human readable name for
-                                    the object class.
+                                    Human readable name for the object class.
                                 </xsd:documentation>
                             </xsd:annotation>
                         </xsd:element>
@@ -3106,9 +2818,7 @@
     <xsd:complexType name="ScriptsType">
         <xsd:annotation>
             <xsd:documentation>
-                Collection of scripts to be executed for various
-                provisioning
-                operations.
+                Collection of scripts to be executed for various provisioning operations.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -3116,10 +2826,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Specific script definition.
-                        Note: More than one
-                        script definition may apply to a
-                        specific
-                        operation.
+                        Note: More than one script definition may apply to a specific operation.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3129,25 +2836,18 @@
     <xsd:complexType name="ScriptType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies how and when a script is executed during
-                provisioning.
+                Specifies how and when a script is executed during provisioning.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="operation" type="tns:OperationTypeType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Defines a set of operations for which the script
-                        should
-                        be executed.
-                        If more than one operation is
-                        specified, the same
+                        Defines a set of operations for which the script should be executed.
+                        If more than one operation is specified, the same
                         script should be executed for each of them.
-                        If no operation is
-                        specified, the script will not be
-                        executed
-                        (this is meant as poor
-                        man's disable feature)
+                        If no operation is specified, the script will not be
+                        executed (this is meant as poor man's disable feature)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3163,11 +2863,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines where the script should be executed
-                        (connector
-                        or resource). If no type is specified, it
-                        defaults
-                        to
-                        resource.
+                        (connector or resource). If no type is specified, it
+                        defaults to resource.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3181,28 +2878,19 @@
             <xsd:element name="argument" type="tns:ScriptArgumentType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Script aguments. The arguments will passed to
-                        the script
-                        in any way suitable for the script. The
-                        argument
-                        name
-                        is
-                        "local" to the script (script-specific). Script name
-                        must be unique
-                        in the argument set.
-                        The order
-                        of arguments is not
-                        significant.
+                        Script aguments. The arguments will passed to the script
+                        in any way suitable for the script. The argument name
+                        is "local" to the script (script-specific). Script name
+                        must be unique in the argument set.
+                        The order of arguments is not significant.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="code" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Script code represented as string. The
-                        interpretation
-                        depends on script language. If XML elements
-                        are used
+                        Script code represented as string. The interpretation
+                        depends on script language. If XML elements are used
                         inside, they should be properly escaped. (e.g. using
                         CDATA).
                     </xsd:documentation>
@@ -3214,10 +2902,8 @@
     <xsd:simpleType name="OperationTypeType">
         <xsd:annotation>
             <xsd:documentation>
-                Type of an operation (change). It defines
-                operations to change
-                object, it is not limited to object
-                modifications.
+                Type of an operation (change). It defines operations to change
+                object, it is not limited to object modifications.
                 TODO: How to handle renames?
             </xsd:documentation>
         </xsd:annotation>
@@ -3256,17 +2942,14 @@
     <xsd:simpleType name="ScriptOrderType">
         <xsd:annotation>
             <xsd:documentation>
-                An enumeration that defines when the script will
-                be excuted.
+                An enumeration that defines when the script will be excuted.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="before">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The script will be executed before the
-                        provisioning
-                        operation.
+                        The script will be executed before the provisioning operation.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="BEFORE"/>
@@ -3276,9 +2959,7 @@
             <xsd:enumeration value="after">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The script will be executed after the
-                        provisioning
-                        operation.
+                        The script will be executed after the provisioning operation.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="AFTER"/>
@@ -3291,20 +2972,16 @@
     <xsd:simpleType name="ScriptHostType">
         <xsd:annotation>
             <xsd:documentation>
-                An enumeration that defines where the script will
-                be excuted.
+                An enumeration that defines where the script will be excuted.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="connector">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The script will be executed on "connector", it
-                        means
-                        it will be executed on the same host as the
-                        connector
-                        is
-                        running (which is usually IDM system).
+                        The script will be executed on "connector", it means
+                        it will be executed on the same host as the connector
+                        is running (which is usually IDM system).
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="CONNECTOR"/>
@@ -3314,14 +2991,11 @@
             <xsd:enumeration value="resource">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The script will be executed on "resource", it
-                        means
-                        it will be executed on the target sytem.
-                        Please refer
+                        The script will be executed on "resource", it means
+                        it will be executed on the target sytem. Please refer
                         to the
                         connector documentation for more details, e.g.
-                        in case of
-                        multi-host resources.
+                        in case of multi-host resources.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="RESOURCE"/>
@@ -3335,13 +3009,9 @@
     <xsd:complexType name="ScriptArgumentType">
         <xsd:annotation>
             <xsd:documentation>
-                Script argument. It is subtype of Value
-                Construction, therefore
-                the value may be static of
-                dynamically
-                constructed using an
-                expression. The "default" and "authoritative"
-                flags are not
+                Script argument. It is subtype of Value Construction, therefore
+                the value may be static of dynamically constructed using an
+                expression. The "default" and "authoritative" flags are not
                 applicable here.
             </xsd:documentation>
         </xsd:annotation>
@@ -3353,9 +3023,7 @@
                             <xsd:documentation>
                                 Argument name. The name is "local" to the
                                 script. It must comply with the limitations of
-                                used
-                                script
-                                language.
+                                used script language.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -3371,15 +3039,10 @@
                 Specific for each resource type.
                 TODO
 
-                This element
-                belongs to
-                ResourceType and should
-                not be used elsewhere.
-                This is a top-level
-                element to make the implementation
-                (JAXB
-                marshall/unmarshall)
-                easier.
+                This element belongs to ResourceType and should
+                not be used elsewhere. This is a top-level
+                element to make the implementation (JAXB
+                marshall/unmarshall) easier.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -3714,17 +3377,11 @@
     <xsd:complexType name="PropertyConstructionType">
         <xsd:annotation>
             <xsd:documentation>
-                Definition of construction of a (general)
-                property. The property
-                may be constructed as a static
-                value of as a
-                result of an
+                Definition of construction of a (general) property. The property
+                may be constructed as a static value of as a result of an
                 expression (See ValueConstructionType documentation).
-                This can be used e.g. to constuct a
-                value for user's
-                fullName
-                in User
-                Template or also on other places in the future.
+                This can be used e.g. to constuct a value for user's fullName
+                in User Template or also on other places in the future.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -3734,9 +3391,7 @@
                     <xsd:element name="valueConstruction" type="tns:ValueConstructionType">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Reference (QName) of the property which value
-                                is
-                                defined by this type.
+                                Reference (QName) of the property which value is defined by this type.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -3749,24 +3404,14 @@
         <xsd:annotation>
             <xsd:documentation>
                 Defines an assignment of value from one place (or
-                expression) to
-                another place.
-                This is supposed to
-                be a
-                general-purpose
-                construct.
+                expression) to another place.
+                This is supposed to be a general-purpose construct.
                 TODO: merging options
 
-                This type is marked with jaxb:dom
-                annotation, which will avoid
-                JAXB parsing of
-                it. This is a workaround
-                to a JAXB limitation,
-                which cannot handle more than one "any"
-                elements in a
-                type.
-                See
-                http://java.net/jira/browse/JAXB-798
+                This type is marked with jaxb:dom annotation, which will avoid
+                JAXB parsing of it. This is a workaround to a JAXB limitation,
+                which cannot handle more than one "any" elements in a type.
+                See http://java.net/jira/browse/JAXB-798
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:dom/>
@@ -3777,71 +3422,44 @@
             <xsd:element ref="tns:valueFilter" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        List of filters that will be applied to the
-                        value before
-                        it even gets processed by this
-                        assignment. The
-                        filters
-                        will
-                        get applied even before the expression.
+                        List of filters that will be applied to the value before
+                        it even gets processed by this assignment. The filters
+                        will get applied even before the expression.
 
-                        The filters will be
-                        executed in chain in the
-                        order as
-                        specified here.
+                        The filters will be executed in chain in the
+                        order as specified here.
 
-                        The
-                        filters are
-                        supposed to "clean up" or transcode
-                        the value to comply with usual
-                        XML
-                        standards.
-                        (but see the note in
-                        ValueFilterType documentation)
+                        The filters are supposed to "clean up" or transcode
+                        the value to comply with usual XML standards.
+                        (but see the note in ValueFilterType documentation)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="source" type="c:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Source of assignement. R-value.
-                        The value (or
+                        Source of assignement. R-value. The value (or
                         values) will be copied from this place
-                        or from the
-                        result of
-                        the
-                        expression.
+                        or from the result of the expression.
                         Depending on how this type is used, the source may be
-                        implicit. Therefore the source
-                        definition is optional.
+                        implicit. Therefore the source definition is optional.
 
-                        The
-                        expression will most likely contain variables.
-                        Please refer to the
-                        documentation of
-                        containing or
-                        derived type for more
-                        details.
+                        The expression will most likely contain variables.
+                        Please refer to the documentation of containing or
+                        derived type for more details.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="target" type="c:XPathType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Destination of the assignment. L-value.
-                        The value
-                        (or values) will be copied to this place.
-                        It is
-                        an XPath
-                        pointer
-                        that must point to an existing,
+                        Destination of the assignment. L-value. The value
+                        (or values) will be copied to this place. It is
+                        an XPath pointer that must point to an existing,
                         mutable part of XML document.
 
-                        The
-                        copy will replace all existing
-                        values. But that
-                        behavior may change
-                        in the future.
+                        The copy will replace all existing values. But that
+                        behavior may change in the future.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3851,34 +3469,18 @@
     <xsd:complexType name="ValueFilterType">
         <xsd:annotation>
             <xsd:documentation>
-                Defines value filter. The value filters are
-                supposed to take a
-                single value of a specific type and
-                return a
-                single
-                value of
+                Defines value filter. The value filters are supposed to take a
+                single value of a specific type and return a single value of
                 the same type. Filters are used to transforms values, e.g.
-                to clean up illegal characters, to
-                do charset
-                transcoding,
-                etc.
+                to clean up illegal characters, to do charset transcoding, etc.
 
                 Note:
                 Strictly speaking, filters should be used for things like
-                transliteration of
-                national characters, case
-                conversions, etc.
-                They
-                should not be used to "technical" transformations such as
-                character
-                set conversions. Connector should do
-                that and connector
-                should return
-                nice, clean unicode strings. But some
-                connectors
-                are faulty and the
-                ability of filters to do
-                "technical" things
+                transliteration of national characters, case conversions, etc.
+                They should not be used to "technical" transformations such as
+                character set conversions. Connector should do that and connector                
+                should return nice, clean unicode strings. But some connectors
+                are faulty and the ability of filters to do "technical" things
                 may come handy.
             </xsd:documentation>
         </xsd:annotation>
@@ -3894,11 +3496,8 @@
         <xsd:attribute name="type" type="xsd:anyURI">
             <xsd:annotation>
                 <xsd:documentation>
-                    URI identifying the type of the filter. This is a
-                    identifier
-                    of the filter code. Individual
-                    filters may
-                    plug-in under a
+                    URI identifying the type of the filter. This is a identifier
+                    of the filter code. Individual filters may plug-in under a
                     specific URI.
                 </xsd:documentation>
             </xsd:annotation>
@@ -3912,54 +3511,32 @@
     <xsd:complexType name="SynchronizationType">
         <xsd:annotation>
             <xsd:documentation>
-                Defines a synchronization properties
-                (configuration) for a
-                resource.
+                Defines a synchronization properties (configuration) for a resource.
 
-                TODO: add reconciliation setup
-                (later)
+                TODO: add reconciliation setup (later)
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Flag indicating if the synchronization is
-                        enabled. If it
-                        is not, the synchronization process will
-                        be
-                        suspended.
+                        Flag indicating if the synchronization is enabled. If it
+                        is not, the synchronization process will be suspended.
                         If enabled, the synchronization should pull in even the
-                        changes that were done during disabled
-                        synchronization
-                        (limitations
-                        may apply, such as the legth of history
+                        changes that were done during disabled synchronization
+                        (limitations may apply, such as the legth of history
                         logs on the resource).
 
-                        Disabling synchronization
-                        means that it will not
-                        be
-                        executed
-                        automatically (e.g. polling resource in regular
-                        intervals). The
-                        synchronization
-                        may still be executed
-                        explicitly
-                        (manually), even if
+                        Disabling synchronization means that it will not be executed
+                        automatically (e.g. polling resource in regular intervals). The
+                        synchronization may still be executed explicitly (manually), even if
                         it is disabled.
-
-                        If this flag is not present, but a valid
-                        synchronization
-                        setup is found (which usually
-                        means valid
-                        "synchrnization"
-                        element), the synchronization is assumed
-                        to be
-                        enabled.
-                        This flag is meant to act as a tool to
-                        temprarily disable
-                        synchronizatoin without loosing the
-                        configuration and
+                        
+                        If this flag is not present, but a valid synchronization
+                        setup is found (which usually means valid "synchrnization"
+                        element), the synchronization is assumed to be enabled.
+                        This flag is meant to act as a tool to temprarily disable
+                        synchronizatoin without loosing the configuration and
                         and state.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -3967,53 +3544,33 @@
             <xsd:element name="correlation" type="c:QueryType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Correlation expression. It should return a list
-                        of
-                        candadate user entries that may be owners of a
-                        particular
-                        account.
+                        Correlation expression. It should return a list 
+                        of candadate user entries that may be owners of a
+                        particular account.
 
                         Correlation is an rough but an efficient way how to
-                        relate
-                        the account to a user. The correlation
-                        expression
-                        is in fact just a
-                        search filter. If correlation search
-                        returns more that one entries,
-                        confirmation
-                        expression
-                        will be
-                        executed for each of them.
+                        relate the account to a user. The correlation expression
+                        is in fact just a search filter. If correlation search
+                        returns more that one entries, confirmation expression
+                        will be executed for each of them.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="confirmation" type="c:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Confirmation expression. The arguments are an
-                        account and
-                        a candidate owner (user). The
-                        confirmation
-                        expressions
+                        Confirmation expression. The arguments are an account and
+                        a candidate owner (user). The confirmation expressions
                         should return true if the user should be owner of the
-                        account. It
-                        should return false if
-                        the user cannot be
-                        owner
-                        of the account.
+                        account. It should return false if the user cannot be                        
+                        owner of the account.
 
-                        The
-                        evaluation of the confirmation expression may be
-                        relativelly
-                        inefficient, as it will only be run for
-                        candidate entries returned
-                        by correlation expression.
+                        The evaluation of the confirmation expression may be
+                        relativelly inefficient, as it will only be run for
+                        candidate entries returned by correlation expression.
 
-                        The expression
-                        variables should be set as
-                        follows:
-                        $user - the candidate
-                        user object (one of the results of
+                        The expression variables should be set as follows:
+                        $user - the candidate user object (one of the results of
                         correlation expression)
                         $account - the changed account object
                     </xsd:documentation>
@@ -4024,15 +3581,10 @@
                     <xsd:documentation>
                         Reaction to a synchronization situation.
                         Situation identifier must be unique in this set (i.e.
-                        a
-                        situation
-                        definition may occur only once for each
+                        a situation definition may occur only once for each
                         situation).
-                        If there is no
-                        definition for a particular situation,
-                        there will be no
-                        reaction
-                        ("do nothing").
+                        If there is no definition for a particular situation,
+                        there will be no reaction ("do nothing").
                         The set of situation reactions is considered to be
                         unordered.
                     </xsd:documentation>
@@ -4043,26 +3595,18 @@
                         <xsd:element name="situation" type="tns:SynchronizationSituationType">
                             <xsd:annotation>
                                 <xsd:documentation>
-                                    Defines a particular synchronization
-                                    situation.
+                                    Defines a particular synchronization situation.
                                 </xsd:documentation>
                             </xsd:annotation>
                         </xsd:element>
                         <xsd:element name="action" minOccurs="0" maxOccurs="unbounded">
                             <xsd:annotation>
                                 <xsd:documentation>
-                                    Defines an action to take when a situation is
-                                    encountered.
-                                    If there is no action for a
-                                    particular
-                                    situation,
-                                    there will be no reaction ("do nothing").
-                                    There may be sevaral
-                                    actions defined here.
-                                    In such
-                                    case all the actions
-                                    will be
-                                    executed
+                                    Defines an action to take when a situation is 
+                                    encountered. If there is no action for a particular
+                                    situation, there will be no reaction ("do nothing").
+                                    There may be sevaral actions defined here. In such
+                                    case all the actions will be executed
                                     in the order as they are defined here.
                                 </xsd:documentation>
                             </xsd:annotation>
@@ -4103,8 +3647,7 @@
             <xsd:enumeration value="deleted">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The account existed on the resource, but it has
-                        been deleted.
+                        The account existed on the resource, but it has been deleted.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="DELETED"/>
@@ -4114,10 +3657,8 @@
             <xsd:enumeration value="unmatched">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The new account is found on the resource (it
-                        exists) and
-                        IDM cannot determine any owner for the
-                        account.
+                        The new account is found on the resource (it exists) and
+                        IDM cannot determine any owner for the account.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="UNMATCHED"/>
@@ -4127,8 +3668,7 @@
             <xsd:enumeration value="disputed">
                 <xsd:annotation>
                     <xsd:documentation>
-                        New account is found and two or more owners are
-                        found for it.
+                        New account is found and two or more owners are found for it.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="DISPUTED"/>
@@ -4198,14 +3738,10 @@
                     <xsd:element name="connectorVersion" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Version of the connector. Used only for
-                                display purposes and for searching during imports. Therefore it
-                                may
-                                be any (sensible) string, but it should be reasonably stable to avoid
-                                broken imports.
+                                Version of the connector. Used only for display purposes and for searching during imports. Therefore it
+                                may be any (sensible) string, but it should be reasonably stable to avoid broken imports.
 
-                                May be any string (numberic
-                                convention is recommended, but not required).
+                                May be any string (numberic convention is recommended, but not required).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -4213,8 +3749,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Name of a package that the connector comes in. It may be a name of the JAR file, ICF
-                                bundle
-                                name, URL or any other designation of the packaging.
+                                bundle name, URL or any other designation of the packaging.
                                 This is optional, it may not be provided.
                             </xsd:documentation>
                         </xsd:annotation>
@@ -4224,8 +3759,7 @@
                             <xsd:documentation>
                                 Identification of the kind of target system
                                 that the connector can connect to, such as "LDAP" or "DB Table". Used only for
-                                display purposes and for searching
-                                during imports. Therefore it may
+                                display purposes and for searching during imports. Therefore it may
                                 be any (sensible) string, but it should be reasonably stable to avoid
                                 broken imports.
                             </xsd:documentation>
@@ -4234,16 +3768,11 @@
                     <xsd:element name="namespace" type="xsd:anyURI">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Connector-private namespace. This is the
-                                namespace
-                                that is private for a specific connector
-                                (and
-                                optionally
-                                connector version).
+                                Connector-private namespace. This is the namespace
+                                that is private for a specific connector (and
+                                optionally connector version).
                                 It may be used by the connector to generate
-                                connector configuration schema or
-                                for other
-                                purposes.
+                                connector configuration schema or for other purposes.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -4274,19 +3803,12 @@
                                 administrator names and so on.
 
                                 Connector schema will most likely be only
-                                available at run-time
-                                and will be diffrent
-                                for
-                                every connector. It
-                                is supposed to be
-                                dynamically
-                                interpreted in run-time.
+                                available at run-time and will be diffrent
+                                for every connector. It is supposed to be
+                                dynamically interpreted in run-time.
 
-                                Connector schema is
-                                read-only.
-                                Changing the
-                                schema
-                                is not supported.
+                                Connector schema is read-only. Changing the
+                                schema is not supported.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -4303,13 +3825,9 @@
                 Host definition for remote connector, remote
                 connector framework or a remote "gateway".
 
-                Note that this is a
-                generic concept of a connector host, not specific to
-                any
-                connector
-                framework. It can be extended with a framework-specific
-                configuration
-                using the usual "extension" element.
+                Note that this is a generic concept of a connector host, not specific to
+                any connector framework. It can be extended with a framework-specific
+                configuration using the usual "extension" element.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -4318,16 +3836,14 @@
                     <xsd:element name="hostname" type="xsd:string">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Hostname of a remote host. May also be an IP
-                                address.
+                                Hostname of a remote host. May also be an IP address.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="port" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Port number of the remote service. If not
-                                present, default
+                                Port number of the remote service. If not present, default
                                 port number is assumed by the implementation.
                             </xsd:documentation>
                         </xsd:annotation>
@@ -4342,12 +3858,8 @@
                     <xsd:element name="timeout" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Timeout (in milliseconds) used when initially
-                                connecting to the
-                                host or during other connections when
-                                timeout
-                                is not
-                                otherwise specified.
+                                Timeout (in milliseconds) used when initially connecting to the
+                                host or during other connections when timeout is not otherwise specified.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -4391,6 +3903,34 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="result" type="tns:OperationResultType"  minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Result describing if shadow was successfully processed, or not. If not, the errors should  be saved.
+							</xsd:documentation>
+						</xsd:annotation>
+     				</xsd:element>
+     				<xsd:element name="objectChange" type="tns:ObjectChangeType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Description of changes that happened to an resource object shadow.
+							</xsd:documentation>
+						</xsd:annotation>
+     				</xsd:element>
+     				<xsd:element name="attemptNumber" type="xsd:int" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Description of number of attempts made for the resolving account consistency issues. 
+							</xsd:documentation>
+						</xsd:annotation>
+     				</xsd:element>
+     				<xsd:element name="failedOperationType" type="tns:FailedOperationTypeType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Description of operation during the processing of account failed. 
+							</xsd:documentation>
+						</xsd:annotation>
+     				</xsd:element>
                     <!-- /xsd:choice -->
                     <xsd:element name="objectClass" type="xsd:QName">
                         <xsd:annotation>
@@ -4595,37 +4135,18 @@
 
     <xsd:annotation>
         <xsd:documentation>
-            IDM Model schema defines the structure of roles,
-            rules, access
-            policies, method of assignment of
-            accounts and
-            other
-            resource
-            objects and all the properties of access control model. It is
-            based
-            on the identity schema,
-            using concepts of User,
-            Account Shadow
-            and
-            so on. IDM Model schema is static, it is available in
-            compile-time.
+            IDM Model schema defines the structure of roles, rules, access policies, 
+            method of assignment of accounts and other resource objects and all 
+            the properties of access control model. It is based on the identity schema, 
+            using concepts of User, Account Shadow and so on. IDM Model schema is 
+            static, it is available in compile-time.
 
-            Current
-            IDM model schema defines very
-            minimal RBAC model.
-            It is
-            defined as temporary model to allow midPoint to be usable
-            while
-            we
-            take the time to design a
-            full-featured complex IDM model.
+            Current IDM model schema defines very minimal RBAC model.
+            It is defined as temporary model to allow midPoint to be usable
+            while we take the time to design a full-featured complex IDM model.
 
-            Expect
-            that the model will be replaced and do not
-            depend
-            on this schema in
-            low-level components
-            (except perhaps repository).
+            Expect that the model will be replaced and do not depend
+            on this schema in low-level components (except perhaps repository).
         </xsd:documentation>
     </xsd:annotation>
 
@@ -4750,9 +4271,7 @@
     <xsd:element name="condition" type="tns:ExpressionType">
         <xsd:annotation>
             <xsd:documentation>
-                Boolean condition. The return of this expression
-                must be either
-                true or false.
+                Boolean condition. The return of this expression  must be either true or false.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
@@ -4760,10 +4279,8 @@
     <xsd:complexType name="VariableDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Definition of a variable. This type declares a
-                variable name
-                and defines the initial content of the
-                variable.
+                Definition of a variable. This type declares a variable name
+                and defines the initial content of the variable.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -4807,33 +4324,17 @@
 
                 TODO: type???
 
-                Defines hierarchical objects - or
-                more
-                exactly nested.
+                Defines hierarchical objects - or more exactly nested.
 
-                may contain other entitlements. Such a containing
-                object, when
-                assigned to user, is equivalent to
-                the union
-                of
-                all contained objects
-                (and objects contained in the
-                contained objects, ad infinutum). There
-                is no
-                constrain that
-                the containing
-                and contained objects must be of
-                the same type.
-                Therefore it should be possible to
-                create a "business
-                role" that
-                will contain a
-                set of "IT roles" that specify access to
-                resources
-                and a set of "IDM
-                roles" that gives user administrator
-                privileges in midPoint
-                system.
+                may contain other entitlements. Such a containing object, 
+                when assigned to user, is equivalent to the union of all 
+                contained objects(and objects contained in the contained 
+                objects, ad infinutum). There is no constrain that the containing     
+                and contained objects must be of the same type.
+                Therefore it should be possible to create a "business role" that
+                will contain a set of "IT roles" that specify access to resources
+                and a set of "IDM roles" that gives user administrator privileges 
+                in midPoint system.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -4934,17 +4435,14 @@
                 <xsd:element name="resourceRef" type="c:ObjectReferenceType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Reference to a resource that
-                            should host the
-                            implied account.
+                            Reference to a resource that should host the implied account.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="resource" type="tns:ResourceType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Resource that should host the
-                            implied account.
+                            Resource that should host the implied account.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
@@ -4953,22 +4451,13 @@
                 <xsd:element name="type" type="xsd:string" minOccurs="0" default="user">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Type of account that should be created on the
-                            resource.
+                            Type of account that should be created on the resource.
 
-                            This must point to the a valid
-                            accountType
-                            definition in
-                            the resource
-                            object (in schemaHandling section).
+                            This must point to the a valid accountType definition in
+                            the resource object (in schemaHandling section).
 
-                            This element is
-                            optional. If not
-                            specified then the account
-                            type
-                            marked as default
-                            in the resource
-                            definition should be used.
+                            This element is optional. If not specified then the account
+                            type marked as default in the resource definition should be used.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
@@ -4979,16 +4468,10 @@
                             should be created on the resource.
                             TODO: more
 
-                            The
-                            variables should
-                            be set as follows:
-                            $user - the user that this account will belong
-                            to
-                            $assignment - an assignemt
-                            that is
-                            assigning the
-                            object in which
-                            context is this expression
+                            The variables should be set as follows:
+                            $user - the user that this account will belong to
+                            $assignment - an assignemt that is assigning the
+                            object in which context is this expression
                             evaluated (e.g. assignment of role)
                         </xsd:documentation>
                     </xsd:annotation>
@@ -4997,73 +4480,40 @@
             <xsd:element ref="c:condition" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The account is implied only if the condition is
-                        evaluated to true.
-                        If condition is not present, it
-                        is
-                        assumed to be
-                        true.
+                        The account is implied only if the condition is evaluated to true.
+                        If condition is not present, it is assumed to be true.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="attribute" type="tns:ValueConstructionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Account attribute values implied by
-                        this role.
-                        When the role is assigned
-                        the attributes specified
-                        below
-                        should
-                        be
-                        assigned values specified below.
+                        Account attribute values implied by this role.
+                        When the role is assigned the attributes specified
+                        below should be assigned values specified below.
 
-                        When the role is unassigned, the
-                        values specified below should be
-                        removed unless
-                        some other role
-                        is
-                        still specifying them.
+                        When the role is unassigned, the values specified below should be
+                        removed unless some other role is still specifying them.
 
-                        TODO: this is very simplistic now.
-                        Later we
-                        need flags for
-                        value
-                        removal,
-                        authoritativeness, merging
-                        approach,
-                        etc.
+                        TODO: this is very simplistic now. Later we
+                        need flags for value removal, authoritativeness, 
+                        merging approach, etc.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="entitlement" type="tns:EntitlementConstructionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Assignments implied by this role.
-                        When the role
-                        is assigned the
-                        assignable types (groups, native
-                        roles)
-                        specified
-                        below should
-                        be assigned to the account.
+                        Assignments implied by this role. When the role
+                        is assigned the assignable types (groups, native
+                        roles) specified below should be assigned to the account.
 
-                        When the role is
-                        unassigned, the
-                        assignable types specified
-                        below
-                        should be
-                        unassigned
-                        unless some
-                        other role is still specifying them.
+                        When the role is unassigned, the assignable types specified
+                        below should be unassigned unless some other role is still 
+                        specifying them.
 
-                        TODO: this is very
-                        simplistic now.
-                        Later
-                        we need flags for value
-                        removal,
-                        authoritativeness, merging
-                        approach, etc.
+                        TODO: this is very simplistic now. Later we need flags for value
+                        removal, authoritativeness, merging approach, etc.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -5077,46 +4527,28 @@
                     <xsd:element name="type" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Type of entitlement that should be created on
-                                the resource.
+                                Type of entitlement that should be created on the resource.
 
-                                This must point to the a valid
-                                entitlementType
-                                definition in the resource
-                                object (in schemaHandling section).
+                                This must point to the a valid entitlementType
+                                definition in the resource object (in schemaHandling section).
 
-                                This element is optional. If not
-                                specified
-                                then the entitlement
-                                type
-                                marked as default in the resource
-                                definition should be used.
+                                This element is optional. If not specified then the entitlement type
+                                marked as default in the resource definition should be used.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="typeExpression" type="c:ExpressionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Expression that determines type of account
-                                that
+                                Expression that determines type of account that
                                 should be created on the resource.
                                 TODO
 
-                                The
-                                variables
-                                should be
-                                set as follows:
-                                $account - the account that this entitlement will
-                                be part of
-                                $user - the user
-                                that such account
-                                will belong to
-                                $assignment - an assignemt that is assigning the
-                                object in which
-                                context is this
-                                expression
-                                evaluated (e.g.
-                                assignment of role)
+                                The variables should be set as follows:
+                                $account - the account that this entitlement will be part of
+                                $user - the user that such account will belong to
+                                $assignment - an assignemt that is assigning the object in which
+                                context is this expression evaluated (e.g. assignment of role)
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -5129,23 +4561,14 @@
     <xsd:complexType name="UserTemplateType">
         <xsd:annotation>
             <xsd:documentation>
-                The user template used to create new users.
-                It
+                The user template used to create new users. It
                 contains fixed values or expressions that can set-up
-                a new
-                user
-                obejct. It is used only during user creation in the
-                synchronization
-                code, but will be most likely used also
-                on other
-                places
-                later.
+                a new user obejct. It is used only during user creation in the
+                synchronization code, but will be most likely used also
+                on other places later.
 
-                The goal
-                is to make this a kind of "policy" how the use object
-                should look
-                like and check it on
-                every user modification.
+                The goal is to make this a kind of "policy" how the use object
+                should look like and check it on every user modification.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -5155,30 +4578,17 @@
                                  maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Defines how any of the User's properties
-                                should
+                                Defines how any of the User's properties should
                                 be constructed. It can contain fixed value or
-                                an
-                                expression.
+                                an expression.
 
-                                In case an expression is used following
-                                variables
-                                should be set:
-                                $user - The user object being
-                                created.
-                                $account -
-                                (optional) the account from which
-                                was the user created (if
-                                present)
+                                In case an expression is used following variables should be set:
+                                $user - The user object being created.
+                                $account - (optional) the account from which was the user created (if present)
 
-                                Note: the expressions will
-                                be evaluated in the
-                                order as
-                                they are specified in the XML file for
-                                now, as the dependency
-                                mechanism does not work
-                                yet. Later, the order should be
-                                insignificant.
+                                Note: the expressions will be evaluated in the order as
+                                they are specified in the XML file for now, as the dependency
+                                mechanism does not work yet. Later, the order should be insignificant.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -5188,25 +4598,15 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Defines an account that the user should have.
-                                It
-                                defines the resource and account type. Such
-                                account will
-                                be
-                                created (if it does not yet
-                                exist) and will be linked to the
-                                user.
-                                Usual outbound expressions from
-                                the resource
-                                definition
-                                are
-                                used to set-up the account
+                                It defines the resource and account type. Such
+                                account will be created (if it does not yet
+                                exist) and will be linked to the user.
+                                Usual outbound expressions from the resource
+                                definition are used to set-up the account
                                 parameters.
 
-                                This may be non-systemic
-                                short-term solution. We
-                                need a way how "assign" the
-                                account to
-                                the user
+                                This may be non-systemic short-term solution. We
+                                need a way how "assign" the account to the user
                                 correctly.
                             </xsd:documentation>
                         </xsd:annotation>
@@ -5243,10 +4643,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Number of days before password expires
-                        -1 : means
-                        password doesn't expire
-                        0 : means password is
-                        expired
+                        -1 : means password doesn't expire
+                        0 : means password is expired
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -5268,8 +4666,7 @@
                     <xsd:documentation>
                         Number of days after password after password
                         expiration the account will be locked (0 means never
-                        will be
-                        locked)
+                        will be locked)
                     </xsd:documentation>
                 </xsd:annotation>
                 <xsd:simpleType>
@@ -5740,8 +5137,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Configuration of the logger: the facility that
-                collects log
-                messages from the code.
+                collects log messages from the code.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -5791,11 +5187,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO: components are OR-ed
-                        TODO: string, but
-                        there should be a way how to determine
-                        list of valid
-                        categories.
-                        Maybe switch to enum later.
+                        TODO: string, but there should be a way how to determine
+                        list of valid categories. Maybe switch to enum later.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -5946,8 +5339,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Configuration of the logger: the facility that
-                collects log
-                messages from the code.
+                collects log messages from the code.
 
                 TODO
             </xsd:documentation>
@@ -5999,6 +5391,43 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+    
+    <xsd:simpleType name="FailedOperationTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The enum describes the operation during the account was processed.
+                But the operation failed and the account was not sucessfully treated
+                so the account should have the information about the type of failed operation.
+                E.g. the account should be deleted, but it fails. The account needs to be
+                assigned with the tombstone to be deleted later.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="delete">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DELETE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="add">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ADD"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="modify">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MODIFY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 </xsd:schema>
-
 

@@ -400,10 +400,14 @@ public class ShadowCache {
 			for (Iterator<Change> i = changes.iterator(); i.hasNext();) {
 				// search objects in repository
 				Change change = i.next();
-				try {
+//				try {
 					ResourceObjectShadowType newShadow = findOrCreateShadowFromChange(resourceType, change,
 							parentResult);
 					change.setOldShadow(newShadow);
+					if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType()==ChangeType.DELETE && newShadow == null){
+						i.remove();
+						continue;
+					}
 					// FIXME: hack. make sure that the current shadow has OID
 					// and resource ref, also the account type should be set
 					if (change.getCurrentShadow() != null) {
@@ -423,11 +427,11 @@ public class ShadowCache {
 						}
 						change.getObjectDelta().setOid(newShadow.getOid());
 					}
-				} catch (ObjectNotFoundException ex) {
-					parentResult
-							.recordPartialError("Couldn't find object defined in change. Skipping processing this change.");
-					i.remove();
-				}
+//				} catch (ObjectNotFoundException ex) {
+//					parentResult
+//							.recordPartialError("Couldn't find object defined in change. Skipping processing this change.");
+//					i.remove();
+//				}
 
 			}
 
@@ -622,18 +626,18 @@ public class ShadowCache {
 			newShadow = accountList.get(0);
 			// if the fetched change was one of the deletion type, delete
 			// corresponding account from repo now
-			if (change.getObjectDelta() != null
-					&& change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
-				try {
-					getRepositoryService().deleteObject(AccountShadowType.class, newShadow.getOid(),
-							parentResult);
-				} catch (ObjectNotFoundException ex) {
-					parentResult.recordFatalError("Object with oid " + newShadow.getOid()
-							+ " not found in repo. Reason: " + ex.getMessage(), ex);
-					throw new ObjectNotFoundException("Object with oid " + newShadow.getOid()
-							+ " not found in repo. Reason: " + ex.getMessage(), ex);
-				}
-			}
+//			if (change.getObjectDelta() != null
+//					&& change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
+//				try {
+//					getRepositoryService().deleteObject(AccountShadowType.class, newShadow.getOid(),
+//							parentResult);
+//				} catch (ObjectNotFoundException ex) {
+//					parentResult.recordFatalError("Object with oid " + newShadow.getOid()
+//							+ " not found in repo. Reason: " + ex.getMessage(), ex);
+//					throw new ObjectNotFoundException("Object with oid " + newShadow.getOid()
+//							+ " not found in repo. Reason: " + ex.getMessage(), ex);
+//				}
+//			}
 		}
 
 		return newShadow;
