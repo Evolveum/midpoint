@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.web.controller.role;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,11 +30,18 @@ import javax.faces.event.ActionEvent;
 import javax.faces.model.SelectItem;
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.common.validator.EventHandler;
+import com.evolveum.midpoint.common.validator.EventResult;
+import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -42,14 +50,13 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.AssignmentBeanType;
-import com.evolveum.midpoint.web.bean.ObjectBean;
 import com.evolveum.midpoint.web.controller.TemplateController;
-import com.evolveum.midpoint.web.controller.config.DebugListController;
 import com.evolveum.midpoint.web.controller.util.AssignmentEditor;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.RoleManager;
 import com.evolveum.midpoint.web.model.dto.RoleDto;
+import com.evolveum.midpoint.web.repo.RepositoryManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
@@ -77,9 +84,12 @@ public class RoleEditController implements Serializable {
 	private transient AssignmentEditor<RoleDto> assignmentEditor;
 	@Autowired(required = true)
 	private transient TaskManager taskManager;
+	@Autowired(required = true)
+	private transient RepositoryManager repositoryManager;
 	private boolean newRole = true;
 	private RoleDto role;
-	
+	private String xml;
+
 	public AssignmentEditor<RoleDto> getAssignmentEditor() {
 		return assignmentEditor;
 	}
@@ -114,6 +124,14 @@ public class RoleEditController implements Serializable {
 		this.newRole = newRole;
 	}
 
+	public String getXml() {
+		return xml;
+	}
+
+	public void setXml(String xml) {
+		this.xml = xml;
+	}
+
 	void setRole(RoleDto role) {
 		Validate.notNull(role, "Role must not be null.");
 		this.role = role;
@@ -125,6 +143,7 @@ public class RoleEditController implements Serializable {
 		role = new RoleDto(new RoleType());
 		assignmentEditor.initController(role);
 
+		xml = null;
 		newRole = true;
 		template.setSelectedLeftId("leftRoleCreate");
 
@@ -133,14 +152,21 @@ public class RoleEditController implements Serializable {
 
 	public void save(ActionEvent evt) {
 		Task task = taskManager.createTaskInstance("Save Role Changes.");
-		OperationResult result = task.getResult();		
+		OperationResult result = task.getResult();
+		ObjectType newObject = null;
+
+		if (StringUtils.isEmpty(xml)) {
+			FacesUtils.addErrorMessage("Xml editor is empty.");
+		}
+
 		if (role == null) {
 			FacesUtils.addErrorMessage("Role must not be null.");
-			return;
 		}
 
 		try {
+			
 			role.normalizeAssignments();
+			newObject = getObjectFromXml(xml, result);
 			RoleManager manager = ControllerUtil.getRoleManager(catalog);
 			if (isNewRole()) {
 				manager.add(role);
@@ -149,40 +175,96 @@ public class RoleEditController implements Serializable {
 			}
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't submit role {}", ex, role.getName());
-//			FacesUtils.addErrorMessage("Couldn't submit role '" + role.getName() + "'.", ex);
 			result.recordFatalError("Couldn't submit role '" + role.getName() + "'.", ex);
 		} finally {
+			if (!repositoryManager.saveObject(newObject)) {
+				result.recordFatalError("Couln't update role '" + newObject.getName() + "'.");
+			}
+			initController();
 			result.computeStatus();
 			ControllerUtil.printResults(LOGGER, result, "Role changes saved sucessfully.");
 		}
 	}
-	
+
 	public String viewObject() {
 		if (role == null) {
 			FacesUtils.addErrorMessage("Debug role not defined.");
-			return DebugListController.PAGE_NAVIGATION;
+			return RoleListController.PAGE_NAVIGATION_LIST;
 		}
 
-		/*try {
-			ObjectType objectType = repositoryManager.getObject(object.getOid());
+		try {
+			ObjectType objectType = repositoryManager.getObject(role.getOid());
 			if (objectType == null) {
-				return DebugListController.PAGE_NAVIGATION;
+				return RoleListController.PAGE_NAVIGATION_LIST;
 			}
 
-			role = new ObjectBean(objectType.getOid(), objectType.getName());
+			// role = new ObjectBean(objectType.getOid(), objectType.getName());
 			xml = JAXBUtil.marshal(new ObjectFactory().createObject(objectType));
 		} catch (JAXBException ex) {
-			LoggingUtils.logException(TRACE, "Couldn't show object {} in editor", ex, object.getName());
-			FacesUtils.addErrorMessage("Couldn't show object '" + object.getName() + "' in editor.", ex);
+			LoggingUtils.logException(LOGGER, "Couldn't show role {} in editor", ex, role.getName());
+			FacesUtils.addErrorMessage("Couldn't show role '" + role.getName() + "' in editor.", ex);
 
-			return DebugListController.PAGE_NAVIGATION;
+			return RoleListController.PAGE_NAVIGATION_LIST;
 		} catch (Exception ex) {
-			LoggingUtils.logException(TRACE, "Unknown error occured.", ex);
+			LoggingUtils.logException(LOGGER, "Unknown error occured.", ex);
 			FacesUtils.addErrorMessage("Unknown error occured.", ex);
 
-			return DebugListController.PAGE_NAVIGATION;
-		}*/
+			return RoleListController.PAGE_NAVIGATION_LIST;
+		}
 
 		return PAGE_NAVIGATION;
+	}
+
+	private ObjectType getObjectFromXml(String xml, OperationResult parentResult) {
+		final List<ObjectType> objects = new ArrayList<ObjectType>();
+		Validator validator = new Validator(new EventHandler() {
+
+			@Override
+			public EventResult postMarshall(ObjectType object, Element objectElement,
+					OperationResult objectResult) {
+				if (objects.isEmpty()) {
+					objects.add(object);
+				}
+				return EventResult.cont();
+			}
+
+			@Override
+			public void handleGlobalError(OperationResult currentResult) {
+				// no reaction
+			}
+
+			@Override
+			public EventResult preMarshall(Element objectElement, Node postValidationTree,
+					OperationResult objectResult) {
+				// no reaction
+				return EventResult.cont();
+			}
+		});
+		// TODO: fix operation names
+		OperationResult result = parentResult.createSubresult("Get Object from XML");
+		try {
+			validator.validate(IOUtils.toInputStream(xml, "utf-8"), result, "processing object");
+			result.computeStatus("Object processing failed");
+
+		} catch (IOException ex) {
+			// FacesUtils.addErrorMessage("Couldn't create object from xml.",
+			// ex);
+			result.recordFatalError("Couldn't create object from xml.", ex);
+			LoggingUtils.logException(LOGGER, "Couldn't create object from xml.", ex, new Object());
+			// return null;
+		}
+
+		if (objects.isEmpty()) {
+			// FacesUtils.addErrorMessage("Couldn't create object from xml.");
+			LoggingUtils.logException(LOGGER, "Couldn't create object from xml.",
+					new IllegalArgumentException(), new Object());
+			result.recordFatalError("Couldn't create object from xml.");
+			// ControllerUtil.printResults(TRACE, result, "");
+			return null;
+		}
+
+		// ControllerUtil.printResults(TRACE, result);
+
+		return objects.get(0);
 	}
 }

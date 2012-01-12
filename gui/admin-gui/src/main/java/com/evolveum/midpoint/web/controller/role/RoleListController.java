@@ -125,17 +125,13 @@ public class RoleListController extends SearchableListController<RoleListItem> {
 			RoleManager manager = ControllerUtil.getRoleManager(catalog);
 			RoleDto role = manager.get(roleOid, new PropertyReferenceListType());
 			roleEditor.setRole(role);
-
-			nextPage = RoleEditController.PAGE_NAVIGATION;
+			
+			nextPage = roleEditor.viewObject();
+			//nextPage = RoleEditController.PAGE_NAVIGATION;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't show role '{}' details", ex, item.getName());
 			FacesUtils.addErrorMessage("Couldn't show details for role '" + item.getName() + "'.", ex);
 		}
-		
-		String returnPage = roleEditor.viewObject();
-		/*if (PAGE_NAVIGATION_VIEW.equals(returnPage) && template != null) {
-			template.setSelectedLeftId("leftViewEdit");
-		}*/
 
 		return nextPage;
 	}
