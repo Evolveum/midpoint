@@ -34,7 +34,7 @@
 			<clearValue>secret</clearValue>
 		</protectedString>
         </password>
-        <allowedIdmGuiAccess>true</allowedIdmGuiAccess>
+        <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
     </credentials>
     <activation>
         <enabled>true</enabled>
@@ -54,7 +54,7 @@
 			<clearValue>secret</clearValue>
 		</protectedString>
         </password>
-        <allowedIdmGuiAccess>true</allowedIdmGuiAccess>
+        <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
     </credentials>
     <activation>
         <enabled>true</enabled>
@@ -74,7 +74,7 @@
 			<clearValue>secret</clearValue>
 		</protectedString>
         </password>
-        <allowedIdmGuiAccess>true</allowedIdmGuiAccess>
+        <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
     </credentials>
     <activation>
         <enabled>true</enabled>
@@ -94,7 +94,7 @@
 			<clearValue>secret</clearValue>
 		</protectedString>
         </password>
-        <allowedIdmGuiAccess>true</allowedIdmGuiAccess>
+        <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
     </credentials>
     <activation>
         <enabled>true</enabled>
@@ -114,7 +114,7 @@
 			<clearValue>secret</clearValue>
 		</protectedString>
         </password>
-        <allowedIdmGuiAccess>true</allowedIdmGuiAccess>
+        <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
     </credentials>
     <activation>
         <enabled>true</enabled>

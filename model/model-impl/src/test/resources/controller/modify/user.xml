@@ -12,7 +12,7 @@
 		<password>
 			<c:base64 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" />
 		</password>
-		<allowedIdmGuiAccess>true</allowedIdmGuiAccess>
+		<allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
 	</credentials>
 	<activation>
 		<enabled>true</enabled>
