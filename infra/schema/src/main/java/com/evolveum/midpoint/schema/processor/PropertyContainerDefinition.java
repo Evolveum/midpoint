@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import org.apache.cxf.common.util.StringUtils;
 import org.w3c.dom.Document;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -65,7 +66,12 @@ public class PropertyContainerDefinition extends ItemDefinition {
     private static final String ANY_GETTER_NAME = "getAny";
     protected ComplexTypeDefinition complexTypeDefinition;
     protected Schema schema;
-    protected boolean dynamic;
+    /**
+     * This means that the property container is not defined by fixed (compile-time) schema.
+     * This in fact means that we need to use getAny in a JAXB types. It does not influence the
+     * processing of DOM that much, as that does not really depend on compile-time/run-time distinction.
+     */
+    protected boolean isRuntimeSchema;
 
     /**
      * The constructors should be used only occasionally (if used at all).
@@ -75,9 +81,9 @@ public class PropertyContainerDefinition extends ItemDefinition {
         super(name, determineDefaultName(complexTypeDefinition), determineTypeName(complexTypeDefinition));
         this.complexTypeDefinition = complexTypeDefinition;
         if (complexTypeDefinition == null) {
-            dynamic = true;
+            isRuntimeSchema = true;
         } else {
-            dynamic = false;
+            isRuntimeSchema = false;
         }
     }
 
@@ -255,12 +261,12 @@ public class PropertyContainerDefinition extends ItemDefinition {
     }
 
 
-    public boolean isDynamic() {
-        return dynamic;
+    public boolean isRuntimeSchema() {
+        return isRuntimeSchema;
     }
 
-    public void setDynamic(boolean dynamic) {
-        this.dynamic = dynamic;
+    public void setRuntimeSchema(boolean isRuntimeSchema) {
+        this.isRuntimeSchema = isRuntimeSchema;
     }
 
     /**
@@ -303,7 +309,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
         super.copyDefinitionData(clone);
         clone.complexTypeDefinition = this.complexTypeDefinition;
         clone.schema = this.schema;
-        clone.dynamic = this.dynamic;
+        clone.isRuntimeSchema = this.isRuntimeSchema;
     }
 
     /**
@@ -443,6 +449,9 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * @throws SchemaException error parsing the elements
      */
     protected <T extends PropertyContainer> T parseItem(Object element, Class<T> type) throws SchemaException {
+        if (element instanceof JAXBElement) {
+        	return parseItemFromJaxbElement((JAXBElement)element, type);
+        }
         QName elementQName = JAXBUtil.getElementQName(element);
         T container = (T) this.instantiate(elementQName, element);
         List<Object> childElements = JAXBUtil.listChildElements(element);
@@ -539,10 +548,21 @@ public class PropertyContainerDefinition extends ItemDefinition {
         return parseItemFromJaxbObject(jaxbObject, PropertyContainer.class);
     }
 
+    protected <T extends PropertyContainer> T parseItemFromJaxbElement(JAXBElement jaxbElement, Class<T> type) throws
+    		SchemaException {
+    	QName elementQName = JAXBUtil.getElementQName(jaxbElement);
+    	Object jaxbObject = jaxbElement.getValue();
+    	return parseItemFromJaxbObject(jaxbObject, elementQName, type);
+    }
     protected <T extends PropertyContainer> T parseItemFromJaxbObject(Object jaxbObject, Class<T> type) throws
+    		SchemaException {
+    	return parseItemFromJaxbObject(jaxbObject, null, type);
+    }
+    
+    protected <T extends PropertyContainer> T parseItemFromJaxbObject(Object jaxbObject, QName elementName, Class<T> type) throws
             SchemaException {
 
-        if (isDynamic()) {
+        if (isRuntimeSchema()) {
             return parseItemFromJaxbObjectDynamic(jaxbObject, type);
         } else {
             return parseItemFromJaxbObjectStatic(jaxbObject, type);
@@ -855,7 +875,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
             sb.append(DebugDumpable.INDENT_STRING);
         }
         sb.append(toString());
-        if (isDynamic()) {
+        if (isRuntimeSchema()) {
             sb.append(" dynamic");
         }
         sb.append("\n");

@@ -113,7 +113,7 @@ public class TestSchemaRegistry {
 		System.out.println(schema.dump());
 		ObjectDefinition<UserType> userDef = schema.findObjectDefinition(UserType.class);
 		PropertyContainerDefinition extDef = userDef.findPropertyContainerDefinition(SchemaConstants.C_EXTENSION);
-		assertFalse("Extension is dynamic", extDef.isDynamic());
+		assertFalse("Extension is dynamic", extDef.isRuntimeSchema());
 		assertEquals("Wrong extension type", userExtTypeQName, extDef.getTypeName());
 		
 		// Try javax schemas by validating a XML file
