@@ -28,7 +28,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -49,16 +48,15 @@ public class DeleteUserAction extends BaseAction {
         if (StringUtils.isEmpty(userOid)) {
             String message = "Can't delete user, because user oid is null.";
             subResult.recordFatalError(message);
-            throw new SynchronizationException(message);
+            LOGGER.warn("User oid is null or empty, that means, user was probably already deleted.");
+            return userOid;
         }
 
         try {
             //todo create sync context, delete user through it
 
-            // TODO: replace "null" with actual task
-            getModel().deleteObject(UserType.class, userOid, null, result);
+
             userOid = null;
-            subResult.recordSuccess();
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't delete user {}", ex, userOid);
             subResult.recordFatalError("Couldn't delete user '" + userOid + "'.", ex);

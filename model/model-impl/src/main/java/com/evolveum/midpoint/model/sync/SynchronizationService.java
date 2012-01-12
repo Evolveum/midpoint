@@ -180,8 +180,15 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     }
 
     private String getOidFromChange(ResourceObjectShadowChangeDescription change) {
-        if (change.getCurrentShadow() != null) {
+        if (change.getCurrentShadow() != null && StringUtils.isNotEmpty(change.getCurrentShadow().getOid())) {
             return change.getCurrentShadow().getOid();
+        }
+        if (change.getOldShadow() != null && StringUtils.isNotEmpty(change.getOldShadow().getOid())) {
+            return change.getOldShadow().getOid();
+        }
+
+        if (change.getObjectDelta() == null || StringUtils.isEmpty(change.getObjectDelta().getOid())) {
+            throw new IllegalArgumentException("Oid was not defined in change (not in current, old shadow, delta).");
         }
 
         return change.getObjectDelta().getOid();

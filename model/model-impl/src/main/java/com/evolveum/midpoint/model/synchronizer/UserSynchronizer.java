@@ -238,6 +238,9 @@ public class UserSynchronizer {
             OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException {
         for (ObjectReferenceType accountRef : userType.getAccountRef()) {
             String oid = accountRef.getOid();
+            if (accountContextAlreadyExists(oid, context)) {
+                continue;
+            }
             // Fetching from repository instead of provisioning so we avoid reading in a full account
             AccountShadowType accountType = cacheRepositoryService.getObject(AccountShadowType.class, oid, null, result);
             String resourceOid = ResourceObjectShadowUtil.getResourceOid(accountType);
@@ -257,9 +260,19 @@ public class UserSynchronizer {
             }
             accountSyncContext.setOid(oid);
             if (context.isDoReconciliationForAllAccounts()) {
-            	accountSyncContext.setDoReconciliation(true);
+                accountSyncContext.setDoReconciliation(true);
             }
         }
+    }
+
+    private boolean accountContextAlreadyExists(String oid, SyncContext context) {
+        for (AccountSyncContext accContext : context.getAccountContexts()) {
+            if (oid.equals(accContext.getOid())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void loadFromSystemConfig(SyncContext context, OperationResult result) throws ObjectNotFoundException,

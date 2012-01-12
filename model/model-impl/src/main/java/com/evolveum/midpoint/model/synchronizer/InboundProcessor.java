@@ -80,6 +80,11 @@ public class InboundProcessor {
             context.setUserSecondaryDelta(userDelta);
         }
 
+        if (ChangeType.DELETE.equals(userDelta.getChangeType())) {
+            //we don't need to do inbound if we are deleting this user
+            return;
+        }
+
         try {
             for (AccountSyncContext accountContext : context.getAccountContexts()) {
                 ResourceAccountType rat = accountContext.getResourceAccountType();

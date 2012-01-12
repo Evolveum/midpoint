@@ -302,12 +302,13 @@ public class SchemaProcessor implements Processor {
                 continue;
             }
 
-            System.out.println("Updating container fields and get/set methods: " + classOutline.implClass.fullName());
+            System.out.println("Updating fields and get/set methods: " + classOutline.implClass.fullName());
 
             List<JFieldVar> fieldsToBeRemoved = new ArrayList<JFieldVar>();
             boolean remove;
             for (String field : fields.keySet()) {
-                if ("serialVersionUID".equals(field) || COMPLEX_TYPE_FIELD.equals(field)) {
+                if ("serialVersionUID".equals(field) || COMPLEX_TYPE_FIELD.equals(field)
+                        || CONTAINER_FIELD_NAME.equals(field)) {
                     continue;
                 }
 
@@ -320,13 +321,13 @@ public class SchemaProcessor implements Processor {
 
                 remove = false;
                 if ("oid".equals(field)) {
-                    System.out.println("Updating oid field: " + fieldVar);
+                    System.out.println("Updating oid field: " + fieldVar.name());
                     remove = updateOidField(fieldVar, classOutline);
-                } else if (isFieldTypeContainer(fieldVar, outline)) {
-                    System.out.println("Updating container field: " + fieldVar);
+                } else if (isFieldTypeContainer(fieldVar, classOutline)) {
+                    System.out.println("Updating container field: " + fieldVar.name());
                     remove = updateContainerFieldType(fieldVar, classOutline);
                 } else {
-                    System.out.println("Updating field: " + fieldVar);
+                    System.out.println("Updating field: " + fieldVar.name());
                     remove = updateField(fieldVar, classOutline);
                 }
 
@@ -335,7 +336,6 @@ public class SchemaProcessor implements Processor {
                 }
             }
 
-            //todo uncomment field removing
             for (JFieldVar field : fieldsToBeRemoved) {
                 implClass.removeField(field);
             }
@@ -433,17 +433,12 @@ public class SchemaProcessor implements Processor {
         return isPropertyContainer((JDefinedClass) definedClass._extends(), outline);
     }
 
-    private boolean isFieldTypeContainer(JFieldVar field, Outline outline) {
-        if (!CONTAINER_FIELD_NAME.equals(field.name())) {
-            return false;
-        }
-
-        JClass propertyContainer = (JClass) outline.getModel().codeModel._ref(PropertyContainer.class);
-        JClass midpointObject = (JClass) outline.getModel().codeModel._ref(MidpointObject.class);
+    private boolean isFieldTypeContainer(JFieldVar field, ClassOutline classOutline) {
+        Outline outline = classOutline.parent();
 
         JType type = field.type();
-        if (type.equals(propertyContainer) || type.equals(midpointObject)) {
-            return true;
+        if (type instanceof JDefinedClass) {
+            return isPropertyContainer((JDefinedClass) type, outline);
         }
 
         return false;
@@ -486,6 +481,7 @@ public class SchemaProcessor implements Processor {
 
     private boolean updateContainerFieldType(JFieldVar field, ClassOutline classOutline) {
         //todo implement
+        //handle property containers through get/set method properly
         return false;
     }
 
