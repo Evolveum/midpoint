@@ -106,7 +106,6 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 		}
 
 		if (user != null) {
-			System.out.println("ccc");
 			grantedAuthorities = new ArrayList<GrantedAuthority>();
 			UserType userType = user.getUser();
 			CredentialsType credentials = userType.getCredentials();
@@ -119,7 +118,6 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 			if (credentials.isAllowedIdmAdminGuiAccess()) {
 				grantedAuthorities.add(new GrantedAuthorityImpl("ROLE_ADMIN"));
 			} else {
-				System.out.println("dddd");
 				grantedAuthorities.add(new GrantedAuthorityImpl("ROLE_USER"));
 			}
 
@@ -133,7 +131,6 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 		} else {
 			throw new BadCredentialsException("web.security.provider.invalid");
 		}
-		System.out.println("eeee");
 		return new UsernamePasswordAuthenticationToken(user, authentication.getCredentials(),
 				grantedAuthorities);
 	}
