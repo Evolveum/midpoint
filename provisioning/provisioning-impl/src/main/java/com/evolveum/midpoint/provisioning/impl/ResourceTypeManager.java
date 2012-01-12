@@ -536,10 +536,12 @@ public class ResourceTypeManager {
 						// repository
 						// we need to create the shadow to align repo state to
 						// the reality (resource)
-						shadow = ShadowCacheUtil.createShadow(object, resourceType, null);
+						
 						try {
 							ResourceObjectShadowType repoShadow = ShadowCacheUtil.createRepositoryShadow(object, resourceType, shadow);
 							String oid = getRepositoryService().addObject(repoShadow, parentResult);
+							
+							shadow = ShadowCacheUtil.createShadow(object, resourceType, repoShadow);
 							shadow.setOid(oid);
 						} catch (ObjectAlreadyExistsException e) {
 							// This should not happen. We haven't supplied an
@@ -548,6 +550,8 @@ public class ResourceTypeManager {
 									e.getMessage(), e);
 							// but still go on ...
 						}
+						
+						
 
 						// And notify about the change we have discovered (if
 						// requested to do so)
@@ -566,7 +570,7 @@ public class ResourceTypeManager {
 					return false;
 				}
 
-				// TODO: if shadow does not exists, create it now
+				
 
 				return handler.handle(shadow);
 			}
