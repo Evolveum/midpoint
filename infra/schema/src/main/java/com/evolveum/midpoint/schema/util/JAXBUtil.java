@@ -29,6 +29,9 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +43,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.JAXBIntrospector;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlSchema;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
@@ -592,14 +596,44 @@ public final class JAXBUtil {
 				}
 			}
 		} else if (parentElement instanceof JAXBElement) {
-			// TODO: implement this
-			// Look for @XsdAnyElement annotation and return the list
-			throw new UnsupportedOperationException("Not implemented yet");
+			JAXBElement jaxbElement = (JAXBElement)parentElement;
+			Object jaxbObject = jaxbElement.getValue();
+			Method xsdAnyMethod = lookForXsdAnyElementMethod(jaxbObject);
+			if (xsdAnyMethod == null) {
+				throw new IllegalArgumentException("No xsd any method in "+jaxbObject);
+			}
+			Object result = null;
+			try {
+				result = xsdAnyMethod.invoke(jaxbObject);
+			} catch (IllegalArgumentException e) {
+				throw new IllegalStateException("Unable to invoke xsd any method "+xsdAnyMethod.getName()+" on "+jaxbObject+": "+e.getMessage(),e);
+			} catch (IllegalAccessException e) {
+				throw new IllegalStateException("Unable to invoke xsd any method "+xsdAnyMethod.getName()+" on "+jaxbObject+": "+e.getMessage(),e);
+			} catch (InvocationTargetException e) {
+				throw new IllegalStateException("Unable to invoke xsd any method "+xsdAnyMethod.getName()+" on "+jaxbObject+": "+e.getMessage(),e);
+			}
+			try {
+				childElements = (List<Object>)result;
+			} catch (ClassCastException e) {
+				throw new IllegalStateException("Xsd any method "+xsdAnyMethod.getName()+" on "+jaxbObject+" returned unexpected type "+result.getClass(),e);
+			}
 		} else {
 			throw new IllegalArgumentException("Not an element: " + parentElement + " ("
 					+ parentElement.getClass().getName() + ")");
 		}
 		return childElements;
+	}
+	
+	private static Method lookForXsdAnyElementMethod(Object jaxbObject) {
+		Class<? extends Object> jaxbClass = jaxbObject.getClass();
+		for (Method method: jaxbClass.getMethods()) {
+			for (Annotation annotation: method.getAnnotations()) {
+				if (annotation.annotationType().isAssignableFrom(XmlAnyElement.class)) {
+					return method;
+				}
+			}
+		}
+		return null;
 	}
 
 	public static boolean compareAny(List<Object> a, List<Object> b) {
