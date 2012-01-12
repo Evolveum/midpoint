@@ -64,7 +64,7 @@ object.
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
         <c:configuration
-                xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.file.csvfile/org.forgerock.openicf.csvfile.CSVFileConnector"
+		xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.file.openicf-csvfile-connector/org.forgerock.openicf.csvfile.CSVFileConnector"
                 xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
 
             <!-- Configuration specific for the CSVfile connector -->
