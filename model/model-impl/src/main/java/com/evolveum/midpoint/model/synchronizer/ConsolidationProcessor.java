@@ -71,6 +71,12 @@ public class ConsolidationProcessor {
         //todo filter changes which were already in account sync delta
 
         for (AccountSyncContext accCtx : context.getAccountContexts()) {
+            //account was deleted, no changes are needed.
+            if (wasAccountDeleted(accCtx)){
+                dropAllAccountDelta(accCtx);
+                continue;
+            }
+            
             PolicyDecision policyDecision = accCtx.getPolicyDecision();
 
             if (policyDecision == PolicyDecision.ADD) {
@@ -84,6 +90,20 @@ public class ConsolidationProcessor {
                 consolidateValuesModifyAccount(context, accCtx, result);
             }
         }
+    }
+    
+    private void dropAllAccountDelta(AccountSyncContext accContext) {
+        accContext.setAccountPrimaryDelta(null);
+        accContext.setAccountSecondaryDelta(null);
+    }
+    
+    private boolean wasAccountDeleted(AccountSyncContext accContext) {
+        ObjectDelta<AccountShadowType> delta = accContext.getAccountSyncDelta();
+        if (delta != null && ChangeType.DELETE.equals(delta.getChangeType())) {
+            return true;
+        }
+
+        return false;
     }
 
     private ObjectDelta<AccountShadowType> consolidateValuesToModifyDelta(SyncContext context,

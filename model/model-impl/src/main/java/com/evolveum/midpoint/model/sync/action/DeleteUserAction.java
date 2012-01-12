@@ -21,13 +21,22 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
+import com.evolveum.midpoint.model.AccountSyncContext;
+import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.processor.ChangeType;
+import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.ObjectDefinition;
+import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -46,24 +55,50 @@ public class DeleteUserAction extends BaseAction {
         OperationResult subResult = result.createSubresult(ACTION_DELETE_USER);
 
         if (StringUtils.isEmpty(userOid)) {
-            String message = "Can't delete user, because user oid is null.";
-            subResult.recordFatalError(message);
-            LOGGER.warn("User oid is null or empty, that means, user was probably already deleted.");
-            return userOid;
+            String message = "Can't delete user, user oid is empty or null.";
+            subResult.computeStatus(message);
+            throw new SynchronizationException(message);
+        }
+
+        UserType userType = getUser(userOid, subResult);
+        if (userType == null) {
+            String message = "Can't find user with oid '" + userOid + "'.";
+            subResult.computeStatus(message);
+            throw new SynchronizationException(message);
         }
 
         try {
-            //todo create sync context, delete user through it
+            SyncContext context = new SyncContext();
+            context.rememberResource(change.getResource());
+            
+            //set old user
+            Schema schema = getSchemaRegistry().getObjectSchema();
+            ObjectDefinition<UserType> userDefinition = schema.findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
+            MidPointObject<UserType> oldUser = userDefinition.parseObjectType(userType);
+            context.setUserOld(oldUser);
+            context.setUserTypeOld(userType);
+            //set object delta with delete
+            ObjectDelta<UserType> userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.DELETE);
+            userDelta.setOid(oldUser.getOid());
+            context.setUserSecondaryDelta(userDelta);
 
+            //create account context for this change
+            AccountSyncContext accContext = createAccountSyncContext(context, change);
+            if (accContext == null) {
+                LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
+                return userOid;
+            }
+
+            getSynchronizer().synchronizeUser(context, subResult);
+            getExecutor().executeChanges(context, subResult);
 
             userOid = null;
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't delete user {}", ex, userOid);
-            subResult.recordFatalError("Couldn't delete user '" + userOid + "'.", ex);
-            throw new SynchronizationException("Couldn't delete user '" + userOid + "', reason: "
-                    + ex.getMessage(), ex);
+            LoggingUtils.logException(LOGGER, "Couldn't delete user {}", ex, userType.getName());
+            throw new SynchronizationException("Couldn't delete user '" + userType.getName()
+                    + "', reason: " + ex.getMessage(), ex);
         } finally {
-            subResult.recomputeStatus();
+            subResult.recomputeStatus("Couldn't delete user '" + userType.getName() + "'.");
         }
 
         return userOid;
