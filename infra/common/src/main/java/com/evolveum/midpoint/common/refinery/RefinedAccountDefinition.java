@@ -221,7 +221,7 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
     }
 
     @Override
-    public boolean isDynamic() {
+    public boolean isRuntimeSchema() {
         return true;
     }
 
