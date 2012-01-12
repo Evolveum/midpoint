@@ -879,10 +879,13 @@ public class TestSanity extends AbstractIntegrationTest {
 				assertEquals(new QName(resourceOpenDj.getNamespace(),"AccountObjectClass"), shadow.getObjectClass());
 				assertEquals(RESOURCE_OPENDJ_OID,shadow.getResourceRef().getOid());
 				String icfUid = getAttributeValue(shadow, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"uid"));
-				assertNotNull(icfUid);
-				assertAttribute(shadow, new QName(resourceOpenDj.getNamespace(),"uid"), shadow.getName());
-				
-				// TODO
+				assertNotNull("No ICF UID",icfUid);
+				String icfName = getAttributeValue(shadow, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"name"));
+				assertNotNull("No ICF NAME", icfName);
+				assertEquals("Wrong shadow name", shadow.getName(),icfName);
+				assertNotNull("Missing LDAP uid",getAttributeValue(shadow, new QName(resourceOpenDj.getNamespace(),"uid")));
+				assertNotNull("Missing LDAP cn",getAttributeValue(shadow, new QName(resourceOpenDj.getNamespace(),"cn")));
+				assertNotNull("Missing LDAP sn",getAttributeValue(shadow, new QName(resourceOpenDj.getNamespace(),"sn")));
 				
 				return true;
 			}
