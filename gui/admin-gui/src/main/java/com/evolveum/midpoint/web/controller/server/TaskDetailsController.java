@@ -52,6 +52,7 @@ public class TaskDetailsController implements Serializable {
 	private String selectedResurceRef;
 	private boolean editMode = false;
 	private List<OperationResultType> results;
+	private List<ResourceDto> resourceRef;
 
 	public TaskDetailsController() {
 
@@ -204,7 +205,7 @@ public class TaskDetailsController implements Serializable {
 			throw new IllegalArgumentException("Resource name must not be null");
 		}
 
-		for (ResourceDto resource : listResources()) {
+		for (ResourceDto resource : resourceRef) {
 			if (name.equals(resource.getName())) {
 				return resource.getOid();
 			}
@@ -227,6 +228,7 @@ public class TaskDetailsController implements Serializable {
 		} catch (Exception ex) {
 			FacesUtils.addErrorMessage("Couldn't list resources.", ex);
 		}
+		resourceRef = resources;
 		return resources;
 	}
 

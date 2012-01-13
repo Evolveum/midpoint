@@ -1,36 +1,19 @@
 package com.evolveum.midpoint.web.controller.server;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 import javax.faces.event.ActionEvent;
-import javax.faces.model.SelectItem;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
-import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.bean.TaskItem;
-import com.evolveum.midpoint.web.bean.TaskItemExclusivityStatus;
-import com.evolveum.midpoint.web.bean.TaskItemExecutionStatus;
-import com.evolveum.midpoint.web.bean.TaskItemRecurrenceStatus;
 import com.evolveum.midpoint.web.controller.TemplateController;
-import com.evolveum.midpoint.web.controller.util.ControllerUtil;
-import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
-import com.evolveum.midpoint.web.model.ResourceManager;
-import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
-import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
-import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 
 @Controller("taskAdd")
@@ -48,26 +31,24 @@ public class TaskAddController implements Serializable {
 	@Autowired(required = true)
 	private transient TaskListController taskList;
 	@Autowired(required = true)
-	private transient TaskItemController itemController;
+	private transient TaskDetailsController detailsController;
 
 	
 
 
-	public TaskItemController getItemController() {
-		return itemController;
+	public TaskDetailsController getDetailsController() {
+		return detailsController;
 	}
 
-	public void setItemController(TaskItemController itemController) {
-		this.itemController = itemController;
+	public void setDetailsController(TaskDetailsController detailsController) {
+		this.detailsController = detailsController;
 	}
 
 	public String initializeTask() {
 		task = new TaskItem();
 		task.setHandlerUri("http://midpoint.evolveum.com/model/sync/handler-1");
-		itemController.setResourceRefList(itemController.createResourceList());
-		itemController.setExclusivityStatus(TaskItemExclusivityStatus.values());
-		itemController.setExecutionStatus(TaskItemExecutionStatus.values());
-		itemController.setRecurrenceStatus(TaskItemRecurrenceStatus.values());
+		
+		detailsController.setResourceRefList(detailsController.createResourceList());
 		return PAGE_NAVIGATION;
 	}
 
@@ -76,7 +57,7 @@ public class TaskAddController implements Serializable {
 		OperationResult result = new OperationResult(
 				TaskAddController.class.getName() + ".addTask");
 		try {
-			task.setObjectRef(itemController.getRefFromName(itemController.getSelectedResurceRef()));
+			task.setObjectRef(detailsController.getRefFromName(detailsController.getSelectedResurceRef()));
 			taskManager.addTask(task.toTaskType(), result);
 			FacesUtils.addSuccessMessage("Task added successfully");
 			result.recordSuccess();
@@ -99,9 +80,6 @@ public class TaskAddController implements Serializable {
 		return TaskListController.PAGE_NAVIGATION;
 	}
 
-	
-	
-
 	public void importTask(ActionEvent evt) {
 		template.setSelectedTopId(TemplateController.TOP_CONFIGURATION);
 	}
@@ -121,11 +99,4 @@ public class TaskAddController implements Serializable {
 	public void setTaskManager(TaskManager taskManager) {
 		this.taskManager = taskManager;
 	}
-
-	
-	
-
-	
-	
-
 }

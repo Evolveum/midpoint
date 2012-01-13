@@ -36,10 +36,10 @@
 					<span style="color: red;">*</span>
 				</ice:outputLabel>
 				<ice:selectOneMenu id="objectRef"
-					value="#{taskAdd.itemController.selectedResurceRef}"
+					value="#{taskAdd.detailsController.selectedResurceRef}"
 					style="min-width: 157px; width: auto;">
 					<f:selectItems id="objectRefSelected"
-						value="#{taskAdd.itemController.resourceRefList}" />
+						value="#{taskAdd.detailsController.resourceRefList}" />
 				</ice:selectOneMenu>
 				<ice:message for="handlerUri" errorClass="error" />
 
@@ -48,7 +48,7 @@
 					value="#{taskAdd.task.exclusivityStatus}"
 					style="min-width: 157px; width: auto;">
 					<f:selectItems id="exclusivityStatusSelected"
-						value="#{taskAdd.itemController.exclusivityStatus}" />
+						value="#{taskAdd.detailsController.exclusivityStatus}" />
 				</ice:selectOneListbox>
 				<ice:message for="handlerUri" errorClass="error" />
 
@@ -57,7 +57,7 @@
 					value="#{taskAdd.task.executionStatus}"
 					style="min-width: 157px; width: auto;">
 					<f:selectItems id="executionStatusSelected"
-						value="#{taskAdd.itemController.executionStatus}" />
+						value="#{taskAdd.detailsController.executionStatus}" />
 				</ice:selectOneListbox>
 				<ice:message for="handlerUri" errorClass="error" />
 
