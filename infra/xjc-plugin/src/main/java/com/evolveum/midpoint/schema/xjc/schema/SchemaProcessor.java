@@ -57,6 +57,8 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_GET_PROPERTY_VALUE = "getPropertyValue";
     private static final String METHOD_GET_PROPERTY_VALUES = "getPropertyValues";
     private static final String METHOD_SET_PROPERTY_VALUE = "setPropertyValue";
+    private static final String METHOD_GET_CONTAINER = "getContainer";
+    private static final String METHOD_SET_CONTAINER = "setContainer";
 
     //todo change annotation on ObjectType in common-1.xsd to a:midPointContainer
 
@@ -139,7 +141,7 @@ public class SchemaProcessor implements Processor {
             Class<? extends PropertyContainer> containerClass, Outline outline) {
 
         JClass clazz = (JClass) outline.getModel().codeModel._ref(containerClass);
-        JMethod getContainer = definedClass.method(JMod.PUBLIC, clazz, "getContainer");
+        JMethod getContainer = definedClass.method(JMod.PUBLIC, clazz, METHOD_GET_CONTAINER);
         //add deprecation
         addDeprecation(outline, getContainer);
 
@@ -157,7 +159,7 @@ public class SchemaProcessor implements Processor {
     private void createSetContainerMethod(JDefinedClass definedClass, JVar container,
             Class<? extends PropertyContainer> containerClass, Outline outline) {
 
-        JMethod setContainer = definedClass.method(JMod.PUBLIC, void.class, "setContainer");
+        JMethod setContainer = definedClass.method(JMod.PUBLIC, void.class, METHOD_SET_CONTAINER);
         addDeprecation(outline, setContainer); //add deprecation
         JVar methodContainer = setContainer.param(containerClass, "container");
         //create method body
@@ -480,8 +482,31 @@ public class SchemaProcessor implements Processor {
     }
 
     private boolean updateContainerFieldType(JFieldVar field, ClassOutline classOutline) {
-        //todo implement
-        //handle property containers through get/set method properly
+        //only setter method must be updated
+        String methodName = ProcessorUtils.getSetterMethod(classOutline, field);
+        JDefinedClass definedClass = classOutline.implClass;
+        JMethod method = definedClass.getMethod(methodName, new JType[]{field.type()});
+        method = ProcessorUtils.recreateMethod(method, definedClass);
+
+        JBlock body = method.body();
+        body.directStatement("//todo do not use setValue but remove container from parent " +
+                "property container, update if user set/remove method");
+        JVar param = method.listParams()[0];
+        body.assign(JExpr._this().ref(field), param);
+        JConditional condition = body._if(param.eq(JExpr._null()));
+        JBlock thenBlock = condition._then();
+
+        JInvocation invocation = thenBlock.invoke(METHOD_SET_PROPERTY_VALUE);
+        //push arguments
+        invocation.arg(JExpr.ref(ProcessorUtils.fieldFPrefixUnderscoredUpperCase(field.name())));
+        invocation.arg(JExpr._null());
+
+        JBlock elseBlock = condition._else();
+        invocation = elseBlock.invoke(METHOD_SET_PROPERTY_VALUE);
+        //push arguments
+        invocation.arg(JExpr.ref(ProcessorUtils.fieldFPrefixUnderscoredUpperCase(field.name())));
+        invocation.arg(JExpr.invoke(param, METHOD_GET_CONTAINER));
+
         return false;
     }
 
@@ -511,7 +536,6 @@ public class SchemaProcessor implements Processor {
         method = definedClass.getMethod(methodName, new JType[]{field.type()});
         method = ProcessorUtils.recreateMethod(method, definedClass);
         createFieldSetterBody(method, field, classOutline);
-
 
         return true;
     }
