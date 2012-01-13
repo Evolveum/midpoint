@@ -3511,82 +3511,87 @@
     <xsd:complexType name="SynchronizationType">
         <xsd:annotation>
             <xsd:documentation>
-                Defines a synchronization properties (configuration) for a resource.
-
-                TODO: add reconciliation setup (later)
+                Defines a synchronization properties (configuration) for a
+                resource. This applies to all flavors of synchronization
+                (live sync, reconciliation, import, ...)
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Flag indicating if the synchronization is enabled. If it
-                        is not, the synchronization process will be suspended.
-                        If enabled, the synchronization should pull in even the
-                        changes that were done during disabled synchronization
-                        (limitations may apply, such as the legth of history
-                        logs on the resource).
+                        Flag indicating if the synchronization is enabled. If it is not,
+                        the synchronization process will be suspended.
+                        If enabled, the synchronization should start with most recent change
+                        after enablinh synchronization. It will NOT pull in even the changes that
+                        were done during disabled synchronization.
 
-                        Disabling synchronization means that it will not be executed
-                        automatically (e.g. polling resource in regular intervals). The
-                        synchronization may still be executed explicitly (manually), even if
-                        it is disabled.
+                        If this flag is not present, but a valid synchronization setup is found (which usually
+                        means valid "synchrnization" element), the synchronization is assumed to be enabled.
+                        This flag is meant to act as a tool to temprarily disable synchronizatoin without loosing the
+                        configuration and and state or for forcing the synchronization engine to "skip" some changes.
                         
-                        If this flag is not present, but a valid synchronization
-                        setup is found (which usually means valid "synchrnization"
-                        element), the synchronization is assumed to be enabled.
-                        This flag is meant to act as a tool to temprarily disable
-                        synchronizatoin without loosing the configuration and
-                        and state.
+                        Note that this is different than disabling/deleting the synchronization task. If the task
+                        is stopped, midPont will not poll for changes at all. This means that the changes will
+                        still be "pending" on the resource and once the task is enabled it will pull such changes.
+                        On the other hand, disabling synchronization using this flag and leaving the task running will
+                        "acknowldge" all changes without doing anything.
+                        
+                        Also note that disabling synchronization using this flag will disable all the flavors, e.g.
+                        it will also disable import from resource.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="correlation" type="c:QueryType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Correlation expression. It should return a list 
-                        of candadate user entries that may be owners of a
+                        Correlation expression. It should return a list of candidate user entries that may be owners of a
                         particular account.
 
-                        Correlation is an rough but an efficient way how to
-                        relate the account to a user. The correlation expression
-                        is in fact just a search filter. If correlation search
-                        returns more that one entries, confirmation expression
-                        will be executed for each of them.
+                        Correlation is an rough but an efficient way how to relate the account to a user. The correlation
+                        expression is in fact just a search filter. If correlation search returns more that one entries,
+                        confirmation expression will be executed for each of them.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="confirmation" type="c:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Confirmation expression. The arguments are an account and
-                        a candidate owner (user). The confirmation expressions
-                        should return true if the user should be owner of the
-                        account. It should return false if the user cannot be                        
-                        owner of the account.
+                        Confirmation expression. The arguments are an account and a candidate owner (user). The
+                        confirmation expressions should return true if the user should be owner of the account. It
+                        should return false if the user cannot be owner of the account.
 
-                        The evaluation of the confirmation expression may be
-                        relativelly inefficient, as it will only be run for
-                        candidate entries returned by correlation expression.
+                        The evaluation of the confirmation expression may be relativelly inefficient, as it will only
+                        be run for candidate entries returned by correlation expression.
 
                         The expression variables should be set as follows:
-                        $user - the candidate user object (one of the results of
-                        correlation expression)
+                        $user - the candidate user object (one of the results of correlation expression)
                         $account - the changed account object
                     </xsd:documentation>
                 </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="reconcileAttributes" type="xsd:boolean" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			If set to true, applicable synchronization reactions will attempt to reconcile the real attributes
+            			from the resource with the state of the midPoint repository. This may require additional read and
+            			recompute, therefore may be slightly less efficient.
+            			
+            			If set to false, attribute values will not be reconciled.
+            			
+            			If not present the attribute values will only be reconciled if they are available ("automatic" mode).
+            			No additional read will be executed. 
+            		</xsd:documentation>
+            	</xsd:annotation>
             </xsd:element>
             <xsd:element name="reaction" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Reaction to a synchronization situation.
-                        Situation identifier must be unique in this set (i.e.
-                        a situation definition may occur only once for each
-                        situation).
-                        If there is no definition for a particular situation,
-                        there will be no reaction ("do nothing").
-                        The set of situation reactions is considered to be
-                        unordered.
+                        Situation identifier must be unique in this set (i.e. a situation definition may occur only once
+                        for each situation).
+                        If there is no definition for a particular situation, there will be no reaction ("do nothing").
+                        The set of situation reactions is considered to be unordered.
                     </xsd:documentation>
                 </xsd:annotation>
                 <xsd:complexType>
@@ -3602,11 +3607,18 @@
                         <xsd:element name="action" minOccurs="0" maxOccurs="unbounded">
                             <xsd:annotation>
                                 <xsd:documentation>
-                                    Defines an action to take when a situation is 
-                                    encountered. If there is no action for a particular
-                                    situation, there will be no reaction ("do nothing").
-                                    There may be sevaral actions defined here. In such
-                                    case all the actions will be executed
+                                    Defines an action to take when a situation is
+                                    encountered.
+                                    If there is no action for a
+                                    particular
+                                    situation,
+                                    there will be no reaction ("do nothing").
+                                    There may be sevaral
+                                    actions defined here.
+                                    In such
+                                    case all the actions
+                                    will be
+                                    executed
                                     in the order as they are defined here.
                                 </xsd:documentation>
                             </xsd:annotation>
