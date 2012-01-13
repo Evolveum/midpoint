@@ -1,20 +1,28 @@
+/*
+ * Copyright (c) 2012 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ *
+ * Portions Copyrighted 2012 [name of copyright owner]
+ */
+
 package com.evolveum.midpoint.web.controller.server;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import javax.faces.event.ActionEvent;
-import javax.faces.model.SelectItem;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
-import com.evolveum.midpoint.schema.exception.ConcurrencyException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -23,7 +31,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.bean.TaskItem;
 import com.evolveum.midpoint.web.bean.TaskItemExclusivityStatus;
 import com.evolveum.midpoint.web.bean.TaskItemExecutionStatus;
-import com.evolveum.midpoint.web.bean.TaskItemRecurrenceStatus;
+import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
@@ -33,250 +41,271 @@ import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 
+import javax.faces.event.ActionEvent;
+import javax.faces.model.SelectItem;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+/**
+ * @author lazyman
+ */
 @Controller("taskDetails")
 @Scope("session")
 public class TaskDetailsController implements Serializable {
 
-	private static final long serialVersionUID = -5990159771865483929L;
-	public static final String PAGE_NAVIGATION = "/admin/server/taskDetails?faces-redirect=true";
+    private static final long serialVersionUID = -5990159771865483929L;
+    public static final String PAGE_NAVIGATION = "/admin/server/taskDetails?faces-redirect=true";
 
-	@Autowired(required = true)
-	private transient TaskManager taskManager;
-	@Autowired(required = true)
-	private transient TaskItemController itemController;
-	@Autowired(required = true)
-	private transient ObjectTypeCatalog objectTypeCatalog;
+    @Autowired(required = true)
+    private transient TemplateController template;
 
-	private List<SelectItem> resourceRefList;
-	private String selectedResurceRef;
-	private boolean editMode = false;
-	private List<OperationResultType> results;
-	private List<ResourceDto> resourceRef;
+    @Autowired(required = true)
+    private transient TaskManager taskManager;
+    @Autowired(required = true)
+    private transient ObjectTypeCatalog objectTypeCatalog;
 
-	public TaskDetailsController() {
+    private boolean adding = false;
+    private boolean editMode = false;
 
-	}
+    private List<ResourceDto> resources;
 
-	private TaskItem task;
+    private TaskItem task;
 
-	public TaskItem getTask() {
-		return task;
-	}
+    public TaskItemExclusivityStatus[] getExclusivityStatus() {
+        return TaskItemExclusivityStatus.values();
+    }
 
-	public void setTask(TaskItem task) {
-		this.task = task;
-	}
+    public TaskItemExecutionStatus[] getExecutionStatus() {
+        return TaskItemExecutionStatus.values();
+    }
 
-	public TaskItemController getItemController() {
-		return itemController;
-	}
+    public boolean isEditMode() {
+        return editMode || adding;
+    }
 
-	public void setItemController(TaskItemController itemController) {
-		this.itemController = itemController;
-	}
+    public boolean isAdding() {
+        return adding;
+    }
 
-	public String backPerformed() {
-		editMode = false;
-		task = null;
-		return TaskListController.PAGE_NAVIGATION;
-	}
+    void setAdding(boolean adding) {
+        this.adding = adding;
+    }
 
-	public void editPerformed() {
-		setResourceRefList(createResourceList());
-		editMode = true;
-	}
+    public List<SelectItem> getResourceRefList() {
+        List<SelectItem> list = new ArrayList<SelectItem>();
+        if (resources == null) {
+            return list;
+        }
 
-	public void savePerformed() {
-		OperationResult result = new OperationResult(TaskAddController.class.getName() + ".modifyTask");
-		try {
-			task.setObjectRef(getRefFromName(getSelectedResurceRef()));
-			TaskType oldObject = null;
+        for (ResourceDto resource : resources) {
+            list.add(new SelectItem(resource.getOid(), resource.getName()));
+        }
 
-			oldObject = taskManager.getTask(task.getOid(), result).getTaskTypeObject();
+        return list;
+    }
 
-			ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldObject,
-					task.toTaskType());
-			taskManager.modifyTask(modification, result);
-			FacesUtils.addSuccessMessage("Task modified successfully");
-			result.recordSuccess();
-		} catch (ObjectNotFoundException ex) {
-			result.recordFatalError(
-					"Couldn't get task, oid: " + task.getOid() + ". Reason: " + ex.getMessage(), ex);
-			FacesUtils.addErrorMessage(
-					"Couldn't get task, oid: " + task.getOid() + ". Reason: " + ex.getMessage(), ex);
-			return;
-		} catch (SchemaException ex) {
-			result.recordFatalError("Couldn't modify task. Reason: " + ex.getMessage(), ex);
-			FacesUtils.addErrorMessage("Couldn't modify task. Reason: " + ex.getMessage(), ex);
-			return;
-		} catch (DiffException ex) {
-			result.recordFatalError("Couldn't get object change for task " + task.getName() + ". Reason: "
-					+ ex.getMessage(), ex);
-			FacesUtils.addErrorMessage("Couldn't get object change for task " + task.getName() + ". Reason: "
-					+ ex.getMessage(), ex);
-			return;
-		}
-		editMode = false;
-	}
+    public TaskItem getTask() {
+        return task;
+    }
 
-	public void releaseTask(ActionEvent evt) {
+    public void setTask(TaskItem task) {
+        this.task = task;
 
-		// TODO: check on input values
-		// TODO: error handling
-		OperationResult result = new OperationResult(TaskDetailsController.class.getName() + ".releaseTask");
-		try {
-			Task taskToRelease = taskManager.getTask(task.getOid(), result);
+        resources = listResources();
+        adding = false;
+        editMode = false;
+    }
 
-			taskManager.releaseTask(taskToRelease, result);
-			FacesUtils.addSuccessMessage("Task released sucessfully");
-		} catch (SchemaException ex) {
-			FacesUtils.addErrorMessage("Failed to release task. Reason: " + ex.getMessage(), ex);
-			return;
-		} catch (ObjectNotFoundException ex) {
-			FacesUtils.addErrorMessage("Failed to release task. Reason: " + ex.getMessage(), ex);
-			return;
-		}
-	}
+    public String getTaskRef() {
+        return getTask().getObjectRef();
+    }
 
-	public void claimTask(ActionEvent evt) {
+    public void setTaskRef(String taskRef) {
+        getTask().setObjectRef(taskRef);
+    }
 
-		OperationResult result = new OperationResult(TaskDetailsController.class.getName() + ".claimTask");
+    public List<OperationResultType> getResults() {
+        List<OperationResultType> results = new ArrayList<OperationResultType>();
+        if (getTask() == null || getTask().getResult() == null) {
+            return results;
+        }
 
-		try {
-			Task taskToClaim = taskManager.getTask(task.getOid(), result);
-			taskManager.claimTask(taskToClaim, result);
-			FacesUtils.addSuccessMessage("Task claimed successfully.");
-		} catch (ObjectNotFoundException ex) {
-			FacesUtils.addErrorMessage("Failed to claim task. Reason: " + ex.getMessage(), ex);
-			return;
-		} catch (SchemaException ex) {
-			FacesUtils.addErrorMessage("Failed to claim task. Reason: " + ex.getMessage(), ex);
-			return;
-		} catch (ConcurrencyException ex) {
-			FacesUtils.addErrorMessage("Failed to claim task. Reason: " + ex.getMessage(), ex);
-			return;
-		}
-	}
+        OperationResultType opResultType = getTask().getResult().createOperationResultType();
+        results.add(opResultType);
+        getResult(opResultType, results, 1220000000000000000L);
 
-	public boolean isEditMode() {
-		return editMode;
-	}
+        return results;
+    }
 
-	public void setEditMode(boolean editMode) {
-		this.editMode = editMode;
-	}
+    private void getResult(OperationResultType opResult, List<OperationResultType> opResultList, long token) {
+        for (OperationResultType result : opResult.getPartialResults()) {
+            result.setToken(result.getToken() + token);
+            opResultList.add(result);
+            token += 1110000000000000000L;
+            getResult(result, opResultList, token);
+        }
+    }
 
-	public void createInstance() {
+    private List<ResourceDto> listResources() {
+        ResourceManager resManager = ControllerUtil.getResourceManager(objectTypeCatalog);
 
-		// TODO: fix result
-		OperationResult result = new OperationResult("Create task instance");
+        List<ResourceDto> resources = new ArrayList<ResourceDto>();
+        try {
+            Collection<GuiResourceDto> list = resManager.list();
+            if (list != null) {
+                resources.addAll(list);
+            }
+        } catch (Exception ex) {
+            FacesUtils.addErrorMessage("Couldn't list resources.", ex);
+        }
 
-		try {
-			taskManager.createTaskInstance(task.toTaskType(), result);
-			FacesUtils.addSuccessMessage("Task instance created sucessfully");
+        return resources;
+    }
 
-		} catch (SchemaException ex) {
-			FacesUtils.addErrorMessage("Failed to create task. Reason: " + ex.getMessage(), ex);
-		}
+    public String backPerformed() {
+        editMode = false;
+        adding = false;
+        task = null;
 
-	}
+        template.setSelectedLeftId(TaskListController.PAGE_LEFT_NAVIGATION);
 
-	public TaskManager getTaskManager() {
-		return taskManager;
-	}
+        return TaskListController.PAGE_NAVIGATION;
+    }
 
-	public void setTaskManager(TaskManager taskManager) {
-		this.taskManager = taskManager;
-	}
+    public void editPerformed() {
+        editMode = true;
+    }
 
-	public List<OperationResultType> getResults() {
-		return results;
-	}
+    public String savePerformed() {
+        //todo check if adding or modifying
+        if (isAdding()) {
+            return addTask();
+        }
 
-	public void setResults(List<OperationResultType> results) {
-		this.results = results;
-	}
+        OperationResult result = new OperationResult(TaskDetailsController.class.getName() + ".modifyTask");
+        try {
+//            task.setObjectRef(getRefFromName(getSelectedResurceRef()));
+            TaskType oldObject = taskManager.getTask(task.getOid(), result).getTaskTypeObject();
 
-	public String getRefFromName(String name) {
+            ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldObject,
+                    task.toTaskType());
+            taskManager.modifyTask(modification, result);
+            FacesUtils.addSuccessMessage("Task modified successfully");
+            result.recordSuccess();
+        } catch (ObjectNotFoundException ex) {
+            result.recordFatalError(
+                    "Couldn't get task, oid: " + task.getOid() + ". Reason: " + ex.getMessage(), ex);
+            FacesUtils.addErrorMessage(
+                    "Couldn't get task, oid: " + task.getOid() + ". Reason: " + ex.getMessage(), ex);
+            return null;
+        } catch (SchemaException ex) {
+            result.recordFatalError("Couldn't modify task. Reason: " + ex.getMessage(), ex);
+            FacesUtils.addErrorMessage("Couldn't modify task. Reason: " + ex.getMessage(), ex);
+            return null;
+        } catch (DiffException ex) {
+            result.recordFatalError("Couldn't get object change for task " + task.getName() + ". Reason: "
+                    + ex.getMessage(), ex);
+            FacesUtils.addErrorMessage("Couldn't get object change for task " + task.getName() + ". Reason: "
+                    + ex.getMessage(), ex);
+            return null;
+        } finally {
+            result.computeStatus();
+            if (!result.isSuccess()) {
+                FacesUtils.addMessage(result);
+            }
+        }
 
-		if (name == null) {
-			FacesUtils.addErrorMessage("Resource name must not be null");
-			throw new IllegalArgumentException("Resource name must not be null");
-		}
+        return TaskListController.PAGE_NAVIGATION;
+    }
 
-		for (ResourceDto resource : resourceRef) {
-			if (name.equals(resource.getName())) {
-				return resource.getOid();
-			}
-		}
+    private String addTask() {
+        OperationResult result = new OperationResult(TaskDetailsController.class.getName() + ".addTask");
+        try {
+            taskManager.addTask(task.toTaskType(), result);
+            FacesUtils.addSuccessMessage("Task added successfully");
+            result.recordSuccess();
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't add task. Reason: " + ex.getMessage(), ex);
+            FacesUtils.addErrorMessage("Couldn't add task. Reason: " + ex.getMessage(), ex);
+            return null;
+        } finally {
+            result.computeStatus();
+            if (!result.isSuccess()) {
+                FacesUtils.addMessage(result);
+            }
+        }
 
-		FacesUtils.addErrorMessage("Resource with the name " + name + "not found.");
-		throw new IllegalArgumentException("Resource with the name " + name + "not found.");
-	}
+        template.setSelectedLeftId(TaskListController.PAGE_LEFT_NAVIGATION);
 
-	// the same method in the user details controller
-	public List<ResourceDto> listResources() {
-		ResourceManager resManager = ControllerUtil.getResourceManager(objectTypeCatalog);
+        return TaskListController.PAGE_NAVIGATION;
+    }
 
-		List<ResourceDto> resources = new ArrayList<ResourceDto>();
-		try {
-			Collection<GuiResourceDto> list = resManager.list();
-			if (list != null) {
-				resources.addAll(list);
-			}
-		} catch (Exception ex) {
-			FacesUtils.addErrorMessage("Couldn't list resources.", ex);
-		}
-		resourceRef = resources;
-		return resources;
-	}
+    public void claimTaskPerformed(ActionEvent evt) {
+        OperationResult result = new OperationResult(TaskDetailsController.class.getName() + ".claimTask");
+        try {
+            Task taskToClaim = taskManager.getTask(task.getOid(), result);
+            taskManager.claimTask(taskToClaim, result);
+            FacesUtils.addSuccessMessage("Task claimed successfully.");
+        } catch (Exception ex) {
+            FacesUtils.addErrorMessage("Failed to claim task. Reason: " + ex.getMessage(), ex);
+        } finally {
+            result.computeStatus();
+            if (!result.isSuccess()) {
+                FacesUtils.addMessage(result);
+            }
+        }
+    }
 
-	public List<SelectItem> createResourceList() {
-		List<SelectItem> list = new ArrayList<SelectItem>();
+    public void releaseTaskPerformed(ActionEvent evt) {
+        // TODO: check on input values
+        OperationResult result = new OperationResult(TaskDetailsController.class.getName() + ".releaseTask");
+        try {
+            Task taskToRelease = taskManager.getTask(task.getOid(), result);
 
-		List<ResourceDto> resources = listResources();
-		for (ResourceDto resourceDto : resources) {
-			SelectItem si = new SelectItem((GuiResourceDto) resourceDto);
-			list.add(si);
-		}
-		return list;
-	}
+            taskManager.releaseTask(taskToRelease, result);
+            FacesUtils.addSuccessMessage("Task released successfully");
+        } catch (Exception ex) {
+            FacesUtils.addErrorMessage("Failed to release task. Reason: " + ex.getMessage(), ex);
+        } finally {
+            result.computeStatus();
+            if (!result.isSuccess()) {
+                FacesUtils.addMessage(result);
+            }
+        }
+    }
 
-	public List<SelectItem> getResourceRefList() {
-		return resourceRefList;
-	}
+    public String addPerformed() {
+        TaskItem task = new TaskItem();
+        task.setHandlerUri("http://midpoint.evolveum.com/model/sync/handler-1");
+        setTask(task);
 
-	public void setResourceRefList(List<SelectItem> resourceRefList) {
-		this.resourceRefList = resourceRefList;
-	}
+        adding = true;
 
-	public String getSelectedResurceRef() {
-		return selectedResurceRef;
-	}
+        return PAGE_NAVIGATION;
+    }
 
-	public void setSelectedResurceRef(String selectedResurceRef) {
-		this.selectedResurceRef = selectedResurceRef;
-	}
+    public void importTaskPerformed(ActionEvent evt) {
+        template.setSelectedTopId(TemplateController.TOP_CONFIGURATION);
+    }
 
-	public ObjectTypeCatalog getObjectTypeCatalog() {
-		return objectTypeCatalog;
-	}
-
-	public void setObjectTypeCatalog(ObjectTypeCatalog objectTypeCatalog) {
-		this.objectTypeCatalog = objectTypeCatalog;
-	}
-
-	public TaskItemExclusivityStatus[] getExclusivityStatus() {
-		return TaskItemExclusivityStatus.values();
-	}
-
-	public TaskItemExecutionStatus[] getExecutionStatus() {
-		return TaskItemExecutionStatus.values();
-	}
-
-	public TaskItemRecurrenceStatus[] getRecurrenceStatus() {
-		return TaskItemRecurrenceStatus.values();
-	}
-
+    public void createInstancePerformed() {
+        OperationResult result = new OperationResult("Create task instance");
+        try {
+            taskManager.createTaskInstance(task.toTaskType(), result);
+            FacesUtils.addSuccessMessage("Task instance created successfully");
+        } catch (SchemaException ex) {
+            FacesUtils.addErrorMessage("Failed to create task. Reason: " + ex.getMessage(), ex);
+        } finally {
+            result.computeStatus();
+            if (!result.isSuccess()) {
+                FacesUtils.addMessage(result);
+            }
+        }
+    }
 }

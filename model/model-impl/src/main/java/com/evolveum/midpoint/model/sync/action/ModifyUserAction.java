@@ -46,18 +46,18 @@ public class ModifyUserAction extends BaseAction {
 
     private static final Trace LOGGER = TraceManager.getTrace(ModifyUserAction.class);
     private final String actionName;
-    private PolicyDecision policyDecision;
     private ActivationDecision userActivationDecision;
     private ActivationDecision accountActivationDecision;
+    private PolicyDecision accountPolicyDecision;
 
     public ModifyUserAction() {
         this(PolicyDecision.KEEP, ACTION_MODIFY_USER);
     }
 
-    public ModifyUserAction(PolicyDecision policyDecision, String actionName) {
+    public ModifyUserAction(PolicyDecision accountPolicyDecision, String actionName) {
         Validate.notEmpty(actionName, "Action name must not be null or empty.");
 
-        this.policyDecision = policyDecision;
+        this.accountPolicyDecision = accountPolicyDecision;
         this.actionName = actionName;
     }
 
@@ -69,8 +69,8 @@ public class ModifyUserAction extends BaseAction {
         this.userActivationDecision = decision;
     }
 
-    protected PolicyDecision getPolicyDecision() {
-        return policyDecision;
+    protected PolicyDecision getAccountPolicyDecision() {
+        return accountPolicyDecision;
     }
 
     protected ActivationDecision getUserActivationDecision() {
@@ -116,7 +116,7 @@ public class ModifyUserAction extends BaseAction {
                 return userOid;
             }
 
-            accountContext.setPolicyDecision(getPolicyDecision());
+            accountContext.setPolicyDecision(getAccountPolicyDecision());
             accountContext.setActivationDecision(getAccountActivationDecision());
             accountContext.setDoReconciliation(determineAttributeReconciliation(change));
 
@@ -138,19 +138,19 @@ public class ModifyUserAction extends BaseAction {
         return userOid;
     }
 
-	private boolean determineAttributeReconciliation(ResourceObjectShadowChangeDescription change) {
-		Boolean reconcileAttributes = change.getResource().getSynchronization().isReconcileAttributes();
-		if (reconcileAttributes == null) {
-			// "Automatic mode", do reconciliation only if the complete current shadow was provided
-			reconcileAttributes = change.getCurrentShadow() != null;
-			LOGGER.trace("Attribute reconciliation automatic mode: {}",reconcileAttributes);
-		} else {
-			LOGGER.trace("Attribute reconciliation manual mode: {}",reconcileAttributes);
-		}
-		return reconcileAttributes;
-	}
+    private boolean determineAttributeReconciliation(ResourceObjectShadowChangeDescription change) {
+        Boolean reconcileAttributes = change.getResource().getSynchronization().isReconcileAttributes();
+        if (reconcileAttributes == null) {
+            // "Automatic mode", do reconciliation only if the complete current shadow was provided
+            reconcileAttributes = change.getCurrentShadow() != null;
+            LOGGER.trace("Attribute reconciliation automatic mode: {}", reconcileAttributes);
+        } else {
+            LOGGER.trace("Attribute reconciliation manual mode: {}", reconcileAttributes);
+        }
+        return reconcileAttributes;
+    }
 
-	private Class<? extends ResourceObjectShadowType> getClassFromChange(ResourceObjectShadowChangeDescription change) {
+    private Class<? extends ResourceObjectShadowType> getClassFromChange(ResourceObjectShadowChangeDescription change) {
         if (change.getObjectDelta() != null) {
             return change.getObjectDelta().getObjectTypeClass();
         }

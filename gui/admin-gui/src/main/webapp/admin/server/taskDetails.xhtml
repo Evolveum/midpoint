@@ -1,160 +1,162 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <ui:composition template="/resources/templates/template.xhtml"
-	xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:ui="http://java.sun.com/jsf/facelets"
-	xmlns:h="http://java.sun.com/jsf/html"
-	xmlns:comp="http://java.sun.com/jsf/composite/components"
-	xmlns:f="http://java.sun.com/jsf/core"
-	xmlns:ice="http://www.icesoft.com/icefaces/component"
-	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:comp="http://java.sun.com/jsf/composite/components"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ice="http://www.icesoft.com/icefaces/component"
+                xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<ui:define name="title">#{msg['page.server.index.title']}</ui:define>
+    <ui:define name="title">#{msg['page.server.index.title']}</ui:define>
 
-	<ui:define name="menu">
-		<ui:include src="./menu.xhtml" />
-	</ui:define>
+    <ui:define name="menu">
+        <ui:include src="./menu.xhtml"/>
+    </ui:define>
 
-	<ui:define name="content">
-		<ice:form>
-			<div class="button-bar">
+    <ui:define name="content">
+        <ice:form>
+            <ice:panelGroup>
+                <ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
+                    <f:facet name="header">
+                        <h3>Task</h3>
+                    </f:facet>
+                    <ice:outputLabel value="Task oid: " rendered="#{not taskDetails.adding}"/>
+                    <ice:outputText value="#{taskDetails.task.oid}" rendered="#{not taskDetails.adding}"/>
 
-				<idm:button value="Edit task" img="/resources/images/application_edit.png"
-					id="editTask" immediate="true"
-					action="#{taskDetails.editPerformed}"
-					rendered="#{not taskDetails.editMode}" />
-					<idm:button action="/server/index" rendered="#{not taskDetails.editMode}"
-					value="#{msg['page.account.detail.button.back']}" img="/resources/images/door_in.png" />
+                    <ice:outputLabel value="Task name: ">
+                        <span style="color: red;">*</span>
+                    </ice:outputLabel>
+                    <ice:outputLabel value="#{taskDetails.task.name}"
+                                     rendered="#{not taskDetails.editMode}"/>
+                    <ice:inputText value="#{taskDetails.task.name}"
+                                   rendered="#{taskDetails.editMode}"/>
 
-			</div>
-			<ice:panelGroup>
-				<ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
-					<f:facet name="header">
-						<h3>Task</h3>
-					</f:facet>
-					<ice:outputLabel value="Task oid: " />
-					<ice:outputText value="#{taskDetails.task.oid}" />
+                    <ice:outputLabel value="Handler uri: ">
+                        <span style="color: red;">*</span>
+                    </ice:outputLabel>
+                    <ice:outputText value="#{taskDetails.task.handlerUri}"/>
 
-					<ice:outputLabel value="Task name: " />
-					<ice:outputText value="#{taskDetails.task.name}"
-						rendered="#{not taskDetails.editMode}" />
-					<ice:inputText value="#{taskDetails.task.name}"
-						rendered="#{taskDetails.editMode}" />
+                    <ice:outputLabel value="Object ref: ">
+                        <span style="color: red;">*</span>
+                    </ice:outputLabel>
+                    <ice:outputText value="#{taskDetails.task.objectRef}"
+                                    rendered="#{not taskDetails.editMode}"/>
+                    <ice:panelGrid rendered="#{taskDetails.editMode}">
+                        <ice:selectOneMenu id="objectRef"
+                                           value="#{taskDetails.taskRef}"
+                                           style="min-width: 157px; width: auto;" partialSubmit="true">
+                            <f:selectItems id="objectRefSelected"
+                                           value="#{taskDetails.resourceRefList}"/>
+                        </ice:selectOneMenu>
+                    </ice:panelGrid>
+                    <ice:outputLabel value="Last run start timestamp: " rendered="#{not taskDetails.adding}"/>
+                    <ice:outputText value="#{taskDetails.task.lastRunStartTimestamp}"
+                                    rendered="#{not taskDetails.adding}"/>
 
-					<ice:outputLabel value="Handler uri: " />
-					<ice:outputText value="#{taskDetails.task.handlerUri}" />
+                    <ice:outputLabel value="Last run finish timestamp: " rendered="#{not taskDetails.adding}"/>
+                    <ice:outputText value="#{taskDetails.task.lastRunFinishTimestamp}"
+                                    rendered="#{not taskDetails.adding}"/>
 
-					<ice:outputLabel value="Object ref: " />
-					<ice:outputText value="#{taskDetails.task.objectRef}"
-						rendered="#{not taskDetails.editMode}" />
-					<ice:panelGrid rendered="#{taskDetails.editMode}">
-						<ice:selectOneMenu id="objectRef"
-							value="#{taskDetails.selectedResurceRef}"
-							style="min-width: 157px; width: auto;" partialSubmit="true">
-							<f:selectItems id="objectRefSelected"
-								value="#{taskDetails.resourceRefList}" />
-						</ice:selectOneMenu>
-					</ice:panelGrid>
-					<ice:outputLabel value="Last run start timestamp: " />
-					<ice:outputText value="#{taskDetails.task.lastRunStartTimestamp}" />
+                    <ice:outputLabel value="Execusion status"/>
+                    <ice:outputText value="#{taskDetails.task.executionStatus}"
+                                    rendered="#{not taskDetails.editMode}"/>
+                    <ice:panelGrid rendered="#{taskDetails.editMode}">
+                        <ice:selectOneListbox id="executionStatus" partialSubmit="true"
+                                              value="#{taskDetails.task.executionStatus}"
+                                              style="min-width: 157px; width: auto;">
+                            <f:selectItems id="executionStatusSelected"
+                                           value="#{taskDetails.executionStatus}"/>
+                        </ice:selectOneListbox>
+                    </ice:panelGrid>
 
-					<ice:outputLabel value="Last run finish timestamp: " />
-					<ice:outputText value="#{taskDetails.task.lastRunFinishTimestamp}" />
+                    <ice:outputLabel value="Exclusivity status"/>
+                    <ice:outputText value="#{taskDetails.task.exclusivityStatus}"
+                                    rendered="#{not taskDetails.editMode}"/>
+                    <ice:panelGrid rendered="#{taskDetails.editMode}">
+                        <ice:selectOneListbox id="exclusivityStatus" partialSubmit="true"
+                                              value="#{taskDetails.task.exclusivityStatus}"
+                                              style="min-width: 157px; width: auto;">
+                            <f:selectItems id="exclusivityStatusSelected"
+                                           value="#{taskDetails.exclusivityStatus}"/>
+                        </ice:selectOneListbox>
+                    </ice:panelGrid>
 
-					<ice:outputLabel value="Execusion status" />
-					<ice:outputText value="#{taskDetails.task.executionStatus}"
-						rendered="#{not taskDetails.editMode}" />
-					<ice:panelGrid rendered="#{taskDetails.editMode}">
-						<ice:selectOneListbox id="executionStatus" partialSubmit="true"
-							value="#{taskDetails.task.executionStatus}"
-							style="min-width: 157px; width: auto;">
-							<f:selectItems id="executionStatusSelected"
-								value="#{taskDetails.executionStatus}" />
-						</ice:selectOneListbox>
-					</ice:panelGrid>
+                    <ice:outputLabel value="Schedule interval">
+                        <span style="color: red;">*</span>
+                    </ice:outputLabel>
+                    <ice:outputText value="#{taskDetails.task.scheduleInterval}"
+                                    rendered="#{not taskDetails.editMode}"/>
+                    <ice:inputText id="scheduleInterval"
+                                   rendered="#{taskDetails.editMode}"
+                                   value="#{taskDetails.task.scheduleInterval}"/>
+                </ice:panelGrid>
 
-					<ice:outputLabel value="Exclusivity status" />
-					<ice:outputText value="#{taskDetails.task.exclusivityStatus}"
-						rendered="#{not taskDetails.editMode}" />
-					<ice:panelGrid rendered="#{taskDetails.editMode}">
-						<ice:selectOneListbox id="exclusivityStatus" partialSubmit="true"
-							value="#{taskDetails.task.exclusivityStatus}"
-							style="min-width: 157px; width: auto;">
-							<f:selectItems id="exclusivityStatusSelected"
-								value="#{taskDetails.exclusivityStatus}" />
-						</ice:selectOneListbox>
-					</ice:panelGrid>
+                <ice:dataTable id="resultTable" value="#{taskDetails.results}" var="item"
+                               rendered="#{not taskDetails.adding}">
+                    <ice:column>
+                        <f:facet name="header">
+                            <ice:outputText id="token" value="Token"/>
+                        </f:facet>
+                        <ice:outputText value="#{item.token}"/>
+                    </ice:column>
+                    <ice:column>
+                        <f:facet name="header">
+                            <ice:outputText id="operation" value="Operation"/>
+                        </f:facet>
+                        <ice:outputText value="#{item.operation}"/>
+                    </ice:column>
+                    <ice:column>
+                        <f:facet name="header">
+                            <ice:outputText id="status" value="Status"/>
+                        </f:facet>
+                        <ice:outputText value="#{item.status}"/>
+                    </ice:column>
+                    <ice:column>
+                        <f:facet name="header">
+                            <ice:outputText id="message" value="Message"/>
+                        </f:facet>
+                        <ice:outputText value="#{item.message}"/>
+                    </ice:column>
+                </ice:dataTable>
+            </ice:panelGroup>
 
-					<ice:outputLabel value="Schedule interval" />
-					<ice:outputText value="#{taskDetails.task.scheduleInterval}"
-						rendered="#{not taskDetails.editMode}" />
-					<ice:inputText id="scheduleInterval"
-						rendered="#{taskDetails.editMode}"
-						value="#{taskDetails.task.scheduleInterval}" />
-					</ice:panelGrid>	
-						<ice:dataTable id="resultTable" value="#{taskDetails.results}" var="item">
-						<ice:column>
-					<f:facet name="header">
-							<ice:outputText id="token" value="Token" />
-					
-					</f:facet>
-					<ice:outputText value="#{item.token}" />
-				</ice:column>
-						<ice:column>
-					<f:facet name="header">
-							<ice:outputText id="operation" value="Operation" />
-					
-					</f:facet>
-					<ice:outputText value="#{item.operation}" />
-				</ice:column>
-				<ice:column>
-					<f:facet name="header">
-							<ice:outputText id="status" value="Status" />
-					
-					</f:facet>
-					<ice:outputText value="#{item.status}" />
-				</ice:column>
-				<ice:column>
-					<f:facet name="header">
-							<ice:outputText id="message" value="Message" />
-					
-					</f:facet>
-					<ice:outputText value="#{item.message}" />
-				</ice:column>
-						</ice:dataTable>
-						
+            <div class="button-bar">
+                <idm:button value="Add task" img="/resources/images/application_add.png"
+                            id="addTask" action="#{taskDetails.savePerformed}" rendered="#{taskDetails.adding}"/>
+                <idm:button value="Import task"
+                            img="/resources/images/application_go.png" id="importTask"
+                            immediate="true" action="/admin/config/import" rendered="#{taskDetails.adding}"
+                            actionListener="#{taskDetails.importTaskPerformed}"/>
 
-				
+                <idm:button value="Edit task" img="/resources/images/application_edit.png"
+                            id="editTask" immediate="true"
+                            action="#{taskDetails.editPerformed}"
+                            rendered="#{(not taskDetails.editMode) and (not taskDetails.adding)}"/>
+                <idm:button value="Create task instance"
+                            img="/resources/images/application_double.png" id="createTaskInstance"
+                            rendered="#{not taskDetails.editMode}" immediate="true"
+                            action="#{taskDetails.createInstancePerformed}"/>
+                <idm:button value="Delete task"
+                            img="/resources/images/application_delete.png" id="deleteTask"
+                            rendered="#{not taskDetails.editMode}" immediate="true"
+                            action="#{taskList.deleteTask}"/>
+                <idm:button value="Release task"
+                            img="/resources/images/application_get.png" id="releaseTask"
+                            rendered="#{not taskDetails.editMode}" immediate="true"
+                            action="#{taskList.listFirst}" actionListener="#{taskDetails.releaseTaskPerformed}"/>
+                <idm:button value="Claim task"
+                            img="/resources/images/application_put.png" id="claimTask"
+                            rendered="#{not taskDetails.editMode}" immediate="true"
+                            action="#{taskList.listFirst}" actionListener="#{taskDetails.claimTaskPerformed}"/>
+                <idm:button value="Save changes"
+                            img="/resources/images/disk.png" id="saveChanges"
+                            rendered="#{taskDetails.editMode and (not taskDetails.adding)}" immediate="true"
+                            action="#{taskDetails.savePerformed}"/>
 
-			</ice:panelGroup>
-			<div class="button-bar">
-
-				<idm:button value="Create task instance"
-					img="/resources/images/application_double.png" id="createTaskInstance"
-					rendered="#{not taskDetails.editMode}" immediate="true"
-					action="#{taskDetails.createInstance}" />
-				<idm:button value="Delete task"
-					img="/resources/images/application_delete.png" id="deleteTask"
-					rendered="#{not taskDetails.editMode}" immediate="true"
-					action="#{taskList.deleteTask}" />
-				<idm:button value="Release task"
-					img="/resources/images/application_get.png" id="releaseTask"
-					rendered="#{not taskDetails.editMode}" immediate="true"
-					action="#{taskList.listFirst}" actionListener="#{taskDetails.releaseTask}"/>
-					
-				<idm:button value="Claim task"
-					img="/resources/images/application_put.png" id="claimTask"
-					rendered="#{not taskDetails.editMode}" immediate="true"
-					action="#{taskList.listFirst}" actionListener="#{taskDetails.claimTask}" />
-					
-				<idm:button value="Save changes"
-					img="/resources/images/application.png" id="saveChanges"
-					rendered="#{taskDetails.editMode}" immediate="true"
-					action="#{taskDetails.savePerformed}" />
-					
-					<idm:button action="#{taskDetails.backPerformed}" rendered="#{taskDetails.editMode}" 
-					value="#{msg['page.account.detail.button.back']}" img="/resources/images/door_in.png" />
-
-			</div>
-		</ice:form>
-	</ui:define>
+                <idm:button action="#{taskDetails.backPerformed}"
+                            value="#{msg['page.account.detail.button.back']}" img="/resources/images/door_in.png"/>
+            </div>
+        </ice:form>
+    </ui:define>
 </ui:composition>
