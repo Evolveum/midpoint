@@ -104,7 +104,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
                 // if password was changed, create modification change
                 List<XPathSegment> segments = new ArrayList<XPathSegment>();
                 segments.add(new XPathSegment(SchemaConstants.I_CREDENTIALS));
-                segments.add(new XPathSegment(SchemaConstants.R_PROTECTED_STRING));
+                segments.add(new XPathSegment(SchemaConstants.I_PASSWORD));
                 XPathHolder xpath = new XPathHolder(segments);
                 passwordChange = ObjectTypeUtil.createPropertyModificationType(
                         PropertyModificationTypeType.replace, xpath, SchemaConstants.R_PROTECTED_STRING,
