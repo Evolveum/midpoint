@@ -60,8 +60,10 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
 import org.opends.server.core.AddOperation;
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
+import org.opends.server.types.ModificationType;
 import org.opends.server.util.LDIFReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -84,6 +86,7 @@ import java.io.FileNotFoundException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -116,6 +119,8 @@ import static org.testng.AssertJUnit.*;
         "classpath:application-context-configuration-test.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSanity extends AbstractIntegrationTest {
+	
+	private static final String OPENDJ_PEOPLE_SUFFIX = "ou=people,dc=example,dc=com";
 
     private static final String SYSTEM_CONFIGURATION_FILENAME = "src/test/resources/repo/system-configuration.xml";
     private static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
@@ -146,9 +151,15 @@ public class TestSanity extends AbstractIntegrationTest {
     
     private static final String USER_JACK_FILENAME = "src/test/resources/repo/user-jack.xml";
     private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+    private static final String USER_JACK_LDAP_UID = "jack";
+    private static final String USER_JACK_LDAP_DN = "uid=" + USER_JACK_LDAP_UID
+            + "," + OPENDJ_PEOPLE_SUFFIX;
 
     private static final String USER_GUYBRUSH_FILENAME = "src/test/resources/repo/user-guybrush.xml";
     private static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111222";
+    private static final String USER_GUYBRUSH_LDAP_UID = "guybrush";
+    private static final String USER_GUYBRUSH_LDAP_DN = "uid=" + USER_GUYBRUSH_LDAP_UID
+            + "," + OPENDJ_PEOPLE_SUFFIX;
 
     private static final String ROLE_PIRATE_FILENAME = "src/test/resources/repo/role-pirate.xml";
     private static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-987987987988";
@@ -157,9 +168,6 @@ public class TestSanity extends AbstractIntegrationTest {
     private static final String ROLE_CAPTAIN_OID = "12345678-d34d-b33f-f00d-987987cccccc";
     
     private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account.xml";
-    private static final String USER_JACK_LDAP_UID = "jack";
-    private static final String USER_JACK_LDAP_DN = "uid=" + USER_JACK_LDAP_UID
-            + ",ou=people,dc=example,dc=com";
 
     private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_DERBY_FILENAME = "src/test/resources/request/user-modify-add-account-derby.xml";
     private static final String USER_JACK_DERBY_LOGIN = "jsparrow";
@@ -1992,12 +2000,7 @@ public class TestSanity extends AbstractIntegrationTest {
         displayTestTile("test101LiveSyncCreate");
         // Sync task should be running (tested in previous test), so just create
         // new LDAP object.
-
-        LDIFImportConfig importConfig = new LDIFImportConfig(LDIF_WILL_FILENAME);
-        LDIFReader ldifReader = new LDIFReader(importConfig);
-        Entry entry = ldifReader.readEntry();
-        display("Entry from LDIF", entry);
-
+        
         final OperationResult result = new OperationResult(TestSanity.class.getName()
                 + ".test101LiveSyncCreate");
         final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
@@ -2013,12 +2016,10 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // WHEN
 
-        AddOperation addOperation = openDJController.getInternalConnection().processAdd(entry);
+        Entry entry = openDJController.addEntryFromLdifFile(LDIF_WILL_FILENAME);
+        display("Entry from LDIF", entry);
 
         // THEN
-
-        AssertJUnit.assertEquals("LDAP add operation failed", ResultCode.SUCCESS,
-                addOperation.getResultCode());
 
         // Wait a bit to give the sync cycle time to detect the change
 
@@ -2443,21 +2444,20 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // Create LDAP account without an owner. The liveSync is off, so it will not be picked up
         
-        LDIFImportConfig importConfig = new LDIFImportConfig(LDIF_ELAINE_FILENAME);
-        LDIFReader ldifReader = new LDIFReader(importConfig);
-        Entry ldifEntry = ldifReader.readEntry();
-        display("Entry from LDIF", ldifEntry);
-
-        AddOperation addOperation = openDJController.getInternalConnection().processAdd(ldifEntry);
-
-        AssertJUnit.assertEquals("LDAP add operation failed", ResultCode.SUCCESS,
-                addOperation.getResultCode());
+        Entry ldifEntry = openDJController.addEntryFromLdifFile(LDIF_ELAINE_FILENAME);
+        display("Entry from LDIF", ldifEntry);        
         
-        
-        
+        // Guybrush's attributes were set up by a role in the previous test. Let's mess the up a bit. Recon should sort it out.
+                
+		List<RawModification> modifications = new ArrayList<RawModification>();
+		RawModification titleMod = RawModification.create(ModificationType.REPLACE, "title", "Scurvy earthworm");
+		modifications.add(titleMod);
+		ModifyOperation modifyOperation = openDJController.getInternalConnection().processModify (USER_GUYBRUSH_LDAP_DN, modifications);
+		if (ResultCode.SUCCESS != modifyOperation.getResultCode()) {
+			AssertJUnit.fail("LDAP operation failed: "+modifyOperation.getErrorMessage());
+		}
+		
         // TODO: setup more "inconsistent" state
-        
-        
         
         // Add reconciliation task. This will trigger reconciliation
 

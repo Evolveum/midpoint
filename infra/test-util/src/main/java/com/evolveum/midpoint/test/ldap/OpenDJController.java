@@ -43,6 +43,7 @@ import java.util.jar.JarFile;
 
 import org.opends.messages.Message;
 import org.opends.server.config.ConfigException;
+import org.opends.server.core.AddOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.Attribute;
@@ -50,10 +51,15 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import org.opends.server.util.EmbeddedUtils;
+import org.opends.server.util.LDIFException;
+import org.opends.server.util.LDIFReader;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -546,6 +552,19 @@ public class OpenDJController {
 				AssertJUnit.fail("Attribute "+name+" does not contain value "+value);
 			}
 		}
+	}
+	
+	public Entry addEntryFromLdifFile(String filename) throws IOException, LDIFException {
+		LDIFImportConfig importConfig = new LDIFImportConfig(filename);
+        LDIFReader ldifReader = new LDIFReader(importConfig);
+        Entry ldifEntry = ldifReader.readEntry();
+        AddOperation addOperation = getInternalConnection().processAdd(ldifEntry);
+
+        if (ResultCode.SUCCESS != addOperation.getResultCode()) {
+        	throw new RuntimeException("LDAP operation error: "+addOperation.getResultCode()+": "+addOperation.getErrorMessage());
+        }
+        
+        return ldifEntry;
 	}
 
 }
