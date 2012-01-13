@@ -48,10 +48,10 @@
 						rendered="#{not taskDetails.editMode}" />
 					<ice:panelGrid rendered="#{taskDetails.editMode}">
 						<ice:selectOneMenu id="objectRef"
-							value="#{taskDetails.itemController.selectedResurceRef}"
+							value="#{taskDetails.selectedResurceRef}"
 							style="min-width: 157px; width: auto;" partialSubmit="true">
 							<f:selectItems id="objectRefSelected"
-								value="#{taskDetails.itemController.resourceRefList}" />
+								value="#{taskDetails.resourceRefList}" />
 						</ice:selectOneMenu>
 					</ice:panelGrid>
 					<ice:outputLabel value="Last run start timestamp: " />
@@ -68,7 +68,7 @@
 							value="#{taskDetails.task.executionStatus}"
 							style="min-width: 157px; width: auto;">
 							<f:selectItems id="executionStatusSelected"
-								value="#{taskDetails.itemController.executionStatus}" />
+								value="#{taskDetails.executionStatus}" />
 						</ice:selectOneListbox>
 					</ice:panelGrid>
 
@@ -80,7 +80,7 @@
 							value="#{taskDetails.task.exclusivityStatus}"
 							style="min-width: 157px; width: auto;">
 							<f:selectItems id="exclusivityStatusSelected"
-								value="#{taskDetails.itemController.exclusivityStatus}" />
+								value="#{taskDetails.exclusivityStatus}" />
 						</ice:selectOneListbox>
 					</ice:panelGrid>
 

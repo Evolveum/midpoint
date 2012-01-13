@@ -11,9 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
-import com.evolveum.midpoint.web.bean.TaskItemExclusivityStatus;
-import com.evolveum.midpoint.web.bean.TaskItemExecutionStatus;
-import com.evolveum.midpoint.web.bean.TaskItemRecurrenceStatus;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
@@ -23,24 +20,20 @@ import com.evolveum.midpoint.web.util.FacesUtils;
 
 @Controller("itemController")
 @Scope("session")
-public class TaskItemController implements Serializable{
-	
+public class TaskItemController implements Serializable {
+
 	private static final long serialVersionUID = -320314540772984007L;
 
 	@Autowired(required = true)
 	private transient ObjectTypeCatalog objectTypeCatalog;
 
 	private List<SelectItem> resourceRefList;
-	private TaskItemExclusivityStatus[] exclusivityStatus;
-	private TaskItemExecutionStatus[] executionStatus;
-	private String selectedResurceRef;
-	private TaskItemRecurrenceStatus[] recurrenceStatus;
 	
-	public TaskItemController(){
-		
+
+	public TaskItemController() {
+
 	}
-	
-	
+
 	public String getRefFromName(String name) {
 
 		if (name == null) {
@@ -54,16 +47,13 @@ public class TaskItemController implements Serializable{
 			}
 		}
 
-		FacesUtils.addErrorMessage("Resource with the name " + name
-				+ "not found.");
-		throw new IllegalArgumentException("Resource with the name " + name
-				+ "not found.");
+		FacesUtils.addErrorMessage("Resource with the name " + name + "not found.");
+		throw new IllegalArgumentException("Resource with the name " + name + "not found.");
 	}
-	
+
 	// the same method in the user details controller
 	public List<ResourceDto> listResources() {
-		ResourceManager resManager = ControllerUtil
-				.getResourceManager(objectTypeCatalog);
+		ResourceManager resManager = ControllerUtil.getResourceManager(objectTypeCatalog);
 
 		List<ResourceDto> resources = new ArrayList<ResourceDto>();
 		try {
@@ -74,7 +64,6 @@ public class TaskItemController implements Serializable{
 		} catch (Exception ex) {
 			FacesUtils.addErrorMessage("Couldn't list resources.", ex);
 		}
-
 		return resources;
 	}
 
@@ -87,11 +76,9 @@ public class TaskItemController implements Serializable{
 			SelectItem si = new SelectItem((GuiResourceDto) resourceDto);
 			list.add(si);
 		}
-
 		return list;
 	}
-	
-	
+
 	public List<SelectItem> getResourceRefList() {
 		return resourceRefList;
 	}
@@ -100,38 +87,6 @@ public class TaskItemController implements Serializable{
 		this.resourceRefList = resourceRefList;
 	}
 
-	public String getSelectedResurceRef() {
-		return selectedResurceRef;
-	}
-
-	public void setSelectedResurceRef(String selectedResurceRef) {
-		this.selectedResurceRef = selectedResurceRef;
-	}
-
-	
-	public TaskItemExclusivityStatus[] getExclusivityStatus() {
-		return exclusivityStatus;
-	}
-
-	public void setExclusivityStatus(TaskItemExclusivityStatus[] exclusivityStatus) {
-		this.exclusivityStatus = exclusivityStatus;
-	}
-
-	public TaskItemExecutionStatus[] getExecutionStatus() {
-		return executionStatus;
-	}
-
-	public void setExecutionStatus(TaskItemExecutionStatus[] executionStatus) {
-		this.executionStatus = executionStatus;
-	}
-
-	public TaskItemRecurrenceStatus[] getRecurrenceStatus() {
-		return recurrenceStatus;
-	}
-
-	public void setRecurrenceStatus(TaskItemRecurrenceStatus[] recurrenceStatus) {
-		this.recurrenceStatus = recurrenceStatus;
-	}
 
 	public ObjectTypeCatalog getObjectTypeCatalog() {
 		return objectTypeCatalog;
@@ -140,5 +95,5 @@ public class TaskItemController implements Serializable{
 	public void setObjectTypeCatalog(ObjectTypeCatalog objectTypeCatalog) {
 		this.objectTypeCatalog = objectTypeCatalog;
 	}
-	
+
 }
