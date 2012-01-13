@@ -21,20 +21,31 @@
 
 package com.evolveum.midpoint.model.synchronizer;
 
+import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.delta.PropertyDelta;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
+import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
@@ -45,10 +56,14 @@ import java.util.Set;
 
 /**
  * @author lazyman
+ * @author Radovan Semancik
  */
 @Component
 public class ReconciliationProcessor {
 
+	@Autowired(required=true)
+	SchemaRegistry schemaRegistry;
+	
     public static final String PROCESS_RECONCILIATION = ReconciliationProcessor.class.getName() + ".processReconciliation";
     private static final Trace LOGGER = TraceManager.getTrace(ReconciliationProcessor.class);
 
@@ -63,12 +78,9 @@ public class ReconciliationProcessor {
      *
      * @param context
      * @param result
+     * @throws SchemaException 
      */
-    void processReconciliation(SyncContext context, OperationResult result) {
-        //todo remove this if clause
-        if (1 == 1) {
-            return;
-        }
+    void processReconciliation(SyncContext context, OperationResult result) throws SchemaException {
         OperationResult subResult = result.createSubresult(PROCESS_RECONCILIATION);
 
         try {
@@ -79,54 +91,108 @@ public class ReconciliationProcessor {
 
                 if (accContext.getAccountOld() == null) {
                     LOGGER.warn("Can't do reconciliation. Account context doesn't contain old version of account.");
-                    return;
+                    continue;
+                }
+                
+                LOGGER.trace("Attribute reconciliation processing ACCOUNT {}",accContext.getResourceAccountType());
+
+                Map<QName, DeltaSetTriple<ValueConstruction>> tripleMap = accContext.getAttributeValueDeltaSetTripleMap();
+                if (tripleMap.isEmpty()) {
+                	continue;
                 }
 
-                Map<QName, DeltaSetTriple<ValueConstruction>> map = accContext.getAttributeValueDeltaSetTripleMap();
-                if (map.isEmpty()) {
-                    return;
-                }
-
-                MidPointObject<AccountShadowType> oldAccount = accContext.getAccountOld();
-                //todo implement this
-                ObjectDelta<AccountShadowType> delta1 = compareObjectZero(oldAccount, map);
+                RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(accContext.getResource(), schemaRegistry);
+                RefinedAccountDefinition accountDefinition = refinedSchema.getAccountDefinition(accContext.getResourceAccountType().getAccountType());
+                
+                
+                MidPointObject<AccountShadowType> newAccount = accContext.getAccountNew();
+                ObjectDelta<AccountShadowType> delta1 = compareObjectZero(newAccount, tripleMap, accountDefinition);
             }
-        } finally {
+        } catch (RuntimeException e) {
+        	subResult.recordFatalError(e);
+        	throw e;
+        } catch (SchemaException e) {
+        	subResult.recordFatalError(e);
+        	throw e;
+		} finally {
             subResult.computeStatus();
         }
     }
 
     private ObjectDelta<AccountShadowType> compareObjectZero(MidPointObject<AccountShadowType> account,
-            Map<QName, DeltaSetTriple<ValueConstruction>> triples) {
+            Map<QName, DeltaSetTriple<ValueConstruction>> tripleMap, RefinedAccountDefinition accountDefinition) {
 
         ObjectDelta<AccountShadowType> delta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY);
 
-        Set<Map.Entry<QName, DeltaSetTriple<ValueConstruction>>> usedTriples =
-                new HashSet<Map.Entry<QName, DeltaSetTriple<ValueConstruction>>>();
+        PropertyContainer attributesContainer = account.findPropertyContainer(AccountShadowType.F_ATTRIBUTES);
+        Collection<QName> attributeNames = MiscUtil.union(tripleMap.keySet(),attributesContainer.getPropertyNames());
 
-        PropertyDelta propertyDelta;
-        Set<Property> properties = account.getProperties();
-        for (Property property : properties) {
-            DeltaSetTriple<ValueConstruction> triple = triples.get(property.getName());
-            if (triple != null) {
-                Collection<PropertyValue<ValueConstruction>> zeroSet = triple.getZeroSet();
-                for (PropertyValue<ValueConstruction> zero : zeroSet) {
-                    Property zeroProperty = zero.getValue().getOutput();
-                    if (zeroProperty == null) {
-                        //zero property is null, so property should be empty, or we have to create property delta delete
-                        //todo implement
-                        continue;
-                    }
-
-                    propertyDelta = zeroProperty.compareRealValuesTo(property);
-                }
-            } else {
-                //property in account should not be there (it's not in triples)
-                //todo do something here
-            }
-
+        for (QName attrName: attributeNames) {
+        	LOGGER.trace("Attribute reconciliation processing attribute {}",attrName);
+        	RefinedAttributeDefinition attributeDefinition = accountDefinition.getAttributeDefinition(attrName);
+        	
+        	DeltaSetTriple<ValueConstruction> triple = tripleMap.get(attrName);
+        	Collection<PropertyValue<ValueConstruction>> shouldBePValues = null;
+        	if (triple == null) {
+        		shouldBePValues = new HashSet<PropertyValue<ValueConstruction>>();
+        	} else {
+        		shouldBePValues = triple.getNonNegativeValues();
+        	}
+        	
+        	Property attribute = attributesContainer.findProperty(attrName);
+        	Set<PropertyValue<Object>> arePValues = attribute.getValues(Object.class);
+        	
+        	LOGGER.trace("SHOULD BE:\n{}\nIS:\n{}",shouldBePValues,arePValues);
+        	
+        	for (PropertyValue<ValueConstruction> shouldBePValue: shouldBePValues) {
+        		ValueConstruction shouldBeVc = shouldBePValue.getValue();
+        		if (shouldBeVc.isInitial() && !arePValues.isEmpty()) {
+        			// "initial" value and the attribute already has a value. Skip it.
+        			continue;
+        		}
+        		Property shoudlBeProperty = shouldBeVc.getOutput();
+        		for (PropertyValue<Object> shouldBePPValue: shoudlBeProperty.getValues()) {
+        			Object shouldBeValue = shouldBePPValue.getValue();
+        			// Make sure this value is in the values
+        			if (!isInValues(shouldBeValue, arePValues)) {
+        				LOGGER.trace("****** WILL ADD {}",shouldBeValue);
+        			}
+        		}
+        	}
+        	
+        	if (!attributeDefinition.isTolerant()) {
+        		for (PropertyValue<Object> isPValue: arePValues) {
+        			if (!isInValues(isPValue.getValue(), shouldBePValues)) {
+        				LOGGER.trace("****** WILL DELETE {}",isPValue.getValue());
+        			}
+        		}
+        	}
         }
-
-        return null;
+        
+        return delta;
     }
+
+	private boolean isInValues(Object shouldBeValue, Set<PropertyValue<Object>> arePValues) {
+		for (PropertyValue<Object> isPValue: arePValues) {
+			if (isPValue.getValue().equals(shouldBeValue)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private boolean isInValues(Object value, Collection<PropertyValue<ValueConstruction>> shouldBePValues) {
+		for (PropertyValue<ValueConstruction> shouldBePValue: shouldBePValues) {
+    		ValueConstruction shouldBeVc = shouldBePValue.getValue();
+    		Property shoudlBeProperty = shouldBeVc.getOutput();
+    		for (PropertyValue<Object> shouldBePPValue: shoudlBeProperty.getValues()) {
+    			Object shouldBeValue = shouldBePPValue.getValue();
+    			if (shouldBeValue.equals(value)) {
+    				return true;
+    			}
+    		}
+    	}
+		return false;
+	}
+
 }

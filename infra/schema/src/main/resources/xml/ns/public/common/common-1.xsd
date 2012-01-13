@@ -2690,6 +2690,17 @@
             <xsd:element ref="tns:displayName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:ignore" minOccurs="0"/>
+            <xsd:element name="tolerant" type="xsd:boolean" minOccurs="0" default="true">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			When set to true, allows attribute values that are set outside midPoint.
+            			The synchronization will only remove values that are assigned by midPoint, but will
+            			tolerate extra native values.
+            			When set to false, extra attribute values are not tolerated. When midPoint detects
+            			such value (e.g. during reconciliation) it will remove it.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
             <xsd:element ref="c:access" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>

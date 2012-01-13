@@ -118,6 +118,7 @@ public class ModifyUserAction extends BaseAction {
 
             accountContext.setPolicyDecision(getPolicyDecision());
             accountContext.setActivationDecision(getAccountActivationDecision());
+            accountContext.setDoReconciliation(determineAttributeReconciliation(change));
 
             getSynchronizer().synchronizeUser(context, subResult);
         } catch (Exception ex) {
@@ -137,7 +138,19 @@ public class ModifyUserAction extends BaseAction {
         return userOid;
     }
 
-    private Class<? extends ResourceObjectShadowType> getClassFromChange(ResourceObjectShadowChangeDescription change) {
+	private boolean determineAttributeReconciliation(ResourceObjectShadowChangeDescription change) {
+		Boolean reconcileAttributes = change.getResource().getSynchronization().isReconcileAttributes();
+		if (reconcileAttributes == null) {
+			// "Automatic mode", do reconciliation only if the complete current shadow was provided
+			reconcileAttributes = change.getCurrentShadow() != null;
+			LOGGER.trace("Attribute reconciliation automatic mode: {}",reconcileAttributes);
+		} else {
+			LOGGER.trace("Attribute reconciliation manual mode: {}",reconcileAttributes);
+		}
+		return reconcileAttributes;
+	}
+
+	private Class<? extends ResourceObjectShadowType> getClassFromChange(ResourceObjectShadowChangeDescription change) {
         if (change.getObjectDelta() != null) {
             return change.getObjectDelta().getObjectTypeClass();
         }

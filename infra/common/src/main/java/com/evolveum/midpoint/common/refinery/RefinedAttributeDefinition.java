@@ -41,6 +41,7 @@ public class RefinedAttributeDefinition extends ResourceObjectAttributeDefinitio
 
     private String displayName;
     private String description;
+    private boolean tolerant = true;
     private boolean create = true;
     private boolean read = true;
     private boolean update = true;
@@ -68,7 +69,15 @@ public class RefinedAttributeDefinition extends ResourceObjectAttributeDefinitio
         throw new UnsupportedOperationException("Parts of refined attribute are immutable");
     }
 
-    @Override
+    public boolean isTolerant() {
+		return tolerant;
+	}
+
+	public void setTolerant(boolean tolerant) {
+		this.tolerant = tolerant;
+	}
+
+	@Override
     public boolean canRead() {
         return read;
     }
@@ -251,6 +260,12 @@ public class RefinedAttributeDefinition extends ResourceObjectAttributeDefinitio
 
         if (attrDefType != null) {
 
+        	if (attrDefType.isTolerant() == null) {
+        		rAttrDef.tolerant = true;
+        	} else {
+        		rAttrDef.tolerant = attrDefType.isTolerant();
+        	}
+        	
             if (attrDefType.getOutbound() != null) {
                 rAttrDef.setOutboundValueConstructionType(attrDefType.getOutbound());
             }
@@ -259,6 +274,7 @@ public class RefinedAttributeDefinition extends ResourceObjectAttributeDefinitio
                 rAttrDef.setInboundAssignmentTypes(attrDefType.getInbound());
             }
         }
+        
 
         // TODO: access
 

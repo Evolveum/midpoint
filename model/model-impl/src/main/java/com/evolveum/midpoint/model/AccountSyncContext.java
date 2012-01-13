@@ -297,6 +297,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("OID: ").append(oid);
         sb.append(", assigned=").append(isAssigned);
+        sb.append(", recon=").append(doReconciliation);
         sb.append(", decision=").append(policyDecision);
         sb.append("\n");
         DebugUtil.indentDebugDump(sb, indent);

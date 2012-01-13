@@ -108,6 +108,14 @@ public class PropertyContainer extends Item {
         }
         return properties;
     }
+    
+	public Collection<QName> getPropertyNames() {
+		Collection<QName> names = new HashSet<QName>();
+		for (Property prop: getProperties()) {
+			names.add(prop.getName());
+		}
+		return names;
+	}
 
     /**
      * Adds an item to a property container.

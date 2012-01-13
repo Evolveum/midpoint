@@ -127,10 +127,6 @@ public class UserSynchronizer {
         context.recomputeNew();
         traceContext("Context after OUTBOUND and recompute:\n{}", context);
 
-        reconciliationProcessor.processReconciliation(context, result);
-        context.recomputeNew();
-        traceContext("Context after RECONCILIATION and recompute:\n{}", context);
-
         consolidationProcessor.consolidateValues(context, result);
         context.recomputeNew();
         traceContext("Context after CONSOLIDATION and recompute:\n{}", context);
@@ -142,6 +138,11 @@ public class UserSynchronizer {
         activationProcessor.processActivation(context, result);
         context.recomputeNew();
         traceContext("Context after ACTIVATION and recompute:\n{}", context);
+
+        reconciliationProcessor.processReconciliation(context, result);
+        context.recomputeNew();
+        traceContext("Context after RECONCILIATION and recompute:\n{}", context);
+
     }
 
     private void checkAccountContextReconciliation(SyncContext context, OperationResult result)
