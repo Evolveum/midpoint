@@ -85,19 +85,19 @@
                                            value="#{taskDetails.exclusivityStatus}"/>
                         </ice:selectOneListbox>
                     </ice:panelGrid>
-                    
-					<ice:outputLabel value="Binding style" />
-					<ice:outputText value="#{taskDetails.task.binding}"
-						rendered="#{not taskDetails.editMode}" />
-					<ice:panelGrid rendered="#{taskDetails.editMode}">
-						<ice:selectOneListbox id="binding" partialSubmit="true"
-							value="#{taskDetails.task.binding}"
-							style="min-width: 157px; width: auto;">
-							<f:selectItems id="bindingSelected"
-								value="#{taskDetails.binding}" />
-						</ice:selectOneListbox>
-					</ice:panelGrid>
-                    
+
+                    <ice:outputLabel value="Binding style"/>
+                    <ice:outputText value="#{taskDetails.task.binding}"
+                                    rendered="#{not taskDetails.editMode}"/>
+                    <ice:panelGrid rendered="#{taskDetails.editMode}">
+                        <ice:selectOneListbox id="binding" partialSubmit="true"
+                                              value="#{taskDetails.task.binding}"
+                                              style="min-width: 157px; width: auto;">
+                            <f:selectItems id="bindingSelected"
+                                           value="#{taskDetails.binding}"/>
+                        </ice:selectOneListbox>
+                    </ice:panelGrid>
+
                     <ice:outputLabel value="Schedule interval">
                     </ice:outputLabel>
                     <ice:outputText value="#{taskDetails.task.scheduleInterval}"
@@ -105,13 +105,13 @@
                     <ice:inputText id="scheduleInterval"
                                    rendered="#{taskDetails.editMode}"
                                    value="#{taskDetails.task.scheduleInterval}"/>
-                                   
-					<ice:outputLabel value="Schedule cron-like specification" />
-					<ice:outputText value="#{taskDetails.task.scheduleCronLikePattern}"
-						rendered="#{not taskDetails.editMode}" />
-					<ice:inputText id="scheduleCronLikePattern"
-						rendered="#{taskDetails.editMode}"
-						value="#{taskDetails.task.scheduleCronLikePattern}" />
+
+                    <ice:outputLabel value="Schedule cron-like specification"/>
+                    <ice:outputText value="#{taskDetails.task.scheduleCronLikePattern}"
+                                    rendered="#{not taskDetails.editMode}"/>
+                    <ice:inputText id="scheduleCronLikePattern"
+                                   rendered="#{taskDetails.editMode}"
+                                   value="#{taskDetails.task.scheduleCronLikePattern}"/>
 
                 </ice:panelGrid>
 
@@ -174,7 +174,7 @@
                             action="#{taskList.listFirst}" actionListener="#{taskDetails.claimTaskPerformed}"/>
                 <idm:button value="Save changes"
                             img="/resources/images/disk.png" id="saveChanges"
-                            rendered="#{taskDetails.editMode and (not taskDetails.adding)}" immediate="true"
+                            rendered="#{taskDetails.editMode and (not taskDetails.adding)}"
                             action="#{taskDetails.savePerformed}"/>
 
                 <idm:button action="#{taskDetails.backPerformed}"

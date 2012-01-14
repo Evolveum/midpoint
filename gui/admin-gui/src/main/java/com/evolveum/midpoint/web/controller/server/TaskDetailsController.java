@@ -21,20 +21,6 @@
 
 package com.evolveum.midpoint.web.controller.server;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import javax.faces.event.ActionEvent;
-import javax.faces.model.SelectItem;
-import javax.xml.bind.JAXBException;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Controller;
-import org.w3c.dom.Element;
-
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -60,6 +46,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationTy
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.w3c.dom.Element;
+
+import javax.faces.event.ActionEvent;
+import javax.faces.model.SelectItem;
+import javax.xml.bind.JAXBException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -68,8 +66,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 @Scope("session")
 public class TaskDetailsController implements Serializable {
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(TaskDetailsController.class);
-	
+    private static final transient Trace LOGGER = TraceManager.getTrace(TaskDetailsController.class);
+
     private static final long serialVersionUID = -5990159771865483929L;
     public static final String PAGE_NAVIGATION = "/admin/server/taskDetails?faces-redirect=true";
 
@@ -210,61 +208,64 @@ public class TaskDetailsController implements Serializable {
 
             ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldObject,
                     task.toTaskType());
-            
+
+            //todo fix this modification cleanup mess - remove calculate diff later...
             // original modification
             try {
-            	if (LOGGER.isTraceEnabled())
-            		LOGGER.trace("Modification: " + JAXBUtil.marshalWrap(modification));
-			} catch (JAXBException e) {
-				e.printStackTrace();
-			}
-			
-			// now let us remove OperationResult from the modification request
-			// also remove other information about task execution
-			for (PropertyModificationType pmt : new ArrayList<PropertyModificationType>(modification.getPropertyModification())) {
-				if (pmt.getPath() != null) {
-					if (pmt.getPath().getTextContent().startsWith("c:result/") || 
-							pmt.getPath().getTextContent().equals("c:result"))
-						modification.getPropertyModification().remove(pmt);
-				}
-				List<String> namesToRemove = new ArrayList<String>();
-				namesToRemove.add("lastRunStartTimestamp");
-				namesToRemove.add("lastRunFinishTimestamp");
-				namesToRemove.add("progress");		// is this ok?
-				namesToRemove.add("extension");		// is this ok?
-				
-				if (pmt.getPath() == null || ".".equals(pmt.getPath().getTextContent())) {
-					List<Object> values = pmt.getValue().getAny();
-					if (values.size() == 1) {
-						Object value = values.get(0);
-						if (LOGGER.isTraceEnabled())
-							LOGGER.trace("Value: " + value + " (class: " + value.getClass().getName() + ")");
-						if (value instanceof Element) {
-							String name = ((Element) value).getLocalName();
-							if (namesToRemove.contains(name)) {
-								if (LOGGER.isTraceEnabled())
-									LOGGER.trace("Skipping modification of " + name);
-								modification.getPropertyModification().remove(pmt);
-							}
-						}
-					}
-				}
-			}
+                if (LOGGER.isTraceEnabled())
+                    LOGGER.trace("Modification: " + JAXBUtil.marshalWrap(modification));
+            } catch (JAXBException e) {
+                e.printStackTrace();
+            }
+
+            // now let us remove OperationResult from the modification request
+            // also remove other information about task execution
+            for (PropertyModificationType pmt : new ArrayList<PropertyModificationType>(modification.getPropertyModification())) {
+                if (pmt.getPath() != null) {
+                    if (pmt.getPath().getTextContent().startsWith("c:result/") ||
+                            pmt.getPath().getTextContent().equals("c:result")) {
+                        modification.getPropertyModification().remove(pmt);
+                    }
+                }
+                List<String> namesToRemove = new ArrayList<String>();
+                namesToRemove.add("lastRunStartTimestamp");
+                namesToRemove.add("lastRunFinishTimestamp");
+                namesToRemove.add("progress");        // is this ok?
+                namesToRemove.add("extension");        // is this ok?
+
+                if (pmt.getPath() == null || ".".equals(pmt.getPath().getTextContent())) {
+                    List<Object> values = pmt.getValue().getAny();
+                    if (values.size() == 1) {
+                        Object value = values.get(0);
+                        if (LOGGER.isTraceEnabled())
+                            LOGGER.trace("Value: " + value + " (class: " + value.getClass().getName() + ")");
+                        if (value instanceof Element) {
+                            String name = ((Element) value).getLocalName();
+                            if (namesToRemove.contains(name)) {
+                                if (LOGGER.isTraceEnabled())
+                                    LOGGER.trace("Skipping modification of " + name);
+                                modification.getPropertyModification().remove(pmt);
+                            }
+                        }
+                    }
+                }
+            }
 
             // reduced modification
             try {
-            	if (LOGGER.isTraceEnabled())
-            		LOGGER.trace("Modification without task execution information: " + JAXBUtil.marshalWrap(modification));
-			} catch (JAXBException e) {
-				e.printStackTrace();
-			}
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Modification without task execution information: " + JAXBUtil.marshalWrap(modification));
+                }
+            } catch (JAXBException e) {
+                e.printStackTrace();
+            }
 
-			if (!modification.getPropertyModification().isEmpty()) {
-				taskManager.modifyTask(modification, result);
-				FacesUtils.addSuccessMessage("Task modified successfully");
-			} else
-				FacesUtils.addSuccessMessage("You have done no modifications.");
-			
+            if (!modification.getPropertyModification().isEmpty()) {
+                taskManager.modifyTask(modification, result);
+                FacesUtils.addSuccessMessage("Task modified successfully");
+            } else
+                FacesUtils.addSuccessMessage("You have done no modifications.");
+
             result.recordSuccess();
         } catch (ObjectNotFoundException ex) {
             result.recordFatalError(
