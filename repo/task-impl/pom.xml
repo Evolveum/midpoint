@@ -79,6 +79,11 @@
 			<groupId>commons-pool</groupId>
 			<artifactId>commons-pool</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>net.sf.cron4j</groupId>
+			<artifactId>cron4j</artifactId>
+			<version>${cron4j.version}</version>
+		</dependency>	
 		<!--  Testing dependecies  -->
 		<dependency>
 			<groupId>org.testng</groupId>

@@ -136,7 +136,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		}
 		LOGGER.info("All Task Manager's tasks finished");
 	}
-	
+		
 	void shutdownRunner(TaskRunner runner) {
 		runner.shutdown();
 		try {
@@ -614,6 +614,11 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		QueryType query = new QueryType();
 		query.setFilter(filter);
 		return query;
+	}
+
+	@Override
+	public long determineNextRunStartTime(TaskType taskType) {
+		return ScheduleEvaluator.determineNextRunStartTime(taskType);
 	}
 
 

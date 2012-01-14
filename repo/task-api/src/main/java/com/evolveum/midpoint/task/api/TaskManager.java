@@ -333,5 +333,10 @@ public interface TaskManager {
 	 * @return true if the service threads are running.
 	 */
 	public boolean getServiceThreadsActivationState();
-	
+
+	/**
+	 * Helper function, used to determine when this task
+	 * should run next (0 if it is not a recurring task).
+	 */
+	public long determineNextRunStartTime(TaskType taskType);
 }

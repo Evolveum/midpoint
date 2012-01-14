@@ -75,7 +75,7 @@ public class TaskListController extends SortableListController<TaskItem> {
         List<TaskItem> runningTasks = getObjects();
         runningTasks.clear();
         for (TaskType taskType : taskTypeList) {
-            runningTasks.add(new TaskItem(taskType));
+            runningTasks.add(new TaskItem(taskType, taskManager));
         }
 
         listAll = false;
@@ -87,7 +87,7 @@ public class TaskListController extends SortableListController<TaskItem> {
         List<TaskItem> runningTasks = getObjects();
         runningTasks.clear();
         for (Task task : tasks) {
-            runningTasks.add(new TaskItem(task));
+            runningTasks.add(new TaskItem(task, taskManager));
         }
         listAll = true;
         return PAGE_NAVIGATION;

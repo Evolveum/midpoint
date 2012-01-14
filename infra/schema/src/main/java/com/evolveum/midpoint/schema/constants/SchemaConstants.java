@@ -83,6 +83,7 @@ public abstract class SchemaConstants {
 	public static final QName C_TASK_DESCRIPTION = new QName(NS_C, "description");		
 	public static final QName C_TASK_LAST_RUN_START_TIMESTAMP = new QName(NS_C, "lastRunStartTimestamp");
 	public static final QName C_TASK_LAST_RUN_FINISH_TIMESTAMP = new QName(NS_C, "lastRunFinishTimestamp");
+	public static final QName C_TASK_NEXT_RUN_START_TIME = new QName(NS_C, "nextRunStartTime");
 	public static final QName C_TASK_RESULT = new QName(NS_C, "result");
 	public static final QName C_TASK_PROGRESS = new QName(NS_C, "progress");
 	public static final QName I_RESOURCE = new QName(NS_C, "resource");

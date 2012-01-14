@@ -238,6 +238,7 @@ public interface Task extends Dumpable {
 		
 	public Long getLastRunStartTimestamp();
 	public Long getLastRunFinishTimestamp();
+	public Long getNextRunStartTime();
 	
 	/**
 	 * Returns human-readable name of the task.
@@ -344,6 +345,12 @@ public interface Task extends Dumpable {
 	public boolean isSingle();
 
 	public boolean isCycle();
+
+	public TaskBinding getBinding();
+	
+	public boolean isTightlyBound();
+	
+	public boolean isLooselyBound();
 
 	public ScheduleType getSchedule();
 

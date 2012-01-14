@@ -40,6 +40,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
@@ -71,12 +72,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  */
 public class TaskImpl implements Task {
 	
+	private TaskBinding DEFAULT_BINDING_TYPE = TaskBinding.TIGHT;
+	
 	private String taskIdentifier;
 	private UserType owner;
 	private TaskExecutionStatus executionStatus;
 	private TaskExclusivityStatus exclusivityStatus;
 	private TaskPersistenceStatus persistenceStatus;
 	private TaskRecurrence recurrenceStatus;
+	private TaskBinding binding;
 	private String handlerUri;
 	private UriStack otherHandlersUriStack;
 	private ObjectType object;
@@ -85,6 +89,7 @@ public class TaskImpl implements Task {
 	private String name;
 	private Long lastRunStartTimestamp;
 	private Long lastRunFinishTimestamp;
+	private Long nextRunStartTime;
 	private PropertyContainer extension;
 	private long progress;
 	private TaskManagerImpl taskManager;
@@ -107,6 +112,7 @@ public class TaskImpl implements Task {
 		exclusivityStatus = TaskExclusivityStatus.CLAIMED;
 		persistenceStatus = TaskPersistenceStatus.TRANSIENT;
 		recurrenceStatus = TaskRecurrence.SINGLE;
+		binding = DEFAULT_BINDING_TYPE;
 		extension = new PropertyContainer();
 		progress = 0;
 		repositoryService = null;
@@ -139,6 +145,10 @@ public class TaskImpl implements Task {
 		executionStatus = TaskExecutionStatus.fromTaskType(taskType.getExecutionStatus());
 		exclusivityStatus = TaskExclusivityStatus.fromTaskType(taskType.getExclusivityStatus());
 		recurrenceStatus = TaskRecurrence.fromTaskType(taskType.getRecurrence());
+		binding = TaskBinding.fromTaskType(taskType.getBinding());
+		if (binding == null)
+			binding = DEFAULT_BINDING_TYPE;
+		
 		if (taskType.getOid()==null || taskType.getOid().isEmpty()) {
 			persistenceStatus = TaskPersistenceStatus.TRANSIENT;
 			oid = null;			
@@ -156,6 +166,9 @@ public class TaskImpl implements Task {
 		}
 		if (taskType.getLastRunFinishTimestamp()!=null) {
 			lastRunFinishTimestamp = new Long(XsdTypeConverter.toMillis(taskType.getLastRunFinishTimestamp()));
+		}
+		if (taskType.getNextRunStartTime()!=null) {
+			nextRunStartTime = new Long(XsdTypeConverter.toMillis(taskType.getNextRunStartTime()));
 		}
 		if (taskType.getProgress()!=null) {
 			progress = taskType.getProgress().longValue();
@@ -226,6 +239,11 @@ public class TaskImpl implements Task {
 	@Override
 	public TaskExclusivityStatus getExclusivityStatus() {
 		return exclusivityStatus;
+	}
+
+	@Override
+	public TaskBinding getBinding() {
+		return binding;
 	}
 
 	/* (non-Javadoc)
@@ -423,6 +441,7 @@ public class TaskImpl implements Task {
 		taskType.setExecutionStatus(executionStatus.toTaskType());
 		taskType.setExclusivityStatus(exclusivityStatus.toTaskType());
 		taskType.setRecurrence(recurrenceStatus.toTaskType());
+		taskType.setBinding(binding.toTaskType());
 		
 		if (persistenceStatus == TaskPersistenceStatus.PERSISTENT) {
 			taskType.setOid(oid);
@@ -471,6 +490,11 @@ public class TaskImpl implements Task {
 	}
 
 	@Override
+	public Long getNextRunStartTime() {
+		return nextRunStartTime;
+	}
+	
+	@Override
 	public String dump() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Task(");
@@ -498,6 +522,8 @@ public class TaskImpl implements Task {
 		sb.append(lastRunStartTimestamp);
 		sb.append("\n  lastRunFinishTimestamp: ");
 		sb.append(lastRunFinishTimestamp);
+		sb.append("\n  nextRunStartTime: ");
+		sb.append(nextRunStartTime);
 		sb.append("\n  progress: ");
 		sb.append(progress);
 		sb.append("\n  result: ");
@@ -529,18 +555,32 @@ public class TaskImpl implements Task {
 	public void recordRunFinish(TaskRunResult runResult, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		progress = runResult.getProgress(); 
 		lastRunFinishTimestamp = System.currentTimeMillis();
+		nextRunStartTime = ScheduleEvaluator.determineNextRunStartTime(this);
 		// This is all we need to do for transient tasks
 		if (!isPersistent()) {
 			return;
 		}
-		GregorianCalendar cal = new GregorianCalendar();
-		cal.setTimeInMillis(lastRunFinishTimestamp);
+
 		ObjectModificationType modification = new ObjectModificationType();
 		modification.setOid(oid);
-		PropertyModificationType timestampModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_LAST_RUN_FINISH_TIMESTAMP, cal);
-		modification.getPropertyModification().add(timestampModification);
+
+		// last run time & next start time modification
+		GregorianCalendar calLRFT = new GregorianCalendar();
+		calLRFT.setTimeInMillis(lastRunFinishTimestamp);
+		PropertyModificationType timestampModificationLRFT = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_LAST_RUN_FINISH_TIMESTAMP, calLRFT);
+		modification.getPropertyModification().add(timestampModificationLRFT);
+		if (nextRunStartTime != 0) {
+			GregorianCalendar calNRST = new GregorianCalendar();
+			calNRST.setTimeInMillis(nextRunStartTime);
+			PropertyModificationType timestampModificationNRST = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_NEXT_RUN_START_TIME, calNRST);
+			modification.getPropertyModification().add(timestampModificationNRST);
+		}
+		
+		// progress
 		PropertyModificationType progressModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_PROGRESS, progress);
 		modification.getPropertyModification().add(progressModification);
+		
+		// result
 		PropertyModificationType resultModification = null;
 		if (runResult.getOperationResult()!=null) {
 			resultModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_RESULT, runResult.getOperationResult().createOperationResultType());
@@ -551,7 +591,10 @@ public class TaskImpl implements Task {
 //		// temporary - Pavol Mederly - make changes only if the task run result contains some OperationResult
 //		if (runResult.getOperationResult()!=null)
 			modification.getPropertyModification().add(resultModification);
+			
+		// execute the modification
 		repositoryService.modifyObject(TaskType.class, modification, parentResult);
+		
 		// TODO: Also save the OpResult
 	}
 	
@@ -644,6 +687,16 @@ public class TaskImpl implements Task {
 	public boolean isCycle() {
 		// TODO: binding
 		return (recurrenceStatus == TaskRecurrence.RECURRING);
+	}
+
+	@Override
+	public boolean isTightlyBound() {
+		return binding == TaskBinding.TIGHT;
+	}
+	
+	@Override
+	public boolean isLooselyBound() {
+		return binding == TaskBinding.LOOSE;
 	}
 
 	@Override

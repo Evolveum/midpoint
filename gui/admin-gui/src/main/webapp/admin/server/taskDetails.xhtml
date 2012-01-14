@@ -58,7 +58,11 @@
                     <ice:outputText value="#{taskDetails.task.lastRunFinishTimestamp}"
                                     rendered="#{not taskDetails.adding}"/>
 
-                    <ice:outputLabel value="Execusion status"/>
+                    <ice:outputLabel value="Next planned run start time: " rendered="#{not taskDetails.adding}"/>
+                    <ice:outputText value="#{taskDetails.task.nextRunStartTime}"
+                                    rendered="#{not taskDetails.adding}"/>
+
+                    <ice:outputLabel value="Execution status"/>
                     <ice:outputText value="#{taskDetails.task.executionStatus}"
                                     rendered="#{not taskDetails.editMode}"/>
                     <ice:panelGrid rendered="#{taskDetails.editMode}">
@@ -81,15 +85,34 @@
                                            value="#{taskDetails.exclusivityStatus}"/>
                         </ice:selectOneListbox>
                     </ice:panelGrid>
-
+                    
+					<ice:outputLabel value="Binding style" />
+					<ice:outputText value="#{taskDetails.task.binding}"
+						rendered="#{not taskDetails.editMode}" />
+					<ice:panelGrid rendered="#{taskDetails.editMode}">
+						<ice:selectOneListbox id="binding" partialSubmit="true"
+							value="#{taskDetails.task.binding}"
+							style="min-width: 157px; width: auto;">
+							<f:selectItems id="bindingSelected"
+								value="#{taskDetails.binding}" />
+						</ice:selectOneListbox>
+					</ice:panelGrid>
+                    
                     <ice:outputLabel value="Schedule interval">
-                        <span style="color: red;">*</span>
                     </ice:outputLabel>
                     <ice:outputText value="#{taskDetails.task.scheduleInterval}"
                                     rendered="#{not taskDetails.editMode}"/>
                     <ice:inputText id="scheduleInterval"
                                    rendered="#{taskDetails.editMode}"
                                    value="#{taskDetails.task.scheduleInterval}"/>
+                                   
+					<ice:outputLabel value="Schedule cron-like specification" />
+					<ice:outputText value="#{taskDetails.task.scheduleCronLikePattern}"
+						rendered="#{not taskDetails.editMode}" />
+					<ice:inputText id="scheduleCronLikePattern"
+						rendered="#{taskDetails.editMode}"
+						value="#{taskDetails.task.scheduleCronLikePattern}" />
+
                 </ice:panelGrid>
 
                 <ice:dataTable id="resultTable" value="#{taskDetails.results}" var="item"

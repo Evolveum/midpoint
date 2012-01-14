@@ -62,6 +62,7 @@
         <spring.security.version>3.0.6.RELEASE</spring.security.version>
         <testng.version>6.1.1</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
+        <cron4j.version>2.2.3</cron4j.version>
     </properties>
     <dependencyManagement>
         <dependencies>

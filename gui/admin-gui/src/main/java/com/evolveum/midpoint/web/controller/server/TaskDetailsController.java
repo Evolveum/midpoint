@@ -21,14 +21,32 @@
 
 package com.evolveum.midpoint.web.controller.server;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import javax.faces.event.ActionEvent;
+import javax.faces.model.SelectItem;
+import javax.xml.bind.JAXBException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.TaskItem;
+import com.evolveum.midpoint.web.bean.TaskItemBinding;
 import com.evolveum.midpoint.web.bean.TaskItemExclusivityStatus;
 import com.evolveum.midpoint.web.bean.TaskItemExecutionStatus;
 import com.evolveum.midpoint.web.controller.TemplateController;
@@ -40,17 +58,8 @@ import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Controller;
-
-import javax.faces.event.ActionEvent;
-import javax.faces.model.SelectItem;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * @author lazyman
@@ -59,6 +68,8 @@ import java.util.List;
 @Scope("session")
 public class TaskDetailsController implements Serializable {
 
+	private static final transient Trace LOGGER = TraceManager.getTrace(TaskDetailsController.class);
+	
     private static final long serialVersionUID = -5990159771865483929L;
     public static final String PAGE_NAVIGATION = "/admin/server/taskDetails?faces-redirect=true";
 
@@ -83,6 +94,10 @@ public class TaskDetailsController implements Serializable {
 
     public TaskItemExecutionStatus[] getExecutionStatus() {
         return TaskItemExecutionStatus.values();
+    }
+
+    public TaskItemBinding[] getBinding() {
+        return TaskItemBinding.values();
     }
 
     public boolean isEditMode() {
@@ -195,8 +210,61 @@ public class TaskDetailsController implements Serializable {
 
             ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldObject,
                     task.toTaskType());
-            taskManager.modifyTask(modification, result);
-            FacesUtils.addSuccessMessage("Task modified successfully");
+            
+            // original modification
+            try {
+            	if (LOGGER.isTraceEnabled())
+            		LOGGER.trace("Modification: " + JAXBUtil.marshalWrap(modification));
+			} catch (JAXBException e) {
+				e.printStackTrace();
+			}
+			
+			// now let us remove OperationResult from the modification request
+			// also remove other information about task execution
+			for (PropertyModificationType pmt : new ArrayList<PropertyModificationType>(modification.getPropertyModification())) {
+				if (pmt.getPath() != null) {
+					if (pmt.getPath().getTextContent().startsWith("c:result/") || 
+							pmt.getPath().getTextContent().equals("c:result"))
+						modification.getPropertyModification().remove(pmt);
+				}
+				List<String> namesToRemove = new ArrayList<String>();
+				namesToRemove.add("lastRunStartTimestamp");
+				namesToRemove.add("lastRunFinishTimestamp");
+				namesToRemove.add("progress");		// is this ok?
+				namesToRemove.add("extension");		// is this ok?
+				
+				if (pmt.getPath() == null || ".".equals(pmt.getPath().getTextContent())) {
+					List<Object> values = pmt.getValue().getAny();
+					if (values.size() == 1) {
+						Object value = values.get(0);
+						if (LOGGER.isTraceEnabled())
+							LOGGER.trace("Value: " + value + " (class: " + value.getClass().getName() + ")");
+						if (value instanceof Element) {
+							String name = ((Element) value).getLocalName();
+							if (namesToRemove.contains(name)) {
+								if (LOGGER.isTraceEnabled())
+									LOGGER.trace("Skipping modification of " + name);
+								modification.getPropertyModification().remove(pmt);
+							}
+						}
+					}
+				}
+			}
+
+            // reduced modification
+            try {
+            	if (LOGGER.isTraceEnabled())
+            		LOGGER.trace("Modification without task execution information: " + JAXBUtil.marshalWrap(modification));
+			} catch (JAXBException e) {
+				e.printStackTrace();
+			}
+
+			if (!modification.getPropertyModification().isEmpty()) {
+				taskManager.modifyTask(modification, result);
+				FacesUtils.addSuccessMessage("Task modified successfully");
+			} else
+				FacesUtils.addSuccessMessage("You have done no modifications.");
+			
             result.recordSuccess();
         } catch (ObjectNotFoundException ex) {
             result.recordFatalError(
@@ -281,7 +349,7 @@ public class TaskDetailsController implements Serializable {
     }
 
     public String addPerformed() {
-        TaskItem task = new TaskItem();
+        TaskItem task = new TaskItem(taskManager);
         task.setHandlerUri("http://midpoint.evolveum.com/model/sync/handler-1");
         setTask(task);
 

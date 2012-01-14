@@ -67,8 +67,7 @@ public class MockCycleTaskHandler implements TaskHandler {
 	 */
 	@Override
 	public Long heartbeat(Task task) {
-		// TODO Auto-generated method stub
-		return 0L;
+		return null;		// not to overwrite progress information!
 	}
 
 	/* (non-Javadoc)

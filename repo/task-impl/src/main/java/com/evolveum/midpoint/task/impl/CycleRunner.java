@@ -121,6 +121,12 @@ public class CycleRunner extends TaskRunner {
 				}
 				
 				RepositoryCache.exit();
+
+				// if the task is loosely-bound, exit the loop here
+				if (task.isLooselyBound()) {
+					LOGGER.trace("CycleRunner loop: task is loosely bound, exiting the execution cycle");
+					break;
+				}
 				
 				// Determine how long we need to sleep and hit the bed
 				
@@ -135,7 +141,6 @@ public class CycleRunner extends TaskRunner {
 					// status.
 				}
 
-				// TODO: refresh task definition somehow
 				try {
 					task.refresh(cycleRunnerOpResult);
 				} catch (ObjectNotFoundException ex) {

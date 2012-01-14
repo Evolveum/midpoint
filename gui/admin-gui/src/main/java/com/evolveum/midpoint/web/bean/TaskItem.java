@@ -21,20 +21,26 @@
 
 package com.evolveum.midpoint.web.bean;
 
+import java.math.BigInteger;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.List;
+
+import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ExtensionProcessor;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
-
-import java.math.BigInteger;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 public class TaskItem extends SelectableBean {
 
@@ -45,20 +51,25 @@ public class TaskItem extends SelectableBean {
     private String name;
     private String lastRunStartTimestamp;
     private String lastRunFinishTimestamp;
-    private TaskItemExecutionStatus executionStatus;
+    private String nextRunStartTime;
+	private TaskItemExecutionStatus executionStatus;
     private TaskItemExclusivityStatus exclusivityStatus;
     private TaskItemRecurrenceStatus recurrenceStatus;
     private Long scheduleInterval;
-    private String binding;
+    private String scheduleCronLikePattern;
+    private TaskItemBinding binding;
     private long progress;
     private OperationResult result;
     private PropertyContainer extension;
+    
+    private TaskManager taskManager;
 
-    public TaskItem() {
-
+    public TaskItem(TaskManager taskManager) {
+    	this.taskManager = taskManager;
     }
 
-    public TaskItem(Task task) {
+    public TaskItem(Task task, TaskManager taskManager) {
+    	this.taskManager = taskManager;
         this.handlerUri = task.getHandlerUri();
         if (task.getObjectRef() != null)
             this.objectRef = task.getObjectRef().getOid();
@@ -75,14 +86,22 @@ public class TaskItem extends SelectableBean {
             calendar.setTimeInMillis(task.getLastRunFinishTimestamp());
             this.lastRunFinishTimestamp = calendar.toString();
         }
+        if (task.getNextRunStartTime() != null) {
+            calendar.setTimeInMillis(task.getNextRunStartTime());
+            this.nextRunStartTime = calendar.toString();
+        }
         this.executionStatus = TaskItemExecutionStatus.fromTask(task
                 .getExecutionStatus());
         this.exclusivityStatus = TaskItemExclusivityStatus.fromTask(task
                 .getExclusivityStatus());
-        if (task.getSchedule() != null && task.getSchedule().getInterval() != null) {
-            this.scheduleInterval = task.getSchedule().getInterval().longValue();
-        } else {
-            this.scheduleInterval = null;
+        this.binding = TaskItemBinding.fromTask(task.getBinding());
+        
+        this.scheduleInterval = null;
+        this.scheduleCronLikePattern = null;
+        if (task.getSchedule() != null) {
+        	if (task.getSchedule().getInterval() != null) 
+               this.scheduleInterval = task.getSchedule().getInterval().longValue();
+       		this.scheduleCronLikePattern = task.getSchedule().getCronLikePattern();
         }
 
         this.progress = task.getProgress();
@@ -95,7 +114,8 @@ public class TaskItem extends SelectableBean {
         // recurrenceStatus = TaskItemRecurrenceStatus.fromTask(task.get)
     }
 
-    public TaskItem(TaskType task) {
+    public TaskItem(TaskType task, TaskManager taskManager) {
+    	this.taskManager = taskManager;
         this.handlerUri = task.getHandlerUri();
         if (task.getObjectRef() != null)
             this.objectRef = task.getObjectRef().getOid();
@@ -111,17 +131,26 @@ public class TaskItem extends SelectableBean {
             this.lastRunFinishTimestamp = task.getLastRunFinishTimestamp()
                     .toString();
         }
+        if (task.getNextRunStartTime() != null) {
+            this.nextRunStartTime = task.getNextRunStartTime().toString();
+        }
+
         this.executionStatus = TaskItemExecutionStatus
                 .fromTask(TaskExecutionStatus.fromTaskType(task
                         .getExecutionStatus()));
         this.exclusivityStatus = TaskItemExclusivityStatus
                 .fromTask(TaskExclusivityStatus.fromTaskType(task
                         .getExclusivityStatus()));
-        if (task.getSchedule() != null && task.getSchedule().getInterval() != null) {
-            this.scheduleInterval = task.getSchedule().getInterval().longValue();
-        } else {
-            this.scheduleInterval = null;
+        this.binding = TaskItemBinding.fromTask(TaskBinding.fromTaskType(task.getBinding()));
+
+        this.scheduleInterval = null;
+        this.scheduleCronLikePattern = null;
+        if (task.getSchedule() != null) {
+        	if (task.getSchedule().getInterval() != null) 
+               this.scheduleInterval = task.getSchedule().getInterval().longValue();
+       		this.scheduleCronLikePattern = task.getSchedule().getCronLikePattern();
         }
+
         if (task.getProgress() != null) {
             this.progress = task.getProgress().longValue();
         }
@@ -155,14 +184,22 @@ public class TaskItem extends SelectableBean {
                 getExclusivityStatus()).toTaskType());
         taskType.setExecutionStatus(TaskItemExecutionStatus.toTask(
                 getExecutionStatus()).toTaskType());
+        taskType.setBinding(TaskItemBinding.toTask(getBinding()).toTaskType());
 
         taskType.setRecurrence(TaskItemRecurrenceStatus.toTask(
                 getRecurrenceStatus()).toTaskType());
-
-        taskType.setBinding(TaskBindingType.TIGHT);
+        
         ScheduleType schedule = new ScheduleType();
         schedule.setInterval(BigInteger.valueOf(getScheduleInterval()));
+        schedule.setCronLikePattern(getScheduleCronLikePattern());
         taskType.setSchedule(schedule);
+
+        // here we must compute when the task is to be run next (for recurring tasks);
+        // beware that the schedule & recurring type must be known for this taskType
+        long nextRunTime = taskManager.determineNextRunStartTime(taskType);		// for single-run tasks returns 0
+        if (nextRunTime > 0)
+        	taskType.setNextRunStartTime(XsdTypeConverter.toXMLGregorianCalendar(nextRunTime));
+        
         if (getResult() != null) {
             taskType.setResult(getResult().createOperationResultType());
         }
@@ -181,7 +218,6 @@ public class TaskItem extends SelectableBean {
         taskType.setProgress(BigInteger.valueOf(getProgress()));
 
         return taskType;
-
     }
 
     public void setExclusivityStatus(Task task) {
@@ -249,6 +285,22 @@ public class TaskItem extends SelectableBean {
         this.lastRunFinishTimestamp = lastRunFinishTimestamp;
     }
 
+    public String getNextRunStartTime() {
+		return nextRunStartTime;
+	}
+
+	public void setNextRunStartTime(String nextRunStartTime) {
+		this.nextRunStartTime = nextRunStartTime;
+	}
+
+	public String getScheduleCronLikePattern() {
+		return scheduleCronLikePattern;
+	}
+
+	public void setScheduleCronLikePattern(String scheduleCronLikePattern) {
+		this.scheduleCronLikePattern = scheduleCronLikePattern;
+	}
+
     public TaskItemRecurrenceStatus getRecurrenceStatus() {
         return recurrenceStatus;
     }
@@ -258,18 +310,20 @@ public class TaskItem extends SelectableBean {
     }
 
     public Long getScheduleInterval() {
+//    	System.out.println("getScheduleInterval: " + scheduleInterval);
         return scheduleInterval;
     }
 
     public void setScheduleInterval(Long scheduleInterval) {
+//    	System.out.println("setScheduleInterval to " + scheduleInterval);
         this.scheduleInterval = scheduleInterval;
     }
 
-    public String getBinding() {
+    public TaskItemBinding getBinding() {
         return binding;
     }
 
-    public void setBinding(String binding) {
+    public void setBinding(TaskItemBinding binding) {
         this.binding = binding;
     }
 

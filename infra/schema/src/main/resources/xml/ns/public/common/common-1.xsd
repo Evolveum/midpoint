@@ -1553,6 +1553,14 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="nextRunStartTime" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                A time when the following run is to be executed.
+								(It is set usually after task execution cycle, along with lastRunFinishTimestamp.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="progress" type="xsd:integer" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1748,7 +1756,7 @@
                         until the
                         executing node is up and running.
 
-                        A theread may be running and allocated for the task all the time. The thread may to to sleep as
+                        A thread may be running and allocated for the task all the time. The thread may go to sleep as
                         needed,
                         but during that time the task remains claimed.
 
@@ -1776,6 +1784,14 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Interval in seconds between task invocations.
+                        UNSTABLE. This element will most likely change. A lot.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="cronLikePattern" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Cron-like pattern specifying time(s) when the task is to be run.
                         UNSTABLE. This element will most likely change. A lot.
                     </xsd:documentation>
                 </xsd:annotation>

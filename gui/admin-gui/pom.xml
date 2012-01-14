@@ -173,6 +173,11 @@
 			<groupId>javax.servlet</groupId>
 			<artifactId>jstl</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>net.sf.cron4j</groupId>
+			<artifactId>cron4j</artifactId>
+			<version>${cron4j.version}</version>
+		</dependency>	
         <!-- Test -->
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>

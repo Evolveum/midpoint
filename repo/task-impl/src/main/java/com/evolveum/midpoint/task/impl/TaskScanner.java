@@ -115,31 +115,21 @@ public class TaskScanner extends Thread {
 				if (tasks != null) {
 					LOGGER.trace("Task scanner found {} runnable tasks", tasks.size());
 					for (TaskType task : tasks) {
-							LOGGER.trace("Task scanner: Start processing task " + task.getName() + " (OID: " + task.getOid() + ")");
+							LOGGER.trace("Task scanner: Start processing task " + task.getName() + " (OID: " + task.getOid() + ", next run time: " + task.getNextRunStartTime() + ")");
 						if (canHandle(task)) {
-							if (ScheduleEvaluator.shouldRun(task)) {
-								long startTime = System.currentTimeMillis();
-
+							if (ScheduleEvaluator.shouldRun(task)) {	// in the future we can implement shouldRun as part of the search criteria
 								boolean claimed = false;
 								try {
 									repositoryService.claimTask(task.getOid(), loopResult);
 									claimed = true;
 								} catch (ConcurrencyException ex) {
-									// Claim failed. This means that the
-									// task
-									// was claimed by another
-									// host in the meantime. We don't really
-									// need to care. It will
-									// get executed by the host that
-									// succeeded
-									// in claiming the
-									// task.
-									// Just log warning for now. This can be
-									// switched to DEBUG later.
+									// Claim failed. This means that the task was claimed by another
+									// host in the meantime. We don't really need to care. It will
+									// get executed by the host that succeeded in claiming the
+									// task. Just log warning for now. This can be switched to DEBUG later.
 									LOGGER.warn(
 											"Task scanner: Claiming of task {} failed due to concurrency exception \"{}\", skipping it.",
 											DebugUtil.prettyPrint(task), ex.getMessage());
-
 								}
 
 								if (claimed) {
@@ -151,34 +141,18 @@ public class TaskScanner extends Thread {
 
 										taskManagerImpl.processRunnableTaskType(task, loopResult);
 
-										// TODO: Remember the start time
-										// only if
-										// the
-										// call is successful
+										// TODO: Remember the start time only if the call is successful
 
-										// We do not release the task here.
-										// Task
-										// manager should do it.
-										// We don't know the state of the
-										// task.
-										// The task manage may have
-										// allocated the thread for the task
-										// and
-										// the task may be still running
+										// We do not release the task here. Task manager should do it.
+										// We don't know the state of the task. The task manage may have
+										// allocated the thread for the task and the task may be still running
 										// releasing it now may be an error.
 
 									} catch (RuntimeException ex) {
-										// Runtime exceptions are used from
-										// time
-										// to time, although all the
-										// exceptions that could be
-										// reasonably
-										// caught should be transformed to
-										// Faults, obvious not all of them
-										// are.
-										// Do not cause this thread to die
-										// because of bug in the synchronize
-										// method.
+										// Runtime exceptions are used from time to time, although all the
+										// exceptions that could be reasonably caught should be transformed to
+										// Faults, obvious not all of them are. Do not cause this thread to die
+										// because of bug in the synchronize method.
 
 										// TODO: Better error reporting
 										LOGGER.error(
