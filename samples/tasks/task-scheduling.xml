@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2012 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2012 [name of copyright owner]
+  -->
+
+
+<!--
+
+This file provides a set of tasks demonstrating basic task scheduling
+and task management operations. You can import it and watch how tasks
+are scheduled; then you can try to manage (suspend, resume, edit, delete)
+these tasks via admin GUI.
+
+-->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+         xmlns:noop="http://midpoint.evolveum.com/repo/noop-handler-1"
+         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
+
+    <task oid="00000000-0000-0000-0000-123450000001">
+        <name>Task1: basic single-run task (takes 3x60 sec)</name>
+		<extension>
+			<noop:delay xsi:type="xsd:integer">60000</noop:delay>	<!--  delay simulates a non-interruptible processing -->
+			<noop:steps xsi:type="xsd:integer">3</noop:steps>		<!--  at the end of each step, the NoOp handler looks for shutdown signal -->
+		</extension>
+        <taskIdentifier>10000000-0000-0000-0000-123450000001</taskIdentifier>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+        <executionStatus>running</executionStatus>
+        <exclusivityStatus>released</exclusivityStatus>
+        <handlerUri>http://midpoint.evolveum.com/repo/noop-handler-1</handlerUri>
+        <recurrence>single</recurrence>
+        <binding>tight</binding>
+    </task>
+
+    <task oid="00000000-0000-0000-0000-123450000002">
+        <name>Task2: interval-based recurrent, tightly bound (every 20 sec, takes 2x4 sec)</name>
+		<extension>
+			<noop:delay xsi:type="xsd:integer">4000</noop:delay>
+			<noop:steps xsi:type="xsd:integer">2</noop:steps>
+		</extension>
+        <taskIdentifier>10000000-0000-0000-0000-123450000002</taskIdentifier>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+        <executionStatus>running</executionStatus>
+        <exclusivityStatus>released</exclusivityStatus>
+        <handlerUri>http://midpoint.evolveum.com/repo/noop-handler-1</handlerUri>
+        <recurrence>recurring</recurrence>
+        <binding>tight</binding>
+        <schedule>
+            <interval>20</interval>
+        </schedule>
+    </task>
+
+    <task oid="00000000-0000-0000-0000-123450000003">
+        <name>Task3: interval-based recurrent, loosely bound (every 60 sec, takes 3x10 sec)</name>
+		<extension>
+			<noop:delay xsi:type="xsd:integer">10000</noop:delay>
+			<noop:steps xsi:type="xsd:integer">3</noop:steps>
+		</extension>
+        <taskIdentifier>10000000-0000-0000-0000-123450000003</taskIdentifier>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+        <executionStatus>running</executionStatus>
+        <exclusivityStatus>released</exclusivityStatus>
+        <handlerUri>http://midpoint.evolveum.com/repo/noop-handler-1</handlerUri>
+        <recurrence>recurring</recurrence>
+        <binding>loose</binding>
+        <schedule>
+            <interval>60</interval>
+        </schedule>
+    </task>
+
+    <task oid="00000000-0000-0000-0000-123450000004">
+        <name>Task4: cron-based recurrent, loosely bound (every minute, takes 3x10 sec)</name>
+		<extension>
+			<noop:delay xsi:type="xsd:integer">10000</noop:delay>
+			<noop:steps xsi:type="xsd:integer">3</noop:steps>
+		</extension>
+        <taskIdentifier>10000000-0000-0000-0000-123450000004</taskIdentifier>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+        <executionStatus>running</executionStatus>
+        <exclusivityStatus>released</exclusivityStatus>
+        <handlerUri>http://midpoint.evolveum.com/repo/noop-handler-1</handlerUri>
+        <recurrence>recurring</recurrence>
+        <binding>loose</binding>
+        <schedule>
+            <cronLikePattern>* * * * *</cronLikePattern>
+            <missedScheduleTolerance>10</missedScheduleTolerance>
+        </schedule>
+    </task>
+
+    <task oid="00000000-0000-0000-0000-123450000005">
+        <name>Task5: cron-based recurrent, loosely bound (every 5 minutes, takes 3x20 sec)</name>
+		<extension>
+			<noop:delay xsi:type="xsd:integer">20000</noop:delay>
+			<noop:steps xsi:type="xsd:integer">3</noop:steps>
+		</extension>
+        <taskIdentifier>10000000-0000-0000-0000-123450000005</taskIdentifier>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+        <executionStatus>running</executionStatus>
+        <exclusivityStatus>released</exclusivityStatus>
+        <handlerUri>http://midpoint.evolveum.com/repo/noop-handler-1</handlerUri>
+        <recurrence>recurring</recurrence>
+        <binding>loose</binding>
+        <schedule>
+            <cronLikePattern>0,5,10,15,20,25,30,35,40,45,50,55 * * * *</cronLikePattern>
+        </schedule>
+    </task>
+
+</objects>

@@ -136,8 +136,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 
 	@Override
 	public Long heartbeat(Task task) {
-		// TODO Auto-generated method stub
-		return 0L;
+		return null;	// not to reset progress information
 	}
 
 	@Override

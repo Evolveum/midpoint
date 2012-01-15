@@ -22,9 +22,10 @@
 package com.evolveum.midpoint.web.bean;
 
 import java.math.BigInteger;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.List;
+
+import org.apache.commons.lang.time.DurationFormatUtils;
+import org.apache.commons.lang.time.FastDateFormat;
 
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -49,9 +50,12 @@ public class TaskItem extends SelectableBean {
     private String objectRef;
     private String oid;
     private String name;
-    private String lastRunStartTimestamp;
-    private String lastRunFinishTimestamp;
-    private String nextRunStartTime;
+//    private String lastRunStartTimestamp;
+    private Long lastRunStartTimestampLong;
+//    private String lastRunFinishTimestamp;
+    private Long lastRunFinishTimestampLong;
+//    private String nextRunStartTime;
+    private Long nextRunStartTimeLong;
 	private TaskItemExecutionStatus executionStatus;
     private TaskItemExclusivityStatus exclusivityStatus;
     private TaskItemRecurrenceStatus recurrenceStatus;
@@ -61,6 +65,7 @@ public class TaskItem extends SelectableBean {
     private long progress;
     private OperationResult result;
     private PropertyContainer extension;
+    private String taskIdentifier;
     
     private TaskManager taskManager;
 
@@ -71,25 +76,16 @@ public class TaskItem extends SelectableBean {
     public TaskItem(Task task, TaskManager taskManager) {
     	this.taskManager = taskManager;
         this.handlerUri = task.getHandlerUri();
+        this.taskIdentifier = task.getTaskIdentifier();
         if (task.getObjectRef() != null)
             this.objectRef = task.getObjectRef().getOid();
         else
             this.objectRef = null;
         this.oid = task.getOid();
         this.name = task.getName();
-        Calendar calendar = GregorianCalendar.getInstance();
-        if (task.getLastRunStartTimestamp() != null) {
-            calendar.setTimeInMillis(task.getLastRunStartTimestamp());
-            this.lastRunStartTimestamp = calendar.toString();
-        }
-        if (task.getLastRunFinishTimestamp() != null) {
-            calendar.setTimeInMillis(task.getLastRunFinishTimestamp());
-            this.lastRunFinishTimestamp = calendar.toString();
-        }
-        if (task.getNextRunStartTime() != null) {
-            calendar.setTimeInMillis(task.getNextRunStartTime());
-            this.nextRunStartTime = calendar.toString();
-        }
+        this.lastRunStartTimestampLong = task.getLastRunStartTimestamp();
+        this.lastRunFinishTimestampLong = task.getLastRunFinishTimestamp();
+        this.nextRunStartTimeLong = task.getNextRunStartTime();
         this.executionStatus = TaskItemExecutionStatus.fromTask(task
                 .getExecutionStatus());
         this.exclusivityStatus = TaskItemExclusivityStatus.fromTask(task
@@ -98,10 +94,16 @@ public class TaskItem extends SelectableBean {
         
         this.scheduleInterval = null;
         this.scheduleCronLikePattern = null;
+        this.recurrenceStatus = TaskItemRecurrenceStatus.SINGLE;
         if (task.getSchedule() != null) {
-        	if (task.getSchedule().getInterval() != null) 
-               this.scheduleInterval = task.getSchedule().getInterval().longValue();
-       		this.scheduleCronLikePattern = task.getSchedule().getCronLikePattern();
+        	if (task.getSchedule().getInterval() != null) {
+        		this.scheduleInterval = task.getSchedule().getInterval().longValue();
+        		this.recurrenceStatus = TaskItemRecurrenceStatus.RECURRING;
+        	}
+        	if (task.getSchedule().getCronLikePattern() != null) {
+        		this.scheduleCronLikePattern = task.getSchedule().getCronLikePattern();
+        		this.recurrenceStatus = TaskItemRecurrenceStatus.RECURRING;
+        	}
         }
 
         this.progress = task.getProgress();
@@ -111,12 +113,13 @@ public class TaskItem extends SelectableBean {
         if (task.getExtension() != null) {
             this.extension = task.getExtension();
         }
-        // recurrenceStatus = TaskItemRecurrenceStatus.fromTask(task.get)
+
     }
 
     public TaskItem(TaskType task, TaskManager taskManager) {
     	this.taskManager = taskManager;
         this.handlerUri = task.getHandlerUri();
+        this.taskIdentifier = task.getTaskIdentifier();
         if (task.getObjectRef() != null)
             this.objectRef = task.getObjectRef().getOid();
         else
@@ -124,15 +127,13 @@ public class TaskItem extends SelectableBean {
         this.oid = task.getOid();
         this.name = task.getName();
         if (task.getLastRunStartTimestamp() != null) {
-            this.lastRunStartTimestamp = task.getLastRunStartTimestamp()
-                    .toString();
+            lastRunStartTimestampLong = XsdTypeConverter.toMillis(task.getLastRunStartTimestamp());
         }
         if (task.getLastRunFinishTimestamp() != null) {
-            this.lastRunFinishTimestamp = task.getLastRunFinishTimestamp()
-                    .toString();
+            lastRunFinishTimestampLong = XsdTypeConverter.toMillis(task.getLastRunFinishTimestamp());
         }
         if (task.getNextRunStartTime() != null) {
-            this.nextRunStartTime = task.getNextRunStartTime().toString();
+            nextRunStartTimeLong = XsdTypeConverter.toMillis(task.getNextRunStartTime());
         }
 
         this.executionStatus = TaskItemExecutionStatus
@@ -145,10 +146,16 @@ public class TaskItem extends SelectableBean {
 
         this.scheduleInterval = null;
         this.scheduleCronLikePattern = null;
+        this.recurrenceStatus = TaskItemRecurrenceStatus.SINGLE;
         if (task.getSchedule() != null) {
-        	if (task.getSchedule().getInterval() != null) 
-               this.scheduleInterval = task.getSchedule().getInterval().longValue();
-       		this.scheduleCronLikePattern = task.getSchedule().getCronLikePattern();
+        	if (task.getSchedule().getInterval() != null) {
+        		this.scheduleInterval = task.getSchedule().getInterval().longValue();
+        		this.recurrenceStatus = TaskItemRecurrenceStatus.RECURRING;
+        	}
+        	if (task.getSchedule().getCronLikePattern() != null) {
+        		this.scheduleCronLikePattern = task.getSchedule().getCronLikePattern();
+        		this.recurrenceStatus = TaskItemRecurrenceStatus.RECURRING;
+        	}
         }
 
         if (task.getProgress() != null) {
@@ -178,6 +185,7 @@ public class TaskItem extends SelectableBean {
         ObjectReferenceType ort = new ObjectReferenceType();
         ort.setOid(getObjectRef());
         taskType.setObjectRef(ort);
+        taskType.setTaskIdentifier(taskIdentifier);
         taskType.setHandlerUri(getHandlerUri());
         taskType.setName(getName());
         taskType.setExclusivityStatus(TaskItemExclusivityStatus.toTask(
@@ -190,7 +198,8 @@ public class TaskItem extends SelectableBean {
                 getRecurrenceStatus()).toTaskType());
         
         ScheduleType schedule = new ScheduleType();
-        schedule.setInterval(BigInteger.valueOf(getScheduleInterval()));
+        if (getScheduleInterval() != null)
+        	schedule.setInterval(BigInteger.valueOf(getScheduleInterval()));
         schedule.setCronLikePattern(getScheduleCronLikePattern());
         taskType.setSchedule(schedule);
 
@@ -248,7 +257,7 @@ public class TaskItem extends SelectableBean {
     public String getObjectRef() {
         return objectRef;
     }
-
+    
     public void setObjectRef(String objectRef) {
         this.objectRef = objectRef;
     }
@@ -270,28 +279,28 @@ public class TaskItem extends SelectableBean {
     }
 
     public String getLastRunStartTimestamp() {
-        return lastRunStartTimestamp;
+        return formatDateTime(lastRunStartTimestampLong);  
     }
 
-    public void setLastRunStartTimestamp(String lastRunStartTimestamp) {
-        this.lastRunStartTimestamp = lastRunStartTimestamp;
-    }
+//    public void setLastRunStartTimestamp(String lastRunStartTimestamp) {
+//        this.lastRunStartTimestamp = lastRunStartTimestamp;
+//    }
 
     public String getLastRunFinishTimestamp() {
-        return lastRunFinishTimestamp;
+    	return formatDateTime(lastRunFinishTimestampLong);
     }
 
-    public void setLastRunFinishTimestamp(String lastRunFinishTimestamp) {
-        this.lastRunFinishTimestamp = lastRunFinishTimestamp;
-    }
+//    public void setLastRunFinishTimestamp(String lastRunFinishTimestamp) {
+//        this.lastRunFinishTimestamp = lastRunFinishTimestamp;
+//    }
 
     public String getNextRunStartTime() {
-		return nextRunStartTime;
+    	return formatDateTime(nextRunStartTimeLong);
 	}
 
-	public void setNextRunStartTime(String nextRunStartTime) {
-		this.nextRunStartTime = nextRunStartTime;
-	}
+//	public void setNextRunStartTime(String nextRunStartTime) {
+//		this.nextRunStartTime = nextRunStartTime;
+//	}
 
 	public String getScheduleCronLikePattern() {
 		return scheduleCronLikePattern;
@@ -357,5 +366,57 @@ public class TaskItem extends SelectableBean {
 
     public void setExtension(PropertyContainer extension) {
         this.extension = extension;
+    }
+
+    private String formatDateTime(Long millis) {
+    	if (millis == null || millis == 0) {
+    		return "-";
+    	} else {
+    		return FastDateFormat.getInstance().format(millis);
+//    		return XsdTypeConverter.toXMLGregorianCalendar(millis).toXMLFormat();
+    	}
+    }
+
+    private String formatTimeInterval(Long interval) {
+    	return DurationFormatUtils.formatDurationWords(interval, true, true);
+    }
+    
+    public boolean taskRunNotFinished() {
+    	return lastRunStartTimestampLong != null && 
+			(lastRunFinishTimestampLong == null || lastRunStartTimestampLong > lastRunFinishTimestampLong);
+    }
+    
+    public boolean isAlive() {
+    	return taskManager.isTaskThreadActive(taskIdentifier);
+    }
+    
+    public String getCurrentRunTime() {
+    	if (taskRunNotFinished()) {
+    		if (isAlive()) {
+    			return formatTimeInterval(System.currentTimeMillis() - lastRunStartTimestampLong);
+    		} else {
+    			return "finish time unknown, task thread dead";
+    		}
+    	} else {
+    		return "-";
+    	}
+    }
+
+    public String getStartsAgainAfter() {
+    	long current = System.currentTimeMillis();
+    	if (!TaskItemRecurrenceStatus.RECURRING.equals(recurrenceStatus)) {
+    		return "-";
+    	} else if (taskRunNotFinished()) {
+    		return "to be computed";		// we compute nextRunStartTimeLong after a task run finishes
+    	} else if (nextRunStartTimeLong != null && nextRunStartTimeLong > 0) {
+    			if (nextRunStartTimeLong > current+1000) {
+    				return "in " + formatTimeInterval(nextRunStartTimeLong - System.currentTimeMillis());
+    			} else {
+    				return "now";
+    			}
+    	} else {
+    		return "-";		// either a task is not recurring, or the next run start time has not been determined yet 
+    						// TODO: if necessary, this could be made more clear in the future
+    	}
     }
 }

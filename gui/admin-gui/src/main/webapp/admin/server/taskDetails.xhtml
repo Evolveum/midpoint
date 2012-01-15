@@ -33,12 +33,10 @@
                                    rendered="#{taskDetails.editMode}"/>
 
                     <ice:outputLabel value="Handler uri: ">
-                        <span style="color: red;">*</span>
                     </ice:outputLabel>
                     <ice:outputText value="#{taskDetails.task.handlerUri}"/>
 
                     <ice:outputLabel value="Object ref: ">
-                        <span style="color: red;">*</span>
                     </ice:outputLabel>
                     <ice:outputText value="#{taskDetails.task.objectRef}"
                                     rendered="#{not taskDetails.editMode}"/>
@@ -156,22 +154,22 @@
                             id="editTask" immediate="true"
                             action="#{taskDetails.editPerformed}"
                             rendered="#{(not taskDetails.editMode) and (not taskDetails.adding)}"/>
-                <idm:button value="Create task instance"
-                            img="/resources/images/application_double.png" id="createTaskInstance"
+                <idm:button value="Suspend task"
+                            img="/resources/images/application_get.png" id="suspendTask"
                             rendered="#{not taskDetails.editMode}" immediate="true"
-                            action="#{taskDetails.createInstancePerformed}"/>
+                            action="#{taskList.listFirst}" actionListener="#{taskDetails.suspendTaskPerformed}"/>
+                <idm:button value="Resume task"
+                            img="/resources/images/application_double.png" id="resumeTask"
+                            rendered="#{not taskDetails.editMode}" immediate="true"
+                            action="#{taskList.listFirst}" actionListener="#{taskDetails.resumeTaskPerformed}"/>
+                <idm:button value="Release task"
+                            img="/resources/images/application_put.png" id="releaseTask"
+                            rendered="#{not taskDetails.editMode}" immediate="true"
+                            action="#{taskList.listFirst}" actionListener="#{taskDetails.releaseTaskPerformed}"/>
                 <idm:button value="Delete task"
                             img="/resources/images/application_delete.png" id="deleteTask"
                             rendered="#{not taskDetails.editMode}" immediate="true"
                             action="#{taskList.deleteTask}"/>
-                <idm:button value="Release task"
-                            img="/resources/images/application_get.png" id="releaseTask"
-                            rendered="#{not taskDetails.editMode}" immediate="true"
-                            action="#{taskList.listFirst}" actionListener="#{taskDetails.releaseTaskPerformed}"/>
-                <idm:button value="Claim task"
-                            img="/resources/images/application_put.png" id="claimTask"
-                            rendered="#{not taskDetails.editMode}" immediate="true"
-                            action="#{taskList.listFirst}" actionListener="#{taskDetails.claimTaskPerformed}"/>
                 <idm:button value="Save changes"
                             img="/resources/images/disk.png" id="saveChanges"
                             rendered="#{taskDetails.editMode and (not taskDetails.adding)}"

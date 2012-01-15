@@ -24,6 +24,7 @@ import it.sauronsoftware.cron4j.Predictor;
 
 import java.util.Date;
 
+import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -56,6 +57,32 @@ public class ScheduleEvaluator {
 			return true;
 	}
 	
+	/**
+	 * Determines whether this task has missed its scheduled start.
+	 * It can occur for tasks scheduled to a fixed moment (currently using cron-like specification).
+	 * 
+	 * @param taskType
+	 * @return
+	 */
+	public static boolean missedScheduledStart(TaskType taskType) {
+		if (TaskRecurrenceType.RECURRING.equals(taskType.getRecurrence()) &&
+				taskType.getSchedule() != null &&
+				taskType.getSchedule().getCronLikePattern() != null &&
+				taskType.getSchedule().getMissedScheduleTolerance() != null) {
+			
+			if (taskType.getNextRunStartTime() == null) {
+				return true;	// if it was not scheduled yet, and we have (any) defined tolerance, we should reschedule
+			}
+			
+			// otherwise let us look whether we are behind tolerance window
+			long nextRunTime = XsdTypeConverter.toMillis(taskType.getNextRunStartTime());
+			long tolerance = taskType.getSchedule().getMissedScheduleTolerance().longValue();
+			return System.currentTimeMillis() > nextRunTime + tolerance;
+			
+		} else {
+			return false;		// ok, we have not missed the scheduled start (perhaps there was none :)
+		}
+	}
 
 	/**
 	 * Determines how long to sleep until next run of this (cyclic) tasks.

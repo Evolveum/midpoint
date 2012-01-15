@@ -51,6 +51,17 @@ public enum TaskExecutionStatus {
 	 * the task.
 	 */
 	WAITING,
+	
+	/**
+	 * The task has been suspended. It waits until an instruction to resume it arrives.
+	 * After that, it will (usually) go to the RUNNING state again. Or, it can be closed
+	 * in the suspended state as well.
+	 * 
+	 * If a task that is currently executing (i.e. claimed) is suspended, it will first
+	 * be in SUSPENDED/CLAIMED state, until its handler finishes the execution. After that,
+	 * it will go into SUSPENDED/RELEASED state, where it will remain until resumed. 
+	 */
+	SUSPENDED,
 
 	/**
 	 * The task is done. No other changes or progress will happen. The task in
@@ -72,7 +83,10 @@ public enum TaskExecutionStatus {
 		if (executionStatus == TaskExecutionStatusType.CLOSED) {
 			return CLOSED;
 		}
-		throw new IllegalArgumentException("Unknown exectution status type "+executionStatus);
+		if (executionStatus == TaskExecutionStatusType.SUSPENDED) {
+			return SUSPENDED;
+		}
+		throw new IllegalArgumentException("Unknown execution status type "+executionStatus);
 	}
 
 	public TaskExecutionStatusType toTaskType() {
@@ -85,6 +99,9 @@ public enum TaskExecutionStatus {
 		if (this==CLOSED) {
 			return TaskExecutionStatusType.CLOSED;
 		}
-		throw new IllegalArgumentException("Unknown exectution status type "+this);
+		if (this==SUSPENDED) {
+			return TaskExecutionStatusType.SUSPENDED;
+		}
+		throw new IllegalArgumentException("Unknown execution status type "+this);
 	}
 }

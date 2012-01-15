@@ -1641,6 +1641,22 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="suspended">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The task has been suspended. It waits until an instruction to resume it arrives.
+                        After that, it will (usually) go to the RUNNING state again. Or, it can be closed
+                        in the suspended state as well.
+                        
+                        If a task that is currently executing (i.e. claimed) is suspended, it will first
+                        be in SUSPENDED/CLAIMED state, until its handler finishes the execution. After that,
+                        it will go into SUSPENDED/RELEASED state, where it will remain until resumed.  
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SUSPENDED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="closed">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1793,6 +1809,21 @@
                     <xsd:documentation>
                         Cron-like pattern specifying time(s) when the task is to be run.
                         UNSTABLE. This element will most likely change. A lot.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="missedScheduleTolerance" type="xsd:integer" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Used in connection with cronLikePattern. If the task is not run
+                        at a given time instant (e.g. Monday 8:00 AM), e.g. because the
+                        midPoint is not running at that moment, what is the end of the
+                        period in which it would be possible to execute this week's task run?
+                        Given in seconds. E.g., 3600 means that this weekly task would be able
+                        to start from Monday 8:00 AM to Monday 9:00 AM. E.g. 86400 means the whole day.
+                        
+                        If 0, the task can be run at any time after a missed scheduled time instant.
+                        UNSTABLE. This element may change.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

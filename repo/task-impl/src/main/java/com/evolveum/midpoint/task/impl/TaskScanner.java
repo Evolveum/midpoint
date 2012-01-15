@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.task.impl;
 
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.MDC;
@@ -28,21 +29,16 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ConcurrencyException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExclusivityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
@@ -117,49 +113,58 @@ public class TaskScanner extends Thread {
 					for (TaskType task : tasks) {
 							LOGGER.trace("Task scanner: Start processing task " + task.getName() + " (OID: " + task.getOid() + ", next run time: " + task.getNextRunStartTime() + ")");
 						if (canHandle(task)) {
-							if (ScheduleEvaluator.shouldRun(task)) {	// in the future we can implement shouldRun as part of the search criteria
-								boolean claimed = false;
-								try {
-									repositoryService.claimTask(task.getOid(), loopResult);
-									claimed = true;
-								} catch (ConcurrencyException ex) {
-									// Claim failed. This means that the task was claimed by another
-									// host in the meantime. We don't really need to care. It will
-									// get executed by the host that succeeded in claiming the
-									// task. Just log warning for now. This can be switched to DEBUG later.
-									LOGGER.warn(
-											"Task scanner: Claiming of task {} failed due to concurrency exception \"{}\", skipping it.",
-											DebugUtil.prettyPrint(task), ex.getMessage());
-								}
-
-								if (claimed) {
-
+							// should run = has the 'nextRunStartTime' arrived?
+							if (ScheduleEvaluator.shouldRun(task)) {	// TODO in the future we can implement shouldRun as part of the search criteria
+								if (!ScheduleEvaluator.missedScheduledStart(task)) {
+									boolean claimed = false;
 									try {
-
-										LOGGER.debug("Task scanner is passing task to task manager:  "
-												+ DebugUtil.prettyPrint(task));
-
-										taskManagerImpl.processRunnableTaskType(task, loopResult);
-
-										// TODO: Remember the start time only if the call is successful
-
-										// We do not release the task here. Task manager should do it.
-										// We don't know the state of the task. The task manage may have
-										// allocated the thread for the task and the task may be still running
-										// releasing it now may be an error.
-
-									} catch (RuntimeException ex) {
-										// Runtime exceptions are used from time to time, although all the
-										// exceptions that could be reasonably caught should be transformed to
-										// Faults, obvious not all of them are. Do not cause this thread to die
-										// because of bug in the synchronize method.
-
-										// TODO: Better error reporting
-										LOGGER.error(
-												"Task scanner got runtime exception (processRunnableTaskType): {} : {}",
-												new Object[] { ex.getClass().getSimpleName(), ex.getMessage(), ex });
+										repositoryService.claimTask(task.getOid(), loopResult);
+										task.setExclusivityStatus(TaskExclusivityStatusType.CLAIMED);
+										claimed = true;
+									} catch (ConcurrencyException ex) {
+										// Claim failed. This means that the task was claimed by another
+										// host in the meantime. We don't really need to care. It will
+										// get executed by the host that succeeded in claiming the
+										// task. Just log warning for now. This can be switched to DEBUG later.
+										LOGGER.warn(
+												"Task scanner: Claiming of task {} failed due to concurrency exception \"{}\", skipping it.",
+												DebugUtil.prettyPrint(task), ex.getMessage());
 									}
-								} // claimed
+	
+									if (claimed) {
+	
+										try {
+	
+											LOGGER.debug("Task scanner is passing task to task manager:  "
+													+ DebugUtil.prettyPrint(task));
+	
+											taskManagerImpl.processRunnableTaskType(task, loopResult);
+	
+											// TODO: Remember the start time only if the call is successful (note: really? beware of new scheduling algorithm) 
+	
+											// We do not release the task here. Task manager should do it.
+											// We don't know the state of the task. The task manage may have
+											// allocated the thread for the task and the task may be still running
+											// releasing it now may be an error.
+	
+										} catch (RuntimeException ex) {
+											// Runtime exceptions are used from time to time, although all the
+											// exceptions that could be reasonably caught should be transformed to
+											// Faults, obvious not all of them are. Do not cause this thread to die
+											// because of bug in the synchronize method.
+	
+											// TODO: Better error reporting
+											LOGGER.error(
+													"Task scanner got runtime exception (processRunnableTaskType): {} : {}",
+													new Object[] { ex.getClass().getSimpleName(), ex.getMessage(), ex });
+										}
+									} // claimed
+								} else {
+									// we have missed scheduled start => reschedule
+									long nextRunTime = ScheduleEvaluator.determineNextRunStartTime(task);
+									LOGGER.info("Task scanner: missed or non-existing scheduled start (" + task.getNextRunStartTime() + ") for " + DebugUtil.prettyPrint(task) + ", rescheduling to " + new Date(nextRunTime));
+									taskManagerImpl.recordNextRunStartTime(task.getOid(), nextRunTime, loopResult);
+								}
 							} else {
 								LOGGER.trace("Task scanner: skipping task " + DebugUtil.prettyPrint(task)
 										+ " because it should not run yet");

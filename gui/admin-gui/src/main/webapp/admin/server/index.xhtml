@@ -34,7 +34,7 @@
 				</ice:panelPopup>
 			</ui:remove>
 			<div class="button-bar">
-				<idm:button value="List running tasks"
+				<idm:button value="List currently executing tasks"
 					img="/resources/images/application_view_list.png" id="runningTasks"
 					immediate="true" action="#{taskList.listRunningTasks}" />
 				<idm:button value="List all tasks"
@@ -44,7 +44,7 @@
 			<ice:dataTable id="taskTable" rows="50" value="#{taskList.objects}"
 				var="item" columnClasses="iceDatTblCol1"
 				rowClasses="iceDatTblRow1 iceDatTblRow2"
-				columnWidths="auto, 250px, 230px, 220px" resizable="false">
+				columnWidths="auto, 250px, 180px, 150px, auto, auto, auto, auto" resizable="false">
 				<ice:column>
 					<f:facet name="header">
 						<ice:selectBooleanCheckbox id="selectAllCheckbox"
@@ -91,14 +91,59 @@
 					</f:facet>
 					<ice:outputText value="#{item.objectRef}" />
 				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:commandSortHeader columnName="execution" arrow="true"
+							actionListener="#{taskList.sortList}">
+							<ice:outputText id="executionTxt" value="Execution" />
+						</ice:commandSortHeader>
+					</f:facet>
+					<ice:outputText value="#{item.executionStatus}" />
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:commandSortHeader columnName="thread" arrow="true"
+							actionListener="#{taskList.sortList}">
+							<ice:outputText id="threadTxt" value="Thread alive" />
+						</ice:commandSortHeader>
+					</f:facet>
+					<ice:outputText value="#{item.alive}" />
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:commandSortHeader columnName="exclusivity" arrow="true"
+							actionListener="#{taskList.sortList}">
+							<ice:outputText id="exclusivityTxt" value="Exclusivity" />
+						</ice:commandSortHeader>
+					</f:facet>
+					<ice:outputText value="#{item.exclusivityStatus}" />
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:commandSortHeader columnName="running" arrow="true"
+							actionListener="#{taskList.sortList}">
+							<ice:outputText id="runningTxt" value="Current run time" />
+						</ice:commandSortHeader>
+					</f:facet>
+					<ice:outputText value="#{item.currentRunTime}" />
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:commandSortHeader columnName="nextRun" arrow="true"
+							actionListener="#{taskList.sortList}">
+							<ice:outputText id="nextRunTxt" value="Scheduled to run again" />
+						</ice:commandSortHeader>
+					</f:facet>
+					<ice:outputText value="#{item.startsAgainAfter}" />
+				</ice:column>
 			</ice:dataTable>
 
 			<div class="button-bar">
-				<idm:button value="Deactivate"
+				<idm:button value="Deactivate all execution threads"
 					img="/resources/images/link_break.png"
 					id="deactivateServiceThreads" immediate="true"
 					action="#{taskList.deactivate}" />
-				<idm:button value="Reactivate" img="/resources/images/link_go.png"
+				<idm:button value="Reactivate all execution threads" img="/resources/images/link_go.png"
 					id="reactivateServiceThreads" immediate="true"
 					action="#{taskList.reactivate}" />
 			</div>

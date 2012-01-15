@@ -90,6 +90,10 @@ public class ObjectTypeUtil {
         PropertyModificationType change = new PropertyModificationType();
         change.setValue(new Value());
         change.setModificationType(changeType);
+        if (xpathType == null) {
+            // Default XPath is empty XPath, which means "."
+            xpathType = new XPathHolder();
+        }
         change.setPath(xpathType.toElement(SchemaConstants.NS_C, "path"));
         change.getValue().getAny().add(element);
 

@@ -568,13 +568,12 @@ public class TaskImpl implements Task {
 		GregorianCalendar calLRFT = new GregorianCalendar();
 		calLRFT.setTimeInMillis(lastRunFinishTimestamp);
 		PropertyModificationType timestampModificationLRFT = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_LAST_RUN_FINISH_TIMESTAMP, calLRFT);
+
 		modification.getPropertyModification().add(timestampModificationLRFT);
-		if (nextRunStartTime != 0) {
-			GregorianCalendar calNRST = new GregorianCalendar();
-			calNRST.setTimeInMillis(nextRunStartTime);
-			PropertyModificationType timestampModificationNRST = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_NEXT_RUN_START_TIME, calNRST);
-			modification.getPropertyModification().add(timestampModificationNRST);
-		}
+
+		// FIXME: if nextRunStartTime == 0 we should delete the corresponding element; however, this does not work as for now
+		if (nextRunStartTime > 0)
+			modification.getPropertyModification().add(TaskManagerImpl.createNextRunStartTimeModification(nextRunStartTime));
 		
 		// progress
 		PropertyModificationType progressModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_PROGRESS, progress);

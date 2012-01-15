@@ -94,7 +94,7 @@ public abstract class TaskRunner implements Runnable {
 				LOGGER.error("Error saving progress to task "+task+": Object not found: "+e.getMessage()+", the task will be stopped",e);
 				// The task object in repo is gone. Therefore this task should not run any more.
 				// Therefore commit sepukku
-				taskManager.shutdownRunner(this);
+				taskManager.shutdownAndRemoveRunner(this);
 			} catch (SchemaException e) {
 				LOGGER.error("Error saving progress to task "+task+": Schema violation: "+e.getMessage(),e);
 			}			

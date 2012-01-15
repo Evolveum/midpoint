@@ -315,14 +315,33 @@ public class TaskDetailsController implements Serializable {
         return TaskListController.PAGE_NAVIGATION;
     }
 
-    public void claimTaskPerformed(ActionEvent evt) {
-        OperationResult result = new OperationResult(TaskDetailsController.class.getName() + ".claimTask");
+    public void resumeTaskPerformed(ActionEvent evt) {
+        OperationResult result = new OperationResult(TaskDetailsController.class.getName() + ".resumeTask");
         try {
-            Task taskToClaim = taskManager.getTask(task.getOid(), result);
-            taskManager.claimTask(taskToClaim, result);
-            FacesUtils.addSuccessMessage("Task claimed successfully.");
+            Task taskToResume = taskManager.getTask(task.getOid(), result);
+            taskManager.resumeTask(taskToResume, result);
+            FacesUtils.addSuccessMessage("Task resumed successfully.");
         } catch (Exception ex) {
-            FacesUtils.addErrorMessage("Failed to claim task. Reason: " + ex.getMessage(), ex);
+            FacesUtils.addErrorMessage("Failed to resume task. Reason: " + ex.getMessage(), ex);
+        } finally {
+            result.computeStatus();
+            if (!result.isSuccess()) {
+                FacesUtils.addMessage(result);
+            }
+        }
+    }
+
+    public void suspendTaskPerformed(ActionEvent evt) {
+        OperationResult result = new OperationResult(TaskDetailsController.class.getName() + ".suspendTask");
+        try {
+            Task task = taskManager.getTask(this.task.getOid(), result);
+            boolean down = taskManager.suspendTask(task, 1000L, result);
+            if (down)
+            	FacesUtils.addSuccessMessage("Task has been successfully suspended.");
+            else
+            	FacesUtils.addWarnMessage("Task suspension has been successfully requested; please check for its completion using task list.");
+        } catch (Exception ex) {
+            FacesUtils.addErrorMessage("Failed to suspend task. Reason: " + ex.getMessage(), ex);
         } finally {
             result.computeStatus();
             if (!result.isSuccess()) {

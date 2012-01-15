@@ -256,7 +256,35 @@ public interface TaskManager {
 	 * @throws IllegalArgumentException attempt to release a task that is not claimed.
 	 */
 	public void releaseTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
-	
+
+	/**
+	 * Suspend task.
+	 * 
+	 * TODO
+	 * 
+	 * TODO: EXCEPTIONS
+	 * 
+	 * @param task task instance to claim
+	 * @throws SchemaException 
+	 * @throws ConcurrencyException 
+	 * @throws ObjectNotFoundException 
+	 */
+	public boolean suspendTask(Task task, long waitTime, OperationResult parentResult) throws ObjectNotFoundException, ConcurrencyException, SchemaException;
+
+	/**
+	 * Resume suspended task.
+	 * 
+	 * TODO
+	 * 
+	 * TODO: EXCEPTIONS
+	 * 
+	 * @param task task instance to claim
+	 * @throws SchemaException 
+	 * @throws ConcurrencyException 
+	 * @throws ObjectNotFoundException 
+	 */
+	public void resumeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, ConcurrencyException, SchemaException;
+
 	/**
 	 * Switches the provided task to background, making it asynchronous.
 	 * 
@@ -339,4 +367,12 @@ public interface TaskManager {
 	 * should run next (0 if it is not a recurring task).
 	 */
 	public long determineNextRunStartTime(TaskType taskType);
+
+	/**
+	 * Indicates whether execution thread for this task is active (i.e. whether it exists).
+	 * 
+	 * @param taskIdentifier
+	 * @return
+	 */
+	public boolean isTaskThreadActive(String taskIdentifier);
 }

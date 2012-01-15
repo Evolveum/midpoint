@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.task.impl;
 
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -48,9 +49,11 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
@@ -60,9 +63,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExclusivityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 /**
@@ -115,6 +121,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	@PostConstruct
 	public void init() {
 		LOGGER.info("Task Manager initialization");
+		NoOpTaskHandler.instantiateAndRegister(this);
 		releaseClaimedTasks();
 		startInternalThreads();
 		LOGGER.info("Task Manager initialized");
@@ -132,22 +139,37 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		//we will wait for all tasks to finish correctly till we proceed with shutdown procedure
 		LOGGER.info("Wait for Task Manager's tasks finish");
 		for (TaskRunner runner : runners) {
-			shutdownRunner(runner);
+			shutdownAndRemoveRunner(runner);
 		}
 		LOGGER.info("All Task Manager's tasks finished");
 	}
-		
-	void shutdownRunner(TaskRunner runner) {
+
+	void shutdownRunner(TaskRunner runner, long waitTime) {
 		runner.shutdown();
 		try {
-			runner.thread.join();
-			runners.remove(runner);
+			runner.thread.join(waitTime);
+//			runners.remove(runner);					// removal from runners is done by finishRunnableTask
 		} catch (InterruptedException e) {
 			// Safe to ignore. 
 			LOGGER.trace("TaskManager waiting for join task threads got InterruptedException: " + e);
 		}
 	}
-	
+
+	void shutdownRunner(TaskRunner runner) {
+		shutdownRunner(runner, 0);
+	}
+
+	/**
+	 * Shutdowns and explicitly removes a runner. Used in emergency situations, where we cannot 
+	 * expect that finishRunnableTask will remove the runner for us.
+	 * 
+	 * @param runner
+	 */
+	void shutdownAndRemoveRunner(TaskRunner runner) {
+		shutdownRunner(runner, 0);
+		runners.remove(runner);
+	}
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.task.api.TaskManager#createTaskInstance()
 	 */
@@ -260,6 +282,8 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		result.addParam(OperationResult.PARAM_OID, task.getOid());
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerImpl.class);
 
+		task.setExclusivityStatus(TaskExclusivityStatus.RELEASED);
+		
 		// if the task is transient, we have to persist it first
 		if (task.getPersistenceStatus() == TaskPersistenceStatus.TRANSIENT)
 			persist(task, result);
@@ -499,7 +523,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		
 		// We have claimed the task before, therefore we need to release the task here.
 		releaseTask(task,parentResult);
-		runners.remove(runner);
+		runners.remove(runner);			// TODO what if releaseTask throws an exception?
 	}
 	
 	private Thread allocateThread(Task task, Runnable target) {
@@ -518,6 +542,16 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 			tasks.add(runner.getTask());
 		}
 		return tasks;
+	}
+
+	private TaskRunner findRunner(String taskIdentifier) {
+		Set<Task> tasks = new HashSet<Task>();
+		for (TaskRunner runner: runners) {
+			if (taskIdentifier.equals(runner.getTask().getTaskIdentifier())) {
+				return runner; 
+			}
+		}
+		return null;
 	}
 
 	@Override
@@ -621,7 +655,111 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		return ScheduleEvaluator.determineNextRunStartTime(taskType);
 	}
 
+	/**
+	 * Draft implementation.
+	 * Works only for persistent tasks.
+	 * Returns true if the runner is down, false if it is still running.
+	 */
+	@Override
+	public boolean suspendTask(Task task, long waitTime, OperationResult parentResult) throws ObjectNotFoundException,
+			ConcurrencyException, SchemaException {
+		
+		LOGGER.info("Suspending task " + task + " (waiting " + waitTime + " msec)");
 
+		if (task.getOid() == null)
+			throw new IllegalArgumentException("Only persistent tasks can be suspended (for now).");
+		suspendTaskByOid(task.getOid(), parentResult);
+		
+		TaskRunner runner = findRunner(task.getTaskIdentifier());
+		LOGGER.trace("Suspending task " + task + ", runner = " + runner);
+		if (runner != null) {
+			shutdownRunner(runner, waitTime);
+			LOGGER.trace("Suspending task " + task + ", runner.thread = " + runner.thread + ", isAlive: " + runner.thread.isAlive());
+		}
+		
+		boolean retval = runner == null || !runner.thread.isAlive();
+		LOGGER.info("Suspending task " + task + ": done (is down = " + retval + ")");
+		return retval;
+	}
+
+	private void suspendTaskByOid(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		try {
+			ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid,
+				SchemaConstants.C_TASK_EXECUTION_STATUS, TaskExecutionStatusType.SUSPENDED.value());
+			repositoryService.modifyObject(TaskType.class, modification, result);
+		} catch (ObjectNotFoundException ex) {
+			result.recordFatalError("Cannot suspend task, as it was not found", ex);
+			throw ex;
+		} catch (SchemaException ex) {
+			result.recordPartialError("Cannot suspend task due to schema error", ex);
+			throw ex;
+		}
+	}
+
+	@Override
+	public void resumeTask(Task task, OperationResult result) throws ObjectNotFoundException,
+			ConcurrencyException, SchemaException {
+		LOGGER.info("Resuming task " + task);
+
+		String oid = task.getOid(); 
+		if (oid == null)
+			throw new IllegalArgumentException("Only persistent tasks can be resumed (for now).");
+		
+		// TODO: check whether task is suspended
+		// TODO: recompute next running time
+		
+		try {
+			ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid,
+				SchemaConstants.C_TASK_EXECUTION_STATUS, TaskExecutionStatusType.RUNNING.value());
+			repositoryService.modifyObject(TaskType.class, modification, result);
+		} catch (ObjectNotFoundException ex) {
+			result.recordFatalError("Cannot resume task, as it was not found", ex);
+			throw ex;
+		} catch (SchemaException ex) {
+			result.recordPartialError("Cannot resume task due to schema error", ex);
+			throw ex;
+		}
+
+	}
+
+	static PropertyModificationType createNextRunStartTimeModification(long time) {
+		if (time != 0) {
+			GregorianCalendar cal = new GregorianCalendar();
+			cal.setTimeInMillis(time);
+			return ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_NEXT_RUN_START_TIME, cal);
+		} else {
+			// this would not work due to a problem in PatchXML (probably!)
+			return ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.delete, null, SchemaConstants.C_TASK_NEXT_RUN_START_TIME);
+		}
+	}
+	
+	public void recordNextRunStartTime(String oid, long time, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		
+		// FIXME: if nextRunStartTime == 0 we should delete the corresponding element; however, this does not work as for now
+		// so we just exit here, leaving nextRunStartTime as it is
+		if (time == 0)
+			return;
+		
+		try {
+			ObjectModificationType modification = new ObjectModificationType();
+			modification.setOid(oid);
+			modification.getPropertyModification().add(createNextRunStartTimeModification(time));
+			repositoryService.modifyObject(TaskType.class, modification, result);
+		} catch (ObjectNotFoundException ex) {
+			result.recordFatalError("Cannot record next run start time, as the task object was not found", ex);
+			throw ex;
+		} catch (SchemaException ex) {
+			result.recordPartialError("Cannot record next run start time due to schema error", ex);
+			throw ex;
+		}
+
+	}
+
+	@Override
+	public boolean isTaskThreadActive(String taskIdentifier) {
+		TaskRunner runner = findRunner(taskIdentifier);
+		return runner != null && runner.thread.isAlive();
+	}
 
 
 	

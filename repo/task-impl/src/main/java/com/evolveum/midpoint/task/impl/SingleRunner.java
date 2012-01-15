@@ -114,7 +114,7 @@ public class SingleRunner extends TaskRunner {
 					LOGGER.error("Unable to record run finish: {}", ex.getMessage(), ex);
 					// The task object in repo is gone. Therefore this task should not run any more.
 					// Therefore commit sepukku
-					taskManager.shutdownRunner(this);
+					taskManager.shutdownAndRemoveRunner(this);
 					RepositoryCache.exit();
 					return;
 				} catch (SchemaException ex) {

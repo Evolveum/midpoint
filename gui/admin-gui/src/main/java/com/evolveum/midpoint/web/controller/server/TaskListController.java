@@ -218,7 +218,7 @@ public class TaskListController extends SortableListController<TaskItem> {
 
         taskManager.deactivateServiceThreads();
         FacesUtils
-                .addWarnMessage("All task manager threads have been stopped. Is this what you wanted to achieve?");
+                .addWarnMessage("All task manager threads have been stopped. (Although tasks remain in RUNNING state, they will not be executed until you reactivate task manager threads.)");
         return null;
 
         // boolean selected = false;

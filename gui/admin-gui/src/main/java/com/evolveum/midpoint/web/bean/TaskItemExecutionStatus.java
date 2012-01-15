@@ -8,6 +8,8 @@ public enum TaskItemExecutionStatus {
 
 	WAITING("hourglass.png", "Waiting"),
 
+	SUSPENDED("stop.png", "Suspended"),
+
 	CLOSED("stop.png", "Closed");
 
 	private String icon;
@@ -36,6 +38,9 @@ public enum TaskItemExecutionStatus {
 		if (executionStatus.equals(TaskExecutionStatus.WAITING)) {
 			return WAITING;
 		}
+		if (executionStatus.equals(TaskExecutionStatus.SUSPENDED)) {
+			return SUSPENDED;
+		}
 
 		return null;
 
@@ -50,6 +55,9 @@ public enum TaskItemExecutionStatus {
 		}
 		if (executionStatus.equals(TaskItemExecutionStatus.WAITING)) {
 			return TaskExecutionStatus.WAITING;
+		}
+		if (executionStatus.equals(TaskItemExecutionStatus.SUSPENDED)) {
+			return TaskExecutionStatus.SUSPENDED;
 		}
 
 		return null;
