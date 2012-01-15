@@ -523,6 +523,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		
 		// We have claimed the task before, therefore we need to release the task here.
 		releaseTask(task,parentResult);
+		task.refresh(parentResult);
 		runners.remove(runner);			// TODO what if releaseTask throws an exception?
 	}
 	
@@ -545,6 +546,10 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	}
 
 	private TaskRunner findRunner(String taskIdentifier) {
+		
+		if (taskIdentifier == null)
+			return null;
+		
 		Set<Task> tasks = new HashSet<Task>();
 		for (TaskRunner runner: runners) {
 			if (taskIdentifier.equals(runner.getTask().getTaskIdentifier())) {

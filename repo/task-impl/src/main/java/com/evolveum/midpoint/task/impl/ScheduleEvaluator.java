@@ -76,7 +76,7 @@ public class ScheduleEvaluator {
 			
 			// otherwise let us look whether we are behind tolerance window
 			long nextRunTime = XsdTypeConverter.toMillis(taskType.getNextRunStartTime());
-			long tolerance = taskType.getSchedule().getMissedScheduleTolerance().longValue();
+			long tolerance = taskType.getSchedule().getMissedScheduleTolerance().longValue() * 1000L;
 			return System.currentTimeMillis() > nextRunTime + tolerance;
 			
 		} else {
@@ -166,8 +166,10 @@ public class ScheduleEvaluator {
 			return p.nextMatchingTime();
 		}
 		else {
-			LOGGER.error("Missing task schedule: no interval nor cron-like specification for recurring task: " + taskName + ", determining next run to be 'never'");
-			return new Date(9999, 1, 1).getTime();		// run never, TODO: better handle "never run" situation
+//			LOGGER.error("Missing task schedule: no interval nor cron-like specification for recurring task: " + taskName + ", determining next run to be 'never'");
+//			return new Date(9999, 1, 1).getTime();		// run never, TODO: better handle "never run" situation
+			LOGGER.error("Missing task schedule: no interval nor cron-like specification for recurring task: " + taskName + ", determining next run to be 'now'");
+			return 0;
 		}
 	}
 

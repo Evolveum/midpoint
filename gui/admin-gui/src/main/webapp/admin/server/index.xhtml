@@ -34,13 +34,19 @@
 				</ice:panelPopup>
 			</ui:remove>
 			<div class="button-bar">
-				<idm:button value="List currently executing tasks"
-					img="/resources/images/application_view_list.png" id="runningTasks"
-					immediate="true" action="#{taskList.listRunningTasks}" />
 				<idm:button value="List all tasks"
 					img="/resources/images/application_view_list.png" id="allTasks"
 					immediate="true" action="#{taskList.listFirst}" />
+				<idm:button value="List currently executing tasks"
+					img="/resources/images/application_view_list.png" id="runningTasks"
+					immediate="true" action="#{taskList.listRunningTasks}" />
 			</div>
+
+			<p/>
+			<ice:outputText value="Note: the following data reflects currently running task instances (i.e. those that have been assigned an execution thread on this node). The information presented" rendered="#{not taskList.listAll}" />
+			<b><ice:outputText value="might be out of date and/or inaccurate" rendered="#{not taskList.listAll}" /></b>
+			<ice:outputText value=". For more accurate information please select 'List all tasks' function." rendered="#{not taskList.listAll}" />
+			
 			<ice:dataTable id="taskTable" rows="50" value="#{taskList.objects}"
 				var="item" columnClasses="iceDatTblCol1"
 				rowClasses="iceDatTblRow1 iceDatTblRow2"
@@ -102,21 +108,21 @@
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
-						<ice:commandSortHeader columnName="thread" arrow="true"
-							actionListener="#{taskList.sortList}">
-							<ice:outputText id="threadTxt" value="Thread alive" />
-						</ice:commandSortHeader>
-					</f:facet>
-					<ice:outputText value="#{item.alive}" />
-				</ice:column>
-				<ice:column>
-					<f:facet name="header">
 						<ice:commandSortHeader columnName="exclusivity" arrow="true"
 							actionListener="#{taskList.sortList}">
 							<ice:outputText id="exclusivityTxt" value="Exclusivity" />
 						</ice:commandSortHeader>
 					</f:facet>
 					<ice:outputText value="#{item.exclusivityStatus}" />
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:commandSortHeader columnName="thread" arrow="true"
+							actionListener="#{taskList.sortList}">
+							<ice:outputText id="threadTxt" value="Thread alive" />
+						</ice:commandSortHeader>
+					</f:facet>
+					<ice:outputText value="#{item.alive}" />
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">

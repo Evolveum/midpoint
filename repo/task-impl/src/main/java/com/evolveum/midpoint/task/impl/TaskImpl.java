@@ -541,6 +541,7 @@ public class TaskImpl implements Task {
 	public void recordRunStart(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		// TODO 
 		lastRunStartTimestamp = System.currentTimeMillis();
+		nextRunStartTime = ScheduleEvaluator.determineNextRunStartTime(this);
 		// This is all we need to do for transient tasks
 		if (!isPersistent()) {
 			return;
@@ -548,6 +549,11 @@ public class TaskImpl implements Task {
 		GregorianCalendar cal = new GregorianCalendar();
 		cal.setTimeInMillis(lastRunStartTimestamp);
 		ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid, SchemaConstants.C_TASK_LAST_RUN_START_TIMESTAMP, cal);
+
+		// FIXME: if nextRunStartTime == 0 we should delete the corresponding element; however, this does not work as for now
+		if (nextRunStartTime > 0)
+			modification.getPropertyModification().add(TaskManagerImpl.createNextRunStartTimeModification(nextRunStartTime));
+		
 		repositoryService.modifyObject(TaskType.class, modification, parentResult);
 	}
 
@@ -555,7 +561,6 @@ public class TaskImpl implements Task {
 	public void recordRunFinish(TaskRunResult runResult, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		progress = runResult.getProgress(); 
 		lastRunFinishTimestamp = System.currentTimeMillis();
-		nextRunStartTime = ScheduleEvaluator.determineNextRunStartTime(this);
 		// This is all we need to do for transient tasks
 		if (!isPersistent()) {
 			return;
@@ -564,16 +569,12 @@ public class TaskImpl implements Task {
 		ObjectModificationType modification = new ObjectModificationType();
 		modification.setOid(oid);
 
-		// last run time & next start time modification
+		// last run time modification
 		GregorianCalendar calLRFT = new GregorianCalendar();
 		calLRFT.setTimeInMillis(lastRunFinishTimestamp);
 		PropertyModificationType timestampModificationLRFT = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_LAST_RUN_FINISH_TIMESTAMP, calLRFT);
 
 		modification.getPropertyModification().add(timestampModificationLRFT);
-
-		// FIXME: if nextRunStartTime == 0 we should delete the corresponding element; however, this does not work as for now
-		if (nextRunStartTime > 0)
-			modification.getPropertyModification().add(TaskManagerImpl.createNextRunStartTimeModification(nextRunStartTime));
 		
 		// progress
 		PropertyModificationType progressModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_PROGRESS, progress);

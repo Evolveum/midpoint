@@ -80,7 +80,7 @@ public class SingleRunner extends TaskRunner {
 
 				// here we execute the whole handler stack
 				// FIXME do a better run result reporting! (currently only the last runResult gets reported)
-				while (handler != null) {
+				while (handler != null && task.canRun()) {
 					runResult = handler.run(task);
 					task.finishHandler();
 					handler = taskManager.getHandler(task.getHandlerUri());
@@ -109,7 +109,10 @@ public class SingleRunner extends TaskRunner {
 				try {
 					task.recordRunFinish(runResult, runnerRunOpResult);
 					// Run finished. So let's close the task
-					task.close(runnerRunOpResult);
+					// However, if the task was shut down externally, we will not close it;
+					// probably it will have to be run again when resumed or when midPoint will be restarted
+					if (task.canRun())
+						task.close(runnerRunOpResult);
 				} catch (ObjectNotFoundException ex) {
 					LOGGER.error("Unable to record run finish: {}", ex.getMessage(), ex);
 					// The task object in repo is gone. Therefore this task should not run any more.

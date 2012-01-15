@@ -20,7 +20,8 @@
                 <ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
                     <f:facet name="header">
                         <h3>Task</h3>
-                    </f:facet>
+						<b><ice:outputText value="This is an in-memory information about currently running task instance. It might be obsolete and/or inaccurate. Please do not modify it, unless you are sure what you are doing." rendered="#{not taskDetails.adding and not taskList.listAll}"/></b>                    
+					</f:facet>
                     <ice:outputLabel value="Task oid: " rendered="#{not taskDetails.adding}"/>
                     <ice:outputText value="#{taskDetails.task.oid}" rendered="#{not taskDetails.adding}"/>
 
@@ -158,11 +159,11 @@
                             img="/resources/images/application_get.png" id="suspendTask"
                             rendered="#{not taskDetails.editMode}" immediate="true"
                             action="#{taskList.listFirst}" actionListener="#{taskDetails.suspendTaskPerformed}"/>
-                <idm:button value="Resume task"
-                            img="/resources/images/application_double.png" id="resumeTask"
+                <idm:button value="Resume suspended task"
+                            img="/resources/images/application_put.png" id="resumeTask"
                             rendered="#{not taskDetails.editMode}" immediate="true"
                             action="#{taskList.listFirst}" actionListener="#{taskDetails.resumeTaskPerformed}"/>
-                <idm:button value="Release task"
+                <idm:button value="Release claimed task"
                             img="/resources/images/application_put.png" id="releaseTask"
                             rendered="#{not taskDetails.editMode}" immediate="true"
                             action="#{taskList.listFirst}" actionListener="#{taskDetails.releaseTaskPerformed}"/>

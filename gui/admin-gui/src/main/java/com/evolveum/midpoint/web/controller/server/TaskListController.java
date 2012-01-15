@@ -78,7 +78,7 @@ public class TaskListController extends SortableListController<TaskItem> {
             runningTasks.add(new TaskItem(taskType, taskManager));
         }
 
-        listAll = false;
+        listAll = true;
         return PAGE_NAVIGATION;
     }
 
@@ -89,7 +89,7 @@ public class TaskListController extends SortableListController<TaskItem> {
         for (Task task : tasks) {
             runningTasks.add(new TaskItem(task, taskManager));
         }
-        listAll = true;
+        listAll = false;
         return PAGE_NAVIGATION;
     }
 

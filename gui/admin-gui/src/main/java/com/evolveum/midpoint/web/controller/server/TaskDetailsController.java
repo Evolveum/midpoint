@@ -51,6 +51,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.w3c.dom.Element;
 
+import it.sauronsoftware.cron4j.InvalidPatternException;
+
 import javax.faces.event.ActionEvent;
 import javax.faces.model.SelectItem;
 import javax.xml.bind.JAXBException;
@@ -205,9 +207,10 @@ public class TaskDetailsController implements Serializable {
         try {
 //            task.setObjectRef(getRefFromName(getSelectedResurceRef()));
             TaskType oldObject = taskManager.getTask(task.getOid(), result).getTaskTypeObject();
-
+            TaskType newObject = task.toTaskType();
+            
             ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldObject,
-                    task.toTaskType());
+                    newObject);
 
             //todo fix this modification cleanup mess - remove calculate diff later...
             // original modification
@@ -283,6 +286,12 @@ public class TaskDetailsController implements Serializable {
             FacesUtils.addErrorMessage("Couldn't get object change for task " + task.getName() + ". Reason: "
                     + ex.getMessage(), ex);
             return null;
+        } catch (InvalidPatternException ex) {
+            result.recordFatalError("Cron-like scheduling pattern is invalid: "
+                    + ex.getMessage(), ex);
+            FacesUtils.addErrorMessage("Cron-like scheduling pattern is invalid: "
+                    + ex.getMessage(), ex);
+            return null;
         } finally {
             result.computeStatus();
             if (!result.isSuccess()) {
@@ -299,6 +308,12 @@ public class TaskDetailsController implements Serializable {
             taskManager.addTask(task.toTaskType(), result);
             FacesUtils.addSuccessMessage("Task added successfully");
             result.recordSuccess();
+        } catch (InvalidPatternException ex) {
+            result.recordFatalError("Cron-like scheduling pattern is invalid: "
+                    + ex.getMessage(), ex);
+            FacesUtils.addErrorMessage("Cron-like scheduling pattern is invalid: "
+                    + ex.getMessage(), ex);
+            return null;
         } catch (Exception ex) {
             result.recordFatalError("Couldn't add task. Reason: " + ex.getMessage(), ex);
             FacesUtils.addErrorMessage("Couldn't add task. Reason: " + ex.getMessage(), ex);
@@ -382,18 +397,18 @@ public class TaskDetailsController implements Serializable {
         template.setSelectedTopId(TemplateController.TOP_CONFIGURATION);
     }
 
-    public void createInstancePerformed() {
-        OperationResult result = new OperationResult("Create task instance");
-        try {
-            taskManager.createTaskInstance(task.toTaskType(), result);
-            FacesUtils.addSuccessMessage("Task instance created successfully");
-        } catch (SchemaException ex) {
-            FacesUtils.addErrorMessage("Failed to create task. Reason: " + ex.getMessage(), ex);
-        } finally {
-            result.computeStatus();
-            if (!result.isSuccess()) {
-                FacesUtils.addMessage(result);
-            }
-        }
-    }
+//    public void createInstancePerformed() {
+//        OperationResult result = new OperationResult("Create task instance");
+//        try {
+//            taskManager.createTaskInstance(task.toTaskType(), result);
+//            FacesUtils.addSuccessMessage("Task instance created successfully");
+//        } catch (SchemaException ex) {
+//            FacesUtils.addErrorMessage("Failed to create task. Reason: " + ex.getMessage(), ex);
+//        } finally {
+//            result.computeStatus();
+//            if (!result.isSuccess()) {
+//                FacesUtils.addMessage(result);
+//            }
+//        }
+//    }
 }

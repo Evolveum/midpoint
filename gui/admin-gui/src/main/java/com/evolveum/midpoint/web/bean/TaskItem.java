@@ -21,11 +21,13 @@
 
 package com.evolveum.midpoint.web.bean;
 
+import it.sauronsoftware.cron4j.InvalidPatternException;
+
 import java.math.BigInteger;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang.time.DurationFormatUtils;
-import org.apache.commons.lang.time.FastDateFormat;
 
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -176,6 +178,10 @@ public class TaskItem extends SelectableBean {
         }
     }
 
+    /**
+     * @throws InvalidPatternException (a cron4j-generated subtype of RuntimeException) if cron-like pattern is not valid.
+     * @return
+     */
     public TaskType toTaskType() {
 
         TaskType taskType = new TaskType();
@@ -193,15 +199,21 @@ public class TaskItem extends SelectableBean {
         taskType.setExecutionStatus(TaskItemExecutionStatus.toTask(
                 getExecutionStatus()).toTaskType());
         taskType.setBinding(TaskItemBinding.toTask(getBinding()).toTaskType());
+        
+        recurrenceStatus = TaskItemRecurrenceStatus.SINGLE;
+        ScheduleType schedule = new ScheduleType();
+        if (getScheduleInterval() != null && getScheduleInterval() > 0) {
+        	schedule.setInterval(BigInteger.valueOf(getScheduleInterval()));
+        	recurrenceStatus = TaskItemRecurrenceStatus.RECURRING;
+        }
+        if (getScheduleCronLikePattern() != null && !getScheduleCronLikePattern().isEmpty()) {
+        	schedule.setCronLikePattern(getScheduleCronLikePattern());
+        	recurrenceStatus = TaskItemRecurrenceStatus.RECURRING;
+        } 
+        taskType.setSchedule(schedule);
 
         taskType.setRecurrence(TaskItemRecurrenceStatus.toTask(
                 getRecurrenceStatus()).toTaskType());
-        
-        ScheduleType schedule = new ScheduleType();
-        if (getScheduleInterval() != null)
-        	schedule.setInterval(BigInteger.valueOf(getScheduleInterval()));
-        schedule.setCronLikePattern(getScheduleCronLikePattern());
-        taskType.setSchedule(schedule);
 
         // here we must compute when the task is to be run next (for recurring tasks);
         // beware that the schedule & recurring type must be known for this taskType
@@ -372,7 +384,8 @@ public class TaskItem extends SelectableBean {
     	if (millis == null || millis == 0) {
     		return "-";
     	} else {
-    		return FastDateFormat.getInstance().format(millis);
+    		return new Date(millis).toString();
+//    		return FastDateFormat.getInstance().format(millis);
 //    		return XsdTypeConverter.toXMLGregorianCalendar(millis).toXMLFormat();
     	}
     }
@@ -406,9 +419,10 @@ public class TaskItem extends SelectableBean {
     	long current = System.currentTimeMillis();
     	if (!TaskItemRecurrenceStatus.RECURRING.equals(recurrenceStatus)) {
     		return "-";
-    	} else if (taskRunNotFinished()) {
-    		return "to be computed";		// we compute nextRunStartTimeLong after a task run finishes
-    	} else if (nextRunStartTimeLong != null && nextRunStartTimeLong > 0) {
+    	} 
+//    	else if (taskRunNotFinished()) {
+//    		return "to be computed";		
+    	else if (nextRunStartTimeLong != null && nextRunStartTimeLong > 0) {
     			if (nextRunStartTimeLong > current+1000) {
     				return "in " + formatTimeInterval(nextRunStartTimeLong - System.currentTimeMillis());
     			} else {
