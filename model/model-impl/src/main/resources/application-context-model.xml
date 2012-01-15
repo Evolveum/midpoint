@@ -63,11 +63,6 @@
         </property>
     </bean>
 
-    <!-- FIXME: THIS IS WRONG, IT SHOULD BE PULLED FROM COMMON -->
-    <bean id="schemaRegistry" class="com.evolveum.midpoint.schema.SchemaRegistry" init-method="initialize"
-          scope="singleton">
-    </bean>
-
     <bean id="actionManager" class="com.evolveum.midpoint.model.sync.ActionManagerImpl">
         <property name="actionMapping">
             <map>

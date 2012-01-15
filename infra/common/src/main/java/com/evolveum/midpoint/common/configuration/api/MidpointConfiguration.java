@@ -23,6 +23,9 @@ package com.evolveum.midpoint.common.configuration.api;
 import org.apache.commons.configuration.Configuration;
 
 public interface MidpointConfiguration {
+	
+	public String getMidpointHome();
+	
 	/**
 	 * get configuration for symbolic name of the component from configuration
 	 * subsytem.

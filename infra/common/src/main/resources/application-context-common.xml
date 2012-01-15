@@ -26,7 +26,4 @@
      http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
 	default-autowire="byName">
 
-    <bean id="schemaRegistry" class="com.evolveum.midpoint.schema.SchemaRegistry" init-method="initialize" scope="singleton">
-    </bean>
-
 </beans>

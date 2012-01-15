@@ -41,6 +41,17 @@
 		class="com.evolveum.midpoint.repo.api.RepositoryService" depends-on="repositoryFactory" init-method="init"
 		destroy-method="destroy"></bean>
 
+	<bean name="schemaRegistryFactory" class="com.evolveum.midpoint.init.SchemaRegistryFactory" init-method="init">
+		<property name="midpointConfiguration">
+            <ref bean="midpointConfiguration"/>
+        </property>
+	</bean>
+
+	<bean name="schemaRegistry" factory-bean="schemaRegistryFactory" factory-method="getSchemaRegistry"
+		class="com.evolveum.midpoint.schema.SchemaRegistry" depends-on="schemaRegistryFactory">
+	</bean>
+
+
 	<!--  Scan for components:
 		 	- protector (KeyStoreConfigurator)
 	 -->

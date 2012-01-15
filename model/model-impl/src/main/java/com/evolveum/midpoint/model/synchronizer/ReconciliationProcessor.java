@@ -28,6 +28,7 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.delta.PropertyDelta;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
+import com.evolveum.midpoint.schema.processor.SourceType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -104,9 +106,7 @@ public class ReconciliationProcessor {
                 RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(accContext.getResource(), schemaRegistry);
                 RefinedAccountDefinition accountDefinition = refinedSchema.getAccountDefinition(accContext.getResourceAccountType().getAccountType());
                 
-                
-                MidPointObject<AccountShadowType> newAccount = accContext.getAccountNew();
-                ObjectDelta<AccountShadowType> delta1 = compareObjectZero(newAccount, tripleMap, accountDefinition);
+                ObjectDelta<AccountShadowType> delta1 = compareObjectZero(accContext, tripleMap, accountDefinition);
             }
         } catch (RuntimeException e) {
         	subResult.recordFatalError(e);
@@ -119,9 +119,10 @@ public class ReconciliationProcessor {
         }
     }
 
-    private ObjectDelta<AccountShadowType> compareObjectZero(MidPointObject<AccountShadowType> account,
+    private ObjectDelta<AccountShadowType> compareObjectZero(AccountSyncContext accCtx,
             Map<QName, DeltaSetTriple<ValueConstruction>> tripleMap, RefinedAccountDefinition accountDefinition) {
 
+    	MidPointObject<AccountShadowType> account = accCtx.getAccountNew();
         ObjectDelta<AccountShadowType> delta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY);
 
         PropertyContainer attributesContainer = account.findPropertyContainer(AccountShadowType.F_ATTRIBUTES);
@@ -140,12 +141,20 @@ public class ReconciliationProcessor {
         	}
         	
         	Property attribute = attributesContainer.findProperty(attrName);
-        	Set<PropertyValue<Object>> arePValues = attribute.getValues(Object.class);
+        	Set<PropertyValue<Object>> arePValues = null;
+        	if (attribute != null) {
+        		arePValues = attribute.getValues(Object.class);
+        	} else {
+        		arePValues = new HashSet<PropertyValue<Object>>();
+        	}
         	
         	LOGGER.trace("SHOULD BE:\n{}\nIS:\n{}",shouldBePValues,arePValues);
         	
         	for (PropertyValue<ValueConstruction> shouldBePValue: shouldBePValues) {
         		ValueConstruction shouldBeVc = shouldBePValue.getValue();
+        		if (shouldBeVc == null) {
+        			continue;
+        		}
         		if (shouldBeVc.isInitial() && !arePValues.isEmpty()) {
         			// "initial" value and the attribute already has a value. Skip it.
         			continue;
@@ -155,7 +164,7 @@ public class ReconciliationProcessor {
         			Object shouldBeValue = shouldBePPValue.getValue();
         			// Make sure this value is in the values
         			if (!isInValues(shouldBeValue, arePValues)) {
-        				LOGGER.trace("****** WILL ADD {}",shouldBeValue);
+        				recordDelta(accCtx, attrName, ChangeType.ADD, shouldBeValue);
         			}
         		}
         	}
@@ -163,7 +172,7 @@ public class ReconciliationProcessor {
         	if (!attributeDefinition.isTolerant()) {
         		for (PropertyValue<Object> isPValue: arePValues) {
         			if (!isInValues(isPValue.getValue(), shouldBePValues)) {
-        				LOGGER.trace("****** WILL DELETE {}",isPValue.getValue());
+        				recordDelta(accCtx, attrName, ChangeType.DELETE, isPValue.getValue());
         			}
         		}
         	}
@@ -172,7 +181,26 @@ public class ReconciliationProcessor {
         return delta;
     }
 
+	private void recordDelta(AccountSyncContext accCtx, QName attrName, ChangeType changeType, Object value) {
+		LOGGER.trace("****** WILL {} {}",changeType, value);
+		
+		PropertyDelta attrDelta = new PropertyDelta(SchemaConstants.PATH_ATTRIBUTES, attrName);
+		PropertyValue<Object> pValue = new PropertyValue<Object>(value, SourceType.RECONCILIATION, null);
+		if (changeType == ChangeType.ADD) {
+			attrDelta.addValueToAdd(pValue);
+		} else if (changeType == ChangeType.DELETE) {
+			attrDelta.addValueToAdd(pValue);
+		} else {
+			throw new IllegalArgumentException("Unknown change type "+changeType);
+		}
+		
+		accCtx.addToSecondaryDelta(attrDelta);
+	}
+
 	private boolean isInValues(Object shouldBeValue, Set<PropertyValue<Object>> arePValues) {
+		if (arePValues == null || arePValues.isEmpty()) {
+			return false;
+		}
 		for (PropertyValue<Object> isPValue: arePValues) {
 			if (isPValue.getValue().equals(shouldBeValue)) {
 				return true;

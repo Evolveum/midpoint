@@ -73,6 +73,11 @@ public class StartupConfiguration implements MidpointConfiguration {
     public void setConfigFilename(String configFilename) {
         this.configFilename = configFilename;
     }
+    
+    @Override
+    public String getMidpointHome() {
+    	return System.getProperty(MIDPOINT_HOME);
+    }
 
     @Override
     public Configuration getConfiguration(String componentName) {
@@ -82,8 +87,8 @@ public class StartupConfiguration implements MidpointConfiguration {
         Configuration sub = config.subset(componentName);
         // Insert replacement for relative path to midpoint.home else clean
         // replace
-        if (System.getProperty(MIDPOINT_HOME) != null) {
-            sub.addProperty(MIDPOINT_HOME, System.getProperty(MIDPOINT_HOME));
+        if (getMidpointHome() != null) {
+            sub.addProperty(MIDPOINT_HOME, getMidpointHome());
         } else {
             @SuppressWarnings("unchecked")
             Iterator<String> i = sub.getKeys();
