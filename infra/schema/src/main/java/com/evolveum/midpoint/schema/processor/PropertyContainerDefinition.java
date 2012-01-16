@@ -721,7 +721,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
         if (complexTypeDefinition == null) {
             throw new IllegalStateException("Cannot parse object as the complexType definition for " + getName() + " is missing.");
         }
-
+        
         for (Item item : source.getItems()) {
             QName itemName = item.getName();
             Definition itemDef = item.getDefinition();
@@ -730,6 +730,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
             }
 
             Method method = null;
+            Object argument = null;
 
             try {
 
@@ -747,7 +748,12 @@ public class PropertyContainerDefinition extends ItemDefinition {
                         PropertyValue<Object> propertyValue = property.getValue();
                         if (propertyValue != null) {
                             method = findSetter(clazz, itemName.getLocalPart());
-                            method.invoke(jaxbObject, propertyValue.getValue());
+                            argument = propertyValue.getValue();
+                            if (argument instanceof GregorianCalendar) {
+                            	// Kind of hack. The JAXB classes want XMLGregorianCalendar. Later we need to find a systematic way how to do this.
+                            	argument = XsdTypeConverter.toXMLGregorianCalendar((GregorianCalendar)argument);
+                            }
+                            method.invoke(jaxbObject, argument);
                         }
                     }
                 } else if (item instanceof PropertyContainer) {
@@ -755,19 +761,24 @@ public class PropertyContainerDefinition extends ItemDefinition {
                     Class<?> subClass = method.getParameterTypes()[0];
                     Object subInstance = instantiateJaxbClass(subClass);
                     ((PropertyContainerDefinition) itemDef).fillProperties(subInstance, (PropertyContainer) item);
-                    method.invoke(jaxbObject, subInstance);
+                    argument = subInstance;
+                    if (argument instanceof GregorianCalendar) {
+                    	// Kind of hack. The JAXB classes want XMLGregorianCalendar. Later we need to find a systematic way how to do this.
+                    	argument = XsdTypeConverter.toXMLGregorianCalendar((GregorianCalendar)argument);
+                    }
+                    method.invoke(jaxbObject, argument);
                 }
 
             } catch (SecurityException e) {
-                throw new SchemaException("Access denied while trying to execute setter " + clazz.getName() + "." + method + " for " + itemName + " in " + getName() + ": " + e.getMessage(), e, itemName);
+                throw new SchemaException("Security error while trying to execute setter " + clazz.getName() + "." + method + " for " + itemName + " in " + getName() + " with argument "+argument+": " + e.getMessage(), e, itemName);
             } catch (NoSuchMethodException e) {
-                throw new SchemaException("Access denied while trying to execute setter " + clazz.getName() + "." + method + " for " + itemName + " in " + getName() + ": " + e.getMessage(), e, itemName);
+                throw new SchemaException("Schema error while trying to execute setter " + clazz.getName() + "." + method + " for " + itemName + " in " + getName() + " with argument "+argument+": " + e.getMessage(), e, itemName);
             } catch (IllegalArgumentException e) {
-                throw new SchemaException("Access denied while trying to execute setter " + clazz.getName() + "." + method + " for " + itemName + " in " + getName() + ": " + e.getMessage(), e, itemName);
+                throw new SchemaException("Illegal argument while trying to execute setter " + clazz.getName() + "." + method + " for " + itemName + " in " + getName() + " with argument "+argument+": " + e.getMessage(), e, itemName);
             } catch (IllegalAccessException e) {
-                throw new SchemaException("Access denied while trying to execute setter " + clazz.getName() + "." + method + " for " + itemName + " in " + getName() + ": " + e.getMessage(), e, itemName);
+                throw new SchemaException("Illgal access while trying to execute setter " + clazz.getName() + "." + method + " for " + itemName + " in " + getName() + " with argument "+argument+": " + e.getMessage(), e, itemName);
             } catch (InvocationTargetException e) {
-                throw new SchemaException("Access denied while trying to execute setter " + clazz.getName() + "." + method + " for " + itemName + " in " + getName() + ": " + e.getMessage(), e, itemName);
+                throw new SchemaException("Invocation target error while trying to execute setter " + clazz.getName() + "." + method + " for " + itemName + " in " + getName() + " with argument "+argument+": " + e.getMessage(), e, itemName);
             }
         }
     }
