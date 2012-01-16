@@ -61,11 +61,10 @@ public class AddUserAction extends BaseAction {
 
         OperationResult subResult = result.createSubresult(ACTION_ADD_USER);
 
-
+        SyncContext context = new SyncContext();
         try {
             UserType user = getUser(userOid, subResult);
             if (user == null) {
-                SyncContext context = new SyncContext();
                 //set user template to context from action configuration
                 context.setUserTemplate(getUserTemplate(subResult));
                 if (context.getUserTemplate() != null) {
@@ -94,16 +93,10 @@ public class AddUserAction extends BaseAction {
                 context.setUserSecondaryDelta(delta);
 
                 context.rememberResource(change.getResource());
-
-                getSynchronizer().synchronizeUser(context, subResult);
-                getExecutor().executeChanges(context, subResult);
-
-                userOid = context.getUserSecondaryDelta().getOid();
             } else {
                 LOGGER.debug("User with oid {} already exists, skipping create.",
                         new Object[]{user.getOid()});
             }
-            subResult.recordSuccess();
         } catch (Exception ex) {
             ResourceObjectShadowType shadowAfterChange = getAccountShadowFromChange(change);
 
@@ -113,6 +106,15 @@ public class AddUserAction extends BaseAction {
                     + "', oid '" + shadowAfterChange.getOid() + "'.", ex);
 
             throw new SynchronizationException(ex.getMessage(), ex);
+        } finally {
+            subResult.recomputeStatus();
+        }
+
+        try {
+            synchronizeUser(context, subResult);
+            executeChanges(context, subResult);
+
+            userOid = context.getUserSecondaryDelta().getOid();
         } finally {
             subResult.recomputeStatus();
         }

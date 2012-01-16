@@ -67,8 +67,8 @@ public class DeleteUserAction extends BaseAction {
             throw new SynchronizationException(message);
         }
 
+        SyncContext context = new SyncContext();
         try {
-            SyncContext context = new SyncContext();
             context.rememberResource(change.getResource());
 
             //set old user
@@ -88,15 +88,19 @@ public class DeleteUserAction extends BaseAction {
                 LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
                 return userOid;
             }
-
-            getSynchronizer().synchronizeUser(context, subResult);
-            getExecutor().executeChanges(context, subResult);
-
-            userOid = null;
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't delete user {}", ex, userType.getName());
             throw new SynchronizationException("Couldn't delete user '" + userType.getName()
                     + "', reason: " + ex.getMessage(), ex);
+        } finally {
+            subResult.recomputeStatus("Couldn't create sync context to delete user '" + userType.getName() + "'.");
+        }
+
+        try {
+            synchronizeUser(context, subResult);
+            executeChanges(context, subResult);
+
+            userOid = null;
         } finally {
             subResult.recomputeStatus("Couldn't delete user '" + userType.getName() + "'.");
         }

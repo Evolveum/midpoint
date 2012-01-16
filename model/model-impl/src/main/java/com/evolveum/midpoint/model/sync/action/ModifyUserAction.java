@@ -116,8 +116,6 @@ public class ModifyUserAction extends BaseAction {
                 LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
                 return userOid;
             }
-
-            getSynchronizer().synchronizeUser(context, subResult);
         } catch (Exception ex) {
             throw new SynchronizationException("Couldn't update account sync context in modify user action.", ex);
         } finally {
@@ -125,11 +123,10 @@ public class ModifyUserAction extends BaseAction {
         }
 
         try {
-            getExecutor().executeChanges(context, subResult);
-        } catch (Exception ex) {
-            throw new SynchronizationException("Couldn't execute modify user action.", ex);
+            synchronizeUser(context, subResult);
+            executeChanges(context, subResult);
         } finally {
-            subResult.recomputeStatus("Couldn't execute modify user action.");
+            subResult.recomputeStatus();
         }
 
         return userOid;
