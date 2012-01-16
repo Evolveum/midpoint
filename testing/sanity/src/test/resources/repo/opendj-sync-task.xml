@@ -33,7 +33,7 @@
 	<name>Synchronization: Embedded Test OpenDJ</name>
 	
 	<extension>
-		<my:shipState>capsized</my:shipState>
+		<my:shipState xsi:type="xsd:string">capsized</my:shipState>
 		<my:dead xsi:type="xsd:integer">42</my:dead>
 	</extension>
 	
