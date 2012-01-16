@@ -37,7 +37,6 @@ object.
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
          xmlns:my="http://myself.me/schemas/whatever"
          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
@@ -73,7 +72,8 @@ object.
         </connectorRef>
 
         <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
-        <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
+        <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2
+        </namespace>
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
@@ -143,7 +143,6 @@ object.
             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
                         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-                        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
                         xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
                         elementFormDefault="qualified"
                         targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
@@ -631,7 +630,7 @@ object.
             <correlation>
                 <description>
                     Correlation expression is a search query.
-                    Following search queury will look for users that have "name"
+                    Following search query will look for users that have "name"
                     equal to the "uid" attribute of the account. Simply speaking,
                     it will look for match in usernames in the IDM and the resource.
                     The correlation rule always looks for users, so it will not match
@@ -642,7 +641,7 @@ object.
                     <valueExpression>
                         <ref>name</ref>
                         <code>
-                            $account/attributes/ri:uid
+                            $c:account/c:attributes/ri:uid
                         </code>
                     </valueExpression>
                 </equal>
