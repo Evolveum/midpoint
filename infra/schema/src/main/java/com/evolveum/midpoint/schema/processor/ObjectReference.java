@@ -23,6 +23,8 @@ package com.evolveum.midpoint.schema.processor;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.DebugUtil;
+
 /**
  * Object Reference is a property that describes reference to an object. It is
  * used to represent association between objects. For example reference from
@@ -70,4 +72,42 @@ public class ObjectReference extends Property {
 	public QName getTargetTypeName() {
 		return targetTypeName;
 	}
+	
+	@Override
+    public String toString() {
+        return getClass().getSimpleName() + "(" + DebugUtil.prettyPrint(getName()) + ", " + oid + ", " + DebugUtil.prettyPrint(targetTypeName) + "):" + getValues();
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < indent; i++) {
+            sb.append(INDENT_STRING);
+        }
+        sb.append(getDebugDumpClassName()).append(": ").append(DebugUtil.prettyPrint(getName())).append(" = ");
+        sb.append(oid);
+        sb.append(" (");
+        sb.append(DebugUtil.prettyPrint(targetTypeName));
+        sb.append(")");
+        if (getValues() != null) {
+            sb.append(": [ ");
+            for (Object value : getValues()) {
+                sb.append(DebugUtil.prettyPrint(value));
+                sb.append(", ");
+            }
+            sb.append(" ]");
+        }
+        if (getDefinition() != null) {
+            sb.append(" def");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Return a human readable name of this class suitable for logs.
+     */
+    @Override
+    protected String getDebugDumpClassName() {
+        return "Ref";
+    }
 }

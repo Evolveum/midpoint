@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -514,7 +515,13 @@ public class DOMUtil {
 	}
 	
 	private static boolean isNamespaceDefinition(Attr attr) {
-			return W3C_XML_SCHEMA_XMLNS_URI.equals(attr.getNamespaceURI());
+			if(W3C_XML_SCHEMA_XMLNS_URI.equals(attr.getNamespaceURI())) {
+				return true;
+			}
+			if(attr.getName().startsWith("xmlns:")) {
+				return true;
+			}
+			return false;
 	}
 
 	public static void setNamespaceDeclaration(Element element, String prefix, String namespaceUri) {
@@ -675,12 +682,19 @@ public class DOMUtil {
 		if (a == null || b == null) {
 			return false;
 		}
-		if (a.getLength() != b.getLength()) {
+		
+		List<Node> aList = canonizeNodeList(a);
+		List<Node> bList = canonizeNodeList(b);
+		
+		if (aList.size() != bList.size()) {
 			return false;
 		}
-		for (int i = 0; i < a.getLength(); i++) {
-			Node aItem = a.item(i);
-			Node bItem = b.item(i);
+		
+		Iterator<Node> aIterator = aList.iterator();
+		Iterator<Node> bIterator = bList.iterator();
+		while (aIterator.hasNext()) {
+			Node aItem = aIterator.next();
+			Node bItem = bIterator.next();
 			if (aItem.getNodeType() != bItem.getNodeType()) {
 				return false;
 			}
@@ -695,6 +709,25 @@ public class DOMUtil {
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Remove comments and whitespace-only text nodes
+	 */
+	private static List<Node> canonizeNodeList(NodeList nodelist) {
+		List<Node> list = new ArrayList<Node>(nodelist.getLength());
+		for (int i = 0; i < nodelist.getLength(); i++) {
+			Node aItem = nodelist.item(i);
+			if (aItem.getNodeType() == Node.COMMENT_NODE) {
+				continue;
+			} else if (aItem.getNodeType() == Node.TEXT_NODE) {
+				if (aItem.getTextContent().matches("\\s*")) {
+					continue;
+				}
+			}
+			list.add(aItem);
+		}
+		return list;
 	}
 
 	public static boolean isJunk(Node node) {

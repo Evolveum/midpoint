@@ -286,6 +286,9 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
 
     public static PropertyDelta createDelta(PropertyModificationType propMod, PropertyContainerDefinition pcDef) throws
             SchemaException {
+    	if (propMod.getValue() == null) {
+    		throw new IllegalArgumentException("No value in property modificiation (path "+propMod.getPath()+") while creating a property delta");
+    	}
         XPathHolder xpath = new XPathHolder(propMod.getPath());
         PropertyPath parentPath = new PropertyPath(xpath);
         PropertyContainerDefinition containingPcd = pcDef.findPropertyContainerDefinition(parentPath);
@@ -294,14 +297,14 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         }
         Collection<? extends Item> items = containingPcd.parseItems(propMod.getValue().getAny());
         if (items.size() > 1) {
-            throw new SchemaException("Expected presence of a single property in a object modification, but found " + items.size() + " instead");
+            throw new SchemaException("Expected presence of a single property (path "+propMod.getPath()+") in a object modification, but found " + items.size() + " instead");
         }
         if (items.size() < 1) {
-            throw new SchemaException("Expected presence of a property value in a object modification, but found nothing");
+            throw new SchemaException("Expected presence of a property value (path "+propMod.getPath()+") in a object modification, but found nothing");
         }
         Item item = items.iterator().next();
         if (!(item instanceof Property)) {
-            throw new SchemaException("Expected presence of a property in a object modification, but found " + item.getClass().getSimpleName() + " instead", item.getName());
+            throw new SchemaException("Expected presence of a property ("+item.getName()+",path "+propMod.getPath()+") in a object modification, but found " + item.getClass().getSimpleName() + " instead", item.getName());
         }
         Property prop = (Property) item;
         PropertyDelta propDelta = new PropertyDelta(parentPath, prop.getName());

@@ -42,7 +42,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
@@ -210,10 +209,15 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 					new PropertyReferenceListType(), new OperationResult("test"));
 			assertEquals(user.getOid(), ((UserType) (retrievedObject)).getOid());
 
-			//modify user add extension
-			ObjectModificationType objectModificationType = CalculateXmlDiff.calculateChanges(new File(
-					"src/test/resources/user-without-extension.xml"), new File(
-					"src/test/resources/user-added-extension.xml"));
+			
+			ObjectModificationType objectModificationType = ((JAXBElement<ObjectModificationType>) JAXBUtil.unmarshal(new File(
+			"src/test/resources/request/user-modify-add-extension.xml"))).getValue();
+			
+//			//modify user add extension
+//			ObjectModificationType objectModificationType = CalculateXmlDiff.calculateChanges(new File(
+//					"src/test/resources/user-without-extension.xml"), new File(
+//					"src/test/resources/user-added-extension.xml"));
+			
 			repositoryService.modifyObject(UserType.class, objectModificationType, new OperationResult("test"));
 
 			//check the extension in the object

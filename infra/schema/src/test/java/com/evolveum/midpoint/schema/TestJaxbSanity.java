@@ -28,10 +28,12 @@ import javax.xml.bind.JAXBException;
 
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -42,10 +44,11 @@ public class TestJaxbSanity {
 
 	public static final String TEST_DIR = "src/test/resources/schema";
 	public static final String USER_BARBOSSA_FILENAME = TEST_DIR + "/user-barbossa.xml";
+	public static final String RESOURCE_OPENDJ_FILENAME = TEST_DIR + "/resource-opendj.xml";
 	
 	@Test
-	public void testUnmarshallAndEquals() throws JAXBException {
-		System.out.println("\n\n ===[testUnmarshallAndEquals]===\n");
+	public void testUnmarshallAndEqualsUser() throws JAXBException {
+		System.out.println("\n\n ===[testUnmarshallAndEqualsUser]===\n");
 		
 		// GIVEN
 		JAXBElement<UserType> userEl1 = JAXBUtil.unmarshal(new File(USER_BARBOSSA_FILENAME),UserType.class);
@@ -61,7 +64,31 @@ public class TestJaxbSanity {
 		
 		assertTrue("HashCode does not match", user1.hashCode() == user2.hashCode());
 	}
-	
+
+	@Test
+	public void testUnmarshallAndEqualsResource() throws JAXBException {
+		System.out.println("\n\n ===[testUnmarshallAndEqualsResource]===\n");
+		
+		// GIVEN
+		JAXBElement<ResourceType> resourceEl1 = JAXBUtil.unmarshal(new File(RESOURCE_OPENDJ_FILENAME),ResourceType.class);
+		ResourceType resource1 = resourceEl1.getValue();
+		assertNotNull(resource1);
+		
+		JAXBElement<ResourceType> resourceEl2 = JAXBUtil.unmarshal(new File(RESOURCE_OPENDJ_FILENAME),ResourceType.class);
+		ResourceType resource2 = resourceEl2.getValue();
+		assertNotNull(resource2);
+		
+		// WHEN, THEN
+		assertTrue("Resource not equal", resource1.equals(resource2));
+		
+		assertTrue("HashCode does not match", resource1.hashCode() == resource2.hashCode());
+		
+		PropertyValue<Object> pv1 = new PropertyValue<Object>(resource1.getConfiguration());
+		PropertyValue<Object> pv2 = new PropertyValue<Object>(resource2.getConfiguration());
+		
+		assertTrue("Real property values not equal",pv1.equalsRealValue(pv2));
+	}
+
 	@Test
 	public void testAssignmentEquals() throws JAXBException {
 		System.out.println("\n\n ===[testAssnignmentEquals]===\n");

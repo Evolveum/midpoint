@@ -29,6 +29,9 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeClass;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import java.io.File;
 import java.util.List;
 
@@ -43,9 +46,11 @@ import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType.Value;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -154,6 +159,11 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 		ObjectModificationType objModifications = new ObjectModificationType();
 		objModifications.setOid(oid);
 		PropertyModificationType modification = new PropertyModificationType();
+		Value value = new Value();
+		Element element = DOMUtil.getFirstChildElement(DOMUtil.parseDocument("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"+
+				"<fullName xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'>Foo Bar</fullName>"));
+		value.getAny().add(element);
+		modification.setValue(value);
 		objModifications.getPropertyModification().add(modification);
 		//try to modify not existing object, exception is expected
 		repositoryService.modifyObject(UserType.class, objModifications, new OperationResult("test"));

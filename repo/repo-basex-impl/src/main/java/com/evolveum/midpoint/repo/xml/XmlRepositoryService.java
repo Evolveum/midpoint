@@ -96,8 +96,8 @@ public class XmlRepositoryService implements RepositoryService {
 	private static final Trace LOGGER = TraceManager.getTrace(XmlRepositoryService.class);
 	private ObjectPool sessions;
 
-//    @Autowired(required = true)
-//    private SchemaRegistry schemaRegistry;
+    @Autowired(required = true)
+    private SchemaRegistry schemaRegistry;
 
 	// TODO: inject from Configuration Object
 	private String host;
@@ -385,37 +385,40 @@ public class XmlRepositoryService implements RepositoryService {
 		String serializedObject = null;
 		try {
             //todo uncomment this, if you want to modify object with object deltas
-//            Schema schema = schemaRegistry.getObjectSchema();
-//            ObjectDelta<T> delta = ObjectDelta.createDelta(objectChange, schema, type);
-//
-//            T objectType = this.getObject(type, delta.getOid(), null, result);
-//            ObjectDefinition<T> objectDef = schema.findObjectDefinition(type);
-//
-//            MidPointObject<T> midPointObject = objectDef.parseObjectType(objectType);
-//            delta.applyTo(midPointObject);
-//
-//            midPointObject.setObjectType(null);
-//            T updatedObject = midPointObject.getOrParseObjectType();
-//
-//            Map<String, Object> properties = new HashMap<String, Object>();
-//            properties.put(Marshaller.JAXB_FRAGMENT, true);
-//            serializedObject = JAXBUtil.marshalWrap(updatedObject, properties);
-//        } catch (JAXBException ex) {
-//            errorLogRecordAndRethrow("Failed to modify object", result, ex);
-//        }
+            Schema schema = schemaRegistry.getObjectSchema();
+            ObjectDelta<T> delta = ObjectDelta.createDelta(objectChange, schema, type);
 
-			// get object from repo
-			// FIXME: possible problems with resolving property reference before
-			// xml patching
-			ObjectType objectType = this.getObject(ObjectType.class, objectChange.getOid(),
-					new PropertyReferenceListType(), result);
+            T objectType = this.getObject(type, delta.getOid(), null, result);
+            ObjectDefinition<T> objectDef = schema.findObjectDefinition(type);
 
-			// modify the object
-			PatchXml xmlPatchTool = new PatchXml();
-			serializedObject = xmlPatchTool.applyDifferences(objectChange, objectType);
-        } catch (PatchException ex) {
+            MidPointObject<T> midPointObject = objectDef.parseObjectType(objectType);
+            LOGGER.trace("OBJECT before:\n{}",midPointObject.dump());
+            LOGGER.trace("DELTA:\n{}",delta.dump());
+            delta.applyTo(midPointObject);
+            LOGGER.trace("OBJECT after:\n{}",midPointObject.dump());
+
+            midPointObject.setObjectType(null);
+            T updatedObject = midPointObject.getOrParseObjectType();
+
+            Map<String, Object> properties = new HashMap<String, Object>();
+            properties.put(Marshaller.JAXB_FRAGMENT, true);
+            serializedObject = JAXBUtil.marshalWrap(updatedObject, properties);
+        } catch (JAXBException ex) {
             errorLogRecordAndRethrow("Failed to modify object", result, ex);
         }
+
+//			// get object from repo
+//			// FIXME: possible problems with resolving property reference before
+//			// xml patching
+//			ObjectType objectType = this.getObject(ObjectType.class, objectChange.getOid(),
+//					new PropertyReferenceListType(), result);
+//
+//			// modify the object
+//			PatchXml xmlPatchTool = new PatchXml();
+//			serializedObject = xmlPatchTool.applyDifferences(objectChange, objectType);
+//        } catch (PatchException ex) {
+//            errorLogRecordAndRethrow("Failed to modify object", result, ex);
+//        }
 
 		// store modified object in repo
 		EscapeStringBuilder query = new XQueryEscapeStringBuilder();

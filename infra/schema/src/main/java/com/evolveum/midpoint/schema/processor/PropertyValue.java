@@ -21,11 +21,15 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 import java.io.Serializable;
+
+import org.w3c.dom.Element;
 
 /**
  * @author lazyman
@@ -109,12 +113,30 @@ public class PropertyValue<T> implements Dumpable, DebugDumpable, Serializable {
         return hash;
     }
 
-    public boolean equalsRealValue(PropertyValue<T> value) {
-        if (value == null) {
+    public boolean equalsRealValue(PropertyValue<T> pValueToCompare) {
+        if (pValueToCompare == null) {
             return false;
         }
+        
+        T valueToCompare = pValueToCompare.getValue();
+        if (valueToCompare == null && getValue() == null) {
+        	return true;
+        }
+        if (valueToCompare == null || getValue() == null) {
+        	return false;
+        }
 
-        return getValue() == null ? value.getValue() == null : getValue().equals(value.getValue());
+        // DOM elements cannot be compared directly. Use utility method instead.
+        if (valueToCompare instanceof Element && getValue() instanceof Element) {
+        	return DOMUtil.compareElement((Element)getValue(), (Element)valueToCompare, true);
+        }
+        
+        // FIXME!! HACK!!
+        if (valueToCompare instanceof ObjectReferenceType && getValue() instanceof ObjectReferenceType) {
+        	return ((ObjectReferenceType)valueToCompare).getOid().equals(((ObjectReferenceType)getValue()).getOid());
+        }
+        
+        return getValue().equals(pValueToCompare.getValue());
     }
 
     @Override

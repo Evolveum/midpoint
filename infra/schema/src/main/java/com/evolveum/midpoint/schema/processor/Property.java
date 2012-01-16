@@ -26,6 +26,9 @@ import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -62,6 +65,8 @@ import java.util.*;
 public class Property extends Item {
 
     private Set<PropertyValue<Object>> values = new HashSet<PropertyValue<Object>>();
+    
+    private static final Trace LOGGER = TraceManager.getTrace(Property.class);
 
     public Property() {
         super();
@@ -190,16 +195,44 @@ public class Property extends Item {
         this.values.add(value);
     }
 
-    public void addValue(PropertyValue value) {
-        this.values.add(value);
+    public void addValues(Collection<PropertyValue<Object>> pValuesToAdd) {
+    	for (PropertyValue<Object> pValue: pValuesToAdd) {
+    		addValue(pValue);
+    	}
+    }
+    
+    public void addValue(PropertyValue<Object> pValueToAdd) {
+    	Iterator<PropertyValue<Object>> iterator = this.values.iterator();
+    	while (iterator.hasNext()) {
+    		PropertyValue<Object> pValue = iterator.next();
+    		if (pValue.equalsRealValue(pValueToAdd)) {
+    			LOGGER.warn("Adding value to property "+getName()+" that already exists (overwriting), value: "+pValueToAdd);
+    			iterator.remove();
+    		}
+    	}
+    	this.values.add(pValueToAdd);
     }
 
-    public void addValues(Collection<PropertyValue<Object>> valuesToAdd) {
-        this.values.addAll(valuesToAdd);
-    }
 
-    public void deleteValues(Collection<PropertyValue<Object>> valuesToDelete) {
-        this.values.removeAll(valuesToDelete);
+    public void deleteValues(Collection<PropertyValue<Object>> pValuesToDelete) {
+    	for (PropertyValue<Object> pValue: pValuesToDelete) {
+    		deleteValue(pValue);
+    	}
+    }
+    
+    public void deleteValue(PropertyValue<Object> pValueToDelete) {
+    	Iterator<PropertyValue<Object>> iterator = this.values.iterator();
+    	boolean found = false;
+    	while (iterator.hasNext()) {
+    		PropertyValue<Object> pValue = iterator.next();
+    		if (pValue.equalsRealValue(pValueToDelete)) {
+    			iterator.remove();
+    			found = true;
+    		}
+    	}
+    	if (!found) {
+    		LOGGER.warn("Deleting value of property "+getName()+" that does not exist (skipping), value: "+pValueToDelete);
+    	}
     }
 
     public void replaceValues(Collection<PropertyValue<Object>> valuesToReplace) {
@@ -483,6 +516,7 @@ public class Property extends Item {
         return getClass().getSimpleName() + "(" + DebugUtil.prettyPrint(getName()) + "):" + getValues();
     }
 
+    @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < indent; i++) {
@@ -508,6 +542,7 @@ public class Property extends Item {
     /**
      * Return a human readable name of this class suitable for logs.
      */
+    @Override
     protected String getDebugDumpClassName() {
         return "Pro";
     }
