@@ -23,9 +23,7 @@ package com.evolveum.midpoint.model.sync.action;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
-import com.evolveum.midpoint.model.AccountSyncContext;
-import com.evolveum.midpoint.model.ChangeExecutor;
-import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.model.*;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.sync.Action;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
@@ -50,7 +48,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Vilo Repan
+ * @author lazyman
  */
 public abstract class BaseAction implements Action {
 
@@ -155,15 +153,13 @@ public abstract class BaseAction implements Action {
     }
 
     protected AccountSyncContext createAccountSyncContext(SyncContext context,
-            ResourceObjectShadowChangeDescription change) throws SchemaException {
+            ResourceObjectShadowChangeDescription change, PolicyDecision policyDecision,
+            ActivationDecision activationDecision) throws SchemaException {
+        LOGGER.debug("Creating account context for sync change.");
+
         ResourceType resource = change.getResource();
 
         String accountType = getAccountTypeFromChange(change);
-//        if (accountType == null) {
-//            LOGGER.warn("Account type undefined.");
-//            return null;
-//        }
-
         ResourceAccountType resourceAccount = new ResourceAccountType(resource.getOid(), accountType);
         AccountSyncContext accountContext = context.createAccountSyncContext(resourceAccount);
         accountContext.setResource(resource);
@@ -178,7 +174,27 @@ public abstract class BaseAction implements Action {
         //we insert account if available in change
         accountContext.setAccountOld(getAccountObject(change));
 
+        accountContext.setPolicyDecision(policyDecision);
+        accountContext.setActivationDecision(activationDecision);
+        boolean doReconciliation = determineAttributeReconciliation(change);
+        accountContext.setDoReconciliation(doReconciliation);
+
+        LOGGER.debug("Setting account context policy decision ({}), activation decision ({}), do reconciliation ({})",
+                new Object[]{policyDecision, activationDecision, doReconciliation});
+
         return accountContext;
+    }
+
+    private boolean determineAttributeReconciliation(ResourceObjectShadowChangeDescription change) {
+        Boolean reconcileAttributes = change.getResource().getSynchronization().isReconcileAttributes();
+        if (reconcileAttributes == null) {
+            // "Automatic mode", do reconciliation only if the complete current shadow was provided
+            reconcileAttributes = change.getCurrentShadow() != null;
+            LOGGER.trace("Attribute reconciliation automatic mode: {}", reconcileAttributes);
+        } else {
+            LOGGER.trace("Attribute reconciliation manual mode: {}", reconcileAttributes);
+        }
+        return reconcileAttributes;
     }
 
     private MidPointObject<AccountShadowType> getAccountObject(ResourceObjectShadowChangeDescription change)

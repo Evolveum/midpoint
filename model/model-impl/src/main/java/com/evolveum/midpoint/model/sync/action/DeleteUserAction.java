@@ -70,7 +70,7 @@ public class DeleteUserAction extends BaseAction {
         try {
             SyncContext context = new SyncContext();
             context.rememberResource(change.getResource());
-            
+
             //set old user
             Schema schema = getSchemaRegistry().getObjectSchema();
             ObjectDefinition<UserType> userDefinition = schema.findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
@@ -83,7 +83,7 @@ public class DeleteUserAction extends BaseAction {
             context.setUserSecondaryDelta(userDelta);
 
             //create account context for this change
-            AccountSyncContext accContext = createAccountSyncContext(context, change);
+            AccountSyncContext accContext = createAccountSyncContext(context, change, null, null);
             if (accContext == null) {
                 LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
                 return userOid;

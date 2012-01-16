@@ -68,15 +68,18 @@ public class AddUserAction extends BaseAction {
                 SyncContext context = new SyncContext();
                 //set user template to context from action configuration
                 context.setUserTemplate(getUserTemplate(subResult));
+                if (context.getUserTemplate() != null) {
+                    LOGGER.debug("Using user template {}", context.getUserTemplate().getName());
+                } else {
+                    LOGGER.debug("User template not defined.");
+                }
 
                 //add account sync context for inbound processing
-                AccountSyncContext accountContext = createAccountSyncContext(context, change);
+                AccountSyncContext accountContext = createAccountSyncContext(context, change, PolicyDecision.KEEP, null);
                 if (accountContext == null) {
                     LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
                     return userOid;
                 }
-
-                accountContext.setPolicyDecision(PolicyDecision.KEEP);
 
                 //create empty user
                 Schema schema = getSchemaRegistry().getObjectSchema();

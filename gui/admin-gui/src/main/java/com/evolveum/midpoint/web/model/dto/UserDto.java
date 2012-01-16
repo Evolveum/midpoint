@@ -22,9 +22,6 @@
 
 package com.evolveum.midpoint.web.model.dto;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.web.bean.AssignmentBean;
 import com.evolveum.midpoint.web.controller.util.ContainsAssignment;
@@ -33,154 +30,158 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * 
  * @author semancik
  */
 public class UserDto extends ExtensibleObjectDto<UserType> implements ContainsAssignment {
 
-	private static final long serialVersionUID = 2178456879571587946L;
-	private List<AccountShadowDto> accountDtos;
-	private List<AssignmentBean> assignments;
-	private ModelService model;
+    private static final long serialVersionUID = 2178456879571587946L;
+    private List<AccountShadowDto> accountDtos;
+    private List<AssignmentBean> assignments;
+    @Deprecated
+    private ModelService model;
 
-	public UserDto() {
-	}
+    public UserDto() {
+    }
 
-	public UserDto(UserType user, ModelService model) {
-		super(user);
-		this.model = model;
-		if (user != null) {
-			createAssignments(user);
-		}
-	}
+    @Deprecated
+    public UserDto(UserType user, ModelService model) {
+        super(user);
+        this.model = model;
+        if (user != null) {
+            createAssignments(user);
+        }
+    }
 
-	public String getFullName() {
-		return getXmlObject().getFullName();
-	}
+    public String getFullName() {
+        return getXmlObject().getFullName();
+    }
 
-	public void setFullName(String value) {
-		getXmlObject().setFullName(value);
-	}
+    public void setFullName(String value) {
+        getXmlObject().setFullName(value);
+    }
 
-	public String getGivenName() {
-		return getXmlObject().getGivenName();
-	}
+    public String getGivenName() {
+        return getXmlObject().getGivenName();
+    }
 
-	public void setGivenName(String value) {
-		getXmlObject().setGivenName(value);
-	}
+    public void setGivenName(String value) {
+        getXmlObject().setGivenName(value);
+    }
 
-	public String getFamilyName() {
-		return getXmlObject().getFamilyName();
-	}
+    public String getFamilyName() {
+        return getXmlObject().getFamilyName();
+    }
 
-	public void setFamilyName(String value) {
-		getXmlObject().setFamilyName(value);
-	}
+    public void setFamilyName(String value) {
+        getXmlObject().setFamilyName(value);
+    }
 
-	public void setEmail(String email) {
-		List<String> list = getXmlObject().getEMailAddress();
-		list.clear();
-		list.add(email);
-	}
+    public void setEmail(String email) {
+        List<String> list = getXmlObject().getEMailAddress();
+        list.clear();
+        list.add(email);
+    }
 
-	public String getEmail() {
-		List<String> list = getXmlObject().getEMailAddress();
-		if (list.size() == 0) {
-			return null;
-		}
-		return list.get(0);
-	}
+    public String getEmail() {
+        List<String> list = getXmlObject().getEMailAddress();
+        if (list.size() == 0) {
+            return null;
+        }
+        return list.get(0);
+    }
 
-	public String getHonorificPrefix() {
-		return getXmlObject().getHonorificPrefix();
-	}
+    public String getHonorificPrefix() {
+        return getXmlObject().getHonorificPrefix();
+    }
 
-	public void setHonorificPrefix(String value) {
-		getXmlObject().setHonorificPrefix(value);
-	}
+    public void setHonorificPrefix(String value) {
+        getXmlObject().setHonorificPrefix(value);
+    }
 
-	public String getHonorificSuffix() {
-		return getXmlObject().getHonorificSuffix();
-	}
+    public String getHonorificSuffix() {
+        return getXmlObject().getHonorificSuffix();
+    }
 
-	public void setHonorificSuffix(String value) {
-		getXmlObject().setHonorificSuffix(value);
-	}
+    public void setHonorificSuffix(String value) {
+        getXmlObject().setHonorificSuffix(value);
+    }
 
-	public List<AccountShadowDto> getAccount() {
+    public List<AccountShadowDto> getAccount() {
 
-		// List<AccountShadowType> accounts = getXmlObject().getAccount();
-		if (accountDtos == null) {
-			accountDtos = new ArrayList<AccountShadowDto>();
-			for (AccountShadowType account : getXmlObject().getAccount()) {
-				accountDtos.add(new AccountShadowDto(account));
-			}
-		}
+        // List<AccountShadowType> accounts = getXmlObject().getAccount();
+        if (accountDtos == null) {
+            accountDtos = new ArrayList<AccountShadowDto>();
+            for (AccountShadowType account : getXmlObject().getAccount()) {
+                accountDtos.add(new AccountShadowDto(account));
+            }
+        }
 
-		return accountDtos;
-	}
+        return accountDtos;
+    }
 
-	public List<ObjectReferenceDto> getAccountRef() {
-		List<ObjectReferenceType> accountRefs = getXmlObject().getAccountRef();
-		List<ObjectReferenceDto> accountRefDtos = new ArrayList<ObjectReferenceDto>();
+    public List<ObjectReferenceDto> getAccountRef() {
+        List<ObjectReferenceType> accountRefs = getXmlObject().getAccountRef();
+        List<ObjectReferenceDto> accountRefDtos = new ArrayList<ObjectReferenceDto>();
 
-		for (ObjectReferenceType ref : accountRefs) {
-			accountRefDtos.add(new ObjectReferenceDto(ref));
-		}
+        for (ObjectReferenceType ref : accountRefs) {
+            accountRefDtos.add(new ObjectReferenceDto(ref));
+        }
 
-		return accountRefDtos;
-	}
+        return accountRefDtos;
+    }
 
-	public String getEmployeeNumber() {
-		return getXmlObject().getEmployeeNumber();
-	}
+    public String getEmployeeNumber() {
+        return getXmlObject().getEmployeeNumber();
+    }
 
-	public void setEmployeeNumber(String value) {
-		getXmlObject().setEmployeeNumber(value);
-	}
+    public void setEmployeeNumber(String value) {
+        getXmlObject().setEmployeeNumber(value);
+    }
 
-	public String getLocality() {
-		return getXmlObject().getLocality();
-	}
+    public String getLocality() {
+        return getXmlObject().getLocality();
+    }
 
-	public void setLocality(String value) {
-		getXmlObject().setLocality(value);
-	}
+    public void setLocality(String value) {
+        getXmlObject().setLocality(value);
+    }
 
-	@Override
-	public void setXmlObject(UserType xmlObject) {
-		super.setXmlObject(xmlObject);
-		if (xmlObject != null) {
-			createAssignments(xmlObject);
-		}
-	}
+    @Override
+    public void setXmlObject(UserType xmlObject) {
+        super.setXmlObject(xmlObject);
+        if (xmlObject != null) {
+            createAssignments(xmlObject);
+        }
+    }
 
-	@Override
-	public List<AssignmentBean> getAssignments() {
-		if (assignments == null) {
-			assignments = new ArrayList<AssignmentBean>();
-		}
+    @Override
+    public List<AssignmentBean> getAssignments() {
+        if (assignments == null) {
+            assignments = new ArrayList<AssignmentBean>();
+        }
 
-		return assignments;
-	}
+        return assignments;
+    }
 
-	@Override
-	public void normalizeAssignments() {
-		List<AssignmentType> assignmentTypes = getXmlObject().getAssignment();
-		assignmentTypes.clear();
-		for (AssignmentBean bean : getAssignments()) {
-			assignmentTypes.add(bean.getAssignment());
-		}
-	}
+    @Override
+    public void normalizeAssignments() {
+        List<AssignmentType> assignmentTypes = getXmlObject().getAssignment();
+        assignmentTypes.clear();
+        for (AssignmentBean bean : getAssignments()) {
+            assignmentTypes.add(bean.getAssignment());
+        }
+    }
 
-	private void createAssignments(UserType user) {
-		getAssignments().clear();
-		int id = 0;
-		for (AssignmentType assignment : user.getAssignment()) {
-			getAssignments().add(new AssignmentBean(id, assignment, model));
-			id++;
-		}
-	}
+    private void createAssignments(UserType user) {
+        getAssignments().clear();
+        int id = 0;
+        for (AssignmentType assignment : user.getAssignment()) {
+            getAssignments().add(new AssignmentBean(id, assignment, model));
+            id++;
+        }
+    }
 }

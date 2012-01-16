@@ -110,15 +110,12 @@ public class ModifyUserAction extends BaseAction {
         try {
             context = createSyncContext(userType, change.getResource());
 
-            AccountSyncContext accountContext = createAccountSyncContext(context, change);
+            AccountSyncContext accountContext = createAccountSyncContext(context, change,
+                    getAccountPolicyDecision(), getAccountActivationDecision());
             if (accountContext == null) {
                 LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
                 return userOid;
             }
-
-            accountContext.setPolicyDecision(getAccountPolicyDecision());
-            accountContext.setActivationDecision(getAccountActivationDecision());
-            accountContext.setDoReconciliation(determineAttributeReconciliation(change));
 
             getSynchronizer().synchronizeUser(context, subResult);
         } catch (Exception ex) {
@@ -138,18 +135,6 @@ public class ModifyUserAction extends BaseAction {
         return userOid;
     }
 
-    private boolean determineAttributeReconciliation(ResourceObjectShadowChangeDescription change) {
-        Boolean reconcileAttributes = change.getResource().getSynchronization().isReconcileAttributes();
-        if (reconcileAttributes == null) {
-            // "Automatic mode", do reconciliation only if the complete current shadow was provided
-            reconcileAttributes = change.getCurrentShadow() != null;
-            LOGGER.trace("Attribute reconciliation automatic mode: {}", reconcileAttributes);
-        } else {
-            LOGGER.trace("Attribute reconciliation manual mode: {}", reconcileAttributes);
-        }
-        return reconcileAttributes;
-    }
-
     private Class<? extends ResourceObjectShadowType> getClassFromChange(ResourceObjectShadowChangeDescription change) {
         if (change.getObjectDelta() != null) {
             return change.getObjectDelta().getObjectTypeClass();
@@ -164,6 +149,8 @@ public class ModifyUserAction extends BaseAction {
 
     private SyncContext createSyncContext(UserType user, ResourceType resource) throws SchemaException {
         Schema schema = getSchemaRegistry().getObjectSchema();
+        LOGGER.debug("Creating sync context.");
+
         ObjectDefinition<UserType> userDefinition = schema.findObjectDefinitionByType(
                 SchemaConstants.I_USER_TYPE);
 
