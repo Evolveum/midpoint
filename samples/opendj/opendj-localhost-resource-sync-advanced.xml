@@ -37,6 +37,7 @@ object.
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
          xmlns:my="http://myself.me/schemas/whatever"
          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
@@ -63,6 +64,7 @@ object.
             </description>
             <and>
                 <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
+
                 <equal>
                     <value>
                         <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
@@ -72,8 +74,8 @@ object.
         </connectorRef>
 
         <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
-        <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2
-        </namespace>
+
+        <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
@@ -85,6 +87,7 @@ object.
             <icfcldap:configurationProperties>
                 <icfcldap:port>1389</icfcldap:port>
                 <icfcldap:host>localhost</icfcldap:host>
+
                 <icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
                 <icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
                 <icfcldap:credentials>
@@ -93,6 +96,7 @@ object.
                 <icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com
                 </icfcldap:modifiersNamesToFilterOut>
                 <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
+
                 <icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
                 <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
             </icfcldap:configurationProperties>
@@ -101,6 +105,7 @@ object.
 
             <icfc:connectorPoolConfiguration>
                 <icfc:minEvictableIdleTimeMillis>120000</icfc:minEvictableIdleTimeMillis>
+
                 <icfc:minIdle>1</icfc:minIdle>
                 <icfc:maxIdle>10</icfc:maxIdle>
                 <icfc:maxObjects>10</icfc:maxObjects>
@@ -115,12 +120,14 @@ object.
                 <icfc:update>-1</icfc:update>
                 <icfc:delete>-1</icfc:delete>
                 <icfc:test>-1</icfc:test>
+
                 <icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
                 <icfc:scriptOnResource>-1</icfc:scriptOnResource>
                 <icfc:authentication>-1</icfc:authentication>
                 <icfc:search>-1</icfc:search>
                 <icfc:validate>-1</icfc:validate>
                 <icfc:sync>-1</icfc:sync>
+
                 <icfc:schema>-1</icfc:schema>
             </icfc:timeouts>
 
@@ -143,10 +150,12 @@ object.
             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
                         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+                        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
                         xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
                         elementFormDefault="qualified"
                         targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
+
                 <xsd:import
                         namespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
                 <xsd:import
@@ -158,6 +167,7 @@ object.
                             <r:accountType default="true"/>
                         </xsd:appinfo>
                     </xsd:annotation>
+
                     <xsd:complexContent>
                         <xsd:extension base="r:ResourceObjectClass">
                             <xsd:sequence>
@@ -168,6 +178,7 @@ object.
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="photo" type="xsd:base64Binary"/>
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="title" type="xsd:string"/>
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string"/>
+
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="userPassword"
                                              type="xsd:base64Binary"/>
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="x121Address" type="xsd:string"/>
@@ -182,6 +193,7 @@ object.
                                 <xsd:element minOccurs="0" name="employeeNumber" type="xsd:string"/>
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="facsimileTelephoneNumber"
                                              type="xsd:string"/>
+
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string"/>
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="initials" type="xsd:string"/>
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="telexNumber" type="xsd:string"/>
@@ -192,6 +204,7 @@ object.
                                 <xsd:element ref="icfs:name"/>
                                 <xsd:element minOccurs="0" name="ds-pwp-account-disabled" type="xsd:string">
                                     <xsd:annotation>
+
                                         <xsd:appinfo>
                                             <ignore>true</ignore>
                                         </xsd:appinfo>
@@ -201,6 +214,7 @@ object.
                                              type="xsd:string"/>
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="st" type="xsd:string"/>
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string"/>
+
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="uid" type="xsd:string"/>
                                 <xsd:element minOccurs="0" name="preferredLanguage" type="xsd:string"/>
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="street" type="xsd:string"/>
@@ -212,6 +226,7 @@ object.
                                 <xsd:element minOccurs="0" name="preferredDeliveryMethod" type="xsd:string"/>
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="telephoneNumber"
                                              type="xsd:string"/>
+
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="labeledURI" type="xsd:string"/>
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="homePostalAddress"
                                              type="xsd:string"/>
@@ -226,6 +241,7 @@ object.
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="carLicense" type="xsd:string"/>
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="jpegPhoto"
                                              type="xsd:base64Binary"/>
+
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string"/>
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="manager" type="xsd:string"/>
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="employeeType" type="xsd:string"/>
@@ -237,6 +253,7 @@ object.
                                 <xsd:element minOccurs="0" name="displayName" type="xsd:string"/>
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="postalAddress"
                                              type="xsd:string"/>
+
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="homePhone" type="xsd:string"/>
                                 <xsd:element maxOccurs="unbounded" name="cn" type="xsd:string"/>
                             </xsd:sequence>
@@ -246,6 +263,7 @@ object.
                 <xsd:complexType name="GroupObjectClass">
                     <xsd:annotation>
                         <xsd:appinfo>
+
                             <r:identifier ref="icfs:uid"/>
                         </xsd:appinfo>
                     </xsd:annotation>
@@ -255,6 +273,7 @@ object.
                                 <xsd:element maxOccurs="unbounded" name="cn" type="xsd:string"/>
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string"/>
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string"/>
+
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string"/>
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string"/>
                                 <xsd:element ref="icfs:name"/>
@@ -265,6 +284,7 @@ object.
                                 <xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory"
                                              type="xsd:string"/>
                             </xsd:sequence>
+
                         </xsd:extension>
                     </xsd:complexContent>
                 </xsd:complexType>
@@ -317,6 +337,7 @@ object.
                     <access>read</access>
 
                     <outbound>
+
                         <description>
                             Outbound expression for the "name" attribute.
                             If account is created or updated, the "name" attribute
@@ -337,6 +358,7 @@ object.
                                 concat('uid=', $i:user/c:name, ',ou=people,dc=example,dc=com')
                             </code>
                         </expression>
+
                     </outbound>
 
                     <!-- No inbound expression here. We cannot sync changes in DN yet -->
@@ -347,6 +369,7 @@ object.
                     <ref>icfs:uid</ref>
 
                     <!-- Readable name for the attribute. This will be used in GUI -->
+
                     <displayName>Entry UUID</displayName>
 
                     <description>
@@ -406,6 +429,7 @@ object.
                                 $i:user/i:fullName
                             </code>
                         </expression>
+
                     </outbound>
 
                     <inbound>
@@ -428,6 +452,7 @@ object.
                     <displayName>Surname</displayName>
                     <description>Handling of LDAP "sn" (surname) attribute</description>
                     <access>create</access>
+
                     <access>read</access>
                     <access>update</access>
                     <outbound>
@@ -437,6 +462,7 @@ object.
                                 $i:user/i:familyName
                             </code>
                         </expression>
+
                     </outbound>
                     <inbound>
                         <description>sn will be synchronized to user's familyName</description>
@@ -453,6 +479,7 @@ object.
                     <description>Definition of givenName attribute handling.</description>
                     <access>create</access>
                     <access>read</access>
+
                     <access>update</access>
                     <outbound>
                         <expression>
@@ -463,6 +490,7 @@ object.
                         </expression>
                     </outbound>
                     <inbound>
+
                         <description>givenName will be synchronized to user's givenName</description>
                         <target>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
@@ -473,6 +501,7 @@ object.
 
                 <attribute>
                     <ref>ri:uid</ref>
+
                     <displayName>Login Name</displayName>
                     <description>
                         Definition of LDAP uid attribute handling. This is a native LDAP uid attribute.
@@ -484,6 +513,7 @@ object.
                         <description>It is mapped from (and also to) "name" property of
                             user. It is essentially a login name
                         </description>
+
                         <expression>
                             <code>
                                 declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
@@ -496,6 +526,7 @@ object.
                             user. It is essentially a login name
                         </description>
                         <target>
+
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             i:name
                         </target>
@@ -506,6 +537,7 @@ object.
                     <ref>ri:description</ref>
                     <description>Definition of description attribute handling.</description>
                     <outbound>
+
                         <description>
                             This outbound expression is not really an expression.
                             It is using a fixed literal insead of dynamically
@@ -517,6 +549,7 @@ object.
 
                     <!--<inbound>-->
                     <!--<valueFilter-->
+
                     <!--type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter"-->
                     <!--xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd">-->
                     <!--<f:replace>-->
@@ -526,6 +559,7 @@ object.
                     <!--</f:replace>-->
                     <!--</valueFilter>-->
                     <!--<target>-->
+
                     <!--declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";-->
                     <!--declare namespace-->
                     <!--my="http://whatever.com/my";-->
@@ -548,6 +582,7 @@ object.
                             a configuration object (set into an XPath variable) to
                             translate values.
                         </description>
+
                         <expression>
                             <description>
                                 The expression itself. It translates the value of
@@ -563,6 +598,7 @@ object.
                                     expression below. It will contain the content of XML
                                     object stored by OID c0c010c0-d34d-b33f-f00d-999111111111.
                                 </description>
+
                                 <objectRef oid="c0c010c0-d34d-b33f-f00d-999111111111"/>
                             </variable>
                             <variable>
@@ -570,6 +606,7 @@ object.
                                 <description>Example of setting a variable to a string value.</description>
                                 <value>middle of nowhere</value>
                             </variable>
+
                             <returnType>scalar</returnType>
                             <code>
                                 declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
@@ -584,6 +621,7 @@ object.
                 </attribute>
 
                 <credentials>
+
                     <password>
                         <outbound>
                             <asIs/>
@@ -593,6 +631,7 @@ object.
                 <activation>
                     <enabled>
                         <outbound>
+
                             <asIs/>
                         </outbound>
                     </enabled>
@@ -603,6 +642,7 @@ object.
 
         <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd">
             <cap:activation>
+
                 <cap:enableDisable>
                     <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
                     <cap:enableValue/>
@@ -611,6 +651,7 @@ object.
             </cap:activation>
             <cap:credentials>
                 <cap:password/>
+
             </cap:credentials>
             <cap:liveSync/>
             <cap:testConnection/>
@@ -630,7 +671,7 @@ object.
             <correlation>
                 <description>
                     Correlation expression is a search query.
-                    Following search query will look for users that have "name"
+                    Following search queury will look for users that have "name"
                     equal to the "uid" attribute of the account. Simply speaking,
                     it will look for match in usernames in the IDM and the resource.
                     The correlation rule always looks for users, so it will not match
@@ -640,6 +681,7 @@ object.
                     <path>.</path>
                     <valueExpression>
                         <ref>name</ref>
+
                         <code>
                             $c:account/c:attributes/ri:uid
                         </code>
@@ -656,6 +698,7 @@ object.
                  reflected as new users in IDM.
                  See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
              -->
+
             <reaction>
                 <situation>linked</situation>
                 <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser"/>
@@ -664,6 +707,7 @@ object.
                 <situation>deleted</situation>
                 <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
             </reaction>
+
             <reaction>
                 <situation>unlinked</situation>
                 <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addAccount"/>
@@ -674,6 +718,7 @@ object.
                     <!-- Reference to the User Template is here. If the user would be
                          created as a result of this action, it will be created according
                          to this template. -->
+
                     <userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
                 </action>
                 <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
@@ -684,6 +729,7 @@ object.
     </resource>
 
     <userTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111">
+
         <name>Default User Template</name>
 
         <description>
@@ -694,6 +740,7 @@ object.
         <propertyConstruction>
             <property>i:fullName</property>
             <description>
+
                 Property construction.
                 Defines how properties of user object are set up.
                 This specific definition sets a full name as a concatenation
@@ -707,6 +754,7 @@ object.
                         concat($i:user/i:givenName,' ',$i:user/i:familyName)
                     </code>
                 </expression>
+
             </valueConstruction>
         </propertyConstruction>
 
@@ -721,6 +769,7 @@ object.
             </description>
             <resourceRef oid="c0c010c0-d34d-b33f-f00d-333111111112" type="c:ResourceType"/>
             <type>default</type>
+
         </accountConstruction>
 
     </userTemplate>
@@ -744,6 +793,7 @@ object.
             <valueConstruction>
                 <initial>true</initial>
                 <expression>
+
                     <code>
                         declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                         concat($i:user/i:givenName,' ',$i:user/i:familyName)
@@ -755,6 +805,7 @@ object.
     </userTemplate>
 
     <genericObject oid="c0c010c0-d34d-b33f-f00d-999111111111">
+
         <name>My Sample Config Object</name>
         <description>
             Sample custom configuration object. Object of the genericObject type are
@@ -773,6 +824,7 @@ object.
                      definition of outbound expression for "l" attribute in the resource
                      definition above). -->
                 <my:location key="home">Here</my:location>
+
                 <my:location key="work">There</my:location>
                 <my:location key="somewhere">There there over the corner</my:location>
             </my:locations>
@@ -790,6 +842,7 @@ object.
         <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>running</executionStatus>
+
         <exclusivityStatus>released</exclusivityStatus>
         <handlerUri>http://midpoint.evolveum.com/model/sync/handler-1</handlerUri>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
@@ -797,6 +850,7 @@ object.
         <binding>tight</binding>
         <schedule>
             <interval>5</interval>
+
         </schedule>
     </task>
 
