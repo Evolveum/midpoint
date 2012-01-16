@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema 
+	xmlns="http://www.w3.org/2001/XMLSchema" 
+	targetNamespace="http://whatever.com/my"
+	xmlns:tns="http://whatever.com/my"
+	xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+	elementFormDefault="qualified">
+	
+	<import namespace="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd" />
+	
+	<complexType name="UserExtensionType">
+		<annotation>
+			<appinfo>
+				<a:extension ref="c:UserType"/>
+			</appinfo>
+		</annotation>
+		<sequence>
+			<element name="description" type="string" minOccurs="0"/>
+		</sequence>
+	</complexType>
+</schema>

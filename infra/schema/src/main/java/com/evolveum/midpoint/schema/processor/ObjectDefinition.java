@@ -117,6 +117,7 @@ public class ObjectDefinition<T extends ObjectType> extends PropertyContainerDef
 	public void setExtensionDefinition(ComplexTypeDefinition extensionComplexTypeDefinition) {
 		PropertyContainerDefinition newExtensionDef = new PropertyContainerDefinition(SchemaConstants.C_EXTENSION, extensionComplexTypeDefinition);
 		ComplexTypeDefinition newCtd = this.complexTypeDefinition.clone();
+		newExtensionDef.setRuntimeSchema(true);
 		newCtd.replaceDefinition(SchemaConstants.C_EXTENSION, newExtensionDef);
 		this.complexTypeDefinition = newCtd;
 	}
