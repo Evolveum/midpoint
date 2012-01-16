@@ -23,7 +23,10 @@ package com.evolveum.midpoint.model.sync.action;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
-import com.evolveum.midpoint.model.*;
+import com.evolveum.midpoint.model.AccountSyncContext;
+import com.evolveum.midpoint.model.ChangeExecutor;
+import com.evolveum.midpoint.model.PolicyDecision;
+import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.sync.Action;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
@@ -171,7 +174,9 @@ public abstract class BaseAction implements Action {
         accountContext.setAccountOld(getAccountObject(change));
 
         accountContext.setPolicyDecision(policyDecision);
-        accountContext.setActivationDecision(activationDecision);
+        if (activationDecision != null) {
+            updateAccountActivation(accountContext, activationDecision);
+        }
         boolean doReconciliation = determineAttributeReconciliation(change);
         accountContext.setDoReconciliation(doReconciliation);
 
@@ -179,6 +184,10 @@ public abstract class BaseAction implements Action {
                 new Object[]{policyDecision, activationDecision, doReconciliation});
 
         return accountContext;
+    }
+
+    private void updateAccountActivation(AccountSyncContext accContext, ActivationDecision activationDecision) {
+        //todo implement account activation change
     }
 
     private boolean determineAttributeReconciliation(ResourceObjectShadowChangeDescription change) {

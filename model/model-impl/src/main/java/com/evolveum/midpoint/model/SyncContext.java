@@ -114,12 +114,6 @@ public class SyncContext implements Dumpable, DebugDumpable {
     private Map<String, ResourceType> resourceCache;
 
     /**
-     * Decision regarding the user. If set to null account activation won't be changed. If set to
-     * {@link ActivationDecision#DISABLE} ({@link ActivationDecision#ENABLE}) user will be disabled (enabled),
-     */
-    private ActivationDecision activationDecision;
-    
-    /**
      * True if we want to reconcile all accounts in this context.
      */
     private boolean doReconciliationForAllAccounts = false;
@@ -127,14 +121,6 @@ public class SyncContext implements Dumpable, DebugDumpable {
     public SyncContext() {
         accountContextMap = new HashMap<ResourceAccountType, AccountSyncContext>();
         resourceCache = new HashMap<String, ResourceType>();
-    }
-
-    public ActivationDecision getActivationDecision() {
-        return activationDecision;
-    }
-
-    public void setActivationDecision(ActivationDecision activationDecision) {
-        this.activationDecision = activationDecision;
     }
 
     public UserType getUserTypeOld() {
@@ -201,16 +187,16 @@ public class SyncContext implements Dumpable, DebugDumpable {
             AccountSynchronizationSettingsType accountSynchronizationSettings) {
         this.accountSynchronizationSettings = accountSynchronizationSettings;
     }
-    
+
     public boolean isDoReconciliationForAllAccounts() {
-		return doReconciliationForAllAccounts;
-	}
+        return doReconciliationForAllAccounts;
+    }
 
-	public void setDoReconciliationForAllAccounts(boolean doReconciliationForAllAccounts) {
-		this.doReconciliationForAllAccounts = doReconciliationForAllAccounts;
-	}
+    public void setDoReconciliationForAllAccounts(boolean doReconciliationForAllAccounts) {
+        this.doReconciliationForAllAccounts = doReconciliationForAllAccounts;
+    }
 
-	/**
+    /**
      * Returns one aspect from the synchronization settings (with respect to default value).
      * TODO: maybe this is redundant?
      */
@@ -336,7 +322,8 @@ public class SyncContext implements Dumpable, DebugDumpable {
      *
      * @see SyncContext#rememberResource(ResourceType)
      */
-    public RefinedResourceSchema getRefinedResourceSchema(ResourceAccountType rat, SchemaRegistry schemaRegistry) throws SchemaException {
+    public RefinedResourceSchema getRefinedResourceSchema(ResourceAccountType rat, SchemaRegistry schemaRegistry) throws
+            SchemaException {
         return RefinedResourceSchema.getRefinedSchema(getResource(rat), schemaRegistry);
     }
 
@@ -347,7 +334,8 @@ public class SyncContext implements Dumpable, DebugDumpable {
      *
      * @see SyncContext#rememberResource(ResourceType)
      */
-    public RefinedAccountDefinition getRefinedAccountDefinition(ResourceAccountType rat, SchemaRegistry schemaRegistry) throws SchemaException {
+    public RefinedAccountDefinition getRefinedAccountDefinition(ResourceAccountType rat,
+            SchemaRegistry schemaRegistry) throws SchemaException {
         // TODO: check for null
         return getRefinedResourceSchema(rat, schemaRegistry).getAccountDefinition(rat.getAccountType());
     }
@@ -404,7 +392,7 @@ public class SyncContext implements Dumpable, DebugDumpable {
     }
 
     private void addChangeIfNotNull(Collection<ObjectDelta<?>> changes,
-                                    ObjectDelta<?> change) {
+            ObjectDelta<?> change) {
         if (change != null) {
             changes.add(change);
         }

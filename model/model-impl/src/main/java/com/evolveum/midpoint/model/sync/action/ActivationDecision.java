@@ -19,14 +19,14 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.model;
+package com.evolveum.midpoint.model.sync.action;
 
 /**
- * This enum describes decision about account activation
+ * This enum describes decision about user or account activation
  *
  * @author lazyman
  */
-public enum ActivationDecision {
+enum ActivationDecision {
 
     ENABLE,
     DISABLE;

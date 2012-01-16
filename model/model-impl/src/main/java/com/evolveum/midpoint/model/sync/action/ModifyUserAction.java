@@ -22,7 +22,6 @@
 package com.evolveum.midpoint.model.sync.action;
 
 import com.evolveum.midpoint.model.AccountSyncContext;
-import com.evolveum.midpoint.model.ActivationDecision;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
@@ -45,9 +44,23 @@ import org.apache.commons.lang.Validate;
 public class ModifyUserAction extends BaseAction {
 
     private static final Trace LOGGER = TraceManager.getTrace(ModifyUserAction.class);
+    /**
+     * Action name for operation result
+     */
     private final String actionName;
+    /**
+     * Decision regarding the user. If set to null user activation won't be changed. If set to
+     * {@link ActivationDecision#DISABLE} ({@link ActivationDecision#ENABLE}) user will be disabled (enabled),
+     */
     private ActivationDecision userActivationDecision;
+    /**
+     * Decision regarding the account. If set to null account activation won't be changed. If set to
+     * {@link ActivationDecision#DISABLE} ({@link ActivationDecision#ENABLE}) account will be disabled (enabled),
+     */
     private ActivationDecision accountActivationDecision;
+    /**
+     * Decision regarding account state see {@link PolicyDecision}.
+     */
     private PolicyDecision accountPolicyDecision;
 
     public ModifyUserAction() {
@@ -154,8 +167,11 @@ public class ModifyUserAction extends BaseAction {
         SyncContext context = new SyncContext();
         MidPointObject<UserType> oldUser = userDefinition.parseObjectType(user);
         context.setUserOld(oldUser);
-        context.setActivationDecision(getUserActivationDecision());
         context.rememberResource(resource);
+
+        if (userActivationDecision != null) {
+            //todo check user activation
+        }
 
         return context;
     }

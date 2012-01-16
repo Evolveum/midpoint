@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
-import com.evolveum.midpoint.model.ActivationDecision;
 import com.evolveum.midpoint.model.PolicyDecision;
 
 /**

@@ -47,10 +47,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -475,6 +472,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                         "valueExpression");
                 if (valueExpressionElement != null) {
                     equal.removeChild(valueExpressionElement);
+                    copyNamespaceDefinitions(equal, valueExpressionElement);
+
                     Element refElement = findChildElement(valueExpressionElement, SchemaConstants.NS_C, "ref");
                     QName ref = DOMUtil.resolveQName(refElement);
 
@@ -511,6 +510,22 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
         LOGGER.trace("updateFilterWithAccountValues::end");
         return filter;
+    }
+
+    private void copyNamespaceDefinitions(Element from, Element to) {
+        NamedNodeMap attributes = from.getAttributes();
+        List<Attr> xmlns = new ArrayList<Attr>();
+        for (int i = 0; i < attributes.getLength(); i++) {
+            Node node = attributes.item(i);
+            if (!(node instanceof Attr)) {
+                continue;
+            }
+            xmlns.add((Attr) attributes.item(i));
+        }
+        for (Attr attr : xmlns) {
+            from.removeAttributeNode(attr);
+            to.setAttributeNode(attr);
+        }
     }
 
     private Element findChildElement(Element element, String namespace, String name) {

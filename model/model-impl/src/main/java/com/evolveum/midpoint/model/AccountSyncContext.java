@@ -39,7 +39,6 @@ import javax.xml.namespace.QName;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * Account synchronization context that is part of SyncContext. Synchronization context that is passed inside the model
@@ -121,12 +120,6 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
      */
     private boolean doReconciliation;
 
-    /**
-     * Decision regarding the account. If set to null account activation won't be changed. If set to
-     * {@link ActivationDecision#DISABLE} ({@link ActivationDecision#ENABLE}) account will be disabled (enabled),
-     */
-    private ActivationDecision activationDecision;
-
     AccountSyncContext(ResourceAccountType resourceAccountType) {
         this.resourceAccountType = resourceAccountType;
         this.attributeValueDeltaSetTripleMap = new HashMap<QName, DeltaSetTriple<ValueConstruction>>();
@@ -139,14 +132,6 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
 
     public void setAccountSyncDelta(ObjectDelta<AccountShadowType> accountSyncDelta) {
         this.accountSyncDelta = accountSyncDelta;
-    }
-
-    public ActivationDecision getActivationDecision() {
-        return activationDecision;
-    }
-
-    public void setActivationDecision(ActivationDecision activationDecision) {
-        this.activationDecision = activationDecision;
     }
 
     public boolean isDoReconciliation() {
@@ -252,21 +237,21 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     public Map<QName, DeltaSetTriple<ValueConstruction>> getAttributeValueDeltaSetTripleMap() {
         return attributeValueDeltaSetTripleMap;
     }
-    
-	public void addToAttributeValueDeltaSetTripleMap(
-			Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap) {
-		
-		for (Entry<QName, DeltaSetTriple<ValueConstruction>> entry: attributeValueDeltaMap.entrySet()) {
-			QName attrName = entry.getKey();
-			DeltaSetTriple<ValueConstruction> triple = entry.getValue();
-			if (attributeValueDeltaSetTripleMap.containsKey(attrName)) {
-				attributeValueDeltaSetTripleMap.get(attrName).merge(triple);
-			} else {
-				attributeValueDeltaSetTripleMap.put(attrName, triple);	
-			}
-		}
-		
-	}
+
+    public void addToAttributeValueDeltaSetTripleMap(
+            Map<QName, DeltaSetTriple<ValueConstruction>> attributeValueDeltaMap) {
+
+        for (Entry<QName, DeltaSetTriple<ValueConstruction>> entry : attributeValueDeltaMap.entrySet()) {
+            QName attrName = entry.getKey();
+            DeltaSetTriple<ValueConstruction> triple = entry.getValue();
+            if (attributeValueDeltaSetTripleMap.containsKey(attrName)) {
+                attributeValueDeltaSetTripleMap.get(attrName).merge(triple);
+            } else {
+                attributeValueDeltaSetTripleMap.put(attrName, triple);
+            }
+        }
+
+    }
 
     public ResourceAccountTypeDefinitionType getResourceAccountTypeDefinitionType() {
         return ResourceTypeUtil.getResourceAccountTypeDefinitionType(resource, resourceAccountType.getAccountType());
