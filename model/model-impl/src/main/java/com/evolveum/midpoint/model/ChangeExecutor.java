@@ -86,14 +86,13 @@ public class ChangeExecutor {
 
         for (AccountSyncContext accCtx : syncContext.getAccountContexts()) {
             ObjectDelta<AccountShadowType> accDelta = accCtx.getAccountDelta();
-            if (accDelta == null) {
+            if (accDelta != null) {
+                LOGGER.trace("Executing ACCOUNT change " + accDelta);
+                executeChange(accDelta, result);
+            } else {
                 LOGGER.trace("No change for account " + accCtx.getResourceAccountType());
-                continue;
             }
-            LOGGER.trace("Executing ACCOUNT change " + accDelta);
-            executeChange(accDelta, result);
-            // To make sure that the OID is set (e.g. after ADD operation)
-            accCtx.setOid(accDelta.getOid());
+
             updateAccountLinks(syncContext.getUserNew(), accCtx, result);
         }
 
