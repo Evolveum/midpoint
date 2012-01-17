@@ -164,10 +164,25 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
      * Apply this delta (path) to a property container.
      */
     public void applyTo(PropertyContainer propertyContainer) {
-        Property property = propertyContainer.findOrCreateProperty(getParentPath(), getName());
+    	// valueClass is kind of HACK, it should be FIXME
+    	Class<?> valueClass = getValueClass();
+        Property property = propertyContainer.findOrCreateProperty(getParentPath(), getName(), valueClass);
         applyTo(property);
     }
 
+    public Class<?> getValueClass() {
+    	if (valuesToReplace != null && !valuesToReplace.isEmpty()) {
+    		return valuesToReplace.iterator().next().getValue().getClass();
+        }
+    	if (valuesToAdd != null && !valuesToAdd.isEmpty()) {
+    		return valuesToAdd.iterator().next().getValue().getClass();
+        }
+    	if (valuesToDelete != null && !valuesToDelete.isEmpty()) {
+    		return valuesToDelete.iterator().next().getValue().getClass();
+        }
+    	return null;
+    }
+    
     /**
      * Apply this delta (path) to a property.
      */

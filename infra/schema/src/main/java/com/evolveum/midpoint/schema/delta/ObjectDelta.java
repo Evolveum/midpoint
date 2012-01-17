@@ -396,7 +396,8 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
             // TODO: check for conflict
             addModification(newPropertyDelta);
         } else if (changeType == ChangeType.ADD) {
-            Property property = objectToAdd.findOrCreateProperty(newPropertyDelta.getParentPath(), newPropertyDelta.getName());
+        	Class<?> valueClass = newPropertyDelta.getValueClass();
+            Property property = objectToAdd.findOrCreateProperty(newPropertyDelta.getParentPath(), newPropertyDelta.getName(), valueClass);
             newPropertyDelta.applyTo(property);
         }
         // nothing to do for DELETE

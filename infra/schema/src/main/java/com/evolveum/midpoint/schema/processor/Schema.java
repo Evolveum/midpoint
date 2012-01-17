@@ -445,6 +445,36 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 		return accounts;
 	}
 	
+	/**
+	 * Try to locate xsi:type definition in the elements and return appropriate ItemDefinition.
+	 */
+	public static ItemDefinition resolveDynamicItemDefinition(List<Object> valueElements) {
+		QName typeName = null;
+		QName elementName = null;
+		for (Object element: valueElements) {
+			if (elementName == null) {
+				elementName = JAXBUtil.getElementQName(element);
+			}
+			// TODO: try JAXB types
+			if (element instanceof Element) {
+				Element domElement = (Element)element;
+				if (DOMUtil.hasXsiType(domElement)) {
+					typeName = DOMUtil.resolveXsiType(domElement);
+					if (typeName != null) {
+						break;
+					}
+				}
+			}
+		}
+		// FIXME: now the definition assumes property, may also be property container?
+		if (typeName == null) {
+			return null;
+		}
+		PropertyDefinition propDef = new PropertyDefinition(elementName, typeName);
+		// TODO: set "dynamic" flag
+		return propDef;
+	}
+	
 	public <T extends ObjectType> MidPointObject<T> parseObjectType(T objectType) throws SchemaException {
 		ObjectDefinition<T> objectDefinition = (ObjectDefinition<T>) findObjectDefinition(objectType.getClass());
 		if (objectDefinition == null) {

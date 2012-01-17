@@ -67,7 +67,7 @@ public class XmlUtil {
     }
 
     public static <T> void setPropertyValue(PropertyContainer container, QName name, T value) {
-        Property property = container.findOrCreateProperty(name);
+        Property property = container.findOrCreateProperty(name, value.getClass());
         property.setValue(new PropertyValue(value));
     }
 }

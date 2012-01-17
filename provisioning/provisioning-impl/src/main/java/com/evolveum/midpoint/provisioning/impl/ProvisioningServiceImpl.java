@@ -306,41 +306,42 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		int processedChanges = 0;
 
-		// Resolve resource
-		ObjectType resourceObjectType = getObject(ObjectType.class, resourceOid,
-				new PropertyReferenceListType(), result);
-
-		// try if the object with the specified oid is resource
-		if (!(resourceObjectType instanceof ResourceType)) {
-			result.recordFatalError("Object to synchronize must be type of resource.");
-			throw new IllegalArgumentException("Object to synchronize must be type of resource.");
-		}
-
-		ResourceType resourceType = (ResourceType) resourceObjectType;
-
-		LOGGER.trace("**PROVISIONING: Start synchronization of resource {} ",
-				DebugUtil.prettyPrint(resourceType));
-
-		// getting token form task
-		Property tokenProperty = null;
-
-		if (task.getExtension() != null) {
-			tokenProperty = task.getExtension(SchemaConstants.SYNC_TOKEN);
-		}
-
-		// if the token is not specified in the task, get the latest token
-		if (tokenProperty == null) {
-			tokenProperty = getShadowCache().fetchCurrentToken(resourceType, parentResult);
-		}
-
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("**PROVISIONING: Got token property: {} from the task extension.",
-					DebugUtil.prettyPrint(tokenProperty));
-		}
-
-		List<PropertyModification> modifications = new ArrayList<PropertyModification>();
-		List<Change> changes = null;
 		try {
+			// Resolve resource
+			ObjectType resourceObjectType = getObject(ObjectType.class, resourceOid,
+					new PropertyReferenceListType(), result);
+	
+			// try if the object with the specified oid is resource
+			if (!(resourceObjectType instanceof ResourceType)) {
+				result.recordFatalError("Object to synchronize must be type of resource.");
+				throw new IllegalArgumentException("Object to synchronize must be type of resource.");
+			}
+	
+			ResourceType resourceType = (ResourceType) resourceObjectType;
+	
+			LOGGER.trace("**PROVISIONING: Start synchronization of resource {} ",
+					DebugUtil.prettyPrint(resourceType));
+	
+			// getting token form task
+			Property tokenProperty = null;
+	
+			if (task.getExtension() != null) {
+				tokenProperty = task.getExtension(SchemaConstants.SYNC_TOKEN);
+			}
+	
+			// if the token is not specified in the task, get the latest token
+			if (tokenProperty == null) {
+				tokenProperty = getShadowCache().fetchCurrentToken(resourceType, parentResult);
+			}
+	
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("**PROVISIONING: Got token property: {} from the task extension.",
+						DebugUtil.prettyPrint(tokenProperty));
+			}
+	
+			List<PropertyModification> modifications = new ArrayList<PropertyModification>();
+			List<Change> changes = null;
+		
 			LOGGER.trace("Calling shadow cache to fetch changes.");
 			changes = getShadowCache().fetchChanges(resourceType, tokenProperty, result);
 
@@ -430,16 +431,23 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				modifications.add(modificatedToken);
 			}
 			task.modifyExtension(modifications, result);
+			
+		// This happens in the (scheduled async) task. Recording of results in the task is still not
+		// ideal, therefore also log the errors with a full stack trace.
 		} catch (ObjectNotFoundException e) {
+			LOGGER.error("Synchronization error: object not found: {}",e.getMessage(),e);
 			result.recordFatalError(e.getMessage(), e);
 			throw new ObjectNotFoundException(e.getMessage(), e);
 		} catch (CommunicationException e) {
+			LOGGER.error("Synchronization error: communication problem: {}",e.getMessage(),e);
 			result.recordFatalError("Error communicating with connector: " + e.getMessage(), e);
 			throw new CommunicationException(e.getMessage(), e);
 		} catch (GenericFrameworkException e) {
+			LOGGER.error("Synchronization error: generic connector framework error: {}",e.getMessage(),e);
 			result.recordFatalError(e.getMessage(), e);
 			throw new CommunicationException(e.getMessage(), e);
 		} catch (SchemaException e) {
+			LOGGER.error("Synchronization error: schema problem: {}",e.getMessage(),e);
 			result.recordFatalError(e.getMessage(), e);
 			throw new SchemaException(e.getMessage(), e);
 		}

@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.PropertyModification.ModificationType;
 import com.evolveum.midpoint.schema.util.DebugUtil;
@@ -316,20 +317,21 @@ public class PropertyContainer extends Item {
         return container.findOrCreatePropertyContainer(containerPath.rest());
     }
 
-    public Property findOrCreateProperty(QName propertyQName) {
+    // The valueClass is kind of a hack
+    public Property findOrCreateProperty(QName propertyQName, Class<?> valueClass) {
         Property property = findItem(propertyQName, Property.class);
         if (property != null) {
             return property;
         }
-        return createProperty(propertyQName);
+        return createProperty(propertyQName, valueClass);
     }
 
-    public Property findOrCreateProperty(PropertyPath parentPath, QName propertyQName) {
+    public Property findOrCreateProperty(PropertyPath parentPath, QName propertyQName, Class<?> valueClass) {
         PropertyContainer container = findOrCreatePropertyContainer(parentPath);
         if (container == null) {
             throw new IllegalArgumentException("No container");
         }
-        return container.findOrCreateProperty(propertyQName);
+        return container.findOrCreateProperty(propertyQName, valueClass);
     }
 
     public PropertyContainer createPropertyContainer(QName containerName) {
@@ -345,13 +347,19 @@ public class PropertyContainer extends Item {
         return container;
     }
 
-    public Property createProperty(QName propertyName) {
+    public Property createProperty(QName propertyName, Class<?> valueClass) {
         if (getDefinition() == null) {
             throw new IllegalStateException("No definition");
         }
         PropertyDefinition propertyDefinition = getDefinition().findPropertyDefinition(propertyName);
         if (propertyDefinition == null) {
-            throw new IllegalArgumentException("No definition of property '" + propertyName + "' in " + getDefinition());
+        	if (this.getDefinition().isRuntimeSchema) {
+        		// HACK: create the definition "on demand" based on the property java type.
+        		QName typeName = XsdTypeConverter.toXsdType(valueClass);
+        		propertyDefinition = new PropertyDefinition(propertyName, typeName);
+        	} else {
+        		throw new IllegalArgumentException("No definition of property '" + propertyName + "' in " + getDefinition());
+        	}
         }
         Property property = propertyDefinition.instantiate();
         add(property);

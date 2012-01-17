@@ -535,6 +535,12 @@ public class PropertyContainerDefinition extends ItemDefinition {
 
             // Find item definition from the schema
             ItemDefinition def = findItemDefinition(elementQName);
+            
+            if (def == null) {
+            	// Try to locate xsi:type definition in the element
+            	def = Schema.resolveDynamicItemDefinition(valueElements);
+            }
+            
             if (def == null) {
                 throw new SchemaException("Item " + elementQName + " has no definition", elementQName);
             }
