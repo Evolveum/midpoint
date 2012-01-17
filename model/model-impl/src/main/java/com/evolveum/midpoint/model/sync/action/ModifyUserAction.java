@@ -27,16 +27,19 @@ import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
-import com.evolveum.midpoint.schema.processor.ObjectDefinition;
-import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * @author lazyman
@@ -169,10 +172,65 @@ public class ModifyUserAction extends BaseAction {
         context.setUserOld(oldUser);
         context.rememberResource(resource);
 
-        if (userActivationDecision != null) {
-            //todo check user activation
+        //check and update activation if necessary
+        if (userActivationDecision == null) {
+            LOGGER.debug("User activation decision not defined, skipping activation check.");
+            return context;
+        }
+
+        Property enable = oldUser.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ENABLE.allExceptLast(),
+                SchemaConstants.PATH_ACTIVATION_ENABLE.last(), Boolean.class);
+        LOGGER.debug("User activation defined, activation property found {}", enable);
+
+        PropertyValue<Boolean> value = enable.getValue(Boolean.class);
+        if (value != null) {
+            Boolean isEnabled = value.getValue();
+            if (isEnabled == null) {
+                createActivationPropertyDelta(context, userActivationDecision, null);
+            }
+
+            if ((isEnabled && ActivationDecision.DISABLE.equals(accountActivationDecision))
+                    || (!isEnabled && ActivationDecision.ENABLE.equals(accountActivationDecision))) {
+
+                createActivationPropertyDelta(context, accountActivationDecision, isEnabled);
+            }
+        } else {
+            createActivationPropertyDelta(context, userActivationDecision, null);
         }
 
         return context;
+    }
+
+    private void createActivationPropertyDelta(SyncContext context, ActivationDecision activationDecision,
+            Boolean oldValue) {
+        LOGGER.debug("Updating activation for user, activation decision {}, old value was {}",
+                new Object[]{activationDecision, oldValue});
+
+        ObjectDelta<UserType> userDelta = context.getUserSecondaryDelta();
+        if (userDelta == null) {
+            userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY);
+            context.setUserSecondaryDelta(userDelta);
+        }
+
+        PropertyDelta delta = userDelta.getPropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
+        if (delta == null) {
+            delta = new PropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
+            userDelta.addModification(delta);
+        }
+        delta.clear();
+
+        Boolean newValue = ActivationDecision.ENABLE.equals(activationDecision) ? Boolean.TRUE : Boolean.FALSE;
+        PropertyValue value = new PropertyValue<Object>(newValue, SourceType.SYNC_ACTION, null);
+        if (oldValue == null) {
+            delta.addValueToAdd(value);
+        } else {
+            Collection<PropertyValue<Object>> values = new ArrayList<PropertyValue<Object>>();
+            values.add(value);
+            delta.setValuesToReplace(values);
+        }
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("User activation property delta: {}", delta.debugDump());
+        }
     }
 }

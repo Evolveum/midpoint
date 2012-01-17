@@ -119,6 +119,18 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         return valuesToDelete;
     }
 
+    public void clear() {
+        if (valuesToAdd != null) {
+            valuesToAdd.clear();
+        }
+        if (valuesToDelete != null) {
+            valuesToDelete.clear();
+        }
+        if (valuesToReplace != null) {
+            valuesToReplace.clear();
+        }
+    }
+
     /**
      * Returns all values regardless of whether they are added or removed or replaced.
      * Useful for iterating over all the changed values.
@@ -164,25 +176,25 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
      * Apply this delta (path) to a property container.
      */
     public void applyTo(PropertyContainer propertyContainer) {
-    	// valueClass is kind of HACK, it should be FIXME
-    	Class<?> valueClass = getValueClass();
+        // valueClass is kind of HACK, it should be FIXME
+        Class<?> valueClass = getValueClass();
         Property property = propertyContainer.findOrCreateProperty(getParentPath(), getName(), valueClass);
         applyTo(property);
     }
 
     public Class<?> getValueClass() {
-    	if (valuesToReplace != null && !valuesToReplace.isEmpty()) {
-    		return valuesToReplace.iterator().next().getValue().getClass();
+        if (valuesToReplace != null && !valuesToReplace.isEmpty()) {
+            return valuesToReplace.iterator().next().getValue().getClass();
         }
-    	if (valuesToAdd != null && !valuesToAdd.isEmpty()) {
-    		return valuesToAdd.iterator().next().getValue().getClass();
+        if (valuesToAdd != null && !valuesToAdd.isEmpty()) {
+            return valuesToAdd.iterator().next().getValue().getClass();
         }
-    	if (valuesToDelete != null && !valuesToDelete.isEmpty()) {
-    		return valuesToDelete.iterator().next().getValue().getClass();
+        if (valuesToDelete != null && !valuesToDelete.isEmpty()) {
+            return valuesToDelete.iterator().next().getValue().getClass();
         }
-    	return null;
+        return null;
     }
-    
+
     /**
      * Apply this delta (path) to a property.
      */
@@ -301,9 +313,9 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
 
     public static PropertyDelta createDelta(PropertyModificationType propMod, PropertyContainerDefinition pcDef) throws
             SchemaException {
-    	if (propMod.getValue() == null) {
-    		throw new IllegalArgumentException("No value in property modificiation (path "+propMod.getPath()+") while creating a property delta");
-    	}
+        if (propMod.getValue() == null) {
+            throw new IllegalArgumentException("No value in property modificiation (path " + propMod.getPath() + ") while creating a property delta");
+        }
         XPathHolder xpath = new XPathHolder(propMod.getPath());
         PropertyPath parentPath = new PropertyPath(xpath);
         PropertyContainerDefinition containingPcd = pcDef.findPropertyContainerDefinition(parentPath);
@@ -312,14 +324,14 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         }
         Collection<? extends Item> items = containingPcd.parseItems(propMod.getValue().getAny());
         if (items.size() > 1) {
-            throw new SchemaException("Expected presence of a single property (path "+propMod.getPath()+") in a object modification, but found " + items.size() + " instead");
+            throw new SchemaException("Expected presence of a single property (path " + propMod.getPath() + ") in a object modification, but found " + items.size() + " instead");
         }
         if (items.size() < 1) {
-            throw new SchemaException("Expected presence of a property value (path "+propMod.getPath()+") in a object modification, but found nothing");
+            throw new SchemaException("Expected presence of a property value (path " + propMod.getPath() + ") in a object modification, but found nothing");
         }
         Item item = items.iterator().next();
         if (!(item instanceof Property)) {
-            throw new SchemaException("Expected presence of a property ("+item.getName()+",path "+propMod.getPath()+") in a object modification, but found " + item.getClass().getSimpleName() + " instead", item.getName());
+            throw new SchemaException("Expected presence of a property (" + item.getName() + ",path " + propMod.getPath() + ") in a object modification, but found " + item.getClass().getSimpleName() + " instead", item.getName());
         }
         Property prop = (Property) item;
         PropertyDelta propDelta = new PropertyDelta(parentPath, prop.getName());
