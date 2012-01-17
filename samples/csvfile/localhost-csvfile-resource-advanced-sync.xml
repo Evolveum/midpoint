@@ -256,7 +256,7 @@ object.
                     <valueExpression>
                         <ref>name</ref>
                         <code>
-                            $account/attributes/icfs:name
+                            $c:account/c:attributes/icfs:name
                         </code>
                     </valueExpression>
                 </equal>
