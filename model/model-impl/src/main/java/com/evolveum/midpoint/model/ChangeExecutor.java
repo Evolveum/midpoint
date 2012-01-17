@@ -86,19 +86,39 @@ public class ChangeExecutor {
 
         for (AccountSyncContext accCtx : syncContext.getAccountContexts()) {
             ObjectDelta<AccountShadowType> accDelta = accCtx.getAccountDelta();
-            if (accDelta != null) {
-                LOGGER.trace("Executing ACCOUNT change " + accDelta);
-                executeChange(accDelta, result);
-            } else {
+            if (accDelta == null) {
                 LOGGER.trace("No change for account " + accCtx.getResourceAccountType());
+                accCtx.setOid(getOidFromContext(accCtx));
+                updateAccountLinks(syncContext.getUserNew(), accCtx, result);
+                continue;
             }
 
+            LOGGER.trace("Executing ACCOUNT change " + accDelta);
+            executeChange(accDelta, result);
+            // To make sure that the OID is set (e.g. after ADD operation)
+            accCtx.setOid(accDelta.getOid());
             updateAccountLinks(syncContext.getUserNew(), accCtx, result);
         }
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Context after change execution:\n{}", syncContext.dump());
         }
+    }
+
+    private String getOidFromContext(AccountSyncContext context) {
+        if (context.getAccountDelta() != null && context.getAccountDelta().getOid() != null) {
+            return context.getAccountDelta().getOid();
+        }
+
+        if (context.getAccountOld() != null && context.getAccountOld().getOid() != null) {
+            return context.getAccountOld().getOid();
+        }
+
+        if (context.getAccountSyncDelta() != null && context.getAccountSyncDelta().getOid() != null) {
+            return context.getAccountSyncDelta().getOid();
+        }
+
+        return null;
     }
 
     /**
