@@ -382,6 +382,8 @@ public class LoggingController implements Serializable {
 
 		selectAllAppenders = false;
 		selectAllLoggers = false;
+		advancedView = false;
+		
 		audit = new AuditingConfigurationType();
 		audit.setEnabled(enableAuditLog);
 
@@ -709,7 +711,7 @@ public class LoggingController implements Serializable {
 		LoggingConfigurationType configuration = new LoggingConfigurationType();
 		configuration.setRootLoggerAppender(getRootAppender());
 		configuration.setRootLoggerLevel(rootLoggerLevel);
-	
+		List<BasicLoggerListItem> loggersList = new ArrayList<BasicLoggerListItem>();
 		loggers.add(midpointLogger);
 
 		for (AppenderListItem item : appenders) {
@@ -718,6 +720,7 @@ public class LoggingController implements Serializable {
 		}
 		for (BasicLoggerListItem item : loggers) {
 			if (item instanceof LoggerListItem) {
+				loggersList.add(item);
 				continue;
 //				if (((LoggerListItem) item).getPackageName().equals("PROFILING")) {
 //					continue;
@@ -731,7 +734,7 @@ public class LoggingController implements Serializable {
 			}
 		}
 		
-		for (BasicLoggerListItem item : classLoggers) {
+		for (BasicLoggerListItem item : loggersList) {
 			if (((LoggerListItem) item).getPackageName().equals("PROFILING")) {
 				continue;
 			}
