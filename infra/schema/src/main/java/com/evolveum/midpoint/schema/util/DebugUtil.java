@@ -103,6 +103,39 @@ public class DebugUtil implements ObjectFormatter {
 		sb.append(getCollectionClosingSymbol(dumpables));
 		return sb.toString();
 	}
+	
+	public static String debugDumpXsdAnyProperties(Collection<?> xsdAnyCollection, int indent) {
+		StringBuilder sb = new StringBuilder();
+		indentDebugDump(sb, indent);
+		sb.append(getCollectionOpeningSymbol(xsdAnyCollection));
+		for (Object element : xsdAnyCollection) {
+			sb.append("\n");
+			indentDebugDump(sb, indent+1);
+			sb.append(prettyPrintElementAsProperty(element));
+		}
+		sb.append("\n");
+		indentDebugDump(sb, indent);
+		sb.append(getCollectionClosingSymbol(xsdAnyCollection));
+		return sb.toString();
+	}
+
+	private static String prettyPrintElementAsProperty(Object element) {
+		if (element == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("<");
+		QName elementName = JAXBUtil.getElementQName(element);
+		sb.append(prettyPrint(elementName));
+		sb.append(">");
+		if (element instanceof Element) {
+			Element domElement = (Element)element;
+			// TODO: this is too simplistic, expand later
+			sb.append(domElement.getTextContent());
+		} else {
+			sb.append(element.toString());
+		}
+		return sb.toString();
+	}
 
 	private static String getCollectionOpeningSymbol(Collection<?> col) {
 		if (col instanceof List) {
@@ -485,7 +518,7 @@ public class DebugUtil implements ObjectFormatter {
 		sb.append("\n");
 		indentDebugDump(sb, indent + 1);
 		sb.append("objectClass: ");
-		sb.append(object.getObjectClass());
+		sb.append(prettyPrint(object.getObjectClass()));
 
 		sb.append("\n");
 		indentDebugDump(sb, indent + 1);
@@ -495,8 +528,7 @@ public class DebugUtil implements ObjectFormatter {
 			sb.append("null");
 		} else {
 			sb.append("\n");
-			indentDebugDump(sb, indent + 2);
-			sb.append(prettyPrint(attributes.getAny()));
+			sb.append(debugDumpXsdAnyProperties(attributes.getAny(),indent + 2));
 		}
 		
 		// TODO: more
