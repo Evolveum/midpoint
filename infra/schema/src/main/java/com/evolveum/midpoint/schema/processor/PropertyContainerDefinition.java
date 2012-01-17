@@ -36,6 +36,7 @@ import javax.xml.namespace.QName;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -749,10 +750,8 @@ public class PropertyContainerDefinition extends ItemDefinition {
                         if (propertyValue != null) {
                             method = findSetter(clazz, itemName.getLocalPart());
                             argument = propertyValue.getValue();
-                            if (argument instanceof GregorianCalendar) {
-                            	// Kind of hack. The JAXB classes want XMLGregorianCalendar. Later we need to find a systematic way how to do this.
-                            	argument = XsdTypeConverter.toXMLGregorianCalendar((GregorianCalendar)argument);
-                            }
+                            argument = convertArgument(method,argument);
+                            
                             method.invoke(jaxbObject, argument);
                         }
                     }
@@ -762,10 +761,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
                     Object subInstance = instantiateJaxbClass(subClass);
                     ((PropertyContainerDefinition) itemDef).fillProperties(subInstance, (PropertyContainer) item);
                     argument = subInstance;
-                    if (argument instanceof GregorianCalendar) {
-                    	// Kind of hack. The JAXB classes want XMLGregorianCalendar. Later we need to find a systematic way how to do this.
-                    	argument = XsdTypeConverter.toXMLGregorianCalendar((GregorianCalendar)argument);
-                    }
+                    argument = convertArgument(method, argument);
                     method.invoke(jaxbObject, argument);
                 }
 
@@ -783,7 +779,23 @@ public class PropertyContainerDefinition extends ItemDefinition {
         }
     }
 
-    private Method findGetter(Class<? extends Object> clazz, String propName) throws SecurityException,
+    /**
+     * Kind of hack. The JAXB classes want XMLGregorianCalendar and BigInteger. Later we need to find a systematic way how to do this.
+	 */
+	private Object convertArgument(Method method, Object argument) {
+		Class<?> parameterType = method.getParameterTypes()[0];
+		if (argument instanceof GregorianCalendar) {
+        	argument = XsdTypeConverter.toXMLGregorianCalendar((GregorianCalendar)argument);
+        }
+		if (BigInteger.class.equals(parameterType)) {
+			if (argument instanceof Integer) {
+				argument = BigInteger.valueOf((Integer)argument);
+			}
+		}
+		return argument;
+	}
+
+	private Method findGetter(Class<? extends Object> clazz, String propName) throws SecurityException,
             NoSuchMethodException {
         String getterName = "get" + StringUtils.capitalize(propName);
         return clazz.getMethod(getterName);
