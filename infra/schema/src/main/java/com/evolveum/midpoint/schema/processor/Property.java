@@ -488,6 +488,9 @@ public class Property extends Item {
     private PropertyDelta compareTo(Property other, boolean compareReal) {
         //todo don't create add/delete when we can create replace (single valued property) or something like that
         PropertyDelta delta = new PropertyDelta(getDefinition().getPath());
+        
+        PropertyDefinition def = getDefinition();
+        
         if (other != null) {
             for (PropertyValue<Object> value : getValues()) {
                 if ((!compareReal && !other.hasValue(value))
@@ -501,10 +504,21 @@ public class Property extends Item {
                     delta.addValueToDelete(value.clone());
                 }
             }
+            if (def != null && def.isSingleValue() && !delta.isEmpty()) {
+            	// Drop the current delta (it was used only to detect that something has changed
+            	// Generate replace delta instead of add/delete delta
+            	delta = new PropertyDelta(getDefinition().getPath());
+        		Collection<PropertyValue<Object>> replaceValues = new ArrayList<PropertyValue<Object>>(other.getValues().size());
+                for (PropertyValue<Object> value : other.getValues()) {
+                	replaceValues.add(value.clone());
+                }   
+    			delta.setValuesToReplace(replaceValues);
+    			return delta;
+            }
         } else {
-            //other doesn't exist, so delta means add all values
+        	//other doesn't exist, so delta means delete all values
             for (PropertyValue<Object> value : getValues()) {
-                delta.addValueToAdd(value.clone());
+                delta.addValueToDelete(value.clone());
             }
         }
 

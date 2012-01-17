@@ -197,6 +197,28 @@ public class PropertyContainer extends Item {
     public void setDefinition(PropertyContainerDefinition definition) {
         this.definition = definition;
     }
+    
+    Collection<PropertyPath> listPropertyPaths() {
+    	return listPropertyPaths(null);
+    }
+    
+    Collection<PropertyPath> listPropertyPaths(PropertyPath basePath) {
+    	Collection<PropertyPath> list = new HashSet<PropertyPath>();
+    	for (Item item: items) {
+    		PropertyPath subPath = null;
+    		if (basePath == null) {
+    			subPath = new PropertyPath(item.getName());
+			} else {
+				subPath = basePath.subPath(item.getName());
+			}
+    		if (item instanceof Property) {
+    			list.add(subPath);
+    		} else if (item instanceof PropertyContainer) {
+    			list.addAll(((PropertyContainer)item).listPropertyPaths(subPath));
+    		}
+    	}
+    	return list;
+    }
 
     /**
      * Finds a specific property in the container by name.

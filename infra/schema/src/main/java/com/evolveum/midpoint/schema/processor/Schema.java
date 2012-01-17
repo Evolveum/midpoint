@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
@@ -28,6 +29,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
@@ -36,6 +39,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.EntityResolver;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -45,6 +49,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * Schema as a collection of definitions. This is a midPoint-specific view of
@@ -483,6 +488,32 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 		return objectDefinition.parseObjectType(objectType);
 	}
 	
+	public <T extends ObjectType> MidPointObject<T> parseObject(String stringXml, Class<T> type) throws SchemaException {
+		ObjectDefinition<T> objectDefinition = findObjectDefinition(type);
+		JAXBElement<T> jaxbElement;
+		try {
+			jaxbElement = JAXBUtil.unmarshal(type, stringXml);
+		} catch (JAXBException e) {
+			throw new SchemaException("Error parsing the XML: "+e.getMessage(),e);
+		}
+        T objectType = jaxbElement.getValue();
+        MidPointObject<T> object = objectDefinition.parseObjectType(objectType);
+        return object;
+	}
+
+	public <T extends ObjectType> MidPointObject<T> parseObject(File xmlFile, Class<T> type) throws SchemaException {
+		ObjectDefinition<T> objectDefinition = findObjectDefinition(type);
+		JAXBElement<T> jaxbElement;
+		try {
+			jaxbElement = JAXBUtil.unmarshal(xmlFile, type);
+		} catch (JAXBException e) {
+			throw new SchemaException("Error parsing the XML: "+e.getMessage(),e);
+		}
+        T objectType = jaxbElement.getValue();
+        MidPointObject<T> object = objectDefinition.parseObjectType(objectType);
+        return object;
+	}
+
 	@Override
 	public String debugDump() {
 		return debugDump(0);

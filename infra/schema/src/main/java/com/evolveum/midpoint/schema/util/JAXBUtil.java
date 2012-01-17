@@ -284,7 +284,7 @@ public final class JAXBUtil {
 	public static Object unmarshal(String xmlString) throws JAXBException {
 		return unmarshal(Object.class, xmlString);
 	}
-
+	
 	public static <T> JAXBElement<T> unmarshal(Class<T> type, String xmlString) throws JAXBException {
 		if (xmlString == null) {
 			return null;

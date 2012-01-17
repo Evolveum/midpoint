@@ -130,6 +130,10 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
             valuesToReplace.clear();
         }
     }
+    
+    public Collection<PropertyValue<Object>> getValuesToReplace() {
+    	return valuesToReplace;
+    }
 
     /**
      * Returns all values regardless of whether they are added or removed or replaced.

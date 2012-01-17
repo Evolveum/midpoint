@@ -21,12 +21,17 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.util.Collection;
+
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.schema.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
@@ -118,6 +123,42 @@ public class MidPointObject<T extends ObjectType> extends PropertyContainer {
 		super.copyValues(clone);
 		clone.oid = this.oid;
 		clone.objectType = null; // this will get generated eventually. Copying will not work anyway.
+	}
+	
+	public ObjectDelta<T> compareTo(MidPointObject<T> other) {
+		if (other == null) {
+			ObjectDelta<T> objectDelta = new ObjectDelta<T>(getJaxbClass(), ChangeType.DELETE);
+			objectDelta.setOid(getOid());
+			return objectDelta;
+		}
+		// This must be a modify
+		ObjectDelta<T> objectDelta = new ObjectDelta<T>(getJaxbClass(), ChangeType.MODIFY);
+		objectDelta.setOid(getOid());
+
+		Collection<PropertyPath> thisPropertyPaths = listPropertyPaths();
+		Collection<PropertyPath> otherPropertyPaths = other.listPropertyPaths();
+		Collection<PropertyPath> allPropertyPaths = MiscUtil.union(thisPropertyPaths,otherPropertyPaths);
+		
+		for (PropertyPath path: allPropertyPaths) {
+			Property thisProperty = findProperty(path);
+			Property otherProperty = other.findProperty(path);
+			PropertyDelta propertyDelta = null;
+			
+			if (thisProperty == null) {
+				// this must be an add
+				propertyDelta = new PropertyDelta(path);
+				// TODO: mangle source
+				propertyDelta.addValuesToAdd(otherProperty.getValues());
+			} else {
+				// TODO: mangle source
+				propertyDelta = thisProperty.compareRealValuesTo(otherProperty);
+			}
+			if (propertyDelta != null && !propertyDelta.isEmpty()) {
+				objectDelta.addModification(propertyDelta);
+			}
+		}
+		
+		return objectDelta;
 	}
 
 	/**
