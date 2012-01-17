@@ -680,7 +680,13 @@ public class PropertyContainerDefinition extends ItemDefinition {
                     Object elementValue = XsdTypeConverter.toJavaValue(element, property.getDefinition().getTypeName());
                     property.getValues().add(new PropertyValue(elementValue));
                 } else {
-                    TypedValue typedValue = XsdTypeConverter.toTypedJavaValueWithDefaultType(element, null);
+                	
+                	// FIXME: The default type should not be here (strictly speaking)
+                	// But it is necessary for use in repository. we don't have the schema for account attributes there.
+                	// This somehow mimicks the behavior of XML diff/patch routines
+                	TypedValue typedValue = XsdTypeConverter.toTypedJavaValueWithDefaultType(element, DOMUtil.XSD_STRING);
+                    //TypedValue typedValue = XsdTypeConverter.toTypedJavaValueWithDefaultType(element, null);
+                	
                     Object elementValue = typedValue.getValue();
                     property.getValues().add(new PropertyValue(elementValue));
                     if (property.getDefinition() == null) {
