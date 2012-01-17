@@ -548,23 +548,20 @@ object.
                     </outbound>
 
                     <!--<inbound>-->
-                    <!--<valueFilter-->
-
-                    <!--type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter"-->
-                    <!--xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd">-->
-                    <!--<f:replace>-->
-                    <!--&lt;!&ndash; Replaces all unicode control characters with emtpty string &ndash;&gt;-->
-                    <!--<f:pattern>\p{C}</f:pattern>-->
-                    <!--<f:replacement></f:replacement>-->
-                    <!--</f:replace>-->
-                    <!--</valueFilter>-->
-                    <!--<target>-->
-
-                    <!--declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";-->
-                    <!--declare namespace-->
-                    <!--my="http://whatever.com/my";-->
-                    <!--i:extension/my:description-->
-                    <!--</target>-->
+                        <!--<valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter"-->
+                            <!--xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd">-->
+                            <!--<f:replace>-->
+                                <!--&lt;!&ndash; Replaces all unicode control characters with emtpty string &ndash;&gt;-->
+                                <!--<f:pattern>\p{C}</f:pattern>-->
+                                <!--<f:replacement></f:replacement>-->
+                            <!--</f:replace>-->
+                        <!--</valueFilter>-->
+                        <!--<target>-->
+                            <!--declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";-->
+                            <!--declare namespace-->
+                            <!--my="http://whatever.com/my";-->
+                            <!--i:extension/my:description-->
+                        <!--</target>-->
                     <!--</inbound>-->
                     <!-- No inbound expression for description. We don't want to synchronize that -->
                 </attribute>
@@ -706,11 +703,13 @@ object.
             <reaction>
                 <situation>deleted</situation>
                 <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
+                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#disableUser"/>-->
             </reaction>
 
             <reaction>
                 <situation>unlinked</situation>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addAccount"/>
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#enableUser"/>-->
             </reaction>
             <reaction>
                 <situation>unmatched</situation>
