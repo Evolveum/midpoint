@@ -2552,7 +2552,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // to pick up this
         // task
 
-        waitFor("Waiting for task manager to pick up the task", new Checker() {
+        waitFor("Waiting for task to finish first run", new Checker() {
             public boolean check() throws ObjectNotFoundException, SchemaException {
                 Task task = taskManager.getTask(TASK_OPENDJ_RECON_OID, result);
                 display("Task while waiting for task manager to pick up the task", task);
@@ -2571,7 +2571,7 @@ public class TestSanity extends AbstractIntegrationTest {
             public void timeout() {
                 // No reaction, the test will fail right after return from this
             }
-        }, 20000);
+        }, 30000);
 
         // Check task status
 
@@ -2673,7 +2673,10 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // Set by the role
         OpenDJController.assertAttribute(entry, "employeeType", "sailor");
-        OpenDJController.assertAttribute(entry, "title", "Honorable Captain");
+        
+        // title is tolerant, so it will retain the original value as well as the one provided by the role
+        OpenDJController.assertAttribute(entry, "title", "Scurvy earthworm", "Honorable Captain");
+        
         OpenDJController.assertAttribute(entry, "carLicense", "C4PT41N");
         OpenDJController.assertAttribute(entry, "businessCategory", "cruise");
 

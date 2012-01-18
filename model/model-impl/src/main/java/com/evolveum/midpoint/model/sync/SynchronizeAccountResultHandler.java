@@ -22,6 +22,8 @@ package com.evolveum.midpoint.model.sync;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
@@ -69,6 +71,7 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 	private ResourceType resource;
 	private RefinedAccountDefinition refinedAccountDefinition;
 	private QName sourceChannel;
+	private String processShortName;
 	private long progress;
 	private long errors;
 	private boolean stopOnError;
@@ -84,6 +87,7 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 		errors = 0;
 		stopOnError = true;
 		forceAdd = false;
+		processShortName = "synchronization";
 	}
 
 	public boolean isForceAdd() {
@@ -100,6 +104,18 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 
 	public void setSourceChannel(QName sourceChannel) {
 		this.sourceChannel = sourceChannel;
+	}
+	
+	public String getProcessShortName() {
+		return processShortName;
+	}
+	
+	private String getProcessShortNameCapitalized() {
+		return StringUtils.capitalize(processShortName);
+	}
+
+	public void setProcessShortName(String processShortName) {
+		this.processShortName = processShortName;
 	}
 
 	/*
@@ -122,12 +138,13 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 		result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Synchronizing {} from {}",ObjectTypeUtil.toShortString(object),ObjectTypeUtil.toShortString(resource));
+			LOGGER.trace("{} {} from {}",new Object[] {
+					getProcessShortNameCapitalized(), ObjectTypeUtil.toShortString(object),ObjectTypeUtil.toShortString(resource)});
 		}
 
 		if (objectChangeListener == null) {
-			LOGGER.warn("No object change listener set for import task, ending the task");
-			result.recordFatalError("No object change listener set for import task, ending the task");
+			LOGGER.warn("No object change listener set for {} task, ending the task", getProcessShortName());
+			result.recordFatalError("No object change listener set for "+getProcessShortName()+" task, ending the task");
 			return false;
 		}
 
@@ -157,7 +174,7 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 			}
 
 			if (LOGGER.isDebugEnabled()) {
-				LOGGER.trace("Going to call notification with: {}", change.dump());
+				LOGGER.trace("{}: going to call notification with: {}", getProcessShortNameCapitalized(), change.dump());
 			}
 			
 			change.assertCorrectness();
@@ -166,17 +183,20 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 			objectChangeListener.notifyChange(change, result);
 			long endTime = System.currentTimeMillis();
 			if (LOGGER.isInfoEnabled()) {
-				LOGGER.info("Synchronized object {} from resource {} ({} ms)",new Object[]{ObjectTypeUtil.toShortString(newShadow),
+				LOGGER.info("{} object {} from resource {} done ({} ms)",new Object[]{
+						getProcessShortNameCapitalized(), ObjectTypeUtil.toShortString(newShadow),
 						ObjectTypeUtil.toShortString(resource), endTime - startTime});
 			}
 		} catch (Exception ex) {
 			errors++;
 			if (LOGGER.isErrorEnabled()) {
-				LOGGER.error("Synchronization of object {} from resource {} failed: {}", new Object[] {
+				LOGGER.error("{} of object {} from resource {} failed: {}", new Object[] {
+						getProcessShortNameCapitalized(),
 					ObjectTypeUtil.toShortString(object), ObjectTypeUtil.toShortString(resource), ex.getMessage(), ex });
 			}
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Change notication listener failed for synchronization of object {}: {}: ", new Object[] {
+				LOGGER.trace("Change notication listener failed for {} of object {}: {}: ", new Object[] {
+						getProcessShortName(),
 						object, ex.getClass().getSimpleName(), ex.getMessage(), ex });
 			}
 			result.recordPartialError("failed to synchronize", ex);
@@ -193,14 +213,16 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 			result.computeStatus();
 			// Everything OK, signal to continue
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Synchronization of {} finished, result: {}",ObjectTypeUtil.toShortString(object),result.dump());
+				LOGGER.trace("{} of {} finished, result: {}", new Object[]{
+						getProcessShortNameCapitalized(), ObjectTypeUtil.toShortString(object),result.dump()});
 			}
 			return true;
 		} else {
 			result.recordPartialError("Interrupted");
 			// Signal to stop
 			if (LOGGER.isWarnEnabled()) {
-				LOGGER.warn("Synchronization from {} interrupted",ObjectTypeUtil.toShortString(resource));
+				LOGGER.warn("{} from {} interrupted",new Object[]{
+						getProcessShortNameCapitalized(),ObjectTypeUtil.toShortString(resource)});
 			}
 			return false;
 		}

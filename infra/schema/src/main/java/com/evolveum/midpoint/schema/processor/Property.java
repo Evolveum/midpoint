@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -140,9 +141,17 @@ public class Property extends Item {
      */
     @SuppressWarnings("unchecked")
     public <T> Set<PropertyValue<T>> getValues(Class<T> T) {
-        // TODO: Is this OK?
         return (Set) values;
     }
+    
+	public <T> Collection<T> getRealValues(Class<T> type) {
+		Collection<T> realValues = new ArrayList<T>(values.size());
+		for (PropertyValue<Object> pValue: values) {
+			realValues.add((T) pValue.getValue());
+		}
+		return realValues;
+	}
+
 
     /**
      * Returns value of a single-valued property.
@@ -560,4 +569,5 @@ public class Property extends Item {
     protected String getDebugDumpClassName() {
         return "Pro";
     }
+
 }

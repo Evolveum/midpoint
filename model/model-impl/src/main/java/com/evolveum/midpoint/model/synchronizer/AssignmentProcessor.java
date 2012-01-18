@@ -46,6 +46,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountSynchronizati
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -93,7 +95,13 @@ public class AssignmentProcessor {
         }
 
         Collection<PropertyValue<AssignmentType>> assignmentsOld = new HashSet<PropertyValue<AssignmentType>>();
-        if (context.getUserTypeOld() != null) {
+        if (context.getUserOld() != null) {
+            Property assignmentProperty = context.getUserOld().findProperty(UserType.F_ASSIGNMENT);
+            if (assignmentProperty != null) {
+            	assignmentsOld.addAll(assignmentProperty.getValues(AssignmentType.class));
+            }
+        } else if (context.getUserTypeOld() != null) {
+        	// TODO: legacy code, should be removed after complete switch to our objects
             List<AssignmentType> assignments = context.getUserTypeOld().getAssignment();
             for (AssignmentType assignment : assignments) {
                 assignmentsOld.add(new PropertyValue<AssignmentType>(assignment));

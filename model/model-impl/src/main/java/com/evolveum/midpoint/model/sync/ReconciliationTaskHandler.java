@@ -177,7 +177,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		runResult.setProgress(progress);
-		LOGGER.trace("Reconciliation.run stopping");
+		LOGGER.trace("Reconciliation.run stopping, result: {}",opResult.getStatus());
 		return runResult;
 	}
 
@@ -188,14 +188,18 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, schemaRegistry);
 		RefinedAccountDefinition refinedAccountDefinition = refinedSchema.getDefaultAccountDefinition();
 
-        LOGGER.info("Start executing import from resource {}, importing object class {}", ObjectTypeUtil.toShortString(resource), refinedAccountDefinition);
+        LOGGER.info("Start executing reconciliation of resource {}, reconciling object class {}", ObjectTypeUtil.toShortString(resource), refinedAccountDefinition);
 
         // Instantiate result handler. This will be called with every search result in the following iterative search
         SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, refinedAccountDefinition, task, changeNotificationDispatcher);
         handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
-        
+        handler.setProcessShortName("reconciliation");
+        handler.setStopOnError(false);
+                
 		QueryType query = createAccountSearchQuery(resource, refinedAccountDefinition);
+		
 		provisioningService.searchObjectsIterative(query , null, handler , result);
+				
 		
 		// TODO: process result
 	}

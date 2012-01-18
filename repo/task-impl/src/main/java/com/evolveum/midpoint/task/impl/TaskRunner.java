@@ -83,7 +83,13 @@ public abstract class TaskRunner implements Runnable {
 			LOGGER.warn("Attempt to heartbeat a task that is not running ("+task.getExecutionStatus()+") " + task);
 		}
 		
-		Long progress = handler.heartbeat(task);
+		Long progress = null;
+		if (handler != null) {
+			progress = handler.heartbeat(task);
+		} else {
+			LOGGER.warn("No handler for task (in heartbeat): {}",task);
+		}
+		
 		
 		if (progress != null) {
 			try {

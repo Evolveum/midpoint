@@ -115,12 +115,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		// Check whether we are already initialized
 		assertNotNull("Repository is not wired properly", repositoryService);
 		assertNotNull("Task manager is not wired properly", taskManager);
-		LOGGER.trace("initSystemConditional: systemInitialized={}", isSystemInitialized());
+		LOGGER.trace("initSystemConditional: {} systemInitialized={}", this.getClass(), isSystemInitialized());
 		if (!isSystemInitialized()) {
 			LOGGER.trace("initSystemConditional: invoking initSystem");
 			OperationResult result = new OperationResult(this.getClass().getName() + ".initSystem");
 			initSystem(result);
-			result.computeStatus("initSystem failed");
+			result.computeStatus();
 			IntegrationTestTools.display("initSystem result", result);
 			// TODO: check result
 			IntegrationTestTools.assertSuccess("initSystem failed (result)", result, 1);
@@ -128,9 +128,6 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 	}
 
-	/**
-	 * @return
-	 */
 	protected boolean isSystemInitialized() {
 		return initializedClasses.contains(this.getClass());
 	}

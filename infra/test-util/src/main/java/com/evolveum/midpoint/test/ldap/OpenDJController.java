@@ -537,7 +537,7 @@ public class OpenDJController {
 				1, attrs.size());
 		Attribute attribute = response.getAttribute(name.toLowerCase()).get(0);
 		if (values.length != attribute.size()) {
-			AssertJUnit.fail("Wrong number of values for attribute "+name+", expected "+values.length+" values but got "+attribute.size()+" values");
+			AssertJUnit.fail("Wrong number of values for attribute "+name+", expected "+values.length+" values but got "+attribute.size()+" values: "+attribute);
 		}
 		for (String value: values) {
 			boolean found = false;

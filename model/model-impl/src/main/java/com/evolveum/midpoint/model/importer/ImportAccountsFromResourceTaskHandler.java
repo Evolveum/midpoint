@@ -257,6 +257,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, refinedAccountDefinition, task, changeNotificationDispatcher);
         handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
         handler.setForceAdd(true);
+        handler.setProcessShortName("import");
 
         // TODO: error checking - already running
         handlers.put(task, handler);
