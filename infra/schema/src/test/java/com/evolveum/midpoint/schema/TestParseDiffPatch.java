@@ -27,6 +27,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -34,6 +35,7 @@ import javax.xml.namespace.QName;
 
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
+import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.schema.SchemaRegistry;
@@ -48,6 +50,9 @@ import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -97,6 +102,15 @@ public class TestParseDiffPatch {
         assertEquals("Unexpected number of modifications",2,modifications.size());
         assertReplace(userDelta, new QName(SchemaConstants.NS_C,"fullName"), "Cpt. Jack Sparrow");
         assertAdd(userDelta, new QName(SchemaConstants.NS_C,"honorificPrefix"), "Cpt.");
+        
+        ObjectModificationType objectModificationType = userDelta.toObjectModificationType();
+        System.out.println("Modification XML:");
+        System.out.println(JAXBUtil.marshalWrap(objectModificationType));
+        assertEquals("Wrong delta OID", userBefore.getOid(), objectModificationType.getOid());
+        List<PropertyModificationType> propertyModifications = objectModificationType.getPropertyModification();
+        assertEquals("Unexpected number of modifications",2,propertyModifications.size());
+        assertXmlMod(objectModificationType, new QName(SchemaConstants.NS_C,"fullName"), PropertyModificationTypeType.replace, "Cpt. Jack Sparrow");
+        assertXmlMod(objectModificationType, new QName(SchemaConstants.NS_C,"honorificPrefix"), PropertyModificationTypeType.add, "Cpt.");
         
         // ROUNDTRIP
         
@@ -160,6 +174,30 @@ public class TestParseDiffPatch {
 			}
 			if (!found) {
 				AssertJUnit.fail("Unexpected value "+valueToReplace+" in delta for "+propertyName);
+			}
+		}
+	}
+
+	private void assertXmlMod(ObjectModificationType objectModificationType, QName propertyName,
+			PropertyModificationTypeType modType, String... expectedValues) {
+		for (PropertyModificationType mod: objectModificationType.getPropertyModification()) {
+			List<Object> elements = mod.getValue().getAny();
+			assertFalse(elements.isEmpty());
+			Object first = elements.get(0);
+			QName elementQName = JAXBUtil.getElementQName(first);
+			if (propertyName.equals(elementQName)) {
+				assertEquals(modType, mod.getModificationType());
+				assertEquals(expectedValues.length, elements.size());
+				for (Object element: elements) {
+					boolean found = false;
+					for (String expectedValue: expectedValues) {
+						Element domElement = (Element)element;
+						if (expectedValue.equals(domElement.getTextContent())) {
+							found = true;
+						}
+					}
+					assertTrue(found);
+				}
 			}
 		}
 	}
