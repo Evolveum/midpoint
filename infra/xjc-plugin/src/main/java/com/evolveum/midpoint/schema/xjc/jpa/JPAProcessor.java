@@ -22,18 +22,49 @@
 package com.evolveum.midpoint.schema.xjc.jpa;
 
 import com.evolveum.midpoint.schema.xjc.Processor;
+import com.sun.codemodel.JDefinedClass;
 import com.sun.tools.xjc.Options;
+import com.sun.tools.xjc.model.CClassInfo;
+import com.sun.tools.xjc.model.nav.NClass;
+import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author lazyman
  */
 public class JPAProcessor implements Processor {
 
+    private static final String PACKAGE_DATA = "com.evolveum.midpoint.repo.data";
+
     @Override
-    public boolean run(Outline outline, Options options, ErrorHandler errorHandler) throws SAXException {
+    public boolean run(Outline outline, Options options, ErrorHandler errorHandler) throws Exception {
+        if (1 == 1) {
+            return true;
+        }
+
+        Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
+
+        for (Map.Entry<NClass, CClassInfo> entry : set) {
+            ClassOutline classOutline = outline.getClazz(entry.getValue());
+            JDefinedClass definedClass = classOutline.implClass;
+
+            if (definedClass.parentContainer() instanceof JDefinedClass) {
+                //inner classes
+                continue;
+            }
+
+            String packageName = definedClass.getPackage().name();
+            if (!packageName.startsWith("com.evolveum.midpoint.xml.ns._public")) {
+                continue;
+            }
+
+            packageName = PACKAGE_DATA + packageName.replaceFirst("com.evolveum.midpoint.xml.ns._public", "");
+            JDefinedClass dataClass = outline.getCodeModel()._class(packageName + "." + definedClass.name());
+        }
 
         return true;
     }

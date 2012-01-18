@@ -29,6 +29,10 @@ import com.sun.tools.xjc.model.CPropertyInfo;
 import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
+import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIDeclaration;
+import com.sun.tools.xjc.reader.xmlschema.bindinfo.BindInfo;
+import com.sun.xml.xsom.XSAnnotation;
+import com.sun.xml.xsom.XSComponent;
 
 import javax.xml.namespace.QName;
 import java.lang.reflect.Field;
@@ -202,5 +206,36 @@ public final class ProcessorUtils {
         }
 
         return null;
+    }
+
+    public static boolean hasAnnotation(ClassOutline classOutline, QName qname) {
+        XSComponent xsComponent = classOutline.target.getSchemaComponent();
+
+        if (xsComponent == null) {
+            return false;
+        }
+        XSAnnotation annotation = xsComponent.getAnnotation(false);
+        if (annotation == null) {
+            return false;
+        }
+
+        Object object = annotation.getAnnotation();
+        if (!(object instanceof BindInfo)) {
+            return false;
+        }
+
+        BindInfo info = (BindInfo) object;
+        BIDeclaration[] declarations = info.getDecls();
+        if (declarations == null) {
+            return false;
+        }
+
+        for (BIDeclaration declaration : declarations) {
+            if (qname.equals(declaration.getName())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

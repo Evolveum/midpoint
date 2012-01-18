@@ -25,7 +25,7 @@ import com.evolveum.midpoint.schema.processorFake.MidpointObject;
 import com.evolveum.midpoint.schema.processorFake.PropertyContainer;
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
 import com.evolveum.midpoint.schema.xjc.Processor;
-import com.evolveum.midpoint.schema.xjc.util.ProcessorUtils;
+import static com.evolveum.midpoint.schema.xjc.util.ProcessorUtils.*;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.model.CClassInfo;
@@ -184,37 +184,6 @@ public class SchemaProcessor implements Processor {
         body.assign(JExpr._this().ref(container), methodContainer);
     }
 
-    private boolean hasAnnotation(ClassOutline classOutline, QName qname) {
-        XSComponent xsComponent = classOutline.target.getSchemaComponent();
-
-        if (xsComponent == null) {
-            return false;
-        }
-        XSAnnotation annotation = xsComponent.getAnnotation(false);
-        if (annotation == null) {
-            return false;
-        }
-
-        Object object = annotation.getAnnotation();
-        if (!(object instanceof BindInfo)) {
-            return false;
-        }
-
-        BindInfo info = (BindInfo) object;
-        BIDeclaration[] declarations = info.getDecls();
-        if (declarations == null) {
-            return false;
-        }
-
-        for (BIDeclaration declaration : declarations) {
-            if (qname.equals(declaration.getName())) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     private void addComplextType(Outline outline, Map<String, JFieldVar> namespaceFields) {
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
@@ -228,7 +197,7 @@ public class SchemaProcessor implements Processor {
             if (var != null) {
                 createQNameDefinition(outline, classOutline.implClass, COMPLEX_TYPE_FIELD, var, qname);
             } else {
-                ProcessorUtils.createPSFField(outline, classOutline.implClass, COMPLEX_TYPE_FIELD, qname);
+                createPSFField(outline, classOutline.implClass, COMPLEX_TYPE_FIELD, qname);
             }
         }
     }
@@ -268,7 +237,7 @@ public class SchemaProcessor implements Processor {
                     continue;
                 }
 
-                String fieldName = ProcessorUtils.fieldFPrefixUnderscoredUpperCase(field);
+                String fieldName = fieldFPrefixUnderscoredUpperCase(field);
                 boxes.add(new FieldBox(fieldName, new QName(qname.getNamespaceURI(), field)));
             }
 
@@ -277,7 +246,7 @@ public class SchemaProcessor implements Processor {
                 if (var != null) {
                     createQNameDefinition(outline, implClass, box.getFieldName(), var, box.getValue());
                 } else {
-                    ProcessorUtils.createPSFField(outline, implClass, box.getFieldName(), box.getValue());
+                    createPSFField(outline, implClass, box.getFieldName(), box.getValue());
                 }
             }
         }
@@ -346,7 +315,7 @@ public class SchemaProcessor implements Processor {
 
     private void addContainerUtilMethodsToObjectType(Outline outline) {
         QName objectType = new QName(PrefixMapper.C.getNamespace(), "ObjectType");
-        ClassOutline classOutline = ProcessorUtils.findClassOutline(outline, objectType);
+        ClassOutline classOutline = findClassOutline(outline, objectType);
 
         if (classOutline == null) {
             throw new IllegalStateException("Couldn't find class outline for " + objectType);
@@ -452,13 +421,13 @@ public class SchemaProcessor implements Processor {
         Outline outline = classOutline.parent();
         JClass string = (JClass) outline.getModel().codeModel._ref(String.class);
         JMethod oldMethod = definedClass.getMethod("getOid", new JType[]{});
-        JMethod method = ProcessorUtils.recreateMethod(oldMethod, definedClass);
+        JMethod method = recreateMethod(oldMethod, definedClass);
         JBlock body = method.body();
         body._return(JExpr.invoke("getContainer").invoke("getOid"));
-        ProcessorUtils.copyAnnotations(method, field, oldMethod);
+        copyAnnotations(method, field, oldMethod);
 
         method = definedClass.getMethod("setOid", new JType[]{string});
-        method = ProcessorUtils.recreateMethod(method, definedClass);
+        method = recreateMethod(method, definedClass);
         body = method.body();
         JInvocation invocation = body.invoke(JExpr.invoke("getContainer"), method.name());
         invocation.arg(method.listParams()[0]);
@@ -483,10 +452,10 @@ public class SchemaProcessor implements Processor {
 
     private boolean updateContainerFieldType(JFieldVar field, ClassOutline classOutline) {
         //only setter method must be updated
-        String methodName = ProcessorUtils.getSetterMethod(classOutline, field);
+        String methodName = getSetterMethod(classOutline, field);
         JDefinedClass definedClass = classOutline.implClass;
         JMethod method = definedClass.getMethod(methodName, new JType[]{field.type()});
-        method = ProcessorUtils.recreateMethod(method, definedClass);
+        method = recreateMethod(method, definedClass);
 
         JBlock body = method.body();
         body.directStatement("//todo do not use setValue but remove container from parent " +
@@ -498,13 +467,13 @@ public class SchemaProcessor implements Processor {
 
         JInvocation invocation = thenBlock.invoke(METHOD_SET_PROPERTY_VALUE);
         //push arguments
-        invocation.arg(JExpr.ref(ProcessorUtils.fieldFPrefixUnderscoredUpperCase(field.name())));
+        invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
         invocation.arg(JExpr._null());
 
         JBlock elseBlock = condition._else();
         invocation = elseBlock.invoke(METHOD_SET_PROPERTY_VALUE);
         //push arguments
-        invocation.arg(JExpr.ref(ProcessorUtils.fieldFPrefixUnderscoredUpperCase(field.name())));
+        invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
         invocation.arg(JExpr.invoke(param, METHOD_GET_CONTAINER));
 
         return false;
@@ -513,10 +482,10 @@ public class SchemaProcessor implements Processor {
     private boolean updateField(JFieldVar field, ClassOutline classOutline) {
         JDefinedClass definedClass = classOutline.implClass;
         //update getter
-        String methodName = ProcessorUtils.getGetterMethod(classOutline, field);
+        String methodName = getGetterMethod(classOutline, field);
         JMethod oldMethod = definedClass.getMethod(methodName, new JType[]{});
-        JMethod method = ProcessorUtils.recreateMethod(oldMethod, definedClass);
-        ProcessorUtils.copyAnnotations(method, field, oldMethod);
+        JMethod method = recreateMethod(oldMethod, definedClass);
+        copyAnnotations(method, field, oldMethod);
 
         JClass list = (JClass) classOutline.parent().getModel().codeModel._ref(List.class);
         JType type = field.type();
@@ -532,9 +501,9 @@ public class SchemaProcessor implements Processor {
             return true;
         }
 
-        methodName = ProcessorUtils.getSetterMethod(classOutline, field);
+        methodName = getSetterMethod(classOutline, field);
         method = definedClass.getMethod(methodName, new JType[]{field.type()});
-        method = ProcessorUtils.recreateMethod(method, definedClass);
+        method = recreateMethod(method, definedClass);
         createFieldSetterBody(method, field, classOutline);
 
         return true;
@@ -545,7 +514,7 @@ public class SchemaProcessor implements Processor {
 
         JInvocation invocation = body.invoke(METHOD_SET_PROPERTY_VALUE);
         //push arguments
-        invocation.arg(JExpr.ref(ProcessorUtils.fieldFPrefixUnderscoredUpperCase(field.name())));
+        invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
         invocation.arg(method.listParams()[0]);
     }
 
@@ -559,7 +528,7 @@ public class SchemaProcessor implements Processor {
             invocation = JExpr.invoke(METHOD_GET_PROPERTY_VALUE);
         }
         //push arguments
-        invocation.arg(JExpr.ref(ProcessorUtils.fieldFPrefixUnderscoredUpperCase(field.name())));
+        invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
         JType type = field.type();
         if (type.isPrimitive()) {
             JPrimitiveType primitive = (JPrimitiveType) type;

@@ -36,8 +36,8 @@ import org.xml.sax.SAXException;
 public class MidPointPlugin extends Plugin {
 
     private final Processor[] processors = {
-            new SchemaProcessor(),
-            new JPAProcessor()};
+            new JPAProcessor(),
+            new SchemaProcessor()};
 
     @Override
     public String getOptionName() {
@@ -57,6 +57,7 @@ public class MidPointPlugin extends Plugin {
                 result &= processor.run(outline, opt, errorHandler);
             }
         } catch (Exception ex) {
+            ex.printStackTrace();
             throw new SAXException(ex.getMessage(), ex);
         }
 
