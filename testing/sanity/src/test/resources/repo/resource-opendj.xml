@@ -28,6 +28,10 @@
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+          xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+          xmlns:my="http://myself.me/schemas/whatever"
           xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 
     <!-- Resource printable name -->
@@ -36,6 +40,7 @@
     <!-- Reference to the ICF LDAP connector. This is dynamic reference, it will be translated to
           OID during import. -->
     <connectorRef type="ConnectorType">
+
         <and>
             <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
             <equal>
@@ -44,11 +49,11 @@
                 </value>
             </equal>
         </and>
+
     </connectorRef>
 
     <!-- Connector namespace -->
-    <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff
-    </namespace>
+    <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace>
 
     <!-- Resource configuration section -->
     <configuration
@@ -57,12 +62,14 @@
 
         <!-- Configuration specific for the LDAP connector -->
         <icfcldap:configurationProperties>
+
             <icfcldap:port>10389</icfcldap:port>
             <icfcldap:host>localhost</icfcldap:host>
             <icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
             <icfcldap:principal>cn=directory manager</icfcldap:principal>
             <icfcldap:credentials>
                 <clearValue>secret</clearValue>
+
             </icfcldap:credentials>
             <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
             <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
@@ -72,6 +79,7 @@
 
         <icfc:connectorPoolConfiguration>
             <icfc:minEvictableIdleTimeMillis>120000</icfc:minEvictableIdleTimeMillis>
+
             <icfc:minIdle>1</icfc:minIdle>
             <icfc:maxIdle>10</icfc:maxIdle>
             <icfc:maxObjects>10</icfc:maxObjects>
@@ -86,12 +94,14 @@
             <icfc:update>-1</icfc:update>
             <icfc:delete>-1</icfc:delete>
             <icfc:test>-1</icfc:test>
+
             <icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
             <icfc:scriptOnResource>-1</icfc:scriptOnResource>
             <icfc:authentication>-1</icfc:authentication>
             <icfc:search>-1</icfc:search>
             <icfc:validate>-1</icfc:validate>
             <icfc:sync>-1</icfc:sync>
+
             <icfc:schema>-1</icfc:schema>
         </icfc:timeouts>
 
@@ -103,6 +113,7 @@
 
         <!-- Definition of default account type.
 This is now the only account type that midPoint can work with. -->
+
         <accountType>
 
             <name>user</name>
@@ -112,6 +123,7 @@ This is now the only account type that midPoint can work with. -->
             <default>true</default>
             <!-- Reference to the Resource Schema specifying
       object class for this account type -->
+
             <objectClass>ri:AccountObjectClass</objectClass>
 
             <!-- Definition of __NAME__ attribute handling.
@@ -142,6 +154,7 @@ This is now the only account type that midPoint can work with. -->
       It is an XPath expression, similar to BPEL assignment expressions. -->
                 <outbound>
                     <initial>true</initial>
+
                     <expression>
                         <code>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
@@ -169,6 +182,7 @@ This is now the only account type that midPoint can work with. -->
                 <!-- Access limitation for this attribute.
        Entry UUID is created by the directory server itelf
        and it is immutable. We can only read it. -->
+
                 <access>read</access>
 
                 <!-- There is no "outbound" expression, so midPoint will not
@@ -180,6 +194,7 @@ This is now the only account type that midPoint can work with. -->
 
             <!-- Definition of cn attribute handling. -->
             <attribute>
+
                 <ref>ri:cn</ref>
                 <displayName>Common Name</displayName>
                 <access>create</access>
@@ -195,6 +210,7 @@ This is now the only account type that midPoint can work with. -->
                     Therefore this value will be copied on every change,
                     overwriting the original value of "cn" on the resource.
                 -->
+
                 <outbound>
                     <expression>
                         <code>
@@ -210,6 +226,7 @@ This is now the only account type that midPoint can work with. -->
                     from the account to the fullName property of the user.
                 -->
                 <inbound>
+
                     <target>
                         declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                         $i:user/i:fullName
@@ -221,6 +238,7 @@ This is now the only account type that midPoint can work with. -->
             <!-- Definition of sn attribute handling. -->
             <attribute>
                 <ref>ri:sn</ref>
+
                 <displayName>Surname</displayName>
                 <access>create</access>
                 <access>read</access>
@@ -228,6 +246,7 @@ This is now the only account type that midPoint can work with. -->
                 <outbound>
                     <expression>
                         <code>
+
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             $i:user/i:familyName
                         </code>
@@ -240,6 +259,7 @@ This is now the only account type that midPoint can work with. -->
                         $i:user/i:familyName
                     </target>
                 </inbound>
+
             </attribute>
 
             <!-- Definition of givenName attribute handling. -->
@@ -248,6 +268,7 @@ This is now the only account type that midPoint can work with. -->
                 <displayName>Given Name</displayName>
                 <access>create</access>
                 <access>read</access>
+
                 <access>update</access>
                 <outbound>
                     <expression>
@@ -258,6 +279,7 @@ This is now the only account type that midPoint can work with. -->
                     </expression>
                 </outbound>
                 <!-- givenName will be synchronized to user's givenName -->
+
                 <inbound>
                     <target>
                         declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
@@ -270,6 +292,7 @@ This is now the only account type that midPoint can work with. -->
        Do not confuse with __UID__! -->
             <attribute>
                 <ref>ri:uid</ref>
+
                 <displayName>Login Name</displayName>
                 <access>create</access>
                 <access>read</access>
@@ -278,6 +301,7 @@ This is now the only account type that midPoint can work with. -->
              user. It is essentially a login name -->
                     <expression>
                         <code>
+
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             $i:user/i:name
                         </code>
@@ -291,6 +315,7 @@ This is now the only account type that midPoint can work with. -->
                         $i:user/i:name
                     </target>
                 </inbound>
+
             </attribute>
 
             <!-- Definition of description attribute handling. -->
@@ -302,6 +327,7 @@ This is now the only account type that midPoint can work with. -->
               generated value. -->
                 <outbound>
                     <initial>true</initial>
+
                     <value>Created by IDM</value>
                 </outbound>
 
@@ -312,6 +338,7 @@ This is now the only account type that midPoint can work with. -->
                         <f:replace>
                             <!-- Replaces all unicode control characters with empty string -->
                             <f:pattern>\p{C}</f:pattern>
+
                             <f:replacement></f:replacement>
                         </f:replace>
                     </valueFilter>
@@ -335,6 +362,7 @@ This is now the only account type that midPoint can work with. -->
               translate values. -->
                 <outbound>
                     <expression>
+
                         <!-- Definition of extra variable for the XPath expression.
                              The variable will appear as "$my:config" in the Xpath
                              expression below. It will contain the content of XML
@@ -346,6 +374,7 @@ This is now the only account type that midPoint can work with. -->
                         <!-- Example of setting a variable to a string value. -->
                         <variable>
                             <name>my:defaultLocation</name>
+
                             <value>middle of nowhere</value>
                         </variable>
                         <returnType>scalar</returnType>
@@ -363,6 +392,7 @@ This is now the only account type that midPoint can work with. -->
                             $my:defaultLocation
                         </c:code>
                     </expression>
+
                 </outbound>
             </attribute>
 
@@ -372,6 +402,7 @@ This is now the only account type that midPoint can work with. -->
                         <asIs/>
                     </outbound>
                 </password>
+
             </credentials>
 
             <activation>
@@ -390,6 +421,7 @@ This is now the only account type that midPoint can work with. -->
             <cap:enableDisable>
                 <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
                 <cap:enableValue/>
+
                 <cap:disableValue>true</cap:disableValue>
             </cap:enableDisable>
         </cap:activation>
@@ -398,6 +430,7 @@ This is now the only account type that midPoint can work with. -->
         </cap:credentials>
         <cap:liveSync/>
         <cap:testConnection/>
+
     </capabilities>
 
     <!--
@@ -415,6 +448,7 @@ This is now the only account type that midPoint can work with. -->
            It will be used to find appropriate user entry for an account.
         -->
         <c:correlation> <!-- Correlation rule is a search query -->
+
             <!-- The clause <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#UserType"/> is implicit in correlation rules -->
             <!-- Following search query will look for users that have "name"
 equal to the "uid" attribute of the account. Simply speaking,
@@ -426,6 +460,7 @@ it will look for match in usernames in the IDM and the resource. -->
                     <c:code>
                         $c:account/c:attributes/dj:uid
                     </c:code>
+
                 </c:valueExpression>
             </c:equal>
         </c:correlation>
@@ -441,6 +476,7 @@ always return at most one match, the confirmation rule is not needed. -->
         -->
         <c:reaction>
             <c:situation>linked</c:situation>
+
             <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser"/>
         </c:reaction>
         <c:reaction>
@@ -449,6 +485,7 @@ always return at most one match, the confirmation rule is not needed. -->
         </c:reaction>
         <c:reaction>
             <c:situation>unlinked</c:situation>
+
             <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
         </c:reaction>
         <c:reaction>
@@ -459,6 +496,7 @@ always return at most one match, the confirmation rule is not needed. -->
              to this template. -->
                 <c:userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
             </c:action>
+
             <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
         </c:reaction>
 
