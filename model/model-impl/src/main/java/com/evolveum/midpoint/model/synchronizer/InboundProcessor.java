@@ -122,10 +122,12 @@ public class InboundProcessor {
         ObjectDelta<AccountShadowType> accountDelta = accContext.getAccountSyncDelta();
         MidPointObject<AccountShadowType> oldAccount = accContext.getAccountOld();
         for (QName name : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
+            LOGGER.trace("Processing inbound for {}", name);
             PropertyDelta propertyDelta = null;
             if (accountDelta != null) {
                 propertyDelta = accountDelta.getPropertyDelta(new PropertyPath(SchemaConstants.I_ATTRIBUTES), name);
                 if (propertyDelta == null) {
+                    LOGGER.trace("Account sync delta exists, but doesn't have change for processed property, skipping.");
                     continue;
                 }
             }
@@ -136,8 +138,10 @@ public class InboundProcessor {
             for (Element inbound : inbounds) {
                 PropertyDelta delta = null;
                 if (accountDelta != null) {
+                    LOGGER.trace("Processing inbound from account sync delta.");
                     delta = createUserPropertyDelta(inbound, propertyDelta, context.getUserNew());
                 } else if (oldAccount != null) {
+                    LOGGER.trace("Processing inbound from account sync absolute state (oldAccount).");
                     Property oldAccountProperty = oldAccount.findProperty(new PropertyPath(SchemaConstants.I_ATTRIBUTES), name);
                     delta = createUserPropertyDelta(inbound, oldAccountProperty, context.getUserNew());
                 }
@@ -160,18 +164,24 @@ public class InboundProcessor {
 
         PropertyDelta delta = null;
         if (oldAccountProperty != null) {
+            LOGGER.trace("Simple property comparing old account property {} user property {}",
+                    new Object[]{oldAccountProperty, userProperty});
             //simple property comparing if oldAccountProperty exists
             delta = oldAccountProperty.compareRealValuesTo(userProperty);
             delta.setName(targetUserAttribute.last());
             delta.setParentPath(targetUserAttribute.allExceptLast());
         } else {
             if (userProperty != null) {
+                LOGGER.trace("Deleting user property because inbound say so (account doesn't contain that value)");
                 //if user property exists we have to delete it (as delta), because inbound say so
                 delta = new PropertyDelta(targetUserAttribute);
                 delta.addValuesToDelete(userProperty.getValues());
             }
             //we don't have to create delta, because everything is alright
+            LOGGER.trace("We don't have to create delta, everything is alright.");
         }
+
+        LOGGER.debug("Created user property delta {}", delta);
 
         return delta;
     }
@@ -186,6 +196,7 @@ public class InboundProcessor {
 
         PropertyDelta delta = new PropertyDelta(targetUserAttribute);
         if (propertyDelta.getValuesToAdd() != null) {
+            LOGGER.trace("Checking account sync property delta values to add");
             for (PropertyValue<Object> value : propertyDelta.getValuesToAdd()) {
                 PropertyValue<Object> filteredValue = filterValue(value, filters);
 
@@ -204,6 +215,7 @@ public class InboundProcessor {
             }
         }
         if (propertyDelta.getValuesToDelete() != null) {
+            LOGGER.trace("Checking account sync property delta values to delete");
             for (PropertyValue<Object> value : propertyDelta.getValuesToDelete()) {
                 PropertyValue<Object> filteredValue = filterValue(value, filters);
 
@@ -212,6 +224,8 @@ public class InboundProcessor {
                 }
             }
         }
+
+        LOGGER.debug("Created user property delta {}", delta);
 
         //if nothing changes was generated return null
         return delta.getValues(Object.class).isEmpty() ? null : delta;
