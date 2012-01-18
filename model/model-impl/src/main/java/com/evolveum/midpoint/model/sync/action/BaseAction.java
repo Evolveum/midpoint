@@ -33,11 +33,12 @@ import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
-import com.evolveum.midpoint.schema.processor.ObjectDefinition;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -48,6 +49,7 @@ import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -187,7 +189,38 @@ public abstract class BaseAction implements Action {
     }
 
     private void updateAccountActivation(AccountSyncContext accContext, ActivationDecision activationDecision) {
+        if (1 == 1) {
+            return;
+        }
         //todo implement account activation change
+        //todo from where do we get information about activation? account new? or something else
+        MidPointObject<AccountShadowType> object = accContext.getAccountNew();
+
+        Property enable = object.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ENABLE.allExceptLast(),
+                SchemaConstants.PATH_ACTIVATION_ENABLE.last(), Boolean.class);
+        LOGGER.debug("Account activation defined, activation property found {}", enable);
+
+        ObjectDelta<AccountShadowType> accDelta = accContext.getAccountSecondaryDelta();
+        if (accDelta == null) {
+            accDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY);
+            accContext.setAccountSecondaryDelta(accDelta);
+        }
+
+        PropertyValue<Boolean> value = enable.getValue(Boolean.class);
+        if (value != null) {
+            Boolean isEnabled = value.getValue();
+            if (isEnabled == null) {
+                createActivationPropertyDelta(accDelta, activationDecision, null);
+            }
+
+            if ((isEnabled && ActivationDecision.DISABLE.equals(activationDecision))
+                    || (!isEnabled && ActivationDecision.ENABLE.equals(activationDecision))) {
+
+                createActivationPropertyDelta(accDelta, activationDecision, isEnabled);
+            }
+        } else {
+            createActivationPropertyDelta(accDelta, activationDecision, null);
+        }
     }
 
     private boolean determineAttributeReconciliation(ResourceObjectShadowChangeDescription change) {
@@ -265,6 +298,34 @@ public abstract class BaseAction implements Action {
             getExecutor().executeChanges(context, result);
         } catch (Exception ex) {
             throw new SynchronizationException("Couldn't execute changes from context, reason: " + ex.getMessage(), ex);
+        }
+    }
+
+    protected void createActivationPropertyDelta(ObjectDelta<?> objectDelta, ActivationDecision activationDecision,
+            Boolean oldValue) {
+        LOGGER.debug("Updating activation for {}, activation decision {}, old value was {}",
+                new Object[]{objectDelta.getClass().getSimpleName(), activationDecision, oldValue});
+
+        PropertyDelta delta = objectDelta.getPropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
+        if (delta == null) {
+            delta = new PropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
+            objectDelta.addModification(delta);
+        }
+        delta.clear();
+
+        Boolean newValue = ActivationDecision.ENABLE.equals(activationDecision) ? Boolean.TRUE : Boolean.FALSE;
+        PropertyValue value = new PropertyValue<Object>(newValue, SourceType.SYNC_ACTION, null);
+        if (oldValue == null) {
+            delta.addValueToAdd(value);
+        } else {
+            Collection<PropertyValue<Object>> values = new ArrayList<PropertyValue<Object>>();
+            values.add(value);
+            delta.setValuesToReplace(values);
+        }
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("{} activation property delta: {}", new Object[]{objectDelta.getClass().getSimpleName(),
+                    delta.debugDump()});
         }
     }
 }

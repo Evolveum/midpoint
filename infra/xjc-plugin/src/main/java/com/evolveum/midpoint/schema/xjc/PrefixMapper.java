@@ -26,34 +26,34 @@ package com.evolveum.midpoint.schema.xjc;
  */
 public enum PrefixMapper {
 
-    W("http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd", "W_", "WORKFLOW"),
+    W("http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd", "WORKFLOW"),
 
-    C("http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd", "C_", "COMMON"),
+    C("http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd", "COMMON"),
 
-    R("http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd", "R_", "RESOURCE"),
+    R("http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd", "RESOURCE"),
 
-    R_CAP("http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd", "R_CAP_", "CAPABILITIES"),
+    R_CAP("http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd", "CAPABILITIES"),
 
-    A("http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd", "A_", "ANNOTATION"),
+    A("http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd", "ANNOTATION"),
 
-    S("http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd", "S_", "SITUATION"),
+    S("http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd", "SITUATION"),
 
-    ICF_S("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd", "ICF_S_", "ICF_RESOURCE"),
+    ICF_S("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd", "ICF_RESOURCE"),
 
-    ICF_C("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd", "ICF_C_", "ICF_SCHEMA"),
+    ICF_C("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd", "ICF_SCHEMA"),
 
-    ENC("http://www.w3.org/2001/04/xmlenc#", "ENC_", "XML_ENC"),
+    ENC("http://www.w3.org/2001/04/xmlenc#", "XML_ENC"),
 
-    DSIG("http://www.w3.org/2000/09/xmldsig#", "DSIG_", "XML_DSIG");
+    DSIG("http://www.w3.org/2000/09/xmldsig#", "XML_DSIG"),
+
+    XSD("http://www.w3.org/2001/XMLSchema", "XSD");
 
     public static final String DEFAULT_PREFIX = "O_";
     private String namespace;
-    private String prefix;
     private String name;
 
-    private PrefixMapper(String namespace, String prefix, String name) {
+    private PrefixMapper(String namespace, String name) {
         this.namespace = namespace;
-        this.prefix = prefix;
         this.name = name;
     }
 
@@ -66,7 +66,7 @@ public enum PrefixMapper {
     }
 
     public String getPrefix() {
-        return prefix;
+        return this.name() + "_";
     }
 
     public static String getPrefix(String namespace) {

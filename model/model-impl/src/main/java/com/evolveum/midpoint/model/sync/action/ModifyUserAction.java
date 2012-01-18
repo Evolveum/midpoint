@@ -28,7 +28,6 @@ import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -37,9 +36,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-
-import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * @author lazyman
@@ -189,10 +185,10 @@ public class ModifyUserAction extends BaseAction {
                 createActivationPropertyDelta(context, userActivationDecision, null);
             }
 
-            if ((isEnabled && ActivationDecision.DISABLE.equals(accountActivationDecision))
-                    || (!isEnabled && ActivationDecision.ENABLE.equals(accountActivationDecision))) {
+            if ((isEnabled && ActivationDecision.DISABLE.equals(userActivationDecision))
+                    || (!isEnabled && ActivationDecision.ENABLE.equals(userActivationDecision))) {
 
-                createActivationPropertyDelta(context, accountActivationDecision, isEnabled);
+                createActivationPropertyDelta(context, userActivationDecision, isEnabled);
             }
         } else {
             createActivationPropertyDelta(context, userActivationDecision, null);
@@ -203,8 +199,6 @@ public class ModifyUserAction extends BaseAction {
 
     private void createActivationPropertyDelta(SyncContext context, ActivationDecision activationDecision,
             Boolean oldValue) {
-        LOGGER.debug("Updating activation for user, activation decision {}, old value was {}",
-                new Object[]{activationDecision, oldValue});
 
         ObjectDelta<UserType> userDelta = context.getUserSecondaryDelta();
         if (userDelta == null) {
@@ -212,25 +206,6 @@ public class ModifyUserAction extends BaseAction {
             context.setUserSecondaryDelta(userDelta);
         }
 
-        PropertyDelta delta = userDelta.getPropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
-        if (delta == null) {
-            delta = new PropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
-            userDelta.addModification(delta);
-        }
-        delta.clear();
-
-        Boolean newValue = ActivationDecision.ENABLE.equals(activationDecision) ? Boolean.TRUE : Boolean.FALSE;
-        PropertyValue value = new PropertyValue<Object>(newValue, SourceType.SYNC_ACTION, null);
-        if (oldValue == null) {
-            delta.addValueToAdd(value);
-        } else {
-            Collection<PropertyValue<Object>> values = new ArrayList<PropertyValue<Object>>();
-            values.add(value);
-            delta.setValuesToReplace(values);
-        }
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("User activation property delta: {}", delta.debugDump());
-        }
+        createActivationPropertyDelta(userDelta, activationDecision, oldValue);
     }
 }
