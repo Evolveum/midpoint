@@ -36,6 +36,7 @@ import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -482,6 +483,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                     Element attribute = document.createElementNS(ref.getNamespaceURI(), ref.getLocalPart());
                     ExpressionType valueExpression = XsdTypeConverter.toJavaValue(valueExpressionElement,
                             ExpressionType.class);
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Filter transformed to expression\n{}", JAXBUtil.silentMarshalWrap(valueExpression));
+                    }
                     String expressionResult = expressionHandler.evaluateExpression(currentShadow,
                             valueExpression, result);
 
