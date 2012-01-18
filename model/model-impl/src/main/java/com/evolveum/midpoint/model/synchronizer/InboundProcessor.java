@@ -163,19 +163,19 @@ public class InboundProcessor {
         Property userProperty = newUser.findProperty(targetUserAttribute);
 
         PropertyDelta delta = null;
-        if (oldAccountProperty != null) {
-            LOGGER.trace("Simple property comparing old account property {} user property {}",
-                    new Object[]{oldAccountProperty, userProperty});
-            //simple property comparing if oldAccountProperty exists
-            delta = oldAccountProperty.compareRealValuesTo(userProperty);
+        if (userProperty != null) {
+            LOGGER.trace("Simple property comparing user property {} to old account property {} ",
+                    new Object[]{userProperty, oldAccountProperty});
+            //simple property comparing if user property exists
+            delta = userProperty.compareRealValuesTo(oldAccountProperty);
             delta.setName(targetUserAttribute.last());
             delta.setParentPath(targetUserAttribute.allExceptLast());
         } else {
-            if (userProperty != null) {
-                LOGGER.trace("Deleting user property because inbound say so (account doesn't contain that value)");
-                //if user property exists we have to delete it (as delta), because inbound say so
+            if (oldAccountProperty != null) {
+                LOGGER.trace("Adding user property because inbound say so (account doesn't contain that value)");
+                //if user property doesn't exist we have to add it (as delta), because inbound say so
                 delta = new PropertyDelta(targetUserAttribute);
-                delta.addValuesToDelete(userProperty.getValues());
+                delta.addValuesToAdd(oldAccountProperty.getValues());
             }
             //we don't have to create delta, because everything is alright
             LOGGER.trace("We don't have to create delta, everything is alright.");
