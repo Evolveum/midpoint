@@ -307,12 +307,18 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
      * It modifies the provided object.
      */
     public void applyTo(MidPointObject<T> mpObject) {
+    	if (isEmpty()) {
+    		// nothing to do
+    		return;
+    	}
         if (changeType != ChangeType.MODIFY) {
             throw new IllegalStateException("Can apply only MODIFY delta to object, got " + changeType + " delta");
         }
         for (PropertyDelta propDelta : modifications) {
             propDelta.applyTo(mpObject);
         }
+        // Reset the object type as the contect of this JAXB object is no longer valid 
+        mpObject.setObjectType(null);
     }
 
     /**

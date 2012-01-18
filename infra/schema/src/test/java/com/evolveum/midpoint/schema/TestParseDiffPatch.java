@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -77,6 +79,9 @@ public class TestParseDiffPatch {
         UserType userTypeAfter = jaxbElement.getValue();
         MidPointObject<UserType> userAfter = userDefinition.parseObjectType(userTypeAfter);
         
+        // sanity
+        assertFalse("Equals does not work", userBefore.equals(userAfter));
+        
         // WHEN
         
         ObjectDelta<UserType> userDelta = userBefore.compareTo(userAfter);
@@ -92,6 +97,20 @@ public class TestParseDiffPatch {
         assertEquals("Unexpected number of modifications",2,modifications.size());
         assertReplace(userDelta, new QName(SchemaConstants.NS_C,"fullName"), "Cpt. Jack Sparrow");
         assertAdd(userDelta, new QName(SchemaConstants.NS_C,"honorificPrefix"), "Cpt.");
+        
+        // ROUNDTRIP
+        
+        userDelta.applyTo(userBefore);
+        
+        //assertEquals("Round trip failed", userAfter, userBefore);
+        
+        assertTrue("Not equivalent",userBefore.equivalent(userAfter));
+        
+        ObjectDelta<UserType> roundTripDelta = DiffUtil.diff(userBefore, userAfter);
+        System.out.println("roundtrip DELTA:");
+        System.out.println(roundTripDelta.dump());
+        
+        assertTrue("Roundtrip delta is not empty",roundTripDelta.isEmpty());
 	}
 	
 	@Test

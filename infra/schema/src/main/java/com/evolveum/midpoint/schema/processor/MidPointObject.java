@@ -160,7 +160,68 @@ public class MidPointObject<T extends ObjectType> extends PropertyContainer {
 		
 		return objectDelta;
 	}
+	
+	/**
+	 * Note: hashcode and equals compare the objects in the "java way". That means the objects must be
+	 * almost preciselly equal to match (e.g. including source demarcation in values and other "annotations").
+	 * For a method that compares the "meaningful" parts of the objects see equivalent(). 
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((objectType == null) ? 0 : objectType.hashCode());
+		result = prime * result + ((oid == null) ? 0 : oid.hashCode());
+		return result;
+	}
 
+	/**
+	 * Note: hashcode and equals compare the objects in the "java way". That means the objects must be
+	 * almost preciselly equal to match (e.g. including source demarcation in values and other "annotations").
+	 * For a method that compares the "meaningful" parts of the objects see equivalent(). 
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		MidPointObject other = (MidPointObject) obj;
+		if (objectType == null) {
+			if (other.objectType != null)
+				return false;
+		} else if (!objectType.equals(other.objectType))
+			return false;
+		if (oid == null) {
+			if (other.oid != null)
+				return false;
+		} else if (!oid.equals(other.oid))
+			return false;
+		return true;
+	}
+
+	/**
+	 * this method ignores some part of the object during comparison (e.g. source demarkation in values)
+	 * These methods compare the "meaningful" parts of the objects. 
+	 */
+	public boolean equivalent(Object obj) {
+		// Alibistic implementation for now. But shoudl work well.
+		if (this == obj)
+			return true;
+		if (getClass() != obj.getClass())
+			return false;
+		MidPointObject other = (MidPointObject) obj;
+		if (oid == null) {
+			if (other.oid != null)
+				return false;
+		} else if (!oid.equals(other.oid))
+			return false;
+		ObjectDelta<T> delta = compareTo(other);
+		return delta.isEmpty();
+	}
+	
 	/**
 	 * Return a human readable name of this class suitable for logs.
 	 */
