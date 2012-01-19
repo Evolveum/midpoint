@@ -549,6 +549,7 @@
                                 <!-- 								<midpoint.home>target/midPointHome/</midpoint.home> -->
                             </systemPropertyVariables>
                             <argLine>-Xms512m -Xmx1024m -XX:MaxPermSize=192m</argLine>
+                            <!--<argLine>-agentpath:/usr/local/yjp-10.0.4/bin/linux-x86-32/libyjpagent.so=alloceach=10,allocsizelimit=1048576,sampling,walltimespec=/home/lazyman/.yjp/config/.walltime,noj2ee,profileruipath=/usr/local/yjp-10.0.4/bin/yjp.sh,onexit=snapshot -Xms512m -Xmx1024m -XX:MaxPermSize=192m</argLine>-->
                         </configuration>
                         <dependencies>
                             <dependency>

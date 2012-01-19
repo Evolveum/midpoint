@@ -50,11 +50,8 @@
 		<plugins>
 			<plugin>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.9</version>
 				<configuration>
 					<runOrder>alphabetical</runOrder>
-					<!-- Used for profiling -->
-					<!-- <argLine>-agentpath:/home/lazyman/Work/yjp-10.0.0/bin/linux-x86-32/libyjpagent.so=onexit=snapshot,sampling,alloceach=10</argLine> -->
 				</configuration>
 			</plugin>
 		</plugins>
