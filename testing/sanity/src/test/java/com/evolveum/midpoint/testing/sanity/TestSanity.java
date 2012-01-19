@@ -2534,8 +2534,15 @@ public class TestSanity extends AbstractIntegrationTest {
         // Guybrush's attributes were set up by a role in the previous test. Let's mess the up a bit. Recon should sort it out.
 
         List<RawModification> modifications = new ArrayList<RawModification>();
+        // Expect that a correct title will be added to this one
         RawModification titleMod = RawModification.create(ModificationType.REPLACE, "title", "Scurvy earthworm");
         modifications.add(titleMod);
+        // Expect that the correct location will replace this one
+        RawModification lMod = RawModification.create(ModificationType.REPLACE, "l", "Davie Jones' locker");
+        modifications.add(lMod);
+        // Expect that this will be untouched
+        RawModification poMod = RawModification.create(ModificationType.REPLACE, "postOfficeBox", "X marks the spot");
+        modifications.add(poMod);
         ModifyOperation modifyOperation = openDJController.getInternalConnection().processModify(USER_GUYBRUSH_LDAP_DN, modifications);
         if (ResultCode.SUCCESS != modifyOperation.getResultCode()) {
             AssertJUnit.fail("LDAP operation failed: " + modifyOperation.getErrorMessage());
@@ -2668,18 +2675,21 @@ public class TestSanity extends AbstractIntegrationTest {
         OpenDJController.assertAttribute(entry, "sn", "Threepwood");
         OpenDJController.assertAttribute(entry, "cn", "Guybrush Threepwood");
         // The "l" attribute is assigned indirectly through schemaHandling and
-        // config object
+        // config object. It is not tolerant, therefore the other value should be gone now
         OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
 
         // Set by the role
         OpenDJController.assertAttribute(entry, "employeeType", "sailor");
         
-        // title is tolerant, so it will retain the original value as well as the one provided by the role
+        // "title" is tolerant, so it will retain the original value as well as the one provided by the role
         OpenDJController.assertAttribute(entry, "title", "Scurvy earthworm", "Honorable Captain");
         
         OpenDJController.assertAttribute(entry, "carLicense", "C4PT41N");
         OpenDJController.assertAttribute(entry, "businessCategory", "cruise");
 
+        // No setting for "postOfficeBox", so the value should be unchanged
+        OpenDJController.assertAttribute(entry, "postOfficeBox", "X marks the spot");
+        
         String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull("Pasword was not set on create", guybrushPassword);
 

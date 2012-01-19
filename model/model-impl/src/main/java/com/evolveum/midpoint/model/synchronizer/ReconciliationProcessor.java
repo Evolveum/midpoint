@@ -189,7 +189,7 @@ public class ReconciliationProcessor {
 		if (changeType == ChangeType.ADD) {
 			attrDelta.addValueToAdd(pValue);
 		} else if (changeType == ChangeType.DELETE) {
-			attrDelta.addValueToAdd(pValue);
+			attrDelta.addValueToDelete(pValue);
 		} else {
 			throw new IllegalArgumentException("Unknown change type "+changeType);
 		}
