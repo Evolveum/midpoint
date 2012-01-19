@@ -298,6 +298,22 @@
                 </xsd:annotation>
             </xsd:element>
 
+			<xsd:element name="fetchResult" type="tns:OperationResultType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Result of the operation that fetched this instance of the object.
+						It is mostly used to indicate that the object is not complete or
+						there is some problem with the object. This is used instead of
+						exception if the object is part of larger structures (lists as in
+						list/search operations or composite objets). If not present then
+						the "SUCCESS" state is assumed.
+						
+						This field is TRANSIENT. It must only be used in runtime. It should
+						never be stored in the repository.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+
         </xsd:sequence>
 
         <xsd:attribute name="oid" type="xsd:string" use="optional">

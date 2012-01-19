@@ -334,6 +334,10 @@ public class ObjectImporter {
         OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".validate" + StringUtils.capitalize(schemaName) + "Schema");
 
         Element xsdElement = ObjectTypeUtil.findXsdElement(dynamicSchema);
+        if (xsdElement == null) {
+        	result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No "+schemaName+" schema present");
+        	return null;
+        }
 
         com.evolveum.midpoint.schema.processor.Schema schema = null;
         try {

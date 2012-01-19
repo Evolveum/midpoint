@@ -128,6 +128,12 @@ public class TestSanity extends AbstractIntegrationTest {
     private static final String RESOURCE_DERBY_FILENAME = "src/test/resources/repo/resource-derby.xml";
     private static final String RESOURCE_DERBY_OID = "ef2bc95b-76e0-59e2-86d6-999902d3abab";
 
+    private static final String RESOURCE_BROKEN_FILENAME = "src/test/resources/repo/resource-broken.xml";
+    private static final String RESOURCE_BROKEN_OID = "ef2bc95b-76e0-59e2-ffff-ffffffffffff";
+    
+    private static final String CONNECTOR_BROKEN_FILENAME = "src/test/resources/repo/connector-broken.xml";
+    private static final String CONNECTOR_BROKEN_OID = "cccccccc-76e0-59e2-ffff-ffffffffffff";
+    
     private static final String TASK_OPENDJ_SYNC_FILENAME = "src/test/resources/repo/opendj-sync-task.xml";
     private static final String TASK_OPENDJ_SYNC_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
 
@@ -236,11 +242,15 @@ public class TestSanity extends AbstractIntegrationTest {
         modelService.postInit(initResult);
         LOGGER.trace("initSystem: modelService.postInit() done");
 
+        // Add broken connector before importing resources
+        addObjectFromFile(CONNECTOR_BROKEN_FILENAME, initResult);
+        
         // Need to import instead of add, so the (dynamic) connector reference
         // will be resolved
         // correctly
         importObjectFromFile(RESOURCE_OPENDJ_FILENAME, initResult);
         importObjectFromFile(RESOURCE_DERBY_FILENAME, initResult);
+        importObjectFromFile(RESOURCE_BROKEN_FILENAME, initResult);
 
         addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, initResult);
         addObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
@@ -1893,6 +1903,36 @@ public class TestSanity extends AbstractIntegrationTest {
 
     }
 
+    @Test
+    public void test060ListResourcesWithBrokenResource() {
+    	displayTestTile("test060ListResourcesWithBrokenResource");
+    	
+    	// GIVEN
+    	final OperationResult result = new OperationResult(TestSanity.class.getName()
+                + ".test060ListResourcesWithBrokenResource");
+    	
+    	// WHEN
+    	ResultList<ResourceType> resources = modelService.listObjects(ResourceType.class, null, result);
+    	
+    	// THEN
+    	
+    	for (ResourceType resource: resources) {
+    		//display("Resource found",resource);
+    		display("Found "+ObjectTypeUtil.toShortString(resource)+", result "+(resource.getFetchResult() == null ? "null" :  resource.getFetchResult().getStatus()));
+    		
+    		assertNotNull(resource.getOid());
+    		assertNotNull(resource.getName());
+    		
+    		if (resource.getOid().equals(RESOURCE_BROKEN_OID)) {
+    			assertEquals("No error in fetchResult in "+ObjectTypeUtil.toShortString(resource), OperationResultStatusType.FATAL_ERROR, resource.getFetchResult().getStatus());
+    		} else {
+    			assertTrue("Unexpected error in fetchResult in "+ObjectTypeUtil.toShortString(resource),
+    					resource.getFetchResult() == null || resource.getFetchResult().getStatus() == OperationResultStatusType.SUCCESS);
+    		}
+    		
+    	}
+    	
+    }
 
     // Synchronization tests
 

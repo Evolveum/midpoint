@@ -48,6 +48,7 @@ import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyModification;
@@ -511,22 +512,31 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		if (ResourceType.class.equals(objectType)) {
 			ResultList<T> newObjListType = new ResultArrayList<T>();
 			for (T obj : objListType) {
+				OperationResult  objResult = new OperationResult(ProvisioningService.class.getName()
+				+ ".listObjects.object");
 				ResourceType resource = (ResourceType) obj;
 				ResourceType completeResource;
 				try {
-					completeResource = getResourceTypeManager().completeResource(resource, null, result);
+					completeResource = getResourceTypeManager().completeResource(resource, null, objResult);
 					newObjListType.add((T) completeResource);
+					// TODO: what do to with objResult??
 				} catch (ObjectNotFoundException e) {
 					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
 							ObjectTypeUtil.toShortString(resource), e.getMessage(), e });
+					objResult.recordFatalError(e);
+					obj.setFetchResult(objResult.createOperationResultType());
 					newObjListType.add(obj);
 				} catch (SchemaException e) {
 					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
 							ObjectTypeUtil.toShortString(resource), e.getMessage(), e });
+					objResult.recordFatalError(e);
+					obj.setFetchResult(objResult.createOperationResultType());
 					newObjListType.add(obj);
 				} catch (CommunicationException e) {
 					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
 							ObjectTypeUtil.toShortString(resource), e.getMessage(), e });
+					objResult.recordFatalError(e);
+					obj.setFetchResult(objResult.createOperationResultType());
 					newObjListType.add(obj);
 				}
 			}
@@ -611,10 +621,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		} catch (ObjectNotFoundException e) {
 			result.recordFatalError(e);
 			throw e;
+		} catch (RuntimeException e) {
+			result.recordFatalError(e);
+			throw new SystemException("Internal error: "+e.getMessage(),e);
 		}
 
 		LOGGER.trace("Finished modifying of object with oid {}", objectType.getOid());
-		// TODO Auto-generated method stub
 	}
 
 	@Override
