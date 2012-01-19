@@ -177,7 +177,7 @@ public class RoleEditController implements Serializable {
 			LoggingUtils.logException(LOGGER, "Couldn't submit role {}", ex, role.getName());
 			result.recordFatalError("Couldn't submit role '" + role.getName() + "'.", ex);
 		} finally {
-			if (!repositoryManager.saveObject(newObject)) {
+			if (!repositoryManager.saveObject(newObject, xml)) {
 				result.recordFatalError("Couln't update role '" + newObject.getName() + "'.");
 			}
 			initController();

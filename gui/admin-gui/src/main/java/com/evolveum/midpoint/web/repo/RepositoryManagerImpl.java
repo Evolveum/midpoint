@@ -31,7 +31,11 @@ import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.schema.processor.DiffUtil;
+import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -40,6 +44,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -59,6 +64,8 @@ public class RepositoryManagerImpl implements RepositoryManager {
 	private static final Trace LOGGER = TraceManager.getTrace(RepositoryManagerImpl.class);
 	@Autowired(required = true)
 	private transient RepositoryService repositoryService;
+	@Autowired(required = true)
+	private SchemaRegistry schemaRegistry;
 
 	@Override
 	public <T extends ObjectType> List<T> listObjects(Class<T> objectType, int offset, int count) {
@@ -136,33 +143,37 @@ public class RepositoryManagerImpl implements RepositoryManager {
 	}
 
 	@Override
-	public boolean saveObject(ObjectType object) {
+	public boolean saveObject(ObjectType object, String xml) {
 		Validate.notNull(object, "Object must not be null.");
 		LOGGER.debug("Saving object {} (object xml in traces).", new Object[] { object.getName() });
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(JAXBUtil.silentMarshalWrap(object));
 		}
-
+		ObjectModificationType objectModificationType = null;
 		OperationResult result = new OperationResult(SAVE_OBJECT);
 		boolean saved = false;
 		try {
 			ObjectType oldObject = repositoryService.getObject(ObjectType.class, object.getOid(),
 					new PropertyReferenceListType(), result);
 			if (oldObject != null) {
-				ObjectModificationType objectChange = CalculateXmlDiff.calculateChanges(oldObject, object);
+				
+				ObjectDelta<ObjectType> delta = DiffUtil.diff(JAXBUtil.marshalWrap(oldObject), xml,
+						ObjectType.class, schemaRegistry.getObjectSchema());
+				// ObjectModificationType objectChange =
+				// CalculateXmlDiff.calculateChanges(oldObject, object);
 
-				if (objectChange != null && objectChange.getOid() != null) {
+				if (delta != null && delta.getOid() != null) {
 
-					repositoryService.modifyObject(object.getClass(), objectChange, result);
+					objectModificationType = delta.toObjectModificationType();
 
-					
+					// repositoryService.modifyObject(object.getClass(),
+					// objectChange, result);
 				}
-				result.recordSuccess();
-				saved = true;
+				if(objectModificationType != null){
+					result.recordSuccess();
+					saved = true;
+				}
 			}
-		} catch (DiffException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't create diff for object {}", ex, object.getName());
-			result.recordFatalError("Couldn't create diff for object '" + object.getName() + "'.", ex);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't update object {}", ex, object.getName());
 			result.recordFatalError("Couldn't update object '" + object.getName() + "'.", ex);

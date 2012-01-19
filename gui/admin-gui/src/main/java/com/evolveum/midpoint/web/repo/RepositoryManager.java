@@ -23,7 +23,6 @@ package com.evolveum.midpoint.web.repo;
 import java.util.List;
 
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
@@ -47,7 +46,7 @@ public interface RepositoryManager {
 
 	ObjectType getObject(String oid);
 
-	boolean saveObject(ObjectType object);
+	boolean saveObject(ObjectType object, String xml);
 
 	<T extends ObjectType> boolean deleteObject(Class<T> type, String oid);
 

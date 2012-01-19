@@ -223,7 +223,7 @@ public class DebugViewController implements Serializable {
 			return null;
 		}
 
-		if (!repositoryManager.saveObject(newObject)) {
+		if (!repositoryManager.saveObject(newObject, xml)) {
 			result.recordFatalError("Couln't update object '" + newObject.getName() + "'.");
 //			FacesUtils.addErrorMessage("Couln't update object '" + newObject.getName() + "'.");
 		}
