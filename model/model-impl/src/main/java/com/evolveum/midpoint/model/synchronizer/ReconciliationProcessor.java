@@ -106,7 +106,7 @@ public class ReconciliationProcessor {
                 RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(accContext.getResource(), schemaRegistry);
                 RefinedAccountDefinition accountDefinition = refinedSchema.getAccountDefinition(accContext.getResourceAccountType().getAccountType());
                 
-                ObjectDelta<AccountShadowType> delta1 = compareObjectZero(accContext, tripleMap, accountDefinition);
+                reconcileAccount(accContext, tripleMap, accountDefinition);
             }
         } catch (RuntimeException e) {
         	subResult.recordFatalError(e);
@@ -119,17 +119,16 @@ public class ReconciliationProcessor {
         }
     }
 
-    private ObjectDelta<AccountShadowType> compareObjectZero(AccountSyncContext accCtx,
+    private void reconcileAccount(AccountSyncContext accCtx,
             Map<QName, DeltaSetTriple<ValueConstruction>> tripleMap, RefinedAccountDefinition accountDefinition) {
 
     	MidPointObject<AccountShadowType> account = accCtx.getAccountNew();
-        ObjectDelta<AccountShadowType> delta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY);
 
         PropertyContainer attributesContainer = account.findPropertyContainer(AccountShadowType.F_ATTRIBUTES);
         Collection<QName> attributeNames = MiscUtil.union(tripleMap.keySet(),attributesContainer.getPropertyNames());
 
         for (QName attrName: attributeNames) {
-        	LOGGER.trace("Attribute reconciliation processing attribute {}",attrName);
+        	//LOGGER.trace("Attribute reconciliation processing attribute {}",attrName);
         	RefinedAttributeDefinition attributeDefinition = accountDefinition.getAttributeDefinition(attrName);
         	
         	DeltaSetTriple<ValueConstruction> triple = tripleMap.get(attrName);
@@ -148,7 +147,8 @@ public class ReconciliationProcessor {
         		arePValues = new HashSet<PropertyValue<Object>>();
         	}
         	
-        	LOGGER.trace("SHOULD BE:\n{}\nIS:\n{}",shouldBePValues,arePValues);
+        	// Too loud :-)
+        	//LOGGER.trace("SHOULD BE:\n{}\nIS:\n{}",shouldBePValues,arePValues);
         	
         	for (PropertyValue<ValueConstruction> shouldBePValue: shouldBePValues) {
         		ValueConstruction shouldBeVc = shouldBePValue.getValue();
@@ -177,12 +177,10 @@ public class ReconciliationProcessor {
         		}
         	}
         }
-        
-        return delta;
     }
 
 	private void recordDelta(AccountSyncContext accCtx, QName attrName, ChangeType changeType, Object value) {
-		LOGGER.trace("****** WILL {} {}",changeType, value);
+		LOGGER.trace("Reconciliation will {} value of attribute {}: {}", new Object[]{changeType, attrName, value});
 		
 		PropertyDelta attrDelta = new PropertyDelta(SchemaConstants.PATH_ATTRIBUTES, attrName);
 		PropertyValue<Object> pValue = new PropertyValue<Object>(value, SourceType.RECONCILIATION, null);

@@ -2700,8 +2700,14 @@ public class TestSanity extends AbstractIntegrationTest {
         repoUser = users.get(0);
 
         repoResult.computeStatus();
-        displayJaxb("User (repository)", repoUser, new QName("user"));
+        displayJaxb("User Elaine (repository)", repoUser, new QName("user"));
 
+        assertNotNull(repoUser.getOid());
+        assertEquals(ELAINE_NAME, repoUser.getName());
+        assertEquals("Elaine", repoUser.getGivenName());
+        assertEquals("Marley", repoUser.getFamilyName());
+        assertEquals("Elaine Marley", repoUser.getFullName());
+        
         accountRefs = repoUser.getAccountRef();
         assertEquals("Elaine has wrong number of accounts", 1, accountRefs.size());
         accountRef = accountRefs.get(0);
