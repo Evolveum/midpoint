@@ -347,7 +347,9 @@ public class ObjectTypeUtil {
         if (propertyModification == null) {
             return null;
         }
-        if (!propertyModification.getModificationType().equals(PropertyModificationTypeType.replace)) {
+        if (!propertyModification.getModificationType().equals(PropertyModificationTypeType.replace) &&  
+        		!propertyModification.getModificationType().equals(PropertyModificationTypeType.add)) {
+        	// The "add" above is not entirely correct. TODO: fix it once we switch to deltas 
             throw new IllegalStateException("Encoutered modify type " + propertyModification.getModificationType() + " while expecting " + PropertyModificationTypeType.replace + " during modification of property " + propertyName);
         }
         List<Object> valueElements = propertyModification.getValue().getAny();
