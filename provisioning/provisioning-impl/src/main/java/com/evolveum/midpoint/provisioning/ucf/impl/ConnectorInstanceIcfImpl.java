@@ -1626,7 +1626,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	private List<Change> getChangesFromSyncDelta(Set<SyncDelta> result, Schema schema,
-			OperationResult parentResult) throws SchemaException {
+			OperationResult parentResult) throws SchemaException, GenericFrameworkException {
 		List<Change> changeList = new ArrayList<Change>();
 
 		for (SyncDelta delta : result) {
@@ -1640,8 +1640,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				Change change = new Change(identifiers, objectDelta, getToken(delta.getToken()));
 				changeList.add(change);
 
-			} else {
-				// CREATE OR UPDATE
+			} else if (SyncDeltaType.CREATE_OR_UPDATE.equals(delta.getDeltaType())) {
 
 				ObjectClass objClass = delta.getObject().getObjectClass();
 				QName objectClass = objectClassToQname(objClass.getObjectClassValue());
@@ -1649,7 +1648,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						.findContainerDefinitionByType(objectClass);
 				ResourceObject resourceObject = convertToResourceObject(delta.getObject(), rod, false);
 
-				ResourceObjectShadowType currentShadow = createModificationChange(delta, resourceObject);
+				ResourceObjectShadowType currentShadow = ShadowCacheUtil.createShadow(resourceObject, null, null);
 
 				LOGGER.trace("Got current shadow: {}", JAXBUtil.silentMarshalWrap(currentShadow));
 
@@ -1661,56 +1660,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				Change change = new Change(resourceObject.getIdentifiers(), currentShadow,
 						getToken(delta.getToken()));
 				changeList.add(change);
+				
+			} else {
+				throw new GenericFrameworkException("Unexpected sync delta type "+delta.getDeltaType());
 			}
 
 		}
 		return changeList;
-	}
-
-	private ResourceObjectShadowType createModificationChange(SyncDelta delta,
-			ResourceObject resourceObject) throws SchemaException {
-		
-		ResourceObjectShadowType shadow = ShadowCacheUtil.createShadow(resourceObject, null, null);
-
-	
-//		
-//		Document doc = DOMUtil.getDocument();
-//		Attributes attrs = new Attributes();
-//		shadow.setAttributes(attrs);
-//		attrs.getAny().addAll(resourceObject.serializePropertiesToJaxb(doc));
-		
-		return shadow;
-		
-//		ObjectModificationType modificationType = new ObjectModificationType();
-//		modificationType.setOid(delta.getUid().getUidValue());
-//
-//		for (ResourceObjectAttribute attr : resourceObject.getAttributes()) {
-//			
-//			PropertyModificationType propertyModification = new PropertyModificationType();
-//			propertyModification.setModificationType(PropertyModificationTypeType.add);
-//			Document doc = DOMUtil.getDocument();
-//			List<Object> elements;
-//			try {
-//				elements = attr.serializeToJaxb(doc);
-//				for (Object e : elements) {
-//					LOGGER.trace("Atribute to modify value: {}", JAXBUtil.getTextContentDump(e));
-//				}
-//				PropertyModificationType.Value value = new PropertyModificationType.Value();
-//				value.getAny().addAll(elements);
-//				propertyModification.setValue(value);
-//				Element path = getModificationPath(doc);
-//
-//				propertyModification.setPath(path);
-//				modificationType.getPropertyModification().add(propertyModification);
-//			} catch (SchemaException ex) {
-//				throw new SchemaException(
-//						"An error occured while serializing resource object properties to DOM. "
-//								+ ex.getMessage(), ex);
-//			}
-//
-//		}
-//		modificationChangeType.setObjectModification(modificationType);
-//		return modificationChangeType;
 	}
 
 	private Element getModificationPath(Document doc) {

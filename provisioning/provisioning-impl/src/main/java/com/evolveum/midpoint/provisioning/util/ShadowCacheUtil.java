@@ -86,7 +86,16 @@ public class ShadowCacheUtil {
                         + " to DOM: " + e.getMessage(), e);
             }
         }
-
+        
+        if (shadow instanceof AccountShadowType) {       
+	        if (resourceObject.getActivation() != null) {
+	        	((AccountShadowType)shadow).setActivation(resourceObject.getActivation());
+	        }
+	        if (resourceObject.getCredentials() != null) {
+	        	((AccountShadowType)shadow).setCredentials(resourceObject.getCredentials());
+	        }
+        }
+        
         return shadow;
     }
 

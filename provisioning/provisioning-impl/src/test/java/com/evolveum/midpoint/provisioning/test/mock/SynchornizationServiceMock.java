@@ -8,6 +8,7 @@ import javax.ws.rs.DELETE;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
@@ -16,6 +17,7 @@ import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 
 
 @Service(value = "syncServiceMock")
@@ -49,6 +51,17 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener{
 		if (change.getCurrentShadow() != null) {
 			assertNotNull("Current shadow does not have an OID", change.getCurrentShadow().getOid());
 			assertNotNull("Current shadow does not have resourceRef", change.getCurrentShadow().getResourceRef());
+			assertNotNull("Current shadow has null attributes", change.getCurrentShadow().getAttributes());
+			assertNotNull("Current shadow has empty attributes", change.getCurrentShadow().getAttributes().getAny().isEmpty());
+			
+			if (change.getCurrentShadow() instanceof AccountShadowType) {
+				AccountShadowType account = (AccountShadowType)change.getCurrentShadow();
+				assertNotNull("Current shadow does not have activation", account.getActivation());
+				assertNotNull("Current shadow activation/enabled is null", account.getActivation().isEnabled());
+			} else {
+				// We don't support other types now
+				AssertJUnit.fail("Unexpected type of shadow "+change.getCurrentShadow().getClass());
+			}
 		}
 		if (change.getOldShadow() != null) {
 			assertNotNull("Old shadow does not have an OID", change.getOldShadow().getOid());

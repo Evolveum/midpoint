@@ -82,6 +82,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ScriptCapabi
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.TestConnectionCapabilityType;
 
 /**
+ * The test of Provisioning service on the API level. The test is using dummy resource for speed and flexibility.
  * 
  * @author Radovan Semancik
  * 
@@ -496,7 +497,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertEquals("Will Turner",
 				ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow,
 						new QName(resource.getNamespace(), "fullname")));
-
+		assertNotNull("no activation",shadow.getActivation());
+		assertNotNull("no activation/enabled",shadow.getActivation().isEnabled());
 	}
 
 	@Test
