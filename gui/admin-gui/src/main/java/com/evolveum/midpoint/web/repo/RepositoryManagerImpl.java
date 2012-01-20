@@ -27,25 +27,19 @@ import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
-import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.processor.DiffUtil;
-import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
@@ -149,14 +143,13 @@ public class RepositoryManagerImpl implements RepositoryManager {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(JAXBUtil.silentMarshalWrap(object));
 		}
-		ObjectModificationType objectModificationType = null;
 		OperationResult result = new OperationResult(SAVE_OBJECT);
 		boolean saved = false;
 		try {
 			ObjectType oldObject = repositoryService.getObject(ObjectType.class, object.getOid(),
 					new PropertyReferenceListType(), result);
 			if (oldObject != null) {
-				
+
 				ObjectDelta<ObjectType> delta = DiffUtil.diff(JAXBUtil.marshalWrap(oldObject), xml,
 						ObjectType.class, schemaRegistry.getObjectSchema());
 				// ObjectModificationType objectChange =
@@ -164,15 +157,11 @@ public class RepositoryManagerImpl implements RepositoryManager {
 
 				if (delta != null && delta.getOid() != null) {
 
-					objectModificationType = delta.toObjectModificationType();
-
-					// repositoryService.modifyObject(object.getClass(),
-					// objectChange, result);
+					ObjectModificationType objectModificationType = delta.toObjectModificationType();
+					repositoryService.modifyObject(object.getClass(), objectModificationType, result);
 				}
-				if(objectModificationType != null){
-					result.recordSuccess();
-					saved = true;
-				}
+				result.recordSuccess();
+				saved = true;
 			}
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't update object {}", ex, object.getName());
