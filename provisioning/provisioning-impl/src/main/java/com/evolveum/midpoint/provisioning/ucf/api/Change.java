@@ -40,7 +40,6 @@ public final class Change {
     private Property token;
     private ResourceObjectShadowType oldShadow;
     private ResourceObjectShadowType currentShadow;
-//    private Token token;
 
     public Change(Set<ResourceObjectAttribute> identifiers, ObjectDelta<? extends ResourceObjectShadowType> change, Property token) {
         this.identifiers = identifiers;

@@ -904,7 +904,8 @@ public class TestSanity extends AbstractIntegrationTest {
                 assertNotNull("Missing LDAP uid", getAttributeValue(shadow, new QName(resourceOpenDj.getNamespace(), "uid")));
                 assertNotNull("Missing LDAP cn", getAttributeValue(shadow, new QName(resourceOpenDj.getNamespace(), "cn")));
                 assertNotNull("Missing LDAP sn", getAttributeValue(shadow, new QName(resourceOpenDj.getNamespace(), "sn")));
-
+                assertNotNull("Missing activation",shadow.getActivation());
+                assertNotNull("Missing activation/enabled",shadow.getActivation().isEnabled());
                 return true;
             }
         };

@@ -126,7 +126,7 @@ public class ShadowConverter {
 			// convert resource activation attribute to the <activation>
 			// attribute
 			// of shadow
-			ActivationType activationType = determineActivation(resource, ro, parentResult);
+			ActivationType activationType = ShadowCacheUtil.determineActivation(resource, ro, parentResult);
 			if (activationType != null) {
 				LOGGER.trace("Determined activation: {}", activationType.isEnabled());
 				((AccountShadowType) shadow).setActivation(activationType);
@@ -451,85 +451,6 @@ public class ShadowConverter {
 		return connectorTypeManager.getConfiguredConnectorInstance(resource, parentResult);
 	}
 
-	/**
-	 * Get account activation state from the resource object.
-	 */
-	private ActivationType determineActivation(ResourceType resource, ResourceObject ro,
-			OperationResult parentResult) {
-		if (ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
-			return convertFromNativeActivationAttributes(resource, ro, parentResult);
-		} else if (ResourceTypeUtil.hasActivationCapability(resource)) {
-			return convertFromSimulatedActivationAttributes(resource, ro, parentResult);
-		} else {
-			// No activation capability, nothing to do
-			return null;
-		}
-	}
-
-	private ActivationType convertFromNativeActivationAttributes(ResourceType resource, ResourceObject ro,
-			OperationResult parentResult) {
-		return ro.getActivation();
-	}
-
-	private ActivationType convertFromSimulatedActivationAttributes(ResourceType resource, ResourceObject ro,
-			OperationResult parentResult) {
-		LOGGER.trace("Start converting activation type from simulated activation atribute");
-		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
-				ActivationCapabilityType.class);
-		List<String> disableValues = activationCapability.getEnableDisable().getDisableValue();
-		List<String> enableValues = activationCapability.getEnableDisable().getEnableValue();
-
-		ActivationType activationType = new ActivationType();
-
-		if (null != activationCapability) {
-			Property activationProperty = ro.findProperty(activationCapability.getEnableDisable()
-					.getAttribute());
-			if (activationProperty == null) {
-				LOGGER.debug("No simulated activation attribute was defined for the account.");
-				activationType.setEnabled(true);
-				return activationType;
-			}
-			Set<PropertyValue<Object>> activationValues = activationProperty.getValues();
-			LOGGER.trace("Detected simulated activation attribute with value {}",
-					activationProperty.getValues());
-			if (activationValues == null || activationValues.isEmpty()
-					|| activationValues.iterator().next() == null) {
-
-				// No activation information.
-				LOGGER.warn("The {} does not provide value for DISABLE attribute",
-						ObjectTypeUtil.toShortString(resource));
-				parentResult
-						.recordPartialError("The "
-								+ ObjectTypeUtil.toShortString(resource)
-								+ " has native activation capability but noes not provide value for DISABLE attribute");
-			} else {
-				if (activationValues.size() > 1) {
-					LOGGER.warn("The {} provides {} values for DISABLE attribute, expecting just one value",
-							disableValues.size(), ObjectTypeUtil.toShortString(resource));
-					parentResult.recordPartialError("The " + ObjectTypeUtil.toShortString(resource)
-							+ " provides " + disableValues.size()
-							+ " values for DISABLE attribute, expecting just one value");
-				}
-				PropertyValue<Object> disableObj = activationValues.iterator().next();
-
-				for (String disable : disableValues) {
-					if (disable.equals(String.valueOf(disableObj.getValue()))) {
-						activationType.setEnabled(false);
-						return activationType;
-					}
-				}
-
-				for (String enable : enableValues) {
-					if ("".equals(enable) || enable.equals(String.valueOf(disableObj.getValue()))) {
-						activationType.setEnabled(true);
-						return activationType;
-					}
-				}
-			}
-		}
-
-		return null;
-	}
 
 	/**
 	 * convert resource object shadow to the resource object according to given

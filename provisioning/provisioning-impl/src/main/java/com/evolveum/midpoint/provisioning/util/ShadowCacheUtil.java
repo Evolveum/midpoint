@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.provisioning.util;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.provisioning.impl.ShadowConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
@@ -32,20 +33,32 @@ import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.namespace.QName;
+
 public class ShadowCacheUtil {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(ShadowCacheUtil.class);
 
     public static ResourceObjectShadowType createShadow(ResourceObject resourceObject, ResourceType resource,
                                                         ResourceObjectShadowType shadow) throws SchemaException {
@@ -87,10 +100,11 @@ public class ShadowCacheUtil {
             }
         }
         
-        if (shadow instanceof AccountShadowType) {       
-	        if (resourceObject.getActivation() != null) {
-	        	((AccountShadowType)shadow).setActivation(resourceObject.getActivation());
-	        }
+        if (shadow instanceof AccountShadowType) {
+        	if (((AccountShadowType) shadow).getActivation() == null) {
+	        	ActivationType activationType = determineActivation(resource, resourceObject, null);
+		        ((AccountShadowType)shadow).setActivation(activationType);
+        	}
 	        if (resourceObject.getCredentials() != null) {
 	        	((AccountShadowType)shadow).setCredentials(resourceObject.getCredentials());
 	        }
@@ -98,8 +112,170 @@ public class ShadowCacheUtil {
         
         return shadow;
     }
+    
+	/**
+	 * Get account activation state from the resource object.
+	 * 
+	 * TODO: The placement of this method is not correct. It should go back to ShadowConverter
+	 */
+	public static ActivationType determineActivation(ResourceType resource, ResourceObject ro,
+			OperationResult parentResult) {
 
-    private static String determineShadowName(ResourceObject resourceObject) throws SchemaException {
+		// HACK to avoid NPE when called from the ICF layer
+		if (resource == null) {
+			return ro.getActivation();
+		}
+		
+		if (ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
+			return ro.getActivation();
+		} else if (ResourceTypeUtil.hasActivationCapability(resource)) {
+			return convertFromSimulatedActivationAttributes(resource, ro, parentResult);
+		} else {
+			// No activation capability, nothing to do
+			return null;
+		}
+	}
+
+	private static ActivationType convertFromSimulatedActivationAttributes(ResourceType resource, ResourceObject ro,
+			OperationResult parentResult) {
+//		LOGGER.trace("Start converting activation type from simulated activation atribute");
+		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
+				ActivationCapabilityType.class);
+		Property activationProperty = ro.findProperty(activationCapability.getEnableDisable().getAttribute());
+//		if (activationProperty == null) {
+//			LOGGER.debug("No simulated activation attribute was defined for the account.");
+//			return null;
+//		}
+		if (activationProperty != null) {
+			return convertFromSimulatedActivationValues(resource, activationProperty.getRealValues(Object.class), parentResult);
+		} else {
+			return convertFromSimulatedActivationValues(resource, null, parentResult);
+		}
+	}
+
+	
+	/**
+	 * Get account activation state from the resource object.
+	 * 
+	 * TODO: The placement of this method is not correct. It should go back to ShadowConverter
+	 * HACK: FIXME: this is just a copy&paste code to hack around bad UCF API design (MID-581)
+	 */
+	public static ActivationType determineActivation(ResourceType resource, AccountShadowType shadow,
+			OperationResult parentResult) {
+		if (ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
+			return shadow.getActivation();
+		} else if (ResourceTypeUtil.hasActivationCapability(resource)) {
+			return convertFromSimulatedActivationAttributes(resource, shadow, parentResult);
+		} else {
+			// No activation capability, nothing to do
+			return null;
+		}
+	}
+
+	private static ActivationType convertFromSimulatedActivationAttributes(ResourceType resource, AccountShadowType shadow,
+			OperationResult parentResult) {
+//		LOGGER.trace("Start converting activation type from simulated activation atribute");
+		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
+				ActivationCapabilityType.class);
+		QName enableDisableAttribute = activationCapability.getEnableDisable().getAttribute();
+		List<Object> values = ResourceObjectShadowUtil.getAttributeValues(shadow, enableDisableAttribute);
+		return convertFromSimulatedActivationValues(resource, values, parentResult);
+	}
+
+	
+	private static ActivationType convertFromSimulatedActivationValues(ResourceType resource, Collection<Object> activationValues,
+		OperationResult parentResult) {
+			
+			ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
+					ActivationCapabilityType.class);			
+			if (activationCapability == null) {
+				return null;
+			}
+
+			List<String> disableValues = activationCapability.getEnableDisable().getDisableValue();
+			List<String> enableValues = activationCapability.getEnableDisable().getEnableValue();
+
+			ActivationType activationType = new ActivationType();
+
+			LOGGER.trace("Detected simulated activation attribute with value {}", activationValues);
+			
+			if (isNoValue(activationValues)) {
+
+				if (hasNoValue(disableValues)) {
+					activationType.setEnabled(false);
+					return activationType;
+				}
+
+				if (hasNoValue(enableValues)) {
+					activationType.setEnabled(true);
+					return activationType;
+				}
+
+				// No activation information.
+				LOGGER.warn("The {} does not provide definition for null value of simulated activation attribute",
+						ObjectTypeUtil.toShortString(resource));
+				if (parentResult != null) {
+					parentResult
+						.recordPartialError("The "
+								+ ObjectTypeUtil.toShortString(resource)
+								+ " has native activation capability but noes not provide value for DISABLE attribute");
+				}
+				
+				return null;
+				
+			} else {
+				if (activationValues.size() > 1) {
+					LOGGER.warn("The {} provides {} values for DISABLE attribute, expecting just one value",
+							disableValues.size(), ObjectTypeUtil.toShortString(resource));
+					if (parentResult != null) {
+						parentResult.recordPartialError("The " + ObjectTypeUtil.toShortString(resource)
+							+ " provides " + disableValues.size()
+							+ " values for DISABLE attribute, expecting just one value");
+					}
+				}
+				Object disableObj = activationValues.iterator().next();
+
+				for (String disable : disableValues) {
+					if (disable.equals(String.valueOf(disableObj))) {
+						activationType.setEnabled(false);
+						return activationType;
+					}
+				}
+
+				for (String enable : enableValues) {
+					if ("".equals(enable) || enable.equals(String.valueOf(disableObj))) {
+						activationType.setEnabled(true);
+						return activationType;
+					}
+				}
+		}
+
+		return null;
+	}
+
+
+	private static boolean isNoValue(Collection<?> collection) {
+		 if (collection == null) return true;
+		 if (collection.isEmpty()) return true;
+		 for (Object val: collection) {
+			 if (val == null) continue;
+			 if (val instanceof String && ((String)val).isEmpty()) continue;
+			 return false;
+		 }
+		 return true;
+	}
+
+	private static boolean hasNoValue(Collection<?> collection) {
+		 if (collection == null) return true;
+		 if (collection.isEmpty()) return true;
+		 for (Object val: collection) {
+			 if (val == null) return true;
+			 if (val instanceof String && ((String)val).isEmpty()) return true;
+		 }
+		 return false;
+	}
+
+	private static String determineShadowName(ResourceObject resourceObject) throws SchemaException {
         if (resourceObject.getNamingAttribute() == null) {
             // No naming attribute defined. Try to fall back to identifiers.
             Set<ResourceObjectAttribute> identifiers = resourceObject.getIdentifiers();
