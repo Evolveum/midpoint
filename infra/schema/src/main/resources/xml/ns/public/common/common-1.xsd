@@ -2841,6 +2841,15 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="inbound" type="tns:ValueAssignmentType" minOccurs="0" maxOccurs="1">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Defines how user password is constructed if he user is created or updated from this account.
+            			The "target" part of the assignment is implictly set to user's password, therefore it may be
+            			omitted.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -2865,6 +2874,15 @@
                         resource, e.g. in case of provisioning.
                     </xsd:documentation>
                 </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="inbound" type="tns:ValueAssignmentType" minOccurs="0" maxOccurs="1">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Defines how user "enable" value is constructed if the user is created or updated from this account.
+            			The "target" part of the assignment is implictly set to user's enable flag, therefore it may be
+            			omitted.
+            		</xsd:documentation>
+            	</xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
@@ -3255,6 +3273,18 @@
                 Generate value according to a policy that is associated with the property/attribute.
             </xsd:documentation>
         </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="length" type="xsd:integer" minOccurs="0" default="8">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Length of randomly-generated value (in characters).
+        				
+        				UNSTANBLE. WILL MOST LIKELY CHANGE IN NEXT RELEASES.
+        				Optional reference to a (password/string) policy will be here. 
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:element name="generate" type="tns:GenerateValueConstructorType" substitutionGroup="tns:valueConstructor"/>
@@ -3509,7 +3539,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="source" type="c:ExpressionType" minOccurs="0">
+            <xsd:element name="source" type="c:ValueConstructionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Source of assignement. R-value. The value (or
@@ -3524,13 +3554,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="target" type="c:XPathType">
+            <xsd:element name="target" type="c:XPathType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Destination of the assignment. L-value. The value
                         (or values) will be copied to this place. It is
                         an XPath pointer that must point to an existing,
                         mutable part of XML document.
+                        
+                        The target may be implicit, which is usual in case of
+                        standard attributes (such as password or activation).
 
                         The copy will replace all existing values. But that
                         behavior may change in the future.
