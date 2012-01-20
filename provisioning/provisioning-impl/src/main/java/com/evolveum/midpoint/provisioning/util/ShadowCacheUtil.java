@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -55,6 +56,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 public class ShadowCacheUtil {
@@ -104,6 +106,15 @@ public class ShadowCacheUtil {
         if (shadow instanceof AccountShadowType) {
         	if (((AccountShadowType) shadow).getActivation() == null) {
 	        	ActivationType activationType = determineActivation(resource, resourceObject, null);
+	        	LOGGER.info("AAAAAAA1: {}, {}",resourceObject.getActivation());
+	        	if (resource != null) {
+	        		try {
+						LOGGER.info("RRRRRR: {}\n{}",ResourceTypeUtil.hasResourceNativeActivationCapability(resource),JAXBUtil.marshalWrap(resource));
+					} catch (JAXBException e) {
+						LOGGER.error("FUUUUUUUUUUUU",e);
+					}
+	        	}
+	        	LOGGER.info("AAAAAAA2: {}",activationType);
 		        ((AccountShadowType)shadow).setActivation(activationType);
         	}
 	        if (resourceObject.getCredentials() != null) {

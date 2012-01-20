@@ -849,8 +849,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		ResourceType resource = null;
 		try {
-			resource = getCacheRepositoryService().getObject(ResourceType.class, resourceOid,
-					new PropertyReferenceListType(), result);
+			// Don't use repository. Repository resource will not have properly set capabilities
+			resource = getObject(ResourceType.class, resourceOid, null, result);
 
 		} catch (ObjectNotFoundException e) {
 			result.recordFatalError("Resource with oid " + resourceOid + "not found. Reason: " + e);
