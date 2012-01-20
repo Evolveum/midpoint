@@ -2215,7 +2215,6 @@ public class TestSanity extends AbstractIntegrationTest {
         assertCache();
         UserType user = unmarshallJaxbFromFile(USER_E_LINK_ACTION, UserType.class);
         final String userOid = user.getOid();
-        user.setOid(null);
         // Encrypt e's password
         protector.encrypt(user.getCredentials().getPassword().getProtectedString());
         // create user in repository
@@ -2305,7 +2304,7 @@ public class TestSanity extends AbstractIntegrationTest {
         resultType = new OperationResultType();
         resultHolder = new Holder<OperationResultType>(resultType);
         Holder<ObjectType> accountHolder = new Holder<ObjectType>();
-        modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountOid, null, accountHolder, resultHolder);
+        modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountOid, new PropertyReferenceListType(), accountHolder, resultHolder);
         ObjectType object = accountHolder.value;
         assertSuccess("searchObjects has failed", resultHolder.value);
         assertNotNull("Account is null", object);
@@ -2314,7 +2313,7 @@ public class TestSanity extends AbstractIntegrationTest {
             fail("Object is not account.");
         }
         AccountShadowType account = (AccountShadowType)object;
-        assertEquals("Name doesn't match", "e", account.getName());
+        assertEquals("Name doesn't match", "uid=e,ou=People,dc=example,dc=com", account.getName());
     }
 
     /**
