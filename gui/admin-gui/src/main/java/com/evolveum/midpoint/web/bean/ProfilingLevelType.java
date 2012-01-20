@@ -7,9 +7,11 @@ public enum ProfilingLevelType {
 	
 	OFF("off"),
 	
-	INFO("entry/exit"),
+	DEBUG("entry/exit"),
 	
-	DEBUG("elapsed time"),
+//	INFO("entry/exit"),
+//	
+//	DEBUG("elapsed time"),
 	
 	TRACE("arguments");
 	
@@ -27,9 +29,9 @@ public enum ProfilingLevelType {
 		if (ProfilingLevelType.OFF.value.equals(profilingLevel)){
 			return LoggingLevelType.OFF;
 		}
-		if (ProfilingLevelType.INFO.value.equals(profilingLevel)){
-			return LoggingLevelType.INFO;
-		}
+//		if (ProfilingLevelType.INFO.value.equals(profilingLevel)){
+//			return LoggingLevelType.INFO;
+//		}
 		if (ProfilingLevelType.DEBUG.value.equals(profilingLevel)){
 			return LoggingLevelType.DEBUG;
 		}
@@ -44,9 +46,9 @@ public enum ProfilingLevelType {
 		if (LoggingLevelType.OFF.equals(loggerLevel)){
 			return ProfilingLevelType.OFF;
 		}
-		if (LoggingLevelType.INFO.equals(loggerLevel)){
-			return ProfilingLevelType.INFO;
-		}
+//		if (LoggingLevelType.INFO.equals(loggerLevel)){
+//			return ProfilingLevelType.INFO;
+//		}
 		if (LoggingLevelType.DEBUG.equals(loggerLevel)){
 			return ProfilingLevelType.DEBUG;
 		}
