@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -146,11 +147,17 @@ public class ShadowCacheUtil {
 //			LOGGER.debug("No simulated activation attribute was defined for the account.");
 //			return null;
 //		}
+		Collection<Object> values = null;
 		if (activationProperty != null) {
-			return convertFromSimulatedActivationValues(resource, activationProperty.getRealValues(Object.class), parentResult);
-		} else {
-			return convertFromSimulatedActivationValues(resource, null, parentResult);
+			values = activationProperty.getRealValues(Object.class);
 		}
+		ActivationType activation = convertFromSimulatedActivationValues(resource, values, parentResult);
+		LOGGER.debug("Detected simulated activation attribute {} on {} with value {}, resolved into {}", new Object[]{
+				DebugUtil.prettyPrint(activationCapability.getEnableDisable().getAttribute()),
+				ObjectTypeUtil.toShortString(resource),
+				values, activation == null ? "null" : activation.isEnabled()});
+		return activation;
+
 	}
 
 	
@@ -179,7 +186,12 @@ public class ShadowCacheUtil {
 				ActivationCapabilityType.class);
 		QName enableDisableAttribute = activationCapability.getEnableDisable().getAttribute();
 		List<Object> values = ResourceObjectShadowUtil.getAttributeValues(shadow, enableDisableAttribute);
-		return convertFromSimulatedActivationValues(resource, values, parentResult);
+		ActivationType activation = convertFromSimulatedActivationValues(resource, values, parentResult);
+		LOGGER.debug("Detected simulated activation attribute {} on {} with value {}, resolved into {}", new Object[]{
+				DebugUtil.prettyPrint(activationCapability.getEnableDisable().getAttribute()),
+				ObjectTypeUtil.toShortString(resource),
+				values, activation == null ? "null" : activation.isEnabled()});
+		return activation;
 	}
 
 	
@@ -196,8 +208,6 @@ public class ShadowCacheUtil {
 			List<String> enableValues = activationCapability.getEnableDisable().getEnableValue();
 
 			ActivationType activationType = new ActivationType();
-
-			LOGGER.trace("Detected simulated activation attribute with value {}", activationValues);
 			
 			if (isNoValue(activationValues)) {
 

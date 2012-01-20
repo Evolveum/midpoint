@@ -887,7 +887,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		ResourceObjectShadowType currentShadow = change.getCurrentShadow();
 		if (currentShadow instanceof AccountShadowType) {
 			AccountShadowType account = (AccountShadowType)currentShadow;
-			ActivationType activationType = ShadowCacheUtil.determineActivation(resourceType, account, null);
+			account.setActivation(ShadowCacheUtil.determineActivation(resourceType, account, null));
 		}
 		
 		shadowChangeDescription.setCurrentShadow(change.getCurrentShadow());
