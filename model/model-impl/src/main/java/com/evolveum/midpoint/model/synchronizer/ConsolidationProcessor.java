@@ -72,11 +72,11 @@ public class ConsolidationProcessor {
 
         for (AccountSyncContext accCtx : context.getAccountContexts()) {
             //account was deleted, no changes are needed.
-            if (wasAccountDeleted(accCtx)){
+            if (wasAccountDeleted(accCtx)) {
                 dropAllAccountDelta(accCtx);
                 continue;
             }
-            
+
             PolicyDecision policyDecision = accCtx.getPolicyDecision();
 
             if (policyDecision == PolicyDecision.ADD) {
@@ -91,12 +91,12 @@ public class ConsolidationProcessor {
             }
         }
     }
-    
+
     private void dropAllAccountDelta(AccountSyncContext accContext) {
         accContext.setAccountPrimaryDelta(null);
         accContext.setAccountSecondaryDelta(null);
     }
-    
+
     private boolean wasAccountDeleted(AccountSyncContext accContext) {
         ObjectDelta<AccountShadowType> delta = accContext.getAccountSyncDelta();
         if (delta != null && ChangeType.DELETE.equals(delta.getChangeType())) {
@@ -249,7 +249,9 @@ public class ConsolidationProcessor {
         ObjectDelta<AccountShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, false, result);
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accCtx.getAccountSecondaryDelta();
         if (accountSecondaryDelta != null) {
-            accountSecondaryDelta.merge(modifyDelta);
+            if (!modifyDelta.isEmpty()) {
+                accountSecondaryDelta.merge(modifyDelta);
+            }
         } else {
             accCtx.setAccountSecondaryDelta(modifyDelta);
         }

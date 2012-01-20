@@ -163,6 +163,9 @@ public class TestSanity extends AbstractIntegrationTest {
     private static final String USER_GUYBRUSH_LDAP_UID = "guybrush";
     private static final String USER_GUYBRUSH_LDAP_DN = "uid=" + USER_GUYBRUSH_LDAP_UID
             + "," + OPENDJ_PEOPLE_SUFFIX;
+    
+    private static final String USER_E_LINK_ACTION = "src/test/resources/repo/user-e.xml";
+    private static final String LDIF_E_FILENAME_LINK = "src/test/resources/request/e-create.ldif";
 
     private static final String ROLE_PIRATE_FILENAME = "src/test/resources/repo/role-pirate.xml";
     private static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-987987987988";
@@ -2202,6 +2205,116 @@ public class TestSanity extends AbstractIntegrationTest {
 
         AssertJUnit.assertEquals(WILL_NAME, user.getName());
         AssertJUnit.assertEquals("asdf", user.getGivenName());
+    }
+
+    @Test
+    public void test103LiveSyncLink() throws Exception {
+        displayTestTile("test103LiveSyncLink");
+
+        // GIVEN
+        assertCache();
+        UserType user = unmarshallJaxbFromFile(USER_E_LINK_ACTION, UserType.class);
+        final String userOid = user.getOid();
+        user.setOid(null);
+        // Encrypt e's password
+        protector.encrypt(user.getCredentials().getPassword().getProtectedString());
+        // create user in repository
+        OperationResultType resultType = new OperationResultType();
+        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
+        Holder<String> oidHolder = new Holder<String>();
+        display("Adding user object", user);
+        modelWeb.addObject(user, oidHolder, resultHolder);
+        //check results
+        assertCache();
+        displayJaxb("addObject result:", resultHolder.value, SchemaConstants.C_RESULT);
+        assertSuccess("addObject has failed", resultHolder.value);
+        AssertJUnit.assertEquals(userOid, oidHolder.value);
+
+        //WHEN
+        //create account for e which should be correlated
+        final OperationResult result = new OperationResult(TestSanity.class.getName()
+                + ".test103LiveSyncLink");
+        final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
+        AssertJUnit.assertNotNull(syncCycle);
+
+        final Object tokenBefore;
+        Property tokenProperty = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
+        if (tokenProperty == null) {
+            tokenBefore = null;
+        } else {
+            tokenBefore = tokenProperty.getValue();
+        }
+
+        Entry entry = openDJController.addEntryFromLdifFile(LDIF_E_FILENAME_LINK);
+        display("Entry from LDIF", entry);
+
+        // THEN
+        // Wait a bit to give the sync cycle time to detect the change
+        waitFor("Waiting for sync cycle to detect change", new Checker() {
+            @Override
+            public boolean check() throws Exception {
+                syncCycle.refresh(result);
+                display("SyncCycle while waiting for sync cycle to detect change", syncCycle);
+                Object tokenNow = null;
+                Property propertyNow = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
+                if (propertyNow == null) {
+                    tokenNow = null;
+                } else {
+                    tokenNow = propertyNow.getValue();
+                }
+                if (tokenBefore == null) {
+                    return (tokenNow != null);
+                } else {
+                    return (!tokenBefore.equals(tokenNow));
+                }
+            }
+
+            @Override
+            public void timeout() {
+                // No reaction, the test will fail right after return from this
+            }
+        }, 30000);
+
+        //check user and account ref
+        Document doc = DOMUtil.getDocument();
+        Element nameElement = doc.createElementNS(SchemaConstants.C_NAME.getNamespaceURI(),
+                SchemaConstants.C_NAME.getLocalPart());
+        nameElement.setTextContent("e");
+        Element filter = QueryUtil.createEqualFilter(doc, null, nameElement);
+
+        QueryType query = new QueryType();
+        query.setFilter(filter);
+        resultType = new OperationResultType();
+        resultHolder = new Holder<OperationResultType>(resultType);
+        Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
+        assertCache();
+
+        modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, null,
+                listHolder, resultHolder);
+
+        assertCache();
+        ObjectListType objects = listHolder.value;
+        assertSuccess("searchObjects has failed", resultHolder.value);
+        AssertJUnit.assertEquals("User not found (or found too many)", 1, objects.getObject().size());
+        user = (UserType) objects.getObject().get(0);
+        List<ObjectReferenceType> accountRefs = user.getAccountRef();
+        assertEquals("Account ref not found, or found too many", 1, accountRefs.size());
+        
+        //check account defined by account ref
+        String accountOid = accountRefs.get(0).getOid();
+        resultType = new OperationResultType();
+        resultHolder = new Holder<OperationResultType>(resultType);
+        Holder<ObjectType> accountHolder = new Holder<ObjectType>();
+        modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountOid, null, accountHolder, resultHolder);
+        ObjectType object = accountHolder.value;
+        assertSuccess("searchObjects has failed", resultHolder.value);
+        assertNotNull("Account is null", object);
+        
+        if (!(object instanceof AccountShadowType)) {
+            fail("Object is not account.");
+        }
+        AccountShadowType account = (AccountShadowType)object;
+        assertEquals("Name doesn't match", "e", account.getName());
     }
 
     /**

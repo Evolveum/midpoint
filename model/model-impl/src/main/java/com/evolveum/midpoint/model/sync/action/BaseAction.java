@@ -189,12 +189,11 @@ public abstract class BaseAction implements Action {
     }
 
     private void updateAccountActivation(AccountSyncContext accContext, ActivationDecision activationDecision) {
-        if (1 == 1) {
+        MidPointObject<AccountShadowType> object = accContext.getAccountOld();
+        if (object == null) {
+            LOGGER.debug("Account object is null, skipping activation property check/update.");
             return;
         }
-        //todo implement account activation change
-        //todo from where do we get information about activation? account new? or something else
-        MidPointObject<AccountShadowType> object = accContext.getAccountNew();
 
         Property enable = object.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ENABLE.allExceptLast(),
                 SchemaConstants.PATH_ACTIVATION_ENABLE.last(), Boolean.class);
@@ -203,6 +202,7 @@ public abstract class BaseAction implements Action {
         ObjectDelta<AccountShadowType> accDelta = accContext.getAccountSecondaryDelta();
         if (accDelta == null) {
             accDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY);
+            accDelta.setOid(accContext.getOid());
             accContext.setAccountSecondaryDelta(accDelta);
         }
 

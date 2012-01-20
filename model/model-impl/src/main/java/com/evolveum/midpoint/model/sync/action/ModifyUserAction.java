@@ -203,6 +203,7 @@ public class ModifyUserAction extends BaseAction {
         ObjectDelta<UserType> userDelta = context.getUserSecondaryDelta();
         if (userDelta == null) {
             userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY);
+            userDelta.setOid(context.getUserOld().getOid());
             context.setUserSecondaryDelta(userDelta);
         }
 

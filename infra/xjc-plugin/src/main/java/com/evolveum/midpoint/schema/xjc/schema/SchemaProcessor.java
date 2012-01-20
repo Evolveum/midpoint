@@ -62,6 +62,8 @@ public class SchemaProcessor implements Processor {
 
     //todo change annotation on ObjectType in common-1.xsd to a:midPointContainer
 
+    //todo implement equals and hash methods for objects with property containers
+
     @Override
     public boolean run(Outline outline, Options options, ErrorHandler errorHandler) throws SAXException {
         try {

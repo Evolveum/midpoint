@@ -1,0 +1,16 @@
+dn: uid=e,ou=People,dc=example,dc=com
+changetype: add
+uid: e
+cn: e
+sn: e
+givenname: e
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: e
+mail: e@example.com
+telephonenumber: +1 408 555 1234
+facsimiletelephonenumber: +1 408 555 4321
+userpassword: supersecret
+
