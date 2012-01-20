@@ -173,9 +173,10 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 				change.setCurrentShadow(newShadow);
 			}
 
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.trace("{}: going to call notification with: {}", getProcessShortNameCapitalized(), change.dump());
-			}
+// No need to log. The notification dispatcher will log it all right
+//			if (LOGGER.isDebugEnabled()) {
+//				LOGGER.trace("{}: going to call notification with: {}", getProcessShortNameCapitalized(), change.dump());
+//			}
 			
 			change.assertCorrectness();
 			

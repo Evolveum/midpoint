@@ -53,6 +53,7 @@ import com.evolveum.midpoint.util.aspect.MidpointAspect;
 import com.evolveum.midpoint.util.aspect.ObjectFormatter;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
@@ -531,8 +532,39 @@ public class DebugUtil implements ObjectFormatter {
 			sb.append(debugDumpXsdAnyProperties(attributes.getAny(),indent + 2));
 		}
 		
+		
+		sb.append("\n");
+		indentDebugDump(sb, indent + 1);
+		sb.append("activation:");
+		if (object.getActivation() == null) {
+			sb.append("null");
+		} else {
+			sb.append("\n");
+			sb.append(debugDump(object.getActivation(),indent+2));
+		}
+		
 		// TODO: more
 		
+		return sb.toString();
+	}
+
+	private static String debugDump(ActivationType activation, int indent) {
+		StringBuilder sb = new StringBuilder();
+		indentDebugDump(sb, indent);
+		sb.append("enabled: ");
+		sb.append(activation.isEnabled());
+		if (activation.getValidFrom() != null) {
+			sb.append("\n");
+			indentDebugDump(sb, indent);
+			sb.append("valid from: ");
+			sb.append(activation.getValidFrom());
+		}
+		if (activation.getValidTo() != null) {
+			sb.append("\n");
+			indentDebugDump(sb, indent);
+			sb.append("valid to: ");
+			sb.append(activation.getValidTo());
+		}
 		return sb.toString();
 	}
 

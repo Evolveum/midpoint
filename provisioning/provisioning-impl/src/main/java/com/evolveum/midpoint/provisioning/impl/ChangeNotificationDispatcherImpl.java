@@ -76,11 +76,13 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	public void notifyChange(ResourceObjectShadowChangeDescription change, OperationResult parentResult) {
 		Validate.notNull(change, "Change description of resource object shadow must not be null.");
 		
-		LOGGER.trace("Notifying change {} ", DebugUtil.prettyPrint(change));
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("SYNCHRONIZATION change notification\n{} ", change.dump());
+		}
 		
 		if ((null != listeners) && (!listeners.isEmpty())) {
 			for (ResourceObjectChangeListener listener : listeners) {
-				LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
+				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
 				listener.notifyChange(change, parentResult);
 			}
 		} else {
