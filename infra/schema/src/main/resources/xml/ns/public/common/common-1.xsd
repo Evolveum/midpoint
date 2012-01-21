@@ -3967,10 +3967,18 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="sharedSecret" type="xsd:string" minOccurs="0">
+                    <xsd:element name="sharedSecret" type="tns:ProtectedStringType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Shared secret used to authenticate client to the host.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="protectConnection" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                            	If set to true then a protected connection will be established (usually SSL).
+                                UNSTABLE. WILL CHANGE IN THE FUTURE.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

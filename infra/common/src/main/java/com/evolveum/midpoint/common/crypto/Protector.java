@@ -1,5 +1,9 @@
 package com.evolveum.midpoint.common.crypto;
 
+import java.util.List;
+
+import javax.net.ssl.TrustManager;
+
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
@@ -65,5 +69,11 @@ public interface Protector {
 	 * Returns true if protected string contains encrypted data that seems valid.
 	 */
 	boolean isEncrypted(ProtectedStringType ps);
+
+	/**
+	 * Returns a list of trust managers that will be used to validate communicating party credentials.
+	 * (e.g. used to validate remote connector connections).
+	 */
+	List<TrustManager> getTrustManagers();
 
 }

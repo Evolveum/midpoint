@@ -32,5 +32,7 @@
 	<name>ICF Connector server on localhost:8759</name>
 	<hostname>localhost</hostname> 			<!-- hostname/IP where is remote connector server installed -->
 	<port>8759</port>						<!-- port where is remote connector server installed -->
-	<sharedSecret>secret</sharedSecret>		<!-- shared secret between midPoint and remote connector server-->
+	<sharedSecret>
+		<clearValue>secret</clearValue>		<!-- shared secret between midPoint and remote connector server-->
+	</sharedSecret>
 </connectorHost>

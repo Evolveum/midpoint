@@ -26,10 +26,13 @@ import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
 import javax.crypto.SecretKey;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
@@ -75,6 +78,8 @@ public class AESProtector implements Protector {
 	private String keyStorePath;
 	private String keyStorePassword;
 	private String encryptionKeyAlias = "default";
+	
+	private List<TrustManager> trustManagers;
 
 	private static final KeyStore keyStore;
 
@@ -126,6 +131,16 @@ public class AESProtector implements Protector {
 			// Load keystore
 			keyStore.load(stream, getKeyStorePassword().toCharArray());
 			stream.close();
+			
+			// Initialze trust manager list
+			
+			TrustManagerFactory tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+			tmFactory.init(keyStore);
+			trustManagers = new ArrayList<TrustManager>();
+			for (TrustManager trustManager: tmFactory.getTrustManagers()) {
+				trustManagers.add(trustManager);
+			}
+			
 
 		} catch (Exception ex) {
 			LOGGER.error("Unable to work with heystore {}, reason {}.",
@@ -441,4 +456,11 @@ public class AESProtector implements Protector {
 		// TODO
 		return true;
 	}
+
+	@Override
+	public List<TrustManager> getTrustManagers() {
+		return trustManagers;
+	}
+	
+	
 }

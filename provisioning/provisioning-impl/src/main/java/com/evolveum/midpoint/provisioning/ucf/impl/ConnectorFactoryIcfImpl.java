@@ -35,6 +35,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import javax.annotation.PostConstruct;
+import javax.net.ssl.TrustManager;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.configuration.Configuration;
@@ -62,6 +63,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
@@ -357,9 +359,19 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	private ConnectorInfoManager getRemoteConnectorInfoManager(ConnectorHostType hostType) {
 		String hostname = hostType.getHostname();
 		int port = Integer.parseInt(hostType.getPort());
-		GuardedString key = new GuardedString(hostType.getSharedSecret().toCharArray());
-		// TODO: SSL
-		RemoteFrameworkConnectionInfo remoteFramewrorkInfo = new RemoteFrameworkConnectionInfo(hostname, port, key);
+		GuardedString key;
+		try {
+			key = new GuardedString(protector.decryptString(hostType.getSharedSecret()).toCharArray());
+		} catch (EncryptionException e) {
+			throw new SystemException("Shared secret decryption error: "+e.getMessage(),e);
+		}
+		Integer timeout = hostType.getTimeout();
+		boolean useSSL = false;
+		if (hostType.isProtectConnection() != null) {
+			useSSL = hostType.isProtectConnection();
+		}
+		List<TrustManager> trustManagers = protector.getTrustManagers();
+		RemoteFrameworkConnectionInfo remoteFramewrorkInfo = new RemoteFrameworkConnectionInfo(hostname, port, key, useSSL, trustManagers, timeout);
 		return connectorInfoManagerFactory.getRemoteManager(remoteFramewrorkInfo);
 	}
 
