@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionReturnTypeType;
@@ -224,8 +225,18 @@ public class Expression {
         Iterator<Entry<QName, Object>> i = variables.entrySet().iterator();
         while (i.hasNext()) {
             Entry<QName, Object> entry = i.next();
+            DebugUtil.indentDebugDump(sb, 1);
             sb.append(DebugUtil.prettyPrint(entry.getKey())).append(": ");
-            sb.append(DebugUtil.prettyPrint(entry.getValue()));
+            Object value = entry.getValue();
+            if (value instanceof DebugDumpable) {
+            	sb.append("\n");
+            	sb.append(((DebugDumpable)value).debugDump(2));
+            } else if (value instanceof Element) {
+            	sb.append("\n");
+            	sb.append(DOMUtil.serializeDOMToString(((Element)value)));
+            } else {
+            	sb.append(DebugUtil.prettyPrint(value));
+            }
             if (i.hasNext()) {
                 sb.append("\n");
             }

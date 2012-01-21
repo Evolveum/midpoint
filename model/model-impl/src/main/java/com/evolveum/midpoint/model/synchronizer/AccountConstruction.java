@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -41,6 +43,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -193,7 +196,16 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		}
 		ValueConstruction attributeConstruction = valueConstructionFactory.createValueConstruction(attributeConstructionType, outputDefinition, "in "+ObjectTypeUtil.toShortString(source));
 		attributeConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, user);
-		// TODO: other variables
+		attributeConstruction.setRootNode(user);
+		if (!assignments.isEmpty()) {
+			AssignmentType assignmentType = assignments.get(0);
+			try {
+				attributeConstruction.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, JAXBUtil.jaxbToDom(assignmentType, SchemaConstants.C_ASSIGNMENT, null));
+			} catch (JAXBException e) {
+				throw new SchemaException("Error serializing assignment in attribute construction in account construction in "+ObjectTypeUtil.toShortString(source)+": "+e.getMessage(),e);
+			}
+		}
+		// TODO: other variables ?
 		attributeConstruction.evaluate(result);
 		return attributeConstruction;
 	}

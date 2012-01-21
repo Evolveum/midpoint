@@ -46,6 +46,35 @@
 					<ri:businessCategory>cruise</ri:businessCategory>
 				</value>
             </attribute>    		
+    		<attribute> 
+                <ref>ri:departmentNumber</ref>
+				<expression>
+					<returnType>scalar</returnType>
+					<code>
+						declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                        concat('Department of ',$c:user/c:givenName)
+					</code>
+				</expression>
+            </attribute>
+            <attribute>
+                <ref>ri:destinationIndicator</ref>
+				<expression>
+					<code>
+						declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                        c:fullName
+					</code>
+				</expression>
+            </attribute>
+    		<attribute>
+                <ref>ri:physicalDeliveryOfficeName</ref>
+				<expression>
+					<code>
+						declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+						declare namespace my="http://whatever.com/my";
+                        $c:assignment/c:extension/my:shipName
+					</code>
+				</expression>
+            </attribute>
     	</accountConstruction>
     </assignment>    
 </role>

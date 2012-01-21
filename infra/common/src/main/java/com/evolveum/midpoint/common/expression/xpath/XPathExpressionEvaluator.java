@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.xpath.MidPointXPathFunctionResolver;
 import com.evolveum.midpoint.util.xpath.functions.CapitalizeFunction;
 import org.w3c.dom.Element;
@@ -164,7 +165,13 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
      * for evaluation. This allow to use "fullName" instead of "$user/fullName".
      */
     private Object determineRootNode(XPathVariableResolver variableResolver) {
-        return variableResolver.resolveVariable(null);
+        Object rootNode = variableResolver.resolveVariable(null);
+        if (rootNode == null) {
+        	// Add empty document instead of null so the expressions don't die with exception.
+        	// This is necessary e.g. on deletes in sync when there may be nothing to evaluate.
+        	rootNode = DOMUtil.getDocument();
+        }
+        return rootNode;
     }
 
     private QName determineRerturnType(Class<?> type) throws ExpressionEvaluationException {

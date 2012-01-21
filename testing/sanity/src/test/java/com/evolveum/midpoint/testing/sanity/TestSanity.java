@@ -1717,7 +1717,12 @@ public class TestSanity extends AbstractIntegrationTest {
         OpenDJController.assertAttribute(entry, "title", "Bloody Pirate", "Honorable Captain");
         OpenDJController.assertAttribute(entry, "carLicense", "C4PT41N");
         OpenDJController.assertAttribute(entry, "businessCategory", "loot", "murder", "cruise");
-
+        // Expression in the role taking that from the user
+        OpenDJController.assertAttribute(entry, "destinationIndicator", "Guybrush Threepwood");
+        OpenDJController.assertAttribute(entry, "departmentNumber", "Department of Guybrush");
+        // Expression in the role taking that from the assignment
+        OpenDJController.assertAttribute(entry, "physicalDeliveryOfficeName", "The Sea Monkey");
+        
         String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull("Pasword disappeared", guybrushPassword);
 

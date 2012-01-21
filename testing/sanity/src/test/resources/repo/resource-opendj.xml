@@ -245,10 +245,12 @@ This is now the only account type that midPoint can work with. -->
                 <access>update</access>
                 <outbound>
                     <expression>
+                    	<description>
+                    		The expression is using "c" prefix without declaring it. The prefix is taken from
+                    		the enclosing XML definition.
+                    	</description>
                         <code>
-
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            $i:user/i:familyName
+                            $c:user/c:familyName
                         </code>
                     </expression>
                 </outbound>
@@ -272,9 +274,12 @@ This is now the only account type that midPoint can work with. -->
                 <access>update</access>
                 <outbound>
                     <expression>
+                    	<description>
+                    		The expression is using the "implicit" node and not the $user variable.
+                    	</description>
                         <code>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            $i:user/i:givenName
+                            i:givenName
                         </code>
                     </expression>
                 </outbound>

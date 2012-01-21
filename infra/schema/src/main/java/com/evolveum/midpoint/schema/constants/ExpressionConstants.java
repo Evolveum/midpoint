@@ -28,4 +28,6 @@ import javax.xml.namespace.QName;
 public class ExpressionConstants {
 
 	public static final QName VAR_USER = new QName(SchemaConstants.NS_C,"user");
+	public static final QName VAR_ASSIGNMENT = new QName(SchemaConstants.NS_C,"assignment");
+	
 }

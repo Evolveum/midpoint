@@ -2347,6 +2347,15 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
+        
+        	<xsd:element ref="tns:extension" minOccurs="0">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				The assignment extension used to add parameters to the assignment.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        
             <xsd:choice>
 
                 <xsd:element name="target" type="tns:ObjectType">

@@ -162,9 +162,9 @@ public class OutboundProcessor {
         ValueConstruction valueConstruction = valueConstructionFactory.createValueConstruction(outboundValueConstructionType, refinedAttributeDefinition,
                 "outbound expression for " + refinedAttributeDefinition.getName() + " in " + ObjectTypeUtil.toShortString(refinedAccountDefinition.getResourceType()));
 
-        // FIXME: should be userNew, but that is not yet filled in
         valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, user);
-        // TODO: variables
+        valueConstruction.setRootNode(user);
+        // TODO: other variables?
 
         valueConstruction.evaluate(result);
 

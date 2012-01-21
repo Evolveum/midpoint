@@ -104,6 +104,10 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 	public void setRootNode(ObjectType objectType) {
 		addVariableDefinition(null,(Object)objectType);
 	}
+	
+	public void setRootNode(MidPointObject<? extends ObjectType> mpObject) {
+		addVariableDefinition(null,(Object)mpObject);
+	}
 
 	public void addVariableDefinition(VariableDefinitionType varDef) {
 		if (varDef.getObjectRef() != null) {
@@ -131,7 +135,11 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 	public void addVariableDefinition(QName name, String value) {
 		addVariableDefinition(name,(Object)value);
 	}
-		
+
+	public void addVariableDefinition(QName name, Element value) {
+		addVariableDefinition(name,(Object)value);
+	}
+
 	public void addVariableDefinitions(Map<QName, Object> extraVariables) {
 		for (Entry<QName, Object> entry : extraVariables.entrySet()) {
 			variables.put(entry.getKey(), entry.getValue());
