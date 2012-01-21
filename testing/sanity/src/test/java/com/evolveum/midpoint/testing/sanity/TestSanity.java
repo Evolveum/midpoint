@@ -710,6 +710,7 @@ public class TestSanity extends AbstractIntegrationTest {
         assertAttribute(modelShadow, resourceOpenDj, "sn", "Sparrow");
         assertAttribute(modelShadow, resourceOpenDj, "cn", "Jack Sparrow");
         assertAttribute(modelShadow, resourceOpenDj, "l", "middle of nowhere");
+        assertNull("carLicense attribute sneaked to LDAP", OpenDJController.getAttributeValue(entry, "carLicense"));
 
         assertNotNull("Activation is null", modelShadow.getActivation());
         assertTrue("The account is not enabled in the shadow", modelShadow.getActivation().isEnabled());
