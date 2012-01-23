@@ -154,8 +154,8 @@ public class RepositoryManagerImpl implements RepositoryManager {
 				LOGGER.trace("DIFF: object before:\n{}",objectBeforeChangeXml);
 				LOGGER.trace("DIFF: object after:\n{}",objectAfterChangeXml);
 				
-				ObjectDelta<ObjectType> delta = DiffUtil.diff(objectBeforeChangeXml, objectAfterChangeXml,
-						ObjectType.class, schemaRegistry.getObjectSchema());
+				ObjectDelta<ObjectType> delta = (ObjectDelta<ObjectType>) DiffUtil.diff(objectBeforeChangeXml, objectAfterChangeXml,
+						object.getClass(), schemaRegistry.getObjectSchema());
 				
 				LOGGER.trace("DIFF: diff:\n{}",delta.dump());
 				

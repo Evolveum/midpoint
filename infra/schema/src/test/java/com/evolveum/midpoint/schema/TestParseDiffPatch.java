@@ -50,7 +50,9 @@ import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -99,18 +101,20 @@ public class TestParseDiffPatch {
         assertEquals("Wrong delta OID", userBefore.getOid(), userDelta.getOid());
         assertEquals("Wrong change type", ChangeType.MODIFY, userDelta.getChangeType());
         Collection<PropertyDelta> modifications = userDelta.getModifications();
-        assertEquals("Unexpected number of modifications",2,modifications.size());
+        assertEquals("Unexpected number of modifications", 3, modifications.size());
         assertReplace(userDelta, new QName(SchemaConstants.NS_C,"fullName"), "Cpt. Jack Sparrow");
         assertAdd(userDelta, new QName(SchemaConstants.NS_C,"honorificPrefix"), "Cpt.");
+        assertAdd(userDelta, new QName(SchemaConstants.NS_C,"locality"), "Tortuga");
         
         ObjectModificationType objectModificationType = userDelta.toObjectModificationType();
         System.out.println("Modification XML:");
         System.out.println(JAXBUtil.marshalWrap(objectModificationType));
         assertEquals("Wrong delta OID", userBefore.getOid(), objectModificationType.getOid());
         List<PropertyModificationType> propertyModifications = objectModificationType.getPropertyModification();
-        assertEquals("Unexpected number of modifications",2,propertyModifications.size());
+        assertEquals("Unexpected number of modifications", 3, propertyModifications.size());
         assertXmlMod(objectModificationType, new QName(SchemaConstants.NS_C,"fullName"), PropertyModificationTypeType.replace, "Cpt. Jack Sparrow");
         assertXmlMod(objectModificationType, new QName(SchemaConstants.NS_C,"honorificPrefix"), PropertyModificationTypeType.add, "Cpt.");
+        assertXmlMod(objectModificationType, new QName(SchemaConstants.NS_C,"locality"), PropertyModificationTypeType.add, "Tortuga");
         
         // ROUNDTRIP
         
@@ -125,6 +129,35 @@ public class TestParseDiffPatch {
         System.out.println(roundTripDelta.dump());
         
         assertTrue("Roundtrip delta is not empty",roundTripDelta.isEmpty());
+	}
+	
+	@Test
+	public void testUserReal() throws SchemaException, SAXException, IOException, JAXBException {
+		System.out.println("===[ testUserReal ]===");
+		
+		SchemaRegistry reg = new SchemaRegistry();
+		reg.initialize();
+		
+		Schema objectSchema = reg.getObjectSchema();
+        assertNotNull(objectSchema);
+
+        String userBeforeXml = MiscUtil.readFile(new File(TEST_DIR, "user-real-before.xml"));
+        String userAfterXml = MiscUtil.readFile(new File(TEST_DIR, "user-real-after.xml"));
+                
+        // WHEN
+        
+        ObjectDelta<UserType> userDelta = DiffUtil.diff(userBeforeXml, userAfterXml, UserType.class, objectSchema);
+        
+        // THEN
+        
+        System.out.println("DELTA:");
+        System.out.println(userDelta.dump());
+        
+        assertEquals("Wrong delta OID", "2f9b9299-6f45-498f-bc8e-8d17c6b93b20", userDelta.getOid());
+        assertEquals("Wrong change type", ChangeType.MODIFY, userDelta.getChangeType());
+        Collection<PropertyDelta> modifications = userDelta.getModifications();
+        assertEquals("Unexpected number of modifications", 1, modifications.size());
+        assertReplace(userDelta, new QName(SchemaConstants.NS_C,"locality"), "World's End");
 	}
 	
 	@Test
@@ -151,13 +184,13 @@ public class TestParseDiffPatch {
         // TODO
 	}
 
-	private void assertReplace(ObjectDelta<UserType> userDelta, QName propertyName, Object... expectedValues) {
+	private void assertReplace(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
 		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyName);
 		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
 		assertSet(propertyName, propertyDelta.getValuesToReplace(), expectedValues);
 	}
 
-	private void assertAdd(ObjectDelta<UserType> userDelta, QName propertyName, Object... expectedValues) {
+	private void assertAdd(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
 		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyName);
 		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
 		assertSet(propertyName, propertyDelta.getValuesToAdd(), expectedValues);

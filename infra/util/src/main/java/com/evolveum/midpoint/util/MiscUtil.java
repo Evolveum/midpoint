@@ -19,6 +19,11 @@
  */
 package com.evolveum.midpoint.util;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -31,6 +36,8 @@ import org.apache.commons.collections.CollectionUtils;
  */
 public class MiscUtil {
 	
+	private static final int BUFFER_SIZE = 2048; 
+	
 	public static <T> Collection<T> union(Collection<T>... sets) {
 		Set<T> resultSet = new HashSet<T>();
 		for (Collection<T> set: sets) {
@@ -39,6 +46,20 @@ public class MiscUtil {
 			}
 		}
 		return resultSet;
+	}
+	
+	public static String readFile(File file) throws IOException {
+		StringBuffer fileData = new StringBuffer(BUFFER_SIZE);
+        BufferedReader reader = new BufferedReader(new FileReader(file));
+        char[] buf = new char[BUFFER_SIZE];
+        int numRead=0;
+        while((numRead=reader.read(buf)) != -1){
+            String readData = String.valueOf(buf, 0, numRead);
+            fileData.append(readData);
+            buf = new char[BUFFER_SIZE];
+        }
+        reader.close();
+        return fileData.toString();
 	}
 		
 }
