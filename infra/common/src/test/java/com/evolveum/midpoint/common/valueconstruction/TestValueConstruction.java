@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.common.valueconstruction;
 
+import static org.testng.AssertJUnit.assertFalse;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.common.expression.xpath.XPathExpressionEvaluator;
 import com.evolveum.midpoint.schema.SchemaRegistry;
@@ -354,6 +355,46 @@ public class TestValueConstruction {
 //		assertEquals(expected,result.getValues());
         assertPropertyValueList(expected, result.getValues());
     }
+    
+    @Test
+    public void testConstructionGenerate() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+        // GIVEN
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = JAXBUtil.unmarshal(
+                new File(TEST_DIR, "construction-generate.xml"), ValueConstructionType.class);
+        ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
+
+        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
+
+        Property givenName = givenNameDef.instantiate();
+        givenName.setValue(new PropertyValue("barbar"));
+
+        OperationResult opResult = new OperationResult("testConstructionGenerate");
+
+        // WHEN (1)
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "generate construction");
+        construction.setInput(givenName);
+        construction.evaluate(opResult);
+        Property result = construction.getOutput();
+
+        // THEN (1)
+        String value1 = result.getValue(String.class).getValue();
+        System.out.println("Generated value (1): "+value1);
+        assertEquals(10, value1.length());
+
+        // WHEN (2)
+        construction.evaluate(opResult);
+        result = construction.getOutput();
+
+        // THEN (2)
+        String value2 = result.getValue(String.class).getValue();
+        System.out.println("Generated value (2): "+value2);
+        assertEquals(10, value2.length());
+        
+        assertFalse("Generated the same value", value1.equals(value2));
+
+    }
+
 
 
     private void assertPropertyValueList(Set expected, Set<PropertyValue<Object>> results) {

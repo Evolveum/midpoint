@@ -29,6 +29,7 @@ import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AsIsValueConstructorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.GenerateValueConstructorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
 
@@ -60,6 +61,7 @@ public class ValueConstructionFactory {
 		createLiteralConstructor();
 		createAsIsConstructor();
 		createExpressionConstructor();
+		createGenerateConstructor();
 	}
 
 	private void createLiteralConstructor() {
@@ -77,6 +79,12 @@ public class ValueConstructionFactory {
 	private void createExpressionConstructor() {
 		ValueConstructor constructor = new ExpressionValueConstructor(expressionFactory);
 		JAXBElement<ExpressionType> element = objectFactory.createExpression(objectFactory.createExpressionType());
+		constructors.put(element.getName(), constructor);
+	}
+	
+	private void createGenerateConstructor() {
+		ValueConstructor constructor = new GenerateValueConstructor();
+		JAXBElement<GenerateValueConstructorType> element = objectFactory.createGenerate(objectFactory.createGenerateValueConstructorType());
 		constructors.put(element.getName(), constructor);
 	}
 
