@@ -26,6 +26,7 @@ import javax.xml.bind.JAXBElement;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -40,16 +41,19 @@ public class DiffUtil {
 			if (newObject == null) {
 				return null;
 			}
+			ObjectTypeUtil.assertConcreteType(newObject.getJaxbClass());
 			ObjectDelta<T> objectDelta = new ObjectDelta<T>(newObject.getJaxbClass(), ChangeType.ADD);
 			objectDelta.setOid(newObject.getOid());
 			objectDelta.setObjectToAdd(newObject);
 			return objectDelta;
 		} else {
+			ObjectTypeUtil.assertConcreteType(oldObject.getJaxbClass());
 			return oldObject.compareTo(newObject);
 		}
 	}
 	
 	public static <T extends ObjectType> ObjectDelta<T> diff(String oldXml, String newXml, Class<T> type, Schema objectSchema) throws SchemaException {
+		ObjectTypeUtil.assertConcreteType(type);
 		MidPointObject<T> oldObject = null;
 		if (oldXml != null) {
 			oldObject = objectSchema.parseObject(oldXml, type);
@@ -62,6 +66,7 @@ public class DiffUtil {
 	}
 
 	public static <T extends ObjectType> ObjectDelta<T> diff(File oldXmlFile, File newXmlFile, Class<T> type, Schema objectSchema) throws SchemaException {
+		ObjectTypeUtil.assertConcreteType(type);
 		MidPointObject<T> oldObject = null;
 		if (oldXmlFile != null) {
 			oldObject = objectSchema.parseObject(oldXmlFile, type);
