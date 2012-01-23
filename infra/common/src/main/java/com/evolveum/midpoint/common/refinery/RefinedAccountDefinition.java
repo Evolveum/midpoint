@@ -23,15 +23,13 @@ package com.evolveum.midpoint.common.refinery;
 import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.holder.ValueAssignmentHolder;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAccountTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -64,7 +62,8 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
         this.schemaRegistry = schemaRegistry;
     }
 
-    private RefinedAccountDefinition(Schema rSchema, SchemaRegistry schemaRegistry, ResourceType resourceType, ResourceObjectDefinition objectClassDefinition) {
+    private RefinedAccountDefinition(Schema rSchema, SchemaRegistry schemaRegistry, ResourceType resourceType,
+            ResourceObjectDefinition objectClassDefinition) {
         super(rSchema, SchemaConstants.I_ATTRIBUTES, null);
         attributeDefinitions = new HashSet<RefinedAttributeDefinition>();
         this.resourceType = resourceType;
@@ -314,8 +313,10 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
         return false;
     }
 
-    static RefinedAccountDefinition parse(ResourceAccountTypeDefinitionType accountTypeDefType, ResourceType resourceType,
-                                          RefinedResourceSchema rSchema, SchemaRegistry schemaRegistry, String contextDescription) throws SchemaException {
+    static RefinedAccountDefinition parse(ResourceAccountTypeDefinitionType accountTypeDefType,
+            ResourceType resourceType,
+            RefinedResourceSchema rSchema, SchemaRegistry schemaRegistry, String contextDescription) throws
+            SchemaException {
 
         RefinedAccountDefinition rAccountDef = new RefinedAccountDefinition(rSchema, schemaRegistry, resourceType);
 
@@ -384,8 +385,9 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
         return rAccountDef;
     }
 
-    static RefinedAccountDefinition parse(ResourceObjectDefinition objectClassDef, ResourceType resourceType, RefinedResourceSchema rSchema,
-                                          SchemaRegistry schemaRegistry, String contextDescription) throws SchemaException {
+    static RefinedAccountDefinition parse(ResourceObjectDefinition objectClassDef, ResourceType resourceType,
+            RefinedResourceSchema rSchema,
+            SchemaRegistry schemaRegistry, String contextDescription) throws SchemaException {
 
         RefinedAccountDefinition rAccountDef = new RefinedAccountDefinition(rSchema, schemaRegistry, resourceType, objectClassDef);
 
@@ -430,7 +432,7 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
 
 
     private static ResourceAttributeDefinitionType findAttributeDefinitionType(QName attrName,
-                                                                               ResourceAccountTypeDefinitionType accountTypeDefType, String contextDescription) throws SchemaException {
+            ResourceAccountTypeDefinitionType accountTypeDefType, String contextDescription) throws SchemaException {
         ResourceAttributeDefinitionType foundAttrDefType = null;
         for (ResourceAttributeDefinitionType attrDefType : accountTypeDefType.getAttribute()) {
             if (attrDefType.getRef() != null) {
@@ -515,5 +517,58 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
         }
 
         return attrNames;
+    }
+
+    private ResourceAccountTypeDefinitionType getAccountSchemaHandlingDefinition() {
+        List<ResourceAccountTypeDefinitionType> types = resourceType.getSchemaHandling().getAccountType();
+        ResourceAccountTypeDefinitionType definition = null;
+        for (ResourceAccountTypeDefinitionType account : types) {
+            if (accountType == null && account.isDefault()) {
+                definition = account;
+                break;
+            }
+
+            if (accountType.equals(account.getName())) {
+                definition = account;
+                break;
+            }
+        }
+
+        return definition;
+    }
+
+    public ValueAssignmentHolder getCredentialsInbound() {
+        ResourceAccountTypeDefinitionType definition = getAccountSchemaHandlingDefinition();
+        if (definition == null) {
+            return null;
+        }
+        ResourceCredentialsDefinitionType credentials = definition.getCredentials();
+        if (credentials == null) {
+            return null;
+        }
+        ResourcePasswordDefinitionType password = credentials.getPassword();
+        if (password == null || password.getInbound() == null) {
+            return null;
+        }
+
+        return new ValueAssignmentHolder(password.getInbound());
+    }
+
+    public ValueAssignmentHolder getActivationInbound() {
+        ResourceAccountTypeDefinitionType definition = getAccountSchemaHandlingDefinition();
+        if (definition == null) {
+            return null;
+        }
+
+        ResourceActivationDefinitionType activation = definition.getActivation();
+        if (activation == null) {
+            return null;
+        }
+        ResourceActivationEnableDefinitionType enabled = activation.getEnabled();
+        if (enabled == null || enabled.getInbound() == null) {
+            return null;
+        }
+
+        return new ValueAssignmentHolder((enabled.getInbound()));
     }
 }
