@@ -32,13 +32,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
  */
 public interface RepositoryManager {
 
-	String CLASS_NAME = RepositoryManager.class.getName();
-	String LIST_OBJECTS = CLASS_NAME + "listObjects";
-	String SEARCH_OBJECTS = CLASS_NAME + "searchObjects";
-	String GET_OBJECT = CLASS_NAME + "getObject";
-	String SAVE_OBJECT = CLASS_NAME + "saveObject";
-	String DELETE_OBJECT = CLASS_NAME + "deleteObject";
-	String ADD_OBJECT = CLASS_NAME + "addObject";
+	String CLASS_NAME_WITH_DOT = RepositoryManager.class.getName() + ".";
+	String LIST_OBJECTS = CLASS_NAME_WITH_DOT + "listObjects";
+	String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
+	String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
+	String SAVE_OBJECT = CLASS_NAME_WITH_DOT + "saveObject";
+	String DELETE_OBJECT = CLASS_NAME_WITH_DOT + "deleteObject";
+	String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
 
 	<T extends ObjectType> List<T>  listObjects(Class<T> objectType, int offset, int count);
 

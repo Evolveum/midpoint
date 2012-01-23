@@ -137,7 +137,7 @@ public class RepositoryManagerImpl implements RepositoryManager {
 	}
 
 	@Override
-	public boolean saveObject(ObjectType object, String xml) {
+	public boolean saveObject(ObjectType object, String objectAfterChangeXml) {
 		Validate.notNull(object, "Object must not be null.");
 		LOGGER.debug("Saving object {} (object xml in traces).", new Object[] { object.getName() });
 		if (LOGGER.isTraceEnabled()) {
@@ -149,9 +149,16 @@ public class RepositoryManagerImpl implements RepositoryManager {
 			ObjectType oldObject = repositoryService.getObject(ObjectType.class, object.getOid(),
 					new PropertyReferenceListType(), result);
 			if (oldObject != null) {
-
-				ObjectDelta<ObjectType> delta = DiffUtil.diff(JAXBUtil.marshalWrap(oldObject), xml,
+				String objectBeforeChangeXml = JAXBUtil.marshalWrap(oldObject);
+				
+				LOGGER.trace("DIFF: object before:\n{}",objectBeforeChangeXml);
+				LOGGER.trace("DIFF: object after:\n{}",objectAfterChangeXml);
+				
+				ObjectDelta<ObjectType> delta = DiffUtil.diff(objectBeforeChangeXml, objectAfterChangeXml,
 						ObjectType.class, schemaRegistry.getObjectSchema());
+				
+				LOGGER.trace("DIFF: diff:\n{}",delta.dump());
+				
 				// ObjectModificationType objectChange =
 				// CalculateXmlDiff.calculateChanges(oldObject, object);
 

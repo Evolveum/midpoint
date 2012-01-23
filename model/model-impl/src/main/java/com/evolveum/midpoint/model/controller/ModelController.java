@@ -500,10 +500,14 @@ public class ModelController implements ModelService {
             try {
                 if (ObjectTypes.isObjectTypeManagedByProvisioning(objectType)) {
                     LOGGER.trace("Listing objects from provisioning.");
+                    
                     list = provisioning.listObjects(objectType, paging, subResult);
+                    
                 } else {
                     LOGGER.trace("Listing objects from repository.");
+                    
                     list = cacheRepositoryService.listObjects(objectType, paging, subResult);
+                    
                 }
                 subResult.recordSuccess();
             } catch (Exception ex) {

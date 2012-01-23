@@ -518,24 +518,40 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				+ ".listObjects.object");
 				ResourceType resource = (ResourceType) obj;
 				ResourceType completeResource;
+				
 				try {
+					
 					completeResource = getResourceTypeManager().completeResource(resource, null, objResult);
 					newObjListType.add((T) completeResource);
 					// TODO: what do to with objResult??
+					
 				} catch (ObjectNotFoundException e) {
 					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
 							ObjectTypeUtil.toShortString(resource), e.getMessage(), e });
 					objResult.recordFatalError(e);
 					obj.setFetchResult(objResult.createOperationResultType());
 					newObjListType.add(obj);
+					
 				} catch (SchemaException e) {
 					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
 							ObjectTypeUtil.toShortString(resource), e.getMessage(), e });
 					objResult.recordFatalError(e);
 					obj.setFetchResult(objResult.createOperationResultType());
 					newObjListType.add(obj);
+					
 				} catch (CommunicationException e) {
 					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
+							ObjectTypeUtil.toShortString(resource), e.getMessage(), e });
+					objResult.recordFatalError(e);
+					obj.setFetchResult(objResult.createOperationResultType());
+					newObjListType.add(obj);
+					
+				} catch (RuntimeException e) {
+					// FIXME: Strictly speaking, the runtime exception should not be handled here.
+					// The runtime exceptions should be considered fatal anyway ... but some of the
+					// ICF exceptions are still translated to system exceptions. So this provides
+					// a better robustness now.
+					LOGGER.error("System error while completing {}: {}. Using non-complete resource.", new Object[] {
 							ObjectTypeUtil.toShortString(resource), e.getMessage(), e });
 					objResult.recordFatalError(e);
 					obj.setFetchResult(objResult.createOperationResultType());
