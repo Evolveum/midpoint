@@ -531,6 +531,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					objResult.recordFatalError(e);
 					obj.setFetchResult(objResult.createOperationResultType());
 					newObjListType.add(obj);
+					result.addSubresult(objResult);
+					result.recordPartialError(e);
 					
 				} catch (SchemaException e) {
 					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
@@ -538,6 +540,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					objResult.recordFatalError(e);
 					obj.setFetchResult(objResult.createOperationResultType());
 					newObjListType.add(obj);
+					result.addSubresult(objResult);
+					result.recordPartialError(e);
 					
 				} catch (CommunicationException e) {
 					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
@@ -545,6 +549,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					objResult.recordFatalError(e);
 					obj.setFetchResult(objResult.createOperationResultType());
 					newObjListType.add(obj);
+					result.addSubresult(objResult);
+					result.recordPartialError(e);
 					
 				} catch (RuntimeException e) {
 					// FIXME: Strictly speaking, the runtime exception should not be handled here.
@@ -556,9 +562,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					objResult.recordFatalError(e);
 					obj.setFetchResult(objResult.createOperationResultType());
 					newObjListType.add(obj);
+					result.addSubresult(objResult);
+					result.recordPartialError(e);
 				}
 			}
-			result.recordSuccess();
+			result.computeStatus();
+			result.recordSuccessIfUnknown();
 			return newObjListType;
 		}
 

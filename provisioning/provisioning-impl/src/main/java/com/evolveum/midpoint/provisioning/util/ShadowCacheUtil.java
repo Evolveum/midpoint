@@ -106,15 +106,8 @@ public class ShadowCacheUtil {
         if (shadow instanceof AccountShadowType) {
         	if (((AccountShadowType) shadow).getActivation() == null) {
 	        	ActivationType activationType = determineActivation(resource, resourceObject, null);
-	        	LOGGER.info("AAAAAAA1: {}, {}",resourceObject.getActivation());
 	        	if (resource != null) {
-	        		try {
-						LOGGER.info("RRRRRR: {}\n{}",ResourceTypeUtil.hasResourceNativeActivationCapability(resource),JAXBUtil.marshalWrap(resource));
-					} catch (JAXBException e) {
-						LOGGER.error("FUUUUUUUUUUUU",e);
-					}
 	        	}
-	        	LOGGER.info("AAAAAAA2: {}",activationType);
 		        ((AccountShadowType)shadow).setActivation(activationType);
         	}
 	        if (resourceObject.getCredentials() != null) {

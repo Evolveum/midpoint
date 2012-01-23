@@ -156,7 +156,8 @@ public class TestParseDiffPatch {
         assertEquals("Wrong delta OID", "2f9b9299-6f45-498f-bc8e-8d17c6b93b20", userDelta.getOid());
         assertEquals("Wrong change type", ChangeType.MODIFY, userDelta.getChangeType());
         Collection<PropertyDelta> modifications = userDelta.getModifications();
-        assertEquals("Unexpected number of modifications", 1, modifications.size());
+        assertEquals("Unexpected number of modifications", 2, modifications.size());
+        assertAdd(userDelta, new QName(SchemaConstants.NS_C,"eMailAddress"), "jack@blackpearl.com");
         assertReplace(userDelta, new QName(SchemaConstants.NS_C,"locality"), "World's End");
 	}
 	

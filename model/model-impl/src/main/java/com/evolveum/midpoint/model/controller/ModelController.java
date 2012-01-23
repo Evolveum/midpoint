@@ -522,13 +522,6 @@ public class ModelController implements ModelService {
 					LOGGER.trace("Listing objects from provisioning.");
 
 					list = provisioning.listObjects(objectType, paging, subResult);
-					for (int i = 0; i < list.size(); i++) {
-						if (list.get(i).getFetchResult() != null) {
-							subResult.recordFatalError(list.get(i).getName() + ": "
-									+ list.get(i).getFetchResult().getMessage());
-							return null;
-						}
-					}
 
 				} else {
 					LOGGER.trace("Listing objects from repository.");
@@ -536,7 +529,7 @@ public class ModelController implements ModelService {
 					list = cacheRepositoryService.listObjects(objectType, paging, subResult);
 
 				}
-				subResult.recordSuccess();
+				subResult.computeStatus();
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't list objects", ex);
 				subResult.recordFatalError("Couldn't list objects.", ex);

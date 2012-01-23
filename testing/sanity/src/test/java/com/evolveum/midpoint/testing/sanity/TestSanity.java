@@ -2106,6 +2106,7 @@ public class TestSanity extends AbstractIntegrationTest {
     	ResultList<ResourceType> resources = modelService.listObjects(ResourceType.class, null, result);
     	
     	// THEN
+    	assertNotNull("listObjects returned null list", resources);
     	
     	for (ResourceType resource: resources) {
     		//display("Resource found",resource);

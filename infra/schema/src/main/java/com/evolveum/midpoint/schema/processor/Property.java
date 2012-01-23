@@ -504,13 +504,13 @@ public class Property extends Item {
             for (PropertyValue<Object> value : getValues()) {
                 if ((!compareReal && !other.hasValue(value))
                         || (compareReal && !other.hasRealValue(value))) {
-                    delta.addValueToAdd(value.clone());
+                    delta.addValueToDelete(value.clone());
                 }
             }
-            for (PropertyValue<Object> value : other.getValues()) {
-                if ((!compareReal && !hasValue(value))
-                        || (compareReal && !hasRealValue(value))) {
-                    delta.addValueToDelete(value.clone());
+            for (PropertyValue<Object> otherValue : other.getValues()) {
+                if ((!compareReal && !hasValue(otherValue))
+                        || (compareReal && !hasRealValue(otherValue))) {
+                    delta.addValueToAdd(otherValue.clone());
                 }
             }
             if (def != null && def.isSingleValue() && !delta.isEmpty()) {
