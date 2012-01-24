@@ -33,13 +33,14 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.holder.ValueAssignmentHolder;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueAssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueFilterType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -133,9 +134,9 @@ public class InboundProcessor {
             }
 
             RefinedAttributeDefinition attrDef = accountDefinition.getAttributeDefinition(name);
-            List<Element> inbounds = attrDef.getInboundAssignmentTypes();
+            List<ValueAssignmentType> inbounds = attrDef.getInboundAssignmentTypes();
 
-            for (Element inbound : inbounds) {
+            for (ValueAssignmentType inbound : inbounds) {
                 PropertyDelta delta = null;
                 if (accountDelta != null) {
                     LOGGER.trace("Processing inbound from account sync delta.");
@@ -154,12 +155,11 @@ public class InboundProcessor {
         }
     }
 
-    private PropertyDelta createUserPropertyDelta(Element inbound, Property oldAccountProperty,
+    private PropertyDelta createUserPropertyDelta(ValueAssignmentType inbound, Property oldAccountProperty,
             MidPointObject<UserType> newUser) {
-        ValueAssignmentHolder holder = new ValueAssignmentHolder(inbound);
-        List<ValueFilterType> filters = holder.getFilter();
+        List<ValueFilterType> filters = inbound.getValueFilter();
 
-        PropertyPath targetUserAttribute = createUserPropertyPath(holder);
+        PropertyPath targetUserAttribute = createUserPropertyPath(inbound);
         Property userProperty = newUser.findProperty(targetUserAttribute);
 
         PropertyDelta delta = null;
@@ -186,12 +186,11 @@ public class InboundProcessor {
         return delta;
     }
 
-    private PropertyDelta createUserPropertyDelta(Element inbound, PropertyDelta propertyDelta,
+    private PropertyDelta createUserPropertyDelta(ValueAssignmentType inbound, PropertyDelta propertyDelta,
             MidPointObject<UserType> newUser) {
-        ValueAssignmentHolder holder = new ValueAssignmentHolder(inbound);
-        List<ValueFilterType> filters = holder.getFilter();
+        List<ValueFilterType> filters = inbound.getValueFilter();
 
-        PropertyPath targetUserAttribute = createUserPropertyPath(holder);
+        PropertyPath targetUserAttribute = createUserPropertyPath(inbound);
         Property property = newUser.findProperty(targetUserAttribute);
 
         PropertyDelta delta = new PropertyDelta(targetUserAttribute);
@@ -231,8 +230,8 @@ public class InboundProcessor {
         return delta.getValues(Object.class).isEmpty() ? null : delta;
     }
 
-    private PropertyPath createUserPropertyPath(ValueAssignmentHolder holder) {
-        PropertyPath path = new PropertyPath(holder.getTarget());
+    private PropertyPath createUserPropertyPath(ValueAssignmentType inbound) {
+        PropertyPath path = new PropertyPath(new XPathHolder(inbound.getTarget()));
         List<QName> segments = path.getSegments();
         if (!segments.isEmpty() && SchemaConstants.I_USER.equals(segments.get(0))) {
             segments.remove(0);

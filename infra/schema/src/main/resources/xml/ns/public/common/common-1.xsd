@@ -3526,9 +3526,6 @@
                 which cannot handle more than one "any" elements in a type.
                 See http://java.net/jira/browse/JAXB-798
             </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:dom/>
-            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
@@ -3545,6 +3542,8 @@
                         The filters are supposed to "clean up" or transcode
                         the value to comply with usual XML standards.
                         (but see the note in ValueFilterType documentation)
+                        
+                        DEPRECATED. Use filters in the value construction (source) instead.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

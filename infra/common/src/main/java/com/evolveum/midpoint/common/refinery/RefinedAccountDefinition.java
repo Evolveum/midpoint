@@ -23,7 +23,6 @@ package com.evolveum.midpoint.common.refinery;
 import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.holder.ValueAssignmentHolder;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -537,7 +536,7 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
         return definition;
     }
 
-    public ValueAssignmentHolder getCredentialsInbound() {
+    public ValueAssignmentType getCredentialsInbound() {
         ResourceAccountTypeDefinitionType definition = getAccountSchemaHandlingDefinition();
         if (definition == null) {
             return null;
@@ -551,10 +550,10 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
             return null;
         }
 
-        return new ValueAssignmentHolder(password.getInbound());
+        return password.getInbound();
     }
 
-    public ValueAssignmentHolder getActivationInbound() {
+    public ValueAssignmentType getActivationInbound() {
         ResourceAccountTypeDefinitionType definition = getAccountSchemaHandlingDefinition();
         if (definition == null) {
             return null;
@@ -569,6 +568,6 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
             return null;
         }
 
-        return new ValueAssignmentHolder((enabled.getInbound()));
+        return (enabled.getInbound());
     }
 }

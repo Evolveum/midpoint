@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueAssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
 import org.w3c.dom.Element;
 
@@ -47,7 +48,7 @@ public class RefinedAttributeDefinition extends ResourceObjectAttributeDefinitio
     private boolean update = true;
     private ResourceObjectAttributeDefinition attributeDefinition;
     private ValueConstructionType outboundValueConstructionType;
-    private List<Element> inboundAssignmentTypes;
+    private List<ValueAssignmentType> inboundAssignmentTypes;
 
     private RefinedAttributeDefinition(ResourceObjectAttributeDefinition attrDef) {
         super(attrDef.getName(), attrDef.getDefaultName(), attrDef.getTypeName());
@@ -189,11 +190,11 @@ public class RefinedAttributeDefinition extends ResourceObjectAttributeDefinitio
         this.outboundValueConstructionType = outboundValueConstructionType;
     }
 
-    public List<Element> getInboundAssignmentTypes() {
+    public List<ValueAssignmentType> getInboundAssignmentTypes() {
         return inboundAssignmentTypes;
     }
 
-    public void setInboundAssignmentTypes(List<Element> inboundAssignmentTypes) {
+    public void setInboundAssignmentTypes(List<ValueAssignmentType> inboundAssignmentTypes) {
         this.inboundAssignmentTypes = inboundAssignmentTypes;
     }
 
