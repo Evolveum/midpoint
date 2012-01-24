@@ -62,7 +62,7 @@ public abstract class ListController<T> implements Serializable {
 	}
 
 	public String listLast() {
-		offset = -1;
+		offset = 0;
 		firstEnabled = true;
 		lastEnabled = false;
 
@@ -84,7 +84,7 @@ public abstract class ListController<T> implements Serializable {
 
 		return listObjects();
 	}
-
+	
 	public String listPrevious() {
 		if (offset < rowsCount) {
 			offset = 0;
@@ -111,6 +111,9 @@ public abstract class ListController<T> implements Serializable {
 	}
 
 	public boolean isNextEnabled() {
+		if(!lastEnabled){
+			
+		}
 		return lastEnabled;
 	}
 
