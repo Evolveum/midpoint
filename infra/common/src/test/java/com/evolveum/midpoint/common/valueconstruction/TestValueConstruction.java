@@ -20,7 +20,11 @@
  */
 package com.evolveum.midpoint.common.valueconstruction;
 
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertFalse;
+
+import com.evolveum.midpoint.common.crypto.AESProtector;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.common.expression.xpath.XPathExpressionEvaluator;
 import com.evolveum.midpoint.schema.SchemaRegistry;
@@ -35,6 +39,7 @@ import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.test.util.DirectoryFileObjectResolver;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
 import org.testng.annotations.BeforeClass;
@@ -56,7 +61,8 @@ import static org.testng.AssertJUnit.assertEquals;
  */
 public class TestValueConstruction {
 
-    private static File TEST_DIR = new File("src/test/resources/valueconstruction");
+    private static final String KEYSTORE_PATH = "src/test/resources/crypto/test-keystore.jceks";
+	private static File TEST_DIR = new File("src/test/resources/valueconstruction");
     private static File OBJECTS_DIR = new File("src/test/resources/objects");
 
     private ValueConstructionFactory factory;
@@ -72,6 +78,12 @@ public class TestValueConstruction {
 
         factory = new ValueConstructionFactory();
         factory.setExpressionFactory(expressionFactory);
+        
+        AESProtector protector = new AESProtector();
+        protector.setKeyStorePath(KEYSTORE_PATH);
+        protector.setKeyStorePassword("changeit");
+        protector.init();
+        factory.setProtector(protector);
 
         schemaRegistry = new SchemaRegistry();
         schemaRegistry.initialize();
@@ -367,7 +379,6 @@ public class TestValueConstruction {
         PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         Property givenName = givenNameDef.instantiate();
-        givenName.setValue(new PropertyValue("barbar"));
 
         OperationResult opResult = new OperationResult("testConstructionGenerate");
 
@@ -393,6 +404,33 @@ public class TestValueConstruction {
         
         assertFalse("Generated the same value", value1.equals(value2));
 
+    }
+
+    @Test
+    public void testConstructionGenerateProtectedString() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+        // GIVEN
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = JAXBUtil.unmarshal(
+                new File(TEST_DIR, "construction-generate.xml"), ValueConstructionType.class);
+        ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
+
+        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PropertyDefinition propDef = userContainer.findPropertyDefinition(SchemaConstants.PATH_PASSWORD_VALUE);
+
+        Property prop = propDef.instantiate();
+
+        OperationResult opResult = new OperationResult("testConstructionGenerateProtectedString");
+
+        // WHEN
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, propDef, "generate protected construction");
+        construction.setInput(prop);
+        construction.evaluate(opResult);
+        Property result = construction.getOutput();
+
+        // THEN
+        ProtectedStringType value1 = result.getValue(ProtectedStringType.class).getValue();
+        System.out.println("Generated excrypted value: "+value1);
+        assertNotNull(value1);
+        assertNotNull(value1.getEncryptedData());
     }
 
 

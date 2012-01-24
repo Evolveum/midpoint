@@ -61,6 +61,9 @@
         <property name="expressionFactory">
             <ref bean="expressionFactory"/>
         </property>
+        <property name="protector">
+            <ref bean="protector"/>
+        </property>
     </bean>
 
     <bean id="actionManager" class="com.evolveum.midpoint.model.sync.ActionManagerImpl">

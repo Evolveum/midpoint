@@ -25,6 +25,7 @@ import java.util.Map;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AsIsValueConstructorType;
@@ -43,6 +44,7 @@ public class ValueConstructionFactory {
 	
 	private Map<QName,ValueConstructor> constructors;
 	private ExpressionFactory expressionFactory;
+	private Protector protector;
 	
 	public ValueConstructionFactory() {
 		constructors = null;
@@ -54,6 +56,14 @@ public class ValueConstructionFactory {
 
 	public void setExpressionFactory(ExpressionFactory expressionFactory) {
 		this.expressionFactory = expressionFactory;
+	}
+	
+	public Protector getProtector() {
+		return protector;
+	}
+
+	public void setProtector(Protector protector) {
+		this.protector = protector;
 	}
 
 	private void initialize() {
@@ -83,7 +93,7 @@ public class ValueConstructionFactory {
 	}
 	
 	private void createGenerateConstructor() {
-		ValueConstructor constructor = new GenerateValueConstructor();
+		ValueConstructor constructor = new GenerateValueConstructor(protector);
 		JAXBElement<GenerateValueConstructorType> element = objectFactory.createGenerate(objectFactory.createGenerateValueConstructorType());
 		constructors.put(element.getName(), constructor);
 	}
