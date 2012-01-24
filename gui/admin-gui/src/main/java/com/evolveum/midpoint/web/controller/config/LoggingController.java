@@ -375,6 +375,10 @@ public class LoggingController implements Serializable {
 	public void cancelPerformed() {
 		initController();
 	}
+	
+	public void resetPerformed() {
+		initController();
+	}
 
 	public String initController() {
 		getLoggers().clear();
