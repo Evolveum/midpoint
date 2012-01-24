@@ -55,6 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationTy
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -185,6 +186,34 @@ public class TestParseDiffPatch {
         // TODO
 	}
 
+	@Test
+	public void testTask() throws SchemaException, SAXException, IOException, JAXBException {
+		System.out.println("===[ testTask ]===");
+		
+		SchemaRegistry reg = new SchemaRegistry();
+		reg.initialize();
+		
+		Schema objectSchema = reg.getObjectSchema();
+        assertNotNull(objectSchema);
+
+        // WHEN
+        
+        ObjectDelta<TaskType> userDelta = DiffUtil.diff(new File(TEST_DIR, "task-before.xml"), 
+        		new File(TEST_DIR, "task-after.xml"), TaskType.class, objectSchema);
+        
+        // THEN
+        
+        System.out.println("DELTA:");
+        System.out.println(userDelta.dump());
+        
+        assertEquals("Wrong delta OID", "91919191-76e0-59e2-86d6-3d4f02d3ffff", userDelta.getOid());
+        assertEquals("Wrong change type", ChangeType.MODIFY, userDelta.getChangeType());
+        Collection<PropertyDelta> modifications = userDelta.getModifications();
+        assertEquals("Unexpected number of modifications", 1, modifications.size());
+        assertDelete(userDelta, new QName("http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-1.xsd","token"), 480);
+	}
+
+	
 	private void assertReplace(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
 		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyName);
 		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
@@ -195,6 +224,12 @@ public class TestParseDiffPatch {
 		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyName);
 		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
 		assertSet(propertyName, propertyDelta.getValuesToAdd(), expectedValues);
+	}
+	
+	private void assertDelete(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
+		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyName);
+		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
+		assertSet(propertyName, propertyDelta.getValuesToDelete(), expectedValues);
 	}
 	
 	private void assertSet(QName propertyName, Collection<PropertyValue<Object>> valuesFromDelta, Object[] expectedValues) {
