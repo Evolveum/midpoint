@@ -313,38 +313,38 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// Resolve resource
 			ObjectType resourceObjectType = getObject(ObjectType.class, resourceOid,
 					new PropertyReferenceListType(), result);
-	
+
 			// try if the object with the specified oid is resource
 			if (!(resourceObjectType instanceof ResourceType)) {
 				result.recordFatalError("Object to synchronize must be type of resource.");
 				throw new IllegalArgumentException("Object to synchronize must be type of resource.");
 			}
-	
+
 			ResourceType resourceType = (ResourceType) resourceObjectType;
-	
+
 			LOGGER.trace("**PROVISIONING: Start synchronization of resource {} ",
 					DebugUtil.prettyPrint(resourceType));
-	
+
 			// getting token form task
 			Property tokenProperty = null;
-	
+
 			if (task.getExtension() != null) {
 				tokenProperty = task.getExtension(SchemaConstants.SYNC_TOKEN);
 			}
-	
+
 			// if the token is not specified in the task, get the latest token
 			if (tokenProperty == null) {
 				tokenProperty = getShadowCache().fetchCurrentToken(resourceType, parentResult);
 			}
-	
+
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("**PROVISIONING: Got token property: {} from the task extension.",
 						DebugUtil.prettyPrint(tokenProperty));
 			}
-	
+
 			List<PropertyModification> modifications = new ArrayList<PropertyModification>();
 			List<Change> changes = null;
-		
+
 			LOGGER.trace("Calling shadow cache to fetch changes.");
 			changes = getShadowCache().fetchChanges(resourceType, tokenProperty, result);
 
@@ -377,20 +377,15 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					notifyChangeResult.recordSuccess();
 				} catch (RuntimeException ex) {
 					notifyChangeResult.recordFatalError("Runtime exception occur: " + ex.getMessage(), ex);
-
+					saveAccountResult(shadowChangeDescription, change, notifyChangeResult, parentResult);
+					new RuntimeException(ex.getMessage(), ex);
 				}
 
 				notifyChangeResult.computeStatus("Error by notify change operation.");
 
 				if (notifyChangeResult.isSuccess()) {
-					if (notifyChangeResult.isSuccess() && change.getObjectDelta() != null
-							&& change.getObjectDelta().getChangeType() == ChangeType.DELETE
-							&& change.getOldShadow() != null) {
-						LOGGER.debug("Deleting detected shadow object form repository.");
-						cacheRepositoryService.deleteObject(AccountShadowType.class, change.getOldShadow()
-								.getOid(), parentResult);
-						LOGGER.debug("Shadow object deleted successfully form repository.");
-					}
+					deleteShadowFromRepo(change, parentResult);
+
 					// get updated token from change,
 					// create property modification from new token
 					// and replace old token with the new one
@@ -400,31 +395,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					processedChanges++;
 
 				} else {
-					if (change.getObjectDelta() != null
-							&& change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
-						String shadowOid = shadowChangeDescription.getOldShadow() != null ? shadowChangeDescription
-								.getObjectDelta().getOid() : shadowChangeDescription.getCurrentShadow()
-								.getOid();
-						// ObjectModificationType modificationAccountResult =
-						// ObjectTypeUtil
-						// .createModificationReplaceProperty(shadowOid,
-						// SchemaConstants.C_RESULT,
-						// notifyChangeResult.createOperationResultType());
-						// if (change.getObjectDelta() != null
-						// && change.getObjectDelta().getChangeType() ==
-						// ChangeType.DELETE) {
-						ObjectModificationType shadowModification = ObjectTypeUtil
-								.createModificationReplaceProperty(shadowOid,
-										SchemaConstants.C_FAILED_OPERATION_TYPE,
-										FailedOperationTypeType.DELETE);
-
-						cacheRepositoryService.modifyObject(AccountShadowType.class, shadowModification,
-								parentResult);
-					}
-
+					saveAccountResult(shadowChangeDescription, change, notifyChangeResult, parentResult);
 				}
-
-				
 
 			}
 			// also if no changes was detected, update token
@@ -434,23 +406,24 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				modifications.add(modificatedToken);
 			}
 			task.modifyExtension(modifications, result);
-			
-		// This happens in the (scheduled async) task. Recording of results in the task is still not
-		// ideal, therefore also log the errors with a full stack trace.
+
+			// This happens in the (scheduled async) task. Recording of results
+			// in the task is still not
+			// ideal, therefore also log the errors with a full stack trace.
 		} catch (ObjectNotFoundException e) {
-			LOGGER.error("Synchronization error: object not found: {}",e.getMessage(),e);
+			LOGGER.error("Synchronization error: object not found: {}", e.getMessage(), e);
 			result.recordFatalError(e.getMessage(), e);
 			throw new ObjectNotFoundException(e.getMessage(), e);
 		} catch (CommunicationException e) {
-			LOGGER.error("Synchronization error: communication problem: {}",e.getMessage(),e);
+			LOGGER.error("Synchronization error: communication problem: {}", e.getMessage(), e);
 			result.recordFatalError("Error communicating with connector: " + e.getMessage(), e);
 			throw new CommunicationException(e.getMessage(), e);
 		} catch (GenericFrameworkException e) {
-			LOGGER.error("Synchronization error: generic connector framework error: {}",e.getMessage(),e);
+			LOGGER.error("Synchronization error: generic connector framework error: {}", e.getMessage(), e);
 			result.recordFatalError(e.getMessage(), e);
 			throw new CommunicationException(e.getMessage(), e);
 		} catch (SchemaException e) {
-			LOGGER.error("Synchronization error: schema problem: {}",e.getMessage(),e);
+			LOGGER.error("Synchronization error: schema problem: {}", e.getMessage(), e);
 			result.recordFatalError(e.getMessage(), e);
 			throw new SchemaException(e.getMessage(), e);
 		}
@@ -514,17 +487,17 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		if (ResourceType.class.equals(objectType)) {
 			ResultList<T> newObjListType = new ResultArrayList<T>();
 			for (T obj : objListType) {
-				OperationResult  objResult = new OperationResult(ProvisioningService.class.getName()
-				+ ".listObjects.object");
+				OperationResult objResult = new OperationResult(ProvisioningService.class.getName()
+						+ ".listObjects.object");
 				ResourceType resource = (ResourceType) obj;
 				ResourceType completeResource;
-				
+
 				try {
-					
+
 					completeResource = getResourceTypeManager().completeResource(resource, null, objResult);
 					newObjListType.add((T) completeResource);
 					// TODO: what do to with objResult??
-					
+
 				} catch (ObjectNotFoundException e) {
 					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
 							ObjectTypeUtil.toShortString(resource), e.getMessage(), e });
@@ -533,7 +506,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					newObjListType.add(obj);
 					result.addSubresult(objResult);
 					result.recordPartialError(e);
-					
+
 				} catch (SchemaException e) {
 					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
 							ObjectTypeUtil.toShortString(resource), e.getMessage(), e });
@@ -542,7 +515,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					newObjListType.add(obj);
 					result.addSubresult(objResult);
 					result.recordPartialError(e);
-					
+
 				} catch (CommunicationException e) {
 					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
 							ObjectTypeUtil.toShortString(resource), e.getMessage(), e });
@@ -551,14 +524,17 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					newObjListType.add(obj);
 					result.addSubresult(objResult);
 					result.recordPartialError(e);
-					
+
 				} catch (RuntimeException e) {
-					// FIXME: Strictly speaking, the runtime exception should not be handled here.
-					// The runtime exceptions should be considered fatal anyway ... but some of the
-					// ICF exceptions are still translated to system exceptions. So this provides
+					// FIXME: Strictly speaking, the runtime exception should
+					// not be handled here.
+					// The runtime exceptions should be considered fatal anyway
+					// ... but some of the
+					// ICF exceptions are still translated to system exceptions.
+					// So this provides
 					// a better robustness now.
-					LOGGER.error("System error while completing {}: {}. Using non-complete resource.", new Object[] {
-							ObjectTypeUtil.toShortString(resource), e.getMessage(), e });
+					LOGGER.error("System error while completing {}: {}. Using non-complete resource.",
+							new Object[] { ObjectTypeUtil.toShortString(resource), e.getMessage(), e });
 					objResult.recordFatalError(e);
 					obj.setFetchResult(objResult.createOperationResultType());
 					newObjListType.add(obj);
@@ -650,7 +626,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throw e;
 		} catch (RuntimeException e) {
 			result.recordFatalError(e);
-			throw new SystemException("Internal error: "+e.getMessage(),e);
+			throw new SystemException("Internal error: " + e.getMessage(), e);
 		}
 
 		LOGGER.trace("Finished modifying of object with oid {}", objectType.getOid());
@@ -874,7 +850,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		ResourceType resource = null;
 		try {
-			// Don't use repository. Repository resource will not have properly set capabilities
+			// Don't use repository. Repository resource will not have properly
+			// set capabilities
 			resource = getObject(ResourceType.class, resourceOid, null, result);
 
 		} catch (ObjectNotFoundException e) {
@@ -890,7 +867,29 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					LOGGER.trace("searchObjectsIterative: processing shadow: {}",
 							DebugUtil.prettyPrint(shadow));
 				}
-				return handler.handle(shadow, result);
+
+				OperationResult accountResult = result.createSubresult(ProvisioningService.class.getName()
+						+ ".searchObjectsIterative.handle");
+				boolean isSuccess = handler.handle(shadow, accountResult);
+				if (!isSuccess) {
+					ObjectModificationType shadowModificationType = ObjectTypeUtil
+							.createModificationReplaceProperty(shadow.getOid(), SchemaConstants.C_RESULT,
+									accountResult.createOperationResultType());
+					try {
+						cacheRepositoryService.modifyObject(AccountShadowType.class, shadowModificationType,
+								parentResult);
+					} catch (ObjectNotFoundException ex) {
+						parentResult.recordFatalError(
+								"Can't modify object " + ObjectTypeUtil.toShortString(shadow)
+										+ " because it doesn't exist in the repository.", ex);
+					} catch (SchemaException ex) {
+						parentResult.recordFatalError(
+								"Can't modify object " + ObjectTypeUtil.toShortString(shadow)
+										+ ". Problem in the schema.", ex);
+					}
+				}
+
+				return isSuccess;
 			}
 		};
 
@@ -911,10 +910,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		shadowChangeDescription.setOldShadow(change.getOldShadow());
 		ResourceObjectShadowType currentShadow = change.getCurrentShadow();
 		if (currentShadow instanceof AccountShadowType) {
-			AccountShadowType account = (AccountShadowType)currentShadow;
+			AccountShadowType account = (AccountShadowType) currentShadow;
 			account.setActivation(ShadowCacheUtil.determineActivation(resourceType, account, null));
 		}
-		
+
 		shadowChangeDescription.setCurrentShadow(change.getCurrentShadow());
 		shadowChangeDescription.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_SYNC));
 		return shadowChangeDescription;
@@ -975,6 +974,54 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 
 		result.computeStatus("Provisioning post-initialization failed");
+	}
+
+	private ObjectModificationType createShadowResultModification(
+			ResourceObjectShadowChangeDescription shadowChangeDescription, Change change,
+			OperationResult shadowResult) {
+
+		String shadowOid = shadowChangeDescription.getOldShadow() != null ? shadowChangeDescription
+				.getObjectDelta().getOid() : shadowChangeDescription.getCurrentShadow().getOid();
+		ObjectModificationType shadowModification = ObjectTypeUtil.createModificationReplaceProperty(
+				shadowOid, SchemaConstants.C_RESULT, shadowResult.createOperationResultType());
+
+		if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
+			PropertyModificationType deleteFlagProperty = ObjectTypeUtil.createPropertyModificationType(
+					PropertyModificationTypeType.replace, null, SchemaConstants.C_FAILED_OPERATION_TYPE,
+					FailedOperationTypeType.DELETE);
+			shadowModification.getPropertyModification().add(deleteFlagProperty);
+		}
+		return shadowModification;
+
+	}
+
+	private void saveAccountResult(ResourceObjectShadowChangeDescription shadowChangeDescription,
+			Change change, OperationResult notifyChangeResult, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
+
+		ObjectModificationType shadowModification = createShadowResultModification(shadowChangeDescription,
+				change, notifyChangeResult);
+		// maybe better error handling is needed
+		cacheRepositoryService.modifyObject(AccountShadowType.class, shadowModification, parentResult);
+
+	}
+
+	private void deleteShadowFromRepo(Change change, OperationResult parentResult)
+			throws ObjectNotFoundException {
+		if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE
+				&& change.getOldShadow() != null) {
+			LOGGER.debug("Deleting detected shadow object form repository.");
+			try {
+				cacheRepositoryService.deleteObject(AccountShadowType.class, change.getOldShadow().getOid(),
+						parentResult);
+			} catch (ObjectNotFoundException ex) {
+				parentResult.recordFatalError("Can't find object "
+						+ ObjectTypeUtil.toShortString(change.getOldShadow()) + " in repository.");
+				throw new ObjectNotFoundException("Can't find object "
+						+ ObjectTypeUtil.toShortString(change.getOldShadow()) + " in repository.");
+			}
+			LOGGER.debug("Shadow object deleted successfully form repository.");
+		}
 	}
 
 }
