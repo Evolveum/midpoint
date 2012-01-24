@@ -413,11 +413,9 @@ public class LoggingController implements Serializable {
 				getAppenders().add(createAppenderListItem((FileAppenderConfigurationType) appender));
 			}
 
-			
-
 			//create loggers list
 			createLoggerList(logging);
-			
+			loggers.addAll(classLoggers);
 			
 			result.recordSuccess();
 		} catch (Exception ex) {
@@ -524,16 +522,6 @@ public class LoggingController implements Serializable {
 
 	public void changeView(ActionEvent evt) {
 		advancedView = !advancedView;
-		if (advancedView){
-			getLoggers().addAll(classLoggers);
-		} else{
-			for (Iterator<BasicLoggerListItem> i = getLoggers().iterator(); i.hasNext();){
-				BasicLoggerListItem logger = i.next();
-				if (!logger.isSystemComponent()){
-					i.remove();
-				}
-			}
-		}
 	}
 
 //	public String initController() {

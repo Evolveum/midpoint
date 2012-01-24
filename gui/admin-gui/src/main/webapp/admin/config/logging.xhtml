@@ -92,7 +92,7 @@
 						</ice:commandLink>
 					</f:subview>
 					<f:subview
-						rendered="#{not item.systemComponent &amp;&amp; logging.advancedView}">
+						rendered="#{not item.systemComponent}">
 						<ice:commandLink style="text-decoration: underline;"
 							rendered="#{not item.editing}" value="#{item.packageName}"
 							action="#{logging.editLogger}">
@@ -112,8 +112,7 @@
 						<ice:outputText value="#{item.levelString}"
 							rendered="#{not item.editing}" />
 					</ui:remove>
-					<ice:selectOneMenu value="#{item.levelString}"
-						rendered="#{item.systemComponent || logging.advancedView}">
+					<ice:selectOneMenu value="#{item.levelString}">
 						<f:param id="loggerId" name="loggerId" value="#{item.id}" />
 						<f:selectItems value="#{logging.levels}" />
 					</ice:selectOneMenu>
@@ -141,8 +140,7 @@
 					<ice:selectOneMenu
 						valueChangeListener="#{logging.addLoggerAppender}"
 						style="width: inherit;" partialSubmit="true" immediate="true"
-						id="loggerAppenderSelect" value="#{item.appendersText}"
-						rendered="#{(item.systemComponent || logging.advancedView)}">
+						id="loggerAppenderSelect" value="#{item.appendersText}">
 						<f:param name="loggerId" value="#{item.id}" />
 						<f:selectItems value="#{logging.appenderNames}" />
 					</ice:selectOneMenu>
