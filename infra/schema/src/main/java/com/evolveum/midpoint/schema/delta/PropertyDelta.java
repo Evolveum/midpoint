@@ -400,7 +400,8 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         Value modValue = new Value();
         mod.setValue(modValue);
         for (PropertyValue<Object> value : values) {
-            modValue.getAny().add(XsdTypeConverter.toXsdElement(value.getValue(), name, document));
+        	// Always record xsi:type. This is FIXME, but should work OK for now (until we put definition into deltas)
+            modValue.getAny().add(XsdTypeConverter.toXsdElement(value.getValue(), name, document, true));
         }
     }
 

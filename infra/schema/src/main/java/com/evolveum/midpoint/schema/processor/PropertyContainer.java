@@ -375,13 +375,15 @@ public class PropertyContainer extends Item {
         }
         PropertyDefinition propertyDefinition = getDefinition().findPropertyDefinition(propertyName);
         if (propertyDefinition == null) {
-        	if (this.getDefinition().isRuntimeSchema) {
+        	// HACK: sometimes we don't know if the definition is runtime or not (e.g. applying a patch)
+        	// therefore pretend that everything withot a definition is runtime (for now)
+//        	if (this.getDefinition().isRuntimeSchema) {
         		// HACK: create the definition "on demand" based on the property java type.
         		QName typeName = XsdTypeConverter.toXsdType(valueClass);
         		propertyDefinition = new PropertyDefinition(propertyName, typeName);
-        	} else {
-        		throw new IllegalArgumentException("No definition of property '" + propertyName + "' in " + getDefinition());
-        	}
+//        	} else {
+//        		throw new IllegalArgumentException("No definition of property '" + propertyName + "' in " + getDefinition());
+//        	}
         }
         Property property = propertyDefinition.instantiate();
         add(property);

@@ -47,9 +47,11 @@ import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.DiffUtil;
 import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
+import com.evolveum.midpoint.schema.processor.PropertyPath;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -198,19 +200,54 @@ public class TestParseDiffPatch {
 
         // WHEN
         
-        ObjectDelta<TaskType> userDelta = DiffUtil.diff(new File(TEST_DIR, "task-before.xml"), 
+        ObjectDelta<TaskType> diffDelta = DiffUtil.diff(new File(TEST_DIR, "task-before.xml"), 
         		new File(TEST_DIR, "task-after.xml"), TaskType.class, objectSchema);
         
         // THEN
         
         System.out.println("DELTA:");
-        System.out.println(userDelta.dump());
+        System.out.println(diffDelta.dump());
         
-        assertEquals("Wrong delta OID", "91919191-76e0-59e2-86d6-3d4f02d3ffff", userDelta.getOid());
-        assertEquals("Wrong change type", ChangeType.MODIFY, userDelta.getChangeType());
-        Collection<PropertyDelta> modifications = userDelta.getModifications();
+        assertEquals("Wrong delta OID", "91919191-76e0-59e2-86d6-3d4f02d3ffff", diffDelta.getOid());
+        assertEquals("Wrong change type", ChangeType.MODIFY, diffDelta.getChangeType());
+        Collection<PropertyDelta> modifications = diffDelta.getModifications();
         assertEquals("Unexpected number of modifications", 1, modifications.size());
-        assertDelete(userDelta, new QName("http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-1.xsd","token"), 480);
+        assertDelete(diffDelta, SchemaConstants.PATH_EXTENSION.subPath(new QName("http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-1.xsd","token")), 480);
+        
+        // Convert to XML form. This should include xsi:type to pass the type information
+        
+        ObjectModificationType objectModificationType = diffDelta.toObjectModificationType();
+        System.out.println("Modification XML:");
+        System.out.println(JAXBUtil.marshalWrap(objectModificationType));
+        
+        // Check for xsi:type
+        Element tokenElement = (Element) objectModificationType.getPropertyModification().get(0).getValue().getAny().get(0);
+        assertTrue("No xsi:type in token",DOMUtil.hasXsiType(tokenElement));
+        
+        // parse back delta
+        
+        ObjectDelta<TaskType> patchDelta = ObjectDelta.createDelta(objectModificationType, objectSchema, TaskType.class);
+        
+        // ROUNDTRIP
+        
+        MidPointObject<TaskType> taskPatch = objectSchema.parseObject(new File(TEST_DIR, "task-before.xml"), TaskType.class);
+        
+        // patch
+        patchDelta.applyTo(taskPatch);
+        
+        System.out.println("Task after roundtrip patching");
+        System.out.println(taskPatch.dump());
+        
+        MidPointObject<TaskType> taskAfter = objectSchema.parseObject(new File(TEST_DIR, "task-after.xml"), TaskType.class);
+                
+        assertTrue("Not equivalent",taskPatch.equivalent(taskAfter));
+        
+        ObjectDelta<TaskType> roundTripDelta = DiffUtil.diff(taskPatch, taskAfter);
+        System.out.println("roundtrip DELTA:");
+        System.out.println(roundTripDelta.dump());
+        
+        assertTrue("Roundtrip delta is not empty",roundTripDelta.isEmpty());
+        
 	}
 
 	
@@ -231,7 +268,25 @@ public class TestParseDiffPatch {
 		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
 		assertSet(propertyName, propertyDelta.getValuesToDelete(), expectedValues);
 	}
+
+	private void assertReplace(ObjectDelta<?> userDelta, PropertyPath propertyPath, Object... expectedValues) {
+		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyPath);
+		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
+		assertSet(propertyPath.last(), propertyDelta.getValuesToReplace(), expectedValues);
+	}
+
+	private void assertAdd(ObjectDelta<?> userDelta, PropertyPath propertyPath, Object... expectedValues) {
+		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyPath);
+		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
+		assertSet(propertyPath.last(), propertyDelta.getValuesToAdd(), expectedValues);
+	}
 	
+	private void assertDelete(ObjectDelta<?> userDelta, PropertyPath propertyPath, Object... expectedValues) {
+		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyPath);
+		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
+		assertSet(propertyPath.last(), propertyDelta.getValuesToDelete(), expectedValues);
+	}
+
 	private void assertSet(QName propertyName, Collection<PropertyValue<Object>> valuesFromDelta, Object[] expectedValues) {
 		assertEquals("Wrong number of values",expectedValues.length, valuesFromDelta.size());
 		for (PropertyValue<Object> valueToReplace: valuesFromDelta) {

@@ -453,7 +453,7 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 	/**
 	 * Try to locate xsi:type definition in the elements and return appropriate ItemDefinition.
 	 */
-	public static ItemDefinition resolveDynamicItemDefinition(List<Object> valueElements) {
+	public static ItemDefinition resolveDynamicItemDefinition(ItemDefinition parentDefinition, List<Object> valueElements) {
 		QName typeName = null;
 		QName elementName = null;
 		for (Object element: valueElements) {
@@ -475,7 +475,9 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 		if (typeName == null) {
 			return null;
 		}
-		PropertyDefinition propDef = new PropertyDefinition(elementName, typeName);
+		PropertyDefinition propDef = new PropertyDefinition(elementName, typeName, parentDefinition);
+		// Set it to multi-value to be on the safe side
+		propDef.setMaxOccurs(-1);
 		// TODO: set "dynamic" flag
 		return propDef;
 	}

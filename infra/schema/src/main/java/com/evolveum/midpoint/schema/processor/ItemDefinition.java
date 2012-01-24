@@ -87,7 +87,13 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		super(defaultName,typeName);
 		this.name = name;
 	}
-	
+
+	ItemDefinition(QName name, QName defaultName, QName typeName, ItemDefinition parentDefinition) {
+		super(defaultName,typeName);
+		this.name = name;
+		this.parent = parentDefinition;
+	}
+
 	/**
 	 * Returns name of the defined entity.
 	 * 

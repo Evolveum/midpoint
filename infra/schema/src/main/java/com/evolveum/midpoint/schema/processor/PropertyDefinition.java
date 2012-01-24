@@ -79,6 +79,10 @@ public class PropertyDefinition extends ItemDefinition {
         super(name, null, typeName);
     }
 
+    public PropertyDefinition(QName name, QName typeName, ItemDefinition parentDefinition) {
+        super(name, null, typeName, parentDefinition);
+    }
+
     // This creates reference to other schema
     PropertyDefinition(QName name) {
         super(name, null, null);

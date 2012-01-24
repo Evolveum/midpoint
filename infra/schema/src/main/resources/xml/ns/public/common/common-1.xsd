@@ -5254,6 +5254,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true"/>
+            <xsd:element name="details" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
             <xsd:element name="appender" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>

@@ -538,7 +538,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
             
             if (def == null) {
             	// Try to locate xsi:type definition in the element
-            	def = Schema.resolveDynamicItemDefinition(valueElements);
+            	def = Schema.resolveDynamicItemDefinition(this, valueElements);
             }
             
             if (def == null) {
@@ -660,46 +660,53 @@ public class PropertyContainerDefinition extends ItemDefinition {
         } catch (ClassCastException e) {
             throw new IllegalStateException("Unexpected result from " + ANY_GETTER_NAME + " in " + getName() + ", expected List<Object> but got " + value.getClass());
         }
-
-        Property property = null;
-        for (Object element : elementList) {
-            QName elementName = JAXBUtil.getElementQName(element);
-
-            if (property == null || !property.getName().equals(elementName)) {
-                PropertyDefinition propertyDefinition = findPropertyDefinition(elementName);
-                if (propertyDefinition != null) {
-                    property = propertyDefinition.instantiate(elementName);
-                } else {
-                    property = new Property(elementName);
-                }
-                propertyContainer.add(property);
-            }
-
-            try {
-                if (property.getDefinition() != null) {
-                    Object elementValue = XsdTypeConverter.toJavaValue(element, property.getDefinition().getTypeName());
-                    property.getValues().add(new PropertyValue(elementValue));
-                } else {
-                	
-                	// FIXME: The default type should not be here (strictly speaking)
-                	// But it is necessary for use in repository. we don't have the schema for account attributes there.
-                	// This somehow mimicks the behavior of XML diff/patch routines
-                	TypedValue typedValue = XsdTypeConverter.toTypedJavaValueWithDefaultType(element, DOMUtil.XSD_STRING);
-                    //TypedValue typedValue = XsdTypeConverter.toTypedJavaValueWithDefaultType(element, null);
-                	
-                    Object elementValue = typedValue.getValue();
-                    property.getValues().add(new PropertyValue(elementValue));
-                    if (property.getDefinition() == null) {
-                        PropertyDefinition def = new PropertyDefinition(elementName, typedValue.getXsdType());
-                        property.setDefinition(def);
-                    }
-                }
-            } catch (SchemaException e) {
-                // add more context. As exception is immutable, we need to wrap it once again
-                throw new SchemaException(e.getMessage() + ", in " + getName(), e, elementName);
-            }
-
-        }
+        
+        Collection<? extends Item> items = parseItems(elementList);
+        propertyContainer.addAll(items);
+        
+//
+//        Property property = null;
+//        for (Object element : elementList) {
+//        	
+//            QName elementName = JAXBUtil.getElementQName(element);
+//
+//            if (property == null || !property.getName().equals(elementName)) {
+//                PropertyDefinition propertyDefinition = findPropertyDefinition(elementName);
+//                if (propertyDefinition != null) {
+//                    property = propertyDefinition.instantiate(elementName);
+//                } else {
+//                	propertyDefinition = Schema.resolveDynamicItemDefinition(this, valueElements);
+//                	dfs
+//                    property = new Property(elementName);
+//                }
+//                propertyContainer.add(property);
+//            }
+//
+//            try {
+//                if (property.getDefinition() != null) {
+//                    Object elementValue = XsdTypeConverter.toJavaValue(element, property.getDefinition().getTypeName());
+//                    property.getValues().add(new PropertyValue(elementValue));
+//                } else {
+//                	
+//                	// FIXME: The default type should not be here (strictly speaking)
+//                	// But it is necessary for use in repository. we don't have the schema for account attributes there.
+//                	// This somehow mimicks the behavior of XML diff/patch routines
+//                	TypedValue typedValue = XsdTypeConverter.toTypedJavaValueWithDefaultType(element, DOMUtil.XSD_STRING);
+//                    //TypedValue typedValue = XsdTypeConverter.toTypedJavaValueWithDefaultType(element, null);
+//                	
+//                    Object elementValue = typedValue.getValue();
+//                    property.getValues().add(new PropertyValue(elementValue));
+//                    if (property.getDefinition() == null) {
+//                        PropertyDefinition def = new PropertyDefinition(elementName, typedValue.getXsdType());
+//                        property.setDefinition(def);
+//                    }
+//                }
+//            } catch (SchemaException e) {
+//                // add more context. As exception is immutable, we need to wrap it once again
+//                throw new SchemaException(e.getMessage() + ", in " + getName(), e, elementName);
+//            }
+//
+//        }
 
         return propertyContainer;
     }

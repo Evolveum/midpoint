@@ -83,6 +83,7 @@ public class XsdTypeConverter {
         addMapping(Boolean.class, DOMUtil.XSD_BOOLEAN, false);
         addMapping(byte[].class, DOMUtil.XSD_BASE64BINARY, true);
         addMapping(GregorianCalendar.class, DOMUtil.XSD_DATETIME, true);
+        addMapping(XMLGregorianCalendar.class, DOMUtil.XSD_DATETIME, true);
         addMapping(QName.class, DOMUtil.XSD_QNAME, true);
 
         for (int i = 0; i < SchemaConstants.JAXB_PACKAGES.length; i++) {
@@ -185,6 +186,8 @@ public class XsdTypeConverter {
             return (T) Boolean.valueOf(stringContent);
         } else if (type.equals(GregorianCalendar.class)) {
             return (T) getDatatypeFactory().newXMLGregorianCalendar(stringContent).toGregorianCalendar();
+        } else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
+        	return (T) getDatatypeFactory().newXMLGregorianCalendar(stringContent);
         } else {
             return null;
         }
@@ -311,6 +314,8 @@ public class XsdTypeConverter {
             } else if (type.equals(GregorianCalendar.class)) {
                 XMLGregorianCalendar xmlCal = toXMLGregorianCalendar((GregorianCalendar) val);
                 element.setTextContent(xmlCal.toXMLFormat());
+            } else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
+            	element.setTextContent(((XMLGregorianCalendar) val).toXMLFormat());
             } else if (type.equals(QName.class)) {
                 QName qname = (QName) val;
                 DOMUtil.setQNameValue(element, qname);
@@ -451,7 +456,7 @@ public class XsdTypeConverter {
         gregorianCalendar.setTimeInMillis(timeInMillis);
         return toXMLGregorianCalendar(gregorianCalendar);
     }
-
+    
     public static XMLGregorianCalendar toXMLGregorianCalendar(GregorianCalendar cal) {
         return getDatatypeFactory().newXMLGregorianCalendar(cal);
     }
