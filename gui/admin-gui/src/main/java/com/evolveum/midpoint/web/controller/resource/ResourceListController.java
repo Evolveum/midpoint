@@ -317,7 +317,11 @@ public class ResourceListController extends SortableListController<ResourceListI
 			List<ResourceListItem> list = getObjects();
 			list.clear();
 			for (ResourceDto resource : resources) {
+				if(resource.getXmlObject().getFetchResult() != null){
+					FacesUtils.addErrorMessage(resource.getXmlObject().getName() + ": " +resource.getXmlObject().getFetchResult().getMessage());
+				}
 				list.add(createResourceListItem(resource.getXmlObject()));
+				
 			}
 			sort();
 		} catch (Exception ex) {
