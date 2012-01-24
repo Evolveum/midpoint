@@ -95,6 +95,9 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 	private RepositoryService repositoryService;
 	@Autowired(required = true)
 	private TaskManager taskManager;
+	
+	private static String guybrushOid;
+	private static String hermanOid;
 
 	/**
 	 * Test integrity of the test setup.
@@ -204,6 +207,8 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertEquals("Search retuned unexpected results", 1, users.size());
 		UserType guybrush = users.get(0);
 		assertNotNull(guybrush);
+		guybrushOid = guybrush.getOid();
+		assertNotNull(guybrushOid);
 		assertEquals("Guybrush", guybrush.getGivenName());
 		assertEquals("Threepwood", guybrush.getFamilyName());
 		assertEquals("Guybrush Threepwood", guybrush.getFullName());
@@ -277,10 +282,69 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 			}			
 			if (user.getName().equals("guybrush")) {
 				// OID may be different, there should be a locality attribute
+				guybrushOid = user.getOid();
+				assertNotNull(guybrushOid);
 				assertEquals("Guybrush is not in the Caribbean", "Deep in the Caribbean", user.getLocality());
 			}			
 			if (user.getName().equals("ht")) {
 				// Herman should be here now
+				hermanOid = user.getOid();
+				assertNotNull(hermanOid);
+				assertEquals("Herman is confused", "Herman Toothrot", user.getFullName());
+				assertEquals("Herman is confused", "Herman", user.getGivenName());
+				assertEquals("Herman is confused", "Toothrot", user.getFamilyName());
+			}	
+		}
+	}
+
+	
+	// Import the same thing again, with overwrite and also while keeping OIDs
+	@Test
+	public void test006ImportUsersWithOverwriteKeepOid() throws FileNotFoundException, ObjectNotFoundException,
+			SchemaException {
+		displayTestTile(this,"test006ImportUsersWithOverwriteKeepOid");
+		// GIVEN
+		Task task = taskManager.createTaskInstance();
+		OperationResult result = new OperationResult(ImportTest.class.getName() + "test005ImportUsersWithOverwrite");
+		FileInputStream stream = new FileInputStream(IMPORT_USERS_OVERWRITE_FILE);
+		ImportOptionsType options = getDefaultImportOptions();
+		options.setOverwrite(true);
+		options.setKeepOid(true);
+
+		// WHEN
+		modelService.importObjectsFromStream(stream, options, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("Result after import with overwrite", result);
+		assertSuccess("Import failed (result)", result,1);
+
+		// list all users
+		List<UserType> users = modelService.listObjects(UserType.class, null, result);
+		// Three old users, one new
+		assertEquals(4,users.size());
+		
+		for (UserType user : users) {
+			if (user.getName().equals("jack")) {
+				// OID and all the attributes should be the same
+				assertEquals(USER_JACK_OID,user.getOid());
+				assertEquals("Jack", user.getGivenName());
+				assertEquals("Sparrow", user.getFamilyName());
+				assertEquals("Cpt. Jack Sparrow", user.getFullName());
+			}
+			if (user.getName().equals("will")) {
+				// OID should be the same, and there should be an employee type
+				assertEquals(USER_WILL_OID,user.getOid());
+				assertTrue("Wrong Will's employee type", user.getEmployeeType().contains("legendary"));
+			}			
+			if (user.getName().equals("guybrush")) {
+				// OID should be the same, there should be a locality attribute
+				assertEquals("Guybrush's OID went leeway", guybrushOid, user.getOid());
+				assertEquals("Guybrush is not in the Caribbean", "Deep in the Caribbean", user.getLocality());
+			}
+			if (user.getName().equals("ht")) {
+				// Herman should still be here
+				assertEquals("Herman's OID went leeway", hermanOid, user.getOid());
 				assertEquals("Herman is confused", "Herman Toothrot", user.getFullName());
 				assertEquals("Herman is confused", "Herman", user.getGivenName());
 				assertEquals("Herman is confused", "Toothrot", user.getFamilyName());
