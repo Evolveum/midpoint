@@ -2681,7 +2681,7 @@
     <xsd:complexType name="ResourceAccountTypeDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Defiens a type from the resource schema (object class)
+                Defines a type from the resource schema (object class)
                 that can be used for creating accounts.
             </xsd:documentation>
         </xsd:annotation>
@@ -3550,7 +3550,7 @@
             <xsd:element name="source" type="c:ValueConstructionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Source of assignement. R-value. The value (or
+                        Source of assignment. R-value. The value (or
                         values) will be copied from this place
                         or from the result of the expression.
                         Depending on how this type is used, the source may be

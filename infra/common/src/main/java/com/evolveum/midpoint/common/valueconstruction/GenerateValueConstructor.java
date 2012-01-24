@@ -65,11 +65,11 @@ public class GenerateValueConstructor implements ValueConstructor {
 			Property input, Map<QName, Object> variables, String contextDescription, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
-		Object contstuctorTypeObject = constructorElement.getValue();
-        if (!(contstuctorTypeObject instanceof GenerateValueConstructorType)) {
-            throw new IllegalArgumentException("Generate value constructor cannot handle elements of type " + contstuctorTypeObject.getClass().getName());
+		Object constructorTypeObject = constructorElement.getValue();
+        if (!(constructorTypeObject instanceof GenerateValueConstructorType)) {
+            throw new IllegalArgumentException("Generate value constructor cannot handle elements of type " + constructorTypeObject.getClass().getName());
         }
-        GenerateValueConstructorType constructorType = (GenerateValueConstructorType) contstuctorTypeObject;
+        GenerateValueConstructorType constructorType = (GenerateValueConstructorType) constructorTypeObject;
 		
         QName outputType = outputDefinition.getTypeName();
         if (!outputType.equals(DOMUtil.XSD_STRING) && !outputType.equals(SchemaConstants.R_PROTECTED_STRING_TYPE)) {
