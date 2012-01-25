@@ -126,10 +126,6 @@ public class ChangeExecutor {
      */
     private void updateAccountLinks(MidPointObject<UserType> userNew, AccountSyncContext accCtx,
             OperationResult result) throws ObjectNotFoundException, SchemaException {
-        if (PolicyDecision.KEEP.equals(accCtx.getPolicyDecision())) {
-            return;
-        }
-
         UserType userTypeNew = userNew.getOrParseObjectType();
         String accountOid = accCtx.getOid();
         if (accountOid == null) {

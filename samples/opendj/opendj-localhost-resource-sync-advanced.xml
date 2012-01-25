@@ -618,19 +618,27 @@ object.
                 </attribute>
 
                 <credentials>
-
                     <password>
-                        <outbound>
-                            <asIs/>
-                        </outbound>
+                        <!--<outbound>-->
+                            <!--<asIs/>-->
+                        <!--</outbound>-->
+                        <inbound>
+                            <source>
+                                <generate/>
+                            </source>
+                        </inbound>
                     </password>
                 </credentials>
                 <activation>
                     <enabled>
-                        <outbound>
-
-                            <asIs/>
-                        </outbound>
+                        <!--<outbound>-->
+                            <!--<asIs/>-->
+                        <!--</outbound>-->
+                        <inbound>
+                            <source>
+                                <asIs/>
+                            </source>
+                        </inbound>
                     </enabled>
                 </activation>
             </accountType>
@@ -699,6 +707,7 @@ object.
             <reaction>
                 <situation>linked</situation>
                 <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser"/>
+                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#disableAccount"/>-->
             </reaction>
             <reaction>
                 <situation>deleted</situation>
@@ -720,7 +729,7 @@ object.
 
                     <userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
                 </action>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>-->
             </reaction>
 
         </synchronization>

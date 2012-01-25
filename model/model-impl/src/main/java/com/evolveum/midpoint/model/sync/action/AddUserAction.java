@@ -74,7 +74,7 @@ public class AddUserAction extends BaseAction {
                 }
 
                 //add account sync context for inbound processing
-                AccountSyncContext accountContext = createAccountSyncContext(context, change, PolicyDecision.KEEP, null);
+                AccountSyncContext accountContext = createAccountSyncContext(context, change, null, null);
                 if (accountContext == null) {
                     LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
                     return userOid;
