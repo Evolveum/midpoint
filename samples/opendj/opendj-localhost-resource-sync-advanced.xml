@@ -624,6 +624,7 @@ object.
                         <!--</outbound>-->
                         <inbound>
                             <source>
+                                <initial>true</initial>
                                 <generate/>
                             </source>
                         </inbound>
