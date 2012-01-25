@@ -98,7 +98,7 @@ public class LoggingController implements Serializable {
 	private boolean selectAllAppenders = false;
 	private boolean enableAuditLog = true;
 	private boolean auditDetails = false;
-	private AuditingConfigurationType audit;
+	private AuditingConfigurationType audit = new AuditingConfigurationType();
 
 	public List<SelectItem> getLevels() {
 		List<SelectItem> levels = new ArrayList<SelectItem>();
@@ -360,6 +360,8 @@ public class LoggingController implements Serializable {
 		LoggingConfigurationType logging = createConfiguration(getLoggers(), getAppenders());
 		OperationResult result = new OperationResult("Load Logging Configuration");
 		try {
+			audit.setEnabled(enableAuditLog);
+			audit.setDetails(auditDetails);
 			loggingManager.updateConfiguration(logging, result);
 			result.recordSuccess();
 
@@ -389,9 +391,14 @@ public class LoggingController implements Serializable {
 		selectAllLoggers = false;
 		advancedView = false;
 		
-		audit = new AuditingConfigurationType();
-		audit.setEnabled(enableAuditLog);
-		audit.setDetails(auditDetails);
+		if(audit.isEnabled() == null){
+			audit.setEnabled(enableAuditLog);
+		}
+		
+		if(audit.isDetails() == null){
+			audit.setDetails(auditDetails);
+		}
+		
 
 		OperationResult result = new OperationResult("Load Logging Configuration");
 
@@ -744,7 +751,7 @@ public class LoggingController implements Serializable {
 	}
 	
 	public boolean isEnableAuditLog() {
-		return enableAuditLog;
+		return audit.isEnabled();
 	}
 
 	public void setEnableAuditLog(boolean enableAuditLog) {
@@ -752,7 +759,7 @@ public class LoggingController implements Serializable {
 	}
 	
 	public boolean isAuditDetails() {
-		return auditDetails;
+		return audit.isDetails();
 	}
 
 	public void setAuditDetails(boolean auditDetails) {
