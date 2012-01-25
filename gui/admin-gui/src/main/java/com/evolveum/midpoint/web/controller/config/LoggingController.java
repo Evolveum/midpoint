@@ -97,6 +97,7 @@ public class LoggingController implements Serializable {
 	private boolean selectAllLoggers = false;
 	private boolean selectAllAppenders = false;
 	private boolean enableAuditLog = true;
+	private boolean auditDetails = true;
 	private AuditingConfigurationType audit;
 
 	public List<SelectItem> getLevels() {
@@ -390,6 +391,7 @@ public class LoggingController implements Serializable {
 		
 		audit = new AuditingConfigurationType();
 		audit.setEnabled(enableAuditLog);
+		audit.setDetails(auditDetails);
 
 		OperationResult result = new OperationResult("Load Logging Configuration");
 
@@ -747,6 +749,14 @@ public class LoggingController implements Serializable {
 
 	public void setEnableAuditLog(boolean enableAuditLog) {
 		this.enableAuditLog = enableAuditLog;
+	}
+	
+	public boolean isAuditDetails() {
+		return auditDetails;
+	}
+
+	public void setAuditDetails(boolean auditDetails) {
+		this.auditDetails = auditDetails;
 	}
 
 	public List<SubsystemLoggerListItem> getSubsystemLoggers() {

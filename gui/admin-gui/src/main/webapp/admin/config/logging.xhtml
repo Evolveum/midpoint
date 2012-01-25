@@ -279,7 +279,10 @@
 			<ice:outputText value="Audit log: " />
 			<ice:selectBooleanCheckbox id="enableAuditLog"
 				value="#{logging.enableAuditLog}">
-					enable/disable
+					</ice:selectBooleanCheckbox>
+			<ice:outputText style="margin-left: 25px;" value="Details: " />
+			<ice:selectBooleanCheckbox id="auditDetails"
+				value="#{logging.auditDetails}">
 					</ice:selectBooleanCheckbox>
 			<ice:outputLabel style="margin-left: 25px;"
 				value="#{msg['web.bean.basicLoggerListItem.appender']}" />
