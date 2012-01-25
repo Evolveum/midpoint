@@ -30,8 +30,10 @@ import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.processor.DiffUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -121,17 +123,30 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
             }
 
             //detect other changes
-            
+
             ObjectDelta<UserType> userDelta = DiffUtil.diff(
-            		oldUser.getXmlObject(), changedObject.getXmlObject(),
-            		UserType.class, schemaRegistry.getObjectSchema());
-            
+                    oldUser.getXmlObject(), changedObject.getXmlObject(),
+                    UserType.class, schemaRegistry.getObjectSchema());
+
             ObjectModificationType changes = userDelta.toObjectModificationType();
-            
-//            ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldUser.getXmlObject(),
+            //todo XXX: MEGA HACK
+            List<AccountShadowDto> newAccounts = changedObject.getAccount();
+            if (newAccounts != null) {                
+                for (AccountShadowDto account : newAccounts) {
+                    Element element = JAXBUtil.jaxbToDom(account.getXmlObject(), SchemaConstants.I_ACCOUNT,
+                            DOMUtil.getDocument());
+                    
+                    PropertyModificationType propertyModification = ObjectTypeUtil.createPropertyModificationType(
+                            PropertyModificationTypeType.add, null, element);
+                    changes.getPropertyModification().add(propertyModification);
+                }
+            }
+            //todo XXX: MEGA HACK END
+
+//            ObjectModificationType changes1 = CalculateXmlDiff.calculateChanges(oldUser.getXmlObject(),
 //                    changedObject.getXmlObject());
-            
-            
+
+
             //process changes
             if (changes != null) {
                 if (passwordChange != null) {

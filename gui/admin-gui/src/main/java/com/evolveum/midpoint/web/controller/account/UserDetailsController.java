@@ -282,9 +282,6 @@ public class UserDetailsController implements Serializable {
 			result.computeStatus("Failed to save changes.");
 			ControllerUtil.printResults(LOGGER, result, "Changes saved sucessfully.");
 		}
-		
-		
-		
 	}
 
 	private void processNewAccounts() throws SchemaException {
@@ -352,6 +349,9 @@ public class UserDetailsController implements Serializable {
 	}
 
 	private void updateAccounts(List<AccountFormBean> accountBeans, Task task, OperationResult result) throws WebModelException {
+        if (accountBeans == null) {
+            return;
+        }
 		LOGGER.debug("Start processing accounts with outbound schema handling");
 		for (AccountFormBean bean : accountBeans) {
 			if (bean.isNew()) {
