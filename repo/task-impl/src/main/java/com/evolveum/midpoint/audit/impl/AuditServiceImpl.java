@@ -20,6 +20,8 @@
 package com.evolveum.midpoint.audit.impl;
 
 import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Iterator;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,7 +137,7 @@ public class AuditServiceImpl implements AuditService {
 				", I=" + formatObject(record.getInitiator()) +
 				", T=" + formatObject(record.getTarget()) + 
 				", O=" + formatObject(record.getTargetOwner()) + 
-				", D=" + formatDeltaSummary(record.getDelta()) + 
+				", D=" + formatDeltaSummary(record.getDeltas()) + 
 				", o=" + record.getOutcome();
 	}
 	
@@ -143,14 +145,17 @@ public class AuditServiceImpl implements AuditService {
 	private String toDetails(AuditEventRecord record) {
 		StringBuilder sb = new StringBuilder("Details of event ");
 		sb.append(record.getEventIdentifier()).append(" stage ").append(record.getEventStage()).append("\n");
-		ObjectDelta<?> delta = record.getDelta();
-		sb.append("Delta: ");
-		if (delta == null) {
-			sb.append("null");
-		} else {
+		
+		sb.append("Deltas:");
+		for (ObjectDelta<?> delta: record.getDeltas()) {
 			sb.append("\n");
-			sb.append(delta.debugDump(1));
+			if (delta == null) {
+				sb.append("null");
+			} else {
+				sb.append(delta.debugDump(1));
+			}
 		}
+		
 		// TODO: target?
 		return sb.toString();
 	}
@@ -177,11 +182,22 @@ public class AuditServiceImpl implements AuditService {
 		return user.getOid()+"("+user.getName()+")";
 	}
 
-	private String formatDeltaSummary(ObjectDelta<?> delta) {
-		if (delta == null) {
+	private String formatDeltaSummary(Collection<ObjectDelta<?>> deltas) {
+		if (deltas == null) {
 			return "null";
 		}
-		return delta.getOid()+":"+delta.getChangeType();
+		StringBuilder sb = new StringBuilder("[");
+		
+		Iterator<ObjectDelta<?>> iterator = deltas.iterator();
+		while (iterator.hasNext()) {
+			ObjectDelta<?> delta = iterator.next();
+			sb.append(delta.getOid()).append(":").append(delta.getChangeType());
+			if (iterator.hasNext()) {
+				sb.append(",");
+			}
+		}
+		sb.append("]");
+		return sb.toString();
 	}
 
 }

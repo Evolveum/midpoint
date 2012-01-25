@@ -302,8 +302,6 @@ public class ModelController implements ModelService {
 
 			auditRecord.setTarget(object);
 			ObjectDelta<T> objectDelta = new ObjectDelta<T>((Class<T>) object.getClass(), ChangeType.ADD);
-			auditRecord.setDelta(objectDelta);
-			auditService.audit(auditRecord, task);
 
 			LOGGER.trace("Entering addObject with {}", ObjectTypeUtil.toShortString(object));
 
@@ -317,6 +315,10 @@ public class ModelController implements ModelService {
 				UserType userType = (UserType) object;
 
 				SyncContext syncContext = userTypeAddToContext(userType, commonSchema, result);
+				
+				auditRecord.addDeltas(syncContext.getAllChanges());
+				auditService.audit(auditRecord, task);
+				
 				objectDelta = (ObjectDelta<T>) syncContext.getUserPrimaryDelta();
 
 				if (executePreChangePrimary(objectDelta, task, result) != HookOperationMode.FOREGROUND)
@@ -327,18 +329,18 @@ public class ModelController implements ModelService {
 				if (executePreChangeSecondary(syncContext.getAllChanges(), task, result) != HookOperationMode.FOREGROUND)
 					return null;
 
+				auditRecord.clearDeltas();
+				auditRecord.addDeltas(syncContext.getAllChanges());
+				
 				changeExecutor.executeChanges(syncContext, result);
 
-				executePostChange(syncContext.getAllChanges(), task, result); // here
-																				// we
-																				// don't
-																				// care
-																				// about
-																				// the
-																				// result
-																				// (FOREGROUND/BACKGROUND)
+				executePostChange(syncContext.getAllChanges(), task, result);
+				// here we don't care about the result (FOREGROUND/BACKGROUND)
 
 			} else {
+				
+				auditRecord.addDelta(objectDelta);
+				auditService.audit(auditRecord, task);
 
 				MidPointObject<T> mpObject = commonSchema.parseObjectType(object);
 				objectDelta.setObjectToAdd(mpObject);
@@ -380,6 +382,7 @@ public class ModelController implements ModelService {
 			RepositoryCache.exit();
 			auditRecord.setEventStage(AuditEventStage.EXECUTION);
 			auditRecord.setResult(result);
+			auditRecord.clearTimestamp();
 			auditService.audit(auditRecord, task);
 		}
 
@@ -663,19 +666,22 @@ public class ModelController implements ModelService {
 		try {
 			
 			auditRecord.setTarget(objectType);
-			Schema commonSchema = schemaRegistry.getObjectSchema();
-			// TODO
-//			ObjectDelta<T> objectDelta = ObjectDelta.createDelta(change, commonSchema, type);
-			ObjectDelta<T> objectDelta = null;
-			auditRecord.setDelta(objectDelta);
-			auditService.audit(auditRecord, task);
+			Schema commonSchema = schemaRegistry.getObjectSchema();			
 
+			ObjectDelta<T> objectDelta = null;
 
 			if (UserType.class.isAssignableFrom(type)) {
 				SyncContext syncContext = userTypeModifyToContext(change, commonSchema, result);
 
+				auditRecord.addDeltas(syncContext.getAllChanges());
+				auditService.audit(auditRecord, task);
+				
 				userSynchronizer.synchronizeUser(syncContext, parentResult);
 
+				// Deltas after sync will be different
+				auditRecord.clearDeltas();
+				auditRecord.addDeltas(syncContext.getAllChanges());
+				
 				try {
 					changeExecutor.executeChanges(syncContext, parentResult);
 					result.computeStatus();
@@ -704,6 +710,10 @@ public class ModelController implements ModelService {
 				} else {
 					objectDelta = ObjectDelta.createDelta(change, commonSchema, type);
 				}
+				
+				auditRecord.addDelta(objectDelta);
+				auditService.audit(auditRecord, task);
+				
 				Collection<ObjectDelta<?>> changes = new HashSet<ObjectDelta<?>>();
 				changes.add(objectDelta);
 
@@ -739,6 +749,7 @@ public class ModelController implements ModelService {
 			RepositoryCache.exit();
 			auditRecord.setEventStage(AuditEventStage.EXECUTION);
 			auditRecord.setResult(result);
+			auditRecord.clearTimestamp();
 			auditService.audit(auditRecord, task);
 		}
 	}
@@ -866,7 +877,7 @@ public class ModelController implements ModelService {
 			auditRecord.setTarget(objectType);
 			ObjectDelta<T> objectDelta = new ObjectDelta<T>(clazz, ChangeType.DELETE);
 			objectDelta.setOid(oid);
-			auditRecord.setDelta(objectDelta);
+			auditRecord.addDelta(objectDelta);
 			auditService.audit(auditRecord, task);
 		
 			LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
@@ -898,6 +909,8 @@ public class ModelController implements ModelService {
 
 			try {
 				changeExecutor.executeChanges(changes, result);
+				auditRecord.clearDeltas();
+				auditRecord.addDeltas(changes);
 				result.computeStatus();
 			} catch (ObjectAlreadyExistsException e) {
 				// TODO Better handling
@@ -923,6 +936,7 @@ public class ModelController implements ModelService {
 			RepositoryCache.exit();
 			auditRecord.setEventStage(AuditEventStage.EXECUTION);
 			auditRecord.setResult(result);
+			auditRecord.clearTimestamp();
 			auditService.audit(auditRecord, task);
 		}
 	}

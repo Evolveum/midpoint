@@ -20,6 +20,8 @@
 package com.evolveum.midpoint.audit.api;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -73,7 +75,7 @@ public class AuditEventRecord {
 	private AuditEventStage eventStage;
 	
 	// delta
-	private ObjectDelta<?> delta;
+	private Collection<ObjectDelta<?>> deltas;
 	
 	// delta order (primary, secondary)
 	
@@ -85,19 +87,26 @@ public class AuditEventRecord {
 	private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 	
 	public AuditEventRecord() {
+		this.deltas = new ArrayList<ObjectDelta<?>>();
 	}
 	
 	public AuditEventRecord(AuditEventType eventType) {
+		this.deltas = new ArrayList<ObjectDelta<?>>();
 		this.eventType = eventType;
 	}
 
 	public AuditEventRecord(AuditEventType eventType, AuditEventStage eventStage) {
+		this.deltas = new ArrayList<ObjectDelta<?>>();
 		this.eventType = eventType;
 		this.eventStage = eventStage;
 	}
 
 	public Long getTimestamp() {
 		return timestamp;
+	}
+	
+	public void clearTimestamp() {
+		timestamp = null;
 	}
 
 	public void setTimestamp(Long timestamp) {
@@ -184,12 +193,20 @@ public class AuditEventRecord {
 		this.eventStage = eventStage;
 	}
 
-	public ObjectDelta<?> getDelta() {
-		return delta;
+	public Collection<ObjectDelta<?>> getDeltas() {
+		return deltas;
+	}
+	
+	public void addDelta(ObjectDelta<?> delta) {
+		deltas.add(delta);
 	}
 
-	public void setDelta(ObjectDelta<?> delta) {
-		this.delta = delta;
+	public void addDeltas(Collection<ObjectDelta<?>> deltasToAdd) {
+		deltas.addAll(deltasToAdd);
+	}
+	
+	public void clearDeltas() {
+		deltas.clear();
 	}
 
 	public OperationResultStatus getOutcome() {
@@ -210,7 +227,7 @@ public class AuditEventRecord {
 				+ " s=" + sessionIdentifier + ", t=" + taskIdentifier
 				+ " toid=" + taskOID + ", h=" + hostIdentifier + ", I=" + formatObject(initiator)
 				+ ", T=" + formatObject(target) + ", O=" + formatObject(targetOwner) + ", e=" + eventType
-				+ ", g=" + eventStage + ", D=" + delta + ", o=" + outcome + "]";
+				+ ", g=" + eventStage + ", D=" + deltas + ", o=" + outcome + "]";
 	}
 
 	private static String formatTimestamp(Long timestamp) {
