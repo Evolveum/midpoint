@@ -27,7 +27,6 @@
   <test name="Schema" preserve-order="false" verbose="1">
     <classes>
       <class name="com.evolveum.midpoint.schema.test.ExpressionCodeHolderTest"/>
-      <class name="com.evolveum.midpoint.schema.test.ValueAssignmentHolderTest"/>
       <class name="com.evolveum.midpoint.schema.test.XPathTest"/>
       <class name="com.evolveum.midpoint.schema.processor.SchemaProcessorBasicTest"/>
       <class name="com.evolveum.midpoint.schema.processor.SchemaProcessorTest"/>
