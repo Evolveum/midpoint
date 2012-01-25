@@ -405,15 +405,17 @@ public class ShadowCache {
 				ResourceObjectShadowType newShadow = findOrCreateShadowFromChange(resourceType, change,
 						parentResult);
 
-				// if (change.getObjectDelta() != null &&
-				// change.getObjectDelta().getChangeType()==ChangeType.DELETE &&
-				// newShadow == null){
-				if (newShadow == null) {
-					i.remove();
-					continue;
-				}
+//				 if (change.getObjectDelta() != null &&
+//				 change.getObjectDelta().getChangeType()==ChangeType.DELETE &&
+//				 newShadow == null){
+//				
 
 				change.setOldShadow(newShadow);
+				
+				//skip setting other attribute when shadow is null
+				if (newShadow == null) {
+					continue;
+				}
 
 				// FIXME: hack. make sure that the current shadow has OID
 				// and resource ref, also the account type should be set

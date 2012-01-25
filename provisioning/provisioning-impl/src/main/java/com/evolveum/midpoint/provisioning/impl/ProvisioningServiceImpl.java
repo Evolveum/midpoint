@@ -350,17 +350,21 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			// for each change from the connector create change description
 			for (Change change : changes) {
-				// if (change.getObjectDelta() != null
-				// && change.getObjectDelta().getChangeType() ==
-				// ChangeType.DELETE
-				// && change.getOldShadow() == null) {
-				// Property newToken = change.getToken();
-				// PropertyModification modificatedToken =
-				// getTokenModification(newToken);
-				// modifications.add(modificatedToken);
-				// processedChanges++;
-				// continue;
-				// }
+
+				// this is the case,when we want to skip processing of change,
+				// because the shadow was not created or found to the resource
+				// object
+				// it may be caused with the fact, that the object which was
+				// created in the resource was deleted before the sync run
+				// such a change should be skipped to process consistent changes
+				if (change.getOldShadow() == null) {
+					Property newToken = change.getToken();
+					PropertyModification modificatedToken = getTokenModification(newToken);
+					modifications.add(modificatedToken);
+					processedChanges++;
+					LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was deleted on the resource meantime).");
+					continue;
+				}
 
 				ResourceObjectShadowChangeDescription shadowChangeDescription = createResourceShadowChangeDescription(
 						change, resourceType);
