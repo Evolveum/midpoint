@@ -164,6 +164,10 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 				getObjects().add((GuiUserDto) userDto);
 			}
 		}
+		
+		if (getObjects().isEmpty()) {
+			listPrevious();
+		}
 
 		return null;
 	}
@@ -251,5 +255,12 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 		} else {
 			FacesUtils.addErrorMessage("No user selected.");
 		}
+	}
+	
+	public boolean isTableFull(){
+		if(getObjects().size() < getRowsCount()){
+			return false;
+		}
+		return true;
 	}
 }

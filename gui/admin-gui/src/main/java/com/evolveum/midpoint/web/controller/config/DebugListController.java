@@ -101,7 +101,7 @@ public class DebugListController extends ListController<ObjectBean> {
 	public String initController() {
 		getObjects().clear();
 		setOffset(0);
-		// setRowsCount(30);
+		//setRowsCount(2);
 
 		return PAGE_NAVIGATION;
 	}
@@ -142,7 +142,8 @@ public class DebugListController extends ListController<ObjectBean> {
 		}
 
 		if (getObjects().isEmpty()) {
-			FacesUtils.addWarnMessage("Couldn't find any object.");
+			listPrevious();
+			//FacesUtils.addWarnMessage("Couldn't find any object.");
 		}
 
 		return null;
@@ -170,19 +171,13 @@ public class DebugListController extends ListController<ObjectBean> {
 			return;
 		}
 
-		while (listNext() != null) {
+		/*while (listNext() != null) {
 			System.out.println("aaaaa");
-		}
+		}*/
 
 		for (int i = 0; i < getObjects().size(); i++) {
-
-			/*
-			 * if
-			 * (!repositoryManager.(ObjectTypes.getObjectTypeClass(objectType),
-			 * getObjects().get(i).getOid())) {
-			 * FacesUtils.addErrorMessage("Delete list failed."); return; }
-			 */
-
+			 if(!repositoryManager.deleteObject(ObjectTypes.getObjectTypeClass(objectType),getObjects().get(i).getOid())) {
+			 FacesUtils.addErrorMessage("Delete list failed."); return; }
 		}
 		list();
 	}
@@ -240,5 +235,12 @@ public class DebugListController extends ListController<ObjectBean> {
 		}
 
 		return returnPage;
+	}
+	
+	public boolean isTableFull(){
+		if(getObjects().size() < getRowsCount()){
+			return false;
+		}
+		return true;
 	}
 }

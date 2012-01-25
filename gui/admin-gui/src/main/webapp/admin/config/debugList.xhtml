@@ -107,8 +107,17 @@
 				</c:forEach>
 			</ice:panelGrid>
 
-			<comp:paging bean="#{debugList}" rendered="#{debugList.showTable}" />
-
+			<!-- <comp:paging bean="#{debugList}" rendered="#{debugList.showTable}" /> -->
+			<ice:panelGroup styleClass="container-auto" style="text-align: center;">
+				<idm:button id="goToFirst" img="/resources/images/resultset_first.png" value="#{msg['page.paginator.first']}"
+					action="#{debugList.listFirst}" rendered="#{debugList.showTable}" />
+				<idm:button id="goToPrevious" img="/resources/images/resultset_previous.png"
+					value="#{msg['page.paginator.previous']}" action="#{debugList.listPrevious}" rendered="#{debugList.showTable}" />
+				<idm:button enabled="#{debugList.tableFull}" id="goToNext" img="/resources/images/resultset_next.png" value="#{msg['page.paginator.next']}"
+					action="#{debugList.listNext}" rendered="#{debugList.showTable}" />
+				<idm:button id="goToLast" img="/resources/images/resultset_last.png" value="#{msg['page.paginator.last']}"
+					action="#{debugList.listLast}" rendered="#{debugList.showTable}" />
+			</ice:panelGroup>
 		</ice:form>
 	</ui:define>
 </ui:composition>

@@ -112,7 +112,7 @@
 							action="#{userList.listFirst}" />
 						<idm:button id="goToPrevious" img="/resources/images/resultset_previous.png"
 							value="#{msg['page.paginator.previous']}" action="#{userList.listPrevious}" />
-						<idm:button id="goToNext" img="/resources/images/resultset_next.png" value="#{msg['page.paginator.next']}"
+						<idm:button enabled="#{userList.tableFull}" id="goToNext" img="/resources/images/resultset_next.png" value="#{msg['page.paginator.next']}"
 							action="#{userList.listNext}" />
 						<idm:button id="goToLast" img="/resources/images/resultset_last.png" value="#{msg['page.paginator.last']}"
 							action="#{userList.listLast}" />
