@@ -227,6 +227,7 @@ public class ImportController implements Serializable {
 		editor = null;
 		showFileUpload = false;
 		overwrite = false;
+		keepOid = false;
 		encryptProtected = true;
 		fetchResourceSchema = false;
 		referentialIntegrity = false;
@@ -244,6 +245,7 @@ public class ImportController implements Serializable {
 
 		ImportOptionsType options = MiscSchemaUtil.getDefaultImportOptions();
 		options.setOverwrite(overwrite);
+		options.setKeepOid(keepOid);
 		options.setEncryptProtectedValues(encryptProtected);
 		options.setFetchResourceSchema(fetchResourceSchema);
 		options.setReferentialIntegrity(referentialIntegrity);
