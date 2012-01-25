@@ -24,6 +24,8 @@ package com.evolveum.midpoint.model.synchronizer;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
+import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.controller.Filter;
@@ -38,13 +40,9 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueAssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueFilterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -65,9 +63,10 @@ public class InboundProcessor {
 
     @Autowired(required = true)
     private SchemaRegistry schemaRegistry;
-
     @Autowired(required = true)
     private FilterManager<Filter> filterManager;
+    @Autowired(required = true)
+    private ValueConstructionFactory valueConstructionFactory;
 
     void processInbound(SyncContext context, OperationResult result) throws SchemaException {
         OperationResult subResult = result.createSubresult(PROCESS_INBOUND_HANDLING);
@@ -99,7 +98,7 @@ public class InboundProcessor {
                             + " not found in the context, but it should be there");
                 }
 
-                processInboundForAccount(context, accountContext, accountDefinition);
+                processInboundForAccount(context, accountContext, accountDefinition, result);
             }
 
             if (userDelta.isEmpty()) {
@@ -111,7 +110,7 @@ public class InboundProcessor {
     }
 
     private void processInboundForAccount(SyncContext context, AccountSyncContext accContext,
-            RefinedAccountDefinition accountDefinition) {
+            RefinedAccountDefinition accountDefinition, OperationResult result) throws SchemaException {
 
         if (accContext.getAccountSyncDelta() == null && accContext.getAccountOld() == null) {
             LOGGER.debug("Nothing to process in inbound, account sync delta and account old was null.");
@@ -137,12 +136,17 @@ public class InboundProcessor {
             List<ValueAssignmentType> inbounds = attrDef.getInboundAssignmentTypes();
 
             for (ValueAssignmentType inbound : inbounds) {
+                if (checkInitialSkip(inbound, context.getUserNew())) {
+                    LOGGER.debug("Skipping because of initial flag.");
+                    continue;
+                }
+
                 PropertyDelta delta = null;
                 if (accountDelta != null) {
-                    LOGGER.trace("Processing inbound from account sync delta.");
+                    LOGGER.debug("Processing inbound from account sync delta.");
                     delta = createUserPropertyDelta(inbound, propertyDelta, context.getUserNew());
                 } else if (oldAccount != null) {
-                    LOGGER.trace("Processing inbound from account sync absolute state (oldAccount).");
+                    LOGGER.debug("Processing inbound from account sync absolute state (oldAccount).");
                     Property oldAccountProperty = oldAccount.findProperty(new PropertyPath(SchemaConstants.I_ATTRIBUTES), name);
                     delta = createUserPropertyDelta(inbound, oldAccountProperty, context.getUserNew());
                 }
@@ -153,6 +157,25 @@ public class InboundProcessor {
                 }
             }
         }
+        processCustomPropertyInbound(accountDefinition.getCredentialsInbound(), SchemaConstants.PATH_PASSWORD_VALUE,
+                context.getUserNew(), accContext, accountDefinition, userDelta, result);
+        processCustomPropertyInbound(accountDefinition.getActivationInbound(), SchemaConstants.PATH_ACTIVATION_ENABLE,
+                context.getUserNew(), accContext, accountDefinition, userDelta, result);
+    }
+
+    private boolean checkInitialSkip(ValueAssignmentType inbound, MidPointObject<UserType> newUser) {
+        ValueConstructionType valueConstruction = inbound.getSource();
+        if (valueConstruction == null) {
+            return false;
+        }
+
+        boolean initial = valueConstruction.isInitial() == null ? false : valueConstruction.isInitial();
+        Property property = newUser.findProperty(createUserPropertyPath(inbound));
+        if (initial && (property == null || property.isEmpty())) {
+            return true;
+        }
+
+        return false;
     }
 
     private PropertyDelta createUserPropertyDelta(ValueAssignmentType inbound, Property oldAccountProperty,
@@ -254,5 +277,53 @@ public class InboundProcessor {
         }
 
         return filteredValue;
+    }
+
+    private void processCustomPropertyInbound(ValueAssignmentType inbound, PropertyPath path,
+            MidPointObject<UserType> newUser, AccountSyncContext accContext, RefinedAccountDefinition accountDefinition,
+            ObjectDelta<UserType> userSecondaryDelta, OperationResult opResult) throws SchemaException {
+        if (inbound == null || newUser == null) {
+            return;
+        }
+
+        ValueConstructionType valueConstruction = inbound.getSource();
+        boolean initial = valueConstruction.isInitial() == null ? false : valueConstruction.isInitial();
+
+        Property property = newUser.findOrCreateProperty(path.allExceptLast(),
+                path.last(), String.class);
+        if (initial && !property.isEmpty()) {
+            //inbound will be constructed only if initial == false or initial == true and value doesn't exist
+            return;
+        }
+
+        PropertyDelta delta = userSecondaryDelta.getPropertyDelta(path);
+        if (delta != null) {
+            //remove delta if exists, it will be handled by inbound
+            userSecondaryDelta.getModifications().remove(delta);
+        }
+
+        if (accContext.getAccountNew() == null) {
+            accContext.recomputeAccountNew();
+        }
+
+        Property input = accContext.getAccountNew().findProperty(path);
+        Property result;
+        try {
+            ValueConstruction construction = valueConstructionFactory.createValueConstruction(
+                    valueConstruction, property.getDefinition(), "Inbound value construction");
+            construction.setInput(input);
+            construction.evaluate(opResult);
+            result = construction.getOutput();
+        } catch (SchemaException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new SchemaException(ex.getMessage(), ex);
+        }
+
+        delta = property.compareRealValuesTo(result);
+        delta.setParentPath(path.allExceptLast());
+        if (!delta.isEmpty()) {
+            userSecondaryDelta.addModification(delta);
+        }
     }
 }

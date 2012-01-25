@@ -56,11 +56,11 @@ public class ExpressionValueConstructor implements ValueConstructor {
             Property input, Map<QName, Object> variables, String contextDescription, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
-        Object contstuctorTypeObject = constructorElement.getValue();
-        if (!(contstuctorTypeObject instanceof ExpressionType)) {
-            throw new IllegalArgumentException("Expression value constructor cannot handle elements of type " + contstuctorTypeObject.getClass().getName());
+        Object constructorTypeObject = constructorElement.getValue();
+        if (!(constructorTypeObject instanceof ExpressionType)) {
+            throw new IllegalArgumentException("Expression value constructor cannot handle elements of type " + constructorTypeObject.getClass().getName());
         }
-        ExpressionType constructorType = (ExpressionType) contstuctorTypeObject;
+        ExpressionType constructorType = (ExpressionType) constructorTypeObject;
 
         Expression expression = factory.createExpression(constructorType, contextDescription);
 

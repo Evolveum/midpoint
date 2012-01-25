@@ -35,26 +35,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AsIsValueConstructor
 
 /**
  * @author Radovan Semancik
- *
  */
 public class AsIsValueConstructor implements ValueConstructor {
-	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property)
-	 */
-	@Override
-	public Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition, 
-			Property input, Map<QName, Object> variables, String contextDescription, OperationResult result) 
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		
-		Object contstuctorTypeObject = constructorElement.getValue();
-		if (!(contstuctorTypeObject instanceof AsIsValueConstructorType)) {
-			throw new IllegalArgumentException("AsIs value constructor cannot handle elements of type "+contstuctorTypeObject.getClass().getName());
-		}
-		//AsIsValueConstructorType constructorType = (AsIsValueConstructorType)contstuctorTypeObject;
-		
-		// Nothing to do, just use input
-		return input;
-	}
+
+    /* (non-Javadoc)
+      * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property)
+      */
+    @Override
+    public Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition,
+            Property input, Map<QName, Object> variables, String contextDescription, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+
+        Object constructorTypeObject = constructorElement.getValue();
+        if (!(constructorTypeObject instanceof AsIsValueConstructorType)) {
+            throw new IllegalArgumentException("AsIs value constructor cannot handle elements of type " + constructorTypeObject.getClass().getName());
+        }
+        //AsIsValueConstructorType constructorType = (AsIsValueConstructorType)constructorTypeObject;
+
+        // Nothing to do, just use input
+        return input;
+    }
 
 }

@@ -3288,7 +3288,7 @@
         			<xsd:documentation>
         				Length of randomly-generated value (in characters).
         				
-        				UNSTANBLE. WILL MOST LIKELY CHANGE IN NEXT RELEASES.
+        				UNSTABLE. WILL MOST LIKELY CHANGE IN NEXT RELEASES.
         				Optional reference to a (password/string) policy will be here. 
         			</xsd:documentation>
         		</xsd:annotation>
