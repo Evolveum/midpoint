@@ -213,14 +213,14 @@ public class AuditEventRecord {
 				+ ", g=" + eventStage + ", D=" + delta + ", o=" + outcome + "]";
 	}
 
-	private String formatTimestamp(Long timestamp) {
+	private static String formatTimestamp(Long timestamp) {
 		if (timestamp == null) {
 			return "null";
 		}
 		return TIMESTAMP_FORMAT.format(new java.util.Date(timestamp));
 	}
 	
-	private String formatObject(ObjectType object) {
+	private static String formatObject(ObjectType object) {
 		if (object == null) {
 			return "null";
 		}

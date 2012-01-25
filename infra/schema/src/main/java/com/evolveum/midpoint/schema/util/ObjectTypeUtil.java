@@ -184,12 +184,7 @@ public class ObjectTypeUtil {
             return "null";
         }
         StringBuilder builder = new StringBuilder();
-        ObjectTypes objectTypeType = ObjectTypes.getObjectType(object.getClass());
-        if (objectTypeType != null) {
-            builder.append(objectTypeType.getQName().getLocalPart());
-        } else {
-            builder.append(object.getClass().getSimpleName());
-        }
+        builder.append(getShortTypeName(object));
         builder.append(": ");
         builder.append(object.getName());
         builder.append("(OID:");
@@ -252,6 +247,16 @@ public class ObjectTypeUtil {
         return sb.toString();
     }
 
+	public static String getShortTypeName(ObjectType object) {
+		ObjectTypes objectTypeType = ObjectTypes.getObjectType(object.getClass());
+        if (objectTypeType != null) {
+            return objectTypeType.getQName().getLocalPart();
+        } else {
+            return object.getClass().getSimpleName();
+        }
+	}
+
+    
     public static ObjectReferenceType createObjectRef(ObjectType objectType) {
         if (objectType == null) {
             return null;
@@ -453,5 +458,6 @@ public class ObjectTypeUtil {
     		throw new IllegalArgumentException("The type "+type.getName()+" is abstract");
     	}
     }
+
 
 }

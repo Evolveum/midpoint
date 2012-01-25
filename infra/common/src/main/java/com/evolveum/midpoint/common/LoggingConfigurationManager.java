@@ -256,7 +256,11 @@ public class LoggingConfigurationManager {
 		sb.append(AUDIT_LOGGER_NAME);
 		sb.append("\" level=\"");
 		if (auditing == null || auditing.isEnabled() == null || auditing.isEnabled()) {
-			sb.append("INFO");
+			if (auditing !=null && auditing.isDetails() != null && auditing.isDetails()) {
+				sb.append("DEBUG");
+			} else {
+				sb.append("INFO");
+			}
 		} else {
 			sb.append("OFF");
 		}

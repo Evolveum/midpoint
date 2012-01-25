@@ -51,6 +51,20 @@ public class DiffUtil {
 			return oldObject.compareTo(newObject);
 		}
 	}
+
+	public static <T extends ObjectType> ObjectDelta<T> diff(T oldObjectType, T newObjectType, Class<T> type, Schema objectSchema) throws SchemaException {
+		ObjectDefinition<T> objectDefinition = objectSchema.findObjectDefinition(type);
+		MidPointObject<T> oldObject = null;
+		if (oldObjectType != null) {
+			oldObject = objectDefinition.parseObjectType(oldObjectType);
+		}
+		MidPointObject<T> newObject = null;
+		if (newObjectType != null) {
+			newObject = objectDefinition.parseObjectType(newObjectType);
+		}
+		return diff(oldObject, newObject);
+	}
+
 	
 	public static <T extends ObjectType> ObjectDelta<T> diff(String oldXml, String newXml, Class<T> type, Schema objectSchema) throws SchemaException {
 		ObjectTypeUtil.assertConcreteType(type);

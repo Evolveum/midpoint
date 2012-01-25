@@ -97,7 +97,7 @@ public class LoggingController implements Serializable {
 	private boolean selectAllLoggers = false;
 	private boolean selectAllAppenders = false;
 	private boolean enableAuditLog = true;
-	private boolean auditDetails = true;
+	private boolean auditDetails = false;
 	private AuditingConfigurationType audit;
 
 	public List<SelectItem> getLevels() {

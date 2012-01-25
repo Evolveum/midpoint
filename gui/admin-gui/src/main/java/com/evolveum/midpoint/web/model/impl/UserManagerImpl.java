@@ -22,11 +22,13 @@ package com.evolveum.midpoint.web.model.impl;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
-import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
+import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
+import com.evolveum.midpoint.schema.processor.DiffUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -58,6 +60,8 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
     private transient ObjectTypeCatalog objectTypeCatalog;
     @Autowired(required = true)
     private transient Protector protector;
+    @Autowired(required = true)
+    private SchemaRegistry schemaRegistry;
 
     @Override
     protected Class<? extends ObjectType> getSupportedObjectClass() {
@@ -117,8 +121,17 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
             }
 
             //detect other changes
-            ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldUser.getXmlObject(),
-                    changedObject.getXmlObject());
+            
+            ObjectDelta<UserType> userDelta = DiffUtil.diff(
+            		oldUser.getXmlObject(), changedObject.getXmlObject(),
+            		UserType.class, schemaRegistry.getObjectSchema());
+            
+            ObjectModificationType changes = userDelta.toObjectModificationType();
+            
+//            ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldUser.getXmlObject(),
+//                    changedObject.getXmlObject());
+            
+            
             //process changes
             if (changes != null) {
                 if (passwordChange != null) {

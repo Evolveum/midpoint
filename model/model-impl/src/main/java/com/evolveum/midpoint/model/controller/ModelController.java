@@ -296,19 +296,21 @@ public class ModelController implements ModelService {
 
 		AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.ADD_OBJECT,
 				AuditEventStage.REQUEST);
-		auditRecord.setTarget(object);
-		// TODO: delta and others ....
-		auditService.audit(auditRecord, task);
-
+		
 		RepositoryCache.enter();
 		try {
+
+			auditRecord.setTarget(object);
+			ObjectDelta<T> objectDelta = new ObjectDelta<T>((Class<T>) object.getClass(), ChangeType.ADD);
+			auditRecord.setDelta(objectDelta);
+			auditService.audit(auditRecord, task);
+
 			LOGGER.trace("Entering addObject with {}", ObjectTypeUtil.toShortString(object));
 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace(JAXBUtil.silentMarshalWrap(object));
 			}
 
-			ObjectDelta<T> objectDelta = null;
 			Schema commonSchema = schemaRegistry.getObjectSchema();
 
 			if (object instanceof UserType) {
@@ -338,7 +340,6 @@ public class ModelController implements ModelService {
 
 			} else {
 
-				objectDelta = new ObjectDelta<T>((Class<T>) object.getClass(), ChangeType.ADD);
 				MidPointObject<T> mpObject = commonSchema.parseObjectType(object);
 				objectDelta.setObjectToAdd(mpObject);
 
@@ -658,14 +659,17 @@ public class ModelController implements ModelService {
 			RepositoryCache.exit();
 			throw e;
 		}
-		auditRecord.setTarget(objectType);
-		// TODO: delta and others ....
-		auditService.audit(auditRecord, task);
 
 		try {
-
-			ObjectDelta<T> objectDelta = null;
+			
+			auditRecord.setTarget(objectType);
 			Schema commonSchema = schemaRegistry.getObjectSchema();
+			// TODO
+//			ObjectDelta<T> objectDelta = ObjectDelta.createDelta(change, commonSchema, type);
+			ObjectDelta<T> objectDelta = null;
+			auditRecord.setDelta(objectDelta);
+			auditService.audit(auditRecord, task);
+
 
 			if (UserType.class.isAssignableFrom(type)) {
 				SyncContext syncContext = userTypeModifyToContext(change, commonSchema, result);
@@ -695,6 +699,7 @@ public class ModelController implements ModelService {
 					ObjectDefinition<AccountShadowType> accountDefinition = refinedSchema
 							.getObjectDefinition(shadow);
 
+					// This creates a better delta than the one above
 					objectDelta = (ObjectDelta<T>) ObjectDelta.createDelta(change, accountDefinition);
 				} else {
 					objectDelta = ObjectDelta.createDelta(change, commonSchema, type);
@@ -856,16 +861,17 @@ public class ModelController implements ModelService {
 			RepositoryCache.exit();
 			throw e;
 		}
-		auditRecord.setTarget(objectType);
-		// TODO: delta and others ....
-		auditService.audit(auditRecord, task);
-
+		
 		try {
-			LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
-
+			auditRecord.setTarget(objectType);
 			ObjectDelta<T> objectDelta = new ObjectDelta<T>(clazz, ChangeType.DELETE);
 			objectDelta.setOid(oid);
+			auditRecord.setDelta(objectDelta);
+			auditService.audit(auditRecord, task);
+		
+			LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
 
+			
 			Collection<ObjectDelta<?>> changes = null;
 
 			if (UserType.class.isAssignableFrom(clazz)) {
