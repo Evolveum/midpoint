@@ -26,8 +26,12 @@ import javax.jws.WebParam;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
+import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.model.api.ModelPort;
@@ -41,19 +45,6 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.EmptyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
@@ -80,6 +71,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		notNullArgument(object, "Object must not be null.");
 
 		Task task = createTaskInstance(ADD_OBJECT);
+        setTaskOwner(task);
 		OperationResult operationResult = task.getResult();
 		try {
 			String oid = model.addObject(object, task, operationResult);
@@ -163,6 +155,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		notNullArgument(change, "Object modification must not be null.");
 
 		Task task = createTaskInstance(MODIFY_OBJECT);
+        setTaskOwner(task);
 		OperationResult operationResult = task.getResult();
 		try {
 			model.modifyObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), change,
@@ -181,6 +174,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		notEmptyArgument(objectTypeUri, "objectType must not be null or empty.");
 
 		Task task = createTaskInstance(DELETE_OBJECT);
+        setTaskOwner(task);
 		OperationResult operationResult = task.getResult();
 		try {
 			model.deleteObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), oid,
@@ -364,6 +358,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		notNullArgument(objectClass, "Object class must not be null.");
 
 		Task task = taskManager.createTaskInstance(IMPORT_FROM_RESOURCE);
+        setTaskOwner(task);
 		OperationResult operationResult = task.getResult();
 
 		try {
@@ -375,8 +370,20 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			throw createSystemFault(ex, operationResult);
 		}
 	}
-	
-	private Task createTaskInstance(String operationName) {
+
+    private void setTaskOwner(Task task) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new SystemException("Failed to get authentication object");
+        }
+        UserType userType = (UserType) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (userType == null) {
+            throw new SystemException("Failed to get user from authentication object");
+        }
+        task.setOwner(userType);
+    }
+
+    private Task createTaskInstance(String operationName) {
 		// TODO: better task initialization
 		return taskManager.createTaskInstance(operationName);
 	}
@@ -386,7 +393,6 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	 * return back to a web service caller.
 	 * 
 	 * @param task
-	 * @param taskHolder
 	 */
 	private TaskType handleTaskResult(Task task) {
 		return task.getTaskTypeObject();

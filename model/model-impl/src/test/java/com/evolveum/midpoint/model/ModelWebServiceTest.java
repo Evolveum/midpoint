@@ -37,6 +37,9 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
@@ -44,6 +47,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 import java.io.File;
@@ -93,10 +97,13 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     public void addUserWithoutName() throws Exception {
         final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
                 TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"))).getValue();
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(expectedUser, null));
         try {
             modelService.addObject(expectedUser, new Holder<String>(), new Holder<OperationResultType>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
+        } finally {
+            SecurityContextHolder.getContext().setAuthentication(null);
         }
         Assert.fail("add must fail.");
     }
@@ -188,7 +195,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test(expectedExceptions = FaultMessage.class)
-    public void testDeleteNonExisting() throws FaultMessage, ObjectNotFoundException, SchemaException {
+    public void testDeleteNonExisting() throws FaultMessage, ObjectNotFoundException, SchemaException, JAXBException {
         try {
             final String oid = "abababab-abab-abab-abab-000000000001";
             when(
@@ -196,9 +203,15 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
                             any(OperationResult.class))).thenThrow(
                     new ObjectNotFoundException("Object with oid '' not found."));
 
+            final UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
+                    TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"))).getValue();
+            SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null));
+
             modelService.deleteObject(ObjectTypes.USER.getObjectTypeUri(), oid);
         } catch (FaultMessage ex) {
             ModelTUtil.assertObjectNotFoundFault(ex);
+        } finally {
+            SecurityContextHolder.getContext().setAuthentication(null);
         }
         Assert.fail("delete must fail");
     }
@@ -323,7 +336,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test(expectedExceptions = FaultMessage.class)
-    public void nonExistingUidModify() throws FaultMessage, ObjectNotFoundException, SchemaException {
+    public void nonExistingUidModify() throws FaultMessage, ObjectNotFoundException, SchemaException, JAXBException {
         final String oid = "1";
         ObjectModificationType modification = new ObjectModificationType();
         PropertyModificationType mod1 = new PropertyModificationType();
@@ -340,10 +353,16 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
                         any(OperationResult.class))).thenThrow(
                 new ObjectNotFoundException("Oid '" + oid + "' not found."));
 
+        final UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
+                TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"))).getValue();
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null));
+
         try {
             modelService.modifyObject(ObjectTypes.USER.getObjectTypeUri(), modification);
         } catch (FaultMessage ex) {
             ModelTUtil.assertObjectNotFoundFault(ex);
+        } finally {
+            SecurityContextHolder.getContext().setAuthentication(null);
         }
     }
 
