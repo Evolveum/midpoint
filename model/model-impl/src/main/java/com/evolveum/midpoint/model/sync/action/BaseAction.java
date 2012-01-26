@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.AccountSyncContext;
@@ -40,11 +42,13 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
@@ -65,7 +69,17 @@ public abstract class BaseAction implements Action {
     private SchemaRegistry schemaRegistry;
     private List<Object> parameters;
 
-    @Override
+    private AuditService auditService;
+    
+	public AuditService getAuditService() {
+    	return auditService;
+    }
+
+    public void setAuditService(AuditService auditService) {
+		this.auditService = auditService;
+	}
+
+	@Override
     public List<Object> getParameters() {
         if (parameters == null) {
             parameters = new ArrayList<Object>();
@@ -117,7 +131,7 @@ public abstract class BaseAction implements Action {
 
     @Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
-            SynchronizationSituationType situation, OperationResult result) throws SynchronizationException {
+            SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, OperationResult result) throws SynchronizationException {
         Validate.notNull(change, "Resource object change description must not be null.");
         Validate.notNull(situation, "Synchronization situation must not be null.");
         Validate.notNull(result, "Operation result must not be null.");

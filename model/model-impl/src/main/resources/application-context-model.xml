@@ -116,6 +116,9 @@
         <property name="schemaRegistry">
             <ref bean="schemaRegistry"/>
         </property>
+        <property name="auditService">
+            <ref bean="auditService"/>
+        </property>
     </bean>
 
     <bean id="filterManager" class="com.evolveum.midpoint.model.controller.FilterManagerImpl">

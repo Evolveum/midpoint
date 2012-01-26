@@ -21,6 +21,9 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
@@ -35,6 +38,7 @@ import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -56,8 +60,8 @@ public class AddUserAction extends BaseAction {
 
     @Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
-            SynchronizationSituationType situation, OperationResult result) throws SynchronizationException {
-        super.executeChanges(userOid, change, situation, result);
+            SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, OperationResult result) throws SynchronizationException {
+        super.executeChanges(userOid, change, situation, auditRecord, task, result);
 
         OperationResult subResult = result.createSubresult(ACTION_ADD_USER);
 
@@ -117,6 +121,14 @@ public class AddUserAction extends BaseAction {
             userOid = context.getUserSecondaryDelta().getOid();
         } finally {
             subResult.recomputeStatus();
+            
+            auditRecord.clearTimestamp();
+            auditRecord.setEventType(AuditEventType.ADD_OBJECT);
+        	auditRecord.setEventStage(AuditEventStage.EXECUTION);
+        	auditRecord.setResult(result);
+        	auditRecord.clearDeltas();
+        	auditRecord.addDeltas(context.getAllChanges());
+        	getAuditService().audit(auditRecord, task);
         }
 
         return userOid;

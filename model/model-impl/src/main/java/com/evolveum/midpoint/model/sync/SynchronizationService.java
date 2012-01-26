@@ -297,8 +297,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             OperationResult parentResult) {
     	
     	// Audit:request
-    	// TODO: FIX AUDIT EVENT TYPE
-    	AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.MODIFY_OBJECT,
+    	AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.SYNCHRONIZATION,
 				AuditEventStage.REQUEST);
     	if (change.getObjectDelta() != null) {
     		auditRecord.addDelta(change.getObjectDelta());
@@ -325,7 +324,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             for (Action action : actions) {
                 LOGGER.debug("ACTION: Executing: {}.", new Object[]{action.getClass()});
 
-                userOid = action.executeChanges(userOid, change, situation.getSituation(), parentResult);
+                userOid = action.executeChanges(userOid, change, situation.getSituation(), auditRecord, task, parentResult);
             }
             parentResult.recordSuccess();
             LOGGER.trace("Updating user finished.");
@@ -340,16 +339,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             parentResult.recordFatalError("Unexpected error occurred, synchronization action failed.", ex);
             throw new SystemException("Unexpected error occurred, synchronization action failed, reason: "
                     + ex.getMessage(), ex);
-        } finally {
-        	auditRecord.clearTimestamp();
-        	auditRecord.setEventStage(AuditEventStage.EXECUTION);
-        	auditRecord.setResult(parentResult);
-        	
-        	auditRecord.clearDeltas();
-        	// TODO: deltas
-        	
-        	auditService.audit(auditRecord, task);
         }
+        // Note: The EXECUTION stage audit records are recorded in individual actions
 
     }
 

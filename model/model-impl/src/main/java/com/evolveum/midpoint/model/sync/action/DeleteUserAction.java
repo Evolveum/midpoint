@@ -21,6 +21,9 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
@@ -32,6 +35,7 @@ import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -48,9 +52,9 @@ public class DeleteUserAction extends BaseAction {
 
     @Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
-            SynchronizationSituationType situation,
+            SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, 
             OperationResult result) throws SynchronizationException {
-        super.executeChanges(userOid, change, situation, result);
+        super.executeChanges(userOid, change, situation, auditRecord, task, result);
 
         OperationResult subResult = result.createSubresult(ACTION_DELETE_USER);
 
@@ -103,6 +107,14 @@ public class DeleteUserAction extends BaseAction {
             userOid = null;
         } finally {
             subResult.recomputeStatus("Couldn't delete user '" + userType.getName() + "'.");
+            
+            auditRecord.clearTimestamp();
+            auditRecord.setEventType(AuditEventType.DELETE_OBJECT);
+        	auditRecord.setEventStage(AuditEventStage.EXECUTION);
+        	auditRecord.setResult(result);
+        	auditRecord.clearDeltas();
+        	auditRecord.addDeltas(context.getAllChanges());
+        	getAuditService().audit(auditRecord, task);
         }
 
         return userOid;

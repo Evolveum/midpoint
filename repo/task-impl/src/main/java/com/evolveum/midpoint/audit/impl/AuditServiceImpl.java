@@ -44,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * @author semancik
  *
  */
-@Service
+@Service(value="auditService")
 public class AuditServiceImpl implements AuditService {
 	
 	private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");

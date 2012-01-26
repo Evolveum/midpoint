@@ -33,6 +33,8 @@ public enum AuditEventType {
 	
 	DELETE_OBJECT,
 	
+	SYNCHRONIZATION,
+	
 	//  ....
 		
 	/**

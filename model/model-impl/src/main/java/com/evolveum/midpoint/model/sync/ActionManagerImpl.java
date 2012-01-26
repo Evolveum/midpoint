@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.model.sync;
 
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.sync.action.BaseAction;
@@ -45,6 +46,8 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
     private UserSynchronizer synchronizer;
     private ChangeExecutor changeExecutor;
     private SchemaRegistry schemaRegistry;
+    private AuditService auditService;
+    
     @Deprecated
     private ModelController model;
 
@@ -70,6 +73,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
                 baseAction.setSynchronizer(synchronizer);
                 baseAction.setExecutor(changeExecutor);
                 baseAction.setSchemaRegistry(schemaRegistry);
+                baseAction.setAuditService(auditService);
                 baseAction.setModel(model);
             }
         } catch (Exception ex) {
@@ -105,4 +109,9 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
     public void setSchemaRegistry(SchemaRegistry schemaRegistry) {
         this.schemaRegistry = schemaRegistry;
     }
+
+	public void setAuditService(AuditService auditService) {
+		this.auditService = auditService;
+	}
+    
 }
