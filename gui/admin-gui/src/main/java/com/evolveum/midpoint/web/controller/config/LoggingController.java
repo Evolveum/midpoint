@@ -360,8 +360,7 @@ public class LoggingController implements Serializable {
 		LoggingConfigurationType logging = createConfiguration(getLoggers(), getAppenders());
 		OperationResult result = new OperationResult("Load Logging Configuration");
 		try {
-			audit.setEnabled(enableAuditLog);
-			audit.setDetails(auditDetails);
+			
 			loggingManager.updateConfiguration(logging, result);
 			result.recordSuccess();
 
@@ -710,6 +709,9 @@ public class LoggingController implements Serializable {
 	private LoggingConfigurationType createConfiguration(List<BasicLoggerListItem> loggers,
 			List<AppenderListItem> appenders) {
 		LoggingConfigurationType configuration = new LoggingConfigurationType();
+		audit.setEnabled(enableAuditLog);
+		audit.setDetails(auditDetails);
+		configuration.setAuditing(audit);
 		configuration.setRootLoggerAppender(getRootAppender());
 		configuration.setRootLoggerLevel(rootLoggerLevel);
 		List<BasicLoggerListItem> loggersList = new ArrayList<BasicLoggerListItem>();
