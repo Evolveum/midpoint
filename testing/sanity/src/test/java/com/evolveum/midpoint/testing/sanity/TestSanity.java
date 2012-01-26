@@ -74,9 +74,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -132,10 +130,10 @@ public class TestSanity extends AbstractIntegrationTest {
 
     private static final String RESOURCE_BROKEN_FILENAME = "src/test/resources/repo/resource-broken.xml";
     private static final String RESOURCE_BROKEN_OID = "ef2bc95b-76e0-59e2-ffff-ffffffffffff";
-    
+
     private static final String CONNECTOR_BROKEN_FILENAME = "src/test/resources/repo/connector-broken.xml";
     private static final String CONNECTOR_BROKEN_OID = "cccccccc-76e0-59e2-ffff-ffffffffffff";
-    
+
     private static final String TASK_OPENDJ_SYNC_FILENAME = "src/test/resources/repo/opendj-sync-task.xml";
     private static final String TASK_OPENDJ_SYNC_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
 
@@ -165,7 +163,7 @@ public class TestSanity extends AbstractIntegrationTest {
     private static final String USER_GUYBRUSH_LDAP_UID = "guybrush";
     private static final String USER_GUYBRUSH_LDAP_DN = "uid=" + USER_GUYBRUSH_LDAP_UID
             + "," + OPENDJ_PEOPLE_SUFFIX;
-    
+
     private static final String USER_E_LINK_ACTION = "src/test/resources/repo/user-e.xml";
     private static final String LDIF_E_FILENAME_LINK = "src/test/resources/request/e-create.ldif";
 
@@ -196,6 +194,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
     private static final String LDIF_WILL_FILENAME = "src/test/resources/request/will.ldif";
     private static final String LDIF_WILL_MODIFY_FILENAME = "src/test/resources/request/will-modify.ldif";
+    private static final String LDIF_WILL_WITHOUT_LOCATION_FILENAME = "src/test/resources/request/will-without-location.ldif";
     private static final String WILL_NAME = "wturner";
 
     private static final String LDIF_ELAINE_FILENAME = "src/test/resources/request/elaine.ldif";
@@ -237,6 +236,26 @@ public class TestSanity extends AbstractIntegrationTest {
         //IntegrationTestTools.checkResults = false;
     }
 
+    @BeforeMethod
+    public void beforeMethod() throws Exception {
+        LOGGER.info("BEFORE METHOD");
+        OperationResult result = new OperationResult("get administrator");
+        UserType authUser = modelService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(),
+                null, result);
+
+        assertNotNull("Administrator user is null", authUser);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(authUser, null));
+
+        LOGGER.info("BEFORE METHOD END");
+    }
+
+    @AfterMethod
+    public void afterMethod() {
+        LOGGER.info("AFTER METHOD");
+        SecurityContextHolder.getContext().setAuthentication(null);
+        LOGGER.info("AFTER METHOD END");
+    }
+
     // This will get called from the superclass to init the repository
     // It will be called only once
     public void initSystem(OperationResult initResult) throws Exception {
@@ -251,7 +270,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // Add broken connector before importing resources
         addObjectFromFile(CONNECTOR_BROKEN_FILENAME, initResult);
-        
+
         // Need to import instead of add, so the (dynamic) connector reference
         // will be resolved
         // correctly
@@ -912,8 +931,8 @@ public class TestSanity extends AbstractIntegrationTest {
                 assertNotNull("Missing LDAP uid", getAttributeValue(shadow, new QName(resourceOpenDj.getNamespace(), "uid")));
                 assertNotNull("Missing LDAP cn", getAttributeValue(shadow, new QName(resourceOpenDj.getNamespace(), "cn")));
                 assertNotNull("Missing LDAP sn", getAttributeValue(shadow, new QName(resourceOpenDj.getNamespace(), "sn")));
-                assertNotNull("Missing activation",shadow.getActivation());
-                assertNotNull("Missing activation/enabled",shadow.getActivation().isEnabled());
+                assertNotNull("Missing activation", shadow.getActivation());
+                assertNotNull("Missing activation/enabled", shadow.getActivation().isEnabled());
                 return true;
             }
         };
@@ -1726,7 +1745,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OpenDJController.assertAttribute(entry, "departmentNumber", "Department of Guybrush");
         // Expression in the role taking that from the assignment
         OpenDJController.assertAttribute(entry, "physicalDeliveryOfficeName", "The Sea Monkey");
-        
+
         String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull("Pasword disappeared", guybrushPassword);
 
@@ -1734,7 +1753,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
     }
 
-    
+
     /**
      * Assign the same "captain" role again, this time with a slightly different assignment parameters.
      */
@@ -1807,7 +1826,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OpenDJController.assertAttribute(entry, "departmentNumber", "Department of Guybrush");
         // Expression in the role taking that from the assignments (both of them)
         OpenDJController.assertAttribute(entry, "physicalDeliveryOfficeName", "The Sea Monkey", "The Dainty Lady");
-        
+
         String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull("Pasword disappeared", guybrushPassword);
 
@@ -1936,7 +1955,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OpenDJController.assertAttribute(entry, "title", "Honorable Captain");
         OpenDJController.assertAttribute(entry, "carLicense", "C4PT41N");
         OpenDJController.assertAttribute(entry, "businessCategory", "cruise", "fighting", "capsize");
-     // Expression in the role taking that from the user
+        // Expression in the role taking that from the user
         OpenDJController.assertAttribute(entry, "destinationIndicator", "Guybrush Threepwood");
         OpenDJController.assertAttribute(entry, "departmentNumber", "Department of Guybrush");
         // Expression in the role taking that from the assignments (both of them)
@@ -2095,37 +2114,37 @@ public class TestSanity extends AbstractIntegrationTest {
 
     }
 
-    
+
     @Test
     public void test060ListResourcesWithBrokenResource() {
-    	displayTestTile("test060ListResourcesWithBrokenResource");
-    	
-    	// GIVEN
-    	final OperationResult result = new OperationResult(TestSanity.class.getName()
+        displayTestTile("test060ListResourcesWithBrokenResource");
+
+        // GIVEN
+        final OperationResult result = new OperationResult(TestSanity.class.getName()
                 + ".test060ListResourcesWithBrokenResource");
-    	
-    	// WHEN
-    	ResultList<ResourceType> resources = modelService.listObjects(ResourceType.class, null, result);
-    	
-    	// THEN
-    	assertNotNull("listObjects returned null list", resources);
-    	
-    	for (ResourceType resource: resources) {
-    		//display("Resource found",resource);
-    		display("Found "+ObjectTypeUtil.toShortString(resource)+", result "+(resource.getFetchResult() == null ? "null" :  resource.getFetchResult().getStatus()));
-    		
-    		assertNotNull(resource.getOid());
-    		assertNotNull(resource.getName());
-    		
-    		if (resource.getOid().equals(RESOURCE_BROKEN_OID)) {
-    			assertEquals("No error in fetchResult in "+ObjectTypeUtil.toShortString(resource), OperationResultStatusType.FATAL_ERROR, resource.getFetchResult().getStatus());
-    		} else {
-    			assertTrue("Unexpected error in fetchResult in "+ObjectTypeUtil.toShortString(resource),
-    					resource.getFetchResult() == null || resource.getFetchResult().getStatus() == OperationResultStatusType.SUCCESS);
-    		}
-    		
-    	}
-    	
+
+        // WHEN
+        ResultList<ResourceType> resources = modelService.listObjects(ResourceType.class, null, result);
+
+        // THEN
+        assertNotNull("listObjects returned null list", resources);
+
+        for (ResourceType resource : resources) {
+            //display("Resource found",resource);
+            display("Found " + ObjectTypeUtil.toShortString(resource) + ", result " + (resource.getFetchResult() == null ? "null" : resource.getFetchResult().getStatus()));
+
+            assertNotNull(resource.getOid());
+            assertNotNull(resource.getName());
+
+            if (resource.getOid().equals(RESOURCE_BROKEN_OID)) {
+                assertEquals("No error in fetchResult in " + ObjectTypeUtil.toShortString(resource), OperationResultStatusType.FATAL_ERROR, resource.getFetchResult().getStatus());
+            } else {
+                assertTrue("Unexpected error in fetchResult in " + ObjectTypeUtil.toShortString(resource),
+                        resource.getFetchResult() == null || resource.getFetchResult().getStatus() == OperationResultStatusType.SUCCESS);
+            }
+
+        }
+
     }
 
     // Synchronization tests
@@ -2239,13 +2258,7 @@ public class TestSanity extends AbstractIntegrationTest {
         final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
         AssertJUnit.assertNotNull(syncCycle);
 
-        final Object tokenBefore;
-        Property tokenProperty = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
-        if (tokenProperty == null) {
-            tokenBefore = null;
-        } else {
-            tokenBefore = tokenProperty.getValue();
-        }
+        final Object tokenBefore=findSyncToken(syncCycle);
 
         // WHEN
 
@@ -2255,31 +2268,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // THEN
 
         // Wait a bit to give the sync cycle time to detect the change
-
-        waitFor("Waiting for sync cycle to detect change", new Checker() {
-            @Override
-            public boolean check() throws Exception {
-                syncCycle.refresh(result);
-                display("SyncCycle while waiting for sync cycle to detect change", syncCycle);
-                Object tokenNow = null;
-                Property propertyNow = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
-                if (propertyNow == null) {
-                    tokenNow = null;
-                } else {
-                    tokenNow = propertyNow.getValue();
-                }
-                if (tokenBefore == null) {
-                    return (tokenNow != null);
-                } else {
-                    return (!tokenBefore.equals(tokenNow));
-                }
-            }
-
-            @Override
-            public void timeout() {
-                // No reaction, the test will fail right after return from this
-            }
-        }, 30000);
+        basicWaitForSyncChangeDetection(syncCycle, tokenBefore, result);
 
         // Search for the user that should be created now
 
@@ -2426,13 +2415,7 @@ public class TestSanity extends AbstractIntegrationTest {
         final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
         AssertJUnit.assertNotNull(syncCycle);
 
-        final Object tokenBefore;
-        Property tokenProperty = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
-        if (tokenProperty == null) {
-            tokenBefore = null;
-        } else {
-            tokenBefore = tokenProperty.getValue();
-        }
+        final Object tokenBefore = findSyncToken(syncCycle);
 
         Entry entry = openDJController.addEntryFromLdifFile(LDIF_E_FILENAME_LINK);
         display("Entry from LDIF", entry);
@@ -2488,7 +2471,7 @@ public class TestSanity extends AbstractIntegrationTest {
         user = (UserType) objects.getObject().get(0);
         List<ObjectReferenceType> accountRefs = user.getAccountRef();
         assertEquals("Account ref not found, or found too many", 1, accountRefs.size());
-        
+
         //check account defined by account ref
         String accountOid = accountRefs.get(0).getOid();
         resultType = new OperationResultType();
@@ -2498,12 +2481,136 @@ public class TestSanity extends AbstractIntegrationTest {
         ObjectType object = accountHolder.value;
         assertSuccess("searchObjects has failed", resultHolder.value);
         assertNotNull("Account is null", object);
-        
+
         if (!(object instanceof AccountShadowType)) {
             fail("Object is not account.");
         }
-        AccountShadowType account = (AccountShadowType)object;
+        AccountShadowType account = (AccountShadowType) object;
         assertEquals("Name doesn't match", "uid=e,ou=People,dc=example,dc=com", account.getName());
+    }
+
+    /**
+     * Create LDAP object. That should be picked up by liveSync and a user
+     * should be created in repo.
+     * Also location (ldap l) should be updated through outbound
+     *
+     * @throws Exception
+     */
+    @Test
+    public void test104LiveSyncCreate() throws Exception {
+        displayTestTile("test104LiveSyncCreate");
+        // Sync task should be running (tested in previous test), so just create
+        // new LDAP object.
+
+        final OperationResult result = new OperationResult(TestSanity.class.getName()
+                + ".test104LiveSyncCreate");
+        final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
+        AssertJUnit.assertNotNull(syncCycle);
+
+        final Object tokenBefore = findSyncToken(syncCycle);
+
+        // WHEN
+        Entry entry = openDJController.addEntryFromLdifFile(LDIF_WILL_WITHOUT_LOCATION_FILENAME);
+        display("Entry from LDIF", entry);
+
+        // THEN
+        // Wait a bit to give the sync cycle time to detect the change
+        basicWaitForSyncChangeDetection(syncCycle, tokenBefore, result);
+        // Search for the user that should be created now
+        final String USER_NAME = "wturner1";
+        UserType user = searchUserByName(USER_NAME);
+
+        List<ObjectReferenceType> accountRefs = user.getAccountRef();
+        assertEquals("Account ref not found, or found too many", 1, accountRefs.size());
+
+        //check account defined by account ref
+        String accountOid = accountRefs.get(0).getOid();
+        AccountShadowType account = searchAccountByOid(accountOid);
+
+        assertEquals("Name doesn't match", "uid=" + USER_NAME + ",ou=People,dc=example,dc=com", account.getName());
+        List<String> localities = getAttributeValues(account, new QName(IMPORT_OBJECTCLASS.getNamespaceURI(), "l"));
+        assertNotNull(localities);
+        assertEquals(1, localities.size());
+        assertEquals("Locality doesn't match", "middle of nowhere", localities.get(0));
+    }
+
+    private Object findSyncToken(Task syncCycle) {
+        Object token = null;
+        Property tokenProperty = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
+        if (tokenProperty != null) {
+            token = tokenProperty.getValue();
+        }
+
+        return token;
+    }
+
+    private AccountShadowType searchAccountByOid(final String accountOid) throws Exception {
+        OperationResultType resultType = new OperationResultType();
+        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
+        Holder<ObjectType> accountHolder = new Holder<ObjectType>();
+        modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountOid, new PropertyReferenceListType(), accountHolder, resultHolder);
+        ObjectType object = accountHolder.value;
+        assertSuccess("searchObjects has failed", resultHolder.value);
+        assertNotNull("Account is null", object);
+
+        if (!(object instanceof AccountShadowType)) {
+            fail("Object is not account.");
+        }
+        AccountShadowType account = (AccountShadowType) object;
+        assertEquals(accountOid, account.getOid());
+
+        return account;
+    }
+
+    private UserType searchUserByName(String name) throws Exception {
+        Document doc = DOMUtil.getDocument();
+        Element nameElement = doc.createElementNS(SchemaConstants.C_NAME.getNamespaceURI(),
+                SchemaConstants.C_NAME.getLocalPart());
+        nameElement.setTextContent(name);
+        Element filter = QueryUtil.createEqualFilter(doc, null, nameElement);
+
+        QueryType query = new QueryType();
+        query.setFilter(filter);
+        OperationResultType resultType = new OperationResultType();
+        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
+        Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
+        assertCache();
+
+        modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, null,
+                listHolder, resultHolder);
+
+        assertCache();
+        ObjectListType objects = listHolder.value;
+        assertSuccess("searchObjects has failed", resultHolder.value);
+        AssertJUnit.assertEquals("User not found (or found too many)", 1, objects.getObject().size());
+        UserType user = (UserType) objects.getObject().get(0);
+
+        AssertJUnit.assertEquals(user.getName(), name);
+
+        return user;
+    }
+
+    private void basicWaitForSyncChangeDetection(final Task syncCycle, final Object tokenBefore,
+            final OperationResult result) throws Exception {
+
+        waitFor("Waiting for sync cycle to detect change", new Checker() {
+            @Override
+            public boolean check() throws Exception {
+                syncCycle.refresh(result);
+                display("SyncCycle while waiting for sync cycle to detect change", syncCycle);
+                Object tokenNow = findSyncToken(syncCycle);
+                if (tokenBefore == null) {
+                    return (tokenNow != null);
+                } else {
+                    return (!tokenBefore.equals(tokenNow));
+                }
+            }
+
+            @Override
+            public void timeout() {
+                // No reaction, the test will fail right after return from this
+            }
+        }, 30000);
     }
 
     /**
@@ -2532,8 +2639,8 @@ public class TestSanity extends AbstractIntegrationTest {
         OperationResult result = new OperationResult(TestSanity.class.getName()
                 + ".test200ImportFromResource");
 
-        UserType authUser = unmarshallJaxbFromFile(USER_JACK_FILENAME, UserType.class);
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(authUser, null));
+//        UserType authUser = unmarshallJaxbFromFile(USER_JACK_FILENAME, UserType.class);
+//        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(authUser, null));
 
         try {
             // WHEN
@@ -2572,7 +2679,7 @@ public class TestSanity extends AbstractIntegrationTest {
                     modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), taskOid,
                             new PropertyReferenceListType(), objectHolder, resultHolder);
                     assertCache();
-    //				display("getObject result (wait loop)",resultHolder.value);
+                    //				display("getObject result (wait loop)",resultHolder.value);
                     assertSuccess("getObject has failed", resultHolder.value);
                     Task task = taskManager.createTaskInstance((TaskType) objectHolder.value, opResult);
                     System.out.println(new Date() + ": Import task status: " + task.getExecutionStatus() + ", progress: " + task.getProgress());
@@ -2580,7 +2687,7 @@ public class TestSanity extends AbstractIntegrationTest {
                         // Task closed, wait finished
                         return true;
                     }
-    //				IntegrationTestTools.display("Task result while waiting: ", task.getResult());
+                    //				IntegrationTestTools.display("Task result while waiting: ", task.getResult());
                     return false;
                 }
 
@@ -2619,7 +2726,7 @@ public class TestSanity extends AbstractIntegrationTest {
                     modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), taskOid,
                             new PropertyReferenceListType(), objectHolder, resultHolder);
                     assertCache();
-    //				display("getObject result (wait loop)",resultHolder.value);
+                    //				display("getObject result (wait loop)",resultHolder.value);
                     assertSuccess("getObject has failed", resultHolder.value);
                     Task task = taskManager.createTaskInstance((TaskType) objectHolder.value, opResult);
                     System.out.println("Import task status: " + task.getExecutionStatus());
@@ -2627,7 +2734,7 @@ public class TestSanity extends AbstractIntegrationTest {
                         // Task closed and released, wait finished
                         return true;
                     }
-    //				IntegrationTestTools.display("Task result while waiting: ", task.getResult());
+                    //				IntegrationTestTools.display("Task result while waiting: ", task.getResult());
                     return false;
                 }
 
@@ -2685,6 +2792,10 @@ public class TestSanity extends AbstractIntegrationTest {
 
             for (ObjectType oo : uobjects.getObject()) {
                 UserType user = (UserType) oo;
+                if (SystemObjectsType.USER_ADMINISTRATOR.value().equals(user.getOid())) {
+                    //skip administrator check
+                    continue;
+                }
                 display("User after import (repo)", user);
                 assertNotEmpty("No OID in user", user.getOid()); // This would be
                 // really
@@ -2712,7 +2823,7 @@ public class TestSanity extends AbstractIntegrationTest {
                 }
             }
         } finally {
-            SecurityContextHolder.getContext().setAuthentication(null);
+//            SecurityContextHolder.getContext().setAuthentication(null);
         }
     }
 
@@ -3030,16 +3141,16 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // Set by the role
         OpenDJController.assertAttribute(entry, "employeeType", "sailor");
-        
+
         // "title" is tolerant, so it will retain the original value as well as the one provided by the role
         OpenDJController.assertAttribute(entry, "title", "Scurvy earthworm", "Honorable Captain");
-        
+
         OpenDJController.assertAttribute(entry, "carLicense", "C4PT41N");
         OpenDJController.assertAttribute(entry, "businessCategory", "cruise");
 
         // No setting for "postOfficeBox", so the value should be unchanged
         OpenDJController.assertAttribute(entry, "postOfficeBox", "X marks the spot");
-        
+
         String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull("Pasword was not set on create", guybrushPassword);
 
@@ -3057,7 +3168,7 @@ public class TestSanity extends AbstractIntegrationTest {
         assertEquals("Elaine", repoUser.getGivenName());
         assertEquals("Marley", repoUser.getFamilyName());
         assertEquals("Elaine Marley", repoUser.getFullName());
-        
+
         accountRefs = repoUser.getAccountRef();
         assertEquals("Elaine has wrong number of accounts", 1, accountRefs.size());
         accountRef = accountRefs.get(0);
