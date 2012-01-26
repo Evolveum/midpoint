@@ -2258,7 +2258,7 @@ public class TestSanity extends AbstractIntegrationTest {
         final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
         AssertJUnit.assertNotNull(syncCycle);
 
-        final Object tokenBefore=findSyncToken(syncCycle);
+        final Object tokenBefore = findSyncToken(syncCycle);
 
         // WHEN
 
@@ -2271,28 +2271,7 @@ public class TestSanity extends AbstractIntegrationTest {
         basicWaitForSyncChangeDetection(syncCycle, tokenBefore, result);
 
         // Search for the user that should be created now
-
-        Document doc = DOMUtil.getDocument();
-        Element nameElement = doc.createElementNS(SchemaConstants.C_NAME.getNamespaceURI(),
-                SchemaConstants.C_NAME.getLocalPart());
-        nameElement.setTextContent(WILL_NAME);
-        Element filter = QueryUtil.createEqualFilter(doc, null, nameElement);
-
-        QueryType query = new QueryType();
-        query.setFilter(filter);
-        OperationResultType resultType = new OperationResultType();
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
-        Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
-        assertCache();
-
-        modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, null,
-                listHolder, resultHolder);
-
-        assertCache();
-        ObjectListType objects = listHolder.value;
-        assertSuccess("searchObjects has failed", resultHolder.value);
-        AssertJUnit.assertEquals("User not found (or found too many)", 1, objects.getObject().size());
-        UserType user = (UserType) objects.getObject().get(0);
+        UserType user = searchUserByName(WILL_NAME);
 
         AssertJUnit.assertEquals(user.getName(), WILL_NAME);
 
@@ -2313,74 +2292,20 @@ public class TestSanity extends AbstractIntegrationTest {
         final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
         AssertJUnit.assertNotNull(syncCycle);
 
-        final Object tokenBefore;
-        Property tokenProperty = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
-        if (tokenProperty == null) {
-            tokenBefore = null;
-        } else {
-            tokenBefore = tokenProperty.getValue();
-        }
+        final Object tokenBefore = findSyncToken(syncCycle);
 
         // WHEN
-
         ModifyOperation modifyOperation = openDJController.getInternalConnection()
                 .processModify((ModifyChangeRecordEntry) entry);
 
         // THEN
-
         AssertJUnit.assertEquals("LDAP modify operation failed", ResultCode.SUCCESS,
                 modifyOperation.getResultCode());
 
         // Wait a bit to give the sync cycle time to detect the change
-
-        waitFor("Waiting for sync cycle to detect change", new Checker() {
-            @Override
-            public boolean check() throws Exception {
-                syncCycle.refresh(result);
-                display("SyncCycle while waiting for sync cycle to detect change", syncCycle);
-                Object tokenNow = null;
-                Property propertyNow = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
-                if (propertyNow == null) {
-                    tokenNow = null;
-                } else {
-                    tokenNow = propertyNow.getValue();
-                }
-                if (tokenBefore == null) {
-                    return (tokenNow != null);
-                } else {
-                    return (!tokenBefore.equals(tokenNow));
-                }
-            }
-
-            @Override
-            public void timeout() {
-                // No reaction, the test will fail right after return from this
-            }
-        }, 30000);
-
+        basicWaitForSyncChangeDetection(syncCycle, tokenBefore, result);
         // Search for the user that should be created now
-
-        Document doc = DOMUtil.getDocument();
-        Element nameElement = doc.createElementNS(SchemaConstants.C_NAME.getNamespaceURI(),
-                SchemaConstants.C_NAME.getLocalPart());
-        nameElement.setTextContent(WILL_NAME);
-        Element filter = QueryUtil.createEqualFilter(doc, null, nameElement);
-
-        QueryType query = new QueryType();
-        query.setFilter(filter);
-        OperationResultType resultType = new OperationResultType();
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
-        Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
-        assertCache();
-
-        modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, null,
-                listHolder, resultHolder);
-
-        assertCache();
-        ObjectListType objects = listHolder.value;
-        assertSuccess("searchObjects has failed", resultHolder.value);
-        AssertJUnit.assertEquals("User not found (or found too many)", 1, objects.getObject().size());
-        UserType user = (UserType) objects.getObject().get(0);
+        UserType user = searchUserByName (WILL_NAME);
 
         AssertJUnit.assertEquals(WILL_NAME, user.getName());
         AssertJUnit.assertEquals("asdf", user.getGivenName());
@@ -2422,70 +2347,18 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // THEN
         // Wait a bit to give the sync cycle time to detect the change
-        waitFor("Waiting for sync cycle to detect change", new Checker() {
-            @Override
-            public boolean check() throws Exception {
-                syncCycle.refresh(result);
-                display("SyncCycle while waiting for sync cycle to detect change", syncCycle);
-                Object tokenNow = null;
-                Property propertyNow = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
-                if (propertyNow == null) {
-                    tokenNow = null;
-                } else {
-                    tokenNow = propertyNow.getValue();
-                }
-                if (tokenBefore == null) {
-                    return (tokenNow != null);
-                } else {
-                    return (!tokenBefore.equals(tokenNow));
-                }
-            }
-
-            @Override
-            public void timeout() {
-                // No reaction, the test will fail right after return from this
-            }
-        }, 30000);
+        basicWaitForSyncChangeDetection(syncCycle, tokenBefore, result);
 
         //check user and account ref
-        Document doc = DOMUtil.getDocument();
-        Element nameElement = doc.createElementNS(SchemaConstants.C_NAME.getNamespaceURI(),
-                SchemaConstants.C_NAME.getLocalPart());
-        nameElement.setTextContent("e");
-        Element filter = QueryUtil.createEqualFilter(doc, null, nameElement);
+        user = searchUserByName("e");
 
-        QueryType query = new QueryType();
-        query.setFilter(filter);
-        resultType = new OperationResultType();
-        resultHolder = new Holder<OperationResultType>(resultType);
-        Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
-        assertCache();
-
-        modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, null,
-                listHolder, resultHolder);
-
-        assertCache();
-        ObjectListType objects = listHolder.value;
-        assertSuccess("searchObjects has failed", resultHolder.value);
-        AssertJUnit.assertEquals("User not found (or found too many)", 1, objects.getObject().size());
-        user = (UserType) objects.getObject().get(0);
         List<ObjectReferenceType> accountRefs = user.getAccountRef();
         assertEquals("Account ref not found, or found too many", 1, accountRefs.size());
 
         //check account defined by account ref
         String accountOid = accountRefs.get(0).getOid();
-        resultType = new OperationResultType();
-        resultHolder = new Holder<OperationResultType>(resultType);
-        Holder<ObjectType> accountHolder = new Holder<ObjectType>();
-        modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountOid, new PropertyReferenceListType(), accountHolder, resultHolder);
-        ObjectType object = accountHolder.value;
-        assertSuccess("searchObjects has failed", resultHolder.value);
-        assertNotNull("Account is null", object);
+        AccountShadowType account = searchAccountByOid(accountOid);
 
-        if (!(object instanceof AccountShadowType)) {
-            fail("Object is not account.");
-        }
-        AccountShadowType account = (AccountShadowType) object;
         assertEquals("Name doesn't match", "uid=e,ou=People,dc=example,dc=com", account.getName());
     }
 
@@ -2639,191 +2512,184 @@ public class TestSanity extends AbstractIntegrationTest {
         OperationResult result = new OperationResult(TestSanity.class.getName()
                 + ".test200ImportFromResource");
 
-//        UserType authUser = unmarshallJaxbFromFile(USER_JACK_FILENAME, UserType.class);
-//        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(authUser, null));
+        // WHEN
+        TaskType taskType = modelWeb.importFromResource(RESOURCE_OPENDJ_OID, IMPORT_OBJECTCLASS);
+
+        // THEN
+
+        assertCache();
+        displayJaxb("importFromResource result", taskType.getResult(), SchemaConstants.C_RESULT);
+        AssertJUnit.assertEquals("importFromResource has failed", OperationResultStatusType.IN_PROGRESS, taskType.getResult().getStatus());
+        // Convert the returned TaskType to a more usable Task
+        Task task = taskManager.createTaskInstance(taskType, result);
+        AssertJUnit.assertNotNull(task);
+        assertNotNull(task.getOid());
+        AssertJUnit.assertTrue(task.isAsynchronous());
+        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
+
+        display("Import task after launch", task);
+
+        TaskType taskAfter = repositoryService.getObject(TaskType.class, task.getOid(), null, result);
+        display("Import task in repo after launch", taskAfter);
+
+        result.computeStatus();
+        assertSuccess("getObject has failed", result);
+
+        final String taskOid = task.getOid();
+
+        waitFor("Waiting for import to complete", new Checker() {
+            @Override
+            public boolean check() throws Exception {
+                Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+                Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+                OperationResult opResult = new OperationResult("import check");
+                assertCache();
+                modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), taskOid,
+                        new PropertyReferenceListType(), objectHolder, resultHolder);
+                assertCache();
+                //				display("getObject result (wait loop)",resultHolder.value);
+                assertSuccess("getObject has failed", resultHolder.value);
+                Task task = taskManager.createTaskInstance((TaskType) objectHolder.value, opResult);
+                System.out.println(new Date() + ": Import task status: " + task.getExecutionStatus() + ", progress: " + task.getProgress());
+                if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
+                    // Task closed, wait finished
+                    return true;
+                }
+                //				IntegrationTestTools.display("Task result while waiting: ", task.getResult());
+                return false;
+            }
+
+            @Override
+            public void timeout() {
+                // No reaction, the test will fail right after return from this
+            }
+        }, 120000);
+
+        Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+        assertCache();
+
+        modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), task.getOid(),
+                new PropertyReferenceListType(), objectHolder, resultHolder);
+
+        assertCache();
+        assertSuccess("getObject has failed", resultHolder.value);
+        task = taskManager.createTaskInstance((TaskType) objectHolder.value, result);
+
+        display("Import task after finish (fetched from model)", task);
+
+        AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
+
+        long importDuration = task.getLastRunFinishTimestamp() - task.getLastRunStartTimestamp();
+        double usersPerSec = (task.getProgress() * 1000) / importDuration;
+        display("Imported " + task.getProgress() + " users in " + importDuration + " milliseconds (" + usersPerSec + " users/sec)");
+
+        waitFor("Waiting for task to get released", new Checker() {
+            @Override
+            public boolean check() throws Exception {
+                Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+                Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+                OperationResult opResult = new OperationResult("import check");
+                assertCache();
+                modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), taskOid,
+                        new PropertyReferenceListType(), objectHolder, resultHolder);
+                assertCache();
+                //				display("getObject result (wait loop)",resultHolder.value);
+                assertSuccess("getObject has failed", resultHolder.value);
+                Task task = taskManager.createTaskInstance((TaskType) objectHolder.value, opResult);
+                System.out.println("Import task status: " + task.getExecutionStatus());
+                if (task.getExclusivityStatus() == TaskExclusivityStatus.RELEASED) {
+                    // Task closed and released, wait finished
+                    return true;
+                }
+                //				IntegrationTestTools.display("Task result while waiting: ", task.getResult());
+                return false;
+            }
+
+            public void timeout() {
+                Assert.fail("The task was not released after closing");
+            }
+        }, 10000);
+
+        OperationResult taskResult = task.getResult();
+        AssertJUnit.assertNotNull("Task has no result", taskResult);
+        AssertJUnit.assertTrue("Task failed", taskResult.isSuccess());
+
+        AssertJUnit.assertTrue("No progress", task.getProgress() > 0);
+
+        // Check if the import created users and shadows
+
+        // Listing of shadows is not supported by the provisioning. So we need
+        // to look directly into repository
+        List<AccountShadowType> sobjects = repositoryService.listObjects(AccountShadowType.class, null,
+                result);
+        result.computeStatus();
+        assertSuccess("listObjects has failed", result);
+        AssertJUnit.assertFalse("No shadows created", sobjects.isEmpty());
+
+        for (AccountShadowType shadow : sobjects) {
+            display("Shadow object after import (repo)", shadow);
+            assertNotEmpty("No OID in shadow", shadow.getOid()); // This would
+            // be really
+            // strange
+            // ;-)
+            assertNotEmpty("No name in shadow", shadow.getName());
+            AssertJUnit.assertNotNull("No objectclass in shadow", shadow.getObjectClass());
+            AssertJUnit.assertNotNull("Null attributes in shadow", shadow.getAttributes());
+            assertAttributeNotNull("No UID in shadow", shadow, ConnectorFactoryIcfImpl.ICFS_UID);
+        }
+
+        Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
+        assertCache();
+
+        modelWeb.listObjects(ObjectTypes.USER.getObjectTypeUri(), null,
+                listHolder, resultHolder);
+
+        assertCache();
+        ObjectListType uobjects = listHolder.value;
+        assertSuccess("listObjects has failed", resultHolder.value);
+        AssertJUnit.assertFalse("No users created", uobjects.getObject().isEmpty());
 
         try {
-            // WHEN
-            TaskType taskType = modelWeb.importFromResource(RESOURCE_OPENDJ_OID, IMPORT_OBJECTCLASS);
+            AccountShadowType guybrushShadow = modelService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj, null, new OperationResult("get shadow"));
+            display("Guybrush shadow (" + accountShadowOidGuybrushOpendj + ")", guybrushShadow);
+        } catch (ObjectNotFoundException e) {
+            System.out.println("NO GUYBRUSH SHADOW");
+            // TODO: fail
+        }
 
-            // THEN
-
-            assertCache();
-            displayJaxb("importFromResource result", taskType.getResult(), SchemaConstants.C_RESULT);
-            AssertJUnit.assertEquals("importFromResource has failed", OperationResultStatusType.IN_PROGRESS, taskType.getResult().getStatus());
-            // Convert the returned TaskType to a more usable Task
-            Task task = taskManager.createTaskInstance(taskType, result);
-            AssertJUnit.assertNotNull(task);
-            assertNotNull(task.getOid());
-            AssertJUnit.assertTrue(task.isAsynchronous());
-            AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
-            AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
-
-            display("Import task after launch", task);
-
-            TaskType taskAfter = repositoryService.getObject(TaskType.class, task.getOid(), null, result);
-            display("Import task in repo after launch", taskAfter);
-
-            result.computeStatus();
-            assertSuccess("getObject has failed", result);
-
-            final String taskOid = task.getOid();
-
-            waitFor("Waiting for import to complete", new Checker() {
-                @Override
-                public boolean check() throws Exception {
-                    Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-                    Holder<ObjectType> objectHolder = new Holder<ObjectType>();
-                    OperationResult opResult = new OperationResult("import check");
-                    assertCache();
-                    modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), taskOid,
-                            new PropertyReferenceListType(), objectHolder, resultHolder);
-                    assertCache();
-                    //				display("getObject result (wait loop)",resultHolder.value);
-                    assertSuccess("getObject has failed", resultHolder.value);
-                    Task task = taskManager.createTaskInstance((TaskType) objectHolder.value, opResult);
-                    System.out.println(new Date() + ": Import task status: " + task.getExecutionStatus() + ", progress: " + task.getProgress());
-                    if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
-                        // Task closed, wait finished
-                        return true;
-                    }
-                    //				IntegrationTestTools.display("Task result while waiting: ", task.getResult());
-                    return false;
-                }
-
-                @Override
-                public void timeout() {
-                    // No reaction, the test will fail right after return from this
-                }
-            }, 120000);
-
-            Holder<ObjectType> objectHolder = new Holder<ObjectType>();
-            Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-            assertCache();
-
-            modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), task.getOid(),
-                    new PropertyReferenceListType(), objectHolder, resultHolder);
-
-            assertCache();
-            assertSuccess("getObject has failed", resultHolder.value);
-            task = taskManager.createTaskInstance((TaskType) objectHolder.value, result);
-
-            display("Import task after finish (fetched from model)", task);
-
-            AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
-
-            long importDuration = task.getLastRunFinishTimestamp() - task.getLastRunStartTimestamp();
-            double usersPerSec = (task.getProgress() * 1000) / importDuration;
-            display("Imported " + task.getProgress() + " users in " + importDuration + " milliseconds (" + usersPerSec + " users/sec)");
-
-            waitFor("Waiting for task to get released", new Checker() {
-                @Override
-                public boolean check() throws Exception {
-                    Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-                    Holder<ObjectType> objectHolder = new Holder<ObjectType>();
-                    OperationResult opResult = new OperationResult("import check");
-                    assertCache();
-                    modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), taskOid,
-                            new PropertyReferenceListType(), objectHolder, resultHolder);
-                    assertCache();
-                    //				display("getObject result (wait loop)",resultHolder.value);
-                    assertSuccess("getObject has failed", resultHolder.value);
-                    Task task = taskManager.createTaskInstance((TaskType) objectHolder.value, opResult);
-                    System.out.println("Import task status: " + task.getExecutionStatus());
-                    if (task.getExclusivityStatus() == TaskExclusivityStatus.RELEASED) {
-                        // Task closed and released, wait finished
-                        return true;
-                    }
-                    //				IntegrationTestTools.display("Task result while waiting: ", task.getResult());
-                    return false;
-                }
-
-                public void timeout() {
-                    Assert.fail("The task was not released after closing");
-                }
-            }, 10000);
-
-            OperationResult taskResult = task.getResult();
-            AssertJUnit.assertNotNull("Task has no result", taskResult);
-            AssertJUnit.assertTrue("Task failed", taskResult.isSuccess());
-
-            AssertJUnit.assertTrue("No progress", task.getProgress() > 0);
-
-            // Check if the import created users and shadows
-
-            // Listing of shadows is not supported by the provisioning. So we need
-            // to look directly into repository
-            List<AccountShadowType> sobjects = repositoryService.listObjects(AccountShadowType.class, null,
-                    result);
-            result.computeStatus();
-            assertSuccess("listObjects has failed", result);
-            AssertJUnit.assertFalse("No shadows created", sobjects.isEmpty());
-
-            for (AccountShadowType shadow : sobjects) {
-                display("Shadow object after import (repo)", shadow);
-                assertNotEmpty("No OID in shadow", shadow.getOid()); // This would
-                // be really
-                // strange
-                // ;-)
-                assertNotEmpty("No name in shadow", shadow.getName());
-                AssertJUnit.assertNotNull("No objectclass in shadow", shadow.getObjectClass());
-                AssertJUnit.assertNotNull("Null attributes in shadow", shadow.getAttributes());
-                assertAttributeNotNull("No UID in shadow", shadow, ConnectorFactoryIcfImpl.ICFS_UID);
+        for (ObjectType oo : uobjects.getObject()) {
+            UserType user = (UserType) oo;
+            if (SystemObjectsType.USER_ADMINISTRATOR.value().equals(user.getOid())) {
+                //skip administrator check
+                continue;
             }
+            display("User after import (repo)", user);
+            assertNotEmpty("No OID in user", user.getOid()); // This would be
+            // really
+            // strange ;-)
+            assertNotEmpty("No name in user", user.getName());
+            assertNotEmpty("No fullName in user", user.getFullName());
+            assertNotEmpty("No familyName in user", user.getFamilyName());
+            // givenName is not mandatory in LDAP, therefore givenName may not
+            // be present on user
+            List<ObjectReferenceType> accountRefs = user.getAccountRef();
+            AssertJUnit.assertEquals("Wrong accountRef for user " + user.getName(), 1, accountRefs.size());
+            ObjectReferenceType accountRef = accountRefs.get(0);
+            // here was ref to resource oid, not account oid
 
-            Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
-            assertCache();
-
-            modelWeb.listObjects(ObjectTypes.USER.getObjectTypeUri(), null,
-                    listHolder, resultHolder);
-
-            assertCache();
-            ObjectListType uobjects = listHolder.value;
-            assertSuccess("listObjects has failed", resultHolder.value);
-            AssertJUnit.assertFalse("No users created", uobjects.getObject().isEmpty());
-
-            try {
-                AccountShadowType guybrushShadow = modelService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj, null, new OperationResult("get shadow"));
-                display("Guybrush shadow (" + accountShadowOidGuybrushOpendj + ")", guybrushShadow);
-            } catch (ObjectNotFoundException e) {
-                System.out.println("NO GUYBRUSH SHADOW");
-                // TODO: fail
-            }
-
-            for (ObjectType oo : uobjects.getObject()) {
-                UserType user = (UserType) oo;
-                if (SystemObjectsType.USER_ADMINISTRATOR.value().equals(user.getOid())) {
-                    //skip administrator check
-                    continue;
-                }
-                display("User after import (repo)", user);
-                assertNotEmpty("No OID in user", user.getOid()); // This would be
-                // really
-                // strange ;-)
-                assertNotEmpty("No name in user", user.getName());
-                assertNotEmpty("No fullName in user", user.getFullName());
-                assertNotEmpty("No familyName in user", user.getFamilyName());
-                // givenName is not mandatory in LDAP, therefore givenName may not
-                // be present on user
-                List<ObjectReferenceType> accountRefs = user.getAccountRef();
-                AssertJUnit.assertEquals("Wrong accountRef for user " + user.getName(), 1, accountRefs.size());
-                ObjectReferenceType accountRef = accountRefs.get(0);
-                // here was ref to resource oid, not account oid
-
-                // XXX: HACK: I don't know how to match accounts here
-                boolean found = false;
-                for (AccountShadowType account : sobjects) {
-                    if (accountRef.getOid().equals(account.getOid())) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    AssertJUnit.fail("accountRef does not point to existing account " + accountRef.getOid());
+            // XXX: HACK: I don't know how to match accounts here
+            boolean found = false;
+            for (AccountShadowType account : sobjects) {
+                if (accountRef.getOid().equals(account.getOid())) {
+                    found = true;
+                    break;
                 }
             }
-        } finally {
-//            SecurityContextHolder.getContext().setAuthentication(null);
+            if (!found) {
+                AssertJUnit.fail("accountRef does not point to existing account " + accountRef.getOid());
+            }
         }
     }
 

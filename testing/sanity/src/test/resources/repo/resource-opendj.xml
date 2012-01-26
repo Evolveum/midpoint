@@ -453,6 +453,7 @@ This is now the only account type that midPoint can work with. -->
                     </outbound>
                     <inbound>
                     	<source>
+                            <initial>true</initial>
                     		<generate/>
                     	</source>
                     </inbound>
@@ -534,7 +535,6 @@ always return at most one match, the confirmation rule is not needed. -->
         -->
         <c:reaction>
             <c:situation>linked</c:situation>
-
             <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser"/>
         </c:reaction>
         <c:reaction>
@@ -543,7 +543,6 @@ always return at most one match, the confirmation rule is not needed. -->
         </c:reaction>
         <c:reaction>
             <c:situation>unlinked</c:situation>
-
             <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
         </c:reaction>
         <c:reaction>
@@ -554,8 +553,6 @@ always return at most one match, the confirmation rule is not needed. -->
              to this template. -->
                 <c:userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
             </c:action>
-
-            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
         </c:reaction>
 
     </c:synchronization>
