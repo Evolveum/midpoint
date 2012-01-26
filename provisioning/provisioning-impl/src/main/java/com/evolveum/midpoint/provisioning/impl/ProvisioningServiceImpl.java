@@ -983,14 +983,28 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	private ObjectModificationType createShadowResultModification(
 			ResourceObjectShadowChangeDescription shadowChangeDescription, Change change,
 			OperationResult shadowResult) {
+		
 
-		String shadowOid = shadowChangeDescription.getOldShadow() != null ? shadowChangeDescription
-				.getObjectDelta().getOid() : shadowChangeDescription.getCurrentShadow().getOid();
+		String shadowOid = null;
+		if (change.getObjectDelta() != null && change.getObjectDelta().getOid() != null){
+			shadowOid = change.getObjectDelta().getOid();
+		} else{
+			if (change.getCurrentShadow().getOid() != null){
+				shadowOid = change.getCurrentShadow().getOid();
+			} else{
+				if (change.getOldShadow().getOid() != null){
+					shadowOid = change.getOldShadow().getOid();
+				} else {
+					throw new IllegalArgumentException("No uid value defined for the object to synchronize.");
+				}
+			}
+		}
+
 		ObjectModificationType shadowModification = ObjectTypeUtil.createModificationReplaceProperty(
 				shadowOid, SchemaConstants.C_RESULT, shadowResult.createOperationResultType());
 
 		if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
-			PropertyModificationType deleteFlagProperty = ObjectTypeUtil.createPropertyModificationType(
+						PropertyModificationType deleteFlagProperty = ObjectTypeUtil.createPropertyModificationType(
 					PropertyModificationTypeType.replace, null, SchemaConstants.C_FAILED_OPERATION_TYPE,
 					FailedOperationTypeType.DELETE);
 			shadowModification.getPropertyModification().add(deleteFlagProperty);
