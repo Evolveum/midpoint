@@ -79,6 +79,8 @@ public class AuditEventRecord {
 	
 	// delta order (primary, secondary)
 	
+	private String channel;
+	
 	// outcome (success, failure)
 	private OperationResultStatus outcome;
 
@@ -205,6 +207,14 @@ public class AuditEventRecord {
 		deltas.addAll(deltasToAdd);
 	}
 	
+	public String getChannel() {
+		return channel;
+	}
+
+	public void setChannel(String channel) {
+		this.channel = channel;
+	}
+
 	public void clearDeltas() {
 		deltas.clear();
 	}
@@ -227,7 +237,7 @@ public class AuditEventRecord {
 				+ " sid=" + sessionIdentifier + ", tid=" + taskIdentifier
 				+ " toid=" + taskOID + ", hid=" + hostIdentifier + ", I=" + formatObject(initiator)
 				+ ", T=" + formatObject(target) + ", TO=" + formatObject(targetOwner) + ", et=" + eventType
-				+ ", es=" + eventStage + ", D=" + deltas + ", o=" + outcome + "]";
+				+ ", es=" + eventStage + ", D=" + deltas + ", ch="+ channel +"o=" + outcome + "]";
 	}
 
 	private static String formatTimestamp(Long timestamp) {

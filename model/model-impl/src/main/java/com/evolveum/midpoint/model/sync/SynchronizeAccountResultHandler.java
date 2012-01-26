@@ -181,7 +181,7 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 			change.assertCorrectness();
 			
 			// Invoke the change notification
-			objectChangeListener.notifyChange(change, result);
+			objectChangeListener.notifyChange(change, task, result);
 			long endTime = System.currentTimeMillis();
 			if (LOGGER.isInfoEnabled()) {
 				LOGGER.info("{} object {} from resource {} done ({} ms)",new Object[]{

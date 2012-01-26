@@ -21,6 +21,10 @@
 
 package com.evolveum.midpoint.model.sync;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.expr.ExpressionException;
@@ -38,6 +42,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -71,6 +76,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     private ExpressionHandler expressionHandler;
     @Autowired
     private ChangeNotificationDispatcher notificationManager;
+    @Autowired(required=true)
+    private AuditService auditService;
 
     @PostConstruct
     public void registerForResourceObjectChangeNotifications() {
@@ -83,7 +90,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     }
 
     @Override
-    public void notifyChange(ResourceObjectShadowChangeDescription change, OperationResult parentResult) {
+    public void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
         Validate.notNull(change, "Resource object shadow change description must not be null.");
         Validate.isTrue(change.getCurrentShadow() != null || change.getObjectDelta() != null,
                 "Object delta and change are null. At least one must be provided.");
@@ -106,7 +113,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             LOGGER.debug("SITUATION: {} {}",
                     situation.getSituation().value(), ObjectTypeUtil.toShortString(situation.getUser()));
 
-            notifyChange(change, situation, resource, subResult);
+            notifyChange(change, situation, resource, task, subResult);
         } catch (Exception ex) {
             throw new SystemException(ex);
         } finally {
@@ -286,9 +293,24 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     }
 
     private void notifyChange(ResourceObjectShadowChangeDescription change,
-            SynchronizationSituation situation, ResourceType resource,
+            SynchronizationSituation situation, ResourceType resource, Task task,
             OperationResult parentResult) {
-
+    	
+    	// Audit:request
+    	// TODO: FIX AUDIT EVENT TYPE
+    	AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.MODIFY_OBJECT,
+				AuditEventStage.REQUEST);
+    	if (change.getObjectDelta() != null) {
+    		auditRecord.addDelta(change.getObjectDelta());
+    	}
+    	if (change.getCurrentShadow() != null) {
+    		auditRecord.setTarget(change.getCurrentShadow());
+    	} else if (change.getOldShadow() != null) {
+    		auditRecord.setTarget(change.getOldShadow());
+    	}
+    	auditRecord.setChannel(change.getSourceChannel());
+    	auditService.audit(auditRecord, task);
+    	
         SynchronizationType synchronization = resource.getSynchronization();
         List<Action> actions = findActionsForReaction(synchronization.getReaction(), situation.getSituation());
         if (actions.isEmpty()) {
@@ -305,6 +327,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
                 userOid = action.executeChanges(userOid, change, situation.getSituation(), parentResult);
             }
+            parentResult.recordSuccess();
             LOGGER.trace("Updating user finished.");
         } catch (SynchronizationException ex) {
             LoggingUtils.logException(LOGGER,
@@ -317,9 +340,17 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             parentResult.recordFatalError("Unexpected error occurred, synchronization action failed.", ex);
             throw new SystemException("Unexpected error occurred, synchronization action failed, reason: "
                     + ex.getMessage(), ex);
+        } finally {
+        	auditRecord.clearTimestamp();
+        	auditRecord.setEventStage(AuditEventStage.EXECUTION);
+        	auditRecord.setResult(parentResult);
+        	
+        	auditRecord.clearDeltas();
+        	// TODO: deltas
+        	
+        	auditService.audit(auditRecord, task);
         }
 
-        parentResult.recordSuccess();
     }
 
     private List<Action> findActionsForReaction(List<Reaction> reactions,

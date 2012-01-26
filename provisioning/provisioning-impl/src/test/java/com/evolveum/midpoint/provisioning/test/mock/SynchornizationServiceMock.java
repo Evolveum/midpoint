@@ -15,6 +15,7 @@ import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -42,10 +43,13 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener{
 	}
 	
 	@Override
-	public void notifyChange(ResourceObjectShadowChangeDescription change, OperationResult parentResult) {
+	public void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
 		LOGGER.debug("Notify change mock called with {}", change);
 		
 		// Some basic sanity checks
+		assertNotNull("No change",change);
+		assertNotNull("No task",task);
+		assertNotNull("No result",parentResult);
 		
 		assertTrue("Either current shadow or delta must be present",change.getCurrentShadow() != null || change.getObjectDelta() != null);
 		if (change.getCurrentShadow() != null) {

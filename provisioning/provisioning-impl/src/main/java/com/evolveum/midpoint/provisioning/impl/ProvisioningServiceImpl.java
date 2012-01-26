@@ -377,7 +377,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				notifyChangeResult.addParam("resourceObjectShadowChangeDescription", shadowChangeDescription);
 
 				try {
-					notifyResourceObjectChangeListeners(shadowChangeDescription, notifyChangeResult);
+					notifyResourceObjectChangeListeners(shadowChangeDescription, task, notifyChangeResult);
 					notifyChangeResult.recordSuccess();
 				} catch (RuntimeException ex) {
 					notifyChangeResult.recordFatalError("Runtime exception occur: " + ex.getMessage(), ex);
@@ -902,8 +902,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	private synchronized void notifyResourceObjectChangeListeners(
-			ResourceObjectShadowChangeDescription change, OperationResult parentResult) {
-		changeNotificationDispatcher.notifyChange(change, parentResult);
+			ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
+		changeNotificationDispatcher.notifyChange(change, task, parentResult);
 	}
 
 	private ResourceObjectShadowChangeDescription createResourceShadowChangeDescription(Change change,

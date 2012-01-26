@@ -31,6 +31,7 @@ import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -73,7 +74,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyChange(com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType, com.evolveum.midpoint.common.result.OperationResult)
 	 */
 	@Override
-	public void notifyChange(ResourceObjectShadowChangeDescription change, OperationResult parentResult) {
+	public void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
 		Validate.notNull(change, "Change description of resource object shadow must not be null.");
 		
 		if (LOGGER.isTraceEnabled()) {
@@ -83,7 +84,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 		if ((null != listeners) && (!listeners.isEmpty())) {
 			for (ResourceObjectChangeListener listener : listeners) {
 				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
-				listener.notifyChange(change, parentResult);
+				listener.notifyChange(change, task, parentResult);
 			}
 		} else {
 			LOGGER.warn("Change notification received but listener list is empty, there is nobody to get the message");

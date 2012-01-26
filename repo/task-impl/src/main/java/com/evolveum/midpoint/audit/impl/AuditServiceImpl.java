@@ -138,6 +138,7 @@ public class AuditServiceImpl implements AuditService {
 				", T=" + formatObject(record.getTarget()) + 
 				", TO=" + formatObject(record.getTargetOwner()) + 
 				", D=" + formatDeltaSummary(record.getDeltas()) + 
+				", ch=" + record.getChannel() +
 				", o=" + record.getOutcome();
 	}
 	
