@@ -223,11 +223,11 @@ public class AuditEventRecord {
 
 	@Override
 	public String toString() {
-		return "AUDIT[" + formatTimestamp(timestamp) + " " + eventIdentifier
-				+ " s=" + sessionIdentifier + ", t=" + taskIdentifier
-				+ " toid=" + taskOID + ", h=" + hostIdentifier + ", I=" + formatObject(initiator)
-				+ ", T=" + formatObject(target) + ", O=" + formatObject(targetOwner) + ", e=" + eventType
-				+ ", g=" + eventStage + ", D=" + deltas + ", o=" + outcome + "]";
+		return "AUDIT[" + formatTimestamp(timestamp) + " eid=" + eventIdentifier
+				+ " sid=" + sessionIdentifier + ", tid=" + taskIdentifier
+				+ " toid=" + taskOID + ", hid=" + hostIdentifier + ", I=" + formatObject(initiator)
+				+ ", T=" + formatObject(target) + ", TO=" + formatObject(targetOwner) + ", et=" + eventType
+				+ ", es=" + eventStage + ", D=" + deltas + ", o=" + outcome + "]";
 	}
 
 	private static String formatTimestamp(Long timestamp) {

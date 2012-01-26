@@ -129,14 +129,14 @@ public class AuditServiceImpl implements AuditService {
 		return formatTimestamp(record.getTimestamp()) +
 				" eid=" + record.getEventIdentifier() +
 				", et=" + record.getEventType() +
-				", st=" + record.getEventStage() + 
+				", es=" + record.getEventStage() + 
 				", sid=" + record.getSessionIdentifier() + 
 				", tid=" + record.getTaskIdentifier() +
 				", toid=" + record.getTaskOID() + 
 				", hid=" + record.getHostIdentifier() +
 				", I=" + formatObject(record.getInitiator()) +
 				", T=" + formatObject(record.getTarget()) + 
-				", O=" + formatObject(record.getTargetOwner()) + 
+				", TO=" + formatObject(record.getTargetOwner()) + 
 				", D=" + formatDeltaSummary(record.getDeltas()) + 
 				", o=" + record.getOutcome();
 	}
