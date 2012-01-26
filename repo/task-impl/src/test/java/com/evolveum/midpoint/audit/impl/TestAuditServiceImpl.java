@@ -33,6 +33,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 
@@ -87,7 +88,7 @@ public class TestAuditServiceImpl extends AbstractTestNGSpringContextTests {
 
 		while(input.hasNext()) {
 		    String line = input.nextLine();
-		    if (line.matches(".*AUDIT.*")) {
+		    if (line.matches(".*"+LoggingConfigurationManager.AUDIT_LOGGER_NAME+".*")) {
 		    	auditLine = line;
 		    }
 		}
