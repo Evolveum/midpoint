@@ -26,10 +26,11 @@
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
 	xmlns:piracy="http://pirates.com/xml/ns"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 	<name>jack</name>
 	<extension>
-		<piracy:ship>Black Pearl</piracy:ship>
+		<piracy:ship xsi:type="xsd:string">Black Pearl</piracy:ship>
 	</extension>
 	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
 	<objectClass>ri:AccountObjectClass</objectClass>

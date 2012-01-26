@@ -70,8 +70,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 public class Schema implements Dumpable, DebugDumpable, Serializable {
 
 	private static final long serialVersionUID = 5068618465625931984L;
-	private static final Trace LOGGER = TraceManager.getTrace(Schema.class);
+	private static final QName DEFAULT_XSD_TYPE = DOMUtil.XSD_STRING;
 
+	private static final Trace LOGGER = TraceManager.getTrace(Schema.class);
+	
 	protected String namespace;
 	protected Set<Definition> definitions;
 
@@ -481,6 +483,25 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 		// TODO: set "dynamic" flag
 		return propDef;
 	}
+	
+	/**
+	 * Create default ItemDefinition. Used as a last attempt to provide some useful definition. Kind of a hack.
+	 */
+	public static ItemDefinition createDefaultItemDefinition(ItemDefinition parentDefinition, List<Object> valueElements) {
+		QName elementName = null;
+		for (Object element: valueElements) {
+			if (elementName == null) {
+				elementName = JAXBUtil.getElementQName(element);
+				break;
+			}
+		}
+		PropertyDefinition propDef = new PropertyDefinition(elementName, DEFAULT_XSD_TYPE, parentDefinition);
+		// Set it to multi-value to be on the safe side
+		propDef.setMaxOccurs(-1);
+		// TODO: set "dynamic" flag
+		return propDef;
+	}
+	
 	
 	public <T extends ObjectType> MidPointObject<T> parseObjectType(T objectType) throws SchemaException {
 		ObjectDefinition<T> objectDefinition = (ObjectDefinition<T>) findObjectDefinition(objectType.getClass());

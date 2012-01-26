@@ -106,8 +106,7 @@ public class TestSchemaProcessorWithRegistry {
         // TODO: more asserts
     }
 
-    // This fails and should fail. Accounts cannot be parsed like this ... at least not now
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testParseAccountFromJaxb() throws SchemaException, SAXException, IOException, JAXBException {
 
         SchemaRegistry reg = new SchemaRegistry();

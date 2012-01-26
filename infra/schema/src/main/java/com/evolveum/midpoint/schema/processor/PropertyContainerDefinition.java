@@ -541,6 +541,11 @@ public class PropertyContainerDefinition extends ItemDefinition {
             	def = Schema.resolveDynamicItemDefinition(this, valueElements);
             }
             
+            if (def == null && isRuntimeSchema) {
+            	// Kindof hack. Create default definition for this.
+            	def = Schema.createDefaultItemDefinition(this, valueElements);
+            }
+            
             if (def == null) {
                 throw new SchemaException("Item " + elementQName + " has no definition", elementQName);
             }
