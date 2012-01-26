@@ -476,6 +476,10 @@ public class TaskImpl implements Task {
 			taskType.setExtension(xmlExtension);
 		}
 		
+		if (owner != null) {
+			taskType.setOwnerRef(ObjectTypeUtil.createObjectRef(owner));
+		}
+		
 		return taskType;
 	}
 
