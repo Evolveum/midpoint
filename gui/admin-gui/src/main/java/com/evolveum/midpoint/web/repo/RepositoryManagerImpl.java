@@ -27,6 +27,10 @@ import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.SchemaRegistry;
@@ -35,6 +39,8 @@ import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.processor.DiffUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -60,6 +66,10 @@ public class RepositoryManagerImpl implements RepositoryManager {
 	private transient RepositoryService repositoryService;
 	@Autowired(required = true)
 	private SchemaRegistry schemaRegistry;
+	@Autowired(required = true)
+	private TaskManager taskManager;
+	@Autowired(required = true)
+	AuditService auditService;
 
 	@Override
 	public <T extends ObjectType> List<T> listObjects(Class<T> objectType, int offset, int count) {
@@ -143,7 +153,14 @@ public class RepositoryManagerImpl implements RepositoryManager {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(JAXBUtil.silentMarshalWrap(object));
 		}
-		OperationResult result = new OperationResult(SAVE_OBJECT);
+	
+		Task task = taskManager.createTaskInstance(SAVE_OBJECT);
+		
+		// TODO: !!!!!!!!!!!!!!!!! SET TASK OWNER !!!!!!!!!!!!!!!!!!!!!!!!
+		
+		OperationResult result = task.getResult();
+		AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.MODIFY_OBJECT,
+				AuditEventStage.REQUEST);
 		boolean saved = false;
 		try {
 			ObjectType oldObject = repositoryService.getObject(ObjectType.class, object.getOid(),
@@ -158,13 +175,21 @@ public class RepositoryManagerImpl implements RepositoryManager {
 						object.getClass(), schemaRegistry.getObjectSchema());
 				
 				LOGGER.trace("DIFF: diff:\n{}",delta.dump());
-				
+
+				auditRecord.setTarget(oldObject);
+				auditRecord.addDelta(delta);
+
 				// ObjectModificationType objectChange =
 				// CalculateXmlDiff.calculateChanges(oldObject, object);
 
 				if (delta != null && delta.getOid() != null) {
 
+					auditService.audit(auditRecord, task);
 					ObjectModificationType objectModificationType = delta.toObjectModificationType();
+					
+					// This is direct access to repository, it does not go through model so it won't be auditted otherwise
+					// We need to explicitly audit the operation here.
+					
 					repositoryService.modifyObject(object.getClass(), objectModificationType, result);
 				}
 				result.recordSuccess();
@@ -173,6 +198,11 @@ public class RepositoryManagerImpl implements RepositoryManager {
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't update object {}", ex, object.getName());
 			result.recordFatalError("Couldn't update object '" + object.getName() + "'.", ex);
+		} finally {
+			auditRecord.setEventStage(AuditEventStage.EXECUTION);
+			auditRecord.setResult(result);
+			auditRecord.clearTimestamp();
+			auditService.audit(auditRecord, task);
 		}
 
 		printResults(LOGGER, result);
