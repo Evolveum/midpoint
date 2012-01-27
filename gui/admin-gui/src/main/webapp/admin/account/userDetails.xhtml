@@ -163,7 +163,7 @@
 					</ice:panelGrid>
 				</ice:panelTab>
 				<ice:panelTab id="accountsTab" rendered="true"
-					label="#{msg['page.account.detail.tab.accounts.title']}"
+					label="#{msg['page.account.detail.tab.accounts.title']} (#{userDetails.accountListSize})"
 					icon="/resources/images/drive.png"
 					title="#{msg['page.account.detail.tab.accounts.description']}">
 					<ice:outputText style="margin-bottom: 10px; display: block;"
@@ -248,7 +248,7 @@
 				</ui:remove>
 
 				<ice:panelTab rendered="true"
-					label="#{msg['page.account.detail.tab.roles.title']}"
+					label="#{msg['page.account.detail.tab.roles.title']} (#{userDetails.roleListSize})"
 					icon="/resources/images/folder_key.png"
 					title="#{msg['page.account.detail.tab.roles.description']}">
 					<ice:dataTable rows="20"

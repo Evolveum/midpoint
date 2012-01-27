@@ -113,6 +113,14 @@ public class UserDetailsController implements Serializable {
 	private List<String> selectedResourceList;
 	private String selectedTab = TAB_USER;
 
+	public Integer getAccountListSize(){
+		return accountList.size();
+	}
+	
+	public Integer getRoleListSize(){
+		return assignmentEditor.getContainsAssignment().getAssignments().size();
+	}
+	
 	public AssignmentEditor<UserDto> getAssignmentEditor() {
 		return assignmentEditor;
 	}
