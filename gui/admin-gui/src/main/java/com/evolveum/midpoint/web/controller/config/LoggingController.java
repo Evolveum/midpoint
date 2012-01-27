@@ -382,6 +382,9 @@ public class LoggingController implements Serializable {
 		initController();
 	}
 
+	/**
+	 * @return
+	 */
 	public String initController() {
 		getLoggers().clear();
 		getAppenders().clear();
@@ -389,15 +392,6 @@ public class LoggingController implements Serializable {
 		selectAllAppenders = false;
 		selectAllLoggers = false;
 		advancedView = false;
-		
-		if(audit.isEnabled() == null){
-			audit.setEnabled(enableAuditLog);
-		}
-		
-		if(audit.isDetails() == null){
-			audit.setDetails(auditDetails);
-		}
-		
 
 		OperationResult result = new OperationResult("Load Logging Configuration");
 
@@ -414,6 +408,8 @@ public class LoggingController implements Serializable {
 
 			rootLoggerLevel = logging.getRootLoggerLevel();
 			rootAppender = logging.getRootLoggerAppender();
+			audit.setEnabled(logging.getAuditing().isEnabled());
+			audit.setDetails(logging.getAuditing().isDetails());
 
 			for (AppenderConfigurationType appender : logging.getAppender()) {
 				if (!(appender instanceof FileAppenderConfigurationType)) {
