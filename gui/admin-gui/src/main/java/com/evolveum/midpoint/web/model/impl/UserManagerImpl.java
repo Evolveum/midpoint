@@ -44,10 +44,12 @@ import com.evolveum.midpoint.web.model.dto.*;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.util.*;
 
@@ -124,21 +126,47 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 
             //detect other changes
 
+            LOGGER.trace("USER FORM old:\n{}",JAXBUtil.marshalWrap(oldUser.getXmlObject()));
+            LOGGER.trace("USER FORM changed:\n{}",JAXBUtil.marshalWrap(changedObject.getXmlObject()));
+            
             ObjectDelta<UserType> userDelta = DiffUtil.diff(
                     oldUser.getXmlObject(), changedObject.getXmlObject(),
                     UserType.class, schemaRegistry.getObjectSchema());
+            
+            LOGGER.trace("USER FORM delta:\n{}",userDelta.dump());
 
             ObjectModificationType changes = userDelta.toObjectModificationType();
+            
             //todo XXX: MEGA HACK
             List<AccountShadowDto> newAccounts = changedObject.getAccount();
             if (newAccounts != null) {                
                 for (AccountShadowDto account : newAccounts) {
-                    Element element = JAXBUtil.jaxbToDom(account.getXmlObject(), SchemaConstants.I_ACCOUNT,
-                            DOMUtil.getDocument());
-                    
-                    PropertyModificationType propertyModification = ObjectTypeUtil.createPropertyModificationType(
-                            PropertyModificationTypeType.add, null, element);
-                    changes.getPropertyModification().add(propertyModification);
+                	if (account.getOid() == null) {
+                		// This has to mean that the account is being created
+                		accontAdd(changes, account.getXmlObject());
+                	} else if (hasAccount(oldUser.getXmlObject(), account.getOid())) {
+                		// modification?
+                		
+                	} else {
+                		// also creating an account
+                		accontAdd(changes, account.getXmlObject());
+                	}
+                }
+            }
+            
+            List<AccountShadowDto> oldAccounts = oldUser.getAccount();
+            if (oldAccounts != null) {                
+                for (AccountShadowDto account : oldAccounts) {
+                	if (account.getOid() == null) {
+                		// This has to mean that the account is being created
+                		accontDelete(changes, account.getXmlObject());
+                	} else if (hasAccount(changedObject.getXmlObject(), account.getOid())) {
+                		// modification?
+                		
+                	} else {
+                		// also creating an account
+                		accontDelete(changes, account.getXmlObject());
+                	}
                 }
             }
             //todo XXX: MEGA HACK END
@@ -188,7 +216,41 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
         return set;
     }
 
-    @Override
+	private boolean hasAccount(UserType user, String oid) {
+		for (AccountShadowType account: user.getAccount()) {
+			if (oid.equals(account.getOid())) {
+				return true;
+			}
+		}
+		for (ObjectReferenceType ref: user.getAccountRef()) {
+			if (oid.equals(ref.getOid())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private void accontAdd(ObjectModificationType changes, AccountShadowType xmlObject) throws JAXBException {
+		Element element = JAXBUtil.jaxbToDom(xmlObject, SchemaConstants.I_ACCOUNT,
+                DOMUtil.getDocument());
+        
+        PropertyModificationType propertyModification = ObjectTypeUtil.createPropertyModificationType(
+                PropertyModificationTypeType.add, null, element);
+        changes.getPropertyModification().add(propertyModification);
+
+	}
+
+	private void accontDelete(ObjectModificationType changes, AccountShadowType xmlObject) throws JAXBException {
+		Element element = JAXBUtil.jaxbToDom(xmlObject, SchemaConstants.I_ACCOUNT,
+                DOMUtil.getDocument());
+        
+        PropertyModificationType propertyModification = ObjectTypeUtil.createPropertyModificationType(
+                PropertyModificationTypeType.delete, null, element);
+        changes.getPropertyModification().add(propertyModification);
+
+	}
+
+	@Override
     public String add(GuiUserDto object) {
         Validate.notNull(object);
         try {
