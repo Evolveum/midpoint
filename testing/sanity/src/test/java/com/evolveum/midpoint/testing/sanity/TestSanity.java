@@ -2569,7 +2569,7 @@ public class TestSanity extends AbstractIntegrationTest {
             public void timeout() {
                 // No reaction, the test will fail right after return from this
             }
-        }, 120000);
+        }, 180000);
 
         
         //### Check task state after the task is finished ###
@@ -2922,7 +2922,7 @@ public class TestSanity extends AbstractIntegrationTest {
             public void timeout() {
                 // No reaction, the test will fail right after return from this
             }
-        }, 60000);
+        }, 180000);
 
         // Check task status
 
