@@ -160,6 +160,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
     private static final String USER_GUYBRUSH_FILENAME = "src/test/resources/repo/user-guybrush.xml";
     private static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111222";
+    private static final String USER_GUYBRUSH_USERNAME = "guybrush";
     private static final String USER_GUYBRUSH_LDAP_UID = "guybrush";
     private static final String USER_GUYBRUSH_LDAP_DN = "uid=" + USER_GUYBRUSH_LDAP_UID
             + "," + OPENDJ_PEOPLE_SUFFIX;
@@ -2570,6 +2571,9 @@ public class TestSanity extends AbstractIntegrationTest {
             }
         }, 120000);
 
+        
+        //### Check task state after the task is finished ###
+        
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         assertCache();
@@ -2622,7 +2626,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         AssertJUnit.assertTrue("No progress", task.getProgress() > 0);
 
-        // Check if the import created users and shadows
+        //### Check if the import created users and shadows ###
 
         // Listing of shadows is not supported by the provisioning. So we need
         // to look directly into repository
@@ -2634,10 +2638,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         for (AccountShadowType shadow : sobjects) {
             display("Shadow object after import (repo)", shadow);
-            assertNotEmpty("No OID in shadow", shadow.getOid()); // This would
-            // be really
-            // strange
-            // ;-)
+            assertNotEmpty("No OID in shadow", shadow.getOid()); // This would be really strange ;-)
             assertNotEmpty("No name in shadow", shadow.getName());
             AssertJUnit.assertNotNull("No objectclass in shadow", shadow.getObjectClass());
             AssertJUnit.assertNotNull("Null attributes in shadow", shadow.getAttributes());
@@ -2655,13 +2656,16 @@ public class TestSanity extends AbstractIntegrationTest {
         assertSuccess("listObjects has failed", resultHolder.value);
         AssertJUnit.assertFalse("No users created", uobjects.getObject().isEmpty());
 
-        try {
-            AccountShadowType guybrushShadow = modelService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj, null, new OperationResult("get shadow"));
-            display("Guybrush shadow (" + accountShadowOidGuybrushOpendj + ")", guybrushShadow);
-        } catch (ObjectNotFoundException e) {
-            System.out.println("NO GUYBRUSH SHADOW");
-            // TODO: fail
-        }
+        // TODO: use another account, not guybrush
+//        try {
+//            AccountShadowType guybrushShadow = modelService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj, null, new OperationResult("get shadow"));
+//            display("Guybrush shadow (" + accountShadowOidGuybrushOpendj + ")", guybrushShadow);
+//        } catch (ObjectNotFoundException e) {
+//            System.out.println("NO GUYBRUSH SHADOW");
+//            // TODO: fail
+//        }
+        
+        display("Users after import "+uobjects.getObject().size());
 
         for (ObjectType oo : uobjects.getObject()) {
             UserType user = (UserType) oo;
@@ -2678,6 +2682,12 @@ public class TestSanity extends AbstractIntegrationTest {
             assertNotEmpty("No familyName in user", user.getFamilyName());
             // givenName is not mandatory in LDAP, therefore givenName may not
             // be present on user
+
+            if (user.getName().equals(USER_GUYBRUSH_USERNAME)) {
+            	// skip the rest of checks for guybrush, he does not have LDAP account now
+            	continue;
+            }
+
             List<ObjectReferenceType> accountRefs = user.getAccountRef();
             AssertJUnit.assertEquals("Wrong accountRef for user " + user.getName(), 1, accountRefs.size());
             ObjectReferenceType accountRef = accountRefs.get(0);
@@ -2695,6 +2705,9 @@ public class TestSanity extends AbstractIntegrationTest {
                 AssertJUnit.fail("accountRef does not point to existing account " + accountRef.getOid());
             }
         }
+        
+        // This also includes "idm" user imported from LDAP. Later we need to ignore that one.
+        assertEquals("Wrong number of users after import",9,uobjects.getObject().size());
     }
 
     @Test
