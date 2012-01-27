@@ -510,7 +510,8 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
     public Collection<? extends QName> getNamesOfAttributesWithInboundExpressions() {
         Collection<QName> attrNames = new HashSet<QName>();
         for (RefinedAttributeDefinition attrDef : getAttributeDefinitions()) {
-            if (attrDef.getInboundAssignmentTypes() != null) {
+            List<ValueAssignmentType> inbounds = attrDef.getInboundAssignmentTypes();
+            if (inbounds != null && !inbounds.isEmpty()) {
                 attrNames.add(attrDef.getName());
             }
         }

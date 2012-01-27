@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -263,12 +264,26 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
      */
     public void recomputeAccountNew() {
         ObjectDelta<AccountShadowType> accDelta = getAccountDelta();
+
+        MidPointObject<AccountShadowType> oldAccount = accountOld;
+        if (oldAccount == null && accountSyncDelta != null
+                && ChangeType.ADD.equals(accountSyncDelta.getChangeType())) {
+            MidPointObject<AccountShadowType> accountToAdd = accountSyncDelta.getObjectToAdd();
+            if (accountToAdd != null) {
+                ObjectDefinition<AccountShadowType> objectDefinition = (ObjectDefinition<AccountShadowType>)
+                        accountToAdd.getDefinition();
+                oldAccount = new MidPointObject<AccountShadowType>(accountToAdd.getName(), objectDefinition);
+                oldAccount = accountSyncDelta.computeChangedObject(oldAccount);
+            }
+        }
+
         if (accDelta == null) {
             // No change
-            accountNew = accountOld;
+            accountNew = oldAccount;
             return;
         }
-        accountNew = accDelta.computeChangedObject(accountOld);
+
+        accountNew = accDelta.computeChangedObject(oldAccount);
     }
 
     @Override

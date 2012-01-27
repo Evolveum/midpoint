@@ -35,8 +35,11 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.processor.ChangeType;
+import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.DebugUtil;
@@ -76,7 +79,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     private ExpressionHandler expressionHandler;
     @Autowired
     private ChangeNotificationDispatcher notificationManager;
-    @Autowired(required=true)
+    @Autowired(required = true)
     private AuditService auditService;
 
     @PostConstruct
@@ -219,6 +222,19 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         }
 
         ResourceObjectShadowType resourceShadow = change.getCurrentShadow();
+        ObjectDelta syncDelta = change.getObjectDelta();
+        if (resourceShadow == null && syncDelta != null
+                && ChangeType.ADD.equals(syncDelta.getChangeType())) {
+            LOGGER.debug("Trying to compute current shadow from change delta add.");
+            try {
+                MidPointObject<ResourceObjectShadowType> shadow =
+                        syncDelta.computeChangedObject(syncDelta.getObjectToAdd());
+                resourceShadow = (ResourceObjectShadowType) shadow.getOrParseObjectType();
+                change.setCurrentShadow(resourceShadow);
+            } catch (SchemaException ex) {
+                throw new SynchronizationException("Couldn't compute current shadow", ex);
+            }
+        }
         Validate.notNull(resourceShadow, "Current shadow must not be null.");
 
         ResourceType resource = change.getResource();
@@ -296,21 +312,21 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     private void notifyChange(ResourceObjectShadowChangeDescription change,
             SynchronizationSituation situation, ResourceType resource, Task task,
             OperationResult parentResult) {
-    	
-    	// Audit:request
-    	AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.SYNCHRONIZATION,
-				AuditEventStage.REQUEST);
-    	if (change.getObjectDelta() != null) {
-    		auditRecord.addDelta(change.getObjectDelta());
-    	}
-    	if (change.getCurrentShadow() != null) {
-    		auditRecord.setTarget(change.getCurrentShadow());
-    	} else if (change.getOldShadow() != null) {
-    		auditRecord.setTarget(change.getOldShadow());
-    	}
-    	auditRecord.setChannel(change.getSourceChannel());
-    	auditService.audit(auditRecord, task);
-    	
+
+        // Audit:request
+        AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.SYNCHRONIZATION,
+                AuditEventStage.REQUEST);
+        if (change.getObjectDelta() != null) {
+            auditRecord.addDelta(change.getObjectDelta());
+        }
+        if (change.getCurrentShadow() != null) {
+            auditRecord.setTarget(change.getCurrentShadow());
+        } else if (change.getOldShadow() != null) {
+            auditRecord.setTarget(change.getOldShadow());
+        }
+        auditRecord.setChannel(change.getSourceChannel());
+        auditService.audit(auditRecord, task);
+
         SynchronizationType synchronization = resource.getSynchronization();
         List<Action> actions = findActionsForReaction(synchronization.getReaction(), situation.getSituation());
         if (actions.isEmpty()) {

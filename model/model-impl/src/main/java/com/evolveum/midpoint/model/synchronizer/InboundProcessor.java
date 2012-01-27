@@ -99,6 +99,12 @@ public class InboundProcessor {
                             + " not found in the context, but it should be there");
                 }
 
+                if (accountContext.getAccountDelta() != null
+                        && ChangeType.DELETE.equals(accountContext.getAccountDelta().getChangeType())) {
+                    //we don't need to do inbound if account was deleted
+                    continue;
+                }
+
                 processInboundForAccount(context, accountContext, accountDefinition, result);
             }
 
@@ -120,13 +126,13 @@ public class InboundProcessor {
 
         ObjectDelta<UserType> userDelta = context.getUserSecondaryDelta();
 
-        ObjectDelta<AccountShadowType> accountDelta = accContext.getAccountSyncDelta();
+        ObjectDelta<AccountShadowType> syncDelta = accContext.getAccountSyncDelta();
         MidPointObject<AccountShadowType> oldAccount = accContext.getAccountOld();
         for (QName name : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
             LOGGER.trace("Processing inbound for {}", name);
             PropertyDelta propertyDelta = null;
-            if (accountDelta != null) {
-                propertyDelta = accountDelta.getPropertyDelta(new PropertyPath(SchemaConstants.I_ATTRIBUTES), name);
+            if (syncDelta != null) {
+                propertyDelta = syncDelta.getPropertyDelta(new PropertyPath(SchemaConstants.I_ATTRIBUTES), name);
                 if (propertyDelta == null) {
                     LOGGER.trace("Account sync delta exists, but doesn't have change for processed property, skipping.");
                     continue;
@@ -135,6 +141,7 @@ public class InboundProcessor {
 
             RefinedAttributeDefinition attrDef = accountDefinition.getAttributeDefinition(name);
             List<ValueAssignmentType> inbounds = attrDef.getInboundAssignmentTypes();
+            LOGGER.trace("Number of inbounds: {}", new Object[]{(inbounds != null ? inbounds.size() : 0)});
 
             for (ValueAssignmentType inbound : inbounds) {
                 if (checkInitialSkip(inbound, context.getUserNew())) {
@@ -143,7 +150,7 @@ public class InboundProcessor {
                 }
 
                 PropertyDelta delta = null;
-                if (accountDelta != null) {
+                if (syncDelta != null) {
                     LOGGER.debug("Processing inbound from account sync delta.");
                     delta = createUserPropertyDelta(inbound, propertyDelta, context.getUserNew());
                 } else if (oldAccount != null) {
@@ -153,8 +160,11 @@ public class InboundProcessor {
                 }
 
                 if (delta != null && !delta.isEmpty()) {
+                    LOGGER.trace("Created delta \n{}", new Object[]{delta.debugDump(3)});
                     userDelta.addModification(delta);
                     context.recomputeUserNew();
+                } else {
+                    LOGGER.trace("Created delta was null or empty.");
                 }
             }
         }
@@ -205,8 +215,6 @@ public class InboundProcessor {
             LOGGER.trace("We don't have to create delta, everything is alright.");
         }
 
-        LOGGER.debug("Created user property delta {}", delta);
-
         return delta;
     }
 
@@ -223,7 +231,7 @@ public class InboundProcessor {
             for (PropertyValue<Object> value : propertyDelta.getValuesToAdd()) {
                 PropertyValue<Object> filteredValue = filterValue(value, filters);
 
-                if (property == null || property.hasRealValue(filteredValue)) {
+                if (property != null && property.hasRealValue(filteredValue)) {
                     continue;
                 }
 
@@ -247,8 +255,6 @@ public class InboundProcessor {
                 }
             }
         }
-
-        LOGGER.debug("Created user property delta {}", delta);
 
         //if nothing changes was generated return null
         return delta.getValues(Object.class).isEmpty() ? null : delta;
@@ -306,13 +312,14 @@ public class InboundProcessor {
         if (accContext.getAccountNew() == null) {
             accContext.recomputeAccountNew();
             if (accContext.getAccountNew() == null) {
-            	// Still null? something must be really wrong here.
-            	String message = "Recomputing account "+accContext.getResourceAccountType()+" results in null new account. Something must be really broken.";
-            	LOGGER.error(message);
-            	if (LOGGER.isTraceEnabled()) {
-            		LOGGER.trace("Account context:\n{}",accContext.dump());
-            	}
-            	throw new SystemException(message);
+                // Still null? something must be really wrong here.
+                String message = "Recomputing account " + accContext.getResourceAccountType()
+                        + " results in null new account. Something must be really broken.";
+                LOGGER.error(message);
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Account context:\n{}", accContext.dump());
+                }
+                throw new SystemException(message);
             }
         }
 
