@@ -203,8 +203,9 @@ public class UserDetailsController implements Serializable {
 		}
 	}
 
-	public void startEditMode(ActionEvent evt) {
+	public String startEditMode() {
 		editMode = true;
+		return PAGE_NAVIGATION;
 	}
 
 	private void clearController() {

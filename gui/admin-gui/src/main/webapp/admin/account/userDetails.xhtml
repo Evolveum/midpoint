@@ -425,11 +425,11 @@
 					value="#{msg['page.account.detail.button.back']}"
 					img="/resources/images/door_in.png" />
 
-				<idm:button actionListener="#{userDetails.startEditMode}"
+				<idm:button action="#{userDetails.startEditMode}"
 					value="#{msg['page.account.detail.button.edit']}" id="editButton"
 					img="/resources/images/user_edit.png"
-					rendered="#{!userDetails.editMode}" immediate="true"
-					action="/account/userDetails" />
+					rendered="#{!userDetails.editMode}" immediate="true" />
+					<!-- action="/account/userDetails" --> 
 
 				<idm:button action="#{userList.fillTableList}"
 					actionListener="#{userDetails.savePerformed}" id="saveButton"
