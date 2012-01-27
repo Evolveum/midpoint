@@ -170,6 +170,9 @@ public class TestSanity extends AbstractIntegrationTest {
     private static final String ROLE_PIRATE_FILENAME = "src/test/resources/repo/role-pirate.xml";
     private static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-987987987988";
 
+    private static final String ROLE_SAILOR_FILENAME = "src/test/resources/repo/role-sailor.xml";
+    private static final String ROLE_SAILOR_OID = "12345678-d34d-b33f-f00d-987955553535";
+
     private static final String ROLE_CAPTAIN_FILENAME = "src/test/resources/repo/role-captain.xml";
     private static final String ROLE_CAPTAIN_OID = "12345678-d34d-b33f-f00d-987987cccccc";
 
@@ -280,6 +283,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, initResult);
         addObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
+        addObjectFromFile(ROLE_SAILOR_FILENAME, initResult);
         addObjectFromFile(ROLE_PIRATE_FILENAME, initResult);
         addObjectFromFile(ROLE_CAPTAIN_FILENAME, initResult);
     }

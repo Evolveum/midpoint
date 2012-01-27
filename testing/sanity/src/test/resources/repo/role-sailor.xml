@@ -16,31 +16,19 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2011 lazyman                       -->
 <!-- Portions Copyrighted 2011 Radovan Semancik              -->
 <!--                                                         -->
-<role oid="12345678-d34d-b33f-f00d-987987987988"
+<role oid="12345678-d34d-b33f-f00d-987955553535"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
-    <name>Pirate Role</name>
-    <assignment>
-    	<!-- Inner "sailor" role -->
-		<targetRef oid="12345678-d34d-b33f-f00d-987955553535" type="RoleType"/>
-    </assignment>
+    <name>Sailor Role</name>    
     <assignment>
     	<accountConstruction>
     		<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="ResourceType"/>
     		<attribute>
-                <ref>ri:title</ref>
-				<value>Bloody Pirate</value>
-            </attribute>    		
-    		<attribute>
-                <ref>ri:businessCategory</ref>
-				<value>
-					<ri:businessCategory>loot</ri:businessCategory>
-					<ri:businessCategory>murder</ri:businessCategory>
-				</value>
-            </attribute>    		
+                <ref>ri:employeeType</ref>
+				<value>sailor</value>
+            </attribute>
     	</accountConstruction>
-    </assignment>  
+    </assignment>    
 </role>
