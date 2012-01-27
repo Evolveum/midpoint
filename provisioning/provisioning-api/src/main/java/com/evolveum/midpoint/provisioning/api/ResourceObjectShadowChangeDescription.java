@@ -98,6 +98,12 @@ public class ResourceObjectShadowChangeDescription implements Dumpable, DebugDum
     	if (objectDelta == null && currentShadow == null) {
     		throw new IllegalArgumentException("Either objectDelta or currentShadow must be set in "+this.getClass().getSimpleName());
     	}
+    	if (objectDelta != null && objectDelta.getOid() == null) {
+    		throw new IllegalArgumentException("Delta OID not set in "+this.getClass().getSimpleName());
+    	}
+    	if (currentShadow != null && currentShadow.getOid() == null) {
+    		throw new IllegalArgumentException("Current shadow OID not set in "+this.getClass().getSimpleName());
+    	}
     }
 
 	@Override

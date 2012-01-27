@@ -129,6 +129,10 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 	 */
 	@Override
 	public boolean handle(ObjectType object, OperationResult parentResult) {
+		if (object.getOid() == null) {
+			throw new IllegalArgumentException("Object has null OID");
+		}
+		
 		progress++;
 
 		long startTime = System.currentTimeMillis();
@@ -159,14 +163,15 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 			change.setResource(resource);
 			
 			if (forceAdd) {
-				ObjectDelta<AccountShadowType> shadowDelta = new ObjectDelta<AccountShadowType>(
-						AccountShadowType.class, ChangeType.ADD);
-				MidPointObject<AccountShadowType> shadowToAdd = refinedAccountDefinition.getObjectDefinition().parseObjectType(newShadow);
-				shadowDelta.setObjectToAdd(shadowToAdd);		
-				
 				// We should provide shadow in the state before the change. But we are
 				// pretending that it has
 				// not existed before, so we will not provide it.
+				ObjectDelta<AccountShadowType> shadowDelta = new ObjectDelta<AccountShadowType>(
+						AccountShadowType.class, ChangeType.ADD);
+				MidPointObject<AccountShadowType> shadowToAdd = refinedAccountDefinition.getObjectDefinition().parseObjectType(newShadow);
+				shadowDelta.setObjectToAdd(shadowToAdd);
+				shadowDelta.setOid(newShadow.getOid());
+				change.setObjectDelta(shadowDelta);
 				
 			} else {
 				// No change, therefore the delta stays null. But we will set the current
@@ -178,7 +183,14 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 //				LOGGER.trace("{}: going to call notification with: {}", getProcessShortNameCapitalized(), change.dump());
 //			}
 			
-			change.assertCorrectness();
+			try {
+				change.assertCorrectness();
+			} catch (RuntimeException ex) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Change:\n{}",change.dump());
+				}
+				throw ex;
+			}
 			
 			// Invoke the change notification
 			objectChangeListener.notifyChange(change, task, result);

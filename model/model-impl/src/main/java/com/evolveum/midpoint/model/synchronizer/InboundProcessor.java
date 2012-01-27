@@ -35,6 +35,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -304,6 +305,15 @@ public class InboundProcessor {
 
         if (accContext.getAccountNew() == null) {
             accContext.recomputeAccountNew();
+            if (accContext.getAccountNew() == null) {
+            	// Still null? something must be really wrong here.
+            	String message = "Recomputing account "+accContext.getResourceAccountType()+" results in null new account. Something must be really broken.";
+            	LOGGER.error(message);
+            	if (LOGGER.isTraceEnabled()) {
+            		LOGGER.trace("Account context:\n{}",accContext.dump());
+            	}
+            	throw new SystemException(message);
+            }
         }
 
         Property input = accContext.getAccountNew().findProperty(path);
