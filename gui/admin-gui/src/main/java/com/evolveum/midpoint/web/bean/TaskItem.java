@@ -34,6 +34,7 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ExtensionProcessor;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
@@ -44,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 public class TaskItem extends SelectableBean {
 
@@ -52,6 +54,7 @@ public class TaskItem extends SelectableBean {
     private String objectRef;
     private String oid;
     private String name;
+    private UserType owner;
 //    private String lastRunStartTimestamp;
     private Long lastRunStartTimestampLong;
 //    private String lastRunFinishTimestamp;
@@ -85,6 +88,7 @@ public class TaskItem extends SelectableBean {
             this.objectRef = null;
         this.oid = task.getOid();
         this.name = task.getName();
+        this.owner = task.getOwner();
         this.lastRunStartTimestampLong = task.getLastRunStartTimestamp();
         this.lastRunFinishTimestampLong = task.getLastRunFinishTimestamp();
         this.nextRunStartTimeLong = task.getNextRunStartTime();
@@ -118,58 +122,58 @@ public class TaskItem extends SelectableBean {
 
     }
 
-    public TaskItem(TaskType task, TaskManager taskManager) {
+    public TaskItem(TaskType taskType, TaskManager taskManager) {
     	this.taskManager = taskManager;
-        this.handlerUri = task.getHandlerUri();
-        this.taskIdentifier = task.getTaskIdentifier();
-        if (task.getObjectRef() != null)
-            this.objectRef = task.getObjectRef().getOid();
+        this.handlerUri = taskType.getHandlerUri();
+        this.taskIdentifier = taskType.getTaskIdentifier();
+        if (taskType.getObjectRef() != null)
+            this.objectRef = taskType.getObjectRef().getOid();
         else
             this.objectRef = null;
-        this.oid = task.getOid();
-        this.name = task.getName();
-        if (task.getLastRunStartTimestamp() != null) {
-            lastRunStartTimestampLong = XsdTypeConverter.toMillis(task.getLastRunStartTimestamp());
+        this.oid = taskType.getOid();
+        this.name = taskType.getName();
+        if (taskType.getLastRunStartTimestamp() != null) {
+            lastRunStartTimestampLong = XsdTypeConverter.toMillis(taskType.getLastRunStartTimestamp());
         }
-        if (task.getLastRunFinishTimestamp() != null) {
-            lastRunFinishTimestampLong = XsdTypeConverter.toMillis(task.getLastRunFinishTimestamp());
+        if (taskType.getLastRunFinishTimestamp() != null) {
+            lastRunFinishTimestampLong = XsdTypeConverter.toMillis(taskType.getLastRunFinishTimestamp());
         }
-        if (task.getNextRunStartTime() != null) {
-            nextRunStartTimeLong = XsdTypeConverter.toMillis(task.getNextRunStartTime());
+        if (taskType.getNextRunStartTime() != null) {
+            nextRunStartTimeLong = XsdTypeConverter.toMillis(taskType.getNextRunStartTime());
         }
 
         this.executionStatus = TaskItemExecutionStatus
-                .fromTask(TaskExecutionStatus.fromTaskType(task
+                .fromTask(TaskExecutionStatus.fromTaskType(taskType
                         .getExecutionStatus()));
         this.exclusivityStatus = TaskItemExclusivityStatus
-                .fromTask(TaskExclusivityStatus.fromTaskType(task
+                .fromTask(TaskExclusivityStatus.fromTaskType(taskType
                         .getExclusivityStatus()));
-        this.binding = TaskItemBinding.fromTask(TaskBinding.fromTaskType(task.getBinding()));
+        this.binding = TaskItemBinding.fromTask(TaskBinding.fromTaskType(taskType.getBinding()));
 
         this.scheduleInterval = null;
         this.scheduleCronLikePattern = null;
         this.recurrenceStatus = TaskItemRecurrenceStatus.SINGLE;
-        if (task.getSchedule() != null) {
-        	if (task.getSchedule().getInterval() != null) {
-        		this.scheduleInterval = task.getSchedule().getInterval().longValue();
+        if (taskType.getSchedule() != null) {
+        	if (taskType.getSchedule().getInterval() != null) {
+        		this.scheduleInterval = taskType.getSchedule().getInterval().longValue();
         		this.recurrenceStatus = TaskItemRecurrenceStatus.RECURRING;
         	}
-        	if (task.getSchedule().getCronLikePattern() != null) {
-        		this.scheduleCronLikePattern = task.getSchedule().getCronLikePattern();
+        	if (taskType.getSchedule().getCronLikePattern() != null) {
+        		this.scheduleCronLikePattern = taskType.getSchedule().getCronLikePattern();
         		this.recurrenceStatus = TaskItemRecurrenceStatus.RECURRING;
         	}
         }
 
-        if (task.getProgress() != null) {
-            this.progress = task.getProgress().longValue();
+        if (taskType.getProgress() != null) {
+            this.progress = taskType.getProgress().longValue();
         }
-        if (task.getResult() != null) {
-            this.result = OperationResult.createOperationResult(task
+        if (taskType.getResult() != null) {
+            this.result = OperationResult.createOperationResult(taskType
                     .getResult());
         }
-        if (task.getExtension() != null) {
+        if (taskType.getExtension() != null) {
             try {
-                this.extension = ExtensionProcessor.parseExtension(task
+                this.extension = ExtensionProcessor.parseExtension(taskType
                         .getExtension());
             } catch (SchemaException e) {
                 // FIXME: this is probably wrong
@@ -238,6 +242,10 @@ public class TaskItem extends SelectableBean {
 
         taskType.setProgress(BigInteger.valueOf(getProgress()));
 
+		if (owner != null) {
+			taskType.setOwnerRef(ObjectTypeUtil.createObjectRef(owner));
+		}
+        
         return taskType;
     }
 
@@ -288,6 +296,14 @@ public class TaskItem extends SelectableBean {
 
     public void setName(String name) {
         this.name = name;
+    }
+    
+    public UserType getOwner() {
+        return owner;
+    }
+
+    public void setOwner(UserType owner) {
+        this.owner = owner;
     }
 
     public String getLastRunStartTimestamp() {

@@ -31,6 +31,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.SchemaRegistry;
@@ -45,6 +46,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -157,6 +159,9 @@ public class RepositoryManagerImpl implements RepositoryManager {
 		Task task = taskManager.createTaskInstance(SAVE_OBJECT);
 		
 		// TODO: !!!!!!!!!!!!!!!!! SET TASK OWNER !!!!!!!!!!!!!!!!!!!!!!!!
+		SecurityUtils security = new SecurityUtils();
+		PrincipalUser principal = security.getPrincipalUser();
+        task.setOwner(principal.getUser());
 		
 		OperationResult result = task.getResult();
 		AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.MODIFY_OBJECT,

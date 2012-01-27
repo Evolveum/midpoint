@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.controller.server;
 
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
+import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
@@ -305,6 +307,11 @@ public class TaskDetailsController implements Serializable {
     private String addTask() {
         OperationResult result = new OperationResult(TaskDetailsController.class.getName() + ".addTask");
         try {
+        	
+        	SecurityUtils security = new SecurityUtils();
+    		PrincipalUser principal = security.getPrincipalUser();
+            task.setOwner(principal.getUser());
+            
             taskManager.addTask(task.toTaskType(), result);
             FacesUtils.addSuccessMessage("Task added successfully");
             result.recordSuccess();
