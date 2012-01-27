@@ -94,7 +94,8 @@ public class ObjectImporter {
                 LOGGER.debug("Importing object {}", ObjectTypeUtil.toShortString(object));
 
                 if (objectResult.isAcceptable()) {
-                    resolveReferences(object, repository, objectResult);
+                    resolveReferences(object, repository, 
+                    		options.isReferentialIntegrity() == null ? false : options.isReferentialIntegrity(), objectResult);
                 }
 
                 PropertyContainer dynamicPart = null;
@@ -397,7 +398,7 @@ public class ObjectImporter {
     }
 
     protected void resolveReferences(ObjectType object, RepositoryService repository,
-                                     OperationResult result) {
+    		boolean enforceReferentialIntegrity, OperationResult result) {
         // We need to look up all object references. Probably the only efficient
         // way to do it is to use reflection.
         Class<?> type = object.getClass();
@@ -414,7 +415,7 @@ public class ObjectImporter {
                     try {
                         Object returnVal = method.invoke(object);
                         ObjectReferenceType ref = (ObjectReferenceType) returnVal;
-                        resolveRef(ref, propName, repository, result);
+                        resolveRef(ref, propName, repository, enforceReferentialIntegrity, result);
                         if (!result.isAcceptable()) {
                             LOGGER.error("Error resolving reference {}: {}", propName, result.getMessage());
                             return;
@@ -441,8 +442,8 @@ public class ObjectImporter {
         }
     }
 
-    private void resolveRef(ObjectReferenceType ref, String propName, RepositoryService repository,
-                            OperationResult parentResult) {
+    private void resolveRef(ObjectReferenceType ref, String propName, RepositoryService repository, 
+    				boolean enforceReferentialIntegrity, OperationResult parentResult) {
         if (ref == null) {
             // Nothing to do
             return;
@@ -476,9 +477,16 @@ public class ObjectImporter {
             try {
                 object = repository.getObject(type, ref.getOid(), null, result);
             } catch (ObjectNotFoundException e) {
-                result.recordWarning("Reference " + propName + " refers to a non-existing object "
-                        + ref.getOid());
+            	String message = "Reference " + propName + " refers to a non-existing object " + ref.getOid();
+            	if (enforceReferentialIntegrity) {
+            		LOGGER.error(message);
+            		result.recordFatalError(message);
+            	} else {
+            		LOGGER.warn(message);
+            		result.recordWarning(message);
+            	}
             } catch (SchemaException e) {
+            	
                 result.recordPartialError("Schema error while trying to retrieve object " + ref.getOid()
                         + " : " + e.getMessage(), e);
                 LOGGER.error(
@@ -494,6 +502,7 @@ public class ObjectImporter {
                 }
             }
             result.recordSuccessIfUnknown();
+            parentResult.computeStatus();
             return;
         }
         if (filter == null) {
