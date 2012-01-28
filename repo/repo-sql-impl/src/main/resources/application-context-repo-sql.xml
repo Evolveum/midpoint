@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2012 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2012 [name of copyright owner]
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+    <context:component-scan base-package="com.evolveum.midpoint.repo.sql" />
+
+    <context:property-placeholder location="database.properties"/>
+
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="${jdbc.driverClassName}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+
+    <!-- Hibernate session factory -->
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+        <property name="dataSource">
+            <ref bean="dataSource"/>
+        </property>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">${hibernate.dialect}</prop>
+                <!--<prop key="hibernate.show_sql">true</prop>-->
+                <prop key="hibernate.hbm2ddl.auto">update</prop>
+                <prop key="hibernate.id.new_generator_mappings">true</prop>
+            </props>
+        </property>
+        <property name="annotatedPackages">
+            <list>
+                <value>com.evolveum.midpoint.repo.sql.type</value>
+            </list>
+        </property>
+        <property name="packagesToScan">
+            <list>
+                <value>com.evolveum.midpoint.repo.sql.data.common</value>
+            </list>
+        </property>
+    </bean>
+</beans>
