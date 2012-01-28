@@ -63,7 +63,7 @@ public abstract class RObjectType {
 //        this.fetchResult = fetchResult;
 //    }
 
-    @NaturalId(mutable = true)
+    @Index(name = "iName")
     public String getName() {
         return name;
     }

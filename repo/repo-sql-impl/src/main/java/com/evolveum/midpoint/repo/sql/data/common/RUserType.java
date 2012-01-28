@@ -39,11 +39,8 @@ import java.util.Set;
 @Table(name = "user")
 public class RUserType extends RExtensibleObjectType {
 
-    @Index(name = "iFullName")
     private String fullName;
-    @Index(name = "iGivenName")
     private String givenName;
-    @Index(name = "iFamilyName")
     private String familyName;
     private Set<String> additionalNames;
     private String honorificPrefix;
@@ -53,7 +50,6 @@ public class RUserType extends RExtensibleObjectType {
     private String employeeNumber;
     private Set<String> employeeType;
     private Set<String> organizationalUnit;
-    @Index(name = "iLocality")
     private String locality;
     private RCredentialsType credentials;
     private RActivationType activation;
@@ -150,6 +146,7 @@ public class RUserType extends RExtensibleObjectType {
         this.employeeType = employeeType;
     }
 
+    @Index(name = "iFamilyName")
     public String getFamilyName() {
         return familyName;
     }
@@ -158,6 +155,7 @@ public class RUserType extends RExtensibleObjectType {
         this.familyName = familyName;
     }
 
+    @Index(name = "iFullName")
     public String getFullName() {
         return fullName;
     }
@@ -166,6 +164,7 @@ public class RUserType extends RExtensibleObjectType {
         this.fullName = fullName;
     }
 
+    @Index(name = "iGivenName")
     public String getGivenName() {
         return givenName;
     }
@@ -190,6 +189,7 @@ public class RUserType extends RExtensibleObjectType {
         this.honorificSuffix = honorificSuffix;
     }
 
+    @Index(name = "iLocality")
     public String getLocality() {
         return locality;
     }

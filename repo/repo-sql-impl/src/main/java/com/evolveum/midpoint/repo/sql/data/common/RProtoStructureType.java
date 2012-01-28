@@ -31,7 +31,8 @@ import java.util.List;
 /**
  * @author lazyman
  */
-@Entity
+//@Entity
+//@Table(name = "proto_structure")
 public abstract class RProtoStructureType extends RExtensibleObjectType {
 
     private List<Serializable> containedObjectOrContainedObjectRef;  //todo mapping

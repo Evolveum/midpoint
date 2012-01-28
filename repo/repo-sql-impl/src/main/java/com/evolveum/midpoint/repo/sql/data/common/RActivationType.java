@@ -35,11 +35,11 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @Embeddable
 public class RActivationType {
 
-    @Index(name="iEnabled")
     private boolean enabled = true;
     private XMLGregorianCalendar validFrom;
     private XMLGregorianCalendar validTo;
 
+    @Index(name="iEnabled")
     public boolean isEnabled() {
         return enabled;
     }
