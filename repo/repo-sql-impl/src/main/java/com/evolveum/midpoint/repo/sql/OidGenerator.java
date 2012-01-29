@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.repo.sql.data.common.RObjectType;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.id.IdentifierGenerator;
@@ -35,6 +37,13 @@ public class OidGenerator implements IdentifierGenerator {
 
     @Override
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
+        if (object instanceof RObjectType) {
+            RObjectType rObject = (RObjectType) object;
+            if (StringUtils.isNotEmpty(rObject.getOid())) {
+                return rObject.getOid();
+            }
+        }
+
         return UUID.randomUUID().toString();
     }
 }

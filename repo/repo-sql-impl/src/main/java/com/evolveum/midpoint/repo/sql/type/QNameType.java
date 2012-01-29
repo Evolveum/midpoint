@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.type;
 
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.type.StringType;
@@ -74,25 +75,30 @@ public class QNameType implements UserType {
         String namespaceURI = StringType.INSTANCE.nullSafeGet(rs, names[0], session);
         String localPart = StringType.INSTANCE.nullSafeGet(rs, names[1], session);
 
+        if (StringUtils.isEmpty(localPart)) {
+            return null;
+        }
+
         return new QName(namespaceURI, localPart);
     }
 
     @Override
     public void nullSafeSet(PreparedStatement st, Object value, int index, SessionImplementor session) throws
             HibernateException, SQLException {
-        if (value == null) {
-            return;
-        }
-
         QName qname = (QName) value;
-        StringType.INSTANCE.nullSafeSet(st, qname.getNamespaceURI(), index, session);
-        StringType.INSTANCE.nullSafeSet(st, qname.getLocalPart(), index + 1, session);
+        String namespaceURI = qname != null ? qname.getNamespaceURI() : null;
+        String localPart = qname != null ? qname.getLocalPart() : null;
+
+        StringType.INSTANCE.nullSafeSet(st, namespaceURI, index, session);
+        StringType.INSTANCE.nullSafeSet(st, localPart, index + 1, session);
     }
 
     @Override
     public Object deepCopy(Object value) throws HibernateException {
+        if (value == null) {
+            return null;
+        }
         QName qname = (QName) value;
-
         return new QName(qname.getNamespaceURI(), qname.getLocalPart(), qname.getPrefix());
     }
 

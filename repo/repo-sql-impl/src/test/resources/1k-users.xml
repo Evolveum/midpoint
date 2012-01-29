@@ -195,6 +195,7 @@
     <activation>
         <enabled>true</enabled>
     </activation>
+    <accountRef oid="11111111-1111-1111-1111-111111111112" />
 </object>
 
 <object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">

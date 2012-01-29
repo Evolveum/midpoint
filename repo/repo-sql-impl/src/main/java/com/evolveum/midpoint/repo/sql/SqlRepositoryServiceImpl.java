@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.NonUniqueResultException;
 import org.hibernate.Query;
@@ -42,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author lazyman
@@ -53,6 +55,7 @@ public class SqlRepositoryServiceImpl {
     String CLASS_NAME_WITH_DOT = RepositoryService.class.getName() + ".";
     String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
     String LIST_OBJECTS = CLASS_NAME_WITH_DOT + "listObjects";
+    String LIST_ACCOUNT_SHADOW = CLASS_NAME_WITH_DOT + "listAccountShadowOwner";
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
 
@@ -151,6 +154,52 @@ public class SqlRepositoryServiceImpl {
         return results;
     }
 
+    public UserType listAccountShadowOwner(String accountOid, OperationResult result)
+            throws ObjectNotFoundException {
+        Validate.notEmpty(accountOid, "Oid must not be null or empty.");
+        Validate.notNull(result, "Operation result must not be null.");
+
+        UserType userType = null;
+        OperationResult subResult = result.createSubresult(LIST_ACCOUNT_SHADOW);
+        Session session = null;
+        try {
+            session = beginTransaction();
+            LOGGER.debug("Selecting account shadow owner for account {}.", new Object[]{accountOid});
+            Query query = session.createQuery("from RUserType as u .........."); //todo query
+            List<RUserType> users = query.list();
+            LOGGER.debug("Found {} users, transforming data to JAXB types.",
+                    new Object[]{(users != null ? users.size() : 0)});
+
+            if (users == null || users.isEmpty()) {
+                throw new ObjectNotFoundException("Account shadow owner for account '"
+                        + accountOid + "' was not found.");
+            }
+
+            if (users.size() > 1) {
+                LOGGER.warn("Found {} users for account oid {}, returning first user. [interface change needed]",
+                        new Object[]{users.size(), accountOid});
+            }
+
+            RUserType user = users.get(0);
+            userType = user.toJAXB();
+
+            session.getTransaction().commit();
+        } catch (ObjectNotFoundException ex) {
+            session.getTransaction().rollback();
+            throw ex;
+        } catch (SystemException ex) {
+            session.getTransaction().rollback();
+            throw ex;
+        } catch (Exception ex) {
+            session.getTransaction().rollback();
+            throw new SystemException(ex.getMessage(), ex);
+        } finally {
+            cleanupSessionAndResult(session, subResult);
+        }
+
+        return userType;
+    }
+
     //todo probably remove from interface
     public <T extends ObjectType> PropertyAvailableValuesListType getPropertyAvailableValues(Class<T> type, String oid,
             PropertyReferenceListType properties, OperationResult result) throws ObjectNotFoundException {
@@ -204,7 +253,12 @@ public class SqlRepositoryServiceImpl {
             ex.printStackTrace();
         }
 
-        String oid = (String) session.save(user);
+        String oid = user.getOid();
+//        if (StringUtils.isEmpty(oid)) {
+//            oid = UUID.randomUUID().toString();
+//            user.setOid(oid);
+//        }
+        oid = (String) session.save(user);
 
         session.getTransaction().commit();
         session.close();

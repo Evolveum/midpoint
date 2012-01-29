@@ -132,4 +132,11 @@ public class RObjectReferenceType implements Identifiable {
             repo.setId(xRef.getId());
         }
     }
+
+    public ObjectReferenceType toJAXB() {
+        ObjectReferenceType ref = new ObjectReferenceType();
+        copyToJAXB(this, ref);
+
+        return ref;
+    }
 }

@@ -27,7 +27,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Index;
-import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
 
@@ -38,10 +37,9 @@ import javax.persistence.*;
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public abstract class RObjectType {
 
-    @Index(name = "iName")
+    //    private long id;
     private String name;
     private String description;
-    //    private ROperationResultType fetchResult;
     private String oid;
     private long version;
 
@@ -52,16 +50,6 @@ public abstract class RObjectType {
     public void setDescription(String description) {
         this.description = description;
     }
-
-//    @ManyToOne
-//    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-//    public ROperationResultType getFetchResult() {
-//        return fetchResult;
-//    }
-//
-//    public void setFetchResult(ROperationResultType fetchResult) {
-//        this.fetchResult = fetchResult;
-//    }
 
     @Index(name = "iName")
     public String getName() {
@@ -75,7 +63,7 @@ public abstract class RObjectType {
     @Id
     @GeneratedValue(generator = "OidGenerator")
     @GenericGenerator(name = "OidGenerator", strategy = "com.evolveum.midpoint.repo.sql.OidGenerator")
-    @Column(unique = true, nullable = false, length = 36)
+    @Column(unique = true, nullable = false, updatable = false, length = 36)
     public String getOid() {
         return oid;
     }
@@ -116,7 +104,7 @@ public abstract class RObjectType {
 
         repo.setDescription(jaxb.getDescription());
         repo.setName(jaxb.getName());
-        repo.setOid(jaxb.getName());
+        repo.setOid(jaxb.getOid());
 
         long version = StringUtils.isNotEmpty(jaxb.getVersion()) ? Long.parseLong(jaxb.getVersion()) : 0;
         repo.setVersion(version);

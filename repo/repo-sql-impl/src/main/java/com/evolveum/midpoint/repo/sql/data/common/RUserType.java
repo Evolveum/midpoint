@@ -25,6 +25,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Index;
@@ -53,9 +54,9 @@ public class RUserType extends RExtensibleObjectType {
     private String locality;
     private RCredentialsType credentials;
     private RActivationType activation;
-//    private Set<AssignmentType> assignment;
+    //    private Set<AssignmentType> assignment;
 //    private Set<AccountShadowType> account;
-//    private Set<ObjectReferenceType> accountRef;
+    private Set<RObjectReferenceType> accountRef;
 //
 //    //todo mapping
 //    public Set<AccountShadowType> getAccount() {
@@ -66,40 +67,75 @@ public class RUserType extends RExtensibleObjectType {
 //    public Set<AssignmentType> getAssignment() {
 //        return assignment;
 //    }
-//
-//    //todo mapping
-//    public Set<ObjectReferenceType> getAccountRef() {
-//        return accountRef;
-//    }
+
+    @OneToMany
+    @JoinTable(name = "user_account_ref", joinColumns = @JoinColumn(name = "userId"),
+            inverseJoinColumns = @JoinColumn(name = "objectRef"))
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RObjectReferenceType> getAccountRef() {
+        return accountRef;
+    }
+
+    @ElementCollection//(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_email_address", joinColumns =
+            {@JoinColumn(name = "userId")})
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<String> getEMailAddress() {
+        return eMailAddress;
+    }
+
+    @ElementCollection//(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_employee_type", joinColumns =
+            {@JoinColumn(name = "userId")})
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<String> getEmployeeType() {
+        return employeeType;
+    }
+
+    @Index(name = "iFamilyName")
+    public String getFamilyName() {
+        return familyName;
+    }
+
+    @Index(name = "iFullName")
+    public String getFullName() {
+        return fullName;
+    }
+
+    @Index(name = "iGivenName")
+    public String getGivenName() {
+        return givenName;
+    }
+
+    @Index(name = "iLocality")
+    public String getLocality() {
+        return locality;
+    }
+
+    @ElementCollection//(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_organizational_unit", joinColumns =
+            {@JoinColumn(name = "userId")})
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<String> getOrganizationalUnit() {
+        return organizationalUnit;
+    }
+
+    @ElementCollection//(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_telephone_number", joinColumns =
+            {@JoinColumn(name = "userId")})
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<String> getTelephoneNumber() {
+        return telephoneNumber;
+    }
 
     @Embedded
     public RCredentialsType getCredentials() {
         return credentials;
     }
-//
-//    public void setAccount(Set<AccountShadowType> account) {
-//        this.account = account;
-//    }
-//
-//    public void setAccountRef(Set<ObjectReferenceType> accountRef) {
-//        this.accountRef = accountRef;
-//    }
-//
-//    public void setAssignment(Set<AssignmentType> assignment) {
-//        this.assignment = assignment;
-//    }
-
-    public void setCredentials(RCredentialsType credentials) {
-        this.credentials = credentials;
-    }
 
     @Embedded
     public RActivationType getActivation() {
         return activation;
-    }
-
-    public void setActivation(RActivationType activation) {
-        this.activation = activation;
     }
 
     @ElementCollection//(fetch = FetchType.EAGER)
@@ -109,17 +145,29 @@ public class RUserType extends RExtensibleObjectType {
     public Set<String> getAdditionalNames() {
         return additionalNames;
     }
+//
+//    public void setAccount(Set<AccountShadowType> account) {
+//        this.account = account;
+//    }
+
+    public void setAccountRef(Set<RObjectReferenceType> accountRef) {
+        this.accountRef = accountRef;
+    }
+//
+//    public void setAssignment(Set<AssignmentType> assignment) {
+//        this.assignment = assignment;
+//    }
+
+    public void setCredentials(RCredentialsType credentials) {
+        this.credentials = credentials;
+    }
+
+    public void setActivation(RActivationType activation) {
+        this.activation = activation;
+    }
 
     public void setAdditionalNames(Set<String> additionalNames) {
         this.additionalNames = additionalNames;
-    }
-
-    @ElementCollection//(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_email_address", joinColumns =
-            {@JoinColumn(name = "userId")})
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<String> getEMailAddress() {
-        return eMailAddress;
     }
 
     public void setEMailAddress(Set<String> eMailAddress) {
@@ -134,39 +182,16 @@ public class RUserType extends RExtensibleObjectType {
         this.employeeNumber = employeeNumber;
     }
 
-    @ElementCollection//(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_employee_type", joinColumns =
-            {@JoinColumn(name = "userId")})
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<String> getEmployeeType() {
-        return employeeType;
-    }
-
     public void setEmployeeType(Set<String> employeeType) {
         this.employeeType = employeeType;
-    }
-
-    @Index(name = "iFamilyName")
-    public String getFamilyName() {
-        return familyName;
     }
 
     public void setFamilyName(String familyName) {
         this.familyName = familyName;
     }
 
-    @Index(name = "iFullName")
-    public String getFullName() {
-        return fullName;
-    }
-
     public void setFullName(String fullName) {
         this.fullName = fullName;
-    }
-
-    @Index(name = "iGivenName")
-    public String getGivenName() {
-        return givenName;
     }
 
     public void setGivenName(String givenName) {
@@ -189,33 +214,12 @@ public class RUserType extends RExtensibleObjectType {
         this.honorificSuffix = honorificSuffix;
     }
 
-    @Index(name = "iLocality")
-    public String getLocality() {
-        return locality;
-    }
-
     public void setLocality(String locality) {
         this.locality = locality;
     }
 
-    @ElementCollection//(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_organizational_unit", joinColumns =
-            {@JoinColumn(name = "userId")})
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<String> getOrganizationalUnit() {
-        return organizationalUnit;
-    }
-
     public void setOrganizationalUnit(Set<String> organizationalUnit) {
         this.organizationalUnit = organizationalUnit;
-    }
-
-    @ElementCollection//(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_telephone_number", joinColumns =
-            {@JoinColumn(name = "userId")})
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<String> getTelephoneNumber() {
-        return telephoneNumber;
     }
 
     public void setTelephoneNumber(Set<String> telephoneNumber) {
@@ -266,6 +270,15 @@ public class RUserType extends RExtensibleObjectType {
             repo.setTelephoneNumber(new HashSet<String>(strings));
         }
 
+        if (jaxb.getAccountRef() != null) {
+            repo.setAccountRef(new HashSet<RObjectReferenceType>());
+        }
+        for (ObjectReferenceType accountRef : jaxb.getAccountRef()) {
+            RObjectReferenceType repoRef = new RObjectReferenceType();
+            RObjectReferenceType.copyFromJAXB(accountRef, repoRef);
+            repo.getAccountRef().add(repoRef);
+        }
+
         //todo implement
     }
 
@@ -313,6 +326,12 @@ public class RUserType extends RExtensibleObjectType {
             jaxb.getTelephoneNumber().addAll(strings);
         }
 
+        if (repo.getAccountRef() != null) {
+            for (RObjectReferenceType repoRef : repo.getAccountRef()) {
+                jaxb.getAccountRef().add(repoRef.toJAXB());
+            }
+        }
+        
         //todo implement
     }
 
