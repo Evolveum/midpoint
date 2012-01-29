@@ -31,6 +31,7 @@ import javax.xml.bind.annotation.XmlTransient;
  */
 public class XOperationResultType extends OperationResultType implements Identifiable {
 
+    @XmlTransient
     private long id;
 
     @Override

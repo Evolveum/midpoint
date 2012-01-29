@@ -22,10 +22,13 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
+import org.hibernate.annotations.Cascade;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -34,19 +37,45 @@ import javax.persistence.Table;
 @Table(name = "role")
 public class RRoleType extends RExtensibleObjectType {
 
-//    private List<AssignmentType> assignment;    //todo mapping
+    private List<RAssignmentType> assignment;
 
+    @OneToMany
+    @JoinTable(name = "role_assignment", joinColumns = @JoinColumn(name = "roleOid"),
+            inverseJoinColumns = @JoinColumn(name = "assignmentId"))
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public List<RAssignmentType> getAssignment() {
+        return assignment;
+    }
+
+    public void setAssignment(List<RAssignmentType> assignment) {
+        this.assignment = assignment;
+    }
 
     public static void copyToJAXB(RRoleType repo, RoleType jaxb) throws DtoTranslationException {
         RExtensibleObjectType.copyToJAXB(repo, jaxb);
 
-        //todo implement
+        if (repo.getAssignment() == null) {
+            return;
+        }
+
+        for (RAssignmentType rAssignment : repo.getAssignment()) {
+            jaxb.getAssignment().add(rAssignment.toJAXB());
+        }
     }
 
     public static void copyFromJAXB(RoleType jaxb, RRoleType repo) throws DtoTranslationException {
         RExtensibleObjectType.copyFromJAXB(jaxb, repo);
 
-        //todo implement
+        if (!jaxb.getAssignment().isEmpty()) {
+            repo.setAssignment(new ArrayList<RAssignmentType>());
+        }
+
+        for (AssignmentType assignment : jaxb.getAssignment()) {
+            RAssignmentType rAssignment = new RAssignmentType();
+            RAssignmentType.copyFromJAXB(assignment, rAssignment);
+
+            repo.getAssignment().add(rAssignment);
+        }
     }
 
     @Override

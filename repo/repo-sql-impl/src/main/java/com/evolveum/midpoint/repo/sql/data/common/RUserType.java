@@ -54,22 +54,15 @@ public class RUserType extends RExtensibleObjectType {
     private String locality;
     private RCredentialsType credentials;
     private RActivationType activation;
-    //    private Set<AssignmentType> assignment;
-//    private Set<AccountShadowType> account;
+    //    private Set<AssignmentType> assignment;       //todo mapping
     private Set<RObjectReferenceType> accountRef;
-//
-//    //todo mapping
-//    public Set<AccountShadowType> getAccount() {
-//        return account;
-//    }
-//
-//    //todo mapping
+
 //    public Set<AssignmentType> getAssignment() {
 //        return assignment;
 //    }
 
     @OneToMany
-    @JoinTable(name = "user_account_ref", joinColumns = @JoinColumn(name = "userId"),
+    @JoinTable(name = "user_account_ref", joinColumns = @JoinColumn(name = "userOid"),
             inverseJoinColumns = @JoinColumn(name = "objectRef"))
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RObjectReferenceType> getAccountRef() {
@@ -78,7 +71,7 @@ public class RUserType extends RExtensibleObjectType {
 
     @ElementCollection//(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_email_address", joinColumns =
-            {@JoinColumn(name = "userId")})
+            {@JoinColumn(name = "userOid")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<String> getEMailAddress() {
         return eMailAddress;
@@ -86,7 +79,7 @@ public class RUserType extends RExtensibleObjectType {
 
     @ElementCollection//(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_employee_type", joinColumns =
-            {@JoinColumn(name = "userId")})
+            {@JoinColumn(name = "userOid")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<String> getEmployeeType() {
         return employeeType;
@@ -114,7 +107,7 @@ public class RUserType extends RExtensibleObjectType {
 
     @ElementCollection//(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_organizational_unit", joinColumns =
-            {@JoinColumn(name = "userId")})
+            {@JoinColumn(name = "userOid")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<String> getOrganizationalUnit() {
         return organizationalUnit;
@@ -122,7 +115,7 @@ public class RUserType extends RExtensibleObjectType {
 
     @ElementCollection//(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_telephone_number", joinColumns =
-            {@JoinColumn(name = "userId")})
+            {@JoinColumn(name = "userOid")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<String> getTelephoneNumber() {
         return telephoneNumber;
@@ -140,15 +133,11 @@ public class RUserType extends RExtensibleObjectType {
 
     @ElementCollection//(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_additional_name", joinColumns =
-            {@JoinColumn(name = "userId")})
+            {@JoinColumn(name = "userOid")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<String> getAdditionalNames() {
         return additionalNames;
     }
-//
-//    public void setAccount(Set<AccountShadowType> account) {
-//        this.account = account;
-//    }
 
     public void setAccountRef(Set<RObjectReferenceType> accountRef) {
         this.accountRef = accountRef;
@@ -331,7 +320,7 @@ public class RUserType extends RExtensibleObjectType {
                 jaxb.getAccountRef().add(repoRef.toJAXB());
             }
         }
-        
+
         //todo implement
     }
 

@@ -24,11 +24,14 @@ package com.evolveum.midpoint.repo.sql.jaxb;
 import com.evolveum.midpoint.repo.sql.Identifiable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 
+import javax.xml.bind.annotation.XmlTransient;
+
 /**
  * @author lazyman
  */
 public class XObjectReferenceType extends ObjectReferenceType implements Identifiable {
 
+    @XmlTransient
     private long id;
 
     @Override

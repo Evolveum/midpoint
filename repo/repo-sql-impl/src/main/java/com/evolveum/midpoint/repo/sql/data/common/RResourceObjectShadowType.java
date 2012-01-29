@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Columns;
@@ -37,13 +38,11 @@ import java.util.Set;
 @Table(name = "resource_object_shadow")
 public class RResourceObjectShadowType extends RExtensibleObjectType {
 
-    //TODO MAPPINGGGGGGGGGGGGGGGGGGG
-//    private RObjectReferenceType resourceRef;
-//    private RResourceType resource;
-    //    private ROperationResultType result; //todo: probably not necessary
-//    private ObjectChangeType objectChange;
+    //    private RObjectReferenceType resourceRef;
+    private ROperationResultType result;
+    //    private ObjectChangeType objectChange;
     private Integer attemptNumber;   //todo default value
-    //    private FailedOperationTypeType failedOperationType;
+    private FailedOperationTypeType failedOperationType;
     private QName objectClass;
     private Set<RAttribute> attributes; //private ResourceObjectShadowType.Attributes attributes;
 
@@ -54,25 +53,11 @@ public class RResourceObjectShadowType extends RExtensibleObjectType {
         return attributes;
     }
 
-    public void setAttributes(Set<RAttribute> attributes) {
-        this.attributes = attributes;
+    @Enumerated(EnumType.ORDINAL)
+    public FailedOperationTypeType getFailedOperationType() {
+        return failedOperationType;
     }
 
-//    @ManyToOne
-//    @JoinColumn
-//    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-//    public RResourceType getResource() {
-//        return resource;
-//    }
-
-//    public ResourceObjectShadowType.Attributes getAttributes() {
-//        return attributes;
-//    }
-//
-//    public FailedOperationTypeType getFailedOperationType() {
-//        return failedOperationType;
-//    }
-//
 //    public ObjectChangeType getObjectChange() {
 //        return objectChange;
 //    }
@@ -89,26 +74,28 @@ public class RResourceObjectShadowType extends RExtensibleObjectType {
         return attemptNumber;
     }
 
+//    @ManyToOne
+//    @JoinTable(name = "shadow_resource_ref", joinColumns = @JoinColumn(name = "shadowOid", unique = true),
+//            inverseJoinColumns = @JoinColumn(name = "objectRef"))
+//    @Cascade({org.hibernate.annotations.CascadeType.ALL})
 //    public RObjectReferenceType getResourceRef() {
 //        return resourceRef;
 //    }
-//
-//    public ROperationResultType getResult() {
-//        return result;
-//    }
+
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public ROperationResultType getResult() {
+        return result;
+    }
 
     public void setAttemptNumber(Integer attemptNumber) {
         this.attemptNumber = attemptNumber;
     }
 
-//    public void setAttributes(ResourceObjectShadowType.Attributes attributes) {
-//        this.attributes = attributes;
-//    }
-//
-//    public void setFailedOperationType(FailedOperationTypeType failedOperationType) {
-//        this.failedOperationType = failedOperationType;
-//    }
-//
+    public void setFailedOperationType(FailedOperationTypeType failedOperationType) {
+        this.failedOperationType = failedOperationType;
+    }
+
 //    public void setObjectChange(ObjectChangeType objectChange) {
 //        this.objectChange = objectChange;
 //    }
@@ -117,28 +104,44 @@ public class RResourceObjectShadowType extends RExtensibleObjectType {
         this.objectClass = objectClass;
     }
 
-//    public void setResource(RResourceType resource) {
-//        this.resource = resource;
-//    }
-
 //    public void setResourceRef(RObjectReferenceType resourceRef) {
 //        this.resourceRef = resourceRef;
 //    }
-//
-//    public void setResult(ROperationResultType result) {
-//        this.result = result;
-//    }
+
+    public void setResult(ROperationResultType result) {
+        this.result = result;
+    }
+
+    public void setAttributes(Set<RAttribute> attributes) {
+        this.attributes = attributes;
+    }
 
     public static void copyToJAXB(RResourceObjectShadowType repo, ResourceObjectShadowType jaxb) throws
             DtoTranslationException {
         RExtensibleObjectType.copyToJAXB(repo, jaxb);
 
         //todo implement
+
+
+//        if (repo.getResult() != null) {
+//            XOperationResultType resultType = new XOperationResultType();
+//
+//            ROperationResultType.copyToJAXB(repo.getResult(), resultType);
+//            jaxb.setResult(resultType);
+//        }
     }
 
     public static void copyFromJAXB(ResourceObjectShadowType jaxb, RResourceObjectShadowType repo) throws
             DtoTranslationException {
         RExtensibleObjectType.copyFromJAXB(jaxb, repo);
+
+
+//        if (jaxb.getResult() != null) {
+//            ROperationResultType resultType = new ROperationResultType();
+//
+//            ROperationResultType.copyFromJAXB(jaxb.getResult(), resultType);
+//            repo.setResult(resultType);
+//        }
 
         //todo implement
     }

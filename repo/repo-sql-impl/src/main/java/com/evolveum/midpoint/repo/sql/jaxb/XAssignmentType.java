@@ -22,14 +22,14 @@
 package com.evolveum.midpoint.repo.sql.jaxb;
 
 import com.evolveum.midpoint.repo.sql.Identifiable;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 
 import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * @author lazyman
  */
-public class XExtension extends Extension implements Identifiable {
+public class XAssignmentType extends AssignmentType implements Identifiable {
 
     @XmlTransient
     private long id;

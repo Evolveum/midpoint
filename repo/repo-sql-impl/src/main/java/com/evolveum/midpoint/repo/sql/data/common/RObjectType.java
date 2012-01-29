@@ -37,7 +37,6 @@ import javax.persistence.*;
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public abstract class RObjectType {
 
-    //    private long id;
     private String name;
     private String description;
     private String oid;
@@ -89,13 +88,6 @@ public abstract class RObjectType {
         jaxb.setName(repo.getName());
         jaxb.setOid(repo.getOid());
         jaxb.setVersion(Long.toString(repo.getVersion()));
-
-//        if (repo.getFetchResult() != null) {
-//            XOperationResultType resultType = new XOperationResultType();
-//
-//            ROperationResultType.copyToJAXB(repo.getFetchResult(), resultType);
-//            jaxb.setFetchResult(resultType);
-//        }
     }
 
     public static void copyFromJAXB(ObjectType jaxb, RObjectType repo) throws DtoTranslationException {
@@ -108,13 +100,6 @@ public abstract class RObjectType {
 
         long version = StringUtils.isNotEmpty(jaxb.getVersion()) ? Long.parseLong(jaxb.getVersion()) : 0;
         repo.setVersion(version);
-
-//        if (jaxb.getFetchResult() != null) {
-//            ROperationResultType resultType = new ROperationResultType();
-//
-//            ROperationResultType.copyFromJAXB(jaxb.getFetchResult(), resultType);
-//            repo.setFetchResult(resultType);
-//        }
     }
 
     public abstract <T extends ObjectType> T toJAXB() throws DtoTranslationException;

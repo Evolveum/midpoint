@@ -54,7 +54,6 @@ public final class ClassMapper {
         types.put(ObjectTypes.TASK, RTaskType.class);
         types.put(ObjectTypes.USER, RUserType.class);
         types.put(ObjectTypes.USER_TEMPLATE, RUserTemplateType.class);
-        // todo RProtoStructureType.class
 
         for (ObjectTypes type : ObjectTypes.values()) {
 

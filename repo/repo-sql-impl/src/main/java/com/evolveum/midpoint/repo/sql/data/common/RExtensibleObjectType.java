@@ -40,7 +40,6 @@ public class RExtensibleObjectType extends RObjectType {
     private RExtension extension;
 
     @ManyToOne
-    @JoinColumn
     public RExtension getExtension() {
         return extension;
     }
