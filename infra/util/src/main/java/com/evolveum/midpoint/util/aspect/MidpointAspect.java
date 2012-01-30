@@ -39,7 +39,7 @@ import org.springframework.core.annotation.Order;
 public class MidpointAspect {
 
 	public static final String INDENT_STRING = " ";
-	
+
 	private static AtomicInteger idcounter = new AtomicInteger(0);
 	private static AtomicInteger subidcounter = new AtomicInteger(0);
 
@@ -53,7 +53,7 @@ public class MidpointAspect {
 
 	/**
 	 * Register new formatter
-	 * 
+	 *
 	 * @param formatter
 	 */
 	public static void registerFormatter(ObjectFormatter formatter) {
@@ -252,13 +252,17 @@ public class MidpointAspect {
 	public void entriesIntoModel() {
 	}
 
-	/*@Pointcut("execution(* com.evolveum.midpoint.web.controller..*.*(..))")
-	public void entriesIntoWeb() {
-	}*/
-
-	@Pointcut("execution(* com.evolveum.midpoint.web.model.impl..*.*(..))")
+	@Pointcut("execution(* com.evolveum.midpoint.web.controller..*.*(..)) " +
+            "&& !execution(public * com.evolveum.midpoint.web.controller..*.get*(..)) " +
+            "&& !execution(public * com.evolveum.midpoint.web.controller..*.set*(..))" +
+            "&& !execution(public * com.evolveum.midpoint.web.controller..*.is*(..))" +
+            "&& !execution(* com.evolveum.midpoint.web.controller.Language..*.*(..))")
 	public void entriesIntoWeb() {
 	}
+
+//	@Pointcut("execution(* com.evolveum.midpoint.web.model.impl..*.*(..))")
+//	public void entriesIntoWeb() {
+//	}
 
 	@Pointcut("execution(* com.evolveum.midpoint.provisioning.ucf.api..*.*(..))")
 	public void entriesIntoUcf() {
@@ -266,7 +270,7 @@ public class MidpointAspect {
 
 	/**
 	 * Get joinpoint class name if available
-	 * 
+	 *
 	 * @param pjp
 	 * @return
 	 */
@@ -281,7 +285,7 @@ public class MidpointAspect {
 
 	/**
 	 * Debug output formater
-	 * 
+	 *
 	 * @param value
 	 * @return
 	 */
