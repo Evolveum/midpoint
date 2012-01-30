@@ -73,14 +73,45 @@ function displayMessageCauseDetails(id) {
 	}
 }
 
+function clearPwBox() {
+	if (document.getElementById) {
+		var locality = document.getElementById('createUserForm:locality');
+		var pw1 = document.getElementById('createUserForm:password1');
+		var pw2 = document.getElementById('createUserForm:password2');
+		
+		
+		var locality1 = document.getElementById('admin-content:icePnlTbSet:0:localityText');
+		var pw11 = document.getElementById('admin-content:icePnlTbSet:0:password1');
+		var pw21 = document.getElementById('admin-content:icePnlTbSet:0:password2');
+		
+		if (pw1 != null) {
+			pw1.value = '';
+			locality.value = '';
+		}
+		if (pw2 != null) {
+			pw2.value = '';
+		}
+		
+		if (pw11 != null) {
+			pw11.value = '';
+			locality1.value = '';
+		}
+		if (pw21 != null) {
+			pw21.value = '';
+		}
+	}
+}
+
 /* //////////////////// jQuery ////////////////////////////// */
 jQuery(document).ready(function() {
 	jQuery.noConflict();
-
+	
 	jQuery().UItoTop();
 
 	highliteTableRows();
-
+	
+	clearPwBox();
+	
 	jQuery(".iceCmdLnk ").click(function() {
 		setTimeout("highliteTableRows()", 200);
 	});
