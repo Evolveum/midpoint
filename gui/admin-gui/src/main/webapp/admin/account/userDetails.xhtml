@@ -109,7 +109,7 @@
 							value="#{msg['page.account.detail.tab.user.locality']}" />
 						<ice:outputText id="locality" rendered="#{!userDetails.editMode}"
 							value="#{userDetails.user.locality}" />
-						<ice:inputText id="localityText"
+						<ice:inputText  id="localityText" autocomplete="off"
 							value="#{userDetails.user.locality}"
 							rendered="#{userDetails.editMode}" />
 
@@ -117,7 +117,7 @@
 							value="#{msg['page.account.detail.tab.user.password1']}"
 							rendered="#{userDetails.editMode}" />
 						<ice:panelGroup rendered="#{userDetails.editMode}">
-							<ice:inputSecret id="password1"
+							<ice:inputSecret id="password1" autocomplete="off"
 								value="#{userDetails.user.password1}"
 								requiredMessage="#{msg['field.required']}">
 								<f:validator validatorId="PasswordValidator" />
@@ -130,7 +130,7 @@
 							value="#{msg['page.account.detail.tab.user.password2']}"
 							rendered="#{userDetails.editMode}" />
 						<ice:panelGroup rendered="#{userDetails.editMode}">
-							<ice:inputSecret id="password2" immediate="true"
+							<ice:inputSecret id="password2" autocomplete="off" immediate="true"
 								value="#{userDetails.user.password2}"
 								requiredMessage="#{msg['field.required']}" />
 							<ice:message for="password2" errorClass="error" />
