@@ -27,7 +27,6 @@ import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Objects;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.testng.annotations.Test;
 
@@ -71,5 +70,21 @@ public class SpringApplicationContextTest {
             }
             System.out.println("Changes: " + (i + 1) + "\n" + JAXBUtil.marshalWrap(changes) + "\n\n");
         }
+    }
+
+//    @Test
+    public void perfTest() throws Exception {
+        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("application-context-repo-sql.xml");
+        SqlRepositoryServiceImpl service = (SqlRepositoryServiceImpl) ctx.getBean("sqlRepositoryServiceImpl");
+
+        Objects objects = (Objects) JAXBUtil.unmarshal(new File("./src/test/resources/50k-users.xml"));
+        List<JAXBElement<? extends ObjectType>> elements = objects.getObject();
+
+        long time = System.currentTimeMillis();
+        for (JAXBElement<? extends ObjectType> element : elements) {
+            service.add(element.getValue());
+        }
+        time = (System.currentTimeMillis() - time);
+        System.out.println("XXX Time: " + (time / 1000) + "s, that's " + (50000000 / time) + "/s");
     }
 }

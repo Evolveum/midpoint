@@ -31,6 +31,7 @@ import org.hibernate.type.TextType;
 
 import javax.persistence.*;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author lazyman
@@ -40,7 +41,7 @@ import java.util.List;
 public class RExtension implements Identifiable {
 
     private long id;
-    private List<String> objects;
+    private Set<String> objects;
 
     @Id
     @GeneratedValue
@@ -58,11 +59,11 @@ public class RExtension implements Identifiable {
     @CollectionTable(name = "extension_object", joinColumns =
             {@JoinColumn(name = "extensionId")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public List<String> getObjects() {
+    public Set<String> getObjects() {
         return objects;
     }
 
-    public void setObjects(List<String> objects) {
+    public void setObjects(Set<String> objects) {
         this.objects = objects;
     }
 

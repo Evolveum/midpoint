@@ -12,7 +12,7 @@
             xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
             xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
-        <name>testuserX00001</name>
+        <name>atestuserX00001</name>
         <fullName>Test UserX00001</fullName>
         <givenName>TestX</givenName>
         <familyName>UserX00001</familyName>
@@ -114,7 +114,7 @@
             xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
             xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
-        <name>testuserX00002</name>
+        <name>atestuserX00002</name>
         <fullName>Test UserX00002</fullName>
         <givenName>TestX</givenName>
         <familyName>UserX00002</familyName>
@@ -148,7 +148,7 @@
             xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
             xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
-        <name>testuserX00003</name>
+        <name>atestuserX00003</name>
         <fullName>Test UserX00003</fullName>
         <givenName>TestX</givenName>
         <familyName>UserX00003</familyName>
