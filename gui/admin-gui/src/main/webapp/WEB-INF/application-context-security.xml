@@ -31,7 +31,6 @@
 
     <http use-expressions="true" entry-point-ref="authenticationEntryPoint" auto-config="false">
         <custom-filter ref="sessionManagementFilter" before="SESSION_MANAGEMENT_FILTER"/>
-        <custom-filter ref="maintenanceFilter" after="LAST"/>
 
         <intercept-url pattern="/" access="permitAll"/>
         <!-- model WS -->
@@ -41,7 +40,6 @@
         <intercept-url pattern="/resources/css/**" filters="none"/>
         <intercept-url pattern="/resources/images/**" filters="none"/>
         <intercept-url pattern="/javax.faces.resource/**" filters="none"/>
-        <intercept-url pattern="/maintenance.iface" access="permitAll"/>
         <intercept-url pattern="/error.iface" access="permitAll"/>
         <intercept-url pattern="/login.iface" access="permitAll"/>
         <intercept-url pattern="/j_spring_security_check" access="permitAll"/>
@@ -96,12 +94,6 @@
                 </beans:prop>
             </beans:props>
         </beans:property>-->
-    </beans:bean>
-
-
-    <beans:bean id="maintenanceFilter" class="com.evolveum.midpoint.web.security.MidPointMaintenanceFilter">
-        <beans:property name="maintenanceUrl" value="/maintenance.iface"/>
-        <beans:property name="redirectStrategy" ref="jsfRedirectStrategy"/>
     </beans:bean>
 
     <beans:bean id="authenticationEntryPoint"

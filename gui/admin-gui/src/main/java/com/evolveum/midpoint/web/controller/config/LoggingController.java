@@ -61,9 +61,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SubSystemLoggerConfigurationType;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 @Controller("logging")
 @Scope("session")
@@ -89,7 +89,7 @@ public class LoggingController implements Serializable {
 	private List<BasicLoggerListItem> loggers;
 	private List<AppenderListItem> appenders;
 	private List<SubsystemLoggerListItem> subsystemLoggers;
-	
+
 	private List<BasicLoggerListItem> classLoggers;
 
 	private boolean advancedView = false;
@@ -360,7 +360,7 @@ public class LoggingController implements Serializable {
 		LoggingConfigurationType logging = createConfiguration(getLoggers(), getAppenders());
 		OperationResult result = new OperationResult("Load Logging Configuration");
 		try {
-			
+
 			loggingManager.updateConfiguration(logging, result);
 			result.recordSuccess();
 
@@ -377,7 +377,7 @@ public class LoggingController implements Serializable {
 	public void cancelPerformed() {
 		initController();
 	}
-	
+
 	public void resetPerformed() {
 		initController();
 	}
@@ -395,7 +395,7 @@ public class LoggingController implements Serializable {
 
 		OperationResult result = new OperationResult("Load Logging Configuration");
 
-		
+
 		try {
 			LoggingConfigurationType logging = loggingManager.getConfiguration(result);
 			if (logging == null) {
@@ -424,7 +424,7 @@ public class LoggingController implements Serializable {
 			//create loggers list
 			createLoggerList(logging);
 			loggers.addAll(classLoggers);
-			
+
 			result.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get logging configuration.", ex);
@@ -442,7 +442,7 @@ public class LoggingController implements Serializable {
 	private void createLoggerList(LoggingConfigurationType logging) {
 		int id = 0;
 		List<SubsystemLoggerListItem> subsystemItems = new ArrayList<SubsystemLoggerListItem>();
-		
+
 		classLoggers = new ArrayList<BasicLoggerListItem>();
 		// create logger item for each defined class or package..if defined
 		// logger is for profiling (aspect) create special case
@@ -488,7 +488,7 @@ public class LoggingController implements Serializable {
 		// certain subsystem is defined, use this configuration, otherwise
 		// create new default configuration using root logger properties
 		createSubsystemLogerList(subsystemItems, id);
-		
+
 	}
 
 	private void createSubsystemLogerList(List<SubsystemLoggerListItem> subsystemLoggers, int id) {
@@ -732,7 +732,7 @@ public class LoggingController implements Serializable {
 				configuration.getSubSystemLogger().add(logger);
 			}
 		}
-		
+
 		for (BasicLoggerListItem item : loggersList) {
 			if (((LoggerListItem) item).getPackageName().equals("PROFILING")) {
 				continue;
@@ -747,17 +747,17 @@ public class LoggingController implements Serializable {
 
 		return configuration;
 	}
-	
+
 	public boolean isEnableAuditLog() {
-		return audit.isEnabled();
+		return audit.isEnabled() != null ? audit.isEnabled() : false;
 	}
 
 	public void setEnableAuditLog(boolean enableAuditLog) {
 		this.enableAuditLog = enableAuditLog;
 	}
-	
+
 	public boolean isAuditDetails() {
-		return audit.isDetails();
+		return audit.isDetails() != null ? audit.isDetails() : false;
 	}
 
 	public void setAuditDetails(boolean auditDetails) {
