@@ -291,6 +291,7 @@ public final class AutoFormFactory {
 		////////////////////////////////////////////////////////////////////
 		
 		text.setStyle("width: 95%;");
+		text.setAutocomplete("off");
 		text.setReadonly(isOnlyReadable(definition));
 		ValueExpression valueExpression = createValueExpression(beanExpression, attributeIndex, valueIndex);
 		text.setValueExpression("value", valueExpression);
