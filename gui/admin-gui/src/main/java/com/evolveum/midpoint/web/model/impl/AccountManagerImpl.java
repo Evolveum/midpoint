@@ -122,6 +122,9 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 			AccountShadowType accountOld = oldObject.getXmlObject();
 			AccountShadowType accountNew = changedObject.getXmlObject();
 			
+			unresolveResource(accountOld);
+			unresolveResource(accountNew);
+			
 			LOGGER.trace("Old account:\n{}",JAXBUtil.marshalWrap(accountOld));
         	LOGGER.trace("New account:\n{}",JAXBUtil.marshalWrap(accountNew));
         	ObjectDelta<AccountShadowType> accountDelta = DiffUtil.diff(accountOld, accountNew,
@@ -176,6 +179,15 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 		result.computeStatus("Couldn't submit user '" + changedObject.getName() + "'.");
 //		ControllerUtil.printResults(LOGGER, result);
 		return new HashSet<PropertyChange>();
+	}
+
+
+	private void unresolveResource(AccountShadowType account) {
+    	// Convert resource to resourceRef, so it will not create phantom changes in comparison
+    	if (account.getResource() != null) {
+    		account.setResourceRef(ObjectTypeUtil.createObjectRef(account.getResource()));
+    		account.setResource(null);
+    	}
 	}
 
 	@Override

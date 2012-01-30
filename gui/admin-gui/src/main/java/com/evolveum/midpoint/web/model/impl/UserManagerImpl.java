@@ -209,43 +209,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
                             getChangeType(modification.getModificationType()), values));
                 }
             }
-            
-	        // process account changes
-	        // we are interested only in modifications. add and delete is handled above.
-	        
-//	        List<AccountShadowDto> oldAccountDtos = oldUser.getAccount();
-//	        List<AccountShadowDto> newAccountDtos = changedObject.getAccount();
-//	        
-//	        LOGGER.trace("Accounts: {} old, {} new",oldAccountDtos.size(), newAccountDtos.size());
-//	        
-//	        for (AccountShadowDto newAccountDto: newAccountDtos) {
-//	        	AccountShadowType newAccount = newAccountDto.getXmlObject();
-//	        	if (newAccount.getOid() == null) {
-//	        		continue;
-//	        	}
-//	        	
-//	        	// Convert resource to resourceRef, so it will not create phantom changes in comparison
-//	        	if (newAccount.getResource() != null) {
-//	        		newAccount.setResourceRef(ObjectTypeUtil.createObjectRef(newAccount.getResource()));
-//	        		newAccount.setResource(null);
-//	        	}
-//	        	
-//	        	// Explicitly reading the current state. Not good, but ok for now. It will get replaced anyway ....
-//	        	AccountShadowType oldAccount = getModel().getObject(AccountShadowType.class, newAccount.getOid(), null, result); 
-//	        	
-//	        	LOGGER.trace("Old account:\n{}",JAXBUtil.marshalWrap(oldAccount));
-//	        	LOGGER.trace("New account:\n{}",JAXBUtil.marshalWrap(newAccount));
-//	        	LOGGER.trace("New account DTO attributes:\n{}",DebugUtil.prettyPrint(newAccountDto.getAttributes()));
-//	        	ObjectDelta<AccountShadowType> accountDelta = DiffUtil.diff(oldAccount, newAccount,
-//	        			AccountShadowType.class, schemaRegistry.getObjectSchema());
-//	        	
-//	        	LOGGER.trace("Account delta:\n{}",accountDelta.dump());
-//	        	if (accountDelta != null && !accountDelta.isEmpty()) {
-//	        		ObjectModificationType accountModification = userDelta.toObjectModificationType();
-//	        		getModel().modifyObject(AccountShadowType.class, accountModification, task, result);
-//	        	}
-//	        }
-	        
+            	        
             result.recordSuccess();
 
         } catch (Exception ex) {
