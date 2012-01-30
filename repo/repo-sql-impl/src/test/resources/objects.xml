@@ -12,142 +12,6 @@
             xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
             xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
-        <name>atestuserX00001</name>
-        <fullName>Test UserX00001</fullName>
-        <givenName>TestX</givenName>
-        <familyName>UserX00001</familyName>
-        <eMailAddress>testuserX00001@example.com</eMailAddress>
-        <locality>AreaX 00001</locality>
-        <credentials>
-            <password>
-                <protectedString>
-                    <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element"
-                                       xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
-                        <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"/>
-                        <ds:KeyInfo>
-                            <ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName>
-                        </ds:KeyInfo>
-                        <enc:CipherData>
-                            <enc:CipherValue>eL1PVNFxclMxDulnqX6Ip/mxLbr+vyxCXu9auL3EKWoNawdzlqJDwF7WwuxtRZDS
-                            </enc:CipherValue>
-                        </enc:CipherData>
-                    </enc:EncryptedData>
-                </protectedString>
-            </password>
-            <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
-        </credentials>
-        <activation>
-            <enabled>true</enabled>
-        </activation>
-        <fetchResult xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-                     xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
-                     xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd"
-                     xmlns:gen160="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"
-                     xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
-                     xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
-            <operation>com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType.importFromResource
-            </operation>
-            <status>in_progress</status>
-            <token>1000000000000000610</token>
-            <message>Task running in background</message>
-            <partialResults>
-                <operation>com.evolveum.midpoint.model.api.ModelService.importAccountsFromResource</operation>
-                <status>in_progress</status>
-                <params>
-                    <entry key="task">
-                        <unknownJavaObject>
-                            <class>com.evolveum.midpoint.task.impl.TaskImpl</class>
-                            <toString>Task(id:1327683120569-0-1, name:Import from resource Embedded Test OpenDJ,
-                                oid:193371b3-a260-41f5-890b-6c2021907ee9)
-                            </toString>
-                        </unknownJavaObject>
-                    </entry>
-                    <entry key="resourceOid">
-                        <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-                                 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                 xsi:type="xsd:string">ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff
-                        </c:value>
-                    </entry>
-                    <entry key="objectClass">
-                        <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-                                 xmlns:qn644="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-                                 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                 xsi:type="xsd:QName">qn644:AccountObjectClass
-                        </c:value>
-                    </entry>
-                </params>
-                <token>1000000000000000611</token>
-                <message>Task running in background</message>
-                <partialResults>
-                    <operation>com.evolveum.midpoint.model.api.ModelService.getObject</operation>
-                    <status>success</status>
-                    <params>
-                        <entry key="resolve">
-                            <value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                   xsi:type="PropertyReferenceListType"/>
-                        </entry>
-                        <entry key="oid">
-                            <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-                                     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                     xsi:type="xsd:string">ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff
-                            </c:value>
-                        </entry>
-                        <entry key="class">
-                            <unknownJavaObject>
-                                <class>java.lang.Class</class>
-                                <toString>class com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType
-                                </toString>
-                            </unknownJavaObject>
-                        </entry>
-                    </params>
-                    <token>1000000000000000612</token>
-                </partialResults>
-            </partialResults>
-        </fetchResult>
-    </object>
-
-    <object xsi:type="UserType" oid="11111111-1111-1111-1111-111111111111" version="1"
-            xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-            xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
-            xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
-        <name>atestuserX00002</name>
-        <fullName>Test UserX00002</fullName>
-        <givenName>TestX</givenName>
-        <familyName>UserX00002</familyName>
-        <eMailAddress>testuserX00002@example.com</eMailAddress>
-        <locality>AreaX 00002</locality>
-        <credentials>
-            <password>
-                <protectedString>
-                    <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element"
-                                       xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
-                        <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"/>
-                        <ds:KeyInfo>
-                            <ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName>
-                        </ds:KeyInfo>
-                        <enc:CipherData>
-                            <enc:CipherValue>eL1PVNFxclMxDulnqX6Ip/mxLbr+vyxCXu9auL3EKWoNawdzlqJDwF7WwuxtRZDS
-                            </enc:CipherValue>
-                        </enc:CipherData>
-                    </enc:EncryptedData>
-                </protectedString>
-            </password>
-            <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
-        </credentials>
-        <activation>
-            <enabled>true</enabled>
-        </activation>
-        <accountRef oid="11111111-1111-1111-1111-111111111112"/>
-    </object>
-
-    <object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-            xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
-            xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
         <name>atestuserX00003</name>
         <fullName>Test UserX00003</fullName>
         <givenName>TestX</givenName>
@@ -177,7 +41,7 @@
         </activation>
     </object>
 
-    <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+    <resource>
 
         <!-- Resource name. It will be displayed in GUI.  -->
         <name>Localhost OpenDJ</name>
@@ -871,7 +735,7 @@
 
     </resource>
 
-    <userTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111">
+    <userTemplate>
 
         <name>Default User Template</name>
 
@@ -917,7 +781,7 @@
 
     </userTemplate>
 
-    <userTemplate oid="c0c010c0-d34d-b33f-f00d-777222222222">
+    <userTemplate>
         <name>Default User Template2</name>
 
         <description>
@@ -947,7 +811,7 @@
 
     </userTemplate>
 
-    <genericObject oid="c0c010c0-d34d-b33f-f00d-999111111111">
+    <genericObject>
 
         <name>My Sample Config Object</name>
         <description>
@@ -977,7 +841,7 @@
         <objectType>http://myself.me/schemas/objects#SampleConfigType</objectType>
     </genericObject>
 
-    <task oid="91919191-76e0-59e2-86d6-3d4f02d3ffff">
+    <task>
         <name>Synchronization: Embedded Test OpenDJ</name>
         <description>
             Definition of a live sychnronization task. It will poll changelog and pull in changes
@@ -997,4 +861,186 @@
         </schedule>
     </task>
 
+    <object xsi:type="AccountShadowType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+        <name>8daaeeae-f0c7-41c9-b258-2a3351aa8876</name>
+        <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
+        <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:AccountObjectClass</objectClass>
+        <attributes>
+            <icfs:uid xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:gen664="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd">8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>
+        </attributes>
+        <activation>
+            <enabled>true</enabled>
+        </activation>
+    </object>
+
+    <object xsi:type="ConnectorType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+        <name>ICF org.forgerock.openicf.csvfile.CSVFileConnector</name>
+        <framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
+        <connectorType>org.forgerock.openicf.csvfile.CSVFileConnector</connectorType>
+        <connectorVersion>1.1.0.0-e2</connectorVersion>
+        <connectorBundle>org.forgerock.openicf.connectors.file.csvfile</connectorBundle>
+        <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.file.csvfile/org.forgerock.openicf.csvfile.CSVFileConnector</namespace>
+        <schema>
+            <xsd:schema elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.file.csvfile/org.forgerock.openicf.csvfile.CSVFileConnector" xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:gen366="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" xmlns:gen538="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.file.csvfile/org.forgerock.openicf.csvfile.CSVFileConnector">
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"/>
+                <xsd:complexType name="ConfigurationType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:propertyContainer/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                    <xsd:sequence>
+                        <xsd:element minOccurs="0" ref="icfc:producerBufferSize"/>
+                        <xsd:element minOccurs="0" ref="icfc:connectorPoolConfiguration"/>
+                        <xsd:element minOccurs="0" ref="icfc:timeouts"/>
+                        <xsd:element name="configurationProperties" type="gen538:ConfigurationPropertiesType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+                <xsd:element name="configuration" type="gen538:ConfigurationType"/>
+                <xsd:complexType name="ConfigurationPropertiesType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:propertyContainer/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                    <xsd:sequence>
+                        <xsd:element name="uniqueAttribute" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <r:attributeDisplayName>Unique attribute name</r:attributeDisplayName>
+                                    <r:help>Name of unique attribute in current CSV file.</r:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="usingMultivalue" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <r:attributeDisplayName>Parse multivalue attributes</r:attributeDisplayName>
+                                    <r:help>Flag if connector does have to parse multivalue attributes with char defined in Multivalue delimiter</r:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="nameAttribute" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <r:attributeDisplayName>UI_FLAT_NAME_ATTRIBUTE</r:attributeDisplayName>
+                                    <r:help>UI_FLAT_NAME_ATTRIBUTE_HELP</r:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="encoding" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <r:attributeDisplayName>Encoding</r:attributeDisplayName>
+                                    <r:help>CSV file encoding.</r:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="multivalueDelimiter" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <r:attributeDisplayName>Multivalue delimiter</r:attributeDisplayName>
+                                    <r:help>Delimiter for multivalue attributes in CSV record (escaped as regexp, if needed).</r:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="passwordAttribute" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <r:attributeDisplayName>User password attribute name</r:attributeDisplayName>
+                                    <r:help>User password attribute name is not required. Its used only in authenticate operation.</r:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="valueQualifier" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <r:attributeDisplayName>Value qualifier</r:attributeDisplayName>
+                                    <r:help>Attribute value qualifier in CSV record (escaped as regexp, if needed).</r:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="filePath" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <r:attributeDisplayName>File path</r:attributeDisplayName>
+                                    <r:help>Path to CSV file with records.</r:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="fieldDelimiter" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <r:attributeDisplayName>Field delimiter</r:attributeDisplayName>
+                                    <r:help>Delimiter character between fields in one CSV record (escaped as regexp, if needed).</r:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+                <xsd:element name="configurationProperties" type="gen538:ConfigurationPropertiesType"/>
+            </xsd:schema>
+        </schema>
+    </object>
+
+    <object xsi:type="SystemConfigurationType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+        <name>SystemConfiguration</name>
+        <logging>
+            <subSystemLogger>
+                <level>INFO</level>
+                <component>MODEL</component>
+            </subSystemLogger>
+            <subSystemLogger>
+                <level>INFO</level>
+                <component>PROVISIONING</component>
+            </subSystemLogger>
+            <subSystemLogger>
+                <level>INFO</level>
+                <component>REPOSITORY</component>
+            </subSystemLogger>
+            <subSystemLogger>
+                <level>INFO</level>
+                <component>WEB</component>
+            </subSystemLogger>
+            <subSystemLogger>
+                <level>INFO</level>
+                <component>TASKMANAGER</component>
+            </subSystemLogger>
+            <subSystemLogger>
+                <level>INFO</level>
+                <component>RESOURCEOBJECTCHANGELISTENER</component>
+            </subSystemLogger>
+            <subSystemLogger>
+                <level>INFO</level>
+                <component>ALL</component>
+            </subSystemLogger>
+            <classLogger>
+                <level>OFF</level>
+                <package>PROFILING</package>
+            </classLogger>
+            <appender xsi:type="FileAppenderConfigurationType" name="IDM_LOG">
+                <pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
+                <fileName>${catalina.base}/logs/idm.log</fileName>
+                <filePattern>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</filePattern>
+                <maxHistory>10</maxHistory>
+                <maxFileSize>100MB</maxFileSize>
+                <append>true</append>
+            </appender>
+            <rootLoggerAppender>IDM_LOG</rootLoggerAppender>
+            <rootLoggerLevel>INFO</rootLoggerLevel>
+            <auditing>
+                <enabled>false</enabled>
+                <details>false</details>
+            </auditing>
+        </logging>
+    </object>
+
+    <object xsi:type="ConnectorHostType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+        <name>ICF Connector server on admachine:8759</name>
+        <hostname>admachine.example.com</hostname>
+        <port>8759</port>
+        <sharedSecret>secret</sharedSecret>
+    </object>
 </objects>

@@ -24,6 +24,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
@@ -38,7 +39,7 @@ public class RConnectorHostType extends RExtensibleObjectType {
     private String port;
     //    private ProtectedStringType sharedSecret; //todo what with this?
     private boolean protectConnection;
-    private int timeout; //todo default timeout value???
+    private Integer timeout; //todo default timeout value???
 
     public String getHostname() {
         return hostname;
@@ -64,11 +65,12 @@ public class RConnectorHostType extends RExtensibleObjectType {
         this.protectConnection = protectConnection;
     }
 
-    public int getTimeout() {
+    @Column(nullable = true)
+    public Integer getTimeout() {
         return timeout;
     }
 
-    public void setTimeout(int timeout) {
+    public void setTimeout(Integer timeout) {
         this.timeout = timeout;
     }
 

@@ -152,7 +152,9 @@ public class CalculateXmlDiff {
 
 		Validate.notNull(oldObject);
 		Validate.notNull(newObject);
-		Validate.isTrue(oldObject.getOid().equals(newObject.getOid()));
+        boolean equalOid = oldObject.getOid() != null ?
+                oldObject.getOid().equals(newObject.getOid()) : newObject.getOid() == null;
+		Validate.isTrue(equalOid);
 
 		try {
 			// wrap objects into JAXBElement

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationTy
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Objects;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import javax.xml.bind.JAXBElement;
@@ -57,6 +58,8 @@ public class SpringApplicationContextTest {
         }
         System.out.println("XXX Time: " + (System.currentTimeMillis() - time));
 
+        int count = 0;
+
         objects = (Objects) JAXBUtil.unmarshal(new File("./src/test/resources/objects.xml"));
         for (int i = 0; i < elements.size(); i++) {
             JAXBElement<? extends ObjectType> element = elements.get(i);
@@ -68,11 +71,14 @@ public class SpringApplicationContextTest {
             if (changes.getPropertyModification().isEmpty()) {
                 continue;
             }
+            count += changes.getPropertyModification().size();
             System.out.println("Changes: " + (i + 1) + "\n" + JAXBUtil.marshalWrap(changes) + "\n\n");
         }
+
+        AssertJUnit.assertEquals("Expected changes must be 0. ", 0, count);
     }
 
-//    @Test
+    //    @Test
     public void perfTest() throws Exception {
         ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("application-context-repo-sql.xml");
         SqlRepositoryServiceImpl service = (SqlRepositoryServiceImpl) ctx.getBean("sqlRepositoryServiceImpl");

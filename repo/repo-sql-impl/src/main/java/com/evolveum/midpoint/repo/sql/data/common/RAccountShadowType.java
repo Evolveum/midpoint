@@ -23,7 +23,6 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import org.apache.commons.lang.Validate;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -67,8 +66,7 @@ public class RAccountShadowType extends RResourceObjectShadowType {
     }
 
     public static void copyToJAXB(RAccountShadowType repo, AccountShadowType jaxb) throws DtoTranslationException {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
+        RResourceObjectShadowType.copyToJAXB(repo, jaxb);
 
         jaxb.setAccountType(repo.getAccountType());
 
@@ -85,8 +83,7 @@ public class RAccountShadowType extends RResourceObjectShadowType {
     }
 
     public static void copyFromJAXB(AccountShadowType jaxb, RAccountShadowType repo) throws DtoTranslationException {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
+        RResourceObjectShadowType.copyFromJAXB(jaxb, repo);
 
         repo.setAccountType(jaxb.getAccountType());
 
