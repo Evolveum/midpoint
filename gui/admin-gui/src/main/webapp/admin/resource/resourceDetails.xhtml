@@ -16,7 +16,7 @@
 	</ui:define>
 
 	<ui:define name="content">
-		<ice:form>
+		<ice:form id="resourceDetails" >
 			<ice:panelGrid columns="2" style="width: 80%;">
 				<ice:panelGroup>
 					<ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
@@ -111,8 +111,14 @@
 			</ice:dataTable>
 			<br />
 			<h3>#{msg['page.resource.resourceDetails.objectTypes']}</h3>
-			<ice:dataTable rows="30"
-				value="#{resourceDetails.resource.objectTypes}" var="item"
+			<ice:outputText value="Objects per page " />
+			<ice:inputText id="pageSize" value="#{resourceDetails.rowsCount}" size="1" />
+			<idm:button value="#{msg['page.account.index.refresh']}"
+				action="#{resourceDetails.listFirst}" id="relistButton"
+				img="/resources/images/arrow_rotate_clockwise.png" />
+					
+			<ice:dataTable id="resourceObjectTypes" rows="#{resourceDetails.rowsCount}"
+				value="#{resourceDetails.objects}" var="item"
 				columnClasses="iceDatTblCol1"
 				rowClasses="iceDatTblRow1 iceDatTblRow2"
 				columnWidths="150px, 170px, 100px, 220px, 155px" resizable="false">
@@ -176,6 +182,17 @@
 					</idm:button>
 				</ice:column>
 			</ice:dataTable>
+			
+			<ice:panelGroup styleClass="container-auto" style="text-align: center;">
+				<idm:button id="goToFirst" img="/resources/images/resultset_first.png" value="#{msg['page.paginator.first']}"
+					action="#{resourceDetails.listFirst}" />
+				<idm:button id="goToPrevious" img="/resources/images/resultset_previous.png"
+					value="#{msg['page.paginator.previous']}" action="#{resourceDetails.listPrevious}" />
+				<idm:button enabled="#{resourceDetails.tableFull}" id="goToNext" img="/resources/images/resultset_next.png" value="#{msg['page.paginator.next']}"
+					action="#{resourceDetails.listNext}" />
+				<idm:button id="goToLast" img="/resources/images/resultset_last.png" value="#{msg['page.paginator.last']}"
+					action="#{resourceDetails.listLast}" />
+			</ice:panelGroup>
 
 			<div class="button-bar">
 				<idm:button action="#{resourceList.listFirst}"

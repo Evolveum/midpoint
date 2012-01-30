@@ -20,7 +20,6 @@
  */
 package com.evolveum.midpoint.web.controller.resource;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,6 +41,7 @@ import com.evolveum.midpoint.web.bean.ResourceObjectType;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.config.DebugViewController;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
+import com.evolveum.midpoint.web.controller.util.ListController;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
@@ -50,7 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 
 @Controller("resourceDetails")
 @Scope("session")
-public class ResourceDetailsController implements Serializable {
+public class ResourceDetailsController extends ListController<ResourceObjectType>{
 
 	public static final String PAGE_NAVIGATION = "/admin/resource/resourceDetails?faces-redirect=true";
 	public static final String NAVIGATION_LEFT = "leftResourceDetails";
@@ -224,5 +224,26 @@ public class ResourceDetailsController implements Serializable {
 		}
 
 		return capabilitiesName;
+	}
+
+	@Override
+	protected String listObjects() {
+		getObjects().clear();
+		if (resource.getObjectTypes() == null) {
+			return null;
+		}
+		Integer offset = getOffset();
+		
+		for(;offset <= getOffset() + getRowsCount(); offset++){
+			getObjects().add(resource.getObjectTypes().get(offset)); 
+		}
+		return null;
+	}
+	
+	public boolean isTableFull(){
+		if(getObjects().size() < getRowsCount()){
+			return false;
+		}
+		return true;
 	}
 }
