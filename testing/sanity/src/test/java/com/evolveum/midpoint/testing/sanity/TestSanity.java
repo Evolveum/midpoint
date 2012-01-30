@@ -2488,7 +2488,7 @@ public class TestSanity extends AbstractIntegrationTest {
             public void timeout() {
                 // No reaction, the test will fail right after return from this
             }
-        }, 30000);
+        }, 40000);
     }
 
     /**
