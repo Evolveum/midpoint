@@ -63,6 +63,7 @@
 	</properties>
 	<modules>
 		<module>build-system</module>
+		<module>tools</module>
 		<module>infra</module>
 		<module>repo</module>
 		<module>provisioning</module>

@@ -23,8 +23,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint Infrastructure</name>
-    <artifactId>infra</artifactId>
+    <name>midPoint tools</name>
+    <artifactId>tools</artifactId>
     <packaging>pom</packaging>
     <parent>
         <artifactId>parent</artifactId>
@@ -53,10 +53,7 @@
         <url>https://fisheye.evolveum.com/midpoint/</url>
     </scm>
     <modules>
-        <module>util</module>
-        <module>schema</module>
-        <module>common</module>
-        <module>test-util</module>
-        <module>schema-util</module>
+        <module>test-ng</module>
+        <module>xjc-plugin</module>
     </modules>
 </project>

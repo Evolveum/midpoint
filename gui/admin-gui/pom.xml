@@ -197,8 +197,8 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>tools</artifactId>
+			<groupId>com.evolveum.midpoint.tools</groupId>
+			<artifactId>test-ng</artifactId>
 			<version>1.10-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
