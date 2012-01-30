@@ -381,6 +381,10 @@ public class LoggingController implements Serializable {
 	public void resetPerformed() {
 		initController();
 	}
+    
+    private boolean nullSafeBoolean(Boolean value) {
+        return value != null ? value : false;
+    }
 
 	/**
 	 * @return
@@ -408,8 +412,10 @@ public class LoggingController implements Serializable {
 
 			rootLoggerLevel = logging.getRootLoggerLevel();
 			rootAppender = logging.getRootLoggerAppender();
-			audit.setEnabled(logging.getAuditing().isEnabled());
-			audit.setDetails(logging.getAuditing().isDetails());
+            if (logging.getAuditing() != null) {
+                audit.setEnabled(nullSafeBoolean(logging.getAuditing().isEnabled()));
+                audit.setDetails(nullSafeBoolean(logging.getAuditing().isDetails()));
+            }
 
 			for (AppenderConfigurationType appender : logging.getAppender()) {
 				if (!(appender instanceof FileAppenderConfigurationType)) {
@@ -749,7 +755,7 @@ public class LoggingController implements Serializable {
 	}
 
 	public boolean isEnableAuditLog() {
-		return audit.isEnabled() != null ? audit.isEnabled() : false;
+        return nullSafeBoolean(audit.isEnabled());
 	}
 
 	public void setEnableAuditLog(boolean enableAuditLog) {
@@ -757,7 +763,7 @@ public class LoggingController implements Serializable {
 	}
 
 	public boolean isAuditDetails() {
-		return audit.isDetails() != null ? audit.isDetails() : false;
+        return nullSafeBoolean(audit.isDetails());
 	}
 
 	public void setAuditDetails(boolean auditDetails) {
