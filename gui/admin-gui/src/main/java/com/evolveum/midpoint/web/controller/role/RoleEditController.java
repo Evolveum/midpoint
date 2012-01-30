@@ -42,6 +42,7 @@ import org.w3c.dom.Node;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -57,6 +58,7 @@ import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.RoleManager;
 import com.evolveum.midpoint.web.model.dto.RoleDto;
 import com.evolveum.midpoint.web.repo.RepositoryManager;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
@@ -164,7 +166,9 @@ public class RoleEditController implements Serializable {
 		}
 
 		try {
-			
+			SecurityUtils security = new SecurityUtils();
+			PrincipalUser principal = security.getPrincipalUser();
+	        task.setOwner(principal.getUser());
 			role.normalizeAssignments();
 			newObject = getObjectFromXml(xml, result);
 			RoleManager manager = ControllerUtil.getRoleManager(catalog);

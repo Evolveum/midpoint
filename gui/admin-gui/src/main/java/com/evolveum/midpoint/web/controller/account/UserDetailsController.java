@@ -41,6 +41,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -73,6 +74,7 @@ import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.UserDto;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SchemaFormParser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -237,7 +239,11 @@ public class UserDetailsController implements Serializable {
 	 */
 	public void savePerformed(ActionEvent evt) {
 		Task task = taskManager.createTaskInstance("Save User Changes");
+		SecurityUtils security = new SecurityUtils();
+		PrincipalUser principal = security.getPrincipalUser();
+        task.setOwner(principal.getUser());
 		OperationResult result = task.getResult();
+		
 		if (user != null) {
 			LOGGER.debug("Normalizing user assignments");
 			user.normalizeAssignments();
