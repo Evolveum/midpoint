@@ -99,7 +99,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                 "Object delta and change are null. At least one must be provided.");
         Validate.notNull(change.getResource(), "Resource in change must not be null.");
         Validate.notNull(parentResult, "Parent operation result must not be null.");
-        LOGGER.info("NEW CHANGE NOTIFICATION IN SYNC");
+        LOGGER.debug("SYNC NEW CHANGE NOTIFICATION");
 
         OperationResult subResult = parentResult.createSubresult(NOTIFY_CHANGE);
         try {
