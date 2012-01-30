@@ -95,6 +95,7 @@ public class RAccountShadowType extends RResourceObjectShadowType {
             RActivationType.copyFromJAXB(jaxb.getActivation(), activation);
         }
         repo.setActivation(activation);
+
         RCredentialsType credentials = new RCredentialsType();
         if (jaxb.getCredentials() != null) {
             RCredentialsType.copyFromJAXB(jaxb.getCredentials(), credentials);

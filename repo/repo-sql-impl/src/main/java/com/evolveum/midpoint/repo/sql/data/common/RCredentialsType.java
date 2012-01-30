@@ -38,7 +38,7 @@ import java.util.Map;
 /**
  * @author lazyman
  */
-@Embeddable //todo maybe as entity, not embedded
+@Embeddable
 public class RCredentialsType {
 
     private String password;
@@ -52,7 +52,6 @@ public class RCredentialsType {
         this.allowedIdmAdminGuiAccess = allowedIdmAdminGuiAccess;
     }
 
-    //todo what to do with this?? as XML???
     @Type(type = "org.hibernate.type.TextType")
     public String getPassword() {
         return password;

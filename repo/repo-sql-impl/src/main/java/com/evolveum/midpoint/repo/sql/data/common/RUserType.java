@@ -32,7 +32,6 @@ import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 
@@ -238,26 +237,11 @@ public class RUserType extends RExtensibleObjectType {
         repo.setCredentials(credentials);
 
         //sets
-        List<String> strings = jaxb.getAdditionalNames();
-        if (strings != null && !strings.isEmpty()) {
-            repo.setAdditionalNames(new HashSet<String>(strings));
-        }
-        strings = jaxb.getEMailAddress();
-        if (strings != null && !strings.isEmpty()) {
-            repo.setEMailAddress(new HashSet<String>(strings));
-        }
-        strings = jaxb.getEmployeeType();
-        if (strings != null && !strings.isEmpty()) {
-            repo.setEmployeeType(new HashSet<String>(strings));
-        }
-        strings = jaxb.getOrganizationalUnit();
-        if (strings != null && !strings.isEmpty()) {
-            repo.setOrganizationalUnit(new HashSet<String>(strings));
-        }
-        strings = jaxb.getTelephoneNumber();
-        if (strings != null && !strings.isEmpty()) {
-            repo.setTelephoneNumber(new HashSet<String>(strings));
-        }
+        repo.setAdditionalNames(RUtil.listToSet(jaxb.getAdditionalNames()));
+        repo.setEMailAddress(RUtil.listToSet(jaxb.getEMailAddress()));
+        repo.setEmployeeType(RUtil.listToSet(jaxb.getEmployeeType()));
+        repo.setOrganizationalUnit(RUtil.listToSet(jaxb.getOrganizationalUnit()));
+        repo.setTelephoneNumber(RUtil.listToSet(jaxb.getTelephoneNumber()));
 
         if (jaxb.getAccountRef() != null) {
             repo.setAccountRef(new HashSet<RObjectReferenceType>());
@@ -294,26 +278,11 @@ public class RUserType extends RExtensibleObjectType {
             jaxb.setCredentials(credentials);
         }
 
-        Set<String> strings = repo.getAdditionalNames();
-        if (strings != null && !strings.isEmpty()) {
-            jaxb.getAdditionalNames().addAll(strings);
-        }
-        strings = repo.getEMailAddress();
-        if (strings != null && !strings.isEmpty()) {
-            jaxb.getEMailAddress().addAll(strings);
-        }
-        strings = repo.getEmployeeType();
-        if (strings != null && !strings.isEmpty()) {
-            jaxb.getEmployeeType().addAll(strings);
-        }
-        strings = repo.getOrganizationalUnit();
-        if (strings != null && !strings.isEmpty()) {
-            jaxb.getOrganizationalUnit().addAll(strings);
-        }
-        strings = repo.getTelephoneNumber();
-        if (strings != null && !strings.isEmpty()) {
-            jaxb.getTelephoneNumber().addAll(strings);
-        }
+        jaxb.getAdditionalNames().addAll(RUtil.safeSetToList(repo.getAdditionalNames()));
+        jaxb.getEMailAddress().addAll(RUtil.safeSetToList(repo.getEMailAddress()));
+        jaxb.getEmployeeType().addAll(RUtil.safeSetToList(repo.getEmployeeType()));
+        jaxb.getTelephoneNumber().addAll(RUtil.safeSetToList(repo.getTelephoneNumber()));
+        jaxb.getOrganizationalUnit().addAll(RUtil.safeSetToList(repo.getOrganizationalUnit()));
 
         if (repo.getAccountRef() != null) {
             for (RObjectReferenceType repoRef : repo.getAccountRef()) {

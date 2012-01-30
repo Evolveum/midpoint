@@ -22,18 +22,14 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordLifeTimeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.StringPolicyType;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.xml.bind.JAXBElement;
 
 /**
  * @author lazyman
@@ -68,17 +64,8 @@ public class RPasswordPolicyType extends RObjectType {
         Validate.notNull(repo, "Repo object must not be null.");
 
         try {
-            if (StringUtils.isNotEmpty(repo.getLifetime())) {
-                JAXBElement<PasswordLifeTimeType> lifetime = (JAXBElement<PasswordLifeTimeType>)
-                        JAXBUtil.unmarshal(repo.getLifetime());
-                jaxb.setLifetime(lifetime.getValue());
-            }
-
-            if (StringUtils.isNotEmpty(repo.getStringPolicy())) {
-                JAXBElement<StringPolicyType> stringPolicy = (JAXBElement<StringPolicyType>)
-                        JAXBUtil.unmarshal(repo.getStringPolicy());
-                jaxb.setStringPolicy(stringPolicy.getValue());
-            }
+            jaxb.setLifetime(RUtil.toJAXB(repo.getLifetime(), PasswordLifeTimeType.class));
+            jaxb.setStringPolicy(RUtil.toJAXB(repo.getStringPolicy(), StringPolicyType.class));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
@@ -89,15 +76,8 @@ public class RPasswordPolicyType extends RObjectType {
         Validate.notNull(repo, "Repo object must not be null.");
 
         try {
-            if (jaxb.getLifetime() != null) {
-                PasswordLifeTimeType lifetime = jaxb.getLifetime();
-                repo.setLifetime(JAXBUtil.marshalWrap(lifetime));
-            }
-
-            if (jaxb.getStringPolicy() != null) {
-                StringPolicyType stringPolicy = jaxb.getStringPolicy();
-                repo.setStringPolicy(JAXBUtil.marshalWrap(stringPolicy));
-            }
+            repo.setLifetime(RUtil.toRepo(jaxb.getLifetime()));
+            repo.setStringPolicy(RUtil.toRepo(jaxb.getStringPolicy()));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

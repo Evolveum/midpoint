@@ -35,18 +35,20 @@ import java.util.List;
 //@Table(name = "proto_structure")
 public abstract class RProtoStructureType extends RExtensibleObjectType {
 
-    private List<Serializable> containedObjectOrContainedObjectRef;  //todo mapping
+    private List<Serializable> containedObjectOrContainedObjectRef;
 
 
     public static void copyToJAXB(RProtoStructureType repo, ProtoStructureType jaxb) throws DtoTranslationException {
         RExtensibleObjectType.copyToJAXB(repo, jaxb);
 
-        //todo implement
     }
 
     public static void copyFromJAXB(ProtoStructureType jaxb, RProtoStructureType repo) throws DtoTranslationException {
         RExtensibleObjectType.copyFromJAXB(jaxb, repo);
 
-        //todo implement
+    }
+    
+    public ProtoStructureType toJAXB() throws DtoTranslationException {
+        return null;
     }
 }

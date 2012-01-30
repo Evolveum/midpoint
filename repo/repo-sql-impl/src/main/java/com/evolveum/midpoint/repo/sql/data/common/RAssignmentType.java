@@ -26,17 +26,14 @@ import com.evolveum.midpoint.repo.sql.Identifiable;
 import com.evolveum.midpoint.repo.sql.jaxb.XAssignmentType;
 import com.evolveum.midpoint.repo.sql.jaxb.XExtension;
 import com.evolveum.midpoint.repo.sql.jaxb.XObjectReferenceType;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import javax.persistence.*;
-import javax.xml.bind.JAXBElement;
 
 /**
  * @author lazyman
@@ -110,14 +107,10 @@ public class RAssignmentType implements Identifiable {
             xAssignment.setId(repo.getId());
         }
 
-        if (StringUtils.isNotEmpty(repo.getAccountConstruction())) {
-            try {
-                JAXBElement<AccountConstructionType> element = (JAXBElement<AccountConstructionType>)
-                        JAXBUtil.unmarshal(repo.getAccountConstruction());
-                jaxb.setAccountConstruction(element.getValue());
-            } catch (Exception ex) {
-                throw new DtoTranslationException(ex.getMessage(), ex);
-            }
+        try {
+            jaxb.setAccountConstruction(RUtil.toJAXB(repo.getAccountConstruction(), AccountConstructionType.class));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
         }
 
         if (repo.getActivation() != null) {
@@ -146,13 +139,10 @@ public class RAssignmentType implements Identifiable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        if (jaxb.getAccountConstruction() != null) {
-            try {
-                String construction = JAXBUtil.marshalWrap(jaxb.getAccountConstruction());
-                repo.setAccountConstruction(construction);
-            } catch (Exception ex) {
-                throw new DtoTranslationException(ex.getMessage(), ex);
-            }
+        try {
+            repo.setAccountConstruction(RUtil.toRepo(jaxb.getAccountConstruction()));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
         }
 
         if (jaxb.getActivation() != null) {
