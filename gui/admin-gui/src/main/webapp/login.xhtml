@@ -44,12 +44,12 @@
 					<ice:outputText id="userNameLabel" for="j_username"
 						value="#{msg['page.login.username']}" />
 					<ice:inputText onkeypress="if (event.keyCode == 13) this.submit();"
-						id="j_username" autocomplete="off" />
+						id="j_username"/>
 					<ice:outputText id="passwordLabel" for="j_password"
 						value="#{msg['page.login.password']}" />
 					<ice:inputSecret
 						onkeypress="if (event.keyCode == 13) this.submit();"
-						id="j_password" autocomplete="off" />
+						id="j_password"/>
 				</ice:panelGrid>
 				<h:panelGroup id="errorMsg" columns="1" style="text-align: center;">
 					<ice:outputText id="error"
