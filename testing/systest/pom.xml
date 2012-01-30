@@ -24,7 +24,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.evolveum.midpoint.testing</groupId>
 	<artifactId>systest</artifactId>
-	<version>2.0-SNAPSHOT</version>
+	<version>1.10-SNAPSHOT</version>
 	<organization>
 		<name>Evolveum</name>
 		<url>http://www.evolveum.com</url>
