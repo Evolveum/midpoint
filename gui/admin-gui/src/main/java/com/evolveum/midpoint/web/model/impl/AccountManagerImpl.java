@@ -20,8 +20,10 @@
  */
 package com.evolveum.midpoint.web.model.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.Validate;
@@ -37,6 +39,7 @@ import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.processor.DiffUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.DebugUtil;
@@ -59,6 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -110,13 +114,19 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 			// detect if password was changed
 			if (changedObject.getCredentials() != null) {
 				// if password was changed, create modification change
-				XPathHolder xpath = ObjectTypeUtil.createXPathHolder(SchemaConstants.I_CREDENTIALS);
-				passwordChange = ObjectTypeUtil.createPropertyModificationType(
-						PropertyModificationTypeType.replace, xpath, SchemaConstants.I_PASSWORD,
-						changedObject.getCredentials().getPassword());
-				// now when modification change of password was made, clear
-				// credentials..
-				changedObject.setCredentials(null);
+				PasswordType password = changedObject.getXmlObject().getCredentials().getPassword();
+                // if password was changed, create modification change
+                List<XPathSegment> segments = new ArrayList<XPathSegment>();
+                segments.add(new XPathSegment(SchemaConstants.I_CREDENTIALS));
+                segments.add(new XPathSegment(SchemaConstants.I_PASSWORD));
+                XPathHolder xpath = new XPathHolder(segments);
+                passwordChange = ObjectTypeUtil.createPropertyModificationType(
+                        PropertyModificationTypeType.replace, xpath, SchemaConstants.R_PROTECTED_STRING,
+                        password.getProtectedString());
+                // now when modification change of password was made, clear
+                // credentials from changed user and also from old account to be not used by diff..
+                changedObject.getXmlObject().setCredentials(null);
+                oldObject.getXmlObject().setCredentials(null);
 			}
 
 			AccountShadowType accountOld = oldObject.getXmlObject();
@@ -142,7 +152,11 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 //			// if there is a password change, add it to other changes and
 //			// process it.
 
-			if (changes != null) {
+			if (changes != null || passwordChange != null) {
+				if (changes == null) {
+					changes = new ObjectModificationType();
+					changes.setOid(accountOld.getOid());
+				}
 				if (passwordChange != null) {
 					if (changes.getOid() == null) {
 						changes.setOid(changedObject.getOid());
