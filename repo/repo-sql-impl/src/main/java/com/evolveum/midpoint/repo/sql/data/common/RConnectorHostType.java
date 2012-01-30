@@ -38,7 +38,7 @@ public class RConnectorHostType extends RExtensibleObjectType {
     private String hostname;
     private String port;
     //    private ProtectedStringType sharedSecret; //todo what with this?
-    private boolean protectConnection;
+    private Boolean protectConnection;
     private Integer timeout; //todo default timeout value???
 
     public String getHostname() {
@@ -57,11 +57,12 @@ public class RConnectorHostType extends RExtensibleObjectType {
         this.port = port;
     }
 
-    public boolean isProtectConnection() {
+    @Column(nullable = true)
+    public Boolean isProtectConnection() {
         return protectConnection;
     }
 
-    public void setProtectConnection(boolean protectConnection) {
+    public void setProtectConnection(Boolean protectConnection) {
         this.protectConnection = protectConnection;
     }
 
@@ -93,9 +94,7 @@ public class RConnectorHostType extends RExtensibleObjectType {
 
 //        jaxb.getSharedSecret() //todo implement
 
-        boolean protectConnection = jaxb.isProtectConnection() != null ? jaxb.isProtectConnection() : false;
-        repo.setProtectConnection(protectConnection);
-
+        repo.setProtectConnection(jaxb.isProtectConnection());
     }
 
     @Override

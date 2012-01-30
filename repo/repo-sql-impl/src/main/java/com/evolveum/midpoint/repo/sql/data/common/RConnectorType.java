@@ -22,12 +22,15 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author lazyman
@@ -36,24 +39,29 @@ import java.util.List;
 @Table(name = "connector")
 public class RConnectorType extends RExtensibleObjectType {
 
+    private static final Trace LOGGER = TraceManager.getTrace(RConnectorType.class);
     private String framework;
     private String connectorType;
     private String connectorVersion;
     private String connectorBundle;
-    private List<String> targetSystemType;
+    private Set<String> targetSystemType;
     private String namespace;
-    private RConnectorHostType connectorHost;
-//    private ObjectReferenceType connectorHostRef;     //todo mapping
-//    private XmlSchemaType schema;         //todo mapping
+    private RObjectReferenceType connectorHostRef;
+    private String xmlSchema;
+
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public RObjectReferenceType getConnectorHostRef() {
+        return connectorHostRef;
+    }
+
+    @Type(type = "org.hibernate.type.TextType")
+    public String getXmlSchema() {
+        return xmlSchema;
+    }
 
     public String getConnectorBundle() {
         return connectorBundle;
-    }
-
-    @ManyToOne
-    @Cascade({CascadeType.SAVE_UPDATE}) //todo cascade check
-    public RConnectorHostType getConnectorHost() {
-        return connectorHost;
     }
 
     public String getConnectorType() {
@@ -72,11 +80,11 @@ public class RConnectorType extends RExtensibleObjectType {
         return namespace;
     }
 
-    @ElementCollection//(fetch = FetchType.EAGER)
+    @ElementCollection
     @CollectionTable(name = "connector_target_system", joinColumns =
             {@JoinColumn(name = "connectorId")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public List<String> getTargetSystemType() {
+    public Set<String> getTargetSystemType() {
         return targetSystemType;
     }
 
@@ -84,8 +92,8 @@ public class RConnectorType extends RExtensibleObjectType {
         this.connectorBundle = connectorBundle;
     }
 
-    public void setConnectorHost(RConnectorHostType connectorHost) {
-        this.connectorHost = connectorHost;
+    public void setConnectorHostRef(RObjectReferenceType connectorHostRef) {
+        this.connectorHostRef = connectorHostRef;
     }
 
     public void setConnectorType(String connectorType) {
@@ -104,20 +112,62 @@ public class RConnectorType extends RExtensibleObjectType {
         this.namespace = namespace;
     }
 
-    public void setTargetSystemType(List<String> targetSystemType) {
+    public void setTargetSystemType(Set<String> targetSystemType) {
         this.targetSystemType = targetSystemType;
+    }
+
+    public void setXmlSchema(String xmlSchema) {
+        this.xmlSchema = xmlSchema;
     }
 
     public static void copyToJAXB(RConnectorType repo, ConnectorType jaxb) throws DtoTranslationException {
         RExtensibleObjectType.copyToJAXB(repo, jaxb);
 
-        //todo implement
+        jaxb.setConnectorBundle(repo.getConnectorBundle());
+        jaxb.setConnectorType(repo.getConnectorType());
+        jaxb.setConnectorVersion(repo.getConnectorVersion());
+        jaxb.setFramework(repo.getFramework());
+        jaxb.setNamespace(repo.getNamespace());
+
+        try {
+            jaxb.setSchema(RUtil.toJAXB(repo.getXmlSchema(), XmlSchemaType.class));
+
+            if (repo.getConnectorHostRef() != null) {
+                jaxb.setConnectorHostRef(repo.getConnectorHostRef().toJAXB());
+            }
+
+            jaxb.getTargetSystemType().addAll(RUtil.safeSetToList(repo.getTargetSystemType()));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
     }
 
     public static void copyFromJAXB(ConnectorType jaxb, RConnectorType repo) throws DtoTranslationException {
         RExtensibleObjectType.copyFromJAXB(jaxb, repo);
 
-        //todo implement
+        repo.setConnectorBundle(jaxb.getConnectorBundle());
+        repo.setConnectorType(jaxb.getConnectorType());
+        repo.setConnectorVersion(jaxb.getConnectorVersion());
+        repo.setFramework(jaxb.getFramework());
+        repo.setNamespace(jaxb.getNamespace());
+
+        if (jaxb.getConnectorHostRef() != null) {
+            RObjectReferenceType ref = new RObjectReferenceType();
+            RObjectReferenceType.copyFromJAXB(jaxb.getConnectorHostRef(), ref);
+            repo.setConnectorHostRef(ref);
+        }
+
+        if (jaxb.getConnectorHost() != null) {
+            LOGGER.warn("Connector host from connector type won't be saved. It should be " +
+                    "translated to connector host reference.");
+        }
+
+        try {
+            repo.setXmlSchema(RUtil.toRepo(jaxb.getSchema()));
+            repo.setTargetSystemType(RUtil.listToSet(jaxb.getTargetSystemType()));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
     }
 
     @Override

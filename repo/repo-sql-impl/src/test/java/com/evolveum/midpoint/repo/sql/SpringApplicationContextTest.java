@@ -72,7 +72,8 @@ public class SpringApplicationContextTest {
                 continue;
             }
             count += changes.getPropertyModification().size();
-            System.out.println("Changes: " + (i + 1) + "\n" + JAXBUtil.marshalWrap(changes) + "\n\n");
+            System.out.println("Changes: " + (i + 1) + "\n" + type.getClass()
+                    + "\n" + JAXBUtil.marshalWrap(changes) + "\n\n");
         }
 
         AssertJUnit.assertEquals("Expected changes must be 0. ", 0, count);
