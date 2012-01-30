@@ -65,7 +65,7 @@
 					value="#{msg['page.paginator.first']}" action="#{roleList.listFirst}" />
 				<idm:button id="goToPrevious" img="/resources/images/resultset_previous.png"
 					value="#{msg['page.paginator.previous']}" action="#{roleList.listPrevious}" />
-				<idm:button id="goToNext" img="/resources/images/resultset_next.png" value="#{msg['page.paginator.next']}"
+				<idm:button enabled="#{roleList.tableFull}" id="goToNext" img="/resources/images/resultset_next.png" value="#{msg['page.paginator.next']}"
 					action="#{roleList.listNext}" />
 				<idm:button id="goToLast" img="/resources/images/resultset_last.png" value="#{msg['page.paginator.last']}"
 					action="#{roleList.listLast}" />

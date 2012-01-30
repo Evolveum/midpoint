@@ -146,8 +146,10 @@ public class ResourceListController extends SortableListController<ResourceListI
 		}
 
 		resourceDetails.setResource(resourceItem);
-		resourceDetails.setOffset(0);
-		resourceDetails.listObjects();
+		if(resourceDetails.listObjects() != null){
+			resourceDetails.setOffset(0);
+		}
+			
 		template.setSelectedLeftId(ResourceDetailsController.NAVIGATION_LEFT);
 		return ResourceDetailsController.PAGE_NAVIGATION;
 	}

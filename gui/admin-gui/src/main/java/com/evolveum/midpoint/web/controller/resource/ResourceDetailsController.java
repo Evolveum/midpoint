@@ -233,10 +233,17 @@ public class ResourceDetailsController extends ListController<ResourceObjectType
 			return null;
 		}
 		Integer offset = getOffset();
-		
-		for(;offset <= getOffset() + getRowsCount(); offset++){
-			getObjects().add(resource.getObjectTypes().get(offset)); 
+		Integer rowsCount = getRowsCount();
+		Integer size = resource.getObjectTypes().size();
+				
+		for(;offset < (size < (offset + rowsCount) ? size : (offset + rowsCount)); offset++){
+			getObjects().add(resource.getObjectTypes().get(offset));
 		}
+		
+		if (getObjects().isEmpty()) {
+			listPrevious();
+		}
+		
 		return null;
 	}
 	

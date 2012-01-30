@@ -94,6 +94,10 @@ public class RoleListController extends SearchableListController<RoleListItem> {
 				getObjects().add(item);
 			}
 		}
+		
+		if (getObjects().isEmpty()) {
+			listPrevious();
+		}
 
 		return null;
 	}
@@ -207,5 +211,12 @@ public class RoleListController extends SearchableListController<RoleListItem> {
 		} else {
 			FacesUtils.addErrorMessage("No user selected.");
 		}
+	}
+	
+	public boolean isTableFull(){
+		if(getObjects().size() < getRowsCount()){
+			return false;
+		}
+		return true;
 	}
 }
