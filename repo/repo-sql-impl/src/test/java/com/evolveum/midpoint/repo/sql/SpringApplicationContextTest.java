@@ -21,8 +21,10 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Objects;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -31,6 +33,7 @@ import org.testng.annotations.Test;
 
 import javax.xml.bind.JAXBElement;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -43,39 +46,30 @@ public class SpringApplicationContextTest {
         ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("application-context-repo-sql.xml");
         SqlRepositoryServiceImpl service = (SqlRepositoryServiceImpl) ctx.getBean("sqlRepositoryServiceImpl");
 
-        Objects objects = (Objects) JAXBUtil.unmarshal(new File("./src/test/resources/1k-users.xml"));
+        Objects objects = (Objects) JAXBUtil.unmarshal(new File("./src/test/resources/objects.xml"));
         List<JAXBElement<? extends ObjectType>> elements = objects.getObject();
-
-        String userWithResult = null;
+        List<String> oids = new ArrayList<String>();
 
         long time = System.currentTimeMillis();
-        String oid = null;
         for (int i = 0; i < elements.size(); i++) {
             JAXBElement<? extends ObjectType> element = elements.get(i);
             ObjectType object = element.getValue();
-
-            if (i == elements.size() - 5) {
-                oid = service.add(object);
-            } else if (i == 0) {
-                userWithResult = service.add(object);
-            } else {
-                service.add(object);
-            }
+            oids.add(service.add(object));
         }
-        System.out.println("XXX Time: " + (System.currentTimeMillis() - time) + ", oid: " + oid);
-
-        time = System.currentTimeMillis();
-        System.out.println(JAXBUtil.marshalWrap(service.getObject(UserType.class, oid, null, new OperationResult("a"))));
         System.out.println("XXX Time: " + (System.currentTimeMillis() - time));
 
-        time = System.currentTimeMillis();
-        System.out.println(JAXBUtil.marshalWrap(service.getObject(ObjectType.class, oid, null, new OperationResult("a"))));
-        System.out.println("XXX Time: " + (System.currentTimeMillis() - time));
+        objects = (Objects) JAXBUtil.unmarshal(new File("./src/test/resources/objects.xml"));
+        for (int i = 0; i < elements.size(); i++) {
+            JAXBElement<? extends ObjectType> element = elements.get(i);
+            ObjectType object = element.getValue();
+            object.setOid(oids.get(i));
 
-        System.out.println("user with result\n" +
-                JAXBUtil.marshalWrap(service.getObject(UserType.class, userWithResult, null, new OperationResult("a"))));
-        System.out.println("user with existing oid\n" +
-                JAXBUtil.marshalWrap(service.getObject(UserType.class, "11111111-1111-1111-1111-111111111111", null,
-                        new OperationResult("a"))));
+            ObjectType type = service.getObject(ObjectType.class, oids.get(i), null, new OperationResult("R"));
+            ObjectModificationType changes = CalculateXmlDiff.calculateChanges(type, object);
+            if (changes.getPropertyModification().isEmpty()) {
+                continue;
+            }
+            System.out.println("Changes: " + (i + 1) + "\n" + JAXBUtil.marshalWrap(changes) + "\n\n");
+        }
     }
 }

@@ -102,4 +102,10 @@ public class RAccountShadowType extends RResourceObjectShadowType {
         }
         repo.setCredentials(credentials);
     }
+
+    public AccountShadowType toJAXB() throws DtoTranslationException {
+        AccountShadowType shadow = new AccountShadowType();
+        RAccountShadowType.copyToJAXB(this, shadow);
+        return shadow;
+    }
 }

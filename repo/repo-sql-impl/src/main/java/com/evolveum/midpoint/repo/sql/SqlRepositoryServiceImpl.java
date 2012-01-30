@@ -33,7 +33,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.NonUniqueResultException;
 import org.hibernate.Query;
@@ -42,8 +41,8 @@ import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.lang.reflect.Method;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * @author lazyman
@@ -246,20 +245,18 @@ public class SqlRepositoryServiceImpl {
         Session session = sessionFactory.openSession();
         session.beginTransaction();
 
-        RUserType user = new RUserType();
+        RObjectType rObject;
         try {
-            RUserType.copyFromJAXB((UserType) object, user);
+            Class<? extends RObjectType> clazz = ClassMapper.getHQLTypeClass(object.getClass());
+            rObject = clazz.newInstance();
+            Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz);
+            method.invoke(clazz, object, rObject);
         } catch (Exception ex) {
             ex.printStackTrace();
+            throw new RuntimeException(ex);
         }
 
-        String oid = user.getOid();
-//        if (StringUtils.isEmpty(oid)) {
-//            oid = UUID.randomUUID().toString();
-//            user.setOid(oid);
-//        }
-        oid = (String) session.save(user);
-
+        String oid = (String) session.save(rObject);
         session.getTransaction().commit();
         session.close();
 

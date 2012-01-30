@@ -21,11 +21,13 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.Identifiable;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
+import com.evolveum.midpoint.repo.sql.jaxb.XExtension;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
+import org.hibernate.type.TextType;
 
 import javax.persistence.*;
 import java.util.List;
@@ -36,11 +38,10 @@ import java.util.List;
 @Entity
 @Table(name = "extension")
 public class RExtension implements Identifiable {
-    
+
     private long id;
     private List<String> objects;
 
-    //todo what is this?
     @Id
     @GeneratedValue
     @Override
@@ -53,8 +54,7 @@ public class RExtension implements Identifiable {
         this.id = id;
     }
 
-    //todo what mapping here? are we sure we want List<String> in here?
-    @ElementCollection//(fetch = FetchType.EAGER)
+    @ElementCollection(targetClass = TextType.class)
     @CollectionTable(name = "extension_object", joinColumns =
             {@JoinColumn(name = "extensionId")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
@@ -66,21 +66,42 @@ public class RExtension implements Identifiable {
         this.objects = objects;
     }
 
-    public static void copyToJAXB(RExtension repo, Extension jaxb) {
+    public static void copyToJAXB(RExtension repo, Extension jaxb) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        //todo if it's XExtension also copy identifier (id)
+        if (jaxb instanceof XExtension) {
+            XExtension ext = (XExtension) jaxb;
+            ext.setId(repo.getId());
+        }
 
-//        jaxb.setExtension(repo.getExtension());
+        try {
+
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
     }
 
-    public static void copyFromJAXB(Extension jaxb, RExtension repo) {
+    public static void copyFromJAXB(Extension jaxb, RExtension repo) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        //todo if it's XExtension also copy identifier (id)
+        if (jaxb instanceof XExtension) {
+            XExtension ext = (XExtension) jaxb;
+            repo.setId(ext.getId());
+        }
 
-//        repo.setExtension(jaxb.getExtension());
+        try {
+
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
+    }
+
+    public Extension toJAXB() throws DtoTranslationException {
+        XExtension extension = new XExtension();
+        RExtension.copyToJAXB(this, extension);
+
+        return extension;
     }
 }

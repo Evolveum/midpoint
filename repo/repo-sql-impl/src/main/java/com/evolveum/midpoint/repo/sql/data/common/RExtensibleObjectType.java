@@ -24,11 +24,9 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.jaxb.XExtension;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
+import org.hibernate.annotations.Cascade;
 
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  * @author lazyman
@@ -39,7 +37,10 @@ public class RExtensibleObjectType extends RObjectType {
 
     private RExtension extension;
 
-    @ManyToOne
+    @ManyToOne(optional = true)
+//    @JoinTable(name = "extensible_object_extension", joinColumns = @JoinColumn(name = "extensibleOid"),
+//            inverseJoinColumns = @JoinColumn(name = "extensionId"))
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public RExtension getExtension() {
         return extension;
     }

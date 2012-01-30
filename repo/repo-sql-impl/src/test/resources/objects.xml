@@ -1,0 +1,1000 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+         xmlns:my="http://myself.me/schemas/whatever"
+         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
+
+    <object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+            xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+            xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+        <name>testuserX00001</name>
+        <fullName>Test UserX00001</fullName>
+        <givenName>TestX</givenName>
+        <familyName>UserX00001</familyName>
+        <eMailAddress>testuserX00001@example.com</eMailAddress>
+        <locality>AreaX 00001</locality>
+        <credentials>
+            <password>
+                <protectedString>
+                    <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element"
+                                       xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+                        <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"/>
+                        <ds:KeyInfo>
+                            <ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName>
+                        </ds:KeyInfo>
+                        <enc:CipherData>
+                            <enc:CipherValue>eL1PVNFxclMxDulnqX6Ip/mxLbr+vyxCXu9auL3EKWoNawdzlqJDwF7WwuxtRZDS
+                            </enc:CipherValue>
+                        </enc:CipherData>
+                    </enc:EncryptedData>
+                </protectedString>
+            </password>
+            <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
+        </credentials>
+        <activation>
+            <enabled>true</enabled>
+        </activation>
+        <fetchResult xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                     xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+                     xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd"
+                     xmlns:gen160="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"
+                     xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+                     xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+            <operation>com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType.importFromResource
+            </operation>
+            <status>in_progress</status>
+            <token>1000000000000000610</token>
+            <message>Task running in background</message>
+            <partialResults>
+                <operation>com.evolveum.midpoint.model.api.ModelService.importAccountsFromResource</operation>
+                <status>in_progress</status>
+                <params>
+                    <entry key="task">
+                        <unknownJavaObject>
+                            <class>com.evolveum.midpoint.task.impl.TaskImpl</class>
+                            <toString>Task(id:1327683120569-0-1, name:Import from resource Embedded Test OpenDJ,
+                                oid:193371b3-a260-41f5-890b-6c2021907ee9)
+                            </toString>
+                        </unknownJavaObject>
+                    </entry>
+                    <entry key="resourceOid">
+                        <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                                 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                 xsi:type="xsd:string">ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff
+                        </c:value>
+                    </entry>
+                    <entry key="objectClass">
+                        <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                                 xmlns:qn644="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+                                 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                 xsi:type="xsd:QName">qn644:AccountObjectClass
+                        </c:value>
+                    </entry>
+                </params>
+                <token>1000000000000000611</token>
+                <message>Task running in background</message>
+                <partialResults>
+                    <operation>com.evolveum.midpoint.model.api.ModelService.getObject</operation>
+                    <status>success</status>
+                    <params>
+                        <entry key="resolve">
+                            <value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                   xsi:type="PropertyReferenceListType"/>
+                        </entry>
+                        <entry key="oid">
+                            <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                                     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                     xsi:type="xsd:string">ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff
+                            </c:value>
+                        </entry>
+                        <entry key="class">
+                            <unknownJavaObject>
+                                <class>java.lang.Class</class>
+                                <toString>class com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType
+                                </toString>
+                            </unknownJavaObject>
+                        </entry>
+                    </params>
+                    <token>1000000000000000612</token>
+                </partialResults>
+            </partialResults>
+        </fetchResult>
+    </object>
+
+    <object xsi:type="UserType" oid="11111111-1111-1111-1111-111111111111" version="1"
+            xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+            xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+            xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+        <name>testuserX00002</name>
+        <fullName>Test UserX00002</fullName>
+        <givenName>TestX</givenName>
+        <familyName>UserX00002</familyName>
+        <eMailAddress>testuserX00002@example.com</eMailAddress>
+        <locality>AreaX 00002</locality>
+        <credentials>
+            <password>
+                <protectedString>
+                    <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element"
+                                       xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+                        <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"/>
+                        <ds:KeyInfo>
+                            <ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName>
+                        </ds:KeyInfo>
+                        <enc:CipherData>
+                            <enc:CipherValue>eL1PVNFxclMxDulnqX6Ip/mxLbr+vyxCXu9auL3EKWoNawdzlqJDwF7WwuxtRZDS
+                            </enc:CipherValue>
+                        </enc:CipherData>
+                    </enc:EncryptedData>
+                </protectedString>
+            </password>
+            <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
+        </credentials>
+        <activation>
+            <enabled>true</enabled>
+        </activation>
+        <accountRef oid="11111111-1111-1111-1111-111111111112"/>
+    </object>
+
+    <object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+            xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+            xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+        <name>testuserX00003</name>
+        <fullName>Test UserX00003</fullName>
+        <givenName>TestX</givenName>
+        <familyName>UserX00003</familyName>
+        <eMailAddress>testuserX00003@example.com</eMailAddress>
+        <locality>AreaX 00003</locality>
+        <credentials>
+            <password>
+                <protectedString>
+                    <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element"
+                                       xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+                        <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"/>
+                        <ds:KeyInfo>
+                            <ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName>
+                        </ds:KeyInfo>
+                        <enc:CipherData>
+                            <enc:CipherValue>eL1PVNFxclMxDulnqX6Ip/mxLbr+vyxCXu9auL3EKWoNawdzlqJDwF7WwuxtRZDS
+                            </enc:CipherValue>
+                        </enc:CipherData>
+                    </enc:EncryptedData>
+                </protectedString>
+            </password>
+            <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
+        </credentials>
+        <activation>
+            <enabled>true</enabled>
+        </activation>
+    </object>
+
+    <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+
+        <!-- Resource name. It will be displayed in GUI.  -->
+        <name>Localhost OpenDJ</name>
+
+        <description>
+            LDAP resource using an Identity Connector Framework LDAP connector. It contains configuration
+            for use with stock OpenDJ and OpenDS servers.
+
+            This resource definition contains also definition to enable synchronization and
+            especially an expression that is using a lookup of value from an configuration
+            object.
+        </description>
+
+        <connectorRef type="ConnectorType">
+            <description>
+                Reference to the ICF LDAP connector. This is dynamic reference, it will be translated to
+                OID during import.
+            </description>
+            <and>
+                <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
+
+                <equal>
+                    <value>
+                        <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
+                    </value>
+                </equal>
+            </and>
+        </connectorRef>
+
+        <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
+
+        <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
+
+        <!-- Configuration section contains configuration of the connector,
+             such as hostnames and passwords -->
+        <configuration
+                xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
+                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
+
+            <!-- Configuration specific for the LDAP connector -->
+            <icfcldap:configurationProperties>
+                <icfcldap:port>1389</icfcldap:port>
+                <icfcldap:host>localhost</icfcldap:host>
+
+                <icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
+                <icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
+                <icfcldap:credentials>
+                    <clearValue>secret</clearValue>
+                </icfcldap:credentials>
+                <icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com
+                </icfcldap:modifiersNamesToFilterOut>
+                <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
+
+                <icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
+                <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
+            </icfcldap:configurationProperties>
+
+            <!-- Generic ICF configuration -->
+
+            <icfc:connectorPoolConfiguration>
+                <icfc:minEvictableIdleTimeMillis>120000</icfc:minEvictableIdleTimeMillis>
+
+                <icfc:minIdle>1</icfc:minIdle>
+                <icfc:maxIdle>10</icfc:maxIdle>
+                <icfc:maxObjects>10</icfc:maxObjects>
+                <icfc:maxWait>150000</icfc:maxWait>
+            </icfc:connectorPoolConfiguration>
+
+            <icfc:producerBufferSize>100</icfc:producerBufferSize>
+
+            <icfc:timeouts>
+                <icfc:create>-1</icfc:create>
+                <icfc:get>-1</icfc:get>
+                <icfc:update>-1</icfc:update>
+                <icfc:delete>-1</icfc:delete>
+                <icfc:test>-1</icfc:test>
+
+                <icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
+                <icfc:scriptOnResource>-1</icfc:scriptOnResource>
+                <icfc:authentication>-1</icfc:authentication>
+                <icfc:search>-1</icfc:search>
+                <icfc:validate>-1</icfc:validate>
+                <icfc:sync>-1</icfc:sync>
+
+                <icfc:schema>-1</icfc:schema>
+            </icfc:timeouts>
+
+        </configuration>
+
+        <!-- Resource schema definition.
+             It defines all the object classes that are available to midPoint
+             (accounts, groups, ...).
+
+             This should be direct mapping of ICF schema (and therefore also
+             LDAP schema). This is not supposed to be customized during deployment
+             unless the underlying LDAP schema is non-standard (also see below).
+
+             This schema is normally generated from the resource on the first use.
+             Therefore it is not needed to provide the schema here during import.
+             This example has a schema definition to show how it looks like and also to
+             demonstrate that it can be provided during import if needed. -->
+        <schema>
+
+            <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+                        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+                        xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+                        elementFormDefault="qualified"
+                        targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
+
+                <xsd:import
+                        namespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
+                <xsd:import
+                        namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"/>
+                <xsd:complexType name="AccountObjectClass">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <r:identifier ref="icfs:uid"/>
+                            <r:accountType default="true"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+
+                    <xsd:complexContent>
+                        <xsd:extension base="r:ResourceObjectClass">
+                            <xsd:sequence>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="x500UniqueIdentifier"
+                                             type="xsd:base64Binary"/>
+                                <xsd:element minOccurs="0" ref="icfs:password"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="photo" type="xsd:base64Binary"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="title" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string"/>
+
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="userPassword"
+                                             type="xsd:base64Binary"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="x121Address" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="userSMIMECertificate"
+                                             type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="l" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="destinationIndicator"
+                                             type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" name="sn" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="internationaliSDNNumber"
+                                             type="xsd:string"/>
+                                <xsd:element minOccurs="0" name="employeeNumber" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="facsimileTelephoneNumber"
+                                             type="xsd:string"/>
+
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="initials" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="telexNumber" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="registeredAddress"
+                                             type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="givenName" type="xsd:string"/>
+                                <xsd:element ref="icfs:uid"/>
+                                <xsd:element ref="icfs:name"/>
+                                <xsd:element minOccurs="0" name="ds-pwp-account-disabled" type="xsd:string">
+                                    <xsd:annotation>
+
+                                        <xsd:appinfo>
+                                            <ignore>true</ignore>
+                                        </xsd:appinfo>
+                                    </xsd:annotation>
+                                </xsd:element>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="teletexTerminalIdentifier"
+                                             type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="st" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string"/>
+
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="uid" type="xsd:string"/>
+                                <xsd:element minOccurs="0" name="preferredLanguage" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="street" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="roomNumber" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory"
+                                             type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="secretary" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="audio" type="xsd:base64Binary"/>
+                                <xsd:element minOccurs="0" name="preferredDeliveryMethod" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="telephoneNumber"
+                                             type="xsd:string"/>
+
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="labeledURI" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="homePostalAddress"
+                                             type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="postOfficeBox"
+                                             type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="userPKCS12" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="userCertificate"
+                                             type="xsd:base64Binary"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="mail" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="departmentNumber"
+                                             type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="carLicense" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="jpegPhoto"
+                                             type="xsd:base64Binary"/>
+
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="manager" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="employeeType" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="mobile" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="physicalDeliveryOfficeName"
+                                             type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="pager" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="postalCode" type="xsd:string"/>
+                                <xsd:element minOccurs="0" name="displayName" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="postalAddress"
+                                             type="xsd:string"/>
+
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="homePhone" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" name="cn" type="xsd:string"/>
+                            </xsd:sequence>
+                        </xsd:extension>
+                    </xsd:complexContent>
+                </xsd:complexType>
+                <xsd:complexType name="GroupObjectClass">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+
+                            <r:identifier ref="icfs:uid"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                    <xsd:complexContent>
+                        <xsd:extension base="r:ResourceObjectClass">
+                            <xsd:sequence>
+                                <xsd:element maxOccurs="unbounded" name="cn" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string"/>
+
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string"/>
+                                <xsd:element ref="icfs:name"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="uniqueMember" type="xsd:string"/>
+                                <xsd:element ref="icfs:uid"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="owner" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string"/>
+                                <xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory"
+                                             type="xsd:string"/>
+                            </xsd:sequence>
+
+                        </xsd:extension>
+                    </xsd:complexContent>
+                </xsd:complexType>
+            </xsd:schema>
+        </schema>
+
+
+        <!-- Resource Schema Handling definition.
+             This part defines how the schema defined above will be used by
+             midPoint. It defines expressions and limitations for individual
+             schema attributes.
+
+             The expressions that describe both inbound and outbound flow of
+             the attributes are defined in this section.
+
+             This is the part where most of the customization takes place.
+        -->
+        <schemaHandling>
+
+            <!-- Definition of default account type.
+                 This is now the only account type that midPoint can work with. -->
+            <accountType>
+
+                <name>user</name>
+                <!-- Readable name for the account type -->
+                <displayName>Default Account</displayName>
+                <default>true</default>
+
+                <!-- Reference to the Resource Schema (see above) specifying
+                     object class for this account type -->
+                <objectClass>ri:AccountObjectClass</objectClass>
+
+                <attribute>
+                    <ref>icfs:name</ref>
+
+                    <!-- Readable name for the attribute. This will be used in GUI -->
+                    <displayName>Distinguished Name</displayName>
+
+                    <description>
+                        Definition of "name" attribute handling.
+                        LDAP ICF connector will put entry DN into "name" attribute.
+                        This in fact maps to the __NAME__ ICF attribute.
+                    </description>
+
+                    <!-- Access limitation for this attribute.
+                         In our case ICF will put DN in the __NAME__ attribute.
+                         Althouhg DN can be theoretically changes, this definition
+                         will make it immutable. -->
+                    <access>create</access>
+                    <access>read</access>
+
+                    <outbound>
+
+                        <description>
+                            Outbound expression for the "name" attribute.
+                            If account is created or updated, the "name" attribute
+                            will be set according to this expression.
+
+                            This specific expression will construct DN by concatenating
+                            name from user object and string constants.
+
+                            The expression is marked as "default", therefore it will
+                            be evaluated only if the entry already does not have an DN.
+
+                            It is an XPath expression, similar to BPEL assignment expressions.
+                        </description>
+                        <initial>true</initial>
+                        <expression>
+                            <code>
+                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                                concat('uid=', $i:user/c:name, ',ou=people,dc=example,dc=com')
+                            </code>
+                        </expression>
+
+                    </outbound>
+
+                    <!-- No inbound expression here. We cannot sync changes in DN yet -->
+
+                </attribute>
+
+                <attribute>
+                    <ref>icfs:uid</ref>
+
+                    <!-- Readable name for the attribute. This will be used in GUI -->
+
+                    <displayName>Entry UUID</displayName>
+
+                    <description>
+                        Definition of ICF "uid" attribute handling.
+                        ICF LDAP connector will put entry UUID into "uid" attribute in case it
+                        is connecting to OpenDJ/OpenDS. It may be different for
+                        other directory servers and it also dependes on connector
+                        configuration. Please see connector documentation for
+                        more details.
+
+                        Do not confuse this attribute with the LDAP "uid". This is an ICF uid which
+                        maps to ICF __UID__ attribute. It has a different namespace than the LDAP uid.
+                        The definition of LDAP uid is provided below.
+                    </description>
+
+                    <!-- Access limitation for this attribute.
+                         Entry UUID is created by the directory server itelf
+                         and it is immutable. We can only read it. -->
+                    <access>read</access>
+
+                    <!-- There is no "outbound" expression, so midPoint will not
+                         do anything with this attribute. -->
+
+                    <!-- No inbound expression here. Does not make sense to sync UUID as it is supposed to be immutable -->
+
+                </attribute>
+
+                <!-- Definition of cn attribute handling. -->
+                <attribute>
+                    <ref>ri:cn</ref>
+
+                    <displayName>Common Name</displayName>
+
+                    <description>
+                        Definition of cn attribute handling.
+                        This is definition of LDAP "cn" (commonName) attribute.
+                    </description>
+
+                    <access>create</access>
+                    <access>read</access>
+                    <access>update</access>
+
+                    <outbound>
+                        <description>
+                            Outbound expression here is using "pure" XPath, without
+                            using functions. This is the simplest case, just copying
+                            the "fullName" property of user to the "cn" attribute of
+                            an account.
+
+                            Please note that this expression is not marked as "default".
+                            Therefore this value will be copied on every change,
+                            overwriting the original value of "cn" on the resource.
+                        </description>
+                        <expression>
+                            <code>
+                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                                $i:user/i:fullName
+                            </code>
+                        </expression>
+
+                    </outbound>
+
+                    <inbound>
+                        <description>
+                            Inbound expression. It is used to synchronize changes
+                            in the account to the user object in the IDM. This
+                            expression specifies to copy the cn attribute value
+                            from the account to the fullName property of the user.
+                        </description>
+                        <target>
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            i:fullName
+                        </target>
+                    </inbound>
+
+                </attribute>
+
+                <attribute>
+                    <ref>ri:sn</ref>
+                    <displayName>Surname</displayName>
+                    <description>Handling of LDAP "sn" (surname) attribute</description>
+                    <access>create</access>
+
+                    <access>read</access>
+                    <access>update</access>
+                    <outbound>
+                        <expression>
+                            <code>
+                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                                $i:user/i:familyName
+                            </code>
+                        </expression>
+
+                    </outbound>
+                    <inbound>
+                        <description>sn will be synchronized to user's familyName</description>
+                        <target>
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            i:familyName
+                        </target>
+                    </inbound>
+                </attribute>
+
+                <attribute>
+                    <ref>ri:givenName</ref>
+                    <displayName>Given Name</displayName>
+                    <description>Definition of givenName attribute handling.</description>
+                    <access>create</access>
+                    <access>read</access>
+
+                    <access>update</access>
+                    <outbound>
+                        <expression>
+                            <code>
+                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                                $i:user/i:givenName
+                            </code>
+                        </expression>
+                    </outbound>
+                    <inbound>
+
+                        <description>givenName will be synchronized to user's givenName</description>
+                        <target>
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            i:givenName
+                        </target>
+                    </inbound>
+                </attribute>
+
+                <attribute>
+                    <ref>ri:uid</ref>
+
+                    <displayName>Login Name</displayName>
+                    <description>
+                        Definition of LDAP uid attribute handling. This is a native LDAP uid attribute.
+                        Do not confuse with ICF uid attribute (__UID__) which has a different namespace.
+                    </description>
+                    <access>create</access>
+                    <access>read</access>
+                    <outbound>
+                        <description>It is mapped from (and also to) "name" property of
+                            user. It is essentially a login name
+                        </description>
+
+                        <expression>
+                            <code>
+                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                                $i:user/i:name
+                            </code>
+                        </expression>
+                    </outbound>
+                    <inbound>
+                        <description>It is mapped to (and also from) "name" property of
+                            user. It is essentially a login name
+                        </description>
+                        <target>
+
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            i:name
+                        </target>
+                    </inbound>
+                </attribute>
+
+                <attribute>
+                    <ref>ri:description</ref>
+                    <description>Definition of description attribute handling.</description>
+                    <outbound>
+
+                        <description>
+                            This outbound expression is not really an expression.
+                            It is using a fixed literal insead of dynamically
+                            generated value.
+                        </description>
+                        <initial>true</initial>
+                        <value>Created by IDM</value>
+                    </outbound>
+
+                    <!--<inbound>-->
+                    <!--<valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter"-->
+                    <!--xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd">-->
+                    <!--<f:replace>-->
+                    <!--&lt;!&ndash; Replaces all unicode control characters with emtpty string &ndash;&gt;-->
+                    <!--<f:pattern>\p{C}</f:pattern>-->
+                    <!--<f:replacement></f:replacement>-->
+                    <!--</f:replace>-->
+                    <!--</valueFilter>-->
+                    <!--<target>-->
+                    <!--declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";-->
+                    <!--declare namespace-->
+                    <!--my="http://whatever.com/my";-->
+                    <!--i:extension/my:description-->
+                    <!--</target>-->
+                    <!--</inbound>-->
+                    <!-- No inbound expression for description. We don't want to synchronize that -->
+                </attribute>
+
+                <attribute>
+                    <ref>ri:l</ref>
+                    <description>
+                        Definition of description attribute handling.
+                        This attribute is using a lookup table to translate the values
+                        valid for user to a values valid for the resource account.
+                    </description>
+                    <outbound>
+                        <description>
+                            Outbound expression definition. This expression is using
+                            a configuration object (set into an XPath variable) to
+                            translate values.
+                        </description>
+
+                        <expression>
+                            <description>
+                                The expression itself. It translates the value of
+                                user's attribute "locality" (expressed as $i:user/i:locality)
+                                using a lookup table defined in the configuration object
+                                in the $my:config variable specified above.
+                            </description>
+                            <variable>
+                                <name>my:config</name>
+                                <description>
+                                    Definition of extra variable for the XPath expression.
+                                    The variable will appear as "$my:config" in the Xpath
+                                    expression below. It will contain the content of XML
+                                    object stored by OID c0c010c0-d34d-b33f-f00d-999111111111.
+                                </description>
+
+                                <objectRef oid="c0c010c0-d34d-b33f-f00d-999111111111"/>
+                            </variable>
+                            <variable>
+                                <name>my:defaultLocation</name>
+                                <description>Example of setting a variable to a string value.</description>
+                                <value>middle of nowhere</value>
+                            </variable>
+
+                            <returnType>scalar</returnType>
+                            <code>
+                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                                declare namespace my="http://myself.me/schemas/whatever";
+                                if ($my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]) then
+                                $my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]
+                                else
+                                $my:defaultLocation
+                            </code>
+                        </expression>
+                    </outbound>
+                </attribute>
+
+                <credentials>
+                    <password>
+                        <!--<outbound>-->
+                        <!--<asIs/>-->
+                        <!--</outbound>-->
+                        <inbound>
+                            <source>
+                                <initial>true</initial>
+                                <generate/>
+                            </source>
+                        </inbound>
+                    </password>
+                </credentials>
+                <activation>
+                    <enabled>
+                        <!--<outbound>-->
+                        <!--<asIs/>-->
+                        <!--</outbound>-->
+                        <inbound>
+                            <source>
+                                <asIs/>
+                            </source>
+                        </inbound>
+                    </enabled>
+                </activation>
+            </accountType>
+
+        </schemaHandling>
+
+        <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd">
+            <cap:activation>
+
+                <cap:enableDisable>
+                    <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
+                    <cap:enableValue/>
+                    <cap:disableValue>true</cap:disableValue>
+                </cap:enableDisable>
+            </cap:activation>
+            <cap:credentials>
+                <cap:password/>
+
+            </cap:credentials>
+            <cap:liveSync/>
+            <cap:testConnection/>
+        </capabilities>
+
+        <!--
+            Synchronization section describes the synchronization policy, timing,
+            reactions and similar synchronization settings.
+        -->
+        <synchronization>
+            <!--
+                The synchronization for this resource is enabled.
+                It means that the synchronization will react to changes detected by
+                the system (live sync task, discovery or reconciliation) -->
+            <enabled>true</enabled>
+
+            <correlation>
+                <description>
+                    Correlation expression is a search query.
+                    Following search queury will look for users that have "name"
+                    equal to the "uid" attribute of the account. Simply speaking,
+                    it will look for match in usernames in the IDM and the resource.
+                    The correlation rule always looks for users, so it will not match
+                    any other object type.
+                </description>
+                <equal>
+                    <path>.</path>
+                    <valueExpression>
+                        <ref>name</ref>
+
+                        <code>
+                            $c:account/c:attributes/ri:uid
+                        </code>
+                    </valueExpression>
+                </equal>
+            </correlation>
+
+            <!-- Confirmation rule may be here, but as the search above will
+                 always return at most one match, the confirmation rule is not needed. -->
+
+            <!-- Following section describes reactions to a situations.
+                 The setting here assumes that this resource is authoritative,
+                 therefore all accounts created on the resource should be
+                 reflected as new users in IDM.
+                 See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
+             -->
+
+            <reaction>
+                <situation>linked</situation>
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser"/>
+                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#disableAccount"/>-->
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
+                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#disableUser"/>-->
+            </reaction>
+
+            <reaction>
+                <situation>unlinked</situation>
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#enableUser"/>-->
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addUser">
+                    <!-- Reference to the User Template is here. If the user would be
+                         created as a result of this action, it will be created according
+                         to this template. -->
+
+                    <userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
+                </action>
+                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>-->
+            </reaction>
+
+        </synchronization>
+
+    </resource>
+
+    <userTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111">
+
+        <name>Default User Template</name>
+
+        <description>
+            User Template Object.
+            This object is used when creating a new account, to set it up as needed.
+        </description>
+
+        <propertyConstruction>
+            <property>i:fullName</property>
+            <description>
+
+                Property construction.
+                Defines how properties of user object are set up.
+                This specific definition sets a full name as a concatenation
+                of givenName and familyName.
+            </description>
+            <valueConstruction>
+                <initial>true</initial>
+                <expression>
+                    <code>
+                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                        concat($i:user/i:givenName,' ',$i:user/i:familyName)
+                    </code>
+                </expression>
+
+            </valueConstruction>
+        </propertyConstruction>
+
+        <accountConstruction>
+            <description>
+                Account construction.
+                Defines what accounts should be assigned to a user when it is
+                created. It only defines resource and account type. The rest of the
+                account parameters are specified by outbound expressions in the
+                account type in the resource definition, as usual.
+                See http://wiki.evolveum.com/display/midPoint/Synchronization
+            </description>
+            <resourceRef oid="c0c010c0-d34d-b33f-f00d-333111111112" type="c:ResourceType"/>
+            <type>default</type>
+
+        </accountConstruction>
+
+    </userTemplate>
+
+    <userTemplate oid="c0c010c0-d34d-b33f-f00d-777222222222">
+        <name>Default User Template2</name>
+
+        <description>
+            Alternative User Template Object.
+            This object is used when creating a new account, to set it up as needed.
+        </description>
+
+        <propertyConstruction>
+            <property>fullName</property>
+            <description>
+                Property construction.
+                Defines how properties of user object are set up.
+                This specific definition sets a full name as a concatenation
+                of givenName and familyName.
+            </description>
+            <valueConstruction>
+                <initial>true</initial>
+                <expression>
+
+                    <code>
+                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                        concat($i:user/i:givenName,' ',$i:user/i:familyName)
+                    </code>
+                </expression>
+            </valueConstruction>
+        </propertyConstruction>
+
+    </userTemplate>
+
+    <genericObject oid="c0c010c0-d34d-b33f-f00d-999111111111">
+
+        <name>My Sample Config Object</name>
+        <description>
+            Sample custom configuration object. Object of the genericObject type are
+            in fact free-form objects. They can contain almost any XML data in the
+            extension part. They are supposed to hold data structures that parametrize
+            the IDM custom business logic or IDM expressions.
+        </description>
+        <extension>
+            <!-- This additional level of depth (the "locations" element) is needed now
+                 because current repository does not support generic multi-valued
+                 properties. This might be fixed in next releases. -->
+            <my:locations>
+                <!-- Lookup table. The "key" attribute is a key, the element content
+                     is a value. However, the data structure may be structured differently,
+                     it depends on a specific XPath that is used for lookup (see the
+                     definition of outbound expression for "l" attribute in the resource
+                     definition above). -->
+                <my:location key="home">Here</my:location>
+
+                <my:location key="work">There</my:location>
+                <my:location key="somewhere">There there over the corner</my:location>
+            </my:locations>
+        </extension>
+        <!-- This is generic object, it must have an "application level" type.
+             However, this is not used in the current business logic. Can be anything. -->
+        <objectType>http://myself.me/schemas/objects#SampleConfigType</objectType>
+    </genericObject>
+
+    <task oid="91919191-76e0-59e2-86d6-3d4f02d3ffff">
+        <name>Synchronization: Embedded Test OpenDJ</name>
+        <description>
+            Definition of a live sychnronization task. It will poll changelog and pull in changes
+        </description>
+        <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+        <executionStatus>running</executionStatus>
+
+        <exclusivityStatus>released</exclusivityStatus>
+        <handlerUri>http://midpoint.evolveum.com/model/sync/handler-1</handlerUri>
+        <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
+        <recurrence>recurring</recurrence>
+        <binding>tight</binding>
+        <schedule>
+            <interval>5</interval>
+
+        </schedule>
+    </task>
+
+</objects>

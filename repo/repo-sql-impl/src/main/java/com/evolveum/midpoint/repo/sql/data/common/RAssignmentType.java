@@ -24,12 +24,9 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.Identifiable;
 import com.evolveum.midpoint.repo.sql.jaxb.XAssignmentType;
-import com.evolveum.midpoint.repo.sql.jaxb.XExtension;
-import com.evolveum.midpoint.repo.sql.jaxb.XObjectReferenceType;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import org.apache.commons.lang.Validate;
 
@@ -113,25 +110,19 @@ public class RAssignmentType implements Identifiable {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
 
-        if (repo.getActivation() != null) {
-            ActivationType activation = new ActivationType();
-            RActivationType.copyToJAXB(repo.getActivation(), activation);
-
-            jaxb.setActivation(activation);
+        RActivationType activation = repo.getActivation();
+        if (activation != null) {
+            jaxb.setActivation(activation.toJAXB());
         }
 
-        if (repo.getExtension() != null) {
-            XExtension ext = new XExtension();
-            RExtension.copyToJAXB(repo.getExtension(), ext);
-
-            jaxb.setExtension(ext);
+        RExtension extension = repo.getExtension();
+        if (extension != null) {
+            jaxb.setExtension(extension.toJAXB());
         }
 
-        if (repo.getTargetRef() != null) {
-            XObjectReferenceType ref = new XObjectReferenceType();
-            RObjectReferenceType.copyToJAXB(repo.getTargetRef(), ref);
-
-            jaxb.setTargetRef(ref);
+        RObjectReferenceType targetRef = repo.getTargetRef();
+        if (targetRef != null) {
+            jaxb.setTargetRef(targetRef.toJAXB());
         }
     }
 

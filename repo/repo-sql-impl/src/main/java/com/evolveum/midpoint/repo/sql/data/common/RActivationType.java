@@ -39,7 +39,7 @@ public class RActivationType {
     private XMLGregorianCalendar validFrom;
     private XMLGregorianCalendar validTo;
 
-    @Index(name="iEnabled")
+    @Index(name = "iEnabled")
     public boolean isEnabled() {
         return enabled;
     }
@@ -82,5 +82,11 @@ public class RActivationType {
         jaxb.setEnabled(repo.isEnabled());
         jaxb.setValidFrom(repo.getValidFrom());
         jaxb.setValidTo(repo.getValidTo());
+    }
+
+    public ActivationType toJAXB() throws DtoTranslationException {
+        ActivationType activation = new ActivationType();
+        RActivationType.copyToJAXB(this, activation);
+        return activation;
     }
 }

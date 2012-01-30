@@ -60,13 +60,20 @@ public final class ClassMapper {
         }
     }
 
-    public static String getHQLType(Class<? extends ObjectType> clazz) {
+    public static Class<? extends RObjectType> getHQLTypeClass(Class<? extends ObjectType> clazz) {
         Validate.notNull(clazz, "Class must not be null.");
 
         ObjectTypes type = ObjectTypes.getObjectType(clazz);
         Class<? extends RObjectType> hqlType = types.get(type);
-        Validate.notNull(hqlType, "HQL data type was not found for '" + clazz.getSimpleName() + "'.");
+        if (hqlType == null) {
+            throw new IllegalStateException("Couldn't find DB type for '" + clazz + "'.");
+        }
 
+        return hqlType;
+    }
+
+    public static String getHQLType(Class<? extends ObjectType> clazz) {
+        Class<? extends RObjectType> hqlType = getHQLTypeClass(clazz);
         return hqlType.getSimpleName();
     }
 }

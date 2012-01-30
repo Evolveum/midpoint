@@ -134,7 +134,7 @@ public class RObjectReferenceType implements Identifiable {
     }
 
     public ObjectReferenceType toJAXB() {
-        ObjectReferenceType ref = new ObjectReferenceType();
+        ObjectReferenceType ref = new XObjectReferenceType();
         copyToJAXB(this, ref);
 
         return ref;
