@@ -25,15 +25,22 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
+import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.schema.processor.DiffUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -68,6 +75,9 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 
 	private static final long serialVersionUID = 3793939681394774533L;
 	private static final Trace LOGGER = TraceManager.getTrace(AccountManagerImpl.class);
+	
+	@Autowired(required = true)
+    private SchemaRegistry schemaRegistry;
 
 	@Override
 	public Collection<AccountShadowDto> list(PagingType paging) {
@@ -109,11 +119,25 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 				changedObject.setCredentials(null);
 			}
 
-			// detect other changes
-			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldObject.getXmlObject(),
-					changedObject.getXmlObject());
-			// if there is a password change, add it to other changes and
-			// process it.
+			AccountShadowType accountOld = oldObject.getXmlObject();
+			AccountShadowType accountNew = changedObject.getXmlObject();
+			
+			LOGGER.trace("Old account:\n{}",JAXBUtil.marshalWrap(accountOld));
+        	LOGGER.trace("New account:\n{}",JAXBUtil.marshalWrap(accountNew));
+        	ObjectDelta<AccountShadowType> accountDelta = DiffUtil.diff(accountOld, accountNew,
+        			AccountShadowType.class, schemaRegistry.getObjectSchema());
+        	
+        	LOGGER.trace("Account delta:\n{}",accountDelta.dump());
+        	ObjectModificationType changes = null;
+        	if (accountDelta != null && !accountDelta.isEmpty()) {
+        		changes = accountDelta.toObjectModificationType();
+        	}
+			
+//			// detect other changes
+//			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldObject.getXmlObject(),
+//					);
+//			// if there is a password change, add it to other changes and
+//			// process it.
 
 			if (changes != null) {
 				if (passwordChange != null) {
@@ -131,11 +155,11 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 				LOGGER.debug("No account changes detected.");
 			}
 			result.recordSuccess();
-		} catch (DiffException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't update account {}, error while diffing", ex,
+		} catch (SchemaException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't update account {}, schema error", ex,
 					changedObject.getName());
 			result.recordFatalError("Couldn't update account '" + changedObject.getName()
-					+ "', error while diffing.", ex);
+					+ "', schema error.", ex);
 
 		} catch (ObjectNotFoundException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't update account {}, because it doesn't exists", ex,

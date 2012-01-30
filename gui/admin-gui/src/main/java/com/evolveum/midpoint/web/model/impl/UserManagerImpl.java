@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.processor.DiffUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -102,7 +103,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
         changedObject = unresolveNotAddedAccounts(changedObject);
 
         OperationResult result = parentResult.createSubresult(UserManager.SUBMIT);
-        try { // Call Web Service Operation
+        try {
             changedObject.encryptCredentials(protector);
 
             PropertyModificationType passwordChange = null;
@@ -138,6 +139,10 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
             ObjectModificationType changes = userDelta.toObjectModificationType();
             
             //todo XXX: MEGA HACK
+            
+            // Account add and account delete are doing "together" with user modify now, so they
+            // will be properly linked/unlinked "inside" the operation. FIXME: is this correct?
+            
             List<AccountShadowDto> newAccounts = changedObject.getAccount();
             if (newAccounts != null) {                
                 for (AccountShadowDto account : newAccounts) {
@@ -161,7 +166,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
                 		// This has to mean that the account is being created
                 		accontDelete(changes, account.getXmlObject());
                 	} else if (hasAccount(changedObject.getXmlObject(), account.getOid())) {
-                		// modification?
+                		// no change in account links
                 		
                 	} else {
                 		// also creating an account
@@ -169,13 +174,14 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
                 	}
                 }
             }
+            
             //todo XXX: MEGA HACK END
 
 //            ObjectModificationType changes1 = CalculateXmlDiff.calculateChanges(oldUser.getXmlObject(),
 //                    changedObject.getXmlObject());
 
 
-            //process changes
+            //process user changes
             if (changes != null) {
                 if (passwordChange != null) {
                     if (changes.getOid() == null) {
@@ -203,18 +209,58 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
                             getChangeType(modification.getModificationType()), values));
                 }
             }
+            
+	        // process account changes
+	        // we are interested only in modifications. add and delete is handled above.
+	        
+//	        List<AccountShadowDto> oldAccountDtos = oldUser.getAccount();
+//	        List<AccountShadowDto> newAccountDtos = changedObject.getAccount();
+//	        
+//	        LOGGER.trace("Accounts: {} old, {} new",oldAccountDtos.size(), newAccountDtos.size());
+//	        
+//	        for (AccountShadowDto newAccountDto: newAccountDtos) {
+//	        	AccountShadowType newAccount = newAccountDto.getXmlObject();
+//	        	if (newAccount.getOid() == null) {
+//	        		continue;
+//	        	}
+//	        	
+//	        	// Convert resource to resourceRef, so it will not create phantom changes in comparison
+//	        	if (newAccount.getResource() != null) {
+//	        		newAccount.setResourceRef(ObjectTypeUtil.createObjectRef(newAccount.getResource()));
+//	        		newAccount.setResource(null);
+//	        	}
+//	        	
+//	        	// Explicitly reading the current state. Not good, but ok for now. It will get replaced anyway ....
+//	        	AccountShadowType oldAccount = getModel().getObject(AccountShadowType.class, newAccount.getOid(), null, result); 
+//	        	
+//	        	LOGGER.trace("Old account:\n{}",JAXBUtil.marshalWrap(oldAccount));
+//	        	LOGGER.trace("New account:\n{}",JAXBUtil.marshalWrap(newAccount));
+//	        	LOGGER.trace("New account DTO attributes:\n{}",DebugUtil.prettyPrint(newAccountDto.getAttributes()));
+//	        	ObjectDelta<AccountShadowType> accountDelta = DiffUtil.diff(oldAccount, newAccount,
+//	        			AccountShadowType.class, schemaRegistry.getObjectSchema());
+//	        	
+//	        	LOGGER.trace("Account delta:\n{}",accountDelta.dump());
+//	        	if (accountDelta != null && !accountDelta.isEmpty()) {
+//	        		ObjectModificationType accountModification = userDelta.toObjectModificationType();
+//	        		getModel().modifyObject(AccountShadowType.class, accountModification, task, result);
+//	        	}
+//	        }
+	        
             result.recordSuccess();
+
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't submit user {}", ex,
                     new Object[]{changedObject.getName()});
-            result.recordFatalError("Couldn't submit user '" + changedObject.getName() + "'.", ex);
+            result.recordFatalError(ex);
         }
 
-        result.computeStatus("Couldn't submit user '" + changedObject.getName() + "'.");
+        result.computeStatus();
+                
 //		ControllerUtil.printResults(LOGGER, result);
 
         return set;
     }
+
 
 	private boolean hasAccount(UserType user, String oid) {
 		for (AccountShadowType account: user.getAccount()) {
