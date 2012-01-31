@@ -273,6 +273,8 @@ public class UserDetailsController implements Serializable {
 			}
 			LOGGER.debug("Finished processing of deleted accounts");
 			
+			accountList = null;
+			accountList = getAccountList();
 			//check if account was changed, if does, execute them..
 			updateAccounts(accountList, task, result);
 			
