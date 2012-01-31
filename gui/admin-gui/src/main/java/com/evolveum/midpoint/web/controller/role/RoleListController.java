@@ -94,10 +94,6 @@ public class RoleListController extends SearchableListController<RoleListItem> {
 				getObjects().add(item);
 			}
 		}
-		
-		if (getObjects().isEmpty()) {
-			listPrevious();
-		}
 
 		return null;
 	}

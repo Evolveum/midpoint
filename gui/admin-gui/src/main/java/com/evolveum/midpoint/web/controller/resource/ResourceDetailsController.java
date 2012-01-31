@@ -240,10 +240,6 @@ public class ResourceDetailsController extends ListController<ResourceObjectType
 			getObjects().add(resource.getObjectTypes().get(offset));
 		}
 		
-		if (getObjects().isEmpty()) {
-			listPrevious();
-		}
-		
 		return null;
 	}
 	

@@ -87,11 +87,11 @@ public class EndUserDetailsController implements Serializable {
 	public static final String PAGE_NAVIGATION_TO_ROLE = "/user/role/index?faces-redirect=true";
 	private static final Trace LOGGER = TraceManager.getTrace(EndUserDetailsController.class);
 	@Autowired(required = true)
-	private ObjectTypeCatalog objectTypeCatalog;
+	private transient ObjectTypeCatalog objectTypeCatalog;
 	@Autowired(required = true)
-	private AssignmentEditor<UserDto> assignmentEditor;
+	private transient AssignmentEditor<UserDto> assignmentEditor;
 	@Autowired(required = true)
-	private TaskManager taskManager;
+	private transient TaskManager taskManager;
 	private Protector protector;
 	private List<AccountFormBean> accountList;
 	private List<AccountFormBean> accountListDeleted = new ArrayList<AccountFormBean>();

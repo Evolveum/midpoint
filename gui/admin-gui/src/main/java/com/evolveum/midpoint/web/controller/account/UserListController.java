@@ -164,10 +164,6 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 				getObjects().add((GuiUserDto) userDto);
 			}
 		}
-		
-		if (getObjects().isEmpty()) {
-			listPrevious();
-		}
 
 		return null;
 	}

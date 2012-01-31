@@ -98,13 +98,13 @@ public class UserDetailsController implements Serializable {
 	@Autowired(required = true)
 	private transient TemplateController template;
 	@Autowired(required = true)
-	private AssignmentEditor<UserDto> assignmentEditor;
+	private transient AssignmentEditor<UserDto> assignmentEditor;
 	@Autowired(required = true)
-	private ObjectTypeCatalog objectTypeCatalog;
+	private transient ObjectTypeCatalog objectTypeCatalog;
 	@Autowired(required = true)
-	private Protector protector;
+	private transient Protector protector;
 	@Autowired(required = true)
-	private TaskManager taskManager;
+	private transient TaskManager taskManager;
 	
 	private boolean editMode = false;
 	private GuiUserDto user;

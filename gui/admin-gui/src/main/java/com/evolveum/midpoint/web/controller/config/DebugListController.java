@@ -142,8 +142,8 @@ public class DebugListController extends ListController<ObjectBean> {
 		}
 
 		if (getObjects().isEmpty()) {
-			listPrevious();
-			//FacesUtils.addWarnMessage("Couldn't find any object.");
+			FacesUtils.addWarnMessage("Couldn't find any object.");
+			return null;
 		}
 
 		return null;
