@@ -9,6 +9,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.SystemException;
@@ -24,15 +25,14 @@ import com.evolveum.midpoint.web.model.dto.ConnectorHostDto;
 import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiResourceDto> implements
 		ResourceManager {
@@ -130,6 +130,11 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 				resourceOid, objectClass });
 
 		Task task = getTaskManager().createTaskInstance(ResourceManager.IMPORT_FROM_RESOURCE);
+		
+		SecurityUtils security = new SecurityUtils();
+		PrincipalUser principal = security.getPrincipalUser();
+        task.setOwner(principal.getUser());
+		
 		OperationResult result = task.getResult();
 		try {
 			
