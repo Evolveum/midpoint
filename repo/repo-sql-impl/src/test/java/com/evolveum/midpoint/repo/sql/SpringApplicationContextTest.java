@@ -90,6 +90,11 @@ public class SpringApplicationContextTest {
         service.releaseTask("555", new OperationResult("r"));
         System.out.println(JAXBUtil.marshalWrap(service.getObject(TaskType.class, "555", null, new OperationResult("a"))));
         System.out.println("*******************");
+        
+       ResultList<? extends ResourceObjectShadowType> shadows = service.listResourceObjectShadows(
+               "ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2", AccountShadowType.class, new OperationResult("a"));
+        System.out.println(shadows.getTotalResultCount() + "\n" + shadows);
+
 
 
         AssertJUnit.assertEquals("Expected changes must be 0. ", 0, count);

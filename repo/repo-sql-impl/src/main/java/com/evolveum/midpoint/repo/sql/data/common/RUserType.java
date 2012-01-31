@@ -23,10 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Index;
 
@@ -53,12 +50,16 @@ public class RUserType extends RExtensibleObjectType {
     private String locality;
     private RCredentialsType credentials;
     private RActivationType activation;
-    //    private Set<AssignmentType> assignment;       //todo mapping
+    private Set<RAssignmentType> assignment;
     private Set<RObjectReferenceType> accountRef;
 
-//    public Set<AssignmentType> getAssignment() {
-//        return assignment;
-//    }
+    @OneToMany
+    @JoinTable(name = "user_assignment", joinColumns = @JoinColumn(name = "userOid"),
+            inverseJoinColumns = @JoinColumn(name = "assignmentId"))
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RAssignmentType> getAssignment() {
+        return assignment;
+    }
 
     @OneToMany
     @JoinTable(name = "user_account_ref", joinColumns = @JoinColumn(name = "userOid"),
@@ -68,7 +69,7 @@ public class RUserType extends RExtensibleObjectType {
         return accountRef;
     }
 
-    @ElementCollection//(fetch = FetchType.EAGER)
+    @ElementCollection
     @CollectionTable(name = "user_email_address", joinColumns =
             {@JoinColumn(name = "userOid")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
@@ -76,7 +77,7 @@ public class RUserType extends RExtensibleObjectType {
         return eMailAddress;
     }
 
-    @ElementCollection//(fetch = FetchType.EAGER)
+    @ElementCollection
     @CollectionTable(name = "user_employee_type", joinColumns =
             {@JoinColumn(name = "userOid")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
@@ -104,7 +105,7 @@ public class RUserType extends RExtensibleObjectType {
         return locality;
     }
 
-    @ElementCollection//(fetch = FetchType.EAGER)
+    @ElementCollection
     @CollectionTable(name = "user_organizational_unit", joinColumns =
             {@JoinColumn(name = "userOid")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
@@ -112,7 +113,7 @@ public class RUserType extends RExtensibleObjectType {
         return organizationalUnit;
     }
 
-    @ElementCollection//(fetch = FetchType.EAGER)
+    @ElementCollection
     @CollectionTable(name = "user_telephone_number", joinColumns =
             {@JoinColumn(name = "userOid")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
@@ -130,7 +131,7 @@ public class RUserType extends RExtensibleObjectType {
         return activation;
     }
 
-    @ElementCollection//(fetch = FetchType.EAGER)
+    @ElementCollection
     @CollectionTable(name = "user_additional_name", joinColumns =
             {@JoinColumn(name = "userOid")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
@@ -141,10 +142,10 @@ public class RUserType extends RExtensibleObjectType {
     public void setAccountRef(Set<RObjectReferenceType> accountRef) {
         this.accountRef = accountRef;
     }
-//
-//    public void setAssignment(Set<AssignmentType> assignment) {
-//        this.assignment = assignment;
-//    }
+
+    public void setAssignment(Set<RAssignmentType> assignment) {
+        this.assignment = assignment;
+    }
 
     public void setCredentials(RCredentialsType credentials) {
         this.credentials = credentials;
@@ -250,7 +251,12 @@ public class RUserType extends RExtensibleObjectType {
             repo.getAccountRef().add(RUtil.jaxbRefToRepo(accountRef));
         }
 
-        //todo implement
+        for (AssignmentType assignment : jaxb.getAssignment()) {
+            RAssignmentType rAssignment = new RAssignmentType();
+            RAssignmentType.copyFromJAXB(assignment, rAssignment);
+
+            repo.getAssignment().add(rAssignment);
+        }
     }
 
     public static void copyToJAXB(RUserType repo, UserType jaxb) throws DtoTranslationException {
@@ -288,7 +294,11 @@ public class RUserType extends RExtensibleObjectType {
             }
         }
 
-        //todo implement
+        if (repo.getAssignment() != null) {
+            for (RAssignmentType rAssignment : repo.getAssignment()) {
+                jaxb.getAssignment().add(rAssignment.toJAXB());
+            }
+        }
     }
 
     @Override

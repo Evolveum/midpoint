@@ -41,7 +41,7 @@ import java.util.Set;
 public class RExtension implements Identifiable {
 
     private long id;
-    private Set<String> objects;
+    private Set<String> objects;   //todo mapping
 
     @Id
     @GeneratedValue

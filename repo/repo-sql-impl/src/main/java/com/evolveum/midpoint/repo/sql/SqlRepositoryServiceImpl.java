@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.RResourceObjectShadowType;
 import com.evolveum.midpoint.repo.sql.data.common.RTaskType;
 import com.evolveum.midpoint.repo.sql.data.common.RUserType;
 import com.evolveum.midpoint.schema.ResultArrayList;
@@ -58,6 +59,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     String DELETE_OBJECT = CLASS_NAME_WITH_DOT + "deleteObject";
     String CLAIM_TASK = CLASS_NAME_WITH_DOT + "claimTask";
     String RELEASE_TASK = CLASS_NAME_WITH_DOT + "releaseTask";
+    String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
+    String LIST_RESOURCE_OBJECT_SHADOWS = CLASS_NAME_WITH_DOT + "listResourceObjectShadows";
+    String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
 
@@ -305,24 +309,96 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
     @Override
     public <T extends ObjectType> ResultList<T> searchObjects(Class<T> type, QueryType query, PagingType paging,
-            OperationResult parentResult) throws SchemaException {
-        ResultList<T> list = new ResultArrayList<T>();
+            OperationResult result) throws SchemaException {
+        Validate.notNull(type, "Object type must not be null.");
+        Validate.notNull(query, "Query must not be null.");
+        Validate.notNull(result, "Operation result must not be null.");
 
-        return list;  //todo implement
+        OperationResult subResult = result.createSubresult(SEARCH_OBJECTS);
+
+        ResultList<T> list = new ResultArrayList<T>();
+        Session session = null;
+        try {
+            //todo implement
+
+        } catch (SystemException ex) {
+            session.getTransaction().rollback();
+            throw ex;
+        } catch (Exception ex) {
+            session.getTransaction().rollback();
+            throw new SystemException(ex.getMessage(), ex);
+        } finally {
+            cleanupSessionAndResult(session, subResult);
+        }
+
+        return list;
     }
 
     @Override
     public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType objectChange,
-            OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-        //todo implement
+            OperationResult result) throws ObjectNotFoundException, SchemaException {
+        Validate.notNull(type, "Object type must not be null.");
+        Validate.notNull(objectChange, "Object change must not be null.");
+        Validate.notNull(result, "Operation result must not be null.");
+
+        OperationResult subResult = result.createSubresult(MODIFY_OBJECT);
+        Session session = null;
+        try {
+            //todo implement
+
+        } catch (SystemException ex) {
+            session.getTransaction().rollback();
+            throw ex;
+        } catch (Exception ex) {
+            session.getTransaction().rollback();
+            throw new SystemException(ex.getMessage(), ex);
+        } finally {
+            cleanupSessionAndResult(session, subResult);
+        }
     }
 
     @Override
     public <T extends ResourceObjectShadowType> ResultList<T> listResourceObjectShadows(String resourceOid,
-            Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException {
-        ResultList<T> list = new ResultArrayList<T>();
+            Class<T> resourceObjectShadowType, OperationResult result) throws ObjectNotFoundException {
+        Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
+        Validate.notNull(resourceObjectShadowType, "Resource object shadow type must not be null.");
+        Validate.notNull(result, "Operation result must not be null.");
 
-        return list;  //todo implement
+        LOGGER.debug("Listing resource object shadows '{}' for resource '{}'.",
+                new Object[]{resourceObjectShadowType.getSimpleName(), resourceOid});
+        OperationResult subResult = result.createSubresult(LIST_RESOURCE_OBJECT_SHADOWS);
+
+        ResultList<T> list = new ResultArrayList<T>();
+        Session session = null;
+        try {
+            session = beginTransaction();
+            Query query = session.createQuery("select shadow from " + ClassMapper.getHQLType(resourceObjectShadowType)
+                    + " as shadow left join shadow.resourceRef as ref where ref.oid = :oid");
+            query.setString("oid", resourceOid);
+
+            List<RResourceObjectShadowType> shadows = query.list();
+            LOGGER.debug("Query returned {} shadows, transforming to JAXB types.",
+                    new Object[]{(shadows != null ? shadows.size() : 0)});
+
+            if (shadows != null) {
+                list.setTotalResultCount(shadows.size());
+                for (RResourceObjectShadowType shadow : shadows) {
+                    list.add((T) shadow.toJAXB());
+                }
+            }
+            session.getTransaction().commit();
+            LOGGER.debug("Done.");
+        } catch (SystemException ex) {
+            session.getTransaction().rollback();
+            throw ex;
+        } catch (Exception ex) {
+            session.getTransaction().rollback();
+            throw new SystemException(ex.getMessage(), ex);
+        } finally {
+            cleanupSessionAndResult(session, subResult);
+        }
+
+        return list;
     }
 
     private void updateTaskExclusivity(String oid, TaskExclusivityStatusType newStatus, OperationResult result)
