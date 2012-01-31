@@ -22,12 +22,11 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
+import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.Objects;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -76,7 +75,11 @@ public class SpringApplicationContextTest {
             System.out.println("Changes: " + (i + 1) + "\n" + type.getClass()
                     + "\n" + JAXBUtil.marshalWrap(changes) + "\n\n");
         }
-        
+
+        ResultList<UserType> list = service.listObjects(UserType.class, PagingTypeFactory.createPaging(1, 2,
+                OrderDirectionType.ASCENDING, "name"), new OperationResult("a"));
+        System.out.println(list.getTotalResultCount() + "\n" + list);
+
         UserType user = service.listAccountShadowOwner("1234", new OperationResult("a"));
         System.out.println(JAXBUtil.marshalWrap(user));
 

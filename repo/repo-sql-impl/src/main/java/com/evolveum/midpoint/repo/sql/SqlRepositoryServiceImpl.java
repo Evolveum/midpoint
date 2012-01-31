@@ -26,10 +26,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.RUserType;
 import com.evolveum.midpoint.schema.ResultArrayList;
 import com.evolveum.midpoint.schema.ResultList;
-import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.schema.exception.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -49,7 +46,7 @@ import java.util.List;
  * @author lazyman
  */
 @Repository
-public class SqlRepositoryServiceImpl {
+public class SqlRepositoryServiceImpl implements RepositoryService {
 
     //todo move to interface
     String CLASS_NAME_WITH_DOT = RepositoryService.class.getName() + ".";
@@ -57,12 +54,14 @@ public class SqlRepositoryServiceImpl {
     String LIST_OBJECTS = CLASS_NAME_WITH_DOT + "listObjects";
     String LIST_ACCOUNT_SHADOW = CLASS_NAME_WITH_DOT + "listAccountShadowOwner";
     String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
+    String DELETE_OBJECT = CLASS_NAME_WITH_DOT + "deleteObject";
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
 
     @Autowired(required = true)
     SessionFactory sessionFactory;
 
+    @Override
     public <T extends ObjectType> T getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
             OperationResult result) throws ObjectNotFoundException, SchemaException {
         Validate.notNull(type, "Object type must not be null.");
@@ -75,8 +74,8 @@ public class SqlRepositoryServiceImpl {
         try {
             LOGGER.debug("Getting object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
             session = beginTransaction();
-            Query query = session.createQuery("from " + ClassMapper.getHQLType(type) + " o where o.oid = ?");
-            query.setString(0, oid);
+            Query query = session.createQuery("from " + ClassMapper.getHQLType(type) + " o where o.oid = :oid");
+            query.setString("oid", oid);
 
             RObjectType object = (RObjectType) query.uniqueResult();
             if (object == null) {
@@ -113,6 +112,7 @@ public class SqlRepositoryServiceImpl {
         return (T) objectType;
     }
 
+    @Override
     public <T extends ObjectType> ResultList<T> listObjects(Class<T> type, PagingType paging,
             OperationResult result) {
         Validate.notNull(type, "Object type must not be null.");
@@ -125,9 +125,10 @@ public class SqlRepositoryServiceImpl {
             session = beginTransaction();
             LOGGER.debug("Selecting total count.");
             Query query = session.createQuery("select count(o) from " + ClassMapper.getHQLType(type) + " as o");
-            Integer count = (Integer) query.uniqueResult();
-            results.setTotalResultCount(count);
+            Long count = (Long) query.uniqueResult();
+            results.setTotalResultCount(count.intValue());  //todo ResultList must have long value
 
+            //todo sort by and asc or desc
             LOGGER.debug("Count is {}, selecting objects.", new Object[]{count});
             query = session.createQuery("from " + ClassMapper.getHQLType(type) + " as o");
             query = updatePaging(query, paging);
@@ -155,6 +156,7 @@ public class SqlRepositoryServiceImpl {
         return results;
     }
 
+    @Override
     public UserType listAccountShadowOwner(String accountOid, OperationResult result)
             throws ObjectNotFoundException {
         Validate.notEmpty(accountOid, "Oid must not be null or empty.");
@@ -167,8 +169,8 @@ public class SqlRepositoryServiceImpl {
             session = beginTransaction();
             LOGGER.debug("Selecting account shadow owner for account {}.", new Object[]{accountOid});
             Query query = session.createQuery("select user from RUserType as user left join user.accountRef " +
-                    "as ref where ref.oid = ?");
-            query.setString(0, accountOid);
+                    "as ref where ref.oid = :oid");
+            query.setString("oid", accountOid);
 
             List<RUserType> users = query.list();
             LOGGER.debug("Found {} users, transforming data to JAXB types.",
@@ -204,25 +206,30 @@ public class SqlRepositoryServiceImpl {
         return userType;
     }
 
+    @Override
     public <T extends ObjectType> String addObject(T object, OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException {
         Validate.notNull(object, "Object must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
+        LOGGER.debug("Adding object type '{}'", new Object[]{object.getClass().getSimpleName()});
 
         String oid = null;
         OperationResult subResult = result.createSubresult(ADD_OBJECT);
         Session session = null;
         try {
-            session = beginTransaction();
-
+            LOGGER.debug("Translating JAXB to data type.");
             RObjectType rObject;
             Class<? extends RObjectType> clazz = ClassMapper.getHQLTypeClass(object.getClass());
             rObject = clazz.newInstance();
             Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz);
             method.invoke(clazz, object, rObject);
 
+            LOGGER.debug("Saving object.");
+            session = beginTransaction();
             oid = (String) session.save(rObject);
             session.getTransaction().commit();
+
+            LOGGER.debug("Saved object '{}' with oid '{}'", new Object[]{object.getClass().getSimpleName(), oid});
         } catch (SystemException ex) {
             session.getTransaction().rollback();
             throw ex;
@@ -237,9 +244,70 @@ public class SqlRepositoryServiceImpl {
     }
 
     //todo probably remove from interface
+    @Override
     public <T extends ObjectType> PropertyAvailableValuesListType getPropertyAvailableValues(Class<T> type, String oid,
             PropertyReferenceListType properties, OperationResult result) throws ObjectNotFoundException {
         throw new UnsupportedOperationException("Not implemented yet.");
+    }
+
+    @Override
+    public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult result) throws
+            ObjectNotFoundException {
+        Validate.notNull(type, "Object type must not be null.");
+        Validate.notEmpty(oid, "Oid must not be null or empty.");
+        Validate.notNull(result, "Operation result must not be null.");
+        LOGGER.debug("Deleting object type '{}' with oid '{}'", new Object[]{type.getSimpleName(), oid});
+
+        OperationResult subResult = result.createSubresult(DELETE_OBJECT);
+        Session session = null;
+        try {
+            session = beginTransaction();
+            Query query = session.createQuery("delete from " + ClassMapper.getHQLType(type)
+                    + " as user where user.oid = :oid");
+            query.setString("oid", oid);
+
+            int count = query.executeUpdate();
+            session.getTransaction().commit();
+
+            LOGGER.debug("Deleted was {} object(s).", new Object[]{count});
+        } catch (SystemException ex) {
+            session.getTransaction().rollback();
+            throw ex;
+        } catch (Exception ex) {
+            session.getTransaction().rollback();
+            throw new SystemException(ex.getMessage(), ex);
+        } finally {
+            cleanupSessionAndResult(session, subResult);
+        }
+    }
+
+    @Override
+    public void claimTask(String oid, OperationResult parentResult) throws ObjectNotFoundException,
+            ConcurrencyException, SchemaException {
+        //todo implement
+    }
+
+    @Override
+    public void releaseTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+        //todo implement
+    }
+
+    @Override
+    public <T extends ObjectType> ResultList<T> searchObjects(Class<T> type, QueryType query, PagingType paging,
+            OperationResult parentResult) throws SchemaException {
+        return null;  //todo implement
+    }
+
+    @Override
+    public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType objectChange,
+            OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+        //todo implement
+    }
+
+    @Override
+    public <T extends ResourceObjectShadowType> ResultList<T> listResourceObjectShadows(String resourceOid,
+            Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException {
+        return null;  //todo implement
     }
 
     private <T extends ObjectType> void validateObjectType(ObjectType objectType, Class<T> type) {

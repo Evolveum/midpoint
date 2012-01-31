@@ -22,10 +22,15 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
+import org.apache.commons.lang.StringUtils;
+import org.hibernate.annotations.Type;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.xml.bind.JAXBElement;
 
 /**
  * @author lazyman
@@ -34,20 +39,67 @@ import javax.persistence.Table;
 @Table(name = "user_template")
 public class RUserTemplateType extends RExtensibleObjectType {
 
-//    private List<PropertyConstructionType> propertyConstruction;   //todo mapping
-//    private List<AccountConstructionType> accountConstruction;   //todo mapping
+    private String propertyConstruction;
+    private String accountConstruction;
 
+    @Type(type = "org.hibernate.type.TextType")
+    @Column(nullable = true)
+    public String getAccountConstruction() {
+        return accountConstruction;
+    }
+
+    @Type(type = "org.hibernate.type.TextType")
+    @Column(nullable = true)
+    public String getPropertyConstruction() {
+        return propertyConstruction;
+    }
+
+    public void setAccountConstruction(String accountConstruction) {
+        this.accountConstruction = accountConstruction;
+    }
+
+    public void setPropertyConstruction(String propertyConstruction) {
+        this.propertyConstruction = propertyConstruction;
+    }
 
     public static void copyToJAXB(RUserTemplateType repo, UserTemplateType jaxb) throws DtoTranslationException {
         RExtensibleObjectType.copyToJAXB(repo, jaxb);
 
-        //todo implement
+        try {
+            if (StringUtils.isNotEmpty(repo.getAccountConstruction())) {
+                JAXBElement<UserTemplateType> element = (JAXBElement<UserTemplateType>)
+                        JAXBUtil.unmarshal(repo.getAccountConstruction());
+                jaxb.getAccountConstruction().addAll(element.getValue().getAccountConstruction());
+            }
+
+            if (StringUtils.isNotEmpty(repo.getPropertyConstruction())) {
+                JAXBElement<UserTemplateType> element = (JAXBElement<UserTemplateType>)
+                        JAXBUtil.unmarshal(repo.getPropertyConstruction());
+                jaxb.getPropertyConstruction().addAll(element.getValue().getPropertyConstruction());
+            }
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
     }
 
     public static void copyFromJAXB(UserTemplateType jaxb, RUserTemplateType repo) throws DtoTranslationException {
         RExtensibleObjectType.copyFromJAXB(jaxb, repo);
 
-        //todo implement
+        try {
+            if (!jaxb.getAccountConstruction().isEmpty()) {
+                UserTemplateType template = new UserTemplateType();
+                template.getAccountConstruction().addAll(jaxb.getAccountConstruction());
+                repo.setAccountConstruction(RUtil.toRepo(template));
+            }
+
+            if (!jaxb.getPropertyConstruction().isEmpty()) {
+                UserTemplateType template = new UserTemplateType();
+                template.getPropertyConstruction().addAll(jaxb.getPropertyConstruction());
+                repo.setPropertyConstruction(RUtil.toRepo(template));
+            }
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
     }
 
     @Override
