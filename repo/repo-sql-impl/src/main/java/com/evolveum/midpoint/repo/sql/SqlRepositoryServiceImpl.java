@@ -26,21 +26,28 @@ import com.evolveum.midpoint.repo.sql.data.common.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.RResourceObjectShadowType;
 import com.evolveum.midpoint.repo.sql.data.common.RTaskType;
 import com.evolveum.midpoint.repo.sql.data.common.RUserType;
+import com.evolveum.midpoint.repo.sql.query.QueryProcessor;
 import com.evolveum.midpoint.schema.ResultArrayList;
 import com.evolveum.midpoint.schema.ResultList;
+import com.evolveum.midpoint.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.exception.*;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.ObjectDefinition;
+import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.apache.commons.lang.Validate;
-import org.hibernate.NonUniqueResultException;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
+import org.hibernate.*;
+import org.hibernate.criterion.Projections;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.lang.InstantiationException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -64,6 +71,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
+
+    @Autowired(required = true)
+    private SchemaRegistry schemaRegistry;
 
     @Autowired(required = true)
     SessionFactory sessionFactory;
@@ -225,11 +235,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         Session session = null;
         try {
             LOGGER.debug("Translating JAXB to data type.");
-            RObjectType rObject;
-            Class<? extends RObjectType> clazz = ClassMapper.getHQLTypeClass(object.getClass());
-            rObject = clazz.newInstance();
-            Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz);
-            method.invoke(clazz, object, rObject);
+            RObjectType rObject = createDataObjectFromJAXB(object);
 
             LOGGER.debug("Saving object.");
             session = beginTransaction();
@@ -312,6 +318,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             OperationResult result) throws SchemaException {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(query, "Query must not be null.");
+        Validate.notNull(query.getFilter(), "Query filter must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
         OperationResult subResult = result.createSubresult(SEARCH_OBJECTS);
@@ -319,8 +326,31 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         ResultList<T> list = new ResultArrayList<T>();
         Session session = null;
         try {
-            //todo implement
+            session = beginTransaction();
+            Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
+            LOGGER.debug("Updating query criteria.");
+            criteria = new QueryProcessor().createFilterCriteria(criteria, query.getFilter());
+            criteria.setProjection(Projections.rowCount());
 
+            LOGGER.debug("Selecting total count.");
+            Long count = (Long) criteria.uniqueResult();
+            list.setTotalResultCount(count.intValue());
+
+            LOGGER.debug("Total count is {}, listing object based on paging.", new Object[]{count});
+            criteria.setProjection(null);
+            criteria = updatePaging(criteria, paging);
+
+            List<RObjectType> objects = criteria.list();
+            LOGGER.debug("Found {} objects, translating to JAXB.",
+                    new Object[]{(objects != null ? objects.size() : 0)});
+
+            for (RObjectType object : objects) {
+                ObjectType objectType = object.toJAXB();
+                validateObjectType(objectType, type);
+                list.add((T) objectType);
+            }
+
+            session.getTransaction().commit();
         } catch (SystemException ex) {
             session.getTransaction().rollback();
             throw ex;
@@ -334,18 +364,46 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         return list;
     }
 
-    @Override
-    public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType objectChange,
-            OperationResult result) throws ObjectNotFoundException, SchemaException {
-        Validate.notNull(type, "Object type must not be null.");
-        Validate.notNull(objectChange, "Object change must not be null.");
+    public <T extends ObjectType> void modifyObject(ObjectDelta<T> delta, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        Validate.notNull(delta, "Object delta must not be null.");
+        Validate.notNull(delta.getObjectTypeClass(), "Object class in delta must not be null.");
+        Validate.notEmpty(delta.getOid(), "Oid in object delta must not null or empty.");
         Validate.notNull(result, "Operation result must not be null.");
+
+        LOGGER.debug("Modifying object '{}' with oid '{}'.",
+                new Object[]{delta.getObjectTypeClass().getSimpleName(), delta.getOid()});
 
         OperationResult subResult = result.createSubresult(MODIFY_OBJECT);
         Session session = null;
         try {
-            //todo implement
+            T object = getObject(delta.getObjectTypeClass(), delta.getOid(), null, subResult);
 
+            Schema schema = schemaRegistry.getObjectSchema();
+            ObjectDefinition<T> objectDef = schema.findObjectDefinition(delta.getObjectTypeClass());
+
+            MidPointObject<T> midPointObject = objectDef.parseObjectType(object);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("OBJECT before:\n{}DELTA:\n{}", new Object[]{midPointObject.dump(), delta.dump()});
+            }
+            delta.applyTo(midPointObject);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("OBJECT after:\n{}", midPointObject.dump());
+            }
+
+            midPointObject.setObjectType(null);
+            T updatedObject = midPointObject.getOrParseObjectType();
+
+            //todo problem because long id identifiers are lost, or maybe not...
+            LOGGER.debug("Translating JAXB to data type.");
+            RObjectType rObject = createDataObjectFromJAXB(object);
+
+            session = beginTransaction();
+            session.update(rObject);
+            session.getTransaction().commit();
+        } catch (ObjectNotFoundException ex) {
+            session.getTransaction().rollback();
+            throw ex;
         } catch (SystemException ex) {
             session.getTransaction().rollback();
             throw ex;
@@ -355,6 +413,18 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         } finally {
             cleanupSessionAndResult(session, subResult);
         }
+    }
+
+    @Override
+    public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType objectChange,
+            OperationResult result) throws ObjectNotFoundException, SchemaException {
+        Validate.notNull(type, "Object type must not be null.");
+        Validate.notNull(objectChange, "Object change must not be null.");
+        Validate.notNull(result, "Operation result must not be null.");
+
+        Schema schema = schemaRegistry.getObjectSchema();
+        ObjectDelta<T> delta = ObjectDelta.createDelta(objectChange, schema, type);
+        modifyObject(delta, result);
     }
 
     @Override
@@ -383,6 +453,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             if (shadows != null) {
                 list.setTotalResultCount(shadows.size());
                 for (RResourceObjectShadowType shadow : shadows) {
+                    ResourceObjectShadowType jaxb = shadow.toJAXB();
+                    validateObjectType(jaxb, resourceObjectShadowType);
+
                     list.add((T) shadow.toJAXB());
                 }
             }
@@ -441,6 +514,33 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             throw new SystemException("Result ('" + objectType + "') is not assignable to '"
                     + type.getSimpleName() + "' [really should not happen].");
         }
+    }
+
+    private Criteria updatePaging(Criteria criteria, PagingType paging) {
+        if (paging == null) {
+            return criteria;
+        }
+
+        if (paging.getOffset() != null) {
+            criteria = criteria.setFirstResult(paging.getOffset());
+        }
+        if (paging.getMaxSize() != null) {
+            criteria = criteria.setMaxResults(paging.getMaxSize());
+        }
+
+        return criteria;
+    }
+
+    private <T extends ObjectType> RObjectType createDataObjectFromJAXB(T object) throws InstantiationException,
+            IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+
+        RObjectType rObject;
+        Class<? extends RObjectType> clazz = ClassMapper.getHQLTypeClass(object.getClass());
+        rObject = clazz.newInstance();
+        Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz);
+        method.invoke(clazz, object, rObject);
+
+        return rObject;
     }
 
     private Query updatePaging(Query query, PagingType paging) {
