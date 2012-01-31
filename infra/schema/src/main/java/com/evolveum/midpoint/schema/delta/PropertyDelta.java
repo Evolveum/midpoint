@@ -326,7 +326,7 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         if (containingPcd == null) {
             throw new SchemaException("No container definition for " + parentPath + " (while creating delta for " + pcDef + ")");
         }
-        Collection<? extends Item> items = containingPcd.parseItems(propMod.getValue().getAny());
+        Collection<? extends Item> items = containingPcd.parseItems(propMod.getValue().getAny(), parentPath);
         if (items.size() > 1) {
             throw new SchemaException("Expected presence of a single property (path " + propMod.getPath() + ") in a object modification, but found " + items.size() + " instead");
         }
@@ -410,11 +410,11 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
      * is applied.
      * Assumes "replace" delta.
      */
-    public Property getPropertyNew(PropertyDefinition propertyDefinition) {
+    public Property getPropertyNew(PropertyDefinition propertyDefinition, PropertyPath parentPath) {
         if (valuesToAdd != null && valuesToDelete != null) {
             throw new IllegalStateException("Cannot fetch new property state, not a 'replace' delta");
         }
-        Property prop = propertyDefinition.instantiate();
+        Property prop = propertyDefinition.instantiate(parentPath);
         if (valuesToReplace == null || valuesToReplace.isEmpty()) {
             return prop;
         }

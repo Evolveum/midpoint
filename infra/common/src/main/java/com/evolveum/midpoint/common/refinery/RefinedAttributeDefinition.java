@@ -129,16 +129,6 @@ public class RefinedAttributeDefinition extends ResourceObjectAttributeDefinitio
     }
 
     @Override
-    public PropertyPath getPath() {
-        return attributeDefinition.getPath();
-    }
-
-    @Override
-    public PropertyPath getParentPath() {
-        return attributeDefinition.getParentPath();
-    }
-
-    @Override
     public QName getDefaultName() {
         return attributeDefinition.getDefaultName();
     }

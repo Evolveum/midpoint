@@ -114,7 +114,10 @@ public class ActivationProcessor {
                 LOGGER.trace("No outbound definition in 'enabled' definition in activation in account type {}, skipping activation processing", rat);
                 continue;
             }
-            ValueConstruction enabledConstruction = valueConstructionFactory.createValueConstruction(outbound, accountEnabledPropertyDefinition, "outbound activation in account type " + rat);
+            
+            // TODO: is the parentPath correct (null)?
+            ValueConstruction enabledConstruction = valueConstructionFactory.createValueConstruction(outbound, accountEnabledPropertyDefinition, 
+            		null, "outbound activation in account type " + rat);
             enabledConstruction.setInput(userEnabledNew);
             enabledConstruction.evaluate(result);
             Property accountEnabledNew = enabledConstruction.getOutput();

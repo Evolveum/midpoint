@@ -77,7 +77,8 @@ public class ObjectDefinition<T extends ObjectType> extends PropertyContainerDef
 	}
 
 	public MidPointObject<T> parseObjectType(T objectType) throws SchemaException {
-		MidPointObject<T> object = parseItemFromJaxbObject(objectType, MidPointObject.class);
+		// Parent is null, objects do not have parents
+		MidPointObject<T> object = parseItemFromJaxbObject(objectType, MidPointObject.class, null);
 		object.setOid(objectType.getOid());
 		object.setObjectType(objectType);
 		return object;
@@ -97,16 +98,38 @@ public class ObjectDefinition<T extends ObjectType> extends PropertyContainerDef
 		super.fillProperties(instance, mpObject);
 	}
 
-	@Override
 	public MidPointObject<T> instantiate(QName name) {
-		MidPointObject<T> midPointObject = new MidPointObject<T>(name, this);
+		MidPointObject<T> midPointObject = new MidPointObject<T>(name, this, null, null);
 		return midPointObject;
 	}
 
-	@Override
 	public MidPointObject<T> instantiate(QName name, Object element) {
-		return new MidPointObject<T>(name, this, element);
+		return new MidPointObject<T>(name, this, element, null);
 	}
+
+	/**
+	 * Just for "compatibility".
+	 */
+	@Override
+	public MidPointObject<T> instantiate(QName name, PropertyPath parentPath) {
+		if (parentPath != null) {
+			throw new IllegalArgumentException("Objects cannot have parents");
+		}
+		MidPointObject<T> midPointObject = new MidPointObject<T>(name, this, null, parentPath);
+		return midPointObject;
+	}
+
+	/**
+	 * Just for "compatibility".
+	 */
+	@Override
+	public MidPointObject<T> instantiate(QName name, Object element, PropertyPath parentPath) {
+		if (parentPath != null) {
+			throw new IllegalArgumentException("Objects cannot have parents");
+		}
+		return new MidPointObject<T>(name, this, element, parentPath);
+	}
+
 	
 	public ObjectDefinition<T> clone() {
 		ObjectDefinition<T> clone = new ObjectDefinition<T>(name, complexTypeDefinition);

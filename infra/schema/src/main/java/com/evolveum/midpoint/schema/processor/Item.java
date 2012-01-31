@@ -48,50 +48,52 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
     // Original element from which the item was parsed
     // live reference, pointing to the original JAXB/DOM. used for applying modifications
     protected Object element;
+    protected PropertyPath parentPath;
+
+//    /**
+//     * Default constructor.
+//     * The constructors should be used only occasionally (if used at all).
+//     * Use the factory methods in the ResourceObjectDefintion instead.
+//     */
+//    public Item() {
+//        super();
+//    }
+//
+//    /**
+//     * The constructors should be used only occasionally (if used at all).
+//     * Use the factory methods in the ResourceObjectDefintion instead.
+//     *
+//     * @param name item name (element name)
+//     */
+//    public Item(QName name) {
+//        super();
+//        this.name = name;
+//        this.definition = null;
+//    }
+//
+//    /**
+//     * The constructors should be used only occasionally (if used at all).
+//     * Use the factory methods in the ResourceObjectDefintion instead.
+//     *
+//     * @param name       item name (element name)
+//     * @param definition item definition (schema)
+//     */
+//    public Item(QName name, Definition definition) {
+//        super();
+//        this.name = name;
+//        this.definition = definition;
+//    }
 
     /**
-     * Default constructor.
      * The constructors should be used only occasionally (if used at all).
      * Use the factory methods in the ResourceObjectDefintion instead.
      */
-    public Item() {
-        super();
-    }
-
-    /**
-     * The constructors should be used only occasionally (if used at all).
-     * Use the factory methods in the ResourceObjectDefintion instead.
-     *
-     * @param name item name (element name)
-     */
-    public Item(QName name) {
-        super();
-        this.name = name;
-        this.definition = null;
-    }
-
-    /**
-     * The constructors should be used only occasionally (if used at all).
-     * Use the factory methods in the ResourceObjectDefintion instead.
-     *
-     * @param name       item name (element name)
-     * @param definition item definition (schema)
-     */
-    public Item(QName name, Definition definition) {
-        super();
-        this.name = name;
-        this.definition = definition;
-    }
-
-    /**
-     * The constructors should be used only occasionally (if used at all).
-     * Use the factory methods in the ResourceObjectDefintion instead.
-     */
-    public Item(QName name, Definition definition, Object element) {
+    public Item(QName name, Definition definition, Object element, PropertyPath parentPath) {
         super();
         this.name = name;
         this.definition = definition;
         this.element = element;
+        this.parentPath = parentPath;
     }
 
     /**
@@ -152,8 +154,27 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
     public void setElement(Object element) {
         this.element = element;
     }
+	
+	public PropertyPath getParentPath() {
+		if (parentPath == null) {
+			return PropertyPath.EMPTY_PATH;
+		}
+		return parentPath;
+	}
 
-    /**
+	public void setParentPath(PropertyPath parentPath) {
+		this.parentPath = parentPath;
+	}
+
+	public PropertyPath getPath() {
+		if (parentPath == null) {
+			return new PropertyPath(name);
+		} else {
+			return parentPath.subPath(name);
+		}
+	}
+
+	/**
      * Returns a display name for the property type.
      * <p/>
      * Returns null if the display name cannot be determined.

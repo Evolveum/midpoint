@@ -35,6 +35,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.processor.PropertyPath;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -61,7 +62,7 @@ public class GenerateValueConstructor implements ValueConstructor {
 	 * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(javax.xml.bind.JAXBElement, com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property, java.util.Map, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition,
+	public Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition, PropertyPath propertyParentPath,
 			Property input, Map<QName, Object> variables, String contextDescription, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
@@ -92,7 +93,7 @@ public class GenerateValueConstructor implements ValueConstructor {
 			}
         }
         
-		Property output = outputDefinition.instantiate();
+		Property output = outputDefinition.instantiate(propertyParentPath);
 		PropertyValue<Object> pValue = new PropertyValue<Object>(value);
 		output.setValue(pValue);
 		

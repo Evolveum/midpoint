@@ -60,20 +60,20 @@ public class PropertyContainer extends Item {
 
     private Set<Item> items = new HashSet<Item>();
 
-    public PropertyContainer() {
-        super();
-    }
+//    public PropertyContainer() {
+//        super();
+//    }
+//
+//    public PropertyContainer(QName name) {
+//        super(name);
+//    }
+//
+//    public PropertyContainer(QName name, PropertyContainerDefinition definition) {
+//        super(name, definition);
+//    }
 
-    public PropertyContainer(QName name) {
-        super(name);
-    }
-
-    public PropertyContainer(QName name, PropertyContainerDefinition definition) {
-        super(name, definition);
-    }
-
-    public PropertyContainer(QName name, PropertyContainerDefinition definition, Object element) {
-        super(name, definition, element);
+    public PropertyContainer(QName name, PropertyContainerDefinition definition, Object element, PropertyPath parentPath) {
+        super(name, definition, element, parentPath);
     }
 
     /**
@@ -364,7 +364,7 @@ public class PropertyContainer extends Item {
         if (containerDefinition == null) {
             throw new IllegalArgumentException("No definition of container '" + containerName + "' in " + getDefinition());
         }
-        PropertyContainer container = containerDefinition.instantiate();
+        PropertyContainer container = containerDefinition.instantiate(this.getPath());
         add(container);
         return container;
     }
@@ -376,7 +376,7 @@ public class PropertyContainer extends Item {
         PropertyDefinition propertyDefinition = getDefinition().findPropertyDefinition(propertyName);
         if (propertyDefinition == null) {
         	// HACK: sometimes we don't know if the definition is runtime or not (e.g. applying a patch)
-        	// therefore pretend that everything withot a definition is runtime (for now)
+        	// therefore pretend that everything without a definition is runtime (for now)
 //        	if (this.getDefinition().isRuntimeSchema) {
         		// HACK: create the definition "on demand" based on the property java type.
         		QName typeName = XsdTypeConverter.toXsdType(valueClass);
@@ -385,7 +385,7 @@ public class PropertyContainer extends Item {
 //        		throw new IllegalArgumentException("No definition of property '" + propertyName + "' in " + getDefinition());
 //        	}
         }
-        Property property = propertyDefinition.instantiate();
+        Property property = propertyDefinition.instantiate(this.getPath());
         add(property);
         return property;
     }
@@ -461,7 +461,7 @@ public class PropertyContainer extends Item {
 
     @Override
     public PropertyContainer clone() {
-        PropertyContainer clone = new PropertyContainer();
+        PropertyContainer clone = new PropertyContainer(getName(), getDefinition(), getElement(), getParentPath());
         copyValues(clone);
         return clone;
     }

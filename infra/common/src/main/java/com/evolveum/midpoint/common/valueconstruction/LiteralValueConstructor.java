@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.processor.PropertyPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 /**
@@ -45,7 +46,7 @@ public class LiteralValueConstructor implements ValueConstructor {
 	 * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property)
 	 */
 	@Override
-	public Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition, 
+	public Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition, PropertyPath propertyParentPath,
 			Property input, Map<QName, Object> variables, String contextDescription, OperationResult result) 
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
@@ -57,7 +58,8 @@ public class LiteralValueConstructor implements ValueConstructor {
 			throw new IllegalArgumentException("Literal value constructor can only handle DOM elements, but got "+constructorTypeObject.getClass().getName());
 		}
 		
-		Property output = outputDefinition.parseFromValueElement((Element)constructorTypeObject);
+		// FIXME: better handling of parentPath
+		Property output = outputDefinition.parseFromValueElement((Element)constructorTypeObject, propertyParentPath);
 		
 		return output;
 	}

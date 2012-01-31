@@ -477,7 +477,7 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 		if (typeName == null) {
 			return null;
 		}
-		PropertyDefinition propDef = new PropertyDefinition(elementName, typeName, parentDefinition);
+		PropertyDefinition propDef = new PropertyDefinition(elementName, typeName);
 		// Set it to multi-value to be on the safe side
 		propDef.setMaxOccurs(-1);
 		// TODO: set "dynamic" flag
@@ -495,7 +495,7 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 				break;
 			}
 		}
-		PropertyDefinition propDef = new PropertyDefinition(elementName, DEFAULT_XSD_TYPE, parentDefinition);
+		PropertyDefinition propDef = new PropertyDefinition(elementName, DEFAULT_XSD_TYPE);
 		// Set it to multi-value to be on the safe side
 		propDef.setMaxOccurs(-1);
 		// TODO: set "dynamic" flag

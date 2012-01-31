@@ -147,6 +147,7 @@ public abstract class SchemaConstants {
 
 	public static final PropertyPath PATH_PASSWORD = new PropertyPath(I_CREDENTIALS, I_PASSWORD);
 	public static final PropertyPath PATH_PASSWORD_VALUE = new PropertyPath(I_CREDENTIALS, I_PASSWORD, new QName(NS_C,"protectedString"));
+	public static final PropertyPath PATH_ACTIVATION = new PropertyPath(C_ACTIVATION);
 	public static final PropertyPath PATH_ACTIVATION_ENABLE = new PropertyPath(C_ACTIVATION, C_ACTIVATION_ENABLED);
 	public static final PropertyPath PATH_ATTRIBUTES = new PropertyPath(I_ATTRIBUTES);
 	public static final PropertyPath PATH_EXTENSION = new PropertyPath(C_EXTENSION);

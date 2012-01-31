@@ -55,16 +55,16 @@ public class ResourceObjectAttributeDefinition extends PropertyDefinition {
 		super(name, defaultName, typeName);
 	}
 
-	public ResourceObjectAttribute instantiate() {
-		return instantiate(getNameOrDefaultName());
+	public ResourceObjectAttribute instantiate(PropertyPath parentPath) {
+		return instantiate(getNameOrDefaultName(), parentPath);
 	}
 
-	public ResourceObjectAttribute instantiate(QName name) {
-		return new ResourceObjectAttribute(name, this);
+	public ResourceObjectAttribute instantiate(QName name, PropertyPath parentPath) {
+		return new ResourceObjectAttribute(name, this, null, parentPath);
 	}
 
-	public ResourceObjectAttribute instantiate(QName name, Object element) {
-		return new ResourceObjectAttribute(name, this, element);
+	public ResourceObjectAttribute instantiate(QName name, Object element, PropertyPath parentPath) {
+		return new ResourceObjectAttribute(name, this, element, parentPath);
 	}
 
 	/**

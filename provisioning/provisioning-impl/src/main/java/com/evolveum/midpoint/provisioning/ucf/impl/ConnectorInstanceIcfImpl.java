@@ -821,20 +821,23 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				if (change.getChangeType().equals(PropertyModificationTypeType.add)) {
 					Property property = change.getNewAttribute();
 					ResourceObjectAttribute addAttribute = new ResourceObjectAttribute(property.getName(),
-							property.getDefinition(), property.getValues());
+							property.getDefinition(), null, null);
+					addAttribute.addValues(property.getValues());
 					addValues.add(addAttribute);
 
 				}
 				if (change.getChangeType().equals(PropertyModificationTypeType.delete)) {
 					Property property = change.getNewAttribute();
 					ResourceObjectAttribute deleteAttribute = new ResourceObjectAttribute(property.getName(),
-							property.getDefinition(), property.getValues());
+							property.getDefinition(), null, null);
+					deleteAttribute.addValues(property.getValues());
 					valuesToRemove.add(deleteAttribute);
 				}
 				if (change.getChangeType().equals(PropertyModificationTypeType.replace)) {
 					Property property = change.getNewAttribute();
 					ResourceObjectAttribute updateAttribute = new ResourceObjectAttribute(property.getName(),
-							property.getDefinition(), property.getValues());
+							property.getDefinition(), null, null);
+					updateAttribute.addValues(property.getValues());
 					updateValues.add(updateAttribute);
 
 				}
@@ -1033,7 +1036,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// rename
 			AttributeModificationOperation uidMod = new AttributeModificationOperation();
 			uidMod.setChangeType(PropertyModificationTypeType.replace);
-			ResourceObjectAttribute uidAttr = getUidDefinition(identifiers).instantiate();
+			ResourceObjectAttribute uidAttr = getUidDefinition(identifiers).instantiate(null);
 			uidAttr.setValue(new PropertyValue(uid.getUidValue()));
 			sideEffectChanges.add(uidMod);
 		}
@@ -1426,7 +1429,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	private ResourceObjectAttribute setUidAttribute(Uid uid) {
-		ResourceObjectAttribute uidRoa = new ResourceObjectAttribute(ConnectorFactoryIcfImpl.ICFS_UID);
+		ResourceObjectAttribute uidRoa = new ResourceObjectAttribute(ConnectorFactoryIcfImpl.ICFS_UID, null, null, null);
 		uidRoa.setValue(new PropertyValue(uid.getUidValue()));
 		return uidRoa;
 	}
@@ -1463,7 +1466,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		} else {
 			// We don't know the name here. ObjectClass is a type, not name.
 			// Therefore it will not help here even if we would have it.
-			ro = new ResourceObject();
+			ro = new ResourceObject(null, null, null, null);
 		}
 
 		// Uid is always there
@@ -1495,7 +1498,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 			QName qname = convertAttributeNameToQName(icfAttr.getName());
 
-			ResourceObjectAttribute roa = new ResourceObjectAttribute(qname);
+			ResourceObjectAttribute roa = new ResourceObjectAttribute(qname, null, null, null);
 
 			// if true, we need to convert whole connector object to the
 			// resource object also with the null-values attributes
@@ -1678,19 +1681,25 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return xpathElement;
 	}
 
-	private SyncToken getSyncToken(Property lastToken) throws SchemaException {
-		Object obj = null;
-		Document doc = DOMUtil.getDocument();
-		List<Object> elements = null;
-		try {
-			elements = lastToken.serializeToJaxb(doc);
-		} catch (SchemaException ex) {
-			throw new SchemaException("Failed to serialize last token property to dom.", ex);
+	private SyncToken getSyncToken(Property tokenProperty) throws SchemaException {
+		if (tokenProperty.getValue() == null) {
+			throw new IllegalArgumentException("Attempt to get token from a null property");
 		}
-		for (Object e : elements) {
-			obj = XsdTypeConverter.toJavaValue(e, lastToken.getDefinition().getTypeName());
+		Object tokenValue = tokenProperty.getValue().getValue();
+		if (tokenValue == null) {
+			throw new IllegalArgumentException("Attempt to get token from a null-valued property");
 		}
-		SyncToken syncToken = new SyncToken(obj);
+//		Document doc = DOMUtil.getDocument();
+//		List<Object> elements = null;
+//		try {
+//			elements = lastToken.serializeToJaxb(doc);
+//		} catch (SchemaException ex) {
+//			throw new SchemaException("Failed to serialize last token property to dom.", ex);
+//		}
+//		for (Object e : elements) {
+//			tokenValue = XsdTypeConverter.toJavaValue(e, lastToken.getDefinition().getTypeName());
+//		}
+		SyncToken syncToken = new SyncToken(tokenValue);
 		return syncToken;
 	}
 
@@ -1702,11 +1711,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private Property createTokenProperty(Object object) {
 		QName type = XsdTypeConverter.toXsdType(object.getClass());
 
-		Set<PropertyValue<Object>> objs = new HashSet<PropertyValue<Object>>();
-		objs.add(new PropertyValue<Object>(object));
+		Set<PropertyValue<Object>> syncTokenValues = new HashSet<PropertyValue<Object>>();
+		syncTokenValues.add(new PropertyValue<Object>(object));
 		PropertyDefinition propDef = new PropertyDefinition(SchemaConstants.SYNC_TOKEN, type);
 
-		Property property = new Property(SchemaConstants.SYNC_TOKEN, propDef, objs);
+		Property property = new Property(SchemaConstants.SYNC_TOKEN, propDef, null, null);
+		property.addValues(syncTokenValues);
 		return property;
 	}
 

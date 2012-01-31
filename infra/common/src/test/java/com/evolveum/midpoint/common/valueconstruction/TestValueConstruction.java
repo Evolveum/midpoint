@@ -102,7 +102,7 @@ public class TestValueConstruction {
         OperationResult opResult = new OperationResult("testConstructionValue");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "literal construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "literal construction");
         construction.evaluate(opResult);
         Property result = construction.getOutput();
 
@@ -123,7 +123,7 @@ public class TestValueConstruction {
         OperationResult opResult = new OperationResult("testConstructionValueMulti");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "literal multi construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "literal multi construction");
         construction.evaluate(opResult);
         Property result = construction.getOutput();
 
@@ -145,13 +145,13 @@ public class TestValueConstruction {
         PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
-        Property givenName = givenNameDef.instantiate();
+        Property givenName = givenNameDef.instantiate(null);
         givenName.setValue(new PropertyValue("barbar"));
 
         OperationResult opResult = new OperationResult("testConstructionAsIs");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "asis construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "asis construction");
         construction.setInput(givenName);
         construction.evaluate(opResult);
         Property result = construction.getOutput();
@@ -173,7 +173,7 @@ public class TestValueConstruction {
         OperationResult opResult = new OperationResult("testConstructionExpressionSimple");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "simple expression construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "simple expression construction");
         construction.evaluate(opResult);
         Property result = construction.getOutput();
         // THEN
@@ -193,7 +193,7 @@ public class TestValueConstruction {
         OperationResult opResult = new OperationResult("testConstructionExpressionVariables");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "variables expression construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "variables expression construction");
         construction.evaluate(opResult);
         Property result = construction.getOutput();
 
@@ -214,7 +214,7 @@ public class TestValueConstruction {
         OperationResult opResult = new OperationResult("testConstructionExpressionSystemVariables");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "system variables expression construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "system variables expression construction");
 
         ObjectReferenceType ref = new ObjectReferenceType();
         ref.setOid("c0c010c0-d34d-b33f-f00d-111111111111");
@@ -245,7 +245,7 @@ public class TestValueConstruction {
         OperationResult opResult = new OperationResult("testConstructionExpressionSystemVariables");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "system variables expression construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "system variables expression construction");
 
         construction.addVariableDefinition(ExpressionConstants.VAR_USER, userType);
 
@@ -273,7 +273,7 @@ public class TestValueConstruction {
         OperationResult opResult = new OperationResult("testConstructionExpressionSystemVariables");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "system variables expression construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "system variables expression construction");
 
         construction.addVariableDefinition(ExpressionConstants.VAR_USER, userDef.parseObjectType(userType));
 
@@ -297,7 +297,7 @@ public class TestValueConstruction {
         OperationResult opResult = new OperationResult("testConstructionRootNode");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, localityDef, "system variables expression construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, localityDef, null, "system variables expression construction");
 
         ObjectReferenceType ref = new ObjectReferenceType();
         ref.setOid("c0c010c0-d34d-b33f-f00d-111111111111");
@@ -327,7 +327,7 @@ public class TestValueConstruction {
         OperationResult opResult = new OperationResult("testConstructionExpressionList");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, ouDef, "list expression construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, ouDef, null, "list expression construction");
         construction.evaluate(opResult);
         Property result = construction.getOutput();
 
@@ -357,7 +357,7 @@ public class TestValueConstruction {
         OperationResult opResult = new OperationResult("testConstructionExpressionScalarList");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, ouDef, "scalar list expression construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, ouDef, null, "scalar list expression construction");
         construction.evaluate(opResult);
         Property result = construction.getOutput();
 
@@ -378,12 +378,12 @@ public class TestValueConstruction {
         PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
-        Property givenName = givenNameDef.instantiate();
+        Property givenName = givenNameDef.instantiate(null);
 
         OperationResult opResult = new OperationResult("testConstructionGenerate");
 
         // WHEN (1)
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "generate construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "generate construction");
         construction.setInput(givenName);
         construction.evaluate(opResult);
         Property result = construction.getOutput();
@@ -416,12 +416,12 @@ public class TestValueConstruction {
         PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PropertyDefinition propDef = userContainer.findPropertyDefinition(SchemaConstants.PATH_PASSWORD_VALUE);
 
-        Property prop = propDef.instantiate();
+        Property prop = propDef.instantiate(null);
 
         OperationResult opResult = new OperationResult("testConstructionGenerateProtectedString");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, propDef, "generate protected construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, propDef, SchemaConstants.PATH_PASSWORD, "generate protected construction");
         construction.setInput(prop);
         construction.evaluate(opResult);
         Property result = construction.getOutput();
@@ -431,6 +431,8 @@ public class TestValueConstruction {
         System.out.println("Generated excrypted value: "+value1);
         assertNotNull(value1);
         assertNotNull(value1.getEncryptedData());
+        assertEquals("Bad parent path", SchemaConstants.PATH_PASSWORD, result.getParentPath());
+        assertEquals("Bad path", SchemaConstants.PATH_PASSWORD_VALUE, result.getPath());
     }
 
 

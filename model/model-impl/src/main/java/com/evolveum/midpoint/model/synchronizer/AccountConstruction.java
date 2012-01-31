@@ -194,7 +194,8 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		if (outputDefinition == null) {
 			throw new SchemaException("Attribute "+attrName+" not found in schema for account type "+getAccountType()+", "+ObjectTypeUtil.toShortString(getResource(result))+" as definied in "+ObjectTypeUtil.toShortString(source), attrName);
 		}
-		ValueConstruction attributeConstruction = valueConstructionFactory.createValueConstruction(attributeConstructionType, outputDefinition, "in "+ObjectTypeUtil.toShortString(source));
+		// TODO: is the parentPath correct (null)?
+		ValueConstruction attributeConstruction = valueConstructionFactory.createValueConstruction(attributeConstructionType, outputDefinition, null, "in "+ObjectTypeUtil.toShortString(source));
 		attributeConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, user);
 		attributeConstruction.setRootNode(user);
 		if (!assignments.isEmpty()) {

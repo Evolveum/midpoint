@@ -41,13 +41,14 @@ public class ExtensionProcessor {
         // Extension is optional, so don't die on null
         if (xmlExtension == null) {
             // Return empty set
-            return new PropertyContainer();
+            return createEmptyExtensionContainer();
         }
         return parseExtension(xmlExtension.getAny());
     }
 
-    public static PropertyContainer parseExtension(List<Object> xmlExtension) throws SchemaException {
-        PropertyContainer container = new PropertyContainer(SchemaConstants.C_EXTENSION);
+
+	public static PropertyContainer parseExtension(List<Object> xmlExtension) throws SchemaException {
+        PropertyContainer container = createEmptyExtensionContainer();
 
         // Extension is optional, so don't die on null
         if (xmlExtension == null) {
@@ -62,14 +63,12 @@ public class ExtensionProcessor {
             QName propName = tval.getElementName();
             QName xsdType = tval.getXsdType();
 
-            Property property = new Property(propName);
+            Property property = container.createProperty(propName, value.getClass());
             property.setValue(new PropertyValue(value));
 
             // create appropriate definition for the property - not to lose type information in serializations
             PropertyDefinition def = new PropertyDefinition(propName, xsdType);
             property.setDefinition(def);
-
-            container.add(property);
         }
         return container;
     }
@@ -87,6 +86,12 @@ public class ExtensionProcessor {
         xmlExtension.getAny().addAll(elements);
         return xmlExtension;
     }
+
+	public static PropertyContainer createEmptyExtensionContainer() {
+		PropertyContainerDefinition pcd = new PropertyContainerDefinition(SchemaConstants.C_EXTENSION, null);
+		pcd.setRuntimeSchema(true);
+		return new PropertyContainer(SchemaConstants.C_EXTENSION, pcd, null, null);
+	}
 
 
 }

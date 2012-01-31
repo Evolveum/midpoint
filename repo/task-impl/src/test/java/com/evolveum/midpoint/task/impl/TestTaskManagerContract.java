@@ -304,10 +304,10 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         // ... then the ship was lost
         mods.add(shipStateProp.createModification(PropertyModification.ModificationType.REPLACE, new PropertyValue<Object>("sunk")));
         // ... so remember the date
-        Property dateProp = new Property(new QName("http://myself.me/schemas/whatever", "sinkTimestamp"));
         // This has no type information or schema. The type has to be determined
         // from the java type
         GregorianCalendar sinkDate = new GregorianCalendar();
+        Property dateProp = taskExtension.createProperty(new QName("http://myself.me/schemas/whatever", "sinkTimestamp"), sinkDate.getClass());
         mods.add(dateProp.createModification(PropertyModification.ModificationType.REPLACE, new PropertyValue<Object>(sinkDate)));
 
         task.modifyExtension(mods, result);

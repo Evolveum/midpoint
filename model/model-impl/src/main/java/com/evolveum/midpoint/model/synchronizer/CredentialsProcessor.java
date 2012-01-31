@@ -114,7 +114,9 @@ public class CredentialsProcessor {
                 LOGGER.trace("No outbound definition in password definition in credentials in account type {}, skipping credentials processing", rat);
                 continue;
             }
-            ValueConstruction passwordConstruction = valueConstructionFactory.createValueConstruction(outbound, accountPasswordPropertyDefinition, "outbound password in account type " + rat);
+            // TODO: is the parentPath correct (null)?
+            ValueConstruction passwordConstruction = valueConstructionFactory.createValueConstruction(outbound, 
+            		accountPasswordPropertyDefinition, null, "outbound password in account type " + rat);
             passwordConstruction.setInput(userPasswordNew);
             passwordConstruction.evaluate(result);
             Property accountPasswordNew = passwordConstruction.getOutput();

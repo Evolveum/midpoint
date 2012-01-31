@@ -272,7 +272,8 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
             if (accountToAdd != null) {
                 ObjectDefinition<AccountShadowType> objectDefinition = (ObjectDefinition<AccountShadowType>)
                         accountToAdd.getDefinition();
-                oldAccount = new MidPointObject<AccountShadowType>(accountToAdd.getName(), objectDefinition);
+                // TODO: remove constructor, use some factory method instead
+                oldAccount = new MidPointObject<AccountShadowType>(accountToAdd.getName(), objectDefinition, null, null);
                 oldAccount = accountSyncDelta.computeChangedObject(oldAccount);
             }
         }

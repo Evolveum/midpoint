@@ -79,10 +79,6 @@ public class PropertyDefinition extends ItemDefinition {
         super(name, null, typeName);
     }
 
-    public PropertyDefinition(QName name, QName typeName, ItemDefinition parentDefinition) {
-        super(name, null, typeName, parentDefinition);
-    }
-
     // This creates reference to other schema
     PropertyDefinition(QName name) {
         super(name, null, null);
@@ -206,18 +202,18 @@ public class PropertyDefinition extends ItemDefinition {
     }
 
     @Override
-    public Property instantiate() {
-        return instantiate(getNameOrDefaultName());
+    public Property instantiate(PropertyPath parentPath) {
+        return instantiate(getNameOrDefaultName(), parentPath);
     }
 
     @Override
-    public Property instantiate(QName name) {
-        return new Property(name, this);
+    public Property instantiate(QName name, PropertyPath parentPath) {
+        return new Property(name, this, null, parentPath);
     }
 
     @Override
-    public Property instantiate(QName name, Object element) {
-        return new Property(name, this, null, element);
+    public Property instantiate(QName name, Object element, PropertyPath parentPath) {
+        return new Property(name, this, element, parentPath);
     }
 
     // TODO: factory methods for DOM and JAXB elements
@@ -242,14 +238,14 @@ public class PropertyDefinition extends ItemDefinition {
       * @see com.evolveum.midpoint.schema.processor.Definition#parseItem(java.util.List)
       */
     @Override
-    public Property parseItem(List<Object> elements) throws SchemaException {
+    public Property parseItem(List<Object> elements, PropertyPath parentPath) throws SchemaException {
         if (elements == null || elements.isEmpty()) {
             return null;
         }
         QName propName = JAXBUtil.getElementQName(elements.get(0));
         Property prop = null;
         if (elements.size() == 1) {
-            prop = this.instantiate(propName, elements.get(0));
+            prop = this.instantiate(propName, elements.get(0), parentPath);
         } else {
             // In-place modification not supported for multi-valued properties
             prop = this.instantiate(propName, null);
@@ -279,8 +275,8 @@ public class PropertyDefinition extends ItemDefinition {
         return sb.toString();
     }
 
-    public Property parseFromValueElement(Element valueElement) throws SchemaException {
-        Property prop = this.instantiate();
+    public Property parseFromValueElement(Element valueElement, PropertyPath parentPath) throws SchemaException {
+        Property prop = this.instantiate(parentPath);
         if (isSingleValue()) {
             prop.getValues().add(new PropertyValue(XsdTypeConverter.convertValueElementAsScalar(valueElement, getTypeName())));
         } else {
@@ -293,8 +289,8 @@ public class PropertyDefinition extends ItemDefinition {
     }
 
     @Override
-    public Property parseItemFromJaxbObject(Object jaxbObject) throws SchemaException {
-        Property property = this.instantiate();
+    public Property parseItemFromJaxbObject(Object jaxbObject, PropertyPath parentPath) throws SchemaException {
+        Property property = this.instantiate(parentPath);
         if (isMultiValue()) {
             // expect collection
             if (jaxbObject instanceof Collection) {

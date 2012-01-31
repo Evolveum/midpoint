@@ -50,6 +50,8 @@ public class SchemaProcessorBasicTest {
     private static final String SCHEMA2_FILENAME = TEST_DIR + "schema2.xsd";
     private static final String OBJECT2_FILENAME = TEST_DIR + "object2.xml";
     private static final String SCHEMA_NAMESPACE = "http://schema.foo.com/bar";
+    
+    private static final QName FIRST_QNAME = new QName(SCHEMA_NAMESPACE, "first");
 
     public SchemaProcessorBasicTest() {
     }
@@ -102,21 +104,23 @@ public class SchemaProcessorBasicTest {
         assertEquals(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"), accDef.getTypeName());
         PropertyDefinition loginDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "login"));
         assertEquals(new QName(SCHEMA_NAMESPACE, "login"), loginDef.getName());
-
+        
         // WHEN
 
         // Instantiate PropertyContainer (XSD type)
-        PropertyContainer accInst = accDef.instantiate(new QName(SCHEMA_NAMESPACE, "first"));
+        PropertyContainer accInst = accDef.instantiate(FIRST_QNAME, null);
         assertNotNull(accInst);
         assertNotNull(accInst.getDefinition());
         // as the definition is ResourceObjectDefinition, the instance should be of ResoureceObject type
         assertTrue(accInst instanceof ResourceObject);
 
         // Instantiate Property (XSD element)
-        Property loginInst = loginDef.instantiate();
+        Property loginInst = loginDef.instantiate(accInst.getPath());
         assertNotNull(loginInst);
         assertNotNull(loginInst.getDefinition());
         assertTrue(loginInst instanceof ResourceObjectAttribute);
+        assertEquals("Wrong parent path", new PropertyPath(FIRST_QNAME), loginInst.getParentPath());
+        assertEquals("Wrong path", new PropertyPath(FIRST_QNAME, loginDef.getName()), loginInst.getPath());
 
         // Set some value
         loginInst.setValue(new PropertyValue("FOOBAR"));
@@ -124,7 +128,7 @@ public class SchemaProcessorBasicTest {
 
         // Same thing with the prop2 property (type int)
         PropertyDefinition groupDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "group"));
-        Property groupInst = groupDef.instantiate();
+        Property groupInst = groupDef.instantiate(accInst.getPath());
         groupInst.setValue(new PropertyValue(321));
         accInst.getItems().add(groupInst);
 

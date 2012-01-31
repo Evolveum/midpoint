@@ -175,22 +175,22 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 
         PropertyDefinition propertyDefinition = accountDefinition
                 .findPropertyDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
-        Property property = propertyDefinition.instantiate();
+        Property property = propertyDefinition.instantiate(null);
         property.setValue(new PropertyValue("uid=" + name + ",ou=people,dc=example,dc=com"));
         resourceObject.add(property);
 
         propertyDefinition = accountDefinition.findPropertyDefinition(new QName(resource.getNamespace(), "sn"));
-        property = propertyDefinition.instantiate();
+        property = propertyDefinition.instantiate(resourceObject.getPath());
         property.setValue(new PropertyValue(familyName));
         resourceObject.add(property);
 
         propertyDefinition = accountDefinition.findPropertyDefinition(new QName(resource.getNamespace(), "cn"));
-        property = propertyDefinition.instantiate();
+        property = propertyDefinition.instantiate(null);
         property.setValue(new PropertyValue(givenName + " " + familyName));
         resourceObject.add(property);
 
         propertyDefinition = accountDefinition.findPropertyDefinition(new QName(resource.getNamespace(), "givenName"));
-        property = propertyDefinition.instantiate();
+        property = propertyDefinition.instantiate(null);
         property.setValue(new PropertyValue(givenName));
         resourceObject.add(property);
 
@@ -332,7 +332,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
                 .findContainerDefinitionByType(new QName(resource.getNamespace(), "AccountObjectClass"));
         ResourceObjectAttributeDefinition propertyDef = accountDefinition.findAttributeDefinition(new QName(
                 resource.getNamespace(), propertyName));
-        ResourceObjectAttribute property = propertyDef.instantiate();
+        ResourceObjectAttribute property = propertyDef.instantiate(null);
         property.setValue(new PropertyValue(propertyValue));
         return property;
     }
@@ -667,17 +667,17 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 
         ResourceObjectAttributeDefinition road = accountDefinition.findAttributeDefinition(new QName(resource
                 .getNamespace(), "sn"));
-        ResourceObjectAttribute roa = road.instantiate();
+        ResourceObjectAttribute roa = road.instantiate(null);
         roa.setValue(new PropertyValue(sn));
         resourceObject.add(roa);
 
         road = accountDefinition.findAttributeDefinition(new QName(resource.getNamespace(), "cn"));
-        roa = road.instantiate();
+        roa = road.instantiate(null);
         roa.setValue(new PropertyValue(cn));
         resourceObject.add(roa);
 
         road = accountDefinition.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
-        roa = road.instantiate();
+        roa = road.instantiate(null);
         roa.setValue(new PropertyValue(dn));
         resourceObject.add(roa);
 

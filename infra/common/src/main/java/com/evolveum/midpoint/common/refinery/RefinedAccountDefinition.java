@@ -136,18 +136,18 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
     }
 
     @Override
-    public ResourceObject instantiate() {
-        return new ResourceObject(getNameOrDefaultName(), this);
+    public ResourceObject instantiate(PropertyPath parentPath) {
+        return new ResourceObject(getNameOrDefaultName(), this, null, parentPath);
     }
 
     @Override
-    public ResourceObject instantiate(QName name) {
-        return new ResourceObject(name, this);
+    public ResourceObject instantiate(QName name, PropertyPath parentPath) {
+        return new ResourceObject(name, this, null, parentPath);
     }
 
     @Override
-    public ResourceObject instantiate(QName name, Object element) {
-        return new ResourceObject(name, this, element);
+    public ResourceObject instantiate(QName name, Object element, PropertyPath parentPath) {
+        return new ResourceObject(name, this, element, parentPath);
     }
 
     @Override
@@ -171,14 +171,14 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
     }
 
     @Override
-    public Set<ResourceObjectAttribute> parseAttributes(List<Object> elements) throws SchemaException {
-        return objectClassDefinition.parseAttributes(elements);
+    public Set<ResourceObjectAttribute> parseAttributes(List<Object> elements, PropertyPath parentPath) throws SchemaException {
+        return objectClassDefinition.parseAttributes(elements, parentPath);
     }
 
     @Override
-    public Collection<? extends ResourceObjectAttribute> parseIdentifiers(List<Object> elements)
+    public Collection<? extends ResourceObjectAttribute> parseIdentifiers(List<Object> elements, PropertyPath parentPath)
             throws SchemaException {
-        return objectClassDefinition.parseIdentifiers(elements);
+        return objectClassDefinition.parseIdentifiers(elements, parentPath);
     }
 
     @Override

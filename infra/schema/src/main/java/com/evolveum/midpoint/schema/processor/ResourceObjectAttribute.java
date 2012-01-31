@@ -40,52 +40,52 @@ import java.util.Set;
  */
 public class ResourceObjectAttribute extends Property {
 
-    /**
-     * Default constructor.
-     * The constructors should be used only occasionally (if used at all).
-     * Use the factory methods in the ResourceObjectDefintion instead.
-     */
-    public ResourceObjectAttribute() {
-        super();
+//    /**
+//     * Default constructor.
+//     * The constructors should be used only occasionally (if used at all).
+//     * Use the factory methods in the ResourceObjectDefintion instead.
+//     */
+//    public ResourceObjectAttribute() {
+//        super();
+//    }
+//
+//    /**
+//     * The constructors should be used only occasionally (if used at all).
+//     * Use the factory methods in the ResourceObjectDefintion instead.
+//     *
+//     * @param name       attribute name (element name)
+//     * @param definition attribute definition (schema)
+//     * @param values     initial attribute values
+//     */
+//    public ResourceObjectAttribute(QName name, PropertyDefinition definition,
+//                                   Set<PropertyValue<Object>> values) {
+//        super(name, definition, values);
+//    }
+//
+//    /**
+//     * The constructors should be used only occasionally (if used at all).
+//     * Use the factory methods in the ResourceObjectDefintion instead.
+//     *
+//     * @param name       attribute name (element name)
+//     * @param definition attribute definition (schema)
+//     */
+//    public ResourceObjectAttribute(QName name, PropertyDefinition definition) {
+//        super(name, definition);
+//    }
+
+    public ResourceObjectAttribute(QName name, PropertyDefinition definition, Object element, PropertyPath parentPath) {
+        super(name, definition, element, parentPath);
     }
 
-    /**
-     * The constructors should be used only occasionally (if used at all).
-     * Use the factory methods in the ResourceObjectDefintion instead.
-     *
-     * @param name       attribute name (element name)
-     * @param definition attribute definition (schema)
-     * @param values     initial attribute values
-     */
-    public ResourceObjectAttribute(QName name, PropertyDefinition definition,
-                                   Set<PropertyValue<Object>> values) {
-        super(name, definition, values);
-    }
-
-    /**
-     * The constructors should be used only occasionally (if used at all).
-     * Use the factory methods in the ResourceObjectDefintion instead.
-     *
-     * @param name       attribute name (element name)
-     * @param definition attribute definition (schema)
-     */
-    public ResourceObjectAttribute(QName name, PropertyDefinition definition) {
-        super(name, definition);
-    }
-
-    public ResourceObjectAttribute(QName name, PropertyDefinition definition, Object element) {
-        super(name, definition, null, element);
-    }
-
-    /**
-     * The constructors should be used only occasionally (if used at all).
-     * Use the factory methods in the ResourceObjectDefintion instead.
-     *
-     * @param name attribute name (element name)
-     */
-    public ResourceObjectAttribute(QName name) {
-        super(name);
-    }
+//    /**
+//     * The constructors should be used only occasionally (if used at all).
+//     * Use the factory methods in the ResourceObjectDefintion instead.
+//     *
+//     * @param name attribute name (element name)
+//     */
+//    public ResourceObjectAttribute(QName name) {
+//        super(name);
+//    }
 
     public ResourceObjectAttributeDefinition getDefinition() {
         return (ResourceObjectAttributeDefinition) super.getDefinition();

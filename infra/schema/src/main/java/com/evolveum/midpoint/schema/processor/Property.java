@@ -69,30 +69,27 @@ public class Property extends Item {
     
     private static final Trace LOGGER = TraceManager.getTrace(Property.class);
 
-    public Property() {
-        super();
-    }
+//    public Property() {
+//        super();
+//    }
+//
+//    public Property(QName name) {
+//        super(name);
+//    }
+//
+//    public Property(QName name, PropertyDefinition definition) {
+//        super(name, definition);
+//    }
+//
+//    public Property(QName name, PropertyDefinition definition, Set<PropertyValue<Object>> values) {
+//        super(name, definition);
+//        if (values != null) {
+//            this.values = values;
+//        }
+//    }
 
-    public Property(QName name) {
-        super(name);
-    }
-
-    public Property(QName name, PropertyDefinition definition) {
-        super(name, definition);
-    }
-
-    public Property(QName name, PropertyDefinition definition, Set<PropertyValue<Object>> values) {
-        super(name, definition);
-        if (values != null) {
-            this.values = values;
-        }
-    }
-
-    public Property(QName name, PropertyDefinition definition, Set<PropertyValue<Object>> values, Object element) {
-        super(name, definition, element);
-        if (values != null) {
-            this.values = values;
-        }
+    public Property(QName name, PropertyDefinition definition, Object element, PropertyPath parentPath) {
+        super(name, definition, element, parentPath);
     }
 
     /**
@@ -429,7 +426,7 @@ public class Property extends Item {
 
     @Override
     public Property clone() {
-        Property clone = new Property();
+        Property clone = new Property(getName(), getDefinition(), getElement(), getParentPath());
         copyValues(clone);
         return clone;
     }
@@ -495,7 +492,7 @@ public class Property extends Item {
     }
 
     private PropertyDelta compareTo(Property other, boolean compareReal) {
-        PropertyDelta delta = new PropertyDelta(getDefinition().getPath());
+        PropertyDelta delta = new PropertyDelta(getPath());
         
         PropertyDefinition def = getDefinition();
         
@@ -515,7 +512,7 @@ public class Property extends Item {
             if (def != null && def.isSingleValue() && !delta.isEmpty()) {
             	// Drop the current delta (it was used only to detect that something has changed
             	// Generate replace delta instead of add/delete delta
-            	delta = new PropertyDelta(getDefinition().getPath());
+            	delta = new PropertyDelta(getPath());
         		Collection<PropertyValue<Object>> replaceValues = new ArrayList<PropertyValue<Object>>(other.getValues().size());
                 for (PropertyValue<Object> value : other.getValues()) {
                 	replaceValues.add(value.clone());

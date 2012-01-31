@@ -61,8 +61,6 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 
 	private static final long serialVersionUID = -2643332934312107274L;
 	protected QName name;
-	protected ItemDefinition parent;
-	private PropertyPath path;
 
 	// TODO: annotations
 	
@@ -86,12 +84,6 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	ItemDefinition(QName name, QName defaultName, QName typeName) {
 		super(defaultName,typeName);
 		this.name = name;
-	}
-
-	ItemDefinition(QName name, QName defaultName, QName typeName, ItemDefinition parentDefinition) {
-		super(defaultName,typeName);
-		this.name = name;
-		this.parent = parentDefinition;
 	}
 
 	/**
@@ -130,38 +122,20 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		}
 		return defaultName;
 	}
-	
-	public PropertyPath getPath() {
-		if (path == null) {
-			path = determinePath();
-		}
-		return path;
-	}
-	
-	public PropertyPath getParentPath() {
-		if (parent == null) {
-			return new PropertyPath();
-		}
-		return parent.getPath();
-	}
-	
-	private PropertyPath determinePath() {
-		return getParentPath().subPath(getNameOrDefaultName());
-	}
-
+		
 	/**
 	 * Create an item instance. Definition name or default name will
 	 * used as an element name for the instance. The instance will otherwise be empty.
 	 * @return created item instance
 	 */
-	abstract public Item instantiate();
+	abstract public Item instantiate(PropertyPath parentPath);
 
 	/**
 	 * Create an item instance. Definition name will use provided name.
 	 * for the instance. The instance will otherwise be empty.
 	 * @return created item instance
 	 */
-	abstract public Item instantiate(QName name);
+	abstract public Item instantiate(QName name, PropertyPath parentPath);
 
 	/**
 	 * Create an item instance. Definition name will use provided name.
@@ -169,7 +143,7 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	 * which it originated.
 	 * @return created item instance
 	 */
-	abstract public Item instantiate(QName name, Object element);
+	abstract public Item instantiate(QName name, Object element, PropertyPath parentPath);
 
 	/**
 	 * Create at instance of the item initialized from the provided list of elements.
@@ -179,17 +153,15 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	 * @return created item instance initialized with content
 	 * @throws SchemaException error parsing the provided elements
 	 */
-	abstract public Item parseItem(List<Object> elements) throws SchemaException;
+	abstract public Item parseItem(List<Object> elements, PropertyPath parentPath) throws SchemaException;
 	
-	abstract public Item parseItemFromJaxbObject(Object jaxbObject) throws SchemaException;
+	abstract public Item parseItemFromJaxbObject(Object jaxbObject, PropertyPath parentPath) throws SchemaException;
 	
 	abstract <T extends ItemDefinition> T findItemDefinition(PropertyPath path, Class<T> clazz);
 	
 	protected void copyDefinitionData(ItemDefinition clone) {
 		super.copyDefinitionData(clone);
 		clone.name = this.name;
-		clone.parent = this.parent;
-		clone.path = this.path;
 	}
 
 	@Override
@@ -197,8 +169,6 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((parent == null) ? 0 : parent.hashCode());
-		result = prime * result + ((path == null) ? 0 : path.hashCode());
 		return result;
 	}
 
@@ -215,16 +185,6 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 			if (other.name != null)
 				return false;
 		} else if (!name.equals(other.name))
-			return false;
-		if (parent == null) {
-			if (other.parent != null)
-				return false;
-		} else if (!parent.equals(other.parent))
-			return false;
-		if (path == null) {
-			if (other.path != null)
-				return false;
-		} else if (!path.equals(other.path))
 			return false;
 		return true;
 	}

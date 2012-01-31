@@ -39,6 +39,10 @@ import com.evolveum.midpoint.schema.util.DebugUtil;
  */
 public class ObjectReference extends Property {
 
+	public ObjectReference(QName name, PropertyDefinition definition, Object element, PropertyPath parentPath) {
+		super(name, definition, element, parentPath);
+	}
+
 	private String oid;
 	private QName targetTypeName;
 

@@ -275,8 +275,9 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * <p/>
      * This is a preferred way how to create property container.
      */
-    public PropertyContainer instantiate() {
-        return instantiate(getNameOrDefaultName());
+    @Override
+    public PropertyContainer instantiate(PropertyPath parentPath) {
+        return instantiate(getNameOrDefaultName(), null, parentPath);
     }
 
     /**
@@ -284,8 +285,9 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * <p/>
      * This is a preferred way how to create property container.
      */
-    public PropertyContainer instantiate(QName name) {
-        return new PropertyContainer(name, this);
+    @Override
+    public PropertyContainer instantiate(QName name, PropertyPath parentPath) {
+        return new PropertyContainer(name, this, null, parentPath);
     }
 
     /**
@@ -293,13 +295,15 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * <p/>
      * This is a preferred way how to create property container.
      */
-    public PropertyContainer instantiate(QName name, Object element) {
-        return new PropertyContainer(name, this, element);
+    @Override
+    public PropertyContainer instantiate(QName name, Object element, PropertyPath parentPath) {
+        return new PropertyContainer(name, this, element, parentPath);
     }
 
     /**
      * Shallow clone
      */
+    @Override
     public PropertyContainerDefinition clone() {
         PropertyContainerDefinition clone = new PropertyContainerDefinition(name, complexTypeDefinition);
         copyDefinitionData(clone);
@@ -411,13 +415,21 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * Creates new property container from DOM or JAXB representation (single element).
      *
      * @param element DOM representation of property container
+     * @param parentPath 
      * @return created property container parsed from the element
      * @throws SchemaException error parsing the element
      */
-    public PropertyContainer parseItem(Object element) throws SchemaException {
+    public PropertyContainer parseItem(Object element, PropertyPath parentPath) throws SchemaException {
         List<Object> elements = new ArrayList<Object>();
         elements.add(element);
-        return parseItem(elements);
+        return parseItem(elements, parentPath);
+    }
+    
+    /**
+     *  Assumes top-level element (null parentPath)
+     */
+    public PropertyContainer parseItem(Object element) throws SchemaException {
+    	return parseItem(element,null);
     }
 
     /**
@@ -428,14 +440,14 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * @throws SchemaException error parsing the elements
      */
     @Override
-    public PropertyContainer parseItem(List<Object> elements) throws SchemaException {
+    public PropertyContainer parseItem(List<Object> elements, PropertyPath parentPath) throws SchemaException {
         if (elements == null || elements.isEmpty()) {
             return null;
         }
         if (elements.size() > 1) {
             throw new IllegalArgumentException("Cannot parse container from more than one element");
         }
-        return parseItem(elements.get(0), PropertyContainer.class);
+        return parseItem(elements.get(0), PropertyContainer.class, parentPath);
     }
 
     /**
@@ -449,25 +461,25 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * @return created new property container (or subclass)
      * @throws SchemaException error parsing the elements
      */
-    protected <T extends PropertyContainer> T parseItem(Object element, Class<T> type) throws SchemaException {
+    protected <T extends PropertyContainer> T parseItem(Object element, Class<T> type, PropertyPath parentPath) throws SchemaException {
         if (element instanceof JAXBElement) {
-        	return parseItemFromJaxbElement((JAXBElement)element, type);
+        	return parseItemFromJaxbElement((JAXBElement)element, type, parentPath);
         }
         QName elementQName = JAXBUtil.getElementQName(element);
-        T container = (T) this.instantiate(elementQName, element);
+        T container = (T) this.instantiate(elementQName, element, parentPath);
         List<Object> childElements = JAXBUtil.listChildElements(element);
-        container.getItems().addAll(parseItems(childElements));
+        container.getItems().addAll(parseItems(childElements, container.getPath()));
         return container;
     }
 
-    public PropertyContainer parseAsContent(QName name, List<Object> contentElements) throws SchemaException {
-        return parseAsContent(name, contentElements, PropertyContainer.class);
+    public PropertyContainer parseAsContent(QName name, List<Object> contentElements, PropertyPath parentPath) throws SchemaException {
+        return parseAsContent(name, contentElements, PropertyContainer.class, parentPath);
     }
 
     protected <T extends PropertyContainer> T parseAsContent(QName name, List<Object> contentElements,
-            Class<T> type) throws SchemaException {
-        T container = (T) this.instantiate(name);
-        container.getItems().addAll(parseItems(contentElements));
+            Class<T> type, PropertyPath parentPath) throws SchemaException {
+        T container = (T) this.instantiate(name, parentPath);
+        container.getItems().addAll(parseItems(contentElements, container.getPath()));
         return container;
     }
 
@@ -481,8 +493,8 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * @return set of deserialized items
      * @throws SchemaException error parsing the elements
      */
-    public Collection<? extends Item> parseItems(List<Object> elements) throws SchemaException {
-        return parseItems(elements, null);
+    public Collection<? extends Item> parseItems(List<Object> elements, PropertyPath parentPath) throws SchemaException {
+        return parseItems(elements, parentPath, null);
     }
 
     /**
@@ -496,7 +508,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * min/max constraints are not checked now
      * TODO: maybe we need to check them
      */
-    protected Collection<? extends Item> parseItems(List<Object> elements,
+    protected Collection<? extends Item> parseItems(List<Object> elements, PropertyPath parentPath,
             Collection<? extends ItemDefinition> selection) throws SchemaException {
 
         // TODO: more robustness in handling schema violations (min/max constraints, etc.)
@@ -550,42 +562,42 @@ public class PropertyContainerDefinition extends ItemDefinition {
                 throw new SchemaException("Item " + elementQName + " has no definition", elementQName);
             }
 
-            Item item = def.parseItem(valueElements);
+            Item item = def.parseItem(valueElements, parentPath);
             props.add(item);
         }
         return props;
     }
 
-    public PropertyContainer parseItemFromJaxbObject(Object jaxbObject) throws SchemaException {
-        return parseItemFromJaxbObject(jaxbObject, PropertyContainer.class);
+    public PropertyContainer parseItemFromJaxbObject(Object jaxbObject, PropertyPath parentPath) throws SchemaException {
+        return parseItemFromJaxbObject(jaxbObject, PropertyContainer.class, parentPath);
     }
 
-    protected <T extends PropertyContainer> T parseItemFromJaxbElement(JAXBElement jaxbElement, Class<T> type) throws
+    protected <T extends PropertyContainer> T parseItemFromJaxbElement(JAXBElement jaxbElement, Class<T> type, PropertyPath parentPath) throws
     		SchemaException {
     	QName elementQName = JAXBUtil.getElementQName(jaxbElement);
     	Object jaxbObject = jaxbElement.getValue();
-    	return parseItemFromJaxbObject(jaxbObject, elementQName, type);
+    	return parseItemFromJaxbObject(jaxbObject, elementQName, type, parentPath);
     }
-    protected <T extends PropertyContainer> T parseItemFromJaxbObject(Object jaxbObject, Class<T> type) throws
+    protected <T extends PropertyContainer> T parseItemFromJaxbObject(Object jaxbObject, Class<T> type, PropertyPath parentPath) throws
     		SchemaException {
-    	return parseItemFromJaxbObject(jaxbObject, null, type);
+    	return parseItemFromJaxbObject(jaxbObject, null, type, parentPath);
     }
     
-    protected <T extends PropertyContainer> T parseItemFromJaxbObject(Object jaxbObject, QName elementName, Class<T> type) throws
+    protected <T extends PropertyContainer> T parseItemFromJaxbObject(Object jaxbObject, QName elementName, Class<T> type, PropertyPath parentPath) throws
             SchemaException {
 
         if (isRuntimeSchema()) {
-            return parseItemFromJaxbObjectDynamic(jaxbObject, type);
+            return parseItemFromJaxbObjectDynamic(jaxbObject, type, parentPath);
         } else {
-            return parseItemFromJaxbObjectStatic(jaxbObject, type);
+            return parseItemFromJaxbObjectStatic(jaxbObject, type, parentPath);
         }
     }
 
-    private <T extends PropertyContainer> T parseItemFromJaxbObjectStatic(Object jaxbObject, Class<T> type) throws
+    private <T extends PropertyContainer> T parseItemFromJaxbObjectStatic(Object jaxbObject, Class<T> type, PropertyPath parentPath) throws
             SchemaException {
 
         Class clazz = jaxbObject.getClass();
-        T propertyContainer = (T) this.instantiate();
+        T propertyContainer = (T) this.instantiate(parentPath);
 
         if (complexTypeDefinition == null) {
             throw new IllegalStateException("Cannot parse object as the complexType definition for " + getName() + " is missing.");
@@ -625,7 +637,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
                         continue;
                     }
                 }
-                Item item = itemDef.parseItemFromJaxbObject(value);
+                Item item = itemDef.parseItemFromJaxbObject(value, propertyContainer.getPath());
                 propertyContainer.add(item);
             }
         }
@@ -633,11 +645,11 @@ public class PropertyContainerDefinition extends ItemDefinition {
         return propertyContainer;
     }
 
-    private <T extends PropertyContainer> T parseItemFromJaxbObjectDynamic(Object jaxbObject, Class<T> type) throws
+    private <T extends PropertyContainer> T parseItemFromJaxbObjectDynamic(Object jaxbObject, Class<T> type, PropertyPath parentPath) throws
             SchemaException {
 
         Class clazz = jaxbObject.getClass();
-        T propertyContainer = (T) this.instantiate();
+        T propertyContainer = (T) this.instantiate(parentPath);
 
         Object value = null;
         try {
@@ -666,7 +678,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
             throw new IllegalStateException("Unexpected result from " + ANY_GETTER_NAME + " in " + getName() + ", expected List<Object> but got " + value.getClass());
         }
         
-        Collection<? extends Item> items = parseItems(elementList);
+        Collection<? extends Item> items = parseItems(elementList, propertyContainer.getPath());
         propertyContainer.addAll(items);
         
 //

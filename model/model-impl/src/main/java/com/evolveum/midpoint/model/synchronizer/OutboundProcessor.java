@@ -159,7 +159,9 @@ public class OutboundProcessor {
             return null;
         }
 
-        ValueConstruction valueConstruction = valueConstructionFactory.createValueConstruction(outboundValueConstructionType, refinedAttributeDefinition,
+        // TODO: is the parentPath correct (null)?
+        ValueConstruction valueConstruction = valueConstructionFactory.createValueConstruction(outboundValueConstructionType, 
+        		refinedAttributeDefinition, null,
                 "outbound expression for " + refinedAttributeDefinition.getName() + " in " + ObjectTypeUtil.toShortString(refinedAccountDefinition.getResourceType()));
 
         valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, user);

@@ -520,7 +520,7 @@ public class ShadowCache {
 		}
 		AttributeModificationOperation attributeChange = new AttributeModificationOperation();
 		EnableDisable enableDisable = activationCapability.getEnableDisable();
-		Property property = new Property(enableDisable.getAttribute());
+		Property property = new Property(enableDisable.getAttribute(), null, null, null);
 		List<String> enableValues = enableDisable.getEnableValue();
 
 		Iterator<String> i = enableValues.iterator();

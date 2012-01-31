@@ -92,7 +92,9 @@ public class UserPolicyProcessor {
 			}
 			
 			ValueConstructionType valueConstructionType = propConstr.getValueConstruction();
-			ValueConstruction valueConstruction = valueConstructionFactory.createValueConstruction(valueConstructionType, propertyDefinition, 
+			// TODO: is the parentPath correct (null)?
+			ValueConstruction valueConstruction = valueConstructionFactory.createValueConstruction(valueConstructionType, 
+					propertyDefinition, null, 
 					"user template expression for "+propertyDefinition.getName()+" while processing user " + context.getUserNew());
 			
 			Property existingValue = context.getUserNew().findProperty(propertyPath);

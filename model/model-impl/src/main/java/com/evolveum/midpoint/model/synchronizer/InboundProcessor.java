@@ -326,8 +326,9 @@ public class InboundProcessor {
         Property input = accContext.getAccountNew().findProperty(path);
         Property result;
         try {
+        	// TODO: is the parentPath correct (null)?
             ValueConstruction construction = valueConstructionFactory.createValueConstruction(
-                    valueConstruction, property.getDefinition(), "Inbound value construction");
+                    valueConstruction, property.getDefinition(), null, "Inbound value construction");
             construction.setInput(input);
             construction.evaluate(opResult);
             result = construction.getOutput();

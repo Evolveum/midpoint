@@ -307,20 +307,33 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 		setDisplayNameAttribute(findAttributeDefinition(displayName));
 	}
 
-	@Override
 	public ResourceObject instantiate() {
-		return new ResourceObject(getNameOrDefaultName(), this);
+		return new ResourceObject(getNameOrDefaultName(), this, null, null);
 	}
 	
-	@Override
 	public PropertyContainer instantiate(QName name) {
-		return new ResourceObject(name, this);
+		return new ResourceObject(name, this, null, null);
+	}
+	
+	public PropertyContainer instantiate(QName name, Object element) {
+		return new ResourceObject(name, this, element, null);
+	}
+
+	@Override
+	public ResourceObject instantiate(PropertyPath parentPath) {
+		return new ResourceObject(getNameOrDefaultName(), this, null, parentPath);
 	}
 	
 	@Override
-	public PropertyContainer instantiate(QName name, Object element) {
-		return new ResourceObject(name, this, element);
+	public PropertyContainer instantiate(QName name, PropertyPath parentPath) {
+		return new ResourceObject(name, this, null, parentPath);
 	}
+	
+	@Override
+	public PropertyContainer instantiate(QName name, Object element, PropertyPath parentPath) {
+		return new ResourceObject(name, this, element, parentPath);
+	}
+
 	
 	public ResourceObjectDefinition clone() {
 		ResourceObjectDefinition clone = new ResourceObjectDefinition(schema, defaultName, complexTypeDefinition);
@@ -341,12 +354,22 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 		clone.secondaryIdenitifiers = this.secondaryIdenitifiers;
 	}
 
+	public Set<ResourceObjectAttribute> parseAttributes(List<Object> elements, PropertyPath parentPath) throws SchemaException {
+		return (Set) parseItems(elements, parentPath);
+	}
+	
+	// Resource objects are usualy constructed as top-level objects, so this comes handy
 	public Set<ResourceObjectAttribute> parseAttributes(List<Object> elements) throws SchemaException {
-		return (Set) parseItems(elements);
+		return (Set) parseItems(elements, null);
 	}
 
+	public Collection<? extends ResourceObjectAttribute> parseIdentifiers(List<Object> elements, PropertyPath parentPath) throws SchemaException {
+		return (Collection) parseItems(elements, parentPath, getIdentifiers());
+	}
+	
+	// Resource objects are usualy constructed as top-level objects, so this comes handy
 	public Collection<? extends ResourceObjectAttribute> parseIdentifiers(List<Object> elements) throws SchemaException {
-		return (Collection) parseItems(elements, getIdentifiers());
+		return (Collection) parseItems(elements, null, getIdentifiers());
 	}
 
 	public ResourceObjectAttributeDefinition findAttributeDefinition(QName elementQName) {

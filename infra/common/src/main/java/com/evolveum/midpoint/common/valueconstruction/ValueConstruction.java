@@ -39,6 +39,7 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.processor.PropertyPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -67,10 +68,12 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 	private Property input;
 	private Property output;
 	private PropertyDefinition outputDefinition;
+	private PropertyPath outputPropertyParentPath;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ValueConstruction.class);
 	
-	ValueConstruction(ValueConstructionType valueConstructionType, PropertyDefinition outputDefinition, String shortDesc, Map<QName,ValueConstructor> constructors) {
+	ValueConstruction(ValueConstructionType valueConstructionType, PropertyDefinition outputDefinition,  PropertyPath outputPropertyParentPath,
+			String shortDesc, Map<QName,ValueConstructor> constructors) {
 		this.shortDesc = shortDesc;
 		this.valueConstructionType = valueConstructionType;
 		this.constructors = constructors;
@@ -78,6 +81,7 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 		this.input = null;
 		this.output = null;
 		this.outputDefinition = outputDefinition;
+		this.outputPropertyParentPath = outputPropertyParentPath;
 		this.objectResolver = null;
 	}
 	
@@ -93,10 +97,14 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 		this.input = input;
 	}
 	
-	public void setOutputDefinition(PropertyDefinition outputDefinition) {
+	public void setOutputDefinitionX(PropertyDefinition outputDefinition) {
 		this.outputDefinition = outputDefinition;
 	}
 	
+	public void setOutputPropertyParentPath(PropertyPath outputPropertyParentPath) {
+		this.outputPropertyParentPath = outputPropertyParentPath;
+	}
+
 	public void setRootNode(ObjectReferenceType objectRef) {
 		addVariableDefinition(null,(Object)objectRef);
 	}
@@ -198,14 +206,16 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 		
 		if (valueConstructionType.getValueConstructor() != null) {
 			output = determineConstructor(valueConstructionType.getValueConstructor())
-				.construct(valueConstructionType.getValueConstructor(), outputDefinition, input, variables, shortDesc, result);
+				.construct(valueConstructionType.getValueConstructor(), outputDefinition, outputPropertyParentPath,
+						input, variables, shortDesc, result);
 		}
 		
 		if (valueConstructionType.getSequence() != null) {
 			for (JAXBElement<?> valueConstructorElement : valueConstructionType.getSequence().getValueConstructor()) {
 				
 				output = determineConstructor(valueConstructorElement)
-							.construct(valueConstructorElement, outputDefinition, input, variables, shortDesc, result);
+							.construct(valueConstructorElement, outputDefinition, outputPropertyParentPath, 
+									input, variables, shortDesc, result);
 				
 				if (output != null) {
 					// we got the value, no need to continue
@@ -242,11 +252,13 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 	 * Shallow clone. Only the output is cloned deeply.
 	 */
 	public ValueConstruction clone() {
-		ValueConstruction clone = new ValueConstruction(valueConstructionType, outputDefinition, shortDesc, constructors);
+		ValueConstruction clone = new ValueConstruction(valueConstructionType, outputDefinition, 
+				outputPropertyParentPath, shortDesc, constructors);
 		clone.input = this.input;
 		clone.objectResolver = this.objectResolver;
 		clone.output = this.output.clone();
 		clone.outputDefinition = this.outputDefinition;
+		clone.outputPropertyParentPath = this.outputPropertyParentPath;
 		clone.variables = this.variables;
 		
 		return clone;
@@ -259,6 +271,7 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 		result = prime * result + ((input == null) ? 0 : input.hashCode());
 		result = prime * result + ((output == null) ? 0 : output.hashCode());
 		result = prime * result + ((outputDefinition == null) ? 0 : outputDefinition.hashCode());
+		result = prime * result + ((outputPropertyParentPath == null) ? 0 : outputPropertyParentPath.hashCode());
 		result = prime * result + ((variables == null) ? 0 : variables.hashCode());
 		return result;
 	}
@@ -286,6 +299,11 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 			if (other.outputDefinition != null)
 				return false;
 		} else if (!outputDefinition.equals(other.outputDefinition))
+			return false;
+		if (outputPropertyParentPath == null) {
+			if (other.outputPropertyParentPath != null)
+				return false;
+		} else if (!outputPropertyParentPath.equals(other.outputPropertyParentPath))
 			return false;
 		if (variables == null) {
 			if (other.variables != null)

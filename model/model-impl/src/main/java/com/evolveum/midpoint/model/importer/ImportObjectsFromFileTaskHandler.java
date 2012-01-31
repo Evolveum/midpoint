@@ -112,7 +112,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
         // TODO: bind task to this node
 
         // Set filename
-        Property filenameProperty = filenamePropertyDefinition.instantiate();
+        Property filenameProperty = filenamePropertyDefinition.instantiate(null);
         PropertyModification modification = filenameProperty.createModification(
                 ModificationType.REPLACE, new PropertyValue<Object>(input.getAbsolutePath()));
         List<PropertyModification> modifications = new ArrayList<PropertyModification>();

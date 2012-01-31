@@ -35,6 +35,8 @@ import com.evolveum.midpoint.schema.util.DebugUtil;
  */
 public class PropertyPath {
 	
+	public static final PropertyPath EMPTY_PATH = new PropertyPath();
+	
 	private List<QName> qnames;
 
 	public PropertyPath() {

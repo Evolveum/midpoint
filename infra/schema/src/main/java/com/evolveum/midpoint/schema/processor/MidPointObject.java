@@ -56,16 +56,16 @@ public class MidPointObject<T extends ObjectType> extends PropertyContainer {
 	protected String oid;
 	protected T objectType = null;
 	
-	public MidPointObject(QName name) {
-		super(name);
-	}
-
-	public MidPointObject(QName name, ObjectDefinition definition) {
-		super(name, definition);
-	}
+//	public MidPointObject(QName name) {
+//		super(name);
+//	}
+//
+//	public MidPointObject(QName name, ObjectDefinition definition) {
+//		super(name, definition);
+//	}
 	
-	public MidPointObject(QName name, ObjectDefinition definition, Object element) {
-		super(name,definition,element);
+	public MidPointObject(QName name, ObjectDefinition definition, Object element, PropertyPath parentPath) {
+		super(name, definition, element, parentPath);
 	}
 
 	/**
@@ -81,6 +81,17 @@ public class MidPointObject<T extends ObjectType> extends PropertyContainer {
 
 	public void setOid(String oid) {
 		this.oid = oid;
+	}
+
+	@Override
+	public ObjectDefinition<T> getDefinition() {
+		return (ObjectDefinition<T>) super.getDefinition();
+	}
+	
+	@Override
+	public PropertyPath getPath() {
+		// Path and parent path are the same for objects (both are empty).
+		return getParentPath();
 	}
 
 	public Class<T> getJaxbClass() {
@@ -114,7 +125,7 @@ public class MidPointObject<T extends ObjectType> extends PropertyContainer {
 
 	@Override
 	public MidPointObject<T> clone() {
-		MidPointObject<T> clone = new MidPointObject<T>(getName());
+		MidPointObject<T> clone = new MidPointObject<T>(getName(), getDefinition(), getElement(), getParentPath());
 		copyValues(clone);
 		return clone;
 	}

@@ -353,7 +353,7 @@ public class ObjectImporter {
 
         PropertyContainer propertyContainer = null;
         try {
-            propertyContainer = containerDefinition.parseAsContent(elementRef, contentElements);
+            propertyContainer = containerDefinition.parseAsContent(elementRef, contentElements, null);
         } catch (SchemaException e) {
             result.recordFatalError("Error during " + schemaName + " schema validation: " + e.getMessage(), e);
             LOGGER.trace("Validation error: {}" + e.getMessage());

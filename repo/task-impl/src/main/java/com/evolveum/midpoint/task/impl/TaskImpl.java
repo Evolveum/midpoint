@@ -113,7 +113,7 @@ public class TaskImpl implements Task {
 		persistenceStatus = TaskPersistenceStatus.TRANSIENT;
 		recurrenceStatus = TaskRecurrence.SINGLE;
 		binding = DEFAULT_BINDING_TYPE;
-		extension = new PropertyContainer();
+		extension = ExtensionProcessor.createEmptyExtensionContainer();
 		progress = 0;
 		repositoryService = null;
 		object = null;

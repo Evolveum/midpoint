@@ -141,7 +141,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         task.setObjectRef(ObjectTypeUtil.createObjectRef(resource));
 
         // Set objectclass
-        Property objectclassProperty = objectclassPropertyDefinition.instantiate();
+        Property objectclassProperty = objectclassPropertyDefinition.instantiate(null);
         objectclassProperty.setValue(new PropertyValue(objectclass));
         PropertyModification modification = objectclassProperty.createModification(
                 ModificationType.REPLACE, new PropertyValue<Object>(objectclass));

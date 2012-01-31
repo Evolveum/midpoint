@@ -48,45 +48,46 @@ public final class ResourceObject extends PropertyContainer {
 	protected ActivationType activation;
 	protected CredentialsType credentials;
 
+//	/**
+//	 * Default constructor.
+//	 * The constructors should be used only occasionally (if used at all).
+//	 * Use the factory methods in the ResourceObjectDefintion instead.
+//	 */
+//	public ResourceObject() {
+//		activation = null;
+//		credentials = null;
+//	}
+//
+//	/**
+// 	 * The constructors should be used only occasionally (if used at all).
+//	 * Use the factory methods in the ResourceObjectDefintion instead.
+//	 * @param name resource object name (element name)
+//	 */
+//	public ResourceObject(QName name) {
+//		super(name);
+//		activation = null;
+//		credentials = null;
+//	}
+//
+//	/**
+//	 * The constructors should be used only occasionally (if used at all).
+//	 * Use the factory methods in the ResourceObjectDefintion instead.
+//	 * @param name resource object name (element name)
+//	 * @param definition resource object definition (schema)
+//	 */
+//	public ResourceObject(QName name, ResourceObjectDefinition definition) {
+//		super(name, definition);
+//		activation = null;
+//		credentials = null;
+//	}
+
 	/**
-	 * Default constructor.
 	 * The constructors should be used only occasionally (if used at all).
 	 * Use the factory methods in the ResourceObjectDefintion instead.
 	 */
-	public ResourceObject() {
-		activation = null;
-		credentials = null;
-	}
-
-	/**
- 	 * The constructors should be used only occasionally (if used at all).
-	 * Use the factory methods in the ResourceObjectDefintion instead.
-	 * @param name resource object name (element name)
-	 */
-	public ResourceObject(QName name) {
-		super(name);
-		activation = null;
-		credentials = null;
-	}
-
-	/**
-	 * The constructors should be used only occasionally (if used at all).
-	 * Use the factory methods in the ResourceObjectDefintion instead.
-	 * @param name resource object name (element name)
-	 * @param definition resource object definition (schema)
-	 */
-	public ResourceObject(QName name, ResourceObjectDefinition definition) {
-		super(name, definition);
-		activation = null;
-		credentials = null;
-	}
-
-	/**
-	 * The constructors should be used only occasionally (if used at all).
-	 * Use the factory methods in the ResourceObjectDefintion instead.
-	 */
-	public ResourceObject(QName name, ResourceObjectDefinition definition, Object element) {
-		super(name, definition, element);
+	public ResourceObject(QName name, ResourceObjectDefinition definition, Object element, PropertyPath parentPath) {
+		// Resource object has no parent
+		super(name, definition, element, parentPath);
 		activation = null;
 		credentials = null;
 	}
