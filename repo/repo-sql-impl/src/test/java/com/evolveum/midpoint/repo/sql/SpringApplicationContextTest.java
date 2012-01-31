@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Objects;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -75,6 +76,9 @@ public class SpringApplicationContextTest {
             System.out.println("Changes: " + (i + 1) + "\n" + type.getClass()
                     + "\n" + JAXBUtil.marshalWrap(changes) + "\n\n");
         }
+        
+        UserType user = service.listAccountShadowOwner("1234", new OperationResult("a"));
+        System.out.println(JAXBUtil.marshalWrap(user));
 
         AssertJUnit.assertEquals("Expected changes must be 0. ", 0, count);
     }

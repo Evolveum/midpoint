@@ -166,7 +166,10 @@ public class SqlRepositoryServiceImpl {
         try {
             session = beginTransaction();
             LOGGER.debug("Selecting account shadow owner for account {}.", new Object[]{accountOid});
-            Query query = session.createQuery("from RUserType as u .........."); //todo query
+            Query query = session.createQuery("select user from RUserType as user left join user.accountRef " +
+                    "as ref where ref.oid = ?");
+            query.setString(0, accountOid);
+
             List<RUserType> users = query.list();
             LOGGER.debug("Found {} users, transforming data to JAXB types.",
                     new Object[]{(users != null ? users.size() : 0)});
@@ -207,7 +210,7 @@ public class SqlRepositoryServiceImpl {
         Validate.notNull(result, "Operation result must not be null.");
 
         String oid = null;
-        OperationResult subResult = result.createSubresult(GET_OBJECT);
+        OperationResult subResult = result.createSubresult(ADD_OBJECT);
         Session session = null;
         try {
             session = beginTransaction();

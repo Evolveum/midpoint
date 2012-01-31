@@ -243,13 +243,11 @@ public class RUserType extends RExtensibleObjectType {
         repo.setOrganizationalUnit(RUtil.listToSet(jaxb.getOrganizationalUnit()));
         repo.setTelephoneNumber(RUtil.listToSet(jaxb.getTelephoneNumber()));
 
-        if (jaxb.getAccountRef() != null) {
+        if (jaxb.getAccountRef() != null && !jaxb.getAccountRef().isEmpty()) {
             repo.setAccountRef(new HashSet<RObjectReferenceType>());
         }
         for (ObjectReferenceType accountRef : jaxb.getAccountRef()) {
-            RObjectReferenceType repoRef = new RObjectReferenceType();
-            RObjectReferenceType.copyFromJAXB(accountRef, repoRef);
-            repo.getAccountRef().add(repoRef);
+            repo.getAccountRef().add(RUtil.jaxbRefToRepo(accountRef));
         }
 
         //todo implement

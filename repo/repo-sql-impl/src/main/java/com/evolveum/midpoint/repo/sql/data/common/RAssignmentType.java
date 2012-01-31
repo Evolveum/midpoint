@@ -120,9 +120,8 @@ public class RAssignmentType implements Identifiable {
             jaxb.setExtension(extension.toJAXB());
         }
 
-        RObjectReferenceType targetRef = repo.getTargetRef();
-        if (targetRef != null) {
-            jaxb.setTargetRef(targetRef.toJAXB());
+        if (repo.getTargetRef() != null) {
+            jaxb.setTargetRef(repo.getTargetRef().toJAXB());
         }
     }
 
@@ -152,11 +151,7 @@ public class RAssignmentType implements Identifiable {
             LOGGER.warn("Target from assignment type won't be saved. It should be translated to target reference.");
         }
 
-        if (jaxb.getTargetRef() != null) {
-            RObjectReferenceType ref = new RObjectReferenceType();
-            RObjectReferenceType.copyFromJAXB(jaxb.getTargetRef(), ref);
-            repo.setTargetRef(ref);
-        }
+        repo.setTargetRef(RUtil.jaxbRefToRepo(jaxb.getTargetRef()));
     }
 
     public AssignmentType toJAXB() throws DtoTranslationException {

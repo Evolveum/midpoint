@@ -124,11 +124,7 @@ public class RSystemConfigurationType extends RExtensibleObjectType {
                     "translated to user template reference.");
         }
 
-        if (jaxb.getDefaultUserTemplateRef() != null) {
-            RObjectReferenceType ref = new RObjectReferenceType();
-            RObjectReferenceType.copyFromJAXB(jaxb.getDefaultUserTemplateRef(), ref);
-            repo.setDefaultUserTemplateRef(ref);
-        }
+        repo.setDefaultUserTemplateRef(RUtil.jaxbRefToRepo(jaxb.getDefaultUserTemplateRef()));
 
         try {
             repo.setConnectorFramework(RUtil.toRepo(jaxb.getConnectorFramework()));

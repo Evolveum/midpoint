@@ -24,6 +24,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -37,31 +38,54 @@ import java.math.BigInteger;
 public class RTaskType extends RExtensibleObjectType {
 
     private String taskIdentifier;
-    //    private ObjectReferenceType ownerRef;                 //todo mapping
+    private RObjectReferenceType ownerRef;
     private TaskExecutionStatusType executionStatus;
     private TaskExclusivityStatusType exclusivityStatus;
     private String node;
     private XMLGregorianCalendar claimExpirationTimestamp;
     private String handlerUri;
-    //    private UriStack otherHandlersUriStack;                    //todo mapping
+    private String otherHandlersUriStack;
     private ROperationResultType result;
-    //    private ObjectReferenceType objectRef;                //todo mapping
+    private RObjectReferenceType objectRef;
     private XMLGregorianCalendar lastRunStartTimestamp;
     private XMLGregorianCalendar lastRunFinishTimestamp;
     private XMLGregorianCalendar nextRunStartTime;
     private BigInteger progress;
     private TaskRecurrenceType recurrence;
     private TaskBindingType binding;
-//    private ScheduleType schedule;                //todo mapping
-//    private ModelOperationStateType modelOperationState;      //todo mapping
+    private String schedule;
+    private String modelOperationState;
+
+    @Type(type = "org.hibernate.type.TextType")
+    public String getModelOperationState() {
+        return modelOperationState;
+    }
+
+    @Type(type = "org.hibernate.type.TextType")
+    public String getOtherHandlersUriStack() {
+        return otherHandlersUriStack;
+    }
+
+    @Type(type = "org.hibernate.type.TextType")
+    public String getSchedule() {
+        return schedule;
+    }
+
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public RObjectReferenceType getOwnerRef() {
+        return ownerRef;
+    }
+
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public RObjectReferenceType getObjectRef() {
+        return objectRef;
+    }
 
     @Enumerated(EnumType.ORDINAL)
     public TaskBindingType getBinding() {
         return binding;
-    }
-
-    public XMLGregorianCalendar getClaimExpirationTimestamp() {
-        return claimExpirationTimestamp;
     }
 
     @Enumerated(EnumType.ORDINAL)
@@ -72,6 +96,21 @@ public class RTaskType extends RExtensibleObjectType {
     @Enumerated(EnumType.ORDINAL)
     public TaskExecutionStatusType getExecutionStatus() {
         return executionStatus;
+    }
+
+    @Enumerated(EnumType.ORDINAL)
+    public TaskRecurrenceType getRecurrence() {
+        return recurrence;
+    }
+
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public ROperationResultType getResult() {
+        return result;
+    }
+
+    public XMLGregorianCalendar getClaimExpirationTimestamp() {
+        return claimExpirationTimestamp;
     }
 
     public String getHandlerUri() {
@@ -96,17 +135,6 @@ public class RTaskType extends RExtensibleObjectType {
 
     public BigInteger getProgress() {
         return progress;
-    }
-
-    @Enumerated(EnumType.ORDINAL)
-    public TaskRecurrenceType getRecurrence() {
-        return recurrence;
-    }
-
-    @ManyToOne
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public ROperationResultType getResult() {
-        return result;
     }
 
     public String getTaskIdentifier() {
@@ -165,16 +193,88 @@ public class RTaskType extends RExtensibleObjectType {
         this.taskIdentifier = taskIdentifier;
     }
 
+    public void setObjectRef(RObjectReferenceType objectRef) {
+        this.objectRef = objectRef;
+    }
+
+    public void setOwnerRef(RObjectReferenceType ownerRef) {
+        this.ownerRef = ownerRef;
+    }
+
+    public void setModelOperationState(String modelOperationState) {
+        this.modelOperationState = modelOperationState;
+    }
+
+    public void setOtherHandlersUriStack(String otherHandlersUriStack) {
+        this.otherHandlersUriStack = otherHandlersUriStack;
+    }
+
+    public void setSchedule(String schedule) {
+        this.schedule = schedule;
+    }
+
     public static void copyToJAXB(RTaskType repo, TaskType jaxb) throws DtoTranslationException {
         RExtensibleObjectType.copyToJAXB(repo, jaxb);
 
-        //todo implement
+        jaxb.setTaskIdentifier(repo.getTaskIdentifier());
+        jaxb.setClaimExpirationTimestamp(repo.getClaimExpirationTimestamp());
+        jaxb.setExclusivityStatus(repo.getExclusivityStatus());
+        jaxb.setExecutionStatus(repo.getExecutionStatus());
+        jaxb.setHandlerUri(repo.getHandlerUri());
+        jaxb.setLastRunFinishTimestamp(repo.getLastRunFinishTimestamp());
+        jaxb.setLastRunStartTimestamp(repo.getLastRunStartTimestamp());
+        jaxb.setNode(repo.getNode());
+        jaxb.setProgress(repo.getProgress());
+        jaxb.setBinding(repo.getBinding());
+        jaxb.setNextRunStartTime(repo.getNextRunStartTime());
+        jaxb.setRecurrence(repo.getRecurrence());
+
+        if (repo.getObjectRef() != null) {
+            jaxb.setObjectRef(repo.getObjectRef().toJAXB());
+        }
+        if (repo.getOwnerRef() != null) {
+            jaxb.setOwnerRef(repo.getOwnerRef().toJAXB());
+        }
+        if (repo.getResult() != null) {
+            jaxb.setResult(repo.getResult().toJAXB());
+        }
+
+        try {
+            jaxb.setModelOperationState(RUtil.toJAXB(repo.getModelOperationState(), ModelOperationStateType.class));
+            jaxb.setOtherHandlersUriStack(RUtil.toJAXB(repo.getOtherHandlersUriStack(), UriStack.class));
+            jaxb.setSchedule(RUtil.toJAXB(repo.getSchedule(), ScheduleType.class));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
     }
 
     public static void copyFromJAXB(TaskType jaxb, RTaskType repo) throws DtoTranslationException {
         RExtensibleObjectType.copyFromJAXB(jaxb, repo);
 
-        //todo implement
+        repo.setTaskIdentifier(jaxb.getTaskIdentifier());
+        repo.setClaimExpirationTimestamp(jaxb.getClaimExpirationTimestamp());
+        repo.setExclusivityStatus(jaxb.getExclusivityStatus());
+        repo.setExecutionStatus(jaxb.getExecutionStatus());
+        repo.setHandlerUri(jaxb.getHandlerUri());
+        repo.setLastRunFinishTimestamp(jaxb.getLastRunFinishTimestamp());
+        repo.setLastRunStartTimestamp(jaxb.getLastRunStartTimestamp());
+        repo.setNode(jaxb.getNode());
+        repo.setProgress(jaxb.getProgress());
+        repo.setBinding(jaxb.getBinding());
+        repo.setNextRunStartTime(jaxb.getNextRunStartTime());
+        repo.setRecurrence(jaxb.getRecurrence());
+
+        repo.setObjectRef(RUtil.jaxbRefToRepo(jaxb.getObjectRef()));
+        repo.setOwnerRef(RUtil.jaxbRefToRepo(jaxb.getOwnerRef()));
+        repo.setResult(RUtil.jaxbResultToRepo(jaxb.getResult()));
+
+        try {
+            repo.setModelOperationState(RUtil.toRepo(jaxb.getModelOperationState()));
+            repo.setOtherHandlersUriStack(RUtil.toRepo(jaxb.getOtherHandlersUriStack()));
+            repo.setSchedule(RUtil.toRepo(jaxb.getSchedule()));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
     }
 
     @Override

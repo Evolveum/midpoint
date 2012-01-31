@@ -21,7 +21,10 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import org.apache.commons.lang.StringUtils;
 
 import javax.xml.bind.JAXBElement;
@@ -72,5 +75,27 @@ public final class RUtil {
         list.addAll(set);
 
         return list;
+    }
+
+    public static RObjectReferenceType jaxbRefToRepo(ObjectReferenceType ref) {
+        if (ref == null) {
+            return null;
+        }
+
+        RObjectReferenceType result = new RObjectReferenceType();
+        RObjectReferenceType.copyFromJAXB(ref, result);
+
+        return result;
+    }
+
+    public static ROperationResultType jaxbResultToRepo(OperationResultType result) throws DtoTranslationException {
+        if (result == null) {
+            return null;
+        }
+
+        ROperationResultType rResult = new ROperationResultType();
+        ROperationResultType.copyFromJAXB(result, rResult);
+
+        return rResult;
     }
 }
