@@ -89,7 +89,7 @@ public class RCredentialsType {
 
             if (jaxb.getPassword() != null) {
                 PasswordType password = jaxb.getPassword();
-                
+
                 Map<String, Object> properties = new HashMap<String, Object>();
                 properties.put(Marshaller.JAXB_FORMATTED_OUTPUT, false);
 
@@ -98,5 +98,11 @@ public class RCredentialsType {
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
+    }
+
+    public CredentialsType toJAXB() throws DtoTranslationException {
+        CredentialsType credentials = new CredentialsType();
+        RCredentialsType.copyToJAXB(this, credentials);
+        return credentials;
     }
 }

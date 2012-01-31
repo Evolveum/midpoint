@@ -26,6 +26,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.RUserType;
 import com.evolveum.midpoint.schema.ResultArrayList;
 import com.evolveum.midpoint.schema.ResultList;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
@@ -55,6 +56,7 @@ public class SqlRepositoryServiceImpl {
     String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
     String LIST_OBJECTS = CLASS_NAME_WITH_DOT + "listObjects";
     String LIST_ACCOUNT_SHADOW = CLASS_NAME_WITH_DOT + "listAccountShadowOwner";
+    String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
 
@@ -199,6 +201,38 @@ public class SqlRepositoryServiceImpl {
         return userType;
     }
 
+    public <T extends ObjectType> String addObject(T object, OperationResult result)
+            throws ObjectAlreadyExistsException, SchemaException {
+        Validate.notNull(object, "Object must not be null.");
+        Validate.notNull(result, "Operation result must not be null.");
+
+        String oid = null;
+        OperationResult subResult = result.createSubresult(GET_OBJECT);
+        Session session = null;
+        try {
+            session = beginTransaction();
+
+            RObjectType rObject;
+            Class<? extends RObjectType> clazz = ClassMapper.getHQLTypeClass(object.getClass());
+            rObject = clazz.newInstance();
+            Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz);
+            method.invoke(clazz, object, rObject);
+
+            oid = (String) session.save(rObject);
+            session.getTransaction().commit();
+        } catch (SystemException ex) {
+            session.getTransaction().rollback();
+            throw ex;
+        } catch (Exception ex) {
+            session.getTransaction().rollback();
+            throw new SystemException(ex.getMessage(), ex);
+        } finally {
+            cleanupSessionAndResult(session, subResult);
+        }
+
+        return oid;
+    }
+
     //todo probably remove from interface
     public <T extends ObjectType> PropertyAvailableValuesListType getPropertyAvailableValues(Class<T> type, String oid,
             PropertyReferenceListType properties, OperationResult result) throws ObjectNotFoundException {
@@ -239,27 +273,5 @@ public class SqlRepositoryServiceImpl {
         }
 
         result.computeStatus();
-    }
-
-    public String add(ObjectType object) {
-        Session session = sessionFactory.openSession();
-        session.beginTransaction();
-
-        RObjectType rObject;
-        try {
-            Class<? extends RObjectType> clazz = ClassMapper.getHQLTypeClass(object.getClass());
-            rObject = clazz.newInstance();
-            Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz);
-            method.invoke(clazz, object, rObject);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException(ex);
-        }
-
-        String oid = (String) session.save(rObject);
-        session.getTransaction().commit();
-        session.close();
-
-        return oid;
     }
 }

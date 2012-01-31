@@ -22,9 +22,17 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountSynchronizationSettingsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ModelHooksType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
@@ -34,44 +42,102 @@ import javax.persistence.Table;
 @Table(name = "system_configuration")
 public class RSystemConfigurationType extends RExtensibleObjectType {
 
-    private String configuration;
+    private static final Trace LOGGER = TraceManager.getTrace(RSystemConfigurationType.class);
+    private String globalAccountSynchronizationSettings;
+    private String modelHooks;
+    private String logging;
+    private RObjectReferenceType defaultUserTemplateRef;
+    private String connectorFramework;
 
-    public String getConfiguration() {
-        return configuration;
+    @Type(type = "org.hibernate.type.TextType")
+    public String getConnectorFramework() {
+        return connectorFramework;
     }
 
-    public void setConfiguration(String configuration) {
-        this.configuration = configuration;
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public RObjectReferenceType getDefaultUserTemplateRef() {
+        return defaultUserTemplateRef;
+    }
+
+    @Type(type = "org.hibernate.type.TextType")
+    public String getGlobalAccountSynchronizationSettings() {
+        return globalAccountSynchronizationSettings;
+    }
+
+    @Type(type = "org.hibernate.type.TextType")
+    public String getLogging() {
+        return logging;
+    }
+
+    @Type(type = "org.hibernate.type.TextType")
+    public String getModelHooks() {
+        return modelHooks;
+    }
+
+    public void setConnectorFramework(String connectorFramework) {
+        this.connectorFramework = connectorFramework;
+    }
+
+    public void setDefaultUserTemplateRef(RObjectReferenceType defaultUserTemplateRef) {
+        this.defaultUserTemplateRef = defaultUserTemplateRef;
+    }
+
+    public void setGlobalAccountSynchronizationSettings(String globalAccountSynchronizationSettings) {
+        this.globalAccountSynchronizationSettings = globalAccountSynchronizationSettings;
+    }
+
+    public void setLogging(String logging) {
+        this.logging = logging;
+    }
+
+    public void setModelHooks(String modelHooks) {
+        this.modelHooks = modelHooks;
     }
 
     public static void copyToJAXB(RSystemConfigurationType repo, SystemConfigurationType jaxb) throws
             DtoTranslationException {
         RExtensibleObjectType.copyToJAXB(repo, jaxb);
 
-//        try {
-//            if (StringUtils.isNotEmpty(repo.getConfiguration())) {
-//                JAXBElement<SystemConfigurationType> password = (JAXBElement<SystemConfigurationType>)
-//                        JAXBUtil.unmarshal(repo.getConfiguration());
-//                //todo: do we split configuration to multiple columns?
-//            }
-//        } catch (Exception ex) {
-//            throw new DtoTranslationException(ex.getMessage(), ex);
-//        }
+        if (repo.getDefaultUserTemplateRef() != null) {
+            jaxb.setDefaultUserTemplateRef(repo.getDefaultUserTemplateRef().toJAXB());
+        }
+
+        try {
+            jaxb.setConnectorFramework(RUtil.toJAXB(repo.getConnectorFramework(),
+                    SystemConfigurationType.ConnectorFramework.class));
+            jaxb.setGlobalAccountSynchronizationSettings(RUtil.toJAXB(repo.getGlobalAccountSynchronizationSettings(),
+                    AccountSynchronizationSettingsType.class));
+            jaxb.setLogging(RUtil.toJAXB(repo.getLogging(), LoggingConfigurationType.class));
+            jaxb.setModelHooks(RUtil.toJAXB(repo.getModelHooks(), ModelHooksType.class));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
     }
 
     public static void copyFromJAXB(SystemConfigurationType jaxb, RSystemConfigurationType repo) throws
             DtoTranslationException {
         RExtensibleObjectType.copyFromJAXB(jaxb, repo);
 
-//        try {
-//            if (jaxb.getPassword() != null) {
-//                PasswordType password = jaxb.getPassword();
-//                repo.setPassword(JAXBUtil.marshalWrap(password));
-//            }
-//            //todo: do we split configuration to multiple columns?
-//        } catch (Exception ex) {
-//            throw new DtoTranslationException(ex.getMessage(), ex);
-//        }
+        if (jaxb.getDefaultUserTemplate() != null) {
+            LOGGER.warn("Default user template from system configuration type won't be saved. It should be " +
+                    "translated to user template reference.");
+        }
+
+        if (jaxb.getDefaultUserTemplateRef() != null) {
+            RObjectReferenceType ref = new RObjectReferenceType();
+            RObjectReferenceType.copyFromJAXB(jaxb.getDefaultUserTemplateRef(), ref);
+            repo.setDefaultUserTemplateRef(ref);
+        }
+
+        try {
+            repo.setConnectorFramework(RUtil.toRepo(jaxb.getConnectorFramework()));
+            repo.setGlobalAccountSynchronizationSettings(RUtil.toRepo(jaxb.getGlobalAccountSynchronizationSettings()));
+            repo.setLogging(RUtil.toRepo(jaxb.getLogging()));
+            repo.setModelHooks(RUtil.toRepo(jaxb.getModelHooks()));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
     }
 
     @Override

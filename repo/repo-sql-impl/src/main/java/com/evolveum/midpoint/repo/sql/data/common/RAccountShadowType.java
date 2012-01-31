@@ -70,16 +70,8 @@ public class RAccountShadowType extends RResourceObjectShadowType {
 
         jaxb.setAccountType(repo.getAccountType());
 
-        RActivationType activation = new RActivationType();
-        if (jaxb.getActivation() != null) {
-            RActivationType.copyToJAXB(activation, jaxb.getActivation());
-        }
-        repo.setActivation(activation);
-        RCredentialsType credentials = new RCredentialsType();
-        if (jaxb.getCredentials() != null) {
-            RCredentialsType.copyToJAXB(credentials, jaxb.getCredentials());
-        }
-        repo.setCredentials(credentials);
+        jaxb.setActivation(repo.getActivation().toJAXB());
+        jaxb.setCredentials(repo.getCredentials().toJAXB());
     }
 
     public static void copyFromJAXB(AccountShadowType jaxb, RAccountShadowType repo) throws DtoTranslationException {

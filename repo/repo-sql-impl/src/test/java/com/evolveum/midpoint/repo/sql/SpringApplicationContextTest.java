@@ -54,7 +54,7 @@ public class SpringApplicationContextTest {
         for (int i = 0; i < elements.size(); i++) {
             JAXBElement<? extends ObjectType> element = elements.get(i);
             ObjectType object = element.getValue();
-            oids.add(service.add(object));
+            oids.add(service.addObject(object, new OperationResult("a")));
         }
         System.out.println("XXX Time: " + (System.currentTimeMillis() - time));
 
@@ -89,7 +89,7 @@ public class SpringApplicationContextTest {
 
         long time = System.currentTimeMillis();
         for (JAXBElement<? extends ObjectType> element : elements) {
-            service.add(element.getValue());
+            service.addObject(element.getValue(), new OperationResult("a"));
         }
         time = (System.currentTimeMillis() - time);
         System.out.println("XXX Time: " + (time / 1000) + "s, that's " + (50000000 / time) + "/s");

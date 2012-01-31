@@ -22,10 +22,14 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.FailedOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Columns;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import javax.xml.namespace.QName;
@@ -38,13 +42,19 @@ import java.util.Set;
 @Table(name = "resource_object_shadow")
 public class RResourceObjectShadowType extends RExtensibleObjectType {
 
-    //    private RObjectReferenceType resourceRef;
-    private ROperationResultType result;
-    //    private ObjectChangeType objectChange;
-    private Integer attemptNumber;   //todo default value
+    private static final Trace LOGGER = TraceManager.getTrace(RResourceObjectShadowType.class);
+    private RObjectReferenceType resourceRef;
+    private ROperationResultType fetchResult;
+    private String objectChange;
+    private Integer attemptNumber;
     private FailedOperationTypeType failedOperationType;
     private QName objectClass;
     private Set<RAttribute> attributes; //private ResourceObjectShadowType.Attributes attributes;
+
+    @Type(type = "org.hibernate.type.TextType")
+    public String getObjectChange() {
+        return objectChange;
+    }
 
     @OneToMany
     @JoinColumn(name = "objectShadowId")
@@ -58,10 +68,6 @@ public class RResourceObjectShadowType extends RExtensibleObjectType {
         return failedOperationType;
     }
 
-//    public ObjectChangeType getObjectChange() {
-//        return objectChange;
-//    }
-
     @Columns(columns = {
             @Column(name = "namespaceURI"),
             @Column(name = "localPart")
@@ -70,22 +76,21 @@ public class RResourceObjectShadowType extends RExtensibleObjectType {
         return objectClass;
     }
 
+    @Column(nullable = true)
     public Integer getAttemptNumber() {
         return attemptNumber;
     }
 
-//    @ManyToOne
-//    @JoinTable(name = "shadow_resource_ref", joinColumns = @JoinColumn(name = "shadowOid", unique = true),
-//            inverseJoinColumns = @JoinColumn(name = "objectRef"))
-//    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-//    public RObjectReferenceType getResourceRef() {
-//        return resourceRef;
-//    }
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public RObjectReferenceType getResourceRef() {
+        return resourceRef;
+    }
 
     @ManyToOne
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public ROperationResultType getResult() {
-        return result;
+    public ROperationResultType getFetchResult() {
+        return fetchResult;
     }
 
     public void setAttemptNumber(Integer attemptNumber) {
@@ -96,54 +101,82 @@ public class RResourceObjectShadowType extends RExtensibleObjectType {
         this.failedOperationType = failedOperationType;
     }
 
-//    public void setObjectChange(ObjectChangeType objectChange) {
-//        this.objectChange = objectChange;
-//    }
-
     public void setObjectClass(QName objectClass) {
         this.objectClass = objectClass;
     }
 
-//    public void setResourceRef(RObjectReferenceType resourceRef) {
-//        this.resourceRef = resourceRef;
-//    }
+    public void setResourceRef(RObjectReferenceType resourceRef) {
+        this.resourceRef = resourceRef;
+    }
 
-    public void setResult(ROperationResultType result) {
-        this.result = result;
+    public void setFetchResult(ROperationResultType fetchResult) {
+        this.fetchResult = fetchResult;
     }
 
     public void setAttributes(Set<RAttribute> attributes) {
         this.attributes = attributes;
     }
 
+    public void setObjectChange(String objectChange) {
+        this.objectChange = objectChange;
+    }
+
     public static void copyToJAXB(RResourceObjectShadowType repo, ResourceObjectShadowType jaxb) throws
             DtoTranslationException {
         RExtensibleObjectType.copyToJAXB(repo, jaxb);
 
-        //todo implement
+        jaxb.setAttemptNumber(repo.getAttemptNumber());
+        jaxb.setObjectClass(repo.getObjectClass());
+        jaxb.setFailedOperationType(repo.getFailedOperationType());
 
+        if (repo.getFetchResult() != null) {
+            jaxb.setFetchResult(repo.getFetchResult().toJAXB());
+        }
+        if (repo.getResourceRef() != null) {
+            jaxb.setResourceRef(repo.getResourceRef().toJAXB());
+        }
 
-//        if (repo.getResult() != null) {
-//            XOperationResultType resultType = new XOperationResultType();
-//
-//            ROperationResultType.copyToJAXB(repo.getResult(), resultType);
-//            jaxb.setResult(resultType);
-//        }
+        try {
+            jaxb.setObjectChange(RUtil.toJAXB(repo.getObjectChange(), ObjectChangeType.class));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
+
+        //todo implement attributes
     }
 
     public static void copyFromJAXB(ResourceObjectShadowType jaxb, RResourceObjectShadowType repo) throws
             DtoTranslationException {
         RExtensibleObjectType.copyFromJAXB(jaxb, repo);
 
+        if (jaxb.getResource() != null) {
+            LOGGER.warn("Resource from resource object shadow type won't be saved. It should be " +
+                    "translated to resource reference.");
+        }
 
-//        if (jaxb.getResult() != null) {
-//            ROperationResultType resultType = new ROperationResultType();
-//
-//            ROperationResultType.copyFromJAXB(jaxb.getResult(), resultType);
-//            repo.setResult(resultType);
-//        }
+        repo.setAttemptNumber(jaxb.getAttemptNumber());
+        repo.setObjectClass(jaxb.getObjectClass());
+        repo.setFailedOperationType(jaxb.getFailedOperationType());
 
-        //todo implement
+        if (jaxb.getResourceRef() != null) {
+            RObjectReferenceType ref = new RObjectReferenceType();
+            RObjectReferenceType.copyFromJAXB(jaxb.getResourceRef(), ref);
+            repo.setResourceRef(ref);
+        }
+
+        if (jaxb.getFetchResult() != null) {
+            ROperationResultType result = new ROperationResultType();
+            ROperationResultType.copyFromJAXB(jaxb.getFetchResult(), result);
+            repo.setFetchResult(result);
+        }
+
+        try {
+            repo.setObjectChange(RUtil.toRepo(jaxb.getObjectChange()));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
+
+        //todo implement attributes
     }
 
     @Override

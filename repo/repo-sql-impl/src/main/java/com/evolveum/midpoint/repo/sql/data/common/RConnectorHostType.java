@@ -23,6 +23,8 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -37,9 +39,14 @@ public class RConnectorHostType extends RExtensibleObjectType {
 
     private String hostname;
     private String port;
-    //    private ProtectedStringType sharedSecret; //todo what with this?
+    private String sharedSecret;
     private Boolean protectConnection;
-    private Integer timeout; //todo default timeout value???
+    private Integer timeout;
+
+    @Type(type = "org.hibernate.type.TextType")
+    public String getSharedSecret() {
+        return sharedSecret;
+    }
 
     public String getHostname() {
         return hostname;
@@ -75,14 +82,23 @@ public class RConnectorHostType extends RExtensibleObjectType {
         this.timeout = timeout;
     }
 
+    public void setSharedSecret(String sharedSecret) {
+        this.sharedSecret = sharedSecret;
+    }
+
     public static void copyToJAXB(RConnectorHostType repo, ConnectorHostType jaxb) throws DtoTranslationException {
         RExtensibleObjectType.copyToJAXB(repo, jaxb);
 
         jaxb.setHostname(repo.getHostname());
         jaxb.setPort(repo.getPort());
         jaxb.setProtectConnection(repo.isProtectConnection());
-//        jaxb.setSharedSecret(); //todo implement
         jaxb.setTimeout(repo.getTimeout());
+
+        try {
+            jaxb.setSharedSecret(RUtil.toJAXB(repo.getSharedSecret(), ProtectedStringType.class));
+        } catch (Exception ex) {
+            new DtoTranslationException(ex.getMessage(), ex);
+        }
     }
 
     public static void copyFromJAXB(ConnectorHostType jaxb, RConnectorHostType repo) throws DtoTranslationException {
@@ -91,10 +107,13 @@ public class RConnectorHostType extends RExtensibleObjectType {
         repo.setHostname(jaxb.getHostname());
         repo.setPort(jaxb.getPort());
         repo.setTimeout(jaxb.getTimeout());
-
-//        jaxb.getSharedSecret() //todo implement
-
         repo.setProtectConnection(jaxb.isProtectConnection());
+
+        try {
+            repo.setSharedSecret(RUtil.toRepo(jaxb.getSharedSecret()));
+        } catch (Exception ex) {
+            new DtoTranslationException(ex.getMessage(), ex);
+        }
     }
 
     @Override
