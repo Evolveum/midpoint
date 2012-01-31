@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.RTaskType;
 import com.evolveum.midpoint.repo.sql.data.common.RUserType;
 import com.evolveum.midpoint.schema.ResultArrayList;
 import com.evolveum.midpoint.schema.ResultList;
@@ -55,6 +56,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     String LIST_ACCOUNT_SHADOW = CLASS_NAME_WITH_DOT + "listAccountShadowOwner";
     String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
     String DELETE_OBJECT = CLASS_NAME_WITH_DOT + "deleteObject";
+    String CLAIM_TASK = CLASS_NAME_WITH_DOT + "claimTask";
+    String RELEASE_TASK = CLASS_NAME_WITH_DOT + "releaseTask";
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
 
@@ -282,20 +285,30 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     }
 
     @Override
-    public void claimTask(String oid, OperationResult parentResult) throws ObjectNotFoundException,
+    public void claimTask(String oid, OperationResult result) throws ObjectNotFoundException,
             ConcurrencyException, SchemaException {
-        //todo implement
+        Validate.notEmpty(oid, "Oid must not be null or empty.");
+        Validate.notNull(result, "Operation result must not be null.");
+
+        OperationResult subResult = result.createSubresult(CLAIM_TASK);
+        updateTaskExclusivity(oid, TaskExclusivityStatusType.CLAIMED, subResult);
     }
 
     @Override
-    public void releaseTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-        //todo implement
+    public void releaseTask(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        Validate.notEmpty(oid, "Oid must not be null or empty.");
+        Validate.notNull(result, "Operation result must not be null.");
+
+        OperationResult subResult = result.createSubresult(RELEASE_TASK);
+        updateTaskExclusivity(oid, TaskExclusivityStatusType.RELEASED, subResult);
     }
 
     @Override
     public <T extends ObjectType> ResultList<T> searchObjects(Class<T> type, QueryType query, PagingType paging,
             OperationResult parentResult) throws SchemaException {
-        return null;  //todo implement
+        ResultList<T> list = new ResultArrayList<T>();
+
+        return list;  //todo implement
     }
 
     @Override
@@ -307,7 +320,44 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     @Override
     public <T extends ResourceObjectShadowType> ResultList<T> listResourceObjectShadows(String resourceOid,
             Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException {
-        return null;  //todo implement
+        ResultList<T> list = new ResultArrayList<T>();
+
+        return list;  //todo implement
+    }
+
+    private void updateTaskExclusivity(String oid, TaskExclusivityStatusType newStatus, OperationResult result)
+            throws ObjectNotFoundException {
+
+        LOGGER.debug("Updating task '{}' exclusivity to '{}'", new Object[]{oid, newStatus});
+        Session session = null;
+        try {
+            LOGGER.debug("Looking for task.");
+            session = beginTransaction();
+            Query query = session.createQuery("from RTaskType as task where task.oid = :oid");
+            query.setString("oid", oid);
+
+            RTaskType task = (RTaskType) query.uniqueResult();
+            if (task == null) {
+                throw new ObjectNotFoundException("Task with oid '" + oid + "' was not found.");
+            }
+            LOGGER.debug("Task found, updating exclusivity status.");
+            task.setExclusivityStatus(newStatus);
+            session.save(task);
+
+            session.getTransaction().commit();
+            LOGGER.debug("Task status updated.");
+        } catch (ObjectNotFoundException ex) {
+            session.getTransaction().rollback();
+            throw ex;
+        } catch (SystemException ex) {
+            session.getTransaction().rollback();
+            throw ex;
+        } catch (Exception ex) {
+            session.getTransaction().rollback();
+            throw new SystemException(ex.getMessage(), ex);
+        } finally {
+            cleanupSessionAndResult(session, result);
+        }
     }
 
     private <T extends ObjectType> void validateObjectType(ObjectType objectType, Class<T> type) {

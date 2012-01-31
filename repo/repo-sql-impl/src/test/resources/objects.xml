@@ -875,7 +875,7 @@
         <objectType>http://myself.me/schemas/objects#SampleConfigType</objectType>
     </genericObject>
 
-    <task>
+    <task oid="555">
         <name>Synchronization: Embedded Test OpenDJ</name>
         <description>
             Definition of a live sychnronization task. It will poll changelog and pull in changes

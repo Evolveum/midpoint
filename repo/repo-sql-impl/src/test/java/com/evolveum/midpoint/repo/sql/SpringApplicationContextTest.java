@@ -83,6 +83,15 @@ public class SpringApplicationContextTest {
         UserType user = service.listAccountShadowOwner("1234", new OperationResult("a"));
         System.out.println(JAXBUtil.marshalWrap(user));
 
+        System.out.println("*******************");
+        System.out.println(JAXBUtil.marshalWrap(service.getObject(TaskType.class, "555", null, new OperationResult("a"))));
+        service.claimTask("555", new OperationResult("r"));
+        System.out.println(JAXBUtil.marshalWrap(service.getObject(TaskType.class, "555", null, new OperationResult("a"))));
+        service.releaseTask("555", new OperationResult("r"));
+        System.out.println(JAXBUtil.marshalWrap(service.getObject(TaskType.class, "555", null, new OperationResult("a"))));
+        System.out.println("*******************");
+
+
         AssertJUnit.assertEquals("Expected changes must be 0. ", 0, count);
     }
 
