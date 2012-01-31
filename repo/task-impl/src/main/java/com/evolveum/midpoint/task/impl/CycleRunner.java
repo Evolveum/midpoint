@@ -127,6 +127,9 @@ public class CycleRunner extends TaskRunner {
 					LOGGER.trace("CycleRunner loop: task is loosely bound, exiting the execution cycle");
 					break;
 				}
+
+				if (!task.canRun())			// in case the task thread was shut down (e.g. in case of task suspension) while processing...
+					break;
 				
 				// Determine how long we need to sleep and hit the bed
 				

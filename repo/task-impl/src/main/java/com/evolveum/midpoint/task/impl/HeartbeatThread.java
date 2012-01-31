@@ -76,7 +76,8 @@ public class HeartbeatThread extends Thread {
 					LOGGER.trace("Heartbeat thread loop: going to sleep");
 
 					try {
-						Thread.sleep(sleepInterval - (System.currentTimeMillis() - lastLoopRun));
+						long delta = lastLoopRun + sleepInterval - System.currentTimeMillis(); 
+						Thread.sleep(delta > 0 ? delta : 0);
 					} catch (InterruptedException ex) {
 						LOGGER.trace("Task scanner got InterruptedException: " + ex);
 						// Safe to ignore

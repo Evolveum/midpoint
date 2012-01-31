@@ -667,7 +667,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	 */
 	@Override
 	public boolean suspendTask(Task task, long waitTime, OperationResult parentResult) throws ObjectNotFoundException,
-			ConcurrencyException, SchemaException {
+			SchemaException {
 		
 		LOGGER.info("Suspending task " + task + " (waiting " + waitTime + " msec)");
 

@@ -269,7 +269,7 @@ public interface TaskManager {
 	 * @throws ConcurrencyException 
 	 * @throws ObjectNotFoundException 
 	 */
-	public boolean suspendTask(Task task, long waitTime, OperationResult parentResult) throws ObjectNotFoundException, ConcurrencyException, SchemaException;
+	public boolean suspendTask(Task task, long waitTime, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
 	/**
 	 * Resume suspended task.

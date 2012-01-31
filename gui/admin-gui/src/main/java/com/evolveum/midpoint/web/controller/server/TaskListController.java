@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.controller.server;
 
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -130,16 +131,36 @@ public class TaskListController extends SortableListController<TaskItem> {
         result.addParam("taskOid", selectedTask.getOid());
 
         try {
-            taskManager.deleteTask(selectedTask.getOid(), result);
+        	String oid = selectedTask.getOid();
+        	Task task = taskManager.getTask(oid, result);
+        	
+        	boolean wasActive = taskManager.isTaskThreadActive(task.getTaskIdentifier());
+        	boolean nowDown = taskManager.suspendTask(task, 1000L, result);
+            taskManager.deleteTask(oid, result);
             getObjects().remove(selectedTask);
-            FacesUtils.addSuccessMessage("Task deleted sucessfully");
+            
+            if (!wasActive)
+            	FacesUtils.addSuccessMessage("Task has been successfully deleted.");
+            else if (nowDown)
+            	FacesUtils.addSuccessMessage("Task has been successfully shut down and deleted.");
+            else
+            	FacesUtils.addWarnMessage("Task shutdown has been successfully requested, but not finished yet. "
+            			+ "In spite of that, the task was removed from repository. " 
+            			+ "Please check for its completion using the list of currently executing tasks.");
+
         } catch (ObjectNotFoundException ex) {
             FacesUtils.addErrorMessage(
                     "Task with oid " + selectedTask.getOid() + " not found. Reason: " + ex.getMessage(), ex);
             result.recordFatalError(
                     "Task with oid " + selectedTask.getOid() + " not found. Reason: " + ex.getMessage(), ex);
             return null;
-        }
+        } catch (SchemaException ex) {
+            FacesUtils.addErrorMessage(
+                    "Task with oid " + selectedTask.getOid() + " could not be retrieved due to schema exception. Reason: " + ex.getMessage(), ex);
+            result.recordFatalError(
+                    "Task with oid " + selectedTask.getOid() + " could not be retrieved due to schema exception. Reason: " + ex.getMessage(), ex);
+            return null;
+		}
 
         return PAGE_NAVIGATION;
     }
