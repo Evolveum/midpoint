@@ -132,21 +132,37 @@ public class TaskListController extends SortableListController<TaskItem> {
 
         try {
         	String oid = selectedTask.getOid();
-        	Task task = taskManager.getTask(oid, result);
         	
-        	boolean wasActive = taskManager.isTaskThreadActive(task.getTaskIdentifier());
-        	boolean nowDown = taskManager.suspendTask(task, 1000L, result);
-            taskManager.deleteTask(oid, result);
+        	boolean getInfoProblem = false;
+        	boolean wasRunning = false;
+        	boolean isRunning = false;
+        	
+        	try {
+        		Task task = taskManager.getTask(oid, result);
+        		wasRunning = taskManager.isTaskThreadActive(task.getTaskIdentifier());
+        		if (wasRunning)
+        			isRunning = !taskManager.suspendTask(task, 1000L, result);
+        	}
+        	catch (Exception ex) {		// we don't care which kind of exception occurred while getting information about the task
+            	getInfoProblem = true;
+            	result.recordPartialError("It was not possible to get the information about the task. Reason: " + ex.getMessage(), ex);
+        	}
+        	
+        	taskManager.deleteTask(oid, result);
             getObjects().remove(selectedTask);
             
-            if (!wasActive)
+            if (getInfoProblem)
+            	FacesUtils.addWarnMessage("The task was successfully removed from the repository. " +
+            			"However, it was not possible to get its state; it might " +
+            			"be still running. Please check using the 'List currently executing tasks' function.");
+            else if (!wasRunning)		// was not running
             	FacesUtils.addSuccessMessage("Task has been successfully deleted.");
-            else if (nowDown)
+            else if (!isRunning)		// was running, but now it is stopped
             	FacesUtils.addSuccessMessage("Task has been successfully shut down and deleted.");
             else
-            	FacesUtils.addWarnMessage("Task shutdown has been successfully requested, but not finished yet. "
-            			+ "In spite of that, the task was removed from repository. " 
-            			+ "Please check for its completion using the list of currently executing tasks.");
+            	FacesUtils.addWarnMessage("The task was successfully removed from the repository. " +
+            			"However, although requested to shut down, it has not stopped yet. " + 
+            			"Please check using the 'List currently executing tasks' function.");
 
         } catch (ObjectNotFoundException ex) {
             FacesUtils.addErrorMessage(
@@ -154,13 +170,7 @@ public class TaskListController extends SortableListController<TaskItem> {
             result.recordFatalError(
                     "Task with oid " + selectedTask.getOid() + " not found. Reason: " + ex.getMessage(), ex);
             return null;
-        } catch (SchemaException ex) {
-            FacesUtils.addErrorMessage(
-                    "Task with oid " + selectedTask.getOid() + " could not be retrieved due to schema exception. Reason: " + ex.getMessage(), ex);
-            result.recordFatalError(
-                    "Task with oid " + selectedTask.getOid() + " could not be retrieved due to schema exception. Reason: " + ex.getMessage(), ex);
-            return null;
-		}
+        }
 
         return PAGE_NAVIGATION;
     }

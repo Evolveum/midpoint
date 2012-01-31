@@ -522,9 +522,13 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	void finishRunnableTask(TaskRunner runner, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		
 		// We have claimed the task before, therefore we need to release the task here.
-		releaseTask(task,parentResult);
-		task.refresh(parentResult);
-		runners.remove(runner);			// TODO what if releaseTask throws an exception?
+		try {
+			releaseTask(task,parentResult);
+			task.refresh(parentResult);
+		}
+		finally {
+			runners.remove(runner);
+		}
 	}
 	
 	private Thread allocateThread(Task task, Runnable target) {

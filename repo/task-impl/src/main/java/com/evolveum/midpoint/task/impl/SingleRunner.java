@@ -126,14 +126,14 @@ public class SingleRunner extends TaskRunner {
 			}
 						
 			// Call back task manager to clean up things
-			taskManager.finishRunnableTask(this,task, runnerRunOpResult);
+			taskManager.finishRunnableTask(this, task, runnerRunOpResult);
 
 			runFinish();
 
 		} catch (Throwable t) {
 			// This is supposed to run in a thread, so this kind of heavy artillery is needed. If throwable won't be
 			// caught here, nobody will catch it and it won't even get logged.
-			LOGGER.error("SingleRunner got critical exception, the task state cannot be saved: {}: {}",new Object[] { t.getClass().getName(),t.getMessage(),t});
+			LOGGER.error("SingleRunner got critical exception, the task state cannot be saved: {}: {}",new Object[] { t.getClass().getName(),t.getMessage(), t});
 		} finally {
 			RepositoryCache.exit();
 		}
