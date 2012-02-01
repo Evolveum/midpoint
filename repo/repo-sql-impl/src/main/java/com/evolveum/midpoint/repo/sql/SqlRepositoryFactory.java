@@ -34,6 +34,81 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
     private Configuration configuration;
 
+    //embedded configuration
+    private boolean embedded = true;
+    private String databasePath;                   //todo
+    //connection for hibernate
+    private String driverClassName = "org.h2.Driver";
+    private String jdbcUrl;                 //todo
+    private String jdbcUsername = "midpoint";
+    private String jdbcPassword = "midpoint";
+    private String hibernateDialect = "org.hibernate.dialect.H2Dialect";
+    private String hibernateHbm2ddl = "update";
+
+    public String getDatabasePath() {
+        return databasePath;
+    }
+
+    public void setDatabasePath(String databasePath) {
+        this.databasePath = databasePath;
+    }
+
+    public String getDriverClassName() {
+        return driverClassName;
+    }
+
+    public void setDriverClassName(String driverClassName) {
+        this.driverClassName = driverClassName;
+    }
+
+    public boolean isEmbedded() {
+        return embedded;
+    }
+
+    public void setEmbedded(boolean embedded) {
+        this.embedded = embedded;
+    }
+
+    public String getHibernateDialect() {
+        return hibernateDialect;
+    }
+
+    public void setHibernateDialect(String hibernateDialect) {
+        this.hibernateDialect = hibernateDialect;
+    }
+
+    public String getHibernateHbm2ddl() {
+        return hibernateHbm2ddl;
+    }
+
+    public void setHibernateHbm2ddl(String hibernateHbm2ddl) {
+        this.hibernateHbm2ddl = hibernateHbm2ddl;
+    }
+
+    public String getJdbcPassword() {
+        return jdbcPassword;
+    }
+
+    public void setJdbcPassword(String jdbcPassword) {
+        this.jdbcPassword = jdbcPassword;
+    }
+
+    public String getJdbcUrl() {
+        return jdbcUrl;
+    }
+
+    public void setJdbcUrl(String jdbcUrl) {
+        this.jdbcUrl = jdbcUrl;
+    }
+
+    public String getJdbcUsername() {
+        return jdbcUsername;
+    }
+
+    public void setJdbcUsername(String jdbcUsername) {
+        this.jdbcUsername = jdbcUsername;
+    }
+
     @Override
     public void destroy() throws RepositoryServiceFactoryException {
         //todo implement

@@ -117,6 +117,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  */
 public interface RepositoryService {
 
+    String CLASS_NAME_WITH_DOT = RepositoryService.class.getName() + ".";
+    String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
+    String LIST_OBJECTS = CLASS_NAME_WITH_DOT + "listObjects";
+    String LIST_ACCOUNT_SHADOW = CLASS_NAME_WITH_DOT + "listAccountShadowOwner";
+    String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
+    String DELETE_OBJECT = CLASS_NAME_WITH_DOT + "deleteObject";
+    String CLAIM_TASK = CLASS_NAME_WITH_DOT + "claimTask";
+    String RELEASE_TASK = CLASS_NAME_WITH_DOT + "releaseTask";
+    String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
+    String LIST_RESOURCE_OBJECT_SHADOWS = CLASS_NAME_WITH_DOT + "listResourceObjectShadows";
+    String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
+
 	/**
 	 * Returns object for provided OID.
 	 * 
