@@ -66,7 +66,7 @@ import java.util.*;
 public class Property extends Item {
 
     private Set<PropertyValue<Object>> values = new HashSet<PropertyValue<Object>>();
-    
+
     private static final Trace LOGGER = TraceManager.getTrace(Property.class);
 
 //    public Property() {
@@ -140,7 +140,7 @@ public class Property extends Item {
     public <T> Set<PropertyValue<T>> getValues(Class<T> T) {
         return (Set) values;
     }
-    
+
 	public <T> Collection<T> getRealValues(Class<T> type) {
 		Collection<T> realValues = new ArrayList<T>(values.size());
 		for (PropertyValue<Object> pValue: values) {
@@ -206,7 +206,7 @@ public class Property extends Item {
     		addValue(pValue);
     	}
     }
-    
+
     public void addValue(PropertyValue<Object> pValueToAdd) {
     	Iterator<PropertyValue<Object>> iterator = this.values.iterator();
     	while (iterator.hasNext()) {
@@ -219,14 +219,19 @@ public class Property extends Item {
     	this.values.add(pValueToAdd);
     }
 
-
-    public void deleteValues(Collection<PropertyValue<Object>> pValuesToDelete) {
+    public boolean deleteValues(Collection<PropertyValue<Object>> pValuesToDelete) {
+        boolean changed = false;
     	for (PropertyValue<Object> pValue: pValuesToDelete) {
-    		deleteValue(pValue);
+            if (!changed) {
+    		    changed = deleteValue(pValue);
+            } else {
+                deleteValue(pValue);
+            }
     	}
+        return changed;
     }
-    
-    public void deleteValue(PropertyValue<Object> pValueToDelete) {
+
+    public boolean deleteValue(PropertyValue<Object> pValueToDelete) {
     	Iterator<PropertyValue<Object>> iterator = this.values.iterator();
     	boolean found = false;
     	while (iterator.hasNext()) {
@@ -239,6 +244,8 @@ public class Property extends Item {
     	if (!found) {
     		LOGGER.warn("Deleting value of property "+getName()+" that does not exist (skipping), value: "+pValueToDelete);
     	}
+
+        return found;
     }
 
     public void replaceValues(Collection<PropertyValue<Object>> valuesToReplace) {
@@ -493,9 +500,9 @@ public class Property extends Item {
 
     private PropertyDelta compareTo(Property other, boolean compareReal) {
         PropertyDelta delta = new PropertyDelta(getPath());
-        
+
         PropertyDefinition def = getDefinition();
-        
+
         if (other != null) {
             for (PropertyValue<Object> value : getValues()) {
                 if ((!compareReal && !other.hasValue(value))
@@ -516,7 +523,7 @@ public class Property extends Item {
         		Collection<PropertyValue<Object>> replaceValues = new ArrayList<PropertyValue<Object>>(other.getValues().size());
                 for (PropertyValue<Object> value : other.getValues()) {
                 	replaceValues.add(value.clone());
-                }   
+                }
     			delta.setValuesToReplace(replaceValues);
     			return delta;
             }

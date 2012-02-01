@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import org.hibernate.Criteria;
 import org.w3c.dom.Element;
 
@@ -30,7 +31,10 @@ import org.w3c.dom.Element;
 public class QueryProcessor {
 
     public Criteria createFilterCriteria(Criteria criteria, Element filter) {
+        
         //todo create criteria from query filter
+
+//        JAXBUtil.unmarshal(filter);
 
         return criteria;
     }

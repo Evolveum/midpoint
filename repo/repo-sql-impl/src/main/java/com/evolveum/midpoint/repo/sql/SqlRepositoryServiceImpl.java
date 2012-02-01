@@ -72,7 +72,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
 
-    @Autowired(required = true)
+    @Autowired(required = true) //todo uncomment
     private SchemaRegistry schemaRegistry;
 
     @Autowired(required = true)
@@ -110,17 +110,17 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
             validateObjectType(objectType, type);
         } catch (NonUniqueResultException ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw new SystemException("There are more objects of type '"
                     + type.getSimpleName() + "' with oid '" + oid + "': " + ex.getMessage(), ex);
         } catch (DtoTranslationException ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw new SchemaException(ex.getMessage(), ex);
         } catch (SystemException ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw ex;
         } catch (Exception ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             cleanupSessionAndResult(session, subResult);
@@ -161,10 +161,10 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             }
             session.getTransaction().commit();
         } catch (SystemException ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw ex;
         } catch (Exception ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             cleanupSessionAndResult(session, subResult);
@@ -208,13 +208,13 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw ex;
         } catch (SystemException ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw ex;
         } catch (Exception ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             cleanupSessionAndResult(session, subResult);
@@ -244,10 +244,10 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
             LOGGER.debug("Saved object '{}' with oid '{}'", new Object[]{object.getClass().getSimpleName(), oid});
         } catch (SystemException ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw ex;
         } catch (Exception ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             cleanupSessionAndResult(session, subResult);
@@ -284,10 +284,10 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
             LOGGER.debug("Deleted was {} object(s).", new Object[]{count});
         } catch (SystemException ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw ex;
         } catch (Exception ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             cleanupSessionAndResult(session, subResult);
@@ -352,10 +352,10 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
             session.getTransaction().commit();
         } catch (SystemException ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw ex;
         } catch (Exception ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             cleanupSessionAndResult(session, subResult);
@@ -402,13 +402,13 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             session.update(rObject);
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw ex;
         } catch (SystemException ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw ex;
         } catch (Exception ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             cleanupSessionAndResult(session, subResult);
@@ -462,10 +462,10 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             session.getTransaction().commit();
             LOGGER.debug("Done.");
         } catch (SystemException ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw ex;
         } catch (Exception ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             cleanupSessionAndResult(session, subResult);
@@ -496,13 +496,13 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             session.getTransaction().commit();
             LOGGER.debug("Task status updated.");
         } catch (ObjectNotFoundException ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw ex;
         } catch (SystemException ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw ex;
         } catch (Exception ex) {
-            session.getTransaction().rollback();
+            rollbackTransaction(session);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             cleanupSessionAndResult(session, result);
@@ -562,6 +562,13 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         session.beginTransaction();
 
         return session;
+    }
+
+    private void rollbackTransaction(Session session) {
+        if (session == null || session.getTransaction() == null) {
+            return;
+        }
+        session.getTransaction().rollback();
     }
 
     private void cleanupSessionAndResult(Session session, OperationResult result) {
