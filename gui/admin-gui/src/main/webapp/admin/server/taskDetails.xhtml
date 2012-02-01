@@ -16,6 +16,20 @@
 
     <ui:define name="content">
         <ice:form>
+	    	<ice:panelPopup modal="true" autoCentre="true" visible="#{taskDetails.showPopup}">
+				<f:facet name="header">
+					<ice:outputText value="Confirmation" />
+				</f:facet>
+				<f:facet id="confirmPopup" name="body">
+					<ice:outputText value="Releasing a task can lead to duplicate task execution, unless you are sure that the task is marked as claimed by mistake (i.e. that it is not really executing). Are you sure to release this task?" />
+					<div class="button-bar">
+						<ice:commandButton id="confirmYes" value="Yes"
+							action="#{taskList.listFirst}" actionListener="#{taskDetails.releaseTaskPerformed}" />
+						<ice:commandButton id="confirmNo" value="No"
+							action="#{taskDetails.hidePopup}" />
+					</div>
+				</f:facet>
+			</ice:panelPopup>
             <ice:panelGroup>
                 <ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
                     <f:facet name="header">
@@ -166,7 +180,7 @@
                 <idm:button value="Release claimed task"
                             img="/resources/images/application_put.png" id="releaseTask"
                             rendered="#{not taskDetails.editMode}" immediate="true"
-                            action="#{taskList.listFirst}" actionListener="#{taskDetails.releaseTaskPerformed}"/>
+                            action="#{taskDetails.showPopup}" />
                 <idm:button value="Delete task"
                             img="/resources/images/application_delete.png" id="deleteTask"
                             rendered="#{not taskDetails.editMode}" immediate="true"

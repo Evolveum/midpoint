@@ -85,8 +85,10 @@ public class TaskDetailsController implements Serializable {
 
     private boolean adding = false;
     private boolean editMode = false;
+    private boolean showPopup = false;
 
-    private List<ResourceDto> resources;
+
+	private List<ResourceDto> resources;
 
     private TaskItem task;
 
@@ -113,6 +115,18 @@ public class TaskDetailsController implements Serializable {
     void setAdding(boolean adding) {
         this.adding = adding;
     }
+    
+    public boolean isShowPopup() {
+		return showPopup;
+	}
+	
+	public void hidePopup(){
+		showPopup = false;
+	}
+	
+	public void showPopup(){
+		showPopup = true;
+	}
 
     public List<SelectItem> getResourceRefList() {
         List<SelectItem> list = new ArrayList<SelectItem>();
