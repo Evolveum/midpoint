@@ -68,7 +68,9 @@ This resource definition contains only the very basic definitions for midPoint t
             <!-- Configuration specific for the LDAP connector -->
             <icfcad:configurationProperties>
                 <icfcad:DirectoryAdminName>administrator</icfcad:DirectoryAdminName>
-                <icfcad:DirectoryAdminPassword>secret</icfcad:DirectoryAdminPassword>
+                <icfcad:DirectoryAdminPassword>
+			<clearValue>secret</clearValue>
+		</icfcad:DirectoryAdminPassword>
                 <icfcad:ObjectClass>User</icfcad:ObjectClass>
                 <icfcad:Container>cn=Users,dc=example,dc=com</icfcad:Container>
                 <icfcad:CreateHomeDirectory>true</icfcad:CreateHomeDirectory>
