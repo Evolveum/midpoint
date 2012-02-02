@@ -845,7 +845,7 @@
 
     </userTemplate>
 
-    <genericObject>
+    <genericObject oid="9999">
 
         <name>My Sample Config Object</name>
         <description>
@@ -855,16 +855,19 @@
             the IDM custom business logic or IDM expressions.
         </description>
         <extension>
+            <p:type xmlns:p="http://example.com/p" xsi:type="string">some text in here</p:type>
+            <p:type xmlns:p="http://example.com/p" xsi:type="long">1234</p:type>
+
             <!-- This additional level of depth (the "locations" element) is needed now
                  because current repository does not support generic multi-valued
                  properties. This might be fixed in next releases. -->
-            <my:locations>
+            <my:locations xsi:type="p:LocationsType" xmlns:p="http://example.com/p">
                 <!-- Lookup table. The "key" attribute is a key, the element content
                      is a value. However, the data structure may be structured differently,
                      it depends on a specific XPath that is used for lookup (see the
                      definition of outbound expression for "l" attribute in the resource
                      definition above). -->
-                <my:location key="home">Here</my:location>
+                <my:location key="home" xsi:type="xsd:string">Here</my:location>
 
                 <my:location key="work">There</my:location>
                 <my:location key="somewhere">There there over the corner</my:location>
@@ -905,6 +908,74 @@
         <activation>
             <enabled>true</enabled>
         </activation>
+        <result xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                     xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+                     xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd"
+                     xmlns:gen160="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"
+                     xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+                     xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+            <operation>com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType.importFromResource
+            </operation>
+            <status>in_progress</status>
+            <token>1000000000000000610</token>
+            <message>Task running in background</message>
+            <partialResults>
+                <operation>com.evolveum.midpoint.model.api.ModelService.importAccountsFromResource</operation>
+                <status>in_progress</status>
+                <params>
+                    <entry key="task">
+                        <unknownJavaObject>
+                            <class>com.evolveum.midpoint.task.impl.TaskImpl</class>
+                            <toString>Task(id:1327683120569-0-1, name:Import from resource Embedded Test OpenDJ,
+                                oid:193371b3-a260-41f5-890b-6c2021907ee9)
+                            </toString>
+                        </unknownJavaObject>
+                    </entry>
+                    <entry key="resourceOid">
+                        <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                                 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                 xsi:type="xsd:string">ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff
+                        </c:value>
+                    </entry>
+                    <entry key="objectClass">
+                        <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                                 xmlns:qn644="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+                                 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                 xsi:type="xsd:QName">qn644:AccountObjectClass
+                        </c:value>
+                    </entry>
+                </params>
+                <token>1000000000000000611</token>
+                <message>Task running in background</message>
+                <partialResults>
+                    <operation>com.evolveum.midpoint.model.api.ModelService.getObject</operation>
+                    <status>success</status>
+                    <params>
+                        <entry key="resolve">
+                            <value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                   xsi:type="PropertyReferenceListType"/>
+                        </entry>
+                        <entry key="oid">
+                            <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                                     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                     xsi:type="xsd:string">ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff
+                            </c:value>
+                        </entry>
+                        <entry key="class">
+                            <unknownJavaObject>
+                                <class>java.lang.Class</class>
+                                <toString>class com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType
+                                </toString>
+                            </unknownJavaObject>
+                        </entry>
+                    </params>
+                    <token>1000000000000000612</token>
+                </partialResults>
+            </partialResults>
+        </result>
     </object>
 
     <object xsi:type="ConnectorType" oid="1234" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">

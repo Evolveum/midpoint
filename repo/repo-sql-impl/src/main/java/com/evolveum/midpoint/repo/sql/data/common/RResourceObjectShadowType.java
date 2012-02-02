@@ -44,12 +44,12 @@ public class RResourceObjectShadowType extends RExtensibleObjectType {
 
     private static final Trace LOGGER = TraceManager.getTrace(RResourceObjectShadowType.class);
     private RObjectReferenceType resourceRef;
-    private ROperationResultType fetchResult;
+    private ROperationResultType opResult;
     private String objectChange;
     private Integer attemptNumber;
     private FailedOperationTypeType failedOperationType;
     private QName objectClass;
-    private Set<RAttribute> attributes; //private ResourceObjectShadowType.Attributes attributes;
+    private Set<RValue> attributes; //private ResourceObjectShadowType.Attributes attributes;
 
     @Type(type = "org.hibernate.type.TextType")
     public String getObjectChange() {
@@ -59,7 +59,7 @@ public class RResourceObjectShadowType extends RExtensibleObjectType {
     @OneToMany
     @JoinColumn(name = "objectShadowId")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAttribute> getAttributes() {
+    public Set<RValue> getAttributes() {
         return attributes;
     }
 
@@ -87,10 +87,10 @@ public class RResourceObjectShadowType extends RExtensibleObjectType {
         return resourceRef;
     }
 
-    @ManyToOne
+    @OneToOne(optional = true, mappedBy = "owner")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public ROperationResultType getFetchResult() {
-        return fetchResult;
+    public ROperationResultType getOpResult() {
+        return opResult;
     }
 
     public void setAttemptNumber(Integer attemptNumber) {
@@ -109,11 +109,11 @@ public class RResourceObjectShadowType extends RExtensibleObjectType {
         this.resourceRef = resourceRef;
     }
 
-    public void setFetchResult(ROperationResultType fetchResult) {
-        this.fetchResult = fetchResult;
+    public void setOpResult(ROperationResultType opResult) {
+        this.opResult = opResult;
     }
 
-    public void setAttributes(Set<RAttribute> attributes) {
+    public void setAttributes(Set<RValue> attributes) {
         this.attributes = attributes;
     }
 
@@ -129,8 +129,8 @@ public class RResourceObjectShadowType extends RExtensibleObjectType {
         jaxb.setObjectClass(repo.getObjectClass());
         jaxb.setFailedOperationType(repo.getFailedOperationType());
 
-        if (repo.getFetchResult() != null) {
-            jaxb.setFetchResult(repo.getFetchResult().toJAXB());
+        if (repo.getOpResult() != null) {
+            jaxb.setResult(repo.getOpResult().toJAXB());
         }
         if (repo.getResourceRef() != null) {
             jaxb.setResourceRef(repo.getResourceRef().toJAXB());
@@ -159,7 +159,7 @@ public class RResourceObjectShadowType extends RExtensibleObjectType {
         repo.setFailedOperationType(jaxb.getFailedOperationType());
 
         repo.setResourceRef(RUtil.jaxbRefToRepo(jaxb.getResourceRef()));
-        repo.setFetchResult(RUtil.jaxbResultToRepo(jaxb.getFetchResult()));
+        repo.setOpResult(RUtil.jaxbResultToRepo(repo, jaxb.getResult()));
 
         try {
             repo.setObjectChange(RUtil.toRepo(jaxb.getObjectChange()));

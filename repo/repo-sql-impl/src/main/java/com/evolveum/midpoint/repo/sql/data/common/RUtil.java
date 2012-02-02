@@ -88,13 +88,17 @@ public final class RUtil {
         return result;
     }
 
-    public static ROperationResultType jaxbResultToRepo(OperationResultType result) throws DtoTranslationException {
+    public static ROperationResultType jaxbResultToRepo(RObjectType owner, OperationResultType result)
+            throws DtoTranslationException {
+
         if (result == null) {
             return null;
         }
 
         ROperationResultType rResult = new ROperationResultType();
         ROperationResultType.copyFromJAXB(result, rResult);
+
+        rResult.setOwner(owner);
 
         return rResult;
     }

@@ -22,8 +22,6 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.Identifiable;
-import com.evolveum.midpoint.repo.sql.jaxb.XOperationResultType;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LocalizedMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultStatusType;
@@ -41,9 +39,13 @@ import javax.xml.bind.JAXBElement;
  */
 @Entity
 @Table(name = "operation_result")
-public class ROperationResultType implements Identifiable {
+@org.hibernate.annotations.GenericGenerator(name = "owner-primary-key", strategy = "foreign",
+        parameters = {@org.hibernate.annotations.Parameter(name = "property", value = "owner")
+        })
+public class ROperationResultType {
 
-    private long id;
+    private String id;
+    private RObjectType owner;
     private String operation;
     private OperationResultStatusType status;
     private Long token;
@@ -55,15 +57,23 @@ public class ROperationResultType implements Identifiable {
     private String params;
     private String partialResults;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @PrimaryKeyJoinColumn
+    public RObjectType getOwner() {
+        return owner;
+    }
+
+    public void setOwner(RObjectType owner) {
+        this.owner = owner;
+    }
+
     @Id
-    @GeneratedValue
-    @Override
-    public long getId() {
+    @GeneratedValue(generator = "owner-primary-key")
+    public String getId() {
         return id;
     }
 
-    @Override
-    public void setId(long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -147,11 +157,6 @@ public class ROperationResultType implements Identifiable {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
 
-        if (jaxb instanceof XOperationResultType) {
-            XOperationResultType xRes = (XOperationResultType) jaxb;
-            xRes.setId(repo.getId());
-        }
-
         jaxb.setDetails(repo.getDetails());
         jaxb.setMessage(repo.getMessage());
         jaxb.setMessageCode(repo.getMessageCode());
@@ -178,11 +183,6 @@ public class ROperationResultType implements Identifiable {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
 
-        if (jaxb instanceof XOperationResultType) {
-            XOperationResultType xRes = (XOperationResultType) jaxb;
-            repo.setId(xRes.getId());
-        }
-
         repo.setDetails(jaxb.getDetails());
         repo.setMessage(jaxb.getMessage());
         repo.setMessageCode(jaxb.getMessageCode());
@@ -205,7 +205,7 @@ public class ROperationResultType implements Identifiable {
     }
 
     public OperationResultType toJAXB() throws DtoTranslationException {
-        XOperationResultType result = new XOperationResultType();
+        OperationResultType result = new OperationResultType();
         ROperationResultType.copyToJAXB(this, result);
         return result;
     }

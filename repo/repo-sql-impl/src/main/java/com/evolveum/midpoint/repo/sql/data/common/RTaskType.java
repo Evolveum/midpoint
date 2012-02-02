@@ -71,13 +71,13 @@ public class RTaskType extends RExtensibleObjectType {
         return schedule;
     }
 
-    @ManyToOne
+    @OneToOne
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public RObjectReferenceType getOwnerRef() {
         return ownerRef;
     }
 
-    @ManyToOne
+    @OneToOne
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public RObjectReferenceType getObjectRef() {
         return objectRef;
@@ -103,7 +103,7 @@ public class RTaskType extends RExtensibleObjectType {
         return recurrence;
     }
 
-    @ManyToOne
+    @OneToOne(optional = true, mappedBy = "owner")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public ROperationResultType getResult() {
         return result;
@@ -266,7 +266,7 @@ public class RTaskType extends RExtensibleObjectType {
 
         repo.setObjectRef(RUtil.jaxbRefToRepo(jaxb.getObjectRef()));
         repo.setOwnerRef(RUtil.jaxbRefToRepo(jaxb.getOwnerRef()));
-        repo.setResult(RUtil.jaxbResultToRepo(jaxb.getResult()));
+        repo.setResult(RUtil.jaxbResultToRepo(repo, jaxb.getResult()));
 
         try {
             repo.setModelOperationState(RUtil.toRepo(jaxb.getModelOperationState()));
