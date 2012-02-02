@@ -855,8 +855,8 @@
             the IDM custom business logic or IDM expressions.
         </description>
         <extension>
-            <p:type xmlns:p="http://example.com/p" xsi:type="string">some text in here</p:type>
-            <p:type xmlns:p="http://example.com/p" xsi:type="long">1234</p:type>
+            <p:type xmlns:p="http://example.com/p" xsi:type="xsd:string">some text in here</p:type>
+            <p:type xmlns:p="http://example.com/p" xsi:type="xsd:integer">1234</p:type>
 
             <!-- This additional level of depth (the "locations" element) is needed now
                  because current repository does not support generic multi-valued

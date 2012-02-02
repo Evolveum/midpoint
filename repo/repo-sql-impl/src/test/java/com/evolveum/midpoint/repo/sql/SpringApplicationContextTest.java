@@ -96,6 +96,7 @@ public class SpringApplicationContextTest {
         System.out.println(shadows.getTotalResultCount() + "\n" + shadows);
 
 
+        System.out.println(JAXBUtil.marshalWrap(service.getObject(GenericObjectType.class, "9999", null, new OperationResult("a"))));
 
         AssertJUnit.assertEquals("Expected changes must be 0. ", 0, count);
     }

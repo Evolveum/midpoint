@@ -59,7 +59,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
 
-    @Autowired(required = true) //todo uncomment
+//    @Autowired(required = true)
     private SchemaRegistry schemaRegistry;
 
     @Autowired(required = true)

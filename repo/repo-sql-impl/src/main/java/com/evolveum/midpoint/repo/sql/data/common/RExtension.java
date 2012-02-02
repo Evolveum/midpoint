@@ -27,10 +27,9 @@ import com.evolveum.midpoint.repo.sql.jaxb.XExtension;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
-import org.hibernate.type.TextType;
 
 import javax.persistence.*;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -41,7 +40,7 @@ import java.util.Set;
 public class RExtension implements Identifiable {
 
     private long id;
-    private Set<String> objects;   //todo mapping
+    private Set<RValue> objects;
 
     @Id
     @GeneratedValue
@@ -55,15 +54,15 @@ public class RExtension implements Identifiable {
         this.id = id;
     }
 
-    @ElementCollection(targetClass = TextType.class)
-    @CollectionTable(name = "extension_object", joinColumns =
-            {@JoinColumn(name = "extensionId")})
+    @OneToMany
+    @JoinTable(name = "extension_object", joinColumns = @JoinColumn(name = "extensionId"),
+            inverseJoinColumns = @JoinColumn(name = "rvalueId"))
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<String> getObjects() {
+    public Set<RValue> getObjects() {
         return objects;
     }
 
-    public void setObjects(Set<String> objects) {
+    public void setObjects(Set<RValue> objects) {
         this.objects = objects;
     }
 
@@ -76,8 +75,16 @@ public class RExtension implements Identifiable {
             ext.setId(repo.getId());
         }
 
-        try {
+        if (repo.getObjects() == null) {
+            return;
+        }
 
+        try {
+            for (RValue value : repo.getObjects()) {
+                jaxb.getAny().add(value.toObject());
+            }
+        } catch (DtoTranslationException ex) {
+            throw ex;
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
@@ -93,7 +100,15 @@ public class RExtension implements Identifiable {
         }
 
         try {
+            if (!jaxb.getAny().isEmpty()) {
+                repo.setObjects(new HashSet<RValue>());
 
+                for (Object object : jaxb.getAny()) {
+                    repo.getObjects().add(RUtil.createRValue(object));
+                }
+            }
+        } catch (DtoTranslationException ex) {
+            throw ex;
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

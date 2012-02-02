@@ -21,9 +21,11 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.Identifiable;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import org.hibernate.annotations.Columns;
-import org.hibernate.annotations.Type;
+import org.w3c.dom.Element;
 
 import javax.persistence.*;
 import javax.xml.namespace.QName;
@@ -32,12 +34,12 @@ import javax.xml.namespace.QName;
  * @author lazyman
  */
 @Entity
-@Table(name="resource_object_shadow_attribute")
-public class RAttribute implements Identifiable {
-    
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+public abstract class RValue implements Identifiable {
+
     private long id;
+    private QName name;
     private QName type;
-    private String value;
 
     @Id
     @GeneratedValue
@@ -52,23 +54,30 @@ public class RAttribute implements Identifiable {
     }
 
     @Columns(columns = {
-            @Column(name = "namespaceURI"),
-            @Column(name = "localPart")
+            @Column(name = "nameNamespaceURI"),
+            @Column(name = "nameLocalPart")
     })
     public QName getType() {
         return type;
+    }
+
+    @Columns(columns = {
+            @Column(name = "typeNamespaceURI"),
+            @Column(name = "typeLocalPart")
+    })
+    public QName getName() {
+        return name;
     }
 
     public void setType(QName type) {
         this.type = type;
     }
 
-    @Type(type = "org.hibernate.type.TextType")
-    public String getValue() {
-        return value;
+    public void setName(QName name) {
+        this.name = name;
     }
 
-    public void setValue(String value) {
-        this.value = value;
-    }
+    public abstract Object toObject() throws DtoTranslationException;
+
+    public abstract void insertValueFromElement(Element element) throws SchemaException;
 }
