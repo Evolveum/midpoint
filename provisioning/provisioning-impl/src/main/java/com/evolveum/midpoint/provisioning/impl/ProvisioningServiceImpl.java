@@ -889,26 +889,28 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 				OperationResult accountResult = result.createSubresult(ProvisioningService.class.getName()
 						+ ".searchObjectsIterative.handle");
-				boolean isSuccess = handler.handle(shadow, accountResult);
-				if (!isSuccess) {
+				boolean doContinue = handler.handle(shadow, accountResult);
+				accountResult.computeStatus();
+				
+				if (!accountResult.isSuccess()) {
 					ObjectModificationType shadowModificationType = ObjectTypeUtil
 							.createModificationReplaceProperty(shadow.getOid(), SchemaConstants.C_RESULT,
 									accountResult.createOperationResultType());
 					try {
 						cacheRepositoryService.modifyObject(AccountShadowType.class, shadowModificationType,
-								parentResult);
+								result);
 					} catch (ObjectNotFoundException ex) {
-						parentResult.recordFatalError(
-								"Can't modify object " + ObjectTypeUtil.toShortString(shadow)
-										+ " because it doesn't exist in the repository.", ex);
+						result.recordFatalError(
+								"Saving of result to " + ObjectTypeUtil.toShortString(shadow)
+										+ " shadow failed: Not found: "+ex.getMessage(), ex);
 					} catch (SchemaException ex) {
-						parentResult.recordFatalError(
-								"Can't modify object " + ObjectTypeUtil.toShortString(shadow)
-										+ ". Problem in the schema.", ex);
+						result.recordFatalError(
+								"Saving of result to " + ObjectTypeUtil.toShortString(shadow)
+										+ " shadow failed: Schema error: "+ex.getMessage(), ex);
 					}
 				}
 
-				return isSuccess;
+				return doContinue;
 			}
 		};
 

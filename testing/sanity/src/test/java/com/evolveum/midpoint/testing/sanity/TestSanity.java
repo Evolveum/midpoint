@@ -42,6 +42,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
@@ -203,6 +204,8 @@ public class TestSanity extends AbstractIntegrationTest {
 
     private static final String LDIF_ELAINE_FILENAME = "src/test/resources/request/elaine.ldif";
     private static final String ELAINE_NAME = "elaine";
+    
+    private static final String LDIF_GIBBS_MODIFY_FILENAME = "src/test/resources/request/gibbs-modify.ldif";
 
     private static final QName IMPORT_OBJECTCLASS = new QName(
             "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
@@ -2516,6 +2519,16 @@ public class TestSanity extends AbstractIntegrationTest {
 
         OperationResult result = new OperationResult(TestSanity.class.getName()
                 + ".test200ImportFromResource");
+        
+        // Make sure Mr. Gibbs has "l" attribute set to the same value as an outbound expression is setting
+        LDIFImportConfig importConfig = new LDIFImportConfig(LDIF_GIBBS_MODIFY_FILENAME);
+        LDIFReader ldifReader = new LDIFReader(importConfig);
+        ChangeRecordEntry entry = ldifReader.readChangeRecord(false);
+        display("Entry from LDIF", entry);
+        ModifyOperation modifyOperation = openDJController.getInternalConnection()
+        		.processModify((ModifyChangeRecordEntry) entry);
+        AssertJUnit.assertEquals("LDAP modify operation failed", ResultCode.SUCCESS,
+                modifyOperation.getResultCode());
 
         // WHEN
         TaskType taskType = modelWeb.importFromResource(RESOURCE_OPENDJ_OID, IMPORT_OBJECTCLASS);
@@ -2622,6 +2635,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         OperationResult taskResult = task.getResult();
         AssertJUnit.assertNotNull("Task has no result", taskResult);
+        assertSuccess("Import task result is not success", taskResult);
         AssertJUnit.assertTrue("Task failed", taskResult.isSuccess());
 
         AssertJUnit.assertTrue("No progress", task.getProgress() > 0);
@@ -2687,16 +2701,17 @@ public class TestSanity extends AbstractIntegrationTest {
             	// skip the rest of checks for guybrush, he does not have LDAP account now
             	continue;
             }
+            
+            assertTrue("User "+user.getName()+" is disabled", user.getActivation() == null || user.getActivation().isEnabled() == null ||
+            		user.getActivation().isEnabled());
 
             List<ObjectReferenceType> accountRefs = user.getAccountRef();
             AssertJUnit.assertEquals("Wrong accountRef for user " + user.getName(), 1, accountRefs.size());
             ObjectReferenceType accountRef = accountRefs.get(0);
-            // here was ref to resource oid, not account oid
 
-            // XXX: HACK: I don't know how to match accounts here
             boolean found = false;
-            for (AccountShadowType account : sobjects) {
-                if (accountRef.getOid().equals(account.getOid())) {
+            for (AccountShadowType acc : sobjects) {
+                if (accountRef.getOid().equals(acc.getOid())) {
                     found = true;
                     break;
                 }
@@ -2704,6 +2719,13 @@ public class TestSanity extends AbstractIntegrationTest {
             if (!found) {
                 AssertJUnit.fail("accountRef does not point to existing account " + accountRef.getOid());
             }
+            
+            AccountShadowType account = modelService.getObject(AccountShadowType.class, accountRef.getOid(), null, result);
+            
+            display("Account after import ", account);
+            
+            String attributeValueL = ResourceObjectShadowUtil.getAttributeStringValue(account, new QName(resourceOpenDj.getNamespace(), "l"));
+            assertEquals("Unexcpected value of l", "middle of nowhere", attributeValueL);
         }
         
         // This also includes "idm" user imported from LDAP. Later we need to ignore that one.

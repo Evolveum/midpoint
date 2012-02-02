@@ -86,5 +86,21 @@ public class ResourceObjectShadowUtil {
 		return values;
 	}
 
+	public static String getAttributeStringValue(AccountShadowType shadow, QName attrName) {
+		List<Object> values = getAttributeValues(shadow, attrName);
+		if (values.isEmpty()) {
+			return null;
+		}
+		if (values.size() > 1) {
+			throw new IllegalStateException("More than one value for "+attrName);
+		}
+		Object value = values.get(0);
+		if (!(value instanceof Element)) {
+			throw new IllegalStateException("Not an Element value for "+attrName);
+		}
+		Element element = (Element)value;
+		return element.getTextContent();
+	}
+
 	
 }
