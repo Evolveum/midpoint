@@ -4732,6 +4732,8 @@
                                  maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
+                            	DEPRECATED. This should no longer be used. It will disappear.
+                            	
                                 Defines an account that the user should have.
                                 It defines the resource and account type. Such
                                 account will be created (if it does not yet

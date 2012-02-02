@@ -102,7 +102,8 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 	public Set<PropertyChange> submit(AccountShadowDto changedObject, Task task, OperationResult parentResult) {
 		Validate.notNull(changedObject, "Changed account must not be null.");
 
-		AccountShadowDto oldObject = get(changedObject.getOid(), Utils.getResolveResourceList());
+		// Don't resolve resource. We don't need it and we would "unresolve" it anyway.
+		AccountShadowDto oldObject = get(changedObject.getOid(), null);
 
 		if (changedObject.getActivation() != null) {
 			changedObject.getXmlObject().setActivation(changedObject.getActivation());

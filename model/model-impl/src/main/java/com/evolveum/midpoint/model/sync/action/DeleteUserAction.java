@@ -107,6 +107,7 @@ public class DeleteUserAction extends BaseAction {
             userOid = null;
         } finally {
             subResult.recomputeStatus("Couldn't delete user '" + userType.getName() + "'.");
+            result.recomputeStatus();
             
             auditRecord.clearTimestamp();
             auditRecord.setEventType(AuditEventType.DELETE_OBJECT);

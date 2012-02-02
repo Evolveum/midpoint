@@ -118,7 +118,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                     situation.getSituation().value(), ObjectTypeUtil.toShortString(situation.getUser()));
 
             notifyChange(change, situation, resource, task, subResult);
+            subResult.computeStatus();
         } catch (Exception ex) {
+        	subResult.recordFatalError(ex);
             throw new SystemException(ex);
         } finally {
             if (LOGGER.isTraceEnabled()) {

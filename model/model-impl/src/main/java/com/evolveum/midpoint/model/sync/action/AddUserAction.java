@@ -121,6 +121,7 @@ public class AddUserAction extends BaseAction {
             userOid = context.getUserSecondaryDelta().getOid();
         } finally {
             subResult.recomputeStatus();
+            result.recomputeStatus();
             
             auditRecord.clearTimestamp();
             auditRecord.setEventType(AuditEventType.ADD_OBJECT);

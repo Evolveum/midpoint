@@ -81,7 +81,6 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
     protected <O extends ObjectType> O get(Class<O> objectClass, String oid, PropertyReferenceListType resolve)
             throws ObjectNotFoundException {
         Validate.notEmpty(oid, "Object oid must not be null or empty.");
-        Validate.notNull(resolve, "Property reference list must not be null.");
         Validate.notNull(objectClass, "Object class must not be null.");
 
         LOGGER.debug("Get object with oid {}.", new Object[]{oid});

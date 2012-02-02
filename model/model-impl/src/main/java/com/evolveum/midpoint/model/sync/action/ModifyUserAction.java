@@ -144,6 +144,7 @@ public class ModifyUserAction extends BaseAction {
             executeChanges(context, subResult);
         } finally {
             subResult.recomputeStatus();
+            result.recomputeStatus();
             
             auditRecord.clearTimestamp();
             auditRecord.setEventType(AuditEventType.MODIFY_OBJECT);

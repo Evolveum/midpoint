@@ -91,6 +91,11 @@ class IcfUtil {
 			return knownCause;
 		}
 
+		
+		// ########
+		// TODO: handle javax.naming.NoPermissionException
+		// relevant message directly in the exception ("javax.naming.NoPermissionException([LDAP: error code 50 - The entry uid=idm,ou=Administrators,dc=example,dc=com cannot be modified due to insufficient access rights])
+		
 		// Otherwise try few obvious things
 		if (ex instanceof IllegalArgumentException) {
 			// This is most likely missing attribute or similar schema thing
