@@ -264,7 +264,8 @@ public class MidpointAspect {
 //	public void entriesIntoWeb() {
 //	}
 
-	@Pointcut("execution(* com.evolveum.midpoint.provisioning.ucf.api..*.*(..))")
+	@Pointcut("execution(* com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance.*(..)) " +
+			"|| execution(* com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory.*(..))")
 	public void entriesIntoUcf() {
 	}
 

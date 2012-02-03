@@ -388,11 +388,14 @@ public class UserDetailsController implements Serializable {
 	}
 
 	public void changeActivationOfUserAccounts(ValueChangeEvent evt) {
-		Boolean newValue = (Boolean) evt.getNewValue();
-		// System.out.println("new value: "+ newValue);
-		for (AccountFormBean account : accountList) {
-			account.getResourceCapability().setEnabled(newValue);
-		}
+
+		// GUI should not change account activation. Model will do it.
+		
+//		Boolean newValue = (Boolean) evt.getNewValue();
+//		// System.out.println("new value: "+ newValue);
+//		for (AccountFormBean account : accountList) {
+//			account.getResourceCapability().setEnabled(newValue);
+//		}
 	}
 
 	public void addResourcePerformed(ActionEvent evt) {
