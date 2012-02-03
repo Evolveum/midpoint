@@ -109,10 +109,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
             Credentials credentials = user.getCredentials();
             credentials.setPassword(password.getProtectedString());
-            if (password.getFailedLogins() == null || password.getFailedLogins().intValue() < 0) {
+            if (password.getFailedLogins() == null || password.getFailedLogins() < 0) {
                 credentials.setFailedLogins(0);
             } else {
-                credentials.setFailedLogins(password.getFailedLogins().intValue());
+                credentials.setFailedLogins(password.getFailedLogins());
             }
             XMLGregorianCalendar calendar = password.getLastFailedLoginTimestamp();
             if (calendar != null) {
@@ -191,7 +191,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             credentials.setPassword(password);
         }
 
-        password.setFailedLogins(new BigInteger(Integer.toString(user.getCredentials().getFailedLogins())));
+        password.setFailedLogins(user.getCredentials().getFailedLogins());
 
         try {
             GregorianCalendar gc = new GregorianCalendar();
