@@ -23,6 +23,7 @@ import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.AccountSyncContext;
+import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -79,8 +80,8 @@ public class ActivationProcessor {
         for (AccountSyncContext accCtx : context.getAccountContexts()) {
             ResourceAccountType rat = accCtx.getResourceAccountType();
 
-            if (!accCtx.isAssigned()) {
-                LOGGER.trace("Activation processing skipped for " + rat + ", account not assigned");
+            if (accCtx.getPolicyDecision() != null && accCtx.getPolicyDecision() == PolicyDecision.DELETE) {
+                LOGGER.trace("Activation processing skipped for " + rat + ", account is being deleted");
                 continue;
             }
 
@@ -115,19 +116,18 @@ public class ActivationProcessor {
                 continue;
             }
             
-            // TODO: is the parentPath correct (null)?
             ValueConstruction enabledConstruction = valueConstructionFactory.createValueConstruction(outbound, accountEnabledPropertyDefinition, 
-            		null, "outbound activation in account type " + rat);
+            		SchemaConstants.PATH_ACTIVATION, "outbound activation in account type " + rat);
             enabledConstruction.setInput(userEnabledNew);
             enabledConstruction.evaluate(result);
             Property accountEnabledNew = enabledConstruction.getOutput();
-            if (accountEnabledNew == null) {
-                LOGGER.trace("Activation 'enable' expression resulted in null, skipping activation processing for {}", rat);
+            if (accountEnabledNew == null || accountEnabledNew.isEmpty()) {
+                LOGGER.trace("Activation 'enable' expression resulted in null or empty value, skipping activation processing for {}", rat);
                 continue;
             }
             PropertyDelta accountEnabledDelta = new PropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
             accountEnabledDelta.setValuesToReplace(accountEnabledNew.getValues());
-            LOGGER.trace("Adding new 'enabled' delta for account {}", rat);
+            LOGGER.trace("Adding new 'enabled' delta for account {}: {}", rat, accountEnabledNew.getValues());
             accCtx.addToSecondaryDelta(accountEnabledDelta);
 
         }

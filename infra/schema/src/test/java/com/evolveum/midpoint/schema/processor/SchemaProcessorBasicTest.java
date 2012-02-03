@@ -86,8 +86,20 @@ public class SchemaProcessorBasicTest {
         assertEquals(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"), accDef.getTypeName());
         assertTrue("Expected ResourceObjectDefinition but got " + accDef.getClass().getName(), accDef instanceof ResourceObjectDefinition);
         assertTrue("Not a default account", ((ResourceObjectDefinition) accDef).isDefaultAccountType());
+        
         PropertyDefinition loginDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "login"));
         assertEquals(new QName(SCHEMA_NAMESPACE, "login"), loginDef.getName());
+        assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
+        assertFalse("Ignored while it should not be", loginDef.isIgnored());
+        
+        PropertyDefinition groupDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "group"));
+        assertEquals(new QName(SCHEMA_NAMESPACE, "group"), groupDef.getName());
+        assertEquals(DOMUtil.XSD_INTEGER, groupDef.getTypeName());
+        assertFalse("Ignored while it should not be", groupDef.isIgnored());
+        
+        PropertyDefinition ufoDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "ufo"));
+        assertEquals(new QName(SCHEMA_NAMESPACE, "ufo"), ufoDef.getName());
+        assertTrue("Not ignored as it should be", ufoDef.isIgnored());
     }
 
     @Test
@@ -167,7 +179,7 @@ public class SchemaProcessorBasicTest {
 
         System.out.println("container: " + container);
 
-        assertEquals(2, container.getItems().size());
+        assertEquals(3, container.getItems().size());
 
         for (Item item : container.getItems()) {
             ResourceObjectAttribute prop = (ResourceObjectAttribute) item;
@@ -177,6 +189,9 @@ public class SchemaProcessorBasicTest {
             if (prop.getName().getLocalPart().equals("group")) {
                 PropertyValue<Integer> val = prop.getValue(Integer.class);
                 AssertJUnit.assertEquals(Integer.valueOf(123456), val.getValue());
+            }
+            if (prop.getName().getLocalPart().equals("ufo")) {
+                AssertJUnit.assertEquals("Mars attacks!", prop.getValue(String.class).getValue());
             }
         }
     }

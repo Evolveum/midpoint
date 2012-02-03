@@ -619,9 +619,9 @@ object.
 
                 <credentials>
                     <password>
-                        <!--<outbound>-->
-                            <!--<asIs/>-->
-                        <!--</outbound>-->
+                        <outbound>
+                            <asIs/>
+                        </outbound>
                         <inbound>
                             <source>
                                 <initial>true</initial>
@@ -632,11 +632,12 @@ object.
                 </credentials>
                 <activation>
                     <enabled>
-                        <!--<outbound>-->
-                            <!--<asIs/>-->
-                        <!--</outbound>-->
+                        <outbound>
+                            <asIs/>
+                        </outbound>
                         <inbound>
                             <source>
+				<initial>true</initial>
                                 <asIs/>
                             </source>
                         </inbound>

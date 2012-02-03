@@ -110,38 +110,38 @@ public class UserSynchronizer {
         // Loop through the account changes, apply inbound expressions
         inboundProcessor.processInbound(context, result);
         context.recomputeUserNew();
-        traceContext("Context after INBOUND and recompute:\n{}", context);
+        traceContext("inbound", context);
 
         userPolicyProcessor.processUserPolicy(context, result);
         context.recomputeUserNew();
-        traceContext("Context after USER POLICY and recompute:\n{}", context);
+        traceContext("user policy", context);
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("User delta:\n{}", context.getUserDelta() == null ? "null" : context.getUserDelta().dump());
         }
 
         assignmentProcessor.processAssignments(context, result);
         context.recomputeNew();
-        traceContext("Context after ASSIGNMENTS and recompute:\n{}", context);
+        traceContext("assignments", context);
 
         outboundProcessor.processOutbound(context, result);
         context.recomputeNew();
-        traceContext("Context after OUTBOUND and recompute:\n{}", context);
+        traceContext("outbound", context);
 
         consolidationProcessor.consolidateValues(context, result);
         context.recomputeNew();
-        traceContext("Context after CONSOLIDATION and recompute:\n{}", context);
+        traceContext("consolidation", context);
 
         credentialsProcessor.processCredentials(context, result);
         context.recomputeNew();
-        traceContext("Context after CREDENTIALS and recompute:\n{}", context);
+        traceContext("credentials", context);
 
         activationProcessor.processActivation(context, result);
         context.recomputeNew();
-        traceContext("Context after ACTIVATION and recompute:\n{}", context);
+        traceContext("activation", context);
 
         reconciliationProcessor.processReconciliation(context, result);
         context.recomputeNew();
-        traceContext("Context after RECONCILIATION and recompute:\n{}", context);
+        traceContext("reconciliation", context);
 
     }
 
@@ -171,9 +171,19 @@ public class UserSynchronizer {
         }
     }
 
-    private void traceContext(String message, SyncContext context) {
+    private void traceContext(String phase, SyncContext context) {
+    	if (LOGGER.isDebugEnabled()) {
+    		StringBuilder sb = new StringBuilder("After ");
+    		sb.append(phase);
+    		sb.append(":");
+    		for (ObjectDelta objectDelta: context.getAllChanges()) {
+    			sb.append("\n");
+    			sb.append(objectDelta.toString());
+    		}
+    		LOGGER.debug(sb.toString());
+    	}
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace(message, context.dump());
+            LOGGER.trace("Context after {} and recompute:\n{}", phase, context.dump());
         }
     }
 

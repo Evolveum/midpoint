@@ -212,7 +212,7 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 						getProcessShortName(),
 						object, ex.getClass().getSimpleName(), ex.getMessage(), ex });
 			}
-			result.recordPartialError("failed to synchronize", ex);
+			result.recordPartialError("failed to synchronize: "+ex.getMessage(), ex);
 			return !isStopOnError();
 		}
 		

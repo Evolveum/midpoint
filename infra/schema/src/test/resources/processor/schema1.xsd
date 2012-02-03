@@ -3,6 +3,7 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			targetNamespace="http://schema.foo.com/bar"
 			xmlns:tns="http://schema.foo.com/bar"
+			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 			xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
 			xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
             elementFormDefault="qualified">
@@ -25,6 +26,13 @@
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="group" type="xsd:integer" minOccurs="0" maxOccurs="unbounded"/>
+					<xsd:element name="ufo" type="xsd:string" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<c:ignore/>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
 				</xsd:sequence>
 			</xsd:complexType>
 

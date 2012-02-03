@@ -561,7 +561,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
             if (def == null) {
                 throw new SchemaException("Item " + elementQName + " has no definition", elementQName);
             }
-
+            
             Item item = def.parseItem(valueElements, parentPath);
             props.add(item);
         }

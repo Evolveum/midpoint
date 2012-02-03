@@ -356,9 +356,9 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
         }
 
         for (ResourceObjectAttributeDefinition road : objectClassDef.getAttributeDefinitions()) {
-            if (road.isIgnored()) {
-                continue;
-            }
+//            if (road.isIgnored()) {
+//                continue;
+//            }
             String attrContextDescription = road.getName() + ", in " + contextDescription;
             ResourceAttributeDefinitionType attrDefType = findAttributeDefinitionType(road.getName(), accountTypeDefType, attrContextDescription);
             if (attrDefType != null && RefinedAttributeDefinition.isIgnored(attrDefType)) {
