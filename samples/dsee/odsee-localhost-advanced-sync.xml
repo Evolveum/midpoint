@@ -299,6 +299,12 @@ object.
                         <outbound>
                             <asIs/>
                         </outbound>
+                        <inbound>
+                            <source>
+                                <initial>true</initial>
+                                <generate/>
+                            </source>
+                        </inbound>
                     </password>
                 </credentials>
                 <activation>
@@ -306,6 +312,12 @@ object.
                         <outbound>
                             <asIs/>
                         </outbound>
+                        <inbound>
+                            <source>
+				<initial>true</initial>
+                                <asIs/>
+                            </source>
+                        </inbound>
                     </enabled>
                 </activation>
             </accountType>
