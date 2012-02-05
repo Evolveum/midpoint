@@ -50,6 +50,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.bean.AccountFormBean;
 import com.evolveum.midpoint.web.bean.ResourceCapability;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.AccountManager;
@@ -100,32 +101,38 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 
 	@Override
 	public Set<PropertyChange> submit(AccountShadowDto changedObject, Task task, OperationResult parentResult) {
+		throw new UnsupportedOperationException();
+	}
+	
+	@Override
+	public Set<PropertyChange> submit(AccountShadowDto changedObject, List<AccountShadowType> oldAccounts, Task task, OperationResult parentResult) {
 		Validate.notNull(changedObject, "Changed account must not be null.");
 		OperationResult result = parentResult.createSubresult(AccountManager.SUBMIT);
 		
 		AccountShadowDto oldObject=null;
 		
-		try {
-			AccountShadowType accountShadowType = getModel().getObject(AccountShadowType.class, changedObject.getOid(), null, result); 
+//		try {
+			AccountShadowType accountShadowType = findAccount(changedObject.getOid(), oldAccounts);
+			//AccountShadowType accountShadowType = getModel().getObject(AccountShadowType.class, changedObject.getOid(), null, result); 
 			//get(changedObject.getOid(), Utils.getResolveResourceList());
 			oldObject = createObject(accountShadowType);
-		} catch (ObjectNotFoundException ex) {
-			// TODO: fix this statement better
-			LoggingUtils.logException(LOGGER, "Couldn't update account {}, because it doesn't exists", ex,
-					changedObject.getName());
-			// TODO: this state should be fix, because need to be tested if accounts exists yet
-			
-			result.recordSuccess();
-			//result.computeStatus("Couldn't submit user '" + changedObject.getName() + "'.");
-			return new HashSet<PropertyChange>();
-		} catch (SchemaException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't update account {}, schema error", ex,
-					changedObject.getName());
-			result.recordFatalError("Couldn't update account '" + changedObject.getName()
-					+ "', schema error.", ex);
-			result.computeStatus("Couldn't submit user '" + changedObject.getName() + "'.");
-			return new HashSet<PropertyChange>();
-		}
+//		} catch (ObjectNotFoundException ex) {
+//			// TODO: fix this statement better
+//			LoggingUtils.logException(LOGGER, "Couldn't update account {}, because it doesn't exists", ex,
+//					changedObject.getName());
+//			// TODO: this state should be fix, because need to be tested if accounts exists yet
+//			
+//			result.recordSuccess();
+//			//result.computeStatus("Couldn't submit user '" + changedObject.getName() + "'.");
+//			return new HashSet<PropertyChange>();
+//		} catch (SchemaException ex) {
+//			LoggingUtils.logException(LOGGER, "Couldn't update account {}, schema error", ex,
+//					changedObject.getName());
+//			result.recordFatalError("Couldn't update account '" + changedObject.getName()
+//					+ "', schema error.", ex);
+//			result.computeStatus("Couldn't submit user '" + changedObject.getName() + "'.");
+//			return new HashSet<PropertyChange>();
+//		}
 		
 		/*if (oldObject == null) {
 			LOGGER.debug("Couldn't update account {}, because it doesn't exists", 
@@ -225,6 +232,14 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 		return new HashSet<PropertyChange>();
 	}
 
+	private AccountShadowType findAccount(String oid, List<AccountShadowType> oldAccounts) {
+		for (AccountShadowType account: oldAccounts) {
+			if (oid.equals(account.getOid())) {
+				return account;
+			}
+		}
+		return null;
+	}
 
 	private void unresolveResource(AccountShadowType account) {
     	// Convert resource to resourceRef, so it will not create phantom changes in comparison

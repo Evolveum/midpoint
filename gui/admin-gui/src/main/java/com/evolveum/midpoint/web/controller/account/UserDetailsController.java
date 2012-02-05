@@ -253,6 +253,8 @@ public class UserDetailsController implements Serializable {
 			UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
 			AccountManager accountManager = ControllerUtil.getAccountManager(objectTypeCatalog);
 
+			List<AccountShadowType> oldAccounts = readAccounts(accountManager);
+			
 			processNewAccounts();
 			List<AccountShadowType> accountsToDelete = processDeletedAccounts();
 			processUnlinkedAccounts();
@@ -274,7 +276,7 @@ public class UserDetailsController implements Serializable {
 			LOGGER.debug("Finished processing of deleted accounts");
 			
 			//check if account was changed, if does, execute them..
-			updateAccounts(accountList, task, result);
+			updateAccounts(accountList, oldAccounts, task, result);
 			
 			clearController();
 			result.recordSuccess();
@@ -295,6 +297,21 @@ public class UserDetailsController implements Serializable {
 			result.computeStatus("Failed to save changes.");
 			ControllerUtil.printResults(LOGGER, result, "Changes saved sucessfully.");
 		}
+	}
+
+	private List<AccountShadowType> readAccounts(AccountManager accountManager) {
+		List<AccountShadowType> fetchedAccoutsList = new ArrayList<AccountShadowType>();
+		if (accountList == null) {
+            return fetchedAccoutsList;
+        }
+		for (AccountFormBean bean : accountList) {
+			if (bean.isNew()) {
+				continue;
+			}
+
+			fetchedAccoutsList.add(accountManager.get(bean.getAccount().getOid(), null).getXmlObject());
+		}
+		return fetchedAccoutsList;
 	}
 
 	private void processNewAccounts() throws SchemaException {
@@ -361,7 +378,8 @@ public class UserDetailsController implements Serializable {
 		LOGGER.debug("Finished processing of deleted accounts");
 	}
 
-	private void updateAccounts(List<AccountFormBean> accountBeans, Task task, OperationResult result) throws WebModelException {
+	private void updateAccounts(List<AccountFormBean> accountBeans, List<AccountShadowType> oldAccounts,
+			Task task, OperationResult result) throws WebModelException {
         if (accountBeans == null) {
             return;
         }
@@ -382,7 +400,7 @@ public class UserDetailsController implements Serializable {
 			}
 
 			AccountManager accountManager = ControllerUtil.getAccountManager(objectTypeCatalog);
-			accountManager.submit(account, task, result);
+			accountManager.submit(account, oldAccounts, task, result);
 		}
 		LOGGER.debug("Finished processing accounts with outbound schema handling");
 	}

@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.model.AccountManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -100,6 +101,12 @@ public class AccountManagerImplMock implements AccountManager {
 
 	@Override
 	public ResourceCapability getResourceCapability(AccountShadowDto account) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public Set<PropertyChange> submit(AccountShadowDto changedObject, List<AccountShadowType> oldAccounts,
+			Task task, OperationResult parentResult) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 }

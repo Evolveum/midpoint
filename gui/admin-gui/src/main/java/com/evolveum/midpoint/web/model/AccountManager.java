@@ -20,8 +20,16 @@
  */
 package com.evolveum.midpoint.web.model;
 
+import java.util.List;
+import java.util.Set;
+
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.bean.AccountFormBean;
 import com.evolveum.midpoint.web.bean.ResourceCapability;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
+import com.evolveum.midpoint.web.model.dto.PropertyChange;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -38,4 +46,6 @@ public interface AccountManager extends ObjectManager<AccountShadowDto> {
 	UserType listOwner(String oid);
 
 	ResourceCapability getResourceCapability(AccountShadowDto account);
+	
+	Set<PropertyChange> submit(AccountShadowDto changedObject, List<AccountShadowType> oldAccounts, Task task, OperationResult parentResult);
 }
