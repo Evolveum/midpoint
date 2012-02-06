@@ -20,8 +20,7 @@
   ~
   ~ Portions Copyrighted 2011 [name of copyright owner]
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <name>midPoint Infrastructure</name>
     <artifactId>infra</artifactId>
@@ -29,7 +28,7 @@
     <parent>
         <artifactId>parent</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>1.10-SNAPSHOT</version>
+        <version>1.10</version>
     </parent>
     <organization>
         <name>Evolveum</name>
@@ -48,9 +47,9 @@
         <url>http://jira.evolveum.com/</url>
     </issueManagement>
     <scm>
-        <connection>scm:svn:http://svn.evolveum.com/midpoint/</connection>
-        <developerConnection>scm:svn:https://svn.evolveum.com/midpoint/</developerConnection>
-        <url>https://fisheye.evolveum.com/midpoint/</url>
+        <connection>scm:svn:http://svn.evolveum.com/midpoint/tags/midpoint-1.10</connection>
+        <developerConnection>scm:svn:https://svn.evolveum.com/midpoint/tags/midpoint-1.10</developerConnection>
+        <url>https://fisheye.evolveum.com/midpoint/tags/midpoint-1.10</url>
     </scm>
     <modules>
         <module>util</module>
