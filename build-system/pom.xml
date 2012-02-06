@@ -30,7 +30,7 @@
     <parent>
         <groupId>com.evolveum.midpoint</groupId>
         <artifactId>midpoint</artifactId>
-        <version>1.10</version>
+        <version>2.0-SNAPSHOT</version>
     </parent>
     <properties>
         <!-- Build system options -->
@@ -412,9 +412,9 @@
         <url>http://jira.evolveum.com/</url>
     </issueManagement>
     <scm>
-        <connection>scm:svn:http://svn.evolveum.com/midpoint/tags/midpoint-1.10</connection>
-        <developerConnection>scm:svn:https://svn.evolveum.com/midpoint/tags/midpoint-1.10/build-system</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/MidPoint/trunk/browse/MidPoint/tags/midpoint-1.10/build-system</url>
+        <connection>scm:svn:http://svn.evolveum.com/midpoint/trunk/build-system</connection>
+        <developerConnection>scm:svn:https://svn.evolveum.com/midpoint/trunk/build-system</developerConnection>
+        <url>https://fisheye.evolveum.com/browse/MidPoint/trunk/browse/MidPoint/trunk/build-system</url>
     </scm>
     <ciManagement>
         <system>Atlasian Bamboo</system>
