@@ -1465,7 +1465,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ExtensibleObjectType">
                 <xsd:sequence>
-                    <xsd:element name="taskIdentifier" type="xsd:string">
+                    <xsd:element name="taskIdentifier" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Task (lightweight) identifier. This is an unique identification of any task,
@@ -1473,6 +1473,10 @@
                                 to identify all tasks, e.g. for the purposes of auditing and logging.
 
                                 Task identifier is assigned automatically when the task is created. It is immutable.
+                                It is formally set as optional, however it is mandatory for any task to work. Setting
+                                it to optional allows creating a task without indetifier and generating the identifier
+                                during import. However any tasks that live inside midPoint (running or stored in repository)
+                                must have valid task identifier. 
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

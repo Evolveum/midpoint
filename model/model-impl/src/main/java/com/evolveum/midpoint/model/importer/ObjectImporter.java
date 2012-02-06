@@ -42,11 +42,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,6 +80,8 @@ public class ObjectImporter {
 
     @Autowired(required = true)
     private Protector protector;
+    @Autowired(required = true)
+    private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 
     public void importObjects(InputStream input, final ImportOptionsType options, final Task task, final OperationResult parentResult,
                               final RepositoryService repository) {
@@ -96,6 +100,10 @@ public class ObjectImporter {
                 if (objectResult.isAcceptable()) {
                     resolveReferences(object, repository, 
                     		options.isReferentialIntegrity() == null ? false : options.isReferentialIntegrity(), objectResult);
+                }
+                
+                if (objectResult.isAcceptable()) {
+                    generateIdentifiers(object, repository,  objectResult);
                 }
 
                 PropertyContainer dynamicPart = null;
@@ -142,7 +150,7 @@ public class ObjectImporter {
                 }
             }
 
-            @Override
+			@Override
             public void handleGlobalError(OperationResult currentResult) {
                 // No reaction
             }
@@ -557,6 +565,16 @@ public class ObjectImporter {
         result.recordSuccessIfUnknown();
     }
 
+    private void generateIdentifiers(ObjectType object, RepositoryService repository,
+			OperationResult objectResult) {
+		if (object instanceof TaskType) {
+			TaskType task = (TaskType)object;
+			if (task.getTaskIdentifier() == null || task.getTaskIdentifier().isEmpty()) {
+				task.setTaskIdentifier(lightweightIdentifierGenerator.generate().toString());
+			}
+		}
+	}
+    
     private void encryptValuesInStaticPart(ObjectType object, OperationResult objectResult) {
         OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".encryptValues");
         encryptValuesInStaticPartRecursive(object, object, result);

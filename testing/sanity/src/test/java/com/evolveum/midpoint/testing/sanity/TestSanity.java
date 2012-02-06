@@ -2752,7 +2752,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // Add reconciliation task. This will trigger reconciliation
 
-        addObjectFromFile(TASK_USER_RECOMPUTE_FILENAME, result);
+        importObjectFromFile(TASK_USER_RECOMPUTE_FILENAME, result);
 
 
         // We need to wait for a sync interval, so the task scanner has a chance
@@ -2784,6 +2784,7 @@ public class TestSanity extends AbstractIntegrationTest {
         assertSuccess("getTask has failed", result);
         AssertJUnit.assertNotNull(task);
         display("Task after pickup", task);
+        assertFalse(task.getTaskIdentifier().isEmpty());
 
         ObjectType o = repositoryService.getObject(ObjectType.class, TASK_USER_RECOMPUTE_OID, null, result);
         display("Task after pickup in the repository", o);
