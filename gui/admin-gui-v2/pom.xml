@@ -19,22 +19,21 @@
   ~ Portions Copyrighted 2011 [name of copyright owner]
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <name>midPoint User Interface - admin web gui v2</name>
     <groupId>com.evolveum.midpoint.gui</groupId>
     <artifactId>admin-gui-v2</artifactId>
     <packaging>war</packaging>
-    <version>1.10-SNAPSHOT</version>
+    <version>1.10</version>
     <parent>
         <artifactId>gui</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>1.10-SNAPSHOT</version>
+        <version>1.10</version>
     </parent>
     <build>
         <finalName>idm2</finalName>
-        <plugins/>
+        <plugins />
         <resources>
             <resource>
                 <filtering>false</filtering>
@@ -85,9 +84,9 @@
         <url>http://jira.evolveum.com/</url>
     </issueManagement>
     <scm>
-        <connection>scm:svn:http://svn.evolveum.com/midpoint/</connection>
-        <developerConnection>scm:svn:https://svn.evolveum.com/midpoint/</developerConnection>
-        <url>https://fisheye.evolveum.com/midpoint/</url>
+        <connection>scm:svn:http://svn.evolveum.com/midpoint/tags/midpoint-1.10</connection>
+        <developerConnection>scm:svn:https://svn.evolveum.com/midpoint/tags/midpoint-1.10</developerConnection>
+        <url>https://fisheye.evolveum.com/midpoint/tags/midpoint-1.10</url>
     </scm>
     <repositories>
         <repository>
@@ -107,42 +106,42 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-api</artifactId>
-            <version>1.10-SNAPSHOT</version>
+            <version>1.10</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-api</artifactId>
-            <version>1.10-SNAPSHOT</version>
+            <version>1.10</version>
         </dependency>
         <!-- MIDPOINT RUNTIME DEPENDENCIES -->
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-basex-impl</artifactId>
-            <version>1.10-SNAPSHOT</version>
+            <version>1.10</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>task-impl</artifactId>
-            <version>1.10-SNAPSHOT</version>
+            <version>1.10</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-impl</artifactId>
-            <version>1.10-SNAPSHOT</version>
+            <version>1.10</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.provisioning</groupId>
             <artifactId>provisioning-impl</artifactId>
-            <version>1.10-SNAPSHOT</version>
+            <version>1.10</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>system-init</artifactId>
-            <version>1.10-SNAPSHOT</version>
+            <version>1.10</version>
             <scope>runtime</scope>
         </dependency>
 
@@ -213,7 +212,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-test-util</artifactId>
-            <version>1.10-SNAPSHOT</version>
+            <version>1.10</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -230,7 +229,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>1.10-SNAPSHOT</version>
+            <version>1.10</version>
             <scope>test</scope>
         </dependency>
 
