@@ -2396,7 +2396,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // THEN
         // Wait a bit to give the sync cycle time to detect the change
-        basicWaitForSyncChangeDetection(syncCycle, tokenBefore, result);
+        basicWaitForSyncChangeDetection(syncCycle, tokenBefore, result, 60000);
         // Search for the user that should be created now
         final String USER_NAME = "wturner1";
         UserType user = searchUserByName(USER_NAME);
@@ -2473,6 +2473,11 @@ public class TestSanity extends AbstractIntegrationTest {
 
     private void basicWaitForSyncChangeDetection(final Task syncCycle, final Object tokenBefore,
             final OperationResult result) throws Exception {
+        basicWaitForSyncChangeDetection(syncCycle, tokenBefore, result, 40000);
+    }
+
+    private void basicWaitForSyncChangeDetection(final Task syncCycle, final Object tokenBefore,
+            final OperationResult result, int timeout) throws Exception {
 
         waitFor("Waiting for sync cycle to detect change", new Checker() {
             @Override
@@ -2491,7 +2496,7 @@ public class TestSanity extends AbstractIntegrationTest {
             public void timeout() {
                 // No reaction, the test will fail right after return from this
             }
-        }, 40000);
+        }, timeout);
     }
 
     /**
