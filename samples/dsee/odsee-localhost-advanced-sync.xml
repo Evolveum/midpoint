@@ -362,7 +362,7 @@ object.
                         <ref>c:name</ref>
                         <code>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
+                            declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1aa";
                             $i:account/i:attributes/dj:uid
                         </code>
                     </valueExpression>
