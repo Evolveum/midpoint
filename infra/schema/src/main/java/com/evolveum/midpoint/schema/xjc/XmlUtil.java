@@ -33,7 +33,10 @@ import java.util.Set;
 /**
  * @author lazyman
  */
-public class XmlUtil {
+public final class XmlUtil {
+
+    private XmlUtil() {
+    }
 
     public static <T> List<T> getPropertyValues(PropertyContainer container, QName name, Class<T> clazz) {
         List<T> values = new ArrayList<T>();
