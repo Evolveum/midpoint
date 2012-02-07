@@ -57,8 +57,10 @@
         <mockito.version>1.8.5</mockito.version>
         <selenium.version>1.0.1</selenium.version>
         <slf4j.version>1.6.4</slf4j.version>
-        <spring.version>3.0.6.RELEASE</spring.version>
-        <spring.security.version>3.0.6.RELEASE</spring.security.version>
+        <!--<spring.version>3.0.6.RELEASE</spring.version>-->
+        <!--<spring.security.version>3.0.6.RELEASE</spring.security.version>-->
+        <spring.version>3.1.0.RELEASE</spring.version>
+        <spring.security.version>3.1.0.RELEASE</spring.security.version>
         <testng.version>6.1.1</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
         <cron4j.version>2.2.3</cron4j.version>
@@ -361,6 +363,26 @@
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-web</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-aop</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-jdbc</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-jms</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-expression</artifactId>
                 <version>${spring.version}</version>
             </dependency>
             <dependency>

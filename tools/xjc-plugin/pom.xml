@@ -70,7 +70,7 @@
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>schema-util</artifactId>
+            <artifactId>prism</artifactId>
             <version>2.0-SNAPSHOT</version>
         </dependency>
         <dependency>
