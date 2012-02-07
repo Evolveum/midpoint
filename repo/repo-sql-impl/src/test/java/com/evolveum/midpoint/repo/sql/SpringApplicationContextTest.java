@@ -42,8 +42,12 @@ import java.util.List;
 public class SpringApplicationContextTest {
 
     @Test
+    public void a() {
+
+    }
+
     public void initialize() throws Exception {
-        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("application-context-repo-sql.xml");
+        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("application-context-repository.xml");
         SqlRepositoryServiceImpl service = (SqlRepositoryServiceImpl) ctx.getBean("sqlRepositoryServiceImpl");
 
         Objects objects = (Objects) JAXBUtil.unmarshal(new File("./src/test/resources/objects.xml"));

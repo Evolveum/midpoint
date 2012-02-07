@@ -42,12 +42,12 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     //embedded configuration
     private boolean embedded = true;
     private boolean asServer = false;
-    private String baseDir = "~/h2";
+    private String baseDir = "~/";
     private boolean tcpSSL = false;
-    private int port = 5435;
+    private int port = 5436;
     //connection for hibernate
     private String driverClassName = "org.h2.Driver";
-    private String jdbcUrl = "jdbc:h2:file:~/h2/midpoint";
+    private String jdbcUrl = "jdbc:h2:file:~/midpoint";
     private String jdbcUsername = "midpoint";
     private String jdbcPassword = "midpoint";
     private String hibernateDialect = "org.hibernate.dialect.H2Dialect";
@@ -243,13 +243,12 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         } else {
             LOGGER.info("Repository is not running in embedded mode, initialization complete.");
         }
+        //todo fix spring configuration somehow :)
 
         LOGGER.info("Running init script.");
         //todo init script
 
         LOGGER.info("Repository initialization finished.");
-
-        //todo fix spring configuration somehow :)
 
 
     }

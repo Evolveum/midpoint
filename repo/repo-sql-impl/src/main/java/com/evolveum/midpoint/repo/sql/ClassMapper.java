@@ -56,7 +56,10 @@ public final class ClassMapper {
         types.put(ObjectTypes.USER_TEMPLATE, RUserTemplateType.class);
 
         for (ObjectTypes type : ObjectTypes.values()) {
-
+            if (!types.containsKey(type)) {
+                throw new IllegalStateException("Not all object types are mapped by sql repo impl. Found '"
+                        + type + "' unmapped.");
+            }
         }
     }
 

@@ -21,8 +21,12 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
+import com.evolveum.midpoint.repo.sql.data.common.RUserType;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Restrictions;
 import org.w3c.dom.Element;
 
 /**
@@ -30,7 +34,12 @@ import org.w3c.dom.Element;
  */
 public class QueryProcessor {
 
-    public Criteria createFilterCriteria(Criteria criteria, Element filter) {
+    public Criteria createFilterCriteria(Criteria criteria1, Element filter) {
+        Session session = null;
+        
+        Criteria criteria = session.createCriteria(RUserType.class);
+        criteria.add(Restrictions.eq("givenName", "LDAP"));
+
         
         //todo create criteria from query filter
 
