@@ -27,6 +27,10 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.page.admin.home.PageHome;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.page.error.PageForbidden;
+import com.evolveum.midpoint.web.page.error.PageNotFound;
+import com.evolveum.midpoint.web.page.error.PageServerError;
+import com.evolveum.midpoint.web.page.error.PageUnauthorized;
 import com.evolveum.midpoint.web.util.DefaultPageParametersEncoder;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import org.apache.wicket.protocol.http.WebApplication;
@@ -64,6 +68,12 @@ public class MidPointApplication extends WebApplication {
         mount(new MountedMapper("/home", PageHome.class, encoder));
         mount(new MountedMapper("/users", PageUsers.class, encoder));
         mount(new MountedMapper("/user", PageUser.class, new OnePageParameterEncoder(PageUser.PARAM_USER_ID)));
+
+        //error pages
+        mount(new MountedMapper("/error/401", PageUnauthorized.class, encoder));
+        mount(new MountedMapper("/error/403", PageForbidden.class, encoder));
+        mount(new MountedMapper("/error/404", PageNotFound.class, encoder));
+        mount(new MountedMapper("/error/500", PageServerError.class, encoder));
     }
 
     public ModelService getModel() {
