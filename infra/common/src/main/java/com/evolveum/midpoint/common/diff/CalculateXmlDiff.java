@@ -52,9 +52,9 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
-import com.evolveum.midpoint.schema.util.DebugUtil;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -371,7 +371,7 @@ public class CalculateXmlDiff {
 					LOGGER.trace(
 							"Finished processing of difference {}. Relative change for difference is change = {}",
 
-							diff.getDescription(), DebugUtil.prettyPrint(change));
+							diff.getDescription(), SchemaDebugUtil.prettyPrint(change));
 					if (null != change.getValue()) {
 						try {
 							LOGGER.trace("Relative change value= {}",

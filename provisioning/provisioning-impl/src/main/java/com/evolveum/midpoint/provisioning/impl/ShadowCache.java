@@ -34,6 +34,7 @@ import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
@@ -381,7 +382,7 @@ public class ShadowCache {
 
 		}
 
-		LOGGER.trace("Got last token: {}", DebugUtil.prettyPrint(lastToken));
+		LOGGER.trace("Got last token: {}", SchemaDebugUtil.prettyPrint(lastToken));
 		parentResult.recordSuccess();
 		return lastToken;
 	}
@@ -493,7 +494,7 @@ public class ShadowCache {
 						scriptOperation.setConnectorHost(false);
 						scriptOperation.setResourceHost(true);
 					}
-					LOGGER.trace("Created script operation: {}", DebugUtil.prettyPrint(scriptOperation));
+					LOGGER.trace("Created script operation: {}", SchemaDebugUtil.prettyPrint(scriptOperation));
 					operations.add(scriptOperation);
 				}
 			}
@@ -623,7 +624,7 @@ public class ShadowCache {
 				try {
 					addShadowToRepository(newShadow, parentResult);
 				} catch (ObjectAlreadyExistsException e) {
-					parentResult.recordFatalError("Can't add account " + DebugUtil.prettyPrint(newShadow)
+					parentResult.recordFatalError("Can't add account " + SchemaDebugUtil.prettyPrint(newShadow)
 							+ " to the repository. Reason: " + e.getMessage(), e);
 					throw new IllegalStateException(e.getMessage(), e);
 				}

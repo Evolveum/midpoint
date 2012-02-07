@@ -33,7 +33,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ConcurrencyException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -128,7 +128,7 @@ public class TaskScanner extends Thread {
 										// task. Just log warning for now. This can be switched to DEBUG later.
 										LOGGER.warn(
 												"Task scanner: Claiming of task {} failed due to concurrency exception \"{}\", skipping it.",
-												DebugUtil.prettyPrint(task), ex.getMessage());
+												SchemaDebugUtil.prettyPrint(task), ex.getMessage());
 									}
 	
 									if (claimed) {
@@ -136,7 +136,7 @@ public class TaskScanner extends Thread {
 										try {
 	
 											LOGGER.debug("Task scanner is passing task to task manager:  "
-													+ DebugUtil.prettyPrint(task));
+													+ SchemaDebugUtil.prettyPrint(task));
 	
 											taskManagerImpl.processRunnableTaskType(task, loopResult);
 	
@@ -162,19 +162,19 @@ public class TaskScanner extends Thread {
 								} else {
 									// we have missed scheduled start => reschedule
 									long nextRunTime = ScheduleEvaluator.determineNextRunStartTime(task);
-									LOGGER.info("Task scanner: missed or non-existing scheduled start (" + task.getNextRunStartTime() + ") for " + DebugUtil.prettyPrint(task) + ", rescheduling to " + new Date(nextRunTime));
+									LOGGER.info("Task scanner: missed or non-existing scheduled start (" + task.getNextRunStartTime() + ") for " + SchemaDebugUtil.prettyPrint(task) + ", rescheduling to " + new Date(nextRunTime));
 									taskManagerImpl.recordNextRunStartTime(task.getOid(), nextRunTime, loopResult);
 								}
 							} else {
-								LOGGER.trace("Task scanner: skipping task " + DebugUtil.prettyPrint(task)
+								LOGGER.trace("Task scanner: skipping task " + SchemaDebugUtil.prettyPrint(task)
 										+ " because it should not run yet");
 							}
 						} else {
-							LOGGER.trace("Task scanner: skipping task " + DebugUtil.prettyPrint(task)
+							LOGGER.trace("Task scanner: skipping task " + SchemaDebugUtil.prettyPrint(task)
 									+ " because there is no handler for it on this node");
 						}
 
-						LOGGER.trace("Task scanner: End processing task " + DebugUtil.prettyPrint(task));
+						LOGGER.trace("Task scanner: End processing task " + SchemaDebugUtil.prettyPrint(task));
 					}
 				}
 

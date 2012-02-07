@@ -38,18 +38,14 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.EntityResolver;
 
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * Schema as a collection of definitions. This is a midPoint-specific view of
@@ -180,16 +176,8 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 		return findContainerDefinitionByType(typeName,ObjectDefinition.class);
 	}
 
-	public <T extends ObjectType> ObjectDefinition<T> findObjectDefinitionByType(QName typeName, Class<T> type) {
+	public <T extends Objectable> ObjectDefinition<T> findObjectDefinitionByType(QName typeName, Class<T> type) {
 		return findContainerDefinitionByType(typeName,ObjectDefinition.class);
-	}
-
-	public <T extends ObjectType> ObjectDefinition<T> findObjectDefinition(ObjectTypes objectType, Class<T> type) {
-		return findContainerDefinitionByType(objectType.getTypeQName(),ObjectDefinition.class);
-	}
-	
-	public <T extends ObjectType> ObjectDefinition<T> findObjectDefinition(Class<T> type) {
-		return findContainerDefinitionByType(ObjectTypes.getObjectType(type).getTypeQName(),ObjectDefinition.class);
 	}
 
 	private <T extends PropertyContainerDefinition> T findContainerDefinitionByType(QName typeName, Class<T> type) {
@@ -206,14 +194,6 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 		return null;
 	}
 	
-	public PropertyContainerDefinition findContainerDefinition(Class<? extends ObjectType> type, PropertyPath path) {
-		ObjectTypes objectType = ObjectTypes.getObjectType(type);
-		ObjectDefinition objectDefinition = findObjectDefinitionByType(objectType.getTypeQName());
-		if (objectDefinition == null) {
-			throw new IllegalArgumentException("The definition of object type "+type.getSimpleName()+" not found in the schema");
-		}
-		return objectDefinition.findItemDefinition(path, PropertyContainerDefinition.class);
-	}
 
 	/**
 	 * Finds complex type definition by type name.
@@ -502,41 +482,6 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 		return propDef;
 	}
 	
-	
-	public <T extends ObjectType> MidPointObject<T> parseObjectType(T objectType) throws SchemaException {
-		ObjectDefinition<T> objectDefinition = (ObjectDefinition<T>) findObjectDefinition(objectType.getClass());
-		if (objectDefinition == null) {
-			throw new IllegalArgumentException("No definition for object type "+objectType);
-		}
-		return objectDefinition.parseObjectType(objectType);
-	}
-	
-	public <T extends ObjectType> MidPointObject<T> parseObject(String stringXml, Class<T> type) throws SchemaException {
-		ObjectDefinition<T> objectDefinition = findObjectDefinition(type);
-		JAXBElement<T> jaxbElement;
-		try {
-			jaxbElement = JAXBUtil.unmarshal(type, stringXml);
-		} catch (JAXBException e) {
-			throw new SchemaException("Error parsing the XML: "+e.getMessage(),e);
-		}
-        T objectType = jaxbElement.getValue();
-        MidPointObject<T> object = objectDefinition.parseObjectType(objectType);
-        return object;
-	}
-
-	public <T extends ObjectType> MidPointObject<T> parseObject(File xmlFile, Class<T> type) throws SchemaException {
-		ObjectDefinition<T> objectDefinition = findObjectDefinition(type);
-		JAXBElement<T> jaxbElement;
-		try {
-			jaxbElement = JAXBUtil.unmarshal(xmlFile, type);
-		} catch (JAXBException e) {
-			throw new SchemaException("Error parsing the XML: "+e.getMessage(),e);
-		}
-        T objectType = jaxbElement.getValue();
-        MidPointObject<T> object = objectDefinition.parseObjectType(objectType);
-        return object;
-	}
-
 	@Override
 	public String debugDump() {
 		return debugDump(0);

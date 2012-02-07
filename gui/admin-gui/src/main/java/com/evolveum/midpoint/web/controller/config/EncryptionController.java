@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.common.crypto.Protector;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 

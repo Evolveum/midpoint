@@ -32,12 +32,12 @@ import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.DebugUtil;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -157,7 +157,7 @@ public class ShadowCacheUtil {
 		}
 		ActivationType activation = convertFromSimulatedActivationValues(resource, values, parentResult);
 		LOGGER.debug("Detected simulated activation attribute {} on {} with value {}, resolved into {}", new Object[]{
-				DebugUtil.prettyPrint(activationCapability.getEnableDisable().getAttribute()),
+				SchemaDebugUtil.prettyPrint(activationCapability.getEnableDisable().getAttribute()),
 				ObjectTypeUtil.toShortString(resource),
 				values, activation == null ? "null" : activation.isEnabled()});
 		return activation;
@@ -192,7 +192,7 @@ public class ShadowCacheUtil {
 		List<Object> values = ResourceObjectShadowUtil.getAttributeValues(shadow, enableDisableAttribute);
 		ActivationType activation = convertFromSimulatedActivationValues(resource, values, parentResult);
 		LOGGER.debug("Detected simulated activation attribute {} on {} with value {}, resolved into {}", new Object[]{
-				DebugUtil.prettyPrint(activationCapability.getEnableDisable().getAttribute()),
+				SchemaDebugUtil.prettyPrint(activationCapability.getEnableDisable().getAttribute()),
 				ObjectTypeUtil.toShortString(resource),
 				values, activation == null ? "null" : activation.isEnabled()});
 		return activation;

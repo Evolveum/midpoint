@@ -20,11 +20,11 @@
  */
 package com.evolveum.midpoint.common.refinery;
 
-import com.evolveum.midpoint.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -444,7 +444,7 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
                     }
                 }
             } else {
-                throw new SchemaException("Missing reference to the attribute schema definition in definition " + DebugUtil.prettyPrint(attrDefType) + " during processing of " + contextDescription);
+                throw new SchemaException("Missing reference to the attribute schema definition in definition " + SchemaDebugUtil.prettyPrint(attrDefType) + " during processing of " + contextDescription);
             }
         }
         return foundAttrDefType;
@@ -462,12 +462,12 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
             sb.append(INDENT_STRING);
         }
         sb.append("RAccountDef(");
-        sb.append(DebugUtil.prettyPrint(getName()));
+        sb.append(SchemaDebugUtil.prettyPrint(getName()));
         if (isDefault()) {
             sb.append(",default");
         }
         sb.append(",");
-        sb.append(DebugUtil.prettyPrint(getObjectClassDefinition().getTypeName()));
+        sb.append(SchemaDebugUtil.prettyPrint(getObjectClassDefinition().getTypeName()));
         sb.append(")\n");
         Iterator<ItemDefinition> i = getDefinitions().iterator();
         while (i.hasNext()) {

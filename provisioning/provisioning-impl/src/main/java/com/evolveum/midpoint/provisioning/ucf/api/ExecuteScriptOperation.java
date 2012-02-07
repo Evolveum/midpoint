@@ -22,7 +22,7 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptOrderType;
 
 /**
@@ -97,7 +97,7 @@ public class ExecuteScriptOperation extends Operation {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
+		SchemaDebugUtil.indentDebugDump(sb, indent);
 		sb.append("Script execution ");
 		if (connectorHost) {
 			sb.append("on connector ");

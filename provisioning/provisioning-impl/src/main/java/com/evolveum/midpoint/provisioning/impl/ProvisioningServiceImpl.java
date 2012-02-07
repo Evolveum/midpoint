@@ -55,11 +55,11 @@ import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyModification;
 import com.evolveum.midpoint.schema.processor.PropertyModification.ModificationType;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.DebugUtil;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -323,7 +323,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			ResourceType resourceType = (ResourceType) resourceObjectType;
 
 			LOGGER.trace("**PROVISIONING: Start synchronization of resource {} ",
-					DebugUtil.prettyPrint(resourceType));
+					SchemaDebugUtil.prettyPrint(resourceType));
 
 			// getting token form task
 			Property tokenProperty = null;
@@ -354,7 +354,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("**PROVISIONING: Got token property: {} from the task extension.",
-						DebugUtil.prettyPrint(tokenProperty));
+						SchemaDebugUtil.prettyPrint(tokenProperty));
 			}
 
 			List<PropertyModification> modifications = new ArrayList<PropertyModification>();
@@ -385,7 +385,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						change, resourceType);
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("**PROVISIONING: Created resource object shadow change description {}",
-							DebugUtil.prettyPrint(shadowChangeDescription));
+							SchemaDebugUtil.prettyPrint(shadowChangeDescription));
 				}
 				OperationResult notifyChangeResult = new OperationResult(ProvisioningService.class.getName()
 						+ "notifyChange");
@@ -792,7 +792,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			@Override
 			public boolean handle(ResourceObjectShadowType shadow) {
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("listResourceObjects: processing shadow: {}", DebugUtil.prettyPrint(shadow));
+					LOGGER.trace("listResourceObjects: processing shadow: {}", SchemaDebugUtil.prettyPrint(shadow));
 				}
 
 				objectList.add(shadow);
@@ -884,7 +884,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			public boolean handle(ResourceObjectShadowType shadow) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("searchObjectsIterative: processing shadow: {}",
-							DebugUtil.prettyPrint(shadow));
+							SchemaDebugUtil.prettyPrint(shadow));
 				}
 
 				OperationResult accountResult = result.createSubresult(ProvisioningService.class.getName()

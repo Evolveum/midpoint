@@ -45,11 +45,11 @@ import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.DebugUtil;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -341,7 +341,7 @@ public class UserDetailsController implements Serializable {
 		for (AccountFormBean formBean : accountListDeleted) {
 			String oidToDelete = formBean.getAccount().getOid();
 			LOGGER.debug("Following account is marked as candidate for delete in GUI: {}",
-					DebugUtil.prettyPrint(formBean.getAccount().getXmlObject()));
+					SchemaDebugUtil.prettyPrint(formBean.getAccount().getXmlObject()));
 
 			List<AccountShadowDto> accountsDto = user.getAccount();
 			for (Iterator<AccountShadowDto> i = accountsDto.iterator(); i.hasNext();) {
@@ -364,7 +364,7 @@ public class UserDetailsController implements Serializable {
 		for (AccountFormBean formBean : accountListUnlinked) {
 			String oidToDelete = formBean.getAccount().getOid();
 			LOGGER.debug("Following account is marked as candidate for unlink in GUI: {}",
-					DebugUtil.prettyPrint(formBean.getAccount().getXmlObject()));
+					SchemaDebugUtil.prettyPrint(formBean.getAccount().getXmlObject()));
 			List<AccountShadowDto> accountsDto = user.getAccount();
 			for (Iterator<AccountShadowDto> i = accountsDto.iterator(); i.hasNext();) {
 				AccountShadowDto account = i.next();

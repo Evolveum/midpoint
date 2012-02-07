@@ -26,12 +26,11 @@ import java.lang.reflect.InvocationTargetException;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
  * MidPoint Object Definition.
@@ -49,7 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
  * @author Radovan Semancik
  * 
  */
-public class ObjectDefinition<T extends ObjectType> extends PropertyContainerDefinition {
+public class ObjectDefinition<T extends Objectable> extends PropertyContainerDefinition {
 	private static final long serialVersionUID = -8298581031956931008L;
 	
 	protected Class<T> jaxbClass;

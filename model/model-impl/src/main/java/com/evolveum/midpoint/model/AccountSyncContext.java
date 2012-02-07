@@ -28,7 +28,7 @@ import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
-import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -295,13 +295,13 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        DebugUtil.indentDebugDump(sb, indent);
+        SchemaDebugUtil.indentDebugDump(sb, indent);
         sb.append("OID: ").append(oid);
         sb.append(", assigned=").append(isAssigned);
         sb.append(", recon=").append(doReconciliation);
         sb.append(", decision=").append(policyDecision);
         sb.append("\n");
-        DebugUtil.indentDebugDump(sb, indent);
+        SchemaDebugUtil.indentDebugDump(sb, indent);
         sb.append("ACCOUNT old:");
         if (accountOld == null) {
             sb.append(" null");
@@ -311,7 +311,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
         }
 
         sb.append("\n");
-        DebugUtil.indentDebugDump(sb, indent);
+        SchemaDebugUtil.indentDebugDump(sb, indent);
         sb.append("ACCOUNT new:");
         if (accountNew == null) {
             sb.append(" null");
@@ -321,7 +321,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
         }
 
         sb.append("\n");
-        DebugUtil.indentDebugDump(sb, indent);
+        SchemaDebugUtil.indentDebugDump(sb, indent);
         sb.append("ACCOUNT primary delta:");
         if (accountPrimaryDelta == null) {
             sb.append(" null");
@@ -331,7 +331,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
         }
 
         sb.append("\n");
-        DebugUtil.indentDebugDump(sb, indent);
+        SchemaDebugUtil.indentDebugDump(sb, indent);
         sb.append("ACCOUNT secondary delta:");
         if (accountSecondaryDelta == null) {
             sb.append(" null");
@@ -341,7 +341,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
         }
 
         sb.append("\n");
-        DebugUtil.indentDebugDump(sb, indent);
+        SchemaDebugUtil.indentDebugDump(sb, indent);
         sb.append("ACCOUNT sync delta:");
         if (accountSyncDelta == null) {
             sb.append(" null");
@@ -351,13 +351,13 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
         }
 
         sb.append("\n");
-        DebugUtil.indentDebugDump(sb, indent);
+        SchemaDebugUtil.indentDebugDump(sb, indent);
         sb.append("ACCOUNT attribute DeltaSetTriple map:");
         if (attributeValueDeltaSetTripleMap == null) {
             sb.append(" null");
         } else {
             sb.append("\n");
-            DebugUtil.debugDumpMapSingleLine(sb, attributeValueDeltaSetTripleMap, indent + 1);
+            SchemaDebugUtil.debugDumpMapSingleLine(sb, attributeValueDeltaSetTripleMap, indent + 1);
         }
 
         return sb.toString();

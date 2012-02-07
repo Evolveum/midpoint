@@ -37,11 +37,11 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.DebugUtil;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
@@ -1738,7 +1738,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (op instanceof ExecuteScriptOperation) {
 
 				ExecuteScriptOperation executeOp = (ExecuteScriptOperation) op;
-				LOGGER.trace("Find execute script operation: {}", DebugUtil.prettyPrint(executeOp));
+				LOGGER.trace("Find execute script operation: {}", SchemaDebugUtil.prettyPrint(executeOp));
 				// execute operation in the right order..
 				if (order.equals(executeOp.getScriptOrder())) {
 					executeScript(executeOp);

@@ -26,7 +26,7 @@ import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.sync.action.BaseAction;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
-import com.evolveum.midpoint.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.SchemaRegistry;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;

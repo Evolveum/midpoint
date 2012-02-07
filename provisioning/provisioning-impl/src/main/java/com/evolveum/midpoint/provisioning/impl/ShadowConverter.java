@@ -32,7 +32,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -170,7 +170,7 @@ public class ShadowConverter {
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Connector for resource {}\n ADD object:\n{}\n additional operations:\n{}",
 						new Object[] { ObjectTypeUtil.toShortString(resource), resourceObject.debugDump(),
-								DebugUtil.debugDump(additionalOperations) });
+								SchemaDebugUtil.debugDump(additionalOperations) });
 			}
 
 			resourceAttributesAfterAdd = connector.addObject(resourceObject, additionalOperations,
@@ -180,7 +180,7 @@ public class ShadowConverter {
 				// TODO: reduce only to new/different attributes. Dump all
 				// attributes on trace level only
 				LOGGER.debug("Connector ADD successful, returned attributes:\n{}",
-						DebugUtil.prettyPrint(resourceAttributesAfterAdd));
+						SchemaDebugUtil.prettyPrint(resourceAttributesAfterAdd));
 			}
 			// if (LOGGER.isTraceEnabled()) {
 			// LOGGER.trace("Added object: {}",
@@ -224,7 +224,7 @@ public class ShadowConverter {
 				LOGGER.debug(
 						"Connector for resource {}\n DELETE object, object class {}, identified by:\n{}\n additional operations:\n{}",
 						new Object[] { ObjectTypeUtil.toShortString(resource), shadow.getObjectClass(),
-								DebugUtil.debugDump(identifiers), DebugUtil.debugDump(additionalOperations) });
+								SchemaDebugUtil.debugDump(identifiers), SchemaDebugUtil.debugDump(additionalOperations) });
 			}
 
 			connector.deleteObject(rod, additionalOperations, identifiers, parentResult);
@@ -272,14 +272,14 @@ public class ShadowConverter {
 				LOGGER.debug(
 						"Connector for resource {}\n MODIFY object, object class {}, identified by:\n{}\n changes:\n{}",
 						new Object[] { ObjectTypeUtil.toShortString(resource), shadow.getObjectClass(),
-								DebugUtil.debugDump(identifiers), DebugUtil.debugDump(changes) });
+								SchemaDebugUtil.debugDump(identifiers), SchemaDebugUtil.debugDump(changes) });
 			}
 
 			// Invoke ICF
 			sideEffectChanges = connector.modifyObject(rod, identifiers, changes, parentResult);
 
 			LOGGER.debug("Connector MODIFY successful, side-effect changes {}",
-					DebugUtil.debugDump(sideEffectChanges));
+					SchemaDebugUtil.debugDump(sideEffectChanges));
 
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException ex) {
 			parentResult.recordFatalError("Object to modify not found. Reason: " + ex.getMessage(), ex);
@@ -323,7 +323,7 @@ public class ShadowConverter {
 					+ ex.getMessage(), ex);
 		}
 
-		LOGGER.trace("Got last token: {}", DebugUtil.prettyPrint(lastToken));
+		LOGGER.trace("Got last token: {}", SchemaDebugUtil.prettyPrint(lastToken));
 		parentResult.recordSuccess();
 		return lastToken;
 	}

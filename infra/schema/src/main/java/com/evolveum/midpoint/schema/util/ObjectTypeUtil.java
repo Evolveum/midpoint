@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType.Value;
@@ -242,7 +243,7 @@ public class ObjectTypeUtil {
         StringBuilder sb = new StringBuilder();
         sb.append("objectRef oid=").append(objectRef.getOid());
         if (objectRef.getType() != null) {
-            sb.append(" type=").append(DebugUtil.prettyPrint(objectRef.getType()));
+            sb.append(" type=").append(SchemaDebugUtil.prettyPrint(objectRef.getType()));
         }
         return sb.toString();
     }

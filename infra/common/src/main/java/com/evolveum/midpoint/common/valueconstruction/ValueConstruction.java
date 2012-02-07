@@ -41,7 +41,7 @@ import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -335,7 +335,7 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 
 	@Override
 	public String toString() {
-		return "ValueConstruction(" + DebugUtil.prettyPrint(outputDefinition.getName()) + " = " + output + ")";
+		return "ValueConstruction(" + SchemaDebugUtil.prettyPrint(outputDefinition.getName()) + " = " + output + ")";
 	}
 	
 }

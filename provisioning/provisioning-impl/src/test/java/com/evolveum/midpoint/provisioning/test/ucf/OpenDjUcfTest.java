@@ -28,7 +28,7 @@ import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -288,7 +288,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
         Property lastToken = cc.fetchCurrentToken(accountDefinition, result);
 
         System.out.println("Property:");
-        System.out.println(DebugUtil.prettyPrint(lastToken));
+        System.out.println(SchemaDebugUtil.prettyPrint(lastToken));
 
         System.out.println("token " + lastToken.toString());
         List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, result);

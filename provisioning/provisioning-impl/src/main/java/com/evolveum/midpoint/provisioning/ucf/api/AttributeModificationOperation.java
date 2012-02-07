@@ -20,7 +20,7 @@
 package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.schema.processor.Property;
-import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 
 /**
@@ -50,7 +50,7 @@ public final class AttributeModificationOperation extends Operation {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
+		SchemaDebugUtil.indentDebugDump(sb, indent);
 		sb.append("Attribute modification ");
 		sb.append(changeType);
 		sb.append(": ");

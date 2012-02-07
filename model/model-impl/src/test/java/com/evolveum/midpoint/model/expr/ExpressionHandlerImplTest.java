@@ -39,8 +39,8 @@ import org.w3c.dom.NodeList;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.DebugUtil;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -132,7 +132,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 				.getFilter(), SchemaConstants.NS_C, "valueExpression");
 		ExpressionType expression = XsdTypeConverter
 				.toJavaValue(valueExpressionElement, ExpressionType.class);
-		LOGGER.debug(DebugUtil.prettyPrint(expression));
+		LOGGER.debug(SchemaDebugUtil.prettyPrint(expression));
 
 		OperationResult result = new OperationResult("testCorrelationRule");
 		String name = expressionHandler.evaluateExpression(account, expression, result);

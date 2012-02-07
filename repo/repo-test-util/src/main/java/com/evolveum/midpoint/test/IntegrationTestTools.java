@@ -44,12 +44,12 @@ import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.DebugUtil;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -351,9 +351,9 @@ public class IntegrationTestTools {
 
 	public static void display(String title, Object value) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-		System.out.println(DebugUtil.prettyPrint(value));
+		System.out.println(SchemaDebugUtil.prettyPrint(value));
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
-		LOGGER.debug(DebugUtil.prettyPrint(value));
+		LOGGER.debug(SchemaDebugUtil.prettyPrint(value));
 	}
 
 }

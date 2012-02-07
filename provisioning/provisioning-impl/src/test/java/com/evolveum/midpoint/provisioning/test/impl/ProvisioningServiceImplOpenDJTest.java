@@ -69,14 +69,14 @@ import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.DebugUtil;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -364,7 +364,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 			ObjectType objectToAdd = unmarshallJaxbFromFile(FILENAME_ACCOUNT1);
 
-			System.out.println(DebugUtil.prettyPrint(objectToAdd));
+			System.out.println(SchemaDebugUtil.prettyPrint(objectToAdd));
 			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(objectToAdd,
 					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
 
@@ -376,7 +376,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 			assertNotNull(acct);
 
-			System.out.println(DebugUtil.prettyPrint(acct));
+			System.out.println(SchemaDebugUtil.prettyPrint(acct));
 			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(acct,
 					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
 			
@@ -490,7 +490,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		try {
 			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_NEW);
 
-			System.out.println(DebugUtil.prettyPrint(object));
+			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
 					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
 
@@ -560,7 +560,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		try {
 			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_DELETE);
 
-			System.out.println(DebugUtil.prettyPrint(object));
+			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
 					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
 
@@ -614,7 +614,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_MODIFY);
 
-			System.out.println(DebugUtil.prettyPrint(object));
+			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
 					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
 
@@ -624,7 +624,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			ObjectChangeModificationType objectChange = ((JAXBElement<ObjectChangeModificationType>) JAXBUtil
 					.unmarshal(new File("src/test/resources/impl/account-change-description.xml")))
 					.getValue();
-			display("Object change",DebugUtil.prettyPrint(objectChange));
+			display("Object change",SchemaDebugUtil.prettyPrint(objectChange));
 			System.out.println("new sn value: " + ((Element)objectChange.getObjectModification().getPropertyModification().get(0).getValue().getAny().get(0)).getTextContent());
 			System.out.println("oid changed obj: " + objectChange.getObjectModification().getOid());
 
@@ -710,7 +710,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			ObjectChangeModificationType objectChange = ((JAXBElement<ObjectChangeModificationType>) JAXBUtil
 					.unmarshal(new File("src/test/resources/impl/account-change-password.xml")))
 					.getValue();
-			display("Object change",DebugUtil.prettyPrint(objectChange));
+			display("Object change",SchemaDebugUtil.prettyPrint(objectChange));
 
 			// WHEN
 			provisioningService.modifyObject(AccountShadowType.class,objectChange.getObjectModification(), null, result);
@@ -753,7 +753,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		try {
 			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_NEW_WITH_PASSWORD);
 
-			System.out.println(DebugUtil.prettyPrint(object));
+			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
 					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
 
@@ -845,7 +845,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		try {
 			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_SEARCH_ITERATIVE);
 
-			System.out.println(DebugUtil.prettyPrint(object));
+			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
 					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
 
@@ -901,7 +901,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		try {
 			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_SEARCH);
 
-			System.out.println(DebugUtil.prettyPrint(object));
+			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
 					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
 

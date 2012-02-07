@@ -24,7 +24,7 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.PropertyPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAttributeDefinitionType;
@@ -297,9 +297,9 @@ public class RefinedAttributeDefinition extends ResourceObjectAttributeDefinitio
             sb.append(INDENT_STRING);
         }
         sb.append("RAttributeDef(");
-        sb.append(DebugUtil.prettyPrint(getName()));
+        sb.append(SchemaDebugUtil.prettyPrint(getName()));
         sb.append(",");
-        sb.append(DebugUtil.prettyPrint(getTypeName()));
+        sb.append(SchemaDebugUtil.prettyPrint(getTypeName()));
         if (getMinOccurs() != 1 || getMaxOccurs() != 1) {
             sb.append("[").append(getMinOccurs()).append("-");
             if (getMaxOccurs() < 0) {

@@ -39,12 +39,12 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.DebugUtil;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
@@ -515,7 +515,7 @@ public class ResourceTypeManager {
 			@Override
 			public boolean handle(ResourceObject object) {
 				ResourceObjectShadowType shadow;
-				LOGGER.trace("Found resource object {}", DebugUtil.prettyPrint(object));
+				LOGGER.trace("Found resource object {}", SchemaDebugUtil.prettyPrint(object));
 				try {
 
 					// Try to find shadow that corresponds to the resource
@@ -525,7 +525,7 @@ public class ResourceTypeManager {
 					if (shadow == null) {
 						LOGGER.trace(
 								"Shadow object (in repo) corresponding to the resource object (on the resource) was not found. The repo shadow will be created. The resource object:\n{}",
-								DebugUtil.prettyPrint(object));
+								SchemaDebugUtil.prettyPrint(object));
 
 						// TODO: make sure that the resource object has
 						// appropriate definition
@@ -560,7 +560,7 @@ public class ResourceTypeManager {
 						}
 					} else {
 						LOGGER.trace("Found shadow object in the repository {}",
-								DebugUtil.prettyPrint(shadow));
+								SchemaDebugUtil.prettyPrint(shadow));
 					}
 
 				} catch (SchemaException e) {

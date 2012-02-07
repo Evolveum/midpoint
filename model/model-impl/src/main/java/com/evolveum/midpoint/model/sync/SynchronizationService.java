@@ -42,11 +42,11 @@ import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.DebugUtil;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -440,7 +440,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             query.setFilter(filter);
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("CORRELATION: expression for OID {} results in filter {}", new Object[]{
-                        currentShadow.getOid(), DebugUtil.prettyPrint(query)});
+                        currentShadow.getOid(), SchemaDebugUtil.prettyPrint(query)});
             }
             PagingType paging = new PagingType();
             users = controller.searchObjects(UserType.class, query, paging, result);
@@ -451,7 +451,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER,
                     "Couldn't search users in repository, based on filter (simplified)\n{}.", ex,
-                    DebugUtil.prettyPrint(filter));
+                    SchemaDebugUtil.prettyPrint(filter));
             throw new SynchronizationException(
                     "Couldn't search users in repository, based on filter (See logs).", ex);
         }

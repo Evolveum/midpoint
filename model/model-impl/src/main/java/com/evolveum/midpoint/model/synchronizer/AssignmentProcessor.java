@@ -27,8 +27,8 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.prism.SchemaRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
@@ -37,7 +37,7 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -126,8 +126,8 @@ public class AssignmentProcessor {
         Map<ResourceAccountType, Collection<PropertyValue<AccountConstruction>>> plusAccountMap = new HashMap<ResourceAccountType, Collection<PropertyValue<AccountConstruction>>>();
         Map<ResourceAccountType, Collection<PropertyValue<AccountConstruction>>> minusAccountMap = new HashMap<ResourceAccountType, Collection<PropertyValue<AccountConstruction>>>();
 
-        LOGGER.trace("Old assignments {}", DebugUtil.prettyPrint(assignmentsOld));
-        LOGGER.trace("Changed assignments {}", DebugUtil.prettyPrint(changedAssignments));
+        LOGGER.trace("Old assignments {}", SchemaDebugUtil.prettyPrint(assignmentsOld));
+        LOGGER.trace("Changed assignments {}", SchemaDebugUtil.prettyPrint(changedAssignments));
 
         ObjectType source = context.getUserTypeOld();
         if (source == null) {
@@ -139,7 +139,7 @@ public class AssignmentProcessor {
         for (PropertyValue<AssignmentType> propertyValue : allAssignments) {
             AssignmentType assignmentType = propertyValue.getValue();
 
-            LOGGER.trace("Processing assignment {}", DebugUtil.prettyPrint(assignmentType));
+            LOGGER.trace("Processing assignment {}", SchemaDebugUtil.prettyPrint(assignmentType));
 
             Assignment evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, source, result);
 
@@ -254,7 +254,7 @@ public class AssignmentProcessor {
         while (i.hasNext()) {
             Entry<ResourceAccountType, Collection<PropertyValue<AccountConstruction>>> entry = i.next();
             sb.append(entry.getKey()).append(": ");
-            sb.append(DebugUtil.prettyPrint(entry.getValue()));
+            sb.append(SchemaDebugUtil.prettyPrint(entry.getValue()));
             if (i.hasNext()) {
                 sb.append("\n");
             }

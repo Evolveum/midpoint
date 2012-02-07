@@ -3,7 +3,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
-import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 
 /**
  * Used for enable/disable of accounts and other resource objects.
@@ -42,7 +42,7 @@ public class ActivationChangeOperation extends Operation {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
+		SchemaDebugUtil.indentDebugDump(sb, indent);
 		sb.append("Activation change: enabled=");
 		sb.append(enabled);
 		return sb.toString();

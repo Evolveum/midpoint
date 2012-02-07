@@ -17,7 +17,7 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.schema;
+package com.evolveum.midpoint.prism;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,7 +35,6 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Schema;
-import com.evolveum.midpoint.schema.util.DebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Dumpable;
 
@@ -48,6 +47,7 @@ public class SchemaDescription implements Dumpable {
 	private Node node;
 	private boolean isMidPointSchema = false;
 	private Schema schema;
+	private Package jaxbPackage;
 
 	private SchemaDescription(String sourceDescription) {
 		this.sourceDescription = sourceDescription;
@@ -103,6 +103,14 @@ public class SchemaDescription implements Dumpable {
 
 	public void setSchema(Schema schema) {
 		this.schema = schema;
+	}
+
+	public Package getJaxbPackage() {
+		return jaxbPackage;
+	}
+
+	public void setJaxbPackage(Package jaxbPackage) {
+		this.jaxbPackage = jaxbPackage;
 	}
 
 	public static SchemaDescription parseResource(final String resourcePath) throws SchemaException {

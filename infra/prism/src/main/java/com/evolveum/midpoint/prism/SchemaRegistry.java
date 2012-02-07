@@ -17,7 +17,7 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.schema;
+package com.evolveum.midpoint.prism;
 
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
@@ -55,20 +55,15 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.exception.SystemException;
-import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.processor.ComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.Definition;
-import com.evolveum.midpoint.schema.processor.ItemDefinition;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
-import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.sun.xml.txw2.Document;
+import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 
 /**
  * Registry and resolver of schema files and resources.
@@ -87,6 +82,8 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	private Map<QName,ComplexTypeDefinition> extensionSchemas;
 	private Schema objectSchema = null;
 	private boolean initialized = false;
+	private String objectSchemaNamespace;
+	private NamespacePrefixMapper namespacePrefixMapper;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaRegistry.class);
 	
@@ -95,31 +92,24 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		this.schemaDescriptions = new ArrayList<SchemaDescription>();
 		this.parsedSchemas = new HashMap<String, SchemaDescription>();
 		this.extensionSchemas = new HashMap<QName, ComplexTypeDefinition>();
-		try {
-			registerBuiltinSchemas();
-		} catch (SchemaException e) {
-			throw new SystemException("Built-in schema inconsistency: "+e.getMessage(),e);
-		}
 	}
 	
-	private void registerBuiltinSchemas() throws SchemaException {
-		String prefix;
-		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_C);
-		registerMidPointSchemaResource("xml/ns/public/common/common-1.xsd",prefix);
-		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_ANNOTATION);
-		registerMidPointSchemaResource("xml/ns/public/common/annotation-1.xsd",prefix);
-		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_RESOURCE);
-		registerMidPointSchemaResource("xml/ns/public/resource/resource-schema-1.xsd",prefix);
-		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_CAPABILITIES);
-		registerMidPointSchemaResource("xml/ns/public/resource/capabilities-1.xsd",prefix);
-		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_ICF_CONFIGURATION);
-		registerMidPointSchemaResource("xml/ns/public/connector/icf-1/connector-schema-1.xsd",prefix);
-		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_ICF_SCHEMA);
-		registerMidPointSchemaResource("xml/ns/public/connector/icf-1/resource-schema-1.xsd",prefix);
-		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(W3C_XML_SCHEMA_NS_URI);
-		registerSchemaResource("xml/ns/standard/XMLSchema.xsd",prefix);
+	public String getObjectSchemaNamespace() {
+		return objectSchemaNamespace;
+	}
+
+	public void setObjectSchemaNamespace(String objectSchemaNamespace) {
+		this.objectSchemaNamespace = objectSchemaNamespace;
 	}
 	
+	public NamespacePrefixMapper getNamespacePrefixMapper() {
+		return namespacePrefixMapper;
+	}
+
+	public void setNamespacePrefixMapper(NamespacePrefixMapper namespacePrefixMapper) {
+		this.namespacePrefixMapper = namespacePrefixMapper;
+	}
+
 	/**
 	 * Must be called before call to initialize()
 	 */
@@ -298,7 +288,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	}
 	
 	private void initializeObjectSchema() {
-		Schema commonSchema = parsedSchemas.get(SchemaConstants.NS_C).getSchema();
+		Schema commonSchema = parsedSchemas.get(objectSchemaNamespace).getSchema();
 		// FIXME
 		objectSchema = new Schema("NO NAMESPACE");
 		for (Definition def: commonSchema.getDefinitions()) {
@@ -316,7 +306,17 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 			objectSchema.getDefinitions().add(def);
 		}
 	}
-		
+	
+	public Collection<Package> getJaxbPackages() {
+		Collection<Package> jaxbPackages = new ArrayList<Package>(schemaDescriptions.size());
+		for (SchemaDescription desc : schemaDescriptions) {
+			if (desc.getJaxbPackage() != null) {
+				jaxbPackages.add(desc.getJaxbPackage());
+			}
+		}
+		return jaxbPackages;
+	}
+	
 	private SchemaDescription lookupSchemaDescription(String namespace) {
 		for (SchemaDescription desc : schemaDescriptions) {
 			if (namespace.equals(desc.getNamespace())) {

@@ -25,7 +25,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -205,7 +205,7 @@ public class Expression {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("EXPRESSION in {}\nLanguage: {}\nReturn type: {} ({})\nVariables:\n{}\nCode:\n{}\nResult: {}", new Object[]{
                     shortDesc, evaluator.getLanguageName(), returnType, returnContext, formatVariables(), formatCode(),
-                    DebugUtil.prettyPrint(returnValue)
+                    SchemaDebugUtil.prettyPrint(returnValue)
             });
         }
     }
@@ -215,7 +215,7 @@ public class Expression {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("EXPRESSION in {}\nLanguage: {}\nReturn type: {} ({})\nVariables:\n{}\nCode:\n{}\nError: {}", new Object[]{
                     shortDesc, evaluator.getLanguageName(), returnType, returnContext, formatVariables(), formatCode(),
-                    DebugUtil.prettyPrint(exception)
+                    SchemaDebugUtil.prettyPrint(exception)
             });
         }
     }
@@ -225,8 +225,8 @@ public class Expression {
         Iterator<Entry<QName, Object>> i = variables.entrySet().iterator();
         while (i.hasNext()) {
             Entry<QName, Object> entry = i.next();
-            DebugUtil.indentDebugDump(sb, 1);
-            sb.append(DebugUtil.prettyPrint(entry.getKey())).append(": ");
+            SchemaDebugUtil.indentDebugDump(sb, 1);
+            sb.append(SchemaDebugUtil.prettyPrint(entry.getKey())).append(": ");
             Object value = entry.getValue();
             if (value instanceof DebugDumpable) {
             	sb.append("\n");
@@ -235,7 +235,7 @@ public class Expression {
             	sb.append("\n");
             	sb.append(DOMUtil.serializeDOMToString(((Element)value)));
             } else {
-            	sb.append(DebugUtil.prettyPrint(value));
+            	sb.append(SchemaDebugUtil.prettyPrint(value));
             }
             if (i.hasNext()) {
                 sb.append("\n");

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.JAXBUtil;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
@@ -85,7 +86,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionTyp
  * 
  * @author semancik
  */
-public class DebugUtil implements ObjectFormatter {
+public class SchemaDebugUtil implements ObjectFormatter {
 
 	private static int SHOW_LIST_MEMBERS = 3;
 	
@@ -1048,7 +1049,7 @@ public class DebugUtil implements ObjectFormatter {
 			// This is interface, won't catch it using reflection
 			return prettyPrint((Node)value);
 		}
-		for (Method method : DebugUtil.class.getMethods()) {
+		for (Method method : SchemaDebugUtil.class.getMethods()) {
 			if (method.getName().equals("prettyPrint")) {
 				Class<?>[] parameterTypes = method.getParameterTypes();
 				if (parameterTypes.length == 1 && parameterTypes[0].equals(value.getClass())) {
@@ -1080,7 +1081,7 @@ public class DebugUtil implements ObjectFormatter {
 	
 	//static initialization of LoggingAspect - formatters registration
 	static {
-		ObjectFormatter f = new DebugUtil();
+		ObjectFormatter f = new SchemaDebugUtil();
 		MidpointAspect.registerFormatter(f);
 	}
 

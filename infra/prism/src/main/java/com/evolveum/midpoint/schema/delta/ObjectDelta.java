@@ -20,15 +20,12 @@
  */
 package com.evolveum.midpoint.schema.delta;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.util.DebugUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -49,7 +46,7 @@ import java.util.*;
  * @author Radovan Semancik
  * @see PropertyDelta
  */
-public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpable {
+public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpable {
 
     private ChangeType changeType;
 
@@ -225,7 +222,7 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
      * Union of several object deltas. The deltas are merged to create a single delta
      * that contains changes from all the deltas.
      */
-    public static <T extends ObjectType> ObjectDelta<T> union(ObjectDelta<T>... deltas) {
+    public static <T extends Objectable> ObjectDelta<T> union(ObjectDelta<T>... deltas) {
         List<ObjectDelta<T>> modifyDeltas = new ArrayList<ObjectDelta<T>>(deltas.length);
         ObjectDelta<T> addDelta = null;
         ObjectDelta<T> deleteDelta = null;
@@ -269,7 +266,7 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
         }
     }
 
-    private static <T extends ObjectType> ObjectDelta<T> mergeToDelta(ObjectDelta<T> firstDelta,
+    private static <T extends Objectable> ObjectDelta<T> mergeToDelta(ObjectDelta<T> firstDelta,
             List<ObjectDelta<T>> modifyDeltas) {
         if (modifyDeltas.size() == 0) {
             return firstDelta;
@@ -351,50 +348,6 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
     }
 
     /**
-     * Creates new delta from the ObjectModificationType (XML). Object type and schema are used to locate definitions
-     * needed to convert properties from XML.
-     */
-    public static <T extends ObjectType> ObjectDelta<T> createDelta(ObjectModificationType objectModification,
-            Schema schema, Class<T> type) throws SchemaException {
-        return createDelta(objectModification, schema.findObjectDefinition(type));
-    }
-
-    public static <T extends ObjectType> ObjectDelta<T> createDelta(ObjectModificationType objectModification,
-            ObjectDefinition<T> objDef) throws SchemaException {
-        ObjectDelta<T> objectDelta = new ObjectDelta<T>(objDef.getJaxbClass(), ChangeType.MODIFY);
-        objectDelta.setOid(objectModification.getOid());
-
-        for (PropertyModificationType propMod : objectModification.getPropertyModification()) {
-            PropertyDelta propDelta = PropertyDelta.createDelta(propMod, objDef);
-            objectDelta.addModification(propDelta);
-        }
-
-        return objectDelta;
-    }
-
-    /**
-     * Converts this delta to ObjectModificationType (XML).
-     */
-    public ObjectModificationType toObjectModificationType() throws SchemaException {
-        if (changeType != ChangeType.MODIFY) {
-            throw new IllegalStateException("Cannot produce ObjectModificationType from delta of type " + changeType);
-        }
-        ObjectModificationType modType = new ObjectModificationType();
-        modType.setOid(getOid());
-        List<PropertyModificationType> propModTypes = modType.getPropertyModification();
-        for (PropertyDelta propDelta : modifications) {
-            Collection<PropertyModificationType> propPropModTypes;
-            try {
-                propPropModTypes = propDelta.toPropertyModificationTypes();
-            } catch (SchemaException e) {
-                throw new SchemaException(e.getMessage() + " in " + this.toString(), e);
-            }
-            propModTypes.addAll(propPropModTypes);
-        }
-        return modType;
-    }
-
-    /**
      * Incorporates the property delta into the existing property deltas
      * (regardless of the change type).
      */
@@ -448,7 +401,7 @@ public class ObjectDelta<T extends ObjectType> implements Dumpable, DebugDumpabl
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
-        sb.append("ObjectDelta(").append(ObjectTypeUtil.getShortTypeName(objectTypeClass)).append(":");
+        sb.append("ObjectDelta<").append(objectTypeClass.getSimpleName()).append(">:");
         sb.append(oid).append(",").append(changeType).append("):\n");
         if (changeType == ChangeType.ADD) {
             if (objectToAdd == null) {

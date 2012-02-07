@@ -54,14 +54,14 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.DebugUtil;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -391,7 +391,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		AccountShadowType account = unmarshallJaxbFromFile(FILENAME_ACCOUNT, AccountShadowType.class);
 
-		System.out.println(DebugUtil.prettyPrint(account));
+		System.out.println(SchemaDebugUtil.prettyPrint(account));
 		System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(account,
 				SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
 
@@ -522,7 +522,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		ObjectModificationType objectModification = unmarshallJaxbFromFile(FILENAME_DISABLE_ACCOUNT,
 				ObjectModificationType.class);
-		System.out.println(DebugUtil.prettyPrint(objectModification));
+		System.out.println(SchemaDebugUtil.prettyPrint(objectModification));
 		System.out.println("ObjectModification:");
 		System.out.println(JAXBUtil.silentMarshalWrap(objectModification));
 
@@ -555,7 +555,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		ObjectModificationType objectModification = unmarshallJaxbFromFile(FILENAME_ENABLE_ACCOUNT,
 				ObjectModificationType.class);
-		System.out.println(DebugUtil.prettyPrint(objectModification));
+		System.out.println(SchemaDebugUtil.prettyPrint(objectModification));
 		System.out.println("ObjectModification:");
 		System.out.println(JAXBUtil.silentMarshalWrap(objectModification));
 
@@ -577,7 +577,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		AccountShadowType account = unmarshallJaxbFromFile(FILENAME_ACCOUNT_SCRIPT, AccountShadowType.class);
 
-		System.out.println(DebugUtil.prettyPrint(account));
+		System.out.println(SchemaDebugUtil.prettyPrint(account));
 		System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(account,
 				SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
 

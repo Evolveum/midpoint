@@ -44,7 +44,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommonException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -692,13 +692,13 @@ public class OperationResult implements Serializable, Dumpable {
 			if (SchemaConstants.C_VALUE.equals(DOMUtil.getQName(element))) {
 				try {
 					Object cvalue = XsdTypeConverter.toJavaValue(value);
-					return DebugUtil.prettyPrint(cvalue);
+					return SchemaDebugUtil.prettyPrint(cvalue);
 				} catch (Exception e) {
 					return "value: "+element.getTextContent();
 				}
 			}
 		}
-		return DebugUtil.prettyPrint(value);
+		return SchemaDebugUtil.prettyPrint(value);
 	}
 
 	private void dumpInnerCauses(StringBuilder sb, Throwable innerCause, int indent) {

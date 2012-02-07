@@ -21,25 +21,13 @@
 
 package com.evolveum.midpoint.schema.delta;
 
-import com.evolveum.midpoint.schema.XsdTypeConverter;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.util.DebugUtil;
-import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType.Value;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -147,7 +135,7 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         return (Collection) MiscUtil.union(valuesToAdd, valuesToDelete);
     }
 
-    private void checkConsistence() {
+    public void checkConsistence() {
         if (valuesToReplace != null && (valuesToAdd != null || valuesToDelete != null)) {
             throw new IllegalStateException("The delta cannot be both 'replace' and 'add/delete' at the same time");
         }
@@ -305,105 +293,6 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         return false;
     }
 
-    /**
-     * Creates delta from PropertyModificationType (XML). The values inside the PropertyModificationType are converted to java.
-     * That's the reason this method needs schema and objectType (to locate the appropriate definitions).
-     */
-    public static PropertyDelta createDelta(PropertyModificationType propMod, Schema schema,
-            Class<? extends ObjectType> objectType) throws SchemaException {
-        ObjectDefinition<? extends ObjectType> objectDefinition = schema.findObjectDefinition(objectType);
-        return createDelta(propMod, objectDefinition);
-    }
-
-    public static PropertyDelta createDelta(PropertyModificationType propMod, PropertyContainerDefinition pcDef) throws
-            SchemaException {
-        if (propMod.getValue() == null) {
-            throw new IllegalArgumentException("No value in property modificiation (path " + propMod.getPath() + ") while creating a property delta");
-        }
-        XPathHolder xpath = new XPathHolder(propMod.getPath());
-        PropertyPath parentPath = new PropertyPath(xpath);
-        PropertyContainerDefinition containingPcd = pcDef.findPropertyContainerDefinition(parentPath);
-        if (containingPcd == null) {
-            throw new SchemaException("No container definition for " + parentPath + " (while creating delta for " + pcDef + ")");
-        }
-        Collection<? extends Item> items = containingPcd.parseItems(propMod.getValue().getAny(), parentPath);
-        if (items.size() > 1) {
-            throw new SchemaException("Expected presence of a single property (path " + propMod.getPath() + ") in a object modification, but found " + items.size() + " instead");
-        }
-        if (items.size() < 1) {
-            throw new SchemaException("Expected presence of a property value (path " + propMod.getPath() + ") in a object modification, but found nothing");
-        }
-        Item item = items.iterator().next();
-        if (!(item instanceof Property)) {
-            throw new SchemaException("Expected presence of a property (" + item.getName() + ",path " + propMod.getPath() + ") in a object modification, but found " + item.getClass().getSimpleName() + " instead", item.getName());
-        }
-        Property prop = (Property) item;
-        PropertyDelta propDelta = new PropertyDelta(parentPath, prop.getName());
-        if (propMod.getModificationType() == PropertyModificationTypeType.add) {
-            propDelta.addValuesToAdd(prop.getValues());
-        } else if (propMod.getModificationType() == PropertyModificationTypeType.delete) {
-            propDelta.addValuesToDelete(prop.getValues());
-        } else if (propMod.getModificationType() == PropertyModificationTypeType.replace) {
-            propDelta.setValuesToReplace(prop.getValues());
-        }
-
-        return propDelta;
-    }
-
-    /**
-     * Converts this delta to PropertyModificationType (XML).
-     */
-    public Collection<PropertyModificationType> toPropertyModificationTypes() throws SchemaException {
-        checkConsistence();
-        Collection<PropertyModificationType> mods = new ArrayList<PropertyModificationType>();
-        XPathHolder xpath = new XPathHolder(parentPath);
-        Document document = DOMUtil.getDocument();
-        Element xpathElement = xpath.toElement(SchemaConstants.C_PATH, document);
-        if (valuesToReplace != null) {
-            PropertyModificationType mod = new PropertyModificationType();
-            mod.setPath(xpathElement);
-            mod.setModificationType(PropertyModificationTypeType.replace);
-            try {
-                addModValues(mod, valuesToReplace, document);
-            } catch (SchemaException e) {
-                throw new SchemaException(e.getMessage() + " while converting property " + name, e);
-            }
-            mods.add(mod);
-        }
-        if (valuesToAdd != null) {
-            PropertyModificationType mod = new PropertyModificationType();
-            mod.setPath(xpathElement);
-            mod.setModificationType(PropertyModificationTypeType.add);
-            try {
-                addModValues(mod, valuesToAdd, document);
-            } catch (SchemaException e) {
-                throw new SchemaException(e.getMessage() + " while converting property " + name, e);
-            }
-            mods.add(mod);
-        }
-        if (valuesToDelete != null) {
-            PropertyModificationType mod = new PropertyModificationType();
-            mod.setPath(xpathElement);
-            mod.setModificationType(PropertyModificationTypeType.delete);
-            try {
-                addModValues(mod, valuesToDelete, document);
-            } catch (SchemaException e) {
-                throw new SchemaException(e.getMessage() + " while converting property " + name, e);
-            }
-            mods.add(mod);
-        }
-        return mods;
-    }
-
-    private void addModValues(PropertyModificationType mod, Collection<PropertyValue<Object>> values,
-            Document document) throws SchemaException {
-        Value modValue = new Value();
-        mod.setValue(modValue);
-        for (PropertyValue<Object> value : values) {
-        	// Always record xsi:type. This is FIXME, but should work OK for now (until we put definition into deltas)
-            modValue.getAny().add(XsdTypeConverter.toXsdElement(value.getValue(), name, document, true));
-        }
-    }
 
     /**
      * Returns the "new" state of the property - the state that would be after the delta

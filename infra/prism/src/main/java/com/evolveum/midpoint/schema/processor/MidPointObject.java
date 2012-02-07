@@ -27,12 +27,12 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
  * Common supertype for all identity objects. Defines basic properties that each
@@ -51,7 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
  * @author Radovan Semancik
  * 
  */
-public class MidPointObject<T extends ObjectType> extends PropertyContainer {
+public class MidPointObject<T extends Objectable> extends PropertyContainer {
 
 	protected String oid;
 	protected T objectType = null;

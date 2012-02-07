@@ -29,6 +29,7 @@ import javax.xml.bind.JAXBException;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**

@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.provisioning.api;
 
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -109,7 +109,7 @@ public class ResourceObjectShadowChangeDescription implements Dumpable, DebugDum
 	@Override
 	public String toString() {
 		return "ResourceObjectShadowChangeDescription(objectDelta=" + objectDelta + ", currentShadow="
-				+ DebugUtil.prettyPrint(currentShadow) + ", oldShadow=" + DebugUtil.prettyPrint(oldShadow) + ", sourceChannel=" + sourceChannel
+				+ SchemaDebugUtil.prettyPrint(currentShadow) + ", oldShadow=" + SchemaDebugUtil.prettyPrint(oldShadow) + ", sourceChannel=" + sourceChannel
 				+ ", resource=" + ObjectTypeUtil.toShortString(resource) + ")";
 	}
     
@@ -132,12 +132,12 @@ public class ResourceObjectShadowChangeDescription implements Dumpable, DebugDum
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
+		SchemaDebugUtil.indentDebugDump(sb, indent);
 		sb.append("ResourceObjectShadowChangeDescription(");
 		sb.append(sourceChannel);
 		sb.append(")\n");
 		
-		DebugUtil.indentDebugDump(sb, indent+1);
+		SchemaDebugUtil.indentDebugDump(sb, indent+1);
 		sb.append("resource:");
 		if (resource == null) {
 			sb.append(" null");
@@ -146,7 +146,7 @@ public class ResourceObjectShadowChangeDescription implements Dumpable, DebugDum
 		}
 		
 		sb.append("\n");
-		DebugUtil.indentDebugDump(sb, indent+1);
+		SchemaDebugUtil.indentDebugDump(sb, indent+1);
 		
 		sb.append("objectDelta:");
 		if (objectDelta == null) {
@@ -155,24 +155,24 @@ public class ResourceObjectShadowChangeDescription implements Dumpable, DebugDum
 			sb.append(objectDelta.debugDump(indent+2));
 		}
 		sb.append("\n");
-		DebugUtil.indentDebugDump(sb, indent+1);
+		SchemaDebugUtil.indentDebugDump(sb, indent+1);
 		
 		sb.append("oldShadow:");
 		if (oldShadow == null) {
 			sb.append(" null");
 		} else {
-			sb.append(DebugUtil.debugDump(oldShadow, indent+2));
+			sb.append(SchemaDebugUtil.debugDump(oldShadow, indent+2));
 		}
 		
 		sb.append("\n");
-		DebugUtil.indentDebugDump(sb, indent+1);
+		SchemaDebugUtil.indentDebugDump(sb, indent+1);
 		
 		sb.append("currentShadow:");
 		if (currentShadow == null) {
 			sb.append(" null\n");
 		} else {
 			sb.append("\n");
-			sb.append(DebugUtil.debugDump(currentShadow, indent+2));
+			sb.append(SchemaDebugUtil.debugDump(currentShadow, indent+2));
 		}
 
 		return sb.toString();
