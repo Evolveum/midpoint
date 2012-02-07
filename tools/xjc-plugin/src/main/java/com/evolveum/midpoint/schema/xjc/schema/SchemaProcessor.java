@@ -21,8 +21,8 @@
 
 package com.evolveum.midpoint.schema.xjc.schema;
 
-import com.evolveum.midpoint.schema.processorFake.MidpointObject;
-import com.evolveum.midpoint.schema.processorFake.PropertyContainer;
+import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
 import com.evolveum.midpoint.schema.xjc.Processor;
 import static com.evolveum.midpoint.schema.xjc.util.ProcessorUtils.*;
@@ -32,10 +32,6 @@ import com.sun.tools.xjc.model.CClassInfo;
 import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
-import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIDeclaration;
-import com.sun.tools.xjc.reader.xmlschema.bindinfo.BindInfo;
-import com.sun.xml.xsom.XSAnnotation;
-import com.sun.xml.xsom.XSComponent;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
@@ -94,7 +90,7 @@ public class SchemaProcessor implements Processor {
     }
 
     private Set<JDefinedClass> updateMidPointContainer(Outline outline) {
-        return updateContainer(outline, MIDPOINT_CONTAINER, MidpointObject.class);
+        return updateContainer(outline, MIDPOINT_CONTAINER, MidPointObject.class);
     }
 
     private Set<JDefinedClass> updateContainer(Outline outline, QName annotation,
