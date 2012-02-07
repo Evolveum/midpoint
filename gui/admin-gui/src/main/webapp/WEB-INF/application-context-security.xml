@@ -25,29 +25,31 @@
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xmlns:util="http://www.springframework.org/schema/util"
              xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-             http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd">
+             http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd">
 
     <global-method-security secured-annotations="enabled" jsr250-annotations="enabled"/>
 
+    <!-- model WS -->
+    <http pattern="/model/**" security="none"/>
+    <http pattern="/favicon.ico" security="none"/>
+    <http pattern="/xmlhttp/css/**" security="none"/>
+    <http pattern="/resources/css/**" security="none"/>
+    <http pattern="/resources/images/**" security="none"/>
+    <http pattern="/javax.faces.resource/**" security="none"/>
+
     <http use-expressions="true" entry-point-ref="authenticationEntryPoint" auto-config="false">
-        <custom-filter ref="sessionManagementFilter" before="SESSION_MANAGEMENT_FILTER"/>
+        <!--<custom-filter ref="sessionManagementFilter" before="SESSION_MANAGEMENT_FILTER"/>-->
 
         <intercept-url pattern="/" access="permitAll"/>
-        <!-- model WS -->
-        <intercept-url pattern="/model/**" filters="none"/>
-        <intercept-url pattern="/favicon.ico" filters="none"/>
-        <intercept-url pattern="/xmlhttp/css/**" filters="none"/>
-        <intercept-url pattern="/resources/css/**" filters="none"/>
-        <intercept-url pattern="/resources/images/**" filters="none"/>
-        <intercept-url pattern="/javax.faces.resource/**" filters="none"/>
         <intercept-url pattern="/error.iface" access="permitAll"/>
         <intercept-url pattern="/login.iface" access="permitAll"/>
         <intercept-url pattern="/j_spring_security_check" access="permitAll"/>
         <intercept-url pattern="/user/**" access="hasAnyRole('ROLE_USER','ROLE_ADMIN')"/>
         <intercept-url pattern="/admin/**" access="hasRole('ROLE_ADMIN')"/>
 
-        <logout logout-url="/j_spring_security_logout" invalidate-session="true"
-                success-handler-ref="logoutSuccessHandler"/>
+        <!--<logout logout-url="/j_spring_security_logout" invalidate-session="true"-->
+                <!--success-handler-ref="logoutSuccessHandler"/>-->
+        <logout logout-url="/j_spring_security_logout" invalidate-session="true"/>
 
         <session-management>
             <concurrency-control max-sessions="1" error-if-maximum-exceeded="true"/>
@@ -55,13 +57,13 @@
         <custom-filter position="FORM_LOGIN_FILTER" ref="authenticationFilter"/>
     </http>
 
-    <beans:bean id="logoutSuccessHandler"
-                class="org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler">
-        <beans:property name="targetUrlParameter">
-            <util:constant
-                    static-field="org.springframework.security.web.authentication.AbstractAuthenticationTargetUrlRequestHandler.DEFAULT_TARGET_PARAMETER"/>
-        </beans:property>
-    </beans:bean>
+    <!--<beans:bean id="logoutSuccessHandler"-->
+                <!--class="org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler">-->
+        <!--<beans:property name="targetUrlParameter">-->
+            <!--<util:constant-->
+                    <!--static-field="org.springframework.security.web.authentication.AbstractAuthenticationTargetUrlRequestHandler.DEFAULT_TARGET_PARAMETER"/>-->
+        <!--</beans:property>-->
+    <!--</beans:bean>-->
 
     <beans:bean name="savedRequestAwareAuthenticationSuccessHandler"
                 class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler">
@@ -100,11 +102,11 @@
                 class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">
         <beans:property name="loginFormUrl" value="/login.iface"/>
     </beans:bean>
-    <beans:bean id="sessionManagementFilter" class="org.springframework.security.web.session.SessionManagementFilter">
-        <beans:constructor-arg name="securityContextRepository" ref="httpSessionSecurityContextRepository"/>
-        <beans:property name="invalidSessionUrl" value="/login.iface"/>
-        <beans:property name="redirectStrategy" ref="jsfRedirectStrategy"/>
-    </beans:bean>
+    <!--<beans:bean id="sessionManagementFilter" class="org.springframework.security.web.session.SessionManagementFilter">-->
+        <!--<beans:constructor-arg name="securityContextRepository" ref="httpSessionSecurityContextRepository"/>-->
+        <!--<beans:property name="invalidSessionUrl" value="/login.iface"/>-->
+        <!--<beans:property name="redirectStrategy" ref="jsfRedirectStrategy"/>-->
+    <!--</beans:bean>-->
 
     <beans:bean id="jsfRedirectStrategy" class="com.evolveum.midpoint.web.security.MidPointRedirectStrategy"/>
     <beans:bean id="httpSessionSecurityContextRepository"
