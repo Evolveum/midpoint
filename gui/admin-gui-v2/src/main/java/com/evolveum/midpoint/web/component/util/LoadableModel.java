@@ -27,7 +27,7 @@ public abstract class LoadableModel<T> implements IModel<T> {
 
     private T object;
     private boolean loaded = false;
-    private boolean allwaysReload = true;
+    private boolean allwaysReload;
 
     public LoadableModel() {
         this(null, true);
@@ -74,11 +74,6 @@ public abstract class LoadableModel<T> implements IModel<T> {
         return loaded;
     }
 
-    protected abstract T load();
-
-    protected void onLoad() {
-    }
-
     public void reset() {
         loaded = false;
     }
@@ -90,9 +85,6 @@ public abstract class LoadableModel<T> implements IModel<T> {
         }
     }
 
-    protected void onDetach() {
-    }
-
     public IModel getNestedModel() {
         if (object instanceof IModel) {
             return (IModel) object;
@@ -102,8 +94,16 @@ public abstract class LoadableModel<T> implements IModel<T> {
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer(super.toString());
-        sb.append(":attached=").append(loaded).append(":object=[").append(this.object).append("]");
-        return sb.toString();
+        StringBuilder builder = new StringBuilder();
+        builder.append(":attached=").append(loaded).append(":object=[").append(this.object).append("]");
+        return builder.toString();
+    }
+
+    protected abstract T load();
+
+    protected void onLoad() {
+    }
+
+    protected void onDetach() {
     }
 }

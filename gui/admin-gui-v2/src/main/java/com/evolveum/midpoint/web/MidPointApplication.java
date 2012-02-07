@@ -21,6 +21,9 @@
 
 package com.evolveum.midpoint.web;
 
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.page.admin.home.PageHome;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
@@ -28,6 +31,7 @@ import com.evolveum.midpoint.web.util.DefaultPageParametersEncoder;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.mapper.MountedMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -36,18 +40,18 @@ import org.springframework.stereotype.Component;
 @Component("midpointApplication")
 public class MidPointApplication extends WebApplication {
 
-    /**
-     * @see org.apache.wicket.Application#getHomePage()
-     */
+    @Autowired
+    ModelService model;
+    @Autowired
+    RepositoryService repository;
+    @Autowired
+    TaskManager taskManager;
+
     @Override
     public Class<PageHome> getHomePage() {
         return PageHome.class;
     }
 
-
-    /**
-     * @see org.apache.wicket.Application#init()
-     */
     @Override
     public void init() {
         super.init();
@@ -60,5 +64,17 @@ public class MidPointApplication extends WebApplication {
         mount(new MountedMapper("/home", PageHome.class, encoder));
         mount(new MountedMapper("/users", PageUsers.class, encoder));
         mount(new MountedMapper("/user", PageUser.class, new OnePageParameterEncoder(PageUser.PARAM_USER_ID)));
+    }
+
+    public ModelService getModel() {
+        return model;
+    }
+
+    public RepositoryService getRepository() {
+        return repository;
+    }
+
+    public TaskManager getTaskManager() {
+        return taskManager;
     }
 }

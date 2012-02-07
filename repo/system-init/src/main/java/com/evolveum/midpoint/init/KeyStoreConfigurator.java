@@ -147,7 +147,7 @@ public class KeyStoreConfigurator extends AESProtector implements RuntimeConfigu
 	}
 
 	/**
-	 * @param defaultKeyAlias the defaultKeyAlias to set
+	 * @param keyAlias the defaultKeyAlias to set
 	 */
 	@Override
 	public void setEncryptionKeyAlias(String keyAlias) {
