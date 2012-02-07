@@ -56,6 +56,6 @@
         <module>schema</module>
         <module>common</module>
         <module>test-util</module>
-        <module>schema-util</module>
+        <module>prism</module>
     </modules>
 </project>
