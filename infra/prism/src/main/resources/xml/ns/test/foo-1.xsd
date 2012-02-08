@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2012 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2012 [name of copyright owner]
+  -->
+
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+            xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
+            elementFormDefault="qualified"
+            jaxb:extensionBindingPrefixes="xjc"
+            jaxb:version="2.0">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Testing schema for Prism framework
+        </xsd:documentation>
+        <xsd:appinfo>
+            <jaxb:globalBindings>
+                <xjc:typeSubstitution type="complex"/>
+                <xjc:serializable uid="201202081233"/>
+            </jaxb:globalBindings>
+        </xsd:appinfo>
+    </xsd:annotation>
+
+    <xsd:import namespace="http://www.w3.org/2001/XMLSchema" schemaLocation="../../standard/XMLSchema.xsd">
+        <xsd:annotation>
+            <xsd:documentation>
+                Importing the schema of XSD schema definition explicitly. This causes that we can use "strict" matching
+                for the xsd:schema elements used in runtime.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+
+    <xsd:import namespace="http://www.w3.org/2001/04/xmlenc#" schemaLocation="../../standard/xenc-schema.xsd">
+        <xsd:annotation>
+            <xsd:documentation>
+                The XML Encryption schema. Used for "protected" data types (property encryption).
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+
+
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+                schemaLocation="../public/common/annotation-1.xsd">
+        <xsd:annotation>
+            <xsd:documentation>
+                Common midPoint annotations used in various XSD schemas.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+
+    <xsd:element name="name" type="xsd:string"/>
+    <xsd:element name="displayName" type="xsd:string"/>
+    <xsd:element name="description" type="xsd:string"/>
+
+    <!-- Basic Object Types -->
+
+    <xsd:complexType name="ObjectType" abstract="true">
+
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:propertyContainer/>
+                <a:object/>
+            </xsd:appinfo>
+        </xsd:annotation>
+
+        <xsd:sequence>
+            <xsd:element ref="tns:name" minOccurs="0"/>
+            <xsd:element ref="tns:description" minOccurs="0"/>
+        </xsd:sequence>
+
+        <xsd:attribute name="oid" type="xsd:string" use="optional"/>
+        <xsd:attribute name="version" type="xsd:string" use="optional"/>
+
+    </xsd:complexType>
+
+    <xsd:element name="extension">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:propertyContainer/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
+                </xsd:any>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:complexType name="ExtensibleObjectType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ObjectType">
+                <xsd:sequence>
+                    <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="GenericObjectType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ExtensibleObjectType">
+                <xsd:sequence>
+                    <xsd:element name="objectType" type="xsd:anyURI">
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="object" type="tns:ObjectType"/>
+
+    <xsd:complexType name="UserType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ExtensibleObjectType">
+                <xsd:sequence>
+                    <xsd:element name="fullName" type="xsd:string"/>
+                    <xsd:element name="givenName" type="xsd:string"/>
+                    <xsd:element name="familyName" type="xsd:string"/>
+                    <xsd:element name="additionalNames" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+</xsd:schema>
+

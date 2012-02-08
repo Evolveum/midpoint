@@ -25,9 +25,9 @@
     <listeners>
         <listener class-name="com.evolveum.midpoint.tools.testng.TestMethodLoggerListener"/>
     </listeners>
-    <test name="Schema Util" preserve-order="false" verbose="1">
+    <test name="Prism" preserve-order="false" verbose="1">
         <classes>
-
+			<class name="com.evolveum.midpoint.prism.TestPrismFakeJaxb"/>
         </classes>
     </test>
 </suite>

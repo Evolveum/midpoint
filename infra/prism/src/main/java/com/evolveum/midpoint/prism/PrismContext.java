@@ -35,12 +35,21 @@ public class PrismContext {
 		prismContext.prismJaxbProcessor = prismJaxbProcessor;
 		return prismContext;
 	}
-	
+
 	public SchemaRegistry getSchemaRegistry() {
 		return schemaRegistry;
 	}
+
+	public void setSchemaRegistry(SchemaRegistry schemaRegistry) {
+		this.schemaRegistry = schemaRegistry;
+	}
+
 	public PrismJaxbProcessor getPrismJaxbProcessor() {
 		return prismJaxbProcessor;
+	}
+
+	public void setPrismJaxbProcessor(PrismJaxbProcessor prismJaxbProcessor) {
+		this.prismJaxbProcessor = prismJaxbProcessor;
 	}
 	
 
