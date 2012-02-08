@@ -43,16 +43,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
-import com.evolveum.midpoint.schema.processor.ObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ObjectType;
-import com.evolveum.midpoint.schema.processor.ObjectTypes;
-import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
-import com.evolveum.midpoint.schema.processor.PropertyPath;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 
 /**
  * @author semancik
@@ -62,7 +54,6 @@ public class PrismJaxbProcessor {
 	
 	private SchemaRegistry schemaRegistry;
 	private JAXBContext context;
-	private Marshaller marshaller;
 
 	PrismJaxbProcessor(SchemaRegistry schemaRegistry) {
 		this.schemaRegistry = schemaRegistry;
@@ -426,64 +417,63 @@ public class PrismJaxbProcessor {
 		throw new IllegalArgumentException("Unknown element type "+element.getClass().getName());
 	}
 	
-	public <T extends Objectable> ObjectDefinition<T> findObjectDefinition(ObjectTypes objectType, Class<T> type) {
-		return findContainerDefinitionByType(objectType.getTypeQName(),ObjectDefinition.class);
-	}
-	
-	public <T extends Objectable> ObjectDefinition<T> findObjectDefinition(Class<T> type) {
-		return findContainerDefinitionByType(ObjectTypes.getObjectType(type).getTypeQName(),ObjectDefinition.class);
-	}
-
-	public PropertyContainerDefinition findContainerDefinition(Class<? extends Objectable> type, PropertyPath path) {
-		ObjectTypes objectType = ObjectTypes.getObjectType(type);
-		ObjectDefinition objectDefinition = findObjectDefinitionByType(objectType.getTypeQName());
-		if (objectDefinition == null) {
-			throw new IllegalArgumentException("The definition of object type "+type.getSimpleName()+" not found in the schema");
-		}
-		return objectDefinition.findItemDefinition(path, PropertyContainerDefinition.class);
-	}
-
-	
-	public <T extends Objectable> MidPointObject<T> parseObjectType(T objectType) throws SchemaException {
-		ObjectDefinition<T> objectDefinition = (ObjectDefinition<T>) findObjectDefinition(objectType.getClass());
-		if (objectDefinition == null) {
-			throw new IllegalArgumentException("No definition for object type "+objectType);
-		}
-		return objectDefinition.parseObjectType(objectType);
-	}
-	
-	public <T extends ObjectType> MidPointObject<T> parseObject(String stringXml, Class<T> type) throws SchemaException {
-		ObjectDefinition<T> objectDefinition = findObjectDefinition(type);
-		JAXBElement<T> jaxbElement;
-		try {
-			jaxbElement = JAXBUtil.unmarshal(type, stringXml);
-		} catch (JAXBException e) {
-			throw new SchemaException("Error parsing the XML: "+e.getMessage(),e);
-		}
-        T objectType = jaxbElement.getValue();
-        MidPointObject<T> object = objectDefinition.parseObjectType(objectType);
-        return object;
-	}
-
-	public <T extends ObjectType> MidPointObject<T> parseObject(File xmlFile, Class<T> type) throws SchemaException {
-		ObjectDefinition<T> objectDefinition = findObjectDefinition(type);
-		JAXBElement<T> jaxbElement;
-		try {
-			jaxbElement = JAXBUtil.unmarshal(xmlFile, type);
-		} catch (JAXBException e) {
-			throw new SchemaException("Error parsing the XML: "+e.getMessage(),e);
-		}
-        T objectType = jaxbElement.getValue();
-        MidPointObject<T> object = objectDefinition.parseObjectType(objectType);
-        return object;
-	}
+//	public <T extends Objectable> ObjectDefinition<T> findObjectDefinition(ObjectTypes objectType, Class<T> type) {
+//		return findContainerDefinitionByType(objectType.getTypeQName(),ObjectDefinition.class);
+//	}
+//	
+//	public <T extends Objectable> ObjectDefinition<T> findObjectDefinition(Class<T> type) {
+//		return findContainerDefinitionByType(ObjectTypes.getObjectType(type).getTypeQName(),ObjectDefinition.class);
+//	}
+//
+//	public PropertyContainerDefinition findContainerDefinition(Class<? extends Objectable> type, PropertyPath path) {
+//		ObjectTypes objectType = ObjectTypes.getObjectType(type);
+//		ObjectDefinition objectDefinition = findObjectDefinitionByType(objectType.getTypeQName());
+//		if (objectDefinition == null) {
+//			throw new IllegalArgumentException("The definition of object type "+type.getSimpleName()+" not found in the schema");
+//		}
+//		return objectDefinition.findItemDefinition(path, PropertyContainerDefinition.class);
+//	}
+//
+//	
+//	public <T extends Objectable> MidPointObject<T> parseObjectType(T objectType) throws SchemaException {
+//		ObjectDefinition<T> objectDefinition = (ObjectDefinition<T>) findObjectDefinition(objectType.getClass());
+//		if (objectDefinition == null) {
+//			throw new IllegalArgumentException("No definition for object type "+objectType);
+//		}
+//		return objectDefinition.parseObjectType(objectType);
+//	}
+//	
+//	public <T extends ObjectType> MidPointObject<T> parseObject(String stringXml, Class<T> type) throws SchemaException {
+//		ObjectDefinition<T> objectDefinition = findObjectDefinition(type);
+//		JAXBElement<T> jaxbElement;
+//		try {
+//			jaxbElement = JAXBUtil.unmarshal(type, stringXml);
+//		} catch (JAXBException e) {
+//			throw new SchemaException("Error parsing the XML: "+e.getMessage(),e);
+//		}
+//        T objectType = jaxbElement.getValue();
+//        MidPointObject<T> object = objectDefinition.parseObjectType(objectType);
+//        return object;
+//	}
+//
+//	public <T extends ObjectType> MidPointObject<T> parseObject(File xmlFile, Class<T> type) throws SchemaException {
+//		ObjectDefinition<T> objectDefinition = findObjectDefinition(type);
+//		JAXBElement<T> jaxbElement;
+//		try {
+//			jaxbElement = JAXBUtil.unmarshal(xmlFile, type);
+//		} catch (JAXBException e) {
+//			throw new SchemaException("Error parsing the XML: "+e.getMessage(),e);
+//		}
+//        T objectType = jaxbElement.getValue();
+//        MidPointObject<T> object = objectDefinition.parseObjectType(objectType);
+//        return object;
+//	}
 
 
 	
 	private QName determineElementQName(Objectable objectable) {
 		// TODO Auto-generated method stub
-		dsfsfd
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 

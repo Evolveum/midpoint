@@ -68,7 +68,7 @@ public class CredentialsProcessor {
 //            LOGGER.trace("userDelta is null, skipping credentials processing");
 //            return;
 
-        MidPointObject<UserType> userNew = context.getUserNew();
+        PrismObject<UserType> userNew = context.getUserNew();
         if (userNew == null) {
             // This must be a user delete or something similar. No point in proceeding
             LOGGER.trace("userNew is null, skipping credentials processing");

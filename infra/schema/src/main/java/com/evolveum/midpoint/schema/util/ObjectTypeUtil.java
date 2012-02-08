@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.prism.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;

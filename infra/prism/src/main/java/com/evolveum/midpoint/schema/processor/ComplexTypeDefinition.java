@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import java.util.HashSet;
@@ -37,22 +38,15 @@ import javax.xml.namespace.QName;
 public class ComplexTypeDefinition extends Definition {
 	private static final long serialVersionUID = 2655797837209175037L;
 	private Set<ItemDefinition> itemDefinitions;
-	private String schemaNamespace;
 	private QName extensionForType;
 
-	ComplexTypeDefinition(QName defaultName, QName typeName) {
-		super(defaultName, typeName);
+	ComplexTypeDefinition(QName defaultName, QName typeName, PrismContext prismContext) {
+		super(defaultName, typeName, prismContext);
 		itemDefinitions = new HashSet<ItemDefinition>();
-	}
-
-	ComplexTypeDefinition(QName defaultName, QName typeName, String schemaNamespace) {
-		super(defaultName, typeName);
-		itemDefinitions = new HashSet<ItemDefinition>();
-		this.schemaNamespace = schemaNamespace;
 	}
 
 	protected String getSchemaNamespace() {
-		return schemaNamespace;
+		return getTypeName().getNamespaceURI();
 	}
 		
 	/**
@@ -79,7 +73,7 @@ public class ComplexTypeDefinition extends Definition {
 	}
 		
 	public PropertyDefinition createPropertyDefinifion(QName name, QName typeName) {
-		PropertyDefinition propDef = new PropertyDefinition(name, typeName);
+		PropertyDefinition propDef = new PropertyDefinition(name, name, typeName, prismContext);
 		itemDefinitions.add(propDef);
 		return propDef;
 	}
@@ -88,7 +82,7 @@ public class ComplexTypeDefinition extends Definition {
 	// TODO: maybe check if the name is in different namespace
 	// TODO: maybe create entirely new concept of property reference?
 	public PropertyDefinition createPropertyDefinifion(QName name) {
-		PropertyDefinition propDef = new PropertyDefinition(name);
+		PropertyDefinition propDef = new PropertyDefinition(name, name, null, prismContext);
 		itemDefinitions.add(propDef);
 		return propDef;
 	}
@@ -105,6 +99,16 @@ public class ComplexTypeDefinition extends Definition {
 		return createPropertyDefinifion(name,typeName);
 	}
 
+	@Override
+	void revive(PrismContext prismContext) {
+		if (this.prismContext != null) {
+			return;
+		}
+		this.prismContext = prismContext;
+		for (ItemDefinition def: itemDefinitions) {
+			def.revive(prismContext);
+		}
+	}
 
 	public boolean isEmpty() {
 		return itemDefinitions.isEmpty();
@@ -114,7 +118,7 @@ public class ComplexTypeDefinition extends Definition {
 	 * Shallow clone.
 	 */
 	public ComplexTypeDefinition clone() {
-		ComplexTypeDefinition clone = new ComplexTypeDefinition(this.defaultName, this.typeName);
+		ComplexTypeDefinition clone = new ComplexTypeDefinition(this.defaultName, this.typeName, prismContext);
 		copyDefinitionData(clone);
 		return clone;
 	}
@@ -122,7 +126,6 @@ public class ComplexTypeDefinition extends Definition {
 	protected void copyDefinitionData(ComplexTypeDefinition clone) {
 		super.copyDefinitionData(clone);
 		clone.itemDefinitions.addAll(this.itemDefinitions);
-		clone.schemaNamespace = this.schemaNamespace;
 	}
 
 	public void replaceDefinition(QName propertyName, ItemDefinition newDefinition) {

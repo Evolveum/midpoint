@@ -33,7 +33,7 @@ import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.ChangeType;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -168,7 +168,7 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 				// not existed before, so we will not provide it.
 				ObjectDelta<AccountShadowType> shadowDelta = new ObjectDelta<AccountShadowType>(
 						AccountShadowType.class, ChangeType.ADD);
-				MidPointObject<AccountShadowType> shadowToAdd = refinedAccountDefinition.getObjectDefinition().parseObjectType(newShadow);
+				PrismObject<AccountShadowType> shadowToAdd = refinedAccountDefinition.getObjectDefinition().parseObjectType(newShadow);
 				shadowDelta.setObjectToAdd(shadowToAdd);
 				shadowDelta.setOid(newShadow.getOid());
 				change.setObjectDelta(shadowDelta);

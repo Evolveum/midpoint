@@ -30,6 +30,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -64,20 +65,18 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	protected boolean ignored;
 	protected String displayName;
 	protected String help;
+	protected transient PrismContext prismContext;
 
 	// TODO: annotations
 	
-	Definition() {
-		ignored = false;
-	}
-
-	Definition(QName defaultName, QName typeName) {
+	Definition(QName defaultName, QName typeName, PrismContext prismContext) {
 		ignored = false;
 		if (typeName == null) {
 			throw new IllegalArgumentException("Type name can't be null.");
 		}
 		this.defaultName = defaultName;
 		this.typeName = typeName;
+		this.prismContext = prismContext;
 	}
 
 	/**
@@ -162,6 +161,8 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	public void setHelp(String help) {
 		this.help = help;
 	}
+	
+	abstract void revive(PrismContext prismContext);
 	
 	protected void copyDefinitionData(Definition clone) {
 		clone.defaultName = this.defaultName;

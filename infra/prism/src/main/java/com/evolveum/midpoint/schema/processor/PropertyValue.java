@@ -21,11 +21,10 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 import java.io.Serializable;
 
@@ -38,13 +37,13 @@ public class PropertyValue<T> implements Dumpable, DebugDumpable, Serializable {
 
     private T value;
     private SourceType type;
-    private ObjectType source;
+    private Objectable source;
 
     public PropertyValue(T value) {
         this(value, null, null);
     }
 
-    public PropertyValue(T value, SourceType type, ObjectType source) {
+    public PropertyValue(T value, SourceType type, Objectable source) {
         if (value instanceof PropertyValue) {
             throw new IllegalArgumentException("Probably problem somewhere, encapsulating property " +
                     "value object to another property value.");
@@ -55,7 +54,7 @@ public class PropertyValue<T> implements Dumpable, DebugDumpable, Serializable {
         this.source = source;
     }
 
-    public void setSource(ObjectType source) {
+    public void setSource(Objectable source) {
         this.source = source;
     }
 
@@ -75,7 +74,7 @@ public class PropertyValue<T> implements Dumpable, DebugDumpable, Serializable {
         return type;
     }
 
-    public ObjectType getSource() {
+    public Objectable getSource() {
         return source;
     }
 
@@ -132,9 +131,9 @@ public class PropertyValue<T> implements Dumpable, DebugDumpable, Serializable {
         }
         
         // FIXME!! HACK!!
-        if (valueToCompare instanceof ObjectReferenceType && getValue() instanceof ObjectReferenceType) {
-        	return ((ObjectReferenceType)valueToCompare).getOid().equals(((ObjectReferenceType)getValue()).getOid());
-        }
+//        if (valueToCompare instanceof ObjectReferenceType && getValue() instanceof ObjectReferenceType) {
+//        	return ((ObjectReferenceType)valueToCompare).getOid().equals(((ObjectReferenceType)getValue()).getOid());
+//        }
         
         return getValue().equals(pValueToCompare.getValue());
     }

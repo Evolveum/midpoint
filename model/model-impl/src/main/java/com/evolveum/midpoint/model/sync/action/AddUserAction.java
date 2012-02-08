@@ -34,7 +34,7 @@ import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ChangeType;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -87,7 +87,7 @@ public class AddUserAction extends BaseAction {
                 //create empty user
                 Schema schema = getSchemaRegistry().getObjectSchema();
                 ObjectDefinition<UserType> userDefinition = schema.findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
-                MidPointObject<UserType> oldUser = userDefinition.instantiate(SchemaConstants.I_USER_TYPE);
+                PrismObject<UserType> oldUser = userDefinition.instantiate(SchemaConstants.I_USER_TYPE);
 //                context.setUserOld(oldUser);
 //                context.setUserTypeOld(user);
 

@@ -58,7 +58,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     /**
      * New object to add. Valid only if changeType==ADD
      */
-    private MidPointObject<T> objectToAdd;
+    private PrismObject<T> objectToAdd;
 
     /**
      * Set of relative property deltas. Valid only if changeType==MODIFY
@@ -93,11 +93,11 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         this.oid = oid;
     }
 
-    public MidPointObject<T> getObjectToAdd() {
+    public PrismObject<T> getObjectToAdd() {
         return objectToAdd;
     }
 
-    public void setObjectToAdd(MidPointObject<T> objectToAdd) {
+    public void setObjectToAdd(PrismObject<T> objectToAdd) {
         this.objectToAdd = objectToAdd;
         if (objectToAdd != null) {
             this.objectTypeClass = objectToAdd.getJaxbClass();
@@ -304,7 +304,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
      * Applies this object delta to specified object, returns updated object.
      * It modifies the provided object.
      */
-    public void applyTo(MidPointObject<T> mpObject) {
+    public void applyTo(PrismObject<T> mpObject) {
     	if (isEmpty()) {
     		// nothing to do
     		return;
@@ -315,8 +315,6 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         for (PropertyDelta propDelta : modifications) {
             propDelta.applyTo(mpObject);
         }
-        // Reset the object type as the contect of this JAXB object is no longer valid 
-        mpObject.setObjectType(null);
     }
 
     /**
@@ -326,7 +324,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
      * @param objectOld object before change
      * @return object with applied changes or null if the object should not exit (was deleted)
      */
-    public MidPointObject<T> computeChangedObject(MidPointObject<T> objectOld) {
+    public PrismObject<T> computeChangedObject(PrismObject<T> objectOld) {
         if (objectOld == null) {
             if (getChangeType() == ChangeType.ADD) {
                 objectOld = getObjectToAdd();
@@ -340,7 +338,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
             return null;
         }
         // MODIFY change
-        MidPointObject<T> objectNew = objectOld.clone();
+        PrismObject<T> objectNew = objectOld.clone();
         for (PropertyDelta modification : modifications) {
             modification.applyTo(objectNew);
         }

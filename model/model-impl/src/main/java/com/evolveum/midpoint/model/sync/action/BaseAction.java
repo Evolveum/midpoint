@@ -203,7 +203,7 @@ public abstract class BaseAction implements Action {
     }
 
     private void updateAccountActivation(AccountSyncContext accContext, ActivationDecision activationDecision) {
-        MidPointObject<AccountShadowType> object = accContext.getAccountOld();
+        PrismObject<AccountShadowType> object = accContext.getAccountOld();
         if (object == null) {
             LOGGER.debug("Account object is null, skipping activation property check/update.");
             return;
@@ -249,7 +249,7 @@ public abstract class BaseAction implements Action {
         return reconcileAttributes;
     }
 
-    private MidPointObject<AccountShadowType> getAccountObject(ResourceObjectShadowChangeDescription change)
+    private PrismObject<AccountShadowType> getAccountObject(ResourceObjectShadowChangeDescription change)
             throws SchemaException {
 
         AccountShadowType account = getAccountShadowFromChange(change);

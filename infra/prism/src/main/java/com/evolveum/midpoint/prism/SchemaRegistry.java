@@ -84,11 +84,13 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	private boolean initialized = false;
 	private String objectSchemaNamespace;
 	private NamespacePrefixMapper namespacePrefixMapper;
+	private PrismContext prismContext;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaRegistry.class);
 	
-	public SchemaRegistry() {
+	public SchemaRegistry(PrismContext prismContext) {
 		super();
+		this.prismContext = prismContext;
 		this.schemaDescriptions = new ArrayList<SchemaDescription>();
 		this.parsedSchemas = new HashMap<String, SchemaDescription>();
 		this.extensionSchemas = new HashMap<QName, ComplexTypeDefinition>();
@@ -290,7 +292,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	private void initializeObjectSchema() {
 		Schema commonSchema = parsedSchemas.get(objectSchemaNamespace).getSchema();
 		// FIXME
-		objectSchema = new Schema("NO NAMESPACE");
+		objectSchema = new Schema("NO NAMESPACE", prismContext);
 		for (Definition def: commonSchema.getDefinitions()) {
 			if (def instanceof ObjectDefinition<?>) {
 				QName typeName = def.getTypeName();
@@ -520,6 +522,11 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 			sb.append("\n");
 		}
 		return sb.toString();
+	}
+
+	public Class determineCompileTimeClass(QName elementName, ComplexTypeDefinition complexTypeDefinition) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException();
 	}
 	
 }

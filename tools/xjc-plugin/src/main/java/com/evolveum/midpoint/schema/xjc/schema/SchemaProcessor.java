@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.schema.xjc.schema;
 
-import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
 import com.evolveum.midpoint.schema.xjc.Processor;
@@ -90,7 +90,7 @@ public class SchemaProcessor implements Processor {
     }
 
     private Set<JDefinedClass> updateMidPointContainer(Outline outline) {
-        return updateContainer(outline, MIDPOINT_CONTAINER, MidPointObject.class);
+        return updateContainer(outline, MIDPOINT_CONTAINER, PrismObject.class);
     }
 
     private Set<JDefinedClass> updateContainer(Outline outline, QName annotation,

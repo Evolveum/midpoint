@@ -27,11 +27,19 @@ public interface Objectable {
 	
 	public String getOid();
 	
+	public void setOid(String oid);
+	
 	public String getVersion();
+	
+	public void setVersion(String version);
 	
 	public String getName();
 	
+	public void setName(String name);
+	
 	public String getDescription();
+	
+	public void setDescription(String description);
 	
 	/**
 	 * Returns short string representing identity of this object.

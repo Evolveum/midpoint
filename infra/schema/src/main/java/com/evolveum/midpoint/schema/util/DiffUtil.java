@@ -26,7 +26,7 @@ import javax.xml.bind.JAXBElement;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ChangeType;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
@@ -39,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  */
 public class DiffUtil {
 
-	public static <T extends ObjectType> ObjectDelta<T> diff(MidPointObject<T> oldObject, MidPointObject<T> newObject) {
+	public static <T extends ObjectType> ObjectDelta<T> diff(PrismObject<T> oldObject, PrismObject<T> newObject) {
 		if (oldObject == null) {
 			if (newObject == null) {
 				return null;
@@ -57,11 +57,11 @@ public class DiffUtil {
 
 	public static <T extends ObjectType> ObjectDelta<T> diff(T oldObjectType, T newObjectType, Class<T> type, Schema objectSchema) throws SchemaException {
 		ObjectDefinition<T> objectDefinition = objectSchema.findObjectDefinition(type);
-		MidPointObject<T> oldObject = null;
+		PrismObject<T> oldObject = null;
 		if (oldObjectType != null) {
 			oldObject = objectDefinition.parseObjectType(oldObjectType);
 		}
-		MidPointObject<T> newObject = null;
+		PrismObject<T> newObject = null;
 		if (newObjectType != null) {
 			newObject = objectDefinition.parseObjectType(newObjectType);
 		}
@@ -71,11 +71,11 @@ public class DiffUtil {
 	
 	public static <T extends ObjectType> ObjectDelta<T> diff(String oldXml, String newXml, Class<T> type, Schema objectSchema) throws SchemaException {
 		ObjectTypeUtil.assertConcreteType(type);
-		MidPointObject<T> oldObject = null;
+		PrismObject<T> oldObject = null;
 		if (oldXml != null) {
 			oldObject = objectSchema.parseObject(oldXml, type);
 		}
-		MidPointObject<T> newObject = null;
+		PrismObject<T> newObject = null;
 		if (newXml != null) {
 			newObject = objectSchema.parseObject(newXml, type);
 		}
@@ -84,11 +84,11 @@ public class DiffUtil {
 
 	public static <T extends ObjectType> ObjectDelta<T> diff(File oldXmlFile, File newXmlFile, Class<T> type, Schema objectSchema) throws SchemaException {
 		ObjectTypeUtil.assertConcreteType(type);
-		MidPointObject<T> oldObject = null;
+		PrismObject<T> oldObject = null;
 		if (oldXmlFile != null) {
 			oldObject = objectSchema.parseObject(oldXmlFile, type);
 		}
-		MidPointObject<T> newObject = null;
+		PrismObject<T> newObject = null;
 		if (newXmlFile != null) {
 			newObject = objectSchema.parseObject(newXmlFile, type);
 		}

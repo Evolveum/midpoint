@@ -26,7 +26,7 @@ import com.evolveum.midpoint.schema.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.processor.ChangeType;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -69,12 +69,12 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     /**
      * Old state of the account (state before the change). May be null if the account haven't existed before.
      */
-    private MidPointObject<AccountShadowType> accountOld;
+    private PrismObject<AccountShadowType> accountOld;
 
     /**
      * New state of the account (after the change). It is not created automatically, it has to be manually recomputed.
      */
-    private MidPointObject<AccountShadowType> accountNew;
+    private PrismObject<AccountShadowType> accountNew;
 
     /**
      * Synchronization account delta. This describe changes that already happened.
@@ -147,19 +147,19 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
         return resourceAccountType;
     }
 
-    public MidPointObject<AccountShadowType> getAccountOld() {
+    public PrismObject<AccountShadowType> getAccountOld() {
         return accountOld;
     }
 
-    public void setAccountOld(MidPointObject<AccountShadowType> accountOld) {
+    public void setAccountOld(PrismObject<AccountShadowType> accountOld) {
         this.accountOld = accountOld;
     }
 
-    public MidPointObject<AccountShadowType> getAccountNew() {
+    public PrismObject<AccountShadowType> getAccountNew() {
         return accountNew;
     }
 
-    public void setAccountNew(MidPointObject<AccountShadowType> accountNew) {
+    public void setAccountNew(PrismObject<AccountShadowType> accountNew) {
         this.accountNew = accountNew;
     }
 
@@ -265,15 +265,15 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
     public void recomputeAccountNew() {
         ObjectDelta<AccountShadowType> accDelta = getAccountDelta();
 
-        MidPointObject<AccountShadowType> oldAccount = accountOld;
+        PrismObject<AccountShadowType> oldAccount = accountOld;
         if (oldAccount == null && accountSyncDelta != null
                 && ChangeType.ADD.equals(accountSyncDelta.getChangeType())) {
-            MidPointObject<AccountShadowType> accountToAdd = accountSyncDelta.getObjectToAdd();
+            PrismObject<AccountShadowType> accountToAdd = accountSyncDelta.getObjectToAdd();
             if (accountToAdd != null) {
                 ObjectDefinition<AccountShadowType> objectDefinition = (ObjectDefinition<AccountShadowType>)
                         accountToAdd.getDefinition();
                 // TODO: remove constructor, use some factory method instead
-                oldAccount = new MidPointObject<AccountShadowType>(accountToAdd.getName(), objectDefinition, null, null);
+                oldAccount = new PrismObject<AccountShadowType>(accountToAdd.getName(), objectDefinition, null, null);
                 oldAccount = accountSyncDelta.computeChangedObject(oldAccount);
             }
         }

@@ -39,6 +39,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.EntityResolver;
 
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -72,12 +73,14 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 	
 	protected String namespace;
 	protected Set<Definition> definitions;
+	protected PrismContext prismContext;
 
-	public Schema(String namespace) {
+	public Schema(String namespace, PrismContext prismContext) {
 		if (StringUtils.isEmpty(namespace)) {
 			throw new IllegalArgumentException("Namespace can't be null or empty.");
 		}
 		this.namespace = namespace;
+		this.prismContext = prismContext;
 		definitions = new HashSet<Definition>();
 	}
 
@@ -288,40 +291,8 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 	public PropertyContainerDefinition createPropertyContainerDefinition(String localTypeName) {
 		QName typeName = new QName(getNamespace(), localTypeName);
 		QName name = new QName(getNamespace(), toElementName(localTypeName));
-		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinition(name, typeName, getNamespace());
-		PropertyContainerDefinition def = new PropertyContainerDefinition(this, name, cTypeDef);
-		definitions.add(cTypeDef);
-		definitions.add(def);
-		return def;
-	}
-
-	/**
-	 * Creates a new resource object definition and adds it to the schema.
-	 * 
-	 * This is a preferred way how to create definition in the schema.
-	 * 
-	 * @param localTypeName
-	 *            type name "relative" to schema namespace
-	 * @return new resource object definition
-	 */
-	public ResourceObjectDefinition createResourceObjectDefinition(String localTypeName) {
-		QName typeName = new QName(getNamespace(), localTypeName);
-		return createResourceObjectDefinition(typeName);
-	}
-
-	/**
-	 * Creates a new resource object definition and adds it to the schema.
-	 * 
-	 * This is a preferred way how to create definition in the schema.
-	 * 
-	 * @param localTypeName
-	 *            type QName
-	 * @return new resource object definition
-	 */
-	public ResourceObjectDefinition createResourceObjectDefinition(QName typeName) {
-		QName name = new QName(getNamespace(), toElementName(typeName.getLocalPart()));
-		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinition(name, typeName, getNamespace());
-		ResourceObjectDefinition def = new ResourceObjectDefinition(this, name, cTypeDef);
+		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinition(name, typeName, prismContext);
+		PropertyContainerDefinition def = new PropertyContainerDefinition(name, cTypeDef, prismContext);
 		definitions.add(cTypeDef);
 		definitions.add(def);
 		return def;
@@ -372,7 +343,7 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 	 * @return new property definition
 	 */
 	public PropertyDefinition createPropertyDefinition(QName name, QName typeName) {
-		PropertyDefinition def = new PropertyDefinition(name, name, typeName);
+		PropertyDefinition def = new PropertyDefinition(name, name, typeName, prismContext);
 		definitions.add(def);
 		return def;
 	}
@@ -387,55 +358,12 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 		}
 		return elementName;
 	}
-
-	/**
-	 * Looks for a default account ObjectClass.
-	 */
-	public ResourceObjectDefinition findAccountDefinition() {
-		return findAccountDefinition(null);
-	}
-	
-	/**
-	 * Looks for a specific account ObjectClass.
-	 */
-	public ResourceObjectDefinition findAccountDefinition(String accountType) {
-		for (Definition def: definitions) {
-			if (def instanceof ResourceObjectDefinition) {
-				ResourceObjectDefinition rod = (ResourceObjectDefinition)def;
-				if (rod.isAccountType()) {
-					if (accountType == null && rod.isDefaultAccountType()) {
-						// Default account requested, default account found.
-						return rod;
-					}
-// TODO
-//					if (rod.getAccountType .....)
-				}
-			}
-		}
-		return null;
-	}
-
-	public ResourceObjectDefinition findResourceObjectDefinitionByType(QName typeName) {
-		return findItemDefinitionByType(typeName, ResourceObjectDefinition.class);
-	}
-
-	public Collection<? extends ResourceObjectDefinition> getAccountDefinitions() {
-		Set<ResourceObjectDefinition> accounts = new HashSet<ResourceObjectDefinition>();
-		for (Definition def: definitions) {
-			if (def instanceof ResourceObjectDefinition) {
-				ResourceObjectDefinition rod = (ResourceObjectDefinition)def;
-				if (rod.isAccountType()) {
-					accounts.add(rod);
-				}
-			}
-		}
-		return accounts;
-	}
-	
+		
 	/**
 	 * Try to locate xsi:type definition in the elements and return appropriate ItemDefinition.
 	 */
-	public static ItemDefinition resolveDynamicItemDefinition(ItemDefinition parentDefinition, List<Object> valueElements) {
+	public static ItemDefinition resolveDynamicItemDefinition(ItemDefinition parentDefinition, List<Object> valueElements, 
+			PrismContext prismContext) {
 		QName typeName = null;
 		QName elementName = null;
 		for (Object element: valueElements) {
@@ -457,7 +385,7 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 		if (typeName == null) {
 			return null;
 		}
-		PropertyDefinition propDef = new PropertyDefinition(elementName, typeName);
+		PropertyDefinition propDef = new PropertyDefinition(elementName, elementName, typeName, prismContext);
 		// Set it to multi-value to be on the safe side
 		propDef.setMaxOccurs(-1);
 		// TODO: set "dynamic" flag
@@ -467,7 +395,8 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 	/**
 	 * Create default ItemDefinition. Used as a last attempt to provide some useful definition. Kind of a hack.
 	 */
-	public static ItemDefinition createDefaultItemDefinition(ItemDefinition parentDefinition, List<Object> valueElements) {
+	public static ItemDefinition createDefaultItemDefinition(ItemDefinition parentDefinition, List<Object> valueElements,
+			PrismContext prismContext) {
 		QName elementName = null;
 		for (Object element: valueElements) {
 			if (elementName == null) {
@@ -475,7 +404,7 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 				break;
 			}
 		}
-		PropertyDefinition propDef = new PropertyDefinition(elementName, DEFAULT_XSD_TYPE);
+		PropertyDefinition propDef = new PropertyDefinition(elementName, elementName, DEFAULT_XSD_TYPE, prismContext);
 		// Set it to multi-value to be on the safe side
 		propDef.setMaxOccurs(-1);
 		// TODO: set "dynamic" flag

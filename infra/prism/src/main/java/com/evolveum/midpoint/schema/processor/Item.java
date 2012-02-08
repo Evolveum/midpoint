@@ -21,8 +21,9 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import org.w3c.dom.Node;
@@ -45,54 +46,19 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
 
     protected QName name;
     protected Definition definition;
-    // Original element from which the item was parsed
-    // live reference, pointing to the original JAXB/DOM. used for applying modifications
-    protected Object element;
     protected PropertyPath parentPath;
+    transient protected PrismContext prismContext;
 
-//    /**
-//     * Default constructor.
-//     * The constructors should be used only occasionally (if used at all).
-//     * Use the factory methods in the ResourceObjectDefintion instead.
-//     */
-//    public Item() {
-//        super();
-//    }
-//
-//    /**
-//     * The constructors should be used only occasionally (if used at all).
-//     * Use the factory methods in the ResourceObjectDefintion instead.
-//     *
-//     * @param name item name (element name)
-//     */
-//    public Item(QName name) {
-//        super();
-//        this.name = name;
-//        this.definition = null;
-//    }
-//
-//    /**
-//     * The constructors should be used only occasionally (if used at all).
-//     * Use the factory methods in the ResourceObjectDefintion instead.
-//     *
-//     * @param name       item name (element name)
-//     * @param definition item definition (schema)
-//     */
-//    public Item(QName name, Definition definition) {
-//        super();
-//        this.name = name;
-//        this.definition = definition;
-//    }
 
     /**
      * The constructors should be used only occasionally (if used at all).
      * Use the factory methods in the ResourceObjectDefintion instead.
      */
-    public Item(QName name, Definition definition, Object element, PropertyPath parentPath) {
+    public Item(QName name, Definition definition, PrismContext prismContext, PropertyPath parentPath) {
         super();
         this.name = name;
         this.definition = definition;
-        this.element = element;
+        this.prismContext = prismContext;
         this.parentPath = parentPath;
     }
 
@@ -147,14 +113,6 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
         this.definition = definition;
     }
 
-    public Object getElement() {
-        return element;
-    }
-
-    public void setElement(Object element) {
-        this.element = element;
-    }
-	
 	public PropertyPath getParentPath() {
 		if (parentPath == null) {
 			return PropertyPath.EMPTY_PATH;
@@ -219,13 +177,24 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
      * @throws SchemaException No definition or inconsistent definition
      */
     abstract public void serializeToDom(Node parentNode) throws SchemaException;
+    
+    public void revive(PrismContext prismContext) {
+    	if (this.prismContext != null) {
+    		return;
+    	}
+    	this.prismContext = prismContext;
+    	if (definition != null) {
+    		definition.revive(prismContext);
+    	}
+    }
 
     public abstract Item clone();
 
     protected void copyValues(Item clone) {
         clone.name = this.name;
         clone.definition = this.definition;
-        clone.element = this.element;
+        clone.parentPath = this.parentPath;
+        clone.prismContext = this.prismContext;
     }
 
     @Override
@@ -234,6 +203,8 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
         int result = 1;
         result = prime * result + ((definition == null) ? 0 : definition.hashCode());
         result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + ((parentPath == null) ? 0 : parentPath.hashCode());
+        result = prime * result + ((prismContext == null) ? 0 : prismContext.hashCode());
         return result;
     }
 
@@ -250,6 +221,16 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
             if (other.definition != null)
                 return false;
         } else if (!definition.equals(other.definition))
+            return false;
+        if (parentPath == null) {
+            if (other.parentPath != null)
+                return false;
+        } else if (!parentPath.equals(other.parentPath))
+            return false;
+        if (prismContext == null) {
+            if (other.prismContext != null)
+                return false;
+        } else if (!prismContext.equals(other.prismContext))
             return false;
         if (name == null) {
             if (other.name != null)

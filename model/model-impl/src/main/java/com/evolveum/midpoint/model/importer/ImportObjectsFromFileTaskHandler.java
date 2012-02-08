@@ -22,12 +22,12 @@ package com.evolveum.midpoint.model.importer;
 
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
+import com.evolveum.midpoint.schema.PropertyModification;
+import com.evolveum.midpoint.schema.PropertyModification.ModificationType;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
-import com.evolveum.midpoint.schema.processor.PropertyModification;
-import com.evolveum.midpoint.schema.processor.PropertyModification.ModificationType;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;

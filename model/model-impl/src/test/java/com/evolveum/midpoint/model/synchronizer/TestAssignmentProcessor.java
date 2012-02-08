@@ -394,7 +394,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
     }
 
     private void assertUserModificationSanity(SyncContext context) throws JAXBException {
-        MidPointObject<UserType> userOld = context.getUserOld();
+        PrismObject<UserType> userOld = context.getUserOld();
         ObjectDelta<UserType> userPrimaryDelta = context.getUserPrimaryDelta();
         assertEquals(userOld.getOid(), userPrimaryDelta.getOid());
         assertEquals(ChangeType.MODIFY, userPrimaryDelta.getChangeType());
@@ -429,7 +429,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
 
         Schema commonSchema = schemaRegistry.getObjectSchema();
         ObjectDefinition<UserType> userDefinition = commonSchema.findObjectDefinition(UserType.class);
-        MidPointObject<UserType> user = userDefinition.parseObjectType(userType);
+        PrismObject<UserType> user = userDefinition.parseObjectType(userType);
         context.setUserOld(user);
         context.setUserTypeOld(userType);
 

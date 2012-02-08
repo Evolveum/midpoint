@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.cxf.common.util.StringUtils;
 
+import com.evolveum.midpoint.prism.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.SchemaDescription;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
@@ -47,7 +48,7 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI;
  * @author Radovan Semancik
  * 
  */
-public class MidPointNamespacePrefixMapper {
+public class MidPointNamespacePrefixMapper implements DynamicNamespacePrefixMapper {
 
 	private static final Map<String, String> globalNamespacePrefixMap = new HashMap<String, String>();
 	private final Map<String, String> localNamespacePrefixMap = new HashMap<String, String>();

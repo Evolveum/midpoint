@@ -33,7 +33,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.ItemDefinition;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
@@ -217,7 +217,7 @@ public class RefinedResourceSchema extends Schema implements Dumpable, DebugDump
 	}
 	
 	@Override
-	public <T extends ObjectType> MidPointObject<T> parseObjectType(T objectType) throws SchemaException {
+	public <T extends ObjectType> PrismObject<T> parseObjectType(T objectType) throws SchemaException {
 		if (objectType instanceof AccountShadowType) {
 			AccountShadowType accountShadowType = (AccountShadowType)objectType;
 			String accountType = accountShadowType.getAccountType();
@@ -233,7 +233,7 @@ public class RefinedResourceSchema extends Schema implements Dumpable, DebugDump
 					throw new IllegalArgumentException("Definition for account type "+accountType+" was not found in "+this+", the type was specified in "+ObjectTypeUtil.toShortString(accountShadowType));
 				}
 			}
-			return (MidPointObject<T>) accountDefinition.getObjectDefinition().parseObjectType(accountShadowType);
+			return (PrismObject<T>) accountDefinition.getObjectDefinition().parseObjectType(accountShadowType);
 		} else {
 			throw new IllegalArgumentException("Refined resource schema can only parse instances of AccountShadowType");
 		}

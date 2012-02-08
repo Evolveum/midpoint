@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import static com.evolveum.midpoint.schema.processor.ProcessorConstants.*;
+import static com.evolveum.midpoint.prism.PrismConstants.*;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 import java.io.ByteArrayInputStream;
@@ -48,12 +48,12 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.SchemaRegistry;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccessType;
 import com.sun.xml.xsom.XSAnnotation;
 import com.sun.xml.xsom.XSComplexType;
 import com.sun.xml.xsom.XSContentType;
@@ -81,6 +81,8 @@ class DomToSchemaProcessor {
 	
 	private Schema schema;
 	private EntityResolver entityResolver;
+	private PrismContext prismContext;
+	private SchemaRegistry schemaRegistry;
 	
 	public EntityResolver getEntityResolver() {
 		return entityResolver;
@@ -88,6 +90,22 @@ class DomToSchemaProcessor {
 
 	public void setEntityResolver(EntityResolver entityResolver) {
 		this.entityResolver = entityResolver;
+	}
+
+	public PrismContext getPrismContext() {
+		return prismContext;
+	}
+
+	public void setPrismContext(PrismContext prismContext) {
+		this.prismContext = prismContext;
+	}
+	
+	public SchemaRegistry getSchemaRegistry() {
+		return schemaRegistry;
+	}
+
+	public void setSchemaRegistry(SchemaRegistry schemaRegistry) {
+		this.schemaRegistry = schemaRegistry;
 	}
 
 	/**
@@ -129,7 +147,7 @@ class DomToSchemaProcessor {
 		if (StringUtils.isEmpty(targetNamespace)) {
 			throw new SchemaException("Schema does not have targetNamespace specification");
 		}
-		return new Schema(targetNamespace);
+		return new Schema(targetNamespace, prismContext);
 	}
 	
 	private XSSchemaSet parseSchema(Element schema) throws SchemaException {
@@ -166,11 +184,7 @@ class DomToSchemaProcessor {
 	
 	private XSOMParser createSchemaParser() {
 		XSOMParser parser = new XSOMParser();
-		EntityResolver resolver = entityResolver;
-		if (resolver == null) {
-			resolver = SchemaConstants.getEntityResolver();
-		}
-		SchemaHandler errorHandler = new SchemaHandler(resolver);
+		SchemaHandler errorHandler = new SchemaHandler(entityResolver);
 		parser.setErrorHandler(errorHandler);
 		parser.setAnnotationParser(new DomAnnotationParserFactory());
 		parser.setEntityResolver(errorHandler);
@@ -191,21 +205,19 @@ class DomToSchemaProcessor {
 			XSComplexType complexType = iterator.next();
 			if (complexType.getTargetNamespace().equals(schema.getNamespace())) {
 				
-				boolean isResourceObject = isResourceObject(complexType);
-				
 				// Create the actual definition. This is potentially recursive call
-				ComplexTypeDefinition complexTypeDefinition = createComplexTypeDefinition(complexType, isResourceObject);				
+				ComplexTypeDefinition complexTypeDefinition = createComplexTypeDefinition(complexType);				
 				schema.getDefinitions().add(complexTypeDefinition);
 
-				if (isResourceObject) {
-					// Create ResourceObjectDefinition from all the top-level complexType definitions in XSD that have resourceObject annotation.
-					// This is almost a special case for parsing resource schemas. In resource schemas we assume that every annotated 
-					// top-level complex type represents a resource object type, therefore is transformed to a ResourceObjectDefinition.
-
-					XSAnnotation annotation = complexType.getAnnotation();
-					PropertyContainerDefinition pcd = createPropertyContainerDefinition(complexType, null, complexTypeDefinition, annotation, true);
-					schema.getDefinitions().add(pcd);
-				}
+//				if (isResourceObject) {
+//					// Create ResourceObjectDefinition from all the top-level complexType definitions in XSD that have resourceObject annotation.
+//					// This is almost a special case for parsing resource schemas. In resource schemas we assume that every annotated 
+//					// top-level complex type represents a resource object type, therefore is transformed to a ResourceObjectDefinition.
+//
+//					XSAnnotation annotation = complexType.getAnnotation();
+//					PropertyContainerDefinition pcd = createPropertyContainerDefinition(complexType, null, complexTypeDefinition, annotation, true);
+//					schema.getDefinitions().add(pcd);
+//				}
 
 				
 			} else if (complexType.getTargetNamespace().equals(XMLConstants.W3C_XML_SCHEMA_NS_URI)) {
@@ -220,9 +232,9 @@ class DomToSchemaProcessor {
 	 * Creates ComplexTypeDefinition object from a single XSD complexType definition.
 	 * @param complexType XS complex type definition
 	 */
-	private ComplexTypeDefinition createComplexTypeDefinition(XSComplexType complexType, boolean isResourceObject) throws SchemaException {
+	private ComplexTypeDefinition createComplexTypeDefinition(XSComplexType complexType) throws SchemaException {
 		QName typeName = new QName(complexType.getTargetNamespace(),complexType.getName());
-		ComplexTypeDefinition ctd = new ComplexTypeDefinition(null, typeName, schema.getNamespace());
+		ComplexTypeDefinition ctd = new ComplexTypeDefinition(null, typeName, prismContext);
 				
 		XSContentType content = complexType.getContentType();
 		if (content != null) {
@@ -231,7 +243,7 @@ class DomToSchemaProcessor {
 				XSTerm term = particle.getTerm();
 
 				if (term.isModelGroup()) {
-					addPropertyDefinitionListFromGroup(term.asModelGroup(), ctd, isResourceObject);
+					addPropertyDefinitionListFromGroup(term.asModelGroup(), ctd);
 				}
 			}
 			
@@ -257,13 +269,13 @@ class DomToSchemaProcessor {
 	 * @param group XSD XSModelGroup
 	 * @param ctd ComplexTypeDefinition that will hold the definitions
 	 */
-	private void addPropertyDefinitionListFromGroup(XSModelGroup group, ComplexTypeDefinition ctd, boolean isResourceObject) throws SchemaException {
+	private void addPropertyDefinitionListFromGroup(XSModelGroup group, ComplexTypeDefinition ctd) throws SchemaException {
 
 		XSParticle[] particles = group.getChildren();
 		for (XSParticle p : particles) {
 			XSTerm pterm = p.getTerm();
 			if (pterm.isModelGroup()) {
-				addPropertyDefinitionListFromGroup(pterm.asModelGroup(), ctd, isResourceObject);
+				addPropertyDefinitionListFromGroup(pterm.asModelGroup(), ctd);
 			}
 
 			// xs:element inside complex type
@@ -284,7 +296,7 @@ class DomToSchemaProcessor {
 					// Create an inner PropertyContainer. It is assumed that this is a XSD complex type
 					// TODO: check cast
 					XSComplexType complexType = (XSComplexType)xsType;
-					ComplexTypeDefinition innerComplexTypeDefinition = createComplexTypeDefinition(complexType, false);
+					ComplexTypeDefinition innerComplexTypeDefinition = createComplexTypeDefinition(complexType);
 					XSAnnotation containerAnnotation = complexType.getAnnotation();
 					PropertyContainerDefinition containerDefinition = createPropertyContainerDefinition(xsType,elementName,innerComplexTypeDefinition,containerAnnotation,false);
 					ctd.getDefinitions().add(containerDefinition);
@@ -313,7 +325,7 @@ class DomToSchemaProcessor {
 					// Create a property definition (even if this is a XSD complex type)
 					QName typeName = new QName(xsType.getTargetNamespace(), xsType.getName());
 
-					PropertyDefinition propDef = createPropertyDefinition(xsType, elementName, typeName, annotation, isResourceObject);
+					PropertyDefinition propDef = createPropertyDefinition(xsType, elementName, typeName, annotation);
 					
 					propDef.setMinOccurs(p.getMinOccurs());
 					propDef.setMaxOccurs(p.getMaxOccurs());
@@ -365,7 +377,7 @@ class DomToSchemaProcessor {
 					// Create a top-level property definition (even if this is a XSD complex type)
 					// This is not really useful, just for the sake of completeness
 					QName typeName = new QName(xsType.getTargetNamespace(), xsType.getName());
-					PropertyDefinition propDef = createPropertyDefinition(xsType, elementName, typeName, annotation, false);
+					PropertyDefinition propDef = createPropertyDefinition(xsType, elementName, typeName, annotation);
 					schema.getDefinitions().add(propDef);
 				}
 				
@@ -389,7 +401,7 @@ class DomToSchemaProcessor {
 	 * Returns true if provides XSD type is a property container. It looks for annotations.
 	 */
 	private boolean isPropertyContainer(XSType xsType) {
-		Element annoElement = getAnnotationElement(xsType.getAnnotation(), ProcessorConstants.A_PROPERTY_CONTAINER);
+		Element annoElement = getAnnotationElement(xsType.getAnnotation(), A_PROPERTY_CONTAINER);
 		if (annoElement != null) {
 			return true;
 		}
@@ -406,29 +418,30 @@ class DomToSchemaProcessor {
 		if (xsType.getName() == null) {
 			return false;
 		}
-		QName typeName = new QName(xsType.getTargetNamespace(),xsType.getName());
-		if (typeName.equals(SchemaConstants.C_OBJECT_TYPE)) {
-			return true;
-		}
+//		QName typeName = new QName(xsType.getTargetNamespace(),xsType.getName());
+//		if (typeName.equals(SchemaConstants.C_OBJECT_TYPE)) {
+//			return true;
+//		}
+		// TODO: detect "object" type annotation
 		if (xsType.getBaseType() != null && !xsType.getBaseType().equals(xsType)) {
 			return isObjectDefinition(xsType.getBaseType());
 		}
 		return false;
 	}
 	
-	private boolean isResourceObject(XSComplexType complexType) {
-		XSAnnotation annotation = complexType.getAnnotation();
-		// annotation: resourceObject
-		if (getAnnotationElement(annotation, A_RESOURCE_OBJECT) != null) {
-			return true;
-		}
-		// annotation: accountType
-		if (getAnnotationElement(annotation, A_ACCOUNT_TYPE) != null) {
-			// <accountType> implies <resourceObject> ... at least for now (compatibility)
-			return true;
-		}
-		return false;
-	}
+//	private boolean isResourceObject(XSComplexType complexType) {
+//		XSAnnotation annotation = complexType.getAnnotation();
+//		// annotation: resourceObject
+//		if (getAnnotationElement(annotation, A_RESOURCE_OBJECT) != null) {
+//			return true;
+//		}
+//		// annotation: accountType
+//		if (getAnnotationElement(annotation, A_ACCOUNT_TYPE) != null) {
+//			// <accountType> implies <resourceObject> ... at least for now (compatibility)
+//			return true;
+//		}
+//		return false;
+//	}
 
 
 	/**
@@ -449,63 +462,63 @@ class DomToSchemaProcessor {
 	private PropertyContainerDefinition createPropertyContainerDefinition(XSType xsType, QName elementName, ComplexTypeDefinition complexTypeDefinition, XSAnnotation annotation, boolean createResourceObject) {
 		PropertyContainerDefinition pcd;
 		
-		if (createResourceObject) {
-			ResourceObjectDefinition rod = new ResourceObjectDefinition(schema, elementName, complexTypeDefinition);
-			
-			// Parse resource-specific annotations
-			
-			// nativeObjectClass
-			Element nativeAttrElement = getAnnotationElement(annotation, A_NATIVE_OBJECT_CLASS);
-			String nativeObjectClass = nativeAttrElement == null ? null : nativeAttrElement.getTextContent();
-			rod.setNativeObjectClass(nativeObjectClass);
-			
-			// accountType
-			if (isAccountObject(annotation)) {
-				rod.setAccountType(true);
-			}
-			// check if it's default account object class...
-			Element accountType = getAnnotationElement(annotation, A_ACCOUNT_TYPE);
-			if (accountType != null) {
-				String defaultValue = accountType.getAttribute("default");
-				if (defaultValue != null) {
-					rod.setDefaultAccountType(Boolean.parseBoolean(defaultValue));
-				}
-			}
-			
-			// displayName
-			ResourceObjectAttributeDefinition attrDefinition = getAnnotationReference(annotation, A_DISPLAY_NAME, rod);
-			if (attrDefinition != null) {
-				rod.setDisplayNameAttribute(attrDefinition);
-			}
-			// namingAttribute
-			attrDefinition = getAnnotationReference(annotation, A_NAMING_ATTRIBUTE, rod);
-			if (attrDefinition != null) {
-				rod.setNamingAttribute(attrDefinition);
-			}
-			// descriptionAttribute
-			attrDefinition = getAnnotationReference(annotation, A_DESCRIPTION_ATTRIBUTE, rod);
-			if (attrDefinition != null) {
-				rod.setDescriptionAttribute(attrDefinition);
-			}
-			// identifier
-			attrDefinition = getAnnotationReference(annotation, A_IDENTIFIER, rod);
-			if (attrDefinition != null) {
-				rod.getIdentifiers().add(attrDefinition);
-			}
-			// secondaryIdentifier
-			attrDefinition = getAnnotationReference(annotation, A_SECONDARY_IDENTIFIER, rod);
-			if (attrDefinition != null) {
-				rod.getSecondaryIdentifiers().add(attrDefinition);
-			}
+//		if (createResourceObject) {
+//			ResourceObjectDefinition rod = new ResourceObjectDefinition(schema, elementName, complexTypeDefinition);
+//			
+//			// Parse resource-specific annotations
+//			
+//			// nativeObjectClass
+//			Element nativeAttrElement = getAnnotationElement(annotation, A_NATIVE_OBJECT_CLASS);
+//			String nativeObjectClass = nativeAttrElement == null ? null : nativeAttrElement.getTextContent();
+//			rod.setNativeObjectClass(nativeObjectClass);
+//			
+//			// accountType
+//			if (isAccountObject(annotation)) {
+//				rod.setAccountType(true);
+//			}
+//			// check if it's default account object class...
+//			Element accountType = getAnnotationElement(annotation, A_ACCOUNT_TYPE);
+//			if (accountType != null) {
+//				String defaultValue = accountType.getAttribute("default");
+//				if (defaultValue != null) {
+//					rod.setDefaultAccountType(Boolean.parseBoolean(defaultValue));
+//				}
+//			}
+//			
+//			// displayName
+//			ResourceObjectAttributeDefinition attrDefinition = getAnnotationReference(annotation, A_DISPLAY_NAME, rod);
+//			if (attrDefinition != null) {
+//				rod.setDisplayNameAttribute(attrDefinition);
+//			}
+//			// namingAttribute
+//			attrDefinition = getAnnotationReference(annotation, A_NAMING_ATTRIBUTE, rod);
+//			if (attrDefinition != null) {
+//				rod.setNamingAttribute(attrDefinition);
+//			}
+//			// descriptionAttribute
+//			attrDefinition = getAnnotationReference(annotation, A_DESCRIPTION_ATTRIBUTE, rod);
+//			if (attrDefinition != null) {
+//				rod.setDescriptionAttribute(attrDefinition);
+//			}
+//			// identifier
+//			attrDefinition = getAnnotationReference(annotation, A_IDENTIFIER, rod);
+//			if (attrDefinition != null) {
+//				rod.getIdentifiers().add(attrDefinition);
+//			}
+//			// secondaryIdentifier
+//			attrDefinition = getAnnotationReference(annotation, A_SECONDARY_IDENTIFIER, rod);
+//			if (attrDefinition != null) {
+//				rod.getSecondaryIdentifiers().add(attrDefinition);
+//			}
+//
+//			
+//			pcd = rod;
 
-			
-			pcd = rod;
+		if (isObjectDefinition(xsType)) {
+			Class compileTimeClass = schemaRegistry.determineCompileTimeClass(elementName, complexTypeDefinition);
+			pcd = new ObjectDefinition(elementName, complexTypeDefinition, prismContext, compileTimeClass );
 		} else {
-			if (isObjectDefinition(xsType)) {
-				pcd = new ObjectDefinition(elementName, complexTypeDefinition);
-			} else {
-				pcd = new PropertyContainerDefinition(elementName, complexTypeDefinition);
-			}
+			pcd = new PropertyContainerDefinition(elementName, complexTypeDefinition, prismContext);
 		}
 		
 		// TODO: parse generic annotations
@@ -538,24 +551,23 @@ class DomToSchemaProcessor {
 	 * @param annotation
 	 * @return
 	 */
-	private PropertyDefinition createPropertyDefinition(XSType xsType, QName elementName, QName typeName, XSAnnotation annotation, boolean isResourceObject) {
+	private PropertyDefinition createPropertyDefinition(XSType xsType, QName elementName, QName typeName, XSAnnotation annotation) {
 		PropertyDefinition prodDef;
-		if (isResourceObject) {
-			ResourceObjectAttributeDefinition attrDef = new ResourceObjectAttributeDefinition(elementName, null, typeName);
-			
-			// Process Resource-specific annotations
-			
-			// nativeAttributeName
-			Element nativeAttrElement = getAnnotationElement(annotation, A_NATIVE_ATTRIBUTE_NAME);
-			String nativeAttributeName = nativeAttrElement == null ? null : nativeAttrElement.getTextContent();
-			if (!StringUtils.isEmpty(nativeAttributeName)) {
-				attrDef.setNativeAttributeName(nativeAttributeName);
-			}
-						
-			prodDef = attrDef;
-		} else {
-			prodDef = new PropertyDefinition(elementName, typeName);
-		}
+//		if (isResourceObject) {
+//			ResourceObjectAttributeDefinition attrDef = new ResourceObjectAttributeDefinition(elementName, null, typeName);
+//			
+//			// Process Resource-specific annotations
+//			
+//			// nativeAttributeName
+//			Element nativeAttrElement = getAnnotationElement(annotation, A_NATIVE_ATTRIBUTE_NAME);
+//			String nativeAttributeName = nativeAttrElement == null ? null : nativeAttrElement.getTextContent();
+//			if (!StringUtils.isEmpty(nativeAttributeName)) {
+//				attrDef.setNativeAttributeName(nativeAttributeName);
+//			}
+//						
+//			prodDef = attrDef;
+		
+		prodDef = new PropertyDefinition(elementName, elementName, typeName, prismContext);
 		
 		// Process generic annotations
 		
@@ -587,7 +599,7 @@ class DomToSchemaProcessor {
 		}
 		
 		// attributeDisplayName
-		Element attributeDisplayName = getAnnotationElement(annotation, A_ATTRIBUTE_DISPLAY_NAME);
+		Element attributeDisplayName = getAnnotationElement(annotation, A_DISPLAY_NAME);
 		if (attributeDisplayName != null) {
 			prodDef.setDisplayName(attributeDisplayName.getTextContent());
 		}
@@ -610,13 +622,13 @@ class DomToSchemaProcessor {
 			prodDef.setRead(false);
 			for (Element e : accessElements) {
 				String access = e.getTextContent();
-				if (access.equals(AccessType.CREATE.value())) {
+				if (access.equals(A_ACCESS_CREATE)) {
 					prodDef.setCreate(true);
 				}
-				if (access.equals(AccessType.UPDATE.value())) {
+				if (access.equals(A_ACCESS_UPDATE)) {
 					prodDef.setUpdate(true);
 				}
-				if (access.equals(AccessType.READ.value())) {
+				if (access.equals(A_ACCESS_READ)) {
 					prodDef.setRead(true);
 				}
 			}
@@ -646,33 +658,33 @@ class DomToSchemaProcessor {
 		return false;
 	}
 
-	private ResourceObjectAttributeDefinition getAnnotationReference(XSAnnotation annotation, QName qname, ResourceObjectDefinition objectClass) {
-		Element element = getAnnotationElement(annotation, qname);
-		if (element != null) {
-			String reference = element.getAttribute("ref");
-			if (reference != null && !reference.isEmpty()) {				
-				PropertyDefinition definition = objectClass.findPropertyDefinition(DOMUtil.resolveQName(element, reference));
-				if (definition instanceof ResourceObjectAttributeDefinition) {
-					return (ResourceObjectAttributeDefinition) definition;
-				}
-			}
-		}
+//	private ResourceObjectAttributeDefinition getAnnotationReference(XSAnnotation annotation, QName qname, ResourceObjectDefinition objectClass) {
+//		Element element = getAnnotationElement(annotation, qname);
+//		if (element != null) {
+//			String reference = element.getAttribute("ref");
+//			if (reference != null && !reference.isEmpty()) {				
+//				PropertyDefinition definition = objectClass.findPropertyDefinition(DOMUtil.resolveQName(element, reference));
+//				if (definition instanceof ResourceObjectAttributeDefinition) {
+//					return (ResourceObjectAttributeDefinition) definition;
+//				}
+//			}
+//		}
+//
+//		return null;
+//	}
 
-		return null;
-	}
-
-	private boolean isAccountObject(XSAnnotation annotation) {
-		if (annotation == null || annotation.getAnnotation() == null) {
-			return false;
-		}
-
-		Element accountType = getAnnotationElement(annotation, A_ACCOUNT_TYPE);
-		if (accountType != null) {
-			return true;
-		}
-
-		return false;
-	}
+//	private boolean isAccountObject(XSAnnotation annotation) {
+//		if (annotation == null || annotation.getAnnotation() == null) {
+//			return false;
+//		}
+//
+//		Element accountType = getAnnotationElement(annotation, A_ACCOUNT_TYPE);
+//		if (accountType != null) {
+//			return true;
+//		}
+//
+//		return false;
+//	}
 
 	private List<Element> getAnnotationElements(XSAnnotation annotation, QName qname) {
 		List<Element> elements = new ArrayList<Element>();

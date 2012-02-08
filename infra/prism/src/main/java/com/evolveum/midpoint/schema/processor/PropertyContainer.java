@@ -21,10 +21,10 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.PropertyModification.ModificationType;
-import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import org.apache.commons.lang.NotImplementedException;
 import org.w3c.dom.Document;
@@ -72,8 +72,8 @@ public class PropertyContainer extends Item {
 //        super(name, definition);
 //    }
 
-    public PropertyContainer(QName name, PropertyContainerDefinition definition, Object element, PropertyPath parentPath) {
-        super(name, definition, element, parentPath);
+    public PropertyContainer(QName name, PropertyContainerDefinition definition, PrismContext prismContext, PropertyPath parentPath) {
+        super(name, definition, prismContext, parentPath);
     }
 
     /**
@@ -380,7 +380,7 @@ public class PropertyContainer extends Item {
 //        	if (this.getDefinition().isRuntimeSchema) {
         		// HACK: create the definition "on demand" based on the property java type.
         		QName typeName = XsdTypeConverter.toXsdType(valueClass);
-        		propertyDefinition = new PropertyDefinition(propertyName, typeName);
+        		propertyDefinition = new PropertyDefinition(propertyName, propertyName, typeName, prismContext);
 //        	} else {
 //        		throw new IllegalArgumentException("No definition of property '" + propertyName + "' in " + getDefinition());
 //        	}
@@ -390,8 +390,18 @@ public class PropertyContainer extends Item {
         return property;
     }
 
-
     @Override
+	public void revive(PrismContext prismContext) {
+		if (this.prismContext != null) {
+			return;
+		}
+		super.revive(prismContext);
+		for (Item item: items) {
+			item.revive(prismContext);
+		}
+	}
+
+	@Override
     public void serializeToDom(Node parentNode) throws SchemaException {
         if (parentNode == null) {
             throw new IllegalArgumentException("No parent node specified");
@@ -435,33 +445,9 @@ public class PropertyContainer extends Item {
         return items.isEmpty();
     }
 
-    public void applyModifications(List<PropertyModification> modifications) {
-        for (PropertyModification modification : modifications) {
-            applyModification(modification);
-        }
-    }
-
-    public void applyModification(PropertyModification modification) {
-        if (modification.getPath() == null || modification.getPath().isEmpty()) {
-            // Modification in this container
-
-            Property property = findProperty(modification.getPropertyName());
-            if (modification.getModificationType() == ModificationType.REPLACE) {
-                Property newProperty = modification.getProperty();
-                items.remove(property);
-                items.add(newProperty);
-            } else {
-                throw new NotImplementedException("Modification type " + modification.getModificationType() + " is not supported yet");
-            }
-
-        } else {
-            throw new NotImplementedException("Modification in subcontainers is not supported yet");
-        }
-    }
-
     @Override
     public PropertyContainer clone() {
-        PropertyContainer clone = new PropertyContainer(getName(), getDefinition(), getElement(), getParentPath());
+        PropertyContainer clone = new PropertyContainer(getName(), getDefinition(), prismContext, getParentPath());
         copyValues(clone);
         return clone;
     }

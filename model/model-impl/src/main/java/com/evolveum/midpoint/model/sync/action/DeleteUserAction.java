@@ -31,7 +31,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.ChangeType;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -78,7 +78,7 @@ public class DeleteUserAction extends BaseAction {
             //set old user
             Schema schema = getSchemaRegistry().getObjectSchema();
             ObjectDefinition<UserType> userDefinition = schema.findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
-            MidPointObject<UserType> oldUser = userDefinition.parseObjectType(userType);
+            PrismObject<UserType> oldUser = userDefinition.parseObjectType(userType);
             context.setUserOld(oldUser);
             context.setUserTypeOld(userType);
             //set object delta with delete

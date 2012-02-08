@@ -31,12 +31,12 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.prism.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyPath;
@@ -113,7 +113,7 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 		addVariableDefinition(null,(Object)objectType);
 	}
 	
-	public void setRootNode(MidPointObject<? extends ObjectType> mpObject) {
+	public void setRootNode(PrismObject<? extends ObjectType> mpObject) {
 		addVariableDefinition(null,(Object)mpObject);
 	}
 
@@ -136,7 +136,7 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 		addVariableDefinition(name,(Object)objectType);
 	}
 	
-	public void addVariableDefinition(QName name, MidPointObject<? extends ObjectType> midpointObject) {
+	public void addVariableDefinition(QName name, PrismObject<? extends ObjectType> midpointObject) {
 		addVariableDefinition(name,(Object)midpointObject);
 	}
 

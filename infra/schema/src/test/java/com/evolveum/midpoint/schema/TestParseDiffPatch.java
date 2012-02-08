@@ -44,7 +44,7 @@ import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ChangeType;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyPath;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
@@ -79,7 +79,7 @@ public class TestParseDiffPatch {
         assertNotNull(objectSchema);
 
         // "Automatic" parsing
-        MidPointObject<UserType> userBefore = objectSchema.parseObject(new File(TEST_DIR, "user-jack-before.xml"), UserType.class);
+        PrismObject<UserType> userBefore = objectSchema.parseObject(new File(TEST_DIR, "user-jack-before.xml"), UserType.class);
         
         ObjectDefinition<UserType> userDefinition = objectSchema.findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
         assertNotNull("UserType definition not found in object schema", userDefinition);
@@ -87,7 +87,7 @@ public class TestParseDiffPatch {
         // "Manual" parsing
         JAXBElement<UserType> jaxbElement = JAXBUtil.unmarshal(new File(TEST_DIR, "user-jack-after.xml"), UserType.class);
         UserType userTypeAfter = jaxbElement.getValue();
-        MidPointObject<UserType> userAfter = userDefinition.parseObjectType(userTypeAfter);
+        PrismObject<UserType> userAfter = userDefinition.parseObjectType(userTypeAfter);
         
         // sanity
         assertFalse("Equals does not work", userBefore.equals(userAfter));
@@ -231,7 +231,7 @@ public class TestParseDiffPatch {
         
         // ROUNDTRIP
         
-        MidPointObject<TaskType> taskPatch = objectSchema.parseObject(new File(TEST_DIR, "task-before.xml"), TaskType.class);
+        PrismObject<TaskType> taskPatch = objectSchema.parseObject(new File(TEST_DIR, "task-before.xml"), TaskType.class);
         
         // patch
         patchDelta.applyTo(taskPatch);
@@ -239,7 +239,7 @@ public class TestParseDiffPatch {
         System.out.println("Task after roundtrip patching");
         System.out.println(taskPatch.dump());
         
-        MidPointObject<TaskType> taskAfter = objectSchema.parseObject(new File(TEST_DIR, "task-after.xml"), TaskType.class);
+        PrismObject<TaskType> taskAfter = objectSchema.parseObject(new File(TEST_DIR, "task-after.xml"), TaskType.class);
                 
         assertTrue("Not equivalent",taskPatch.equivalent(taskAfter));
         

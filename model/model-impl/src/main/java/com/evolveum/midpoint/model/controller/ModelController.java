@@ -57,12 +57,12 @@ import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandle
 import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
 import com.evolveum.midpoint.prism.SchemaRegistry;
+import com.evolveum.midpoint.prism.XsdTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.ResultArrayList;
 import com.evolveum.midpoint.schema.ResultList;
-import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
@@ -75,7 +75,7 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.processor.ChangeType;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -342,7 +342,7 @@ public class ModelController implements ModelService {
 				auditRecord.addDelta(objectDelta);
 				auditService.audit(auditRecord, task);
 
-				MidPointObject<T> mpObject = commonSchema.parseObjectType(object);
+				PrismObject<T> mpObject = commonSchema.parseObjectType(object);
 				objectDelta.setObjectToAdd(mpObject);
 
 				if (executePreChangePrimary(objectDelta, task, result) != HookOperationMode.FOREGROUND)
@@ -488,7 +488,7 @@ public class ModelController implements ModelService {
 		}
 
 		ObjectDelta<UserType> userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD);
-		MidPointObject<UserType> mpUser = objectSchema.parseObjectType(userType);
+		PrismObject<UserType> mpUser = objectSchema.parseObjectType(userType);
 		userDelta.setObjectToAdd(mpUser);
 
 		syncContext.setUserOld(null);
@@ -831,7 +831,7 @@ public class ModelController implements ModelService {
 				schemaRegistry);
 		syncContext.rememberResource(resourceType);
 
-		MidPointObject<AccountShadowType> mpAccount = refinedSchema.parseObjectType(accountType);
+		PrismObject<AccountShadowType> mpAccount = refinedSchema.parseObjectType(accountType);
 		ObjectDelta<AccountShadowType> accountDelta = new ObjectDelta<AccountShadowType>(
 				AccountShadowType.class, changeType);
 		accountDelta.setObjectToAdd(mpAccount);

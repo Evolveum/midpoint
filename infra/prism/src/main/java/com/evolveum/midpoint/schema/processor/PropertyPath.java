@@ -25,9 +25,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.holder.XPathHolder;
-import com.evolveum.midpoint.schema.holder.XPathSegment;
-import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 
 /**
  * @author semancik
@@ -65,14 +63,6 @@ public class PropertyPath {
 		this.qnames = new ArrayList<QName>(parentPath.qnames.size()+1);
 		qnames.addAll(parentPath.qnames);
 		qnames.add(subName);
-	}
-
-	public PropertyPath(XPathHolder xpath) {
-		List<XPathSegment> segments = xpath.toSegments();
-		qnames = new ArrayList<QName>(segments.size());
-		for (XPathSegment segment : segments) {
-			qnames.add(segment.getQName());
-		}
 	}
 
 	public PropertyPath subPath(QName subName) {

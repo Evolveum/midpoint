@@ -21,14 +21,11 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 
@@ -53,20 +50,12 @@ public class ObjectDefinition<T extends Objectable> extends PropertyContainerDef
 	
 	protected Class<T> jaxbClass;
 
-	ObjectDefinition(QName name, ComplexTypeDefinition complexTypeDefinition) {
+	ObjectDefinition(QName name, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, Class<T> jaxbClass) {
 		// Object definition can only be top-level, hence null parent
-		super(name, complexTypeDefinition);
-		determineJaxbClass();
+		super(name, complexTypeDefinition, prismContext);
+		this.jaxbClass = jaxbClass;
 	}
 	
-	// TODO: make this smarter, based on actual JAXB classes
-	private void determineJaxbClass() {
-		jaxbClass = (Class<T>) ObjectTypes.getObjectTypeFromTypeQName(getTypeName()).getClassDefinition();
-		if (jaxbClass == null) {
-			throw new SystemException("Cannot determine JAXB class name for object type "+getTypeName());
-		}
-	}
-
 	public Class<T> getJaxbClass() {
 		return jaxbClass;
 	}
@@ -75,15 +64,18 @@ public class ObjectDefinition<T extends Objectable> extends PropertyContainerDef
 		this.jaxbClass = jaxbClass;
 	}
 
-	public MidPointObject<T> parseObjectType(T objectType) throws SchemaException {
+	public PrismObject<T> parseObjectType(T objectType) throws SchemaException {
+		// TODO
+		throw new UnsupportedOperationException();
+		
 		// Parent is null, objects do not have parents
-		MidPointObject<T> object = parseItemFromJaxbObject(objectType, MidPointObject.class, null);
-		object.setOid(objectType.getOid());
-		object.setObjectType(objectType);
-		return object;
+//		PrismObject<T> object = parseItemFromJaxbObject(objectType, PrismObject.class, null);
+//		object.setOid(objectType.getOid());
+//		object.setObjectType(objectType);
+//		return object;
 	}
 	
-	public T convertToObjectType(MidPointObject<T> mpObject) throws SchemaException {		
+	public T convertToObjectType(PrismObject<T> mpObject) throws SchemaException {		
 		if (jaxbClass == null) {
 			throw new IllegalStateException("No JAXB class was set for "+this);
 		}
@@ -92,29 +84,13 @@ public class ObjectDefinition<T extends Objectable> extends PropertyContainerDef
 		return instance;		
 	}
 
-	protected void fillProperties(T instance, MidPointObject<T> mpObject) throws SchemaException {
+	protected void fillProperties(T instance, PrismObject<T> mpObject) throws SchemaException {
 		instance.setOid(mpObject.getOid());
 		super.fillProperties(instance, mpObject);
 	}
 
-	public MidPointObject<T> instantiate(QName name) {
-		MidPointObject<T> midPointObject = new MidPointObject<T>(name, this, null, null);
-		return midPointObject;
-	}
-
-	public MidPointObject<T> instantiate(QName name, Object element) {
-		return new MidPointObject<T>(name, this, element, null);
-	}
-
-	/**
-	 * Just for "compatibility".
-	 */
-	@Override
-	public MidPointObject<T> instantiate(QName name, PropertyPath parentPath) {
-		if (parentPath != null) {
-			throw new IllegalArgumentException("Objects cannot have parents");
-		}
-		MidPointObject<T> midPointObject = new MidPointObject<T>(name, this, null, parentPath);
+	public PrismObject<T> instantiate(QName name) {
+		PrismObject<T> midPointObject = new PrismObject<T>(name, this, prismContext, null);
 		return midPointObject;
 	}
 
@@ -122,26 +98,33 @@ public class ObjectDefinition<T extends Objectable> extends PropertyContainerDef
 	 * Just for "compatibility".
 	 */
 	@Override
-	public MidPointObject<T> instantiate(QName name, Object element, PropertyPath parentPath) {
+	public PrismObject<T> instantiate(QName name, PropertyPath parentPath) {
 		if (parentPath != null) {
 			throw new IllegalArgumentException("Objects cannot have parents");
 		}
-		return new MidPointObject<T>(name, this, element, parentPath);
+		PrismObject<T> midPointObject = new PrismObject<T>(name, this, null, parentPath);
+		return midPointObject;
 	}
-
 	
 	public ObjectDefinition<T> clone() {
-		ObjectDefinition<T> clone = new ObjectDefinition<T>(name, complexTypeDefinition);
+		ObjectDefinition<T> clone = new ObjectDefinition<T>(name, complexTypeDefinition, prismContext, jaxbClass);
 		copyDefinitionData(clone);
 		return clone;
 	}
 
 	public void setExtensionDefinition(ComplexTypeDefinition extensionComplexTypeDefinition) {
-		PropertyContainerDefinition newExtensionDef = new PropertyContainerDefinition(SchemaConstants.C_EXTENSION, extensionComplexTypeDefinition);
+		QName extensionQName = getExtensionQName();
+		PropertyContainerDefinition newExtensionDef = new PropertyContainerDefinition(extensionQName, 
+				extensionComplexTypeDefinition, prismContext);
 		ComplexTypeDefinition newCtd = this.complexTypeDefinition.clone();
 		newExtensionDef.setRuntimeSchema(true);
-		newCtd.replaceDefinition(SchemaConstants.C_EXTENSION, newExtensionDef);
+		newCtd.replaceDefinition(extensionQName, newExtensionDef);
 		this.complexTypeDefinition = newCtd;
+	}
+	
+	private QName getExtensionQName() {
+		String namespace = getName().getNamespaceURI();
+		return new QName(namespace, PrismConstants.EXTENSION_LOCAL_NAME);
 	}
 	
 }

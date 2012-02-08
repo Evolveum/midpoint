@@ -178,7 +178,7 @@ public class ModifyUserAction extends BaseAction {
                 SchemaConstants.I_USER_TYPE);
 
         SyncContext context = new SyncContext();
-        MidPointObject<UserType> oldUser = userDefinition.parseObjectType(user);
+        PrismObject<UserType> oldUser = userDefinition.parseObjectType(user);
         context.setUserOld(oldUser);
         context.rememberResource(resource);
 

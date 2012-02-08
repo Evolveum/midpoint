@@ -23,7 +23,8 @@ package com.evolveum.midpoint.schema.processor;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.DebugUtil;
 
 /**
  * Object Reference is a property that describes reference to an object. It is
@@ -39,8 +40,8 @@ import com.evolveum.midpoint.schema.util.DebugUtil;
  */
 public class ObjectReference extends Property {
 
-	public ObjectReference(QName name, PropertyDefinition definition, Object element, PropertyPath parentPath) {
-		super(name, definition, element, parentPath);
+	public ObjectReference(QName name, PropertyDefinition definition, PrismContext prismContext, PropertyPath parentPath) {
+		super(name, definition, prismContext, parentPath);
 	}
 
 	private String oid;

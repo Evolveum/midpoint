@@ -23,15 +23,12 @@ package com.evolveum.midpoint.schema.processor;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
-import org.w3c.dom.Element;
-
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.util.DebugUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 
 /**
  * Abstract item definition in the schema.
@@ -65,15 +62,6 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	// TODO: annotations
 	
 	/**
-	 * Default constructor.
-	 * The constructors should be used only occasionally (if used at all).
-	 * Use the factory methods in the ResourceObjectDefintion instead.
-	 */
-	ItemDefinition(){
-		super();
-	}
-
-	/**
 	 * The constructors should be used only occasionally (if used at all).
 	 * Use the factory methods in the ResourceObjectDefintion instead.
 	 * 
@@ -81,8 +69,8 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	 * @param defaultName default element name
 	 * @param typeName type name (XSD complex or simple type)
 	 */
-	ItemDefinition(QName name, QName defaultName, QName typeName) {
-		super(defaultName,typeName);
+	ItemDefinition(QName name, QName defaultName, QName typeName, PrismContext prismContext) {
+		super(defaultName, typeName, prismContext);
 		this.name = name;
 	}
 
@@ -136,14 +124,6 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	 * @return created item instance
 	 */
 	abstract public Item instantiate(QName name, PropertyPath parentPath);
-
-	/**
-	 * Create an item instance. Definition name will use provided name.
-	 * for the instance. The instance will contain reference to the element from
-	 * which it originated.
-	 * @return created item instance
-	 */
-	abstract public Item instantiate(QName name, Object element, PropertyPath parentPath);
 
 	/**
 	 * Create at instance of the item initialized from the provided list of elements.

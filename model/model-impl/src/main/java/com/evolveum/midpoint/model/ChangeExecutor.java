@@ -30,7 +30,7 @@ import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.*;
 import com.evolveum.midpoint.schema.processor.ChangeType;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
@@ -124,7 +124,7 @@ public class ChangeExecutor {
     /**
      * Make sure that the account is linked (or unlinked) as needed.
      */
-    private void updateAccountLinks(MidPointObject<UserType> userNew, AccountSyncContext accCtx,
+    private void updateAccountLinks(PrismObject<UserType> userNew, AccountSyncContext accCtx,
             OperationResult result) throws ObjectNotFoundException, SchemaException {
         UserType userTypeNew = userNew.getOrParseObjectType();
         String accountOid = accCtx.getOid();
@@ -206,7 +206,7 @@ public class ChangeExecutor {
     private void executeAddition(ObjectDelta<?> change, OperationResult result) throws ObjectAlreadyExistsException,
             ObjectNotFoundException, SchemaException, CommunicationException {
 
-        MidPointObject<?> mpObject = change.getObjectToAdd();
+        PrismObject<?> mpObject = change.getObjectToAdd();
 
         if (change.getModifications() != null) {
             for (PropertyDelta delta : change.getModifications()) {

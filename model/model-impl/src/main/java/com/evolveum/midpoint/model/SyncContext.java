@@ -29,7 +29,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
@@ -65,14 +65,14 @@ public class SyncContext implements Dumpable, DebugDumpable {
      * User as midPointObject before any change (at the time when context was created)
      * This value is considered immutable.
      */
-    private MidPointObject<UserType> userOld;
+    private PrismObject<UserType> userOld;
 
     /**
      * User as midPointObject after the changes were applied. This reflects the expected state of
      * the user at the current stage of the processing. It is computed from userOld and user deltas.
      * This value is not computed automatically. It needs to be explicitly recomputed.
      */
-    private MidPointObject<UserType> userNew;
+    private PrismObject<UserType> userNew;
 
     /**
      * Primary change of the user object - the original change done by the user.
@@ -131,19 +131,19 @@ public class SyncContext implements Dumpable, DebugDumpable {
         this.userTypeOld = userTypeOld;
     }
 
-    public MidPointObject<UserType> getUserOld() {
+    public PrismObject<UserType> getUserOld() {
         return userOld;
     }
 
-    public void setUserOld(MidPointObject<UserType> userOld) {
+    public void setUserOld(PrismObject<UserType> userOld) {
         this.userOld = userOld;
     }
 
-    public MidPointObject<UserType> getUserNew() {
+    public PrismObject<UserType> getUserNew() {
         return userNew;
     }
 
-    public void setUserNew(MidPointObject<UserType> userNew) {
+    public void setUserNew(PrismObject<UserType> userNew) {
         this.userNew = userNew;
     }
 

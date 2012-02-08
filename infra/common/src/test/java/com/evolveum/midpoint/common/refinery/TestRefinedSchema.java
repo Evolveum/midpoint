@@ -23,7 +23,7 @@ package com.evolveum.midpoint.common.refinery;
 import com.evolveum.midpoint.prism.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
@@ -132,7 +132,7 @@ public class TestRefinedSchema {
         System.out.println("Refined account definition:");
         System.out.println(objectDefinition.dump());
 
-        MidPointObject<AccountShadowType> accObject = objectDefinition.parseObjectType(accType);
+        PrismObject<AccountShadowType> accObject = objectDefinition.parseObjectType(accType);
 
         // THEN
 

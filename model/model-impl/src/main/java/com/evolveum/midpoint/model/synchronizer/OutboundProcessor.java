@@ -35,7 +35,7 @@ import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ChangeType;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -95,7 +95,7 @@ public class OutboundProcessor {
 
                 // TODO: check access
 
-                MidPointObject<UserType> user = context.getUserOld();
+                PrismObject<UserType> user = context.getUserOld();
                 if (user == null) {
                     user = context.getUserNew();
                 }
@@ -149,7 +149,7 @@ public class OutboundProcessor {
 
     }
 
-    private ValueConstruction evaluateOutboundValueConstruction(MidPointObject<UserType> user,
+    private ValueConstruction evaluateOutboundValueConstruction(PrismObject<UserType> user,
             RefinedAttributeDefinition refinedAttributeDefinition,
             RefinedAccountDefinition refinedAccountDefinition, OperationResult result) throws
             ExpressionEvaluationException, ObjectNotFoundException, SchemaException {

@@ -232,7 +232,7 @@ public class ConsolidationProcessor {
                 }
                 AccountShadowType newAccountType = rAccount.createBlankShadow();
                 ObjectDefinition<AccountShadowType> accountTypeDefinition = rAccount.getObjectDefinition();
-                MidPointObject<AccountShadowType> newAccount = accountTypeDefinition.parseObjectType(newAccountType);
+                PrismObject<AccountShadowType> newAccount = accountTypeDefinition.parseObjectType(newAccountType);
                 addDelta.setObjectToAdd(newAccount);
 
                 addDelta.merge(modifyDelta);
@@ -310,7 +310,7 @@ public class ConsolidationProcessor {
             return delta;
         }
 
-        MidPointObject<AccountShadowType> absoluteAccountState = accCtx.getAccountOld();
+        PrismObject<AccountShadowType> absoluteAccountState = accCtx.getAccountOld();
         Property absoluteProperty = absoluteAccountState.findProperty(delta.getPath());
         if (absoluteProperty == null) {
             return delta;

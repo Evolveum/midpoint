@@ -72,7 +72,7 @@ public class TestSchemaProcessorWithRegistry {
 
         // WHEN
 
-        MidPointObject<UserType> user = userDefinition.parseObjectType(userType);
+        PrismObject<UserType> user = userDefinition.parseObjectType(userType);
 
         // THEN
         System.out.println("Parsed user:");
@@ -122,7 +122,7 @@ public class TestSchemaProcessorWithRegistry {
         ObjectDefinition<AccountShadowType> accDefinition = commonSchema.findObjectDefinition(ObjectTypes.ACCOUNT, AccountShadowType.class);
         assertNotNull("account definition not found in parsed schema", accDefinition);
 
-        MidPointObject<AccountShadowType> account = accDefinition.parseObjectType(accType);
+        PrismObject<AccountShadowType> account = accDefinition.parseObjectType(accType);
 
         System.out.println("Parsed account:");
         System.out.println(account.dump());

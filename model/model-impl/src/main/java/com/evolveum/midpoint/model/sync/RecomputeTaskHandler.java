@@ -45,7 +45,7 @@ import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -204,7 +204,7 @@ public class RecomputeTaskHandler implements TaskHandler {
 		SyncContext syncContext = new SyncContext();
 		syncContext.setUserTypeOld(user);
 		Schema objectSchema = schemaRegistry.getObjectSchema();
-		MidPointObject<UserType> mpUser = objectSchema.parseObjectType(user);
+		PrismObject<UserType> mpUser = objectSchema.parseObjectType(user);
 		syncContext.setUserOld(mpUser);
 		syncContext.setUserOid(user.getOid());
 

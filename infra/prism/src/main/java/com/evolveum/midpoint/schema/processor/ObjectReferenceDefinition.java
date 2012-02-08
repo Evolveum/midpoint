@@ -26,6 +26,8 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
+
 /**
  * Object Reference Schema Definition.
  * 
@@ -48,8 +50,8 @@ public class ObjectReferenceDefinition extends PropertyDefinition {
 	private static final long serialVersionUID = 2427488779612517600L;
 	private Set<QName> targetTypeNames;
 
-	ObjectReferenceDefinition(QName name, QName defaultName, QName typeName) {
-		super(name, defaultName, typeName);
+	ObjectReferenceDefinition(QName name, QName defaultName, QName typeName, PrismContext prismContext) {
+		super(name, defaultName, typeName, prismContext);
 	}
 
 	/**

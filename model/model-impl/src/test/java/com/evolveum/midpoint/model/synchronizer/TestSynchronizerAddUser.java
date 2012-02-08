@@ -47,7 +47,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.ChangeType;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -148,11 +148,11 @@ public class TestSynchronizerAddUser extends AbstractTestNGSpringContextTests {
 
 		ObjectDelta<UserType> objectDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD);
 		Schema commonSchema = schemaRegistry.getObjectSchema();
-		MidPointObject<UserType> user = commonSchema.parseObjectType(userType);
+		PrismObject<UserType> user = commonSchema.parseObjectType(userType);
 		objectDelta.setObjectToAdd(user);
 		
 		syncContext.setUserOld(null);
-		syncContext.setUserNew((MidPointObject<UserType>) user);
+		syncContext.setUserNew((PrismObject<UserType>) user);
 		syncContext.setUserPrimaryDelta((ObjectDelta<UserType>) objectDelta);
 		
 		syncContext.setUserTemplate(userTemplate);

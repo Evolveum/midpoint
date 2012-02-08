@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -51,21 +52,12 @@ import com.evolveum.midpoint.util.MiscUtil;
  * @author Radovan Semancik
  * 
  */
-public class MidPointObject<T extends Objectable> extends PropertyContainer {
+public class PrismObject<T extends Objectable> extends PropertyContainer {
 
 	protected String oid;
-	protected T objectType = null;
-	
-//	public MidPointObject(QName name) {
-//		super(name);
-//	}
-//
-//	public MidPointObject(QName name, ObjectDefinition definition) {
-//		super(name, definition);
-//	}
-	
-	public MidPointObject(QName name, ObjectDefinition definition, Object element, PropertyPath parentPath) {
-		super(name, definition, element, parentPath);
+		
+	public PrismObject(QName name, ObjectDefinition definition, PrismContext prismContext, PropertyPath parentPath) {
+		super(name, definition, prismContext, parentPath);
 	}
 
 	/**
@@ -98,45 +90,24 @@ public class MidPointObject<T extends Objectable> extends PropertyContainer {
 		return ((ObjectDefinition)getDefinition()).getJaxbClass();
 	}
 
-	public T getObjectType() {
-		return objectType;
-	}
-
-	public void setObjectType(T objectType) {
-		this.objectType = objectType;
+	public T getObjectable() {
+		// TODO
+		throw new UnsupportedOperationException();
 	}
 	
-	public T getOrParseObjectType() throws SchemaException {
-		if (objectType == null) {
-			objectType = convertToObjectType();
-		}
-		return objectType;
-	}
-	
-	private T convertToObjectType() throws SchemaException {
-		ObjectDefinition<T> def = (ObjectDefinition<T>) getDefinition();
-		if (def == null) {
-			throw new IllegalStateException("Cannot convert object with no definition ("+this+")");
-		}
-		return def.convertToObjectType(this);
-	}
-	
-	
-
 	@Override
-	public MidPointObject<T> clone() {
-		MidPointObject<T> clone = new MidPointObject<T>(getName(), getDefinition(), getElement(), getParentPath());
+	public PrismObject<T> clone() {
+		PrismObject<T> clone = new PrismObject<T>(getName(), getDefinition(), prismContext, getParentPath());
 		copyValues(clone);
 		return clone;
 	}
 
-	protected void copyValues(MidPointObject<T> clone) {
+	protected void copyValues(PrismObject<T> clone) {
 		super.copyValues(clone);
 		clone.oid = this.oid;
-		clone.objectType = null; // this will get generated eventually. Copying will not work anyway.
 	}
 	
-	public ObjectDelta<T> compareTo(MidPointObject<T> other) {
+	public ObjectDelta<T> compareTo(PrismObject<T> other) {
 		if (other == null) {
 			ObjectDelta<T> objectDelta = new ObjectDelta<T>(getJaxbClass(), ChangeType.DELETE);
 			objectDelta.setOid(getOid());
@@ -181,7 +152,6 @@ public class MidPointObject<T extends Objectable> extends PropertyContainer {
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + ((objectType == null) ? 0 : objectType.hashCode());
 		result = prime * result + ((oid == null) ? 0 : oid.hashCode());
 		return result;
 	}
@@ -199,12 +169,7 @@ public class MidPointObject<T extends Objectable> extends PropertyContainer {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		MidPointObject other = (MidPointObject) obj;
-		if (objectType == null) {
-			if (other.objectType != null)
-				return false;
-		} else if (!objectType.equals(other.objectType))
-			return false;
+		PrismObject other = (PrismObject) obj;
 		if (oid == null) {
 			if (other.oid != null)
 				return false;
@@ -223,7 +188,7 @@ public class MidPointObject<T extends Objectable> extends PropertyContainer {
 			return true;
 		if (getClass() != obj.getClass())
 			return false;
-		MidPointObject other = (MidPointObject) obj;
+		PrismObject other = (PrismObject) obj;
 		if (oid == null) {
 			if (other.oid != null)
 				return false;

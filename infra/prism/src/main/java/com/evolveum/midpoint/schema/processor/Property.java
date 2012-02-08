@@ -21,14 +21,14 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.XsdTypeConverter;
 import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.util.DebugUtil;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -88,8 +88,8 @@ public class Property extends Item {
 //        }
 //    }
 
-    public Property(QName name, PropertyDefinition definition, Object element, PropertyPath parentPath) {
-        super(name, definition, element, parentPath);
+    public Property(QName name, PropertyDefinition definition, PrismContext prismContext, PropertyPath parentPath) {
+        super(name, definition, prismContext, parentPath);
     }
 
     /**
@@ -271,19 +271,6 @@ public class Property extends Item {
         return (values == null || values.isEmpty());
     }
 
-    public PropertyModification createModification(PropertyModification.ModificationType modificationType,
-            Set<PropertyValue<Object>> modifyValues) {
-
-        return new PropertyModification(this, modificationType, modifyValues);
-    }
-
-    public PropertyModification createModification(PropertyModification.ModificationType modificationType,
-            PropertyValue<Object> modifyValue) {
-        Set<PropertyValue<Object>> modifyValues = new HashSet<PropertyValue<Object>>();
-        modifyValues.add(modifyValue);
-        return new PropertyModification(this, modificationType, modifyValues);
-    }
-
     @Override
     public void serializeToDom(Node parentNode) throws SchemaException {
         serializeToDom(parentNode, null, null, false);
@@ -396,44 +383,9 @@ public class Property extends Item {
         return elements;
     }
 
-    public void applyValueToElement() throws SchemaException {
-        if (element == null) {
-            throw new IllegalStateException("Cannot apply value to element as the element is null (property " + getName() + ")");
-        }
-        if (element instanceof Element) {
-            // TODO
-            Element domElement = (Element) element;
-            Node parentNode = domElement.getParentNode();
-            if (!(parentNode instanceof Element)) {
-                // This is unlikely for JAXB elements, the will be JAXBElement instead. But this may happen for
-                // "primitive" types. It may need some solution later.
-                throw new IllegalStateException("Cannot apply value changes to top-level DOM elements (property " + getName() + ")");
-            }
-            Element parentElement = (Element) parentNode;
-            Object newElement = null;
-            try {
-                newElement = XsdTypeConverter.toXsdElement(getValue().getValue(), getDefinition().getTypeName(), getName(), domElement.getOwnerDocument(), false);
-            } catch (SchemaException e) {
-                throw new SchemaException(e.getMessage() + ", while converting value of property " + getName(), e);
-            }
-            Element newDomElement = null;
-            try {
-                newDomElement = JAXBUtil.toDomElement(newElement, parentElement.getOwnerDocument());
-            } catch (JAXBException e) {
-                throw new SchemaException("Cannot convert value of property " + getName() + ": " + e.getMessage(), e);
-            }
-            parentElement.replaceChild(newDomElement, domElement);
-            element = newDomElement;
-        } else if (element instanceof JAXBElement) {
-            ((JAXBElement) element).setValue(getValue());
-        } else {
-            throw new IllegalStateException("Unknown element type " + element + " (" + element.getClass().getName() + "), property " + getName());
-        }
-    }
-
     @Override
     public Property clone() {
-        Property clone = new Property(getName(), getDefinition(), getElement(), getParentPath());
+        Property clone = new Property(getName(), getDefinition(), prismContext, getParentPath());
         copyValues(clone);
         return clone;
     }

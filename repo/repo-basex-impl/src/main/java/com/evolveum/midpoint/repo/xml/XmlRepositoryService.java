@@ -35,7 +35,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import org.apache.commons.lang.StringUtils;
@@ -391,7 +391,7 @@ public class XmlRepositoryService implements RepositoryService {
             T objectType = this.getObject(type, delta.getOid(), null, result);
             ObjectDefinition<T> objectDef = schema.findObjectDefinition(type);
 
-            MidPointObject<T> midPointObject = objectDef.parseObjectType(objectType);
+            PrismObject<T> midPointObject = objectDef.parseObjectType(objectType);
             LOGGER.trace("OBJECT before:\n{}",midPointObject.dump());
             LOGGER.trace("DELTA:\n{}",delta.dump());
             delta.applyTo(midPointObject);

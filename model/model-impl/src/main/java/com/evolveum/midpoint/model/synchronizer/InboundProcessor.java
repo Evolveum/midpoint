@@ -127,7 +127,7 @@ public class InboundProcessor {
         ObjectDelta<UserType> userDelta = context.getUserSecondaryDelta();
 
         ObjectDelta<AccountShadowType> syncDelta = accContext.getAccountSyncDelta();
-        MidPointObject<AccountShadowType> oldAccount = accContext.getAccountOld();
+        PrismObject<AccountShadowType> oldAccount = accContext.getAccountOld();
         for (QName name : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
             LOGGER.trace("Processing inbound for {}", name);
             PropertyDelta propertyDelta = null;
@@ -174,7 +174,7 @@ public class InboundProcessor {
                 context.getUserNew(), accContext, accountDefinition, userDelta, result);
     }
 
-    private boolean checkInitialSkip(ValueAssignmentType inbound, MidPointObject<UserType> newUser) {
+    private boolean checkInitialSkip(ValueAssignmentType inbound, PrismObject<UserType> newUser) {
         ValueConstructionType valueConstruction = inbound.getSource();
         if (valueConstruction == null) {
             return false;
@@ -190,7 +190,7 @@ public class InboundProcessor {
     }
 
     private PropertyDelta createUserPropertyDelta(ValueAssignmentType inbound, Property oldAccountProperty,
-            MidPointObject<UserType> newUser) {
+            PrismObject<UserType> newUser) {
         List<ValueFilterType> filters = inbound.getValueFilter();
 
         PropertyPath targetUserAttribute = createUserPropertyPath(inbound);
@@ -219,7 +219,7 @@ public class InboundProcessor {
     }
 
     private PropertyDelta createUserPropertyDelta(ValueAssignmentType inbound, PropertyDelta propertyDelta,
-            MidPointObject<UserType> newUser) {
+            PrismObject<UserType> newUser) {
         List<ValueFilterType> filters = inbound.getValueFilter();
 
         PropertyPath targetUserAttribute = createUserPropertyPath(inbound);
@@ -287,7 +287,7 @@ public class InboundProcessor {
     }
 
     private void processCustomPropertyInbound(ValueAssignmentType inbound, PropertyPath path,
-            MidPointObject<UserType> newUser, AccountSyncContext accContext, RefinedAccountDefinition accountDefinition,
+            PrismObject<UserType> newUser, AccountSyncContext accContext, RefinedAccountDefinition accountDefinition,
             ObjectDelta<UserType> userSecondaryDelta, OperationResult opResult) throws SchemaException {
         if (inbound == null || newUser == null) {
             return;

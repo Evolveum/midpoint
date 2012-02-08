@@ -37,7 +37,7 @@ import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ChangeType;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -161,7 +161,7 @@ public class UserSynchronizer {
                 ObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(
                         resource, schemaRegistry).getObjectDefinition(account);
 
-                MidPointObject<AccountShadowType> object = definition.instantiate(SchemaConstants.I_ACCOUNT_SHADOW_TYPE);
+                PrismObject<AccountShadowType> object = definition.instantiate(SchemaConstants.I_ACCOUNT_SHADOW_TYPE);
                 object.setOid(account.getOid());
                 object.setObjectType(account);
                 accContext.setAccountOld(object);
@@ -213,7 +213,7 @@ public class UserSynchronizer {
         UserType userType = cacheRepositoryService.getObject(UserType.class, userOid, null, result);
         context.setUserTypeOld(userType);
         Schema commonSchema = schemaRegistry.getObjectSchema();
-        MidPointObject<UserType> user = commonSchema.parseObjectType(userType);
+        PrismObject<UserType> user = commonSchema.parseObjectType(userType);
         context.setUserOld(user);
     }
 
@@ -225,7 +225,7 @@ public class UserSynchronizer {
             policyDecision = PolicyDecision.DELETE;
         }
 
-        MidPointObject<UserType> userNew = context.getUserNew();
+        PrismObject<UserType> userNew = context.getUserNew();
         if (userNew != null) {
             UserType userTypeNew = userNew.getOrParseObjectType();
             loadAccountRefsFromUser(context, userTypeNew, policyDecision, result);

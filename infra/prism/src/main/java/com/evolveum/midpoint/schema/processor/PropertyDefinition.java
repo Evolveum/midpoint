@@ -21,9 +21,10 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
@@ -71,17 +72,8 @@ public class PropertyDefinition extends ItemDefinition {
     private boolean read = true;
     private boolean update = true;
 
-    public PropertyDefinition(QName name, QName defaultName, QName typeName) {
-        super(name, defaultName, typeName);
-    }
-
-    public PropertyDefinition(QName name, QName typeName) {
-        super(name, null, typeName);
-    }
-
-    // This creates reference to other schema
-    PropertyDefinition(QName name) {
-        super(name, null, null);
+    public PropertyDefinition(QName name, QName defaultName, QName typeName, PrismContext prismContext) {
+        super(name, defaultName, typeName, prismContext);
     }
 
     /**
@@ -208,12 +200,7 @@ public class PropertyDefinition extends ItemDefinition {
 
     @Override
     public Property instantiate(QName name, PropertyPath parentPath) {
-        return new Property(name, this, null, parentPath);
-    }
-
-    @Override
-    public Property instantiate(QName name, Object element, PropertyPath parentPath) {
-        return new Property(name, this, element, parentPath);
+        return new Property(name, this, prismContext, parentPath);
     }
 
     // TODO: factory methods for DOM and JAXB elements
@@ -234,7 +221,15 @@ public class PropertyDefinition extends ItemDefinition {
         return create;
     }
 
-    /* (non-Javadoc)
+    @Override
+	void revive(PrismContext prismContext) {
+		if (this.prismContext != null) {
+			return;
+		}
+		this.prismContext = prismContext;
+	}
+
+	/* (non-Javadoc)
       * @see com.evolveum.midpoint.schema.processor.Definition#parseItem(java.util.List)
       */
     @Override
@@ -245,7 +240,7 @@ public class PropertyDefinition extends ItemDefinition {
         QName propName = JAXBUtil.getElementQName(elements.get(0));
         Property prop = null;
         if (elements.size() == 1) {
-            prop = this.instantiate(propName, elements.get(0), parentPath);
+            prop = this.instantiate(propName, parentPath);
         } else {
             // In-place modification not supported for multi-valued properties
             prop = this.instantiate(propName, null);

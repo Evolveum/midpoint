@@ -536,4 +536,13 @@ public class XPathHolder {
 		return false;
 	}
 	
+	public PropertyPath toPropertyPath() {
+		List<XPathSegment> segments = toSegments();
+		List<QName> qnames = new ArrayList<QName>(segments.size());
+		for (XPathSegment segment : segments) {
+			qnames.add(segment.getQName());
+		}
+		return new PropertyPath(qnames);
+	}
+	
 }

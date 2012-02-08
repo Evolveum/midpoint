@@ -34,7 +34,7 @@ import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ChangeType;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
@@ -122,7 +122,7 @@ public class ReconciliationProcessor {
     private void reconcileAccount(AccountSyncContext accCtx,
             Map<QName, DeltaSetTriple<ValueConstruction>> tripleMap, RefinedAccountDefinition accountDefinition) {
 
-    	MidPointObject<AccountShadowType> account = accCtx.getAccountNew();
+    	PrismObject<AccountShadowType> account = accCtx.getAccountNew();
 
         PropertyContainer attributesContainer = account.findPropertyContainer(AccountShadowType.F_ATTRIBUTES);
         Collection<QName> attributeNames = MiscUtil.union(tripleMap.keySet(),attributesContainer.getPropertyNames());

@@ -37,7 +37,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
+import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -65,7 +65,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	private List<AssignmentType> assignments;
 	private AccountConstructionType accountConstructionType;
 	private ObjectType source;
-	private MidPointObject<UserType> user;
+	private PrismObject<UserType> user;
 	private ResourceType resource;
 	private ObjectResolver objectResolver;
 	private ValueConstructionFactory valueConstructionFactory;
@@ -84,7 +84,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		this.source = source;
 	}
 	
-	public void setUser(MidPointObject<UserType> user) {
+	public void setUser(PrismObject<UserType> user) {
 		this.user = user;
 	}
 		

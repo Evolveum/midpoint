@@ -21,14 +21,16 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import com.evolveum.midpoint.schema.TypedValue;
-import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.TypedValue;
+import com.evolveum.midpoint.prism.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
-import org.apache.cxf.common.util.StringUtils;
+
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 
 import javax.xml.bind.JAXBElement;
@@ -66,7 +68,6 @@ public class PropertyContainerDefinition extends ItemDefinition {
     private static final long serialVersionUID = -5068923696147960699L;
     private static final String ANY_GETTER_NAME = "getAny";
     protected ComplexTypeDefinition complexTypeDefinition;
-    protected Schema schema;
     /**
      * This means that the property container is not defined by fixed (compile-time) schema.
      * This in fact means that we need to use getAny in a JAXB types. It does not influence the
@@ -78,8 +79,8 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * The constructors should be used only occasionally (if used at all).
      * Use the factory methods in the ResourceObjectDefintion instead.
      */
-    PropertyContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition) {
-        super(name, determineDefaultName(complexTypeDefinition), determineTypeName(complexTypeDefinition));
+    PropertyContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext) {
+        super(name, determineDefaultName(complexTypeDefinition), determineTypeName(complexTypeDefinition), prismContext);
         this.complexTypeDefinition = complexTypeDefinition;
         if (complexTypeDefinition == null) {
             isRuntimeSchema = true;
@@ -104,21 +105,8 @@ public class PropertyContainerDefinition extends ItemDefinition {
         return complexTypeDefinition.getDefaultName();
     }
 
-    /**
-     * The constructors should be used only occasionally (if used at all).
-     * Use the factory methods in the ResourceObjectDefintion instead.
-     */
-    PropertyContainerDefinition(Schema schema, QName name, ComplexTypeDefinition complexTypeDefinition) {
-        super(name, determineDefaultName(complexTypeDefinition), determineTypeName(complexTypeDefinition));
-        this.complexTypeDefinition = complexTypeDefinition;
-        if (schema == null) {
-            throw new IllegalArgumentException("Schema can't be null.");
-        }
-        this.schema = schema;
-    }
-
     protected String getSchemaNamespace() {
-        return schema.getNamespace();
+        return getNameOrDefaultName().getNamespaceURI();
     }
 
     public ComplexTypeDefinition getComplexTypeDefinition() {
@@ -132,8 +120,20 @@ public class PropertyContainerDefinition extends ItemDefinition {
     public boolean isWildcard() {
         return (complexTypeDefinition == null);
     }
+    
+    
+    @Override
+	void revive(PrismContext prismContext) {
+		if (this.prismContext != null) {
+			return;
+		}
+		this.prismContext = prismContext;
+		if (complexTypeDefinition != null) {
+			complexTypeDefinition.revive(prismContext);
+		}
+	}
 
-    public <T extends ItemDefinition> T findItemDefinition(QName name, Class<T> clazz) {
+	public <T extends ItemDefinition> T findItemDefinition(QName name, Class<T> clazz) {
         if (clazz == null) {
             throw new IllegalArgumentException("type not specified while searching for " + name + " in " + this);
         }
@@ -277,17 +277,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
      */
     @Override
     public PropertyContainer instantiate(PropertyPath parentPath) {
-        return instantiate(getNameOrDefaultName(), null, parentPath);
-    }
-
-    /**
-     * Create property container instance with a specified name.
-     * <p/>
-     * This is a preferred way how to create property container.
-     */
-    @Override
-    public PropertyContainer instantiate(QName name, PropertyPath parentPath) {
-        return new PropertyContainer(name, this, null, parentPath);
+        return instantiate(getNameOrDefaultName(), parentPath);
     }
 
     /**
@@ -296,8 +286,8 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * This is a preferred way how to create property container.
      */
     @Override
-    public PropertyContainer instantiate(QName name, Object element, PropertyPath parentPath) {
-        return new PropertyContainer(name, this, element, parentPath);
+    public PropertyContainer instantiate(QName name, PropertyPath parentPath) {
+        return new PropertyContainer(name, this, prismContext, parentPath);
     }
 
     /**
@@ -305,7 +295,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
      */
     @Override
     public PropertyContainerDefinition clone() {
-        PropertyContainerDefinition clone = new PropertyContainerDefinition(name, complexTypeDefinition);
+        PropertyContainerDefinition clone = new PropertyContainerDefinition(name, complexTypeDefinition, prismContext);
         copyDefinitionData(clone);
         return clone;
     }
@@ -313,7 +303,6 @@ public class PropertyContainerDefinition extends ItemDefinition {
     protected void copyDefinitionData(PropertyContainerDefinition clone) {
         super.copyDefinitionData(clone);
         clone.complexTypeDefinition = this.complexTypeDefinition;
-        clone.schema = this.schema;
         clone.isRuntimeSchema = this.isRuntimeSchema;
     }
 
@@ -327,7 +316,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * @return created property definition
      */
     public PropertyDefinition createPropertyDefinition(QName name, QName typeName) {
-        PropertyDefinition propDef = new PropertyDefinition(name, typeName);
+        PropertyDefinition propDef = new PropertyDefinition(name, name, typeName, prismContext);
         getDefinitions().add(propDef);
         return propDef;
     }
@@ -345,7 +334,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
      */
     public PropertyDefinition createPropertyDefinition(QName name, QName typeName,
             int minOccurs, int maxOccurs) {
-        PropertyDefinition propDef = new PropertyDefinition(name, typeName);
+        PropertyDefinition propDef = new PropertyDefinition(name, name, typeName, prismContext);
         propDef.setMinOccurs(minOccurs);
         propDef.setMaxOccurs(maxOccurs);
         getDefinitions().add(propDef);
@@ -356,7 +345,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
     // TODO: maybe check if the name is in different namespace
     // TODO: maybe create entirely new concept of property reference?
     public PropertyDefinition createPropertyDefinition(QName name) {
-        PropertyDefinition propDef = new PropertyDefinition(name);
+        PropertyDefinition propDef = new PropertyDefinition(name, name, null, prismContext);
         getDefinitions().add(propDef);
         return propDef;
     }
@@ -466,7 +455,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
         	return parseItemFromJaxbElement((JAXBElement)element, type, parentPath);
         }
         QName elementQName = JAXBUtil.getElementQName(element);
-        T container = (T) this.instantiate(elementQName, element, parentPath);
+        T container = (T) this.instantiate(elementQName, parentPath);
         List<Object> childElements = JAXBUtil.listChildElements(element);
         container.getItems().addAll(parseItems(childElements, container.getPath()));
         return container;
@@ -550,12 +539,12 @@ public class PropertyContainerDefinition extends ItemDefinition {
             
             if (def == null) {
             	// Try to locate xsi:type definition in the element
-            	def = Schema.resolveDynamicItemDefinition(this, valueElements);
+            	def = Schema.resolveDynamicItemDefinition(this, valueElements, prismContext);
             }
             
             if (def == null && isRuntimeSchema) {
             	// Kindof hack. Create default definition for this.
-            	def = Schema.createDefaultItemDefinition(this, valueElements);
+            	def = Schema.createDefaultItemDefinition(this, valueElements, prismContext);
             }
             
             if (def == null) {
