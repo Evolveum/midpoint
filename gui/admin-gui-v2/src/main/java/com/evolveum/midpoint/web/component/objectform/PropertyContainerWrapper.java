@@ -52,6 +52,10 @@ public class PropertyContainerWrapper<T> implements ItemWrapper<T> {
     public int getPosition() {
         return 0;  //To change body of implemented methods use File | Settings | File Templates.
     }
+    
+    public String getDescription() {
+        return null;   //To change body of implemented methods use File | Settings | File Templates.
+    }
 
     @Override
     public String getName() {
