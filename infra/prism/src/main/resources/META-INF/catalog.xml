@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2012 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2012 [name of copyright owner]
+  -->
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">	
+
+	<!-- Schema locations for public namespaces -->
+	<public publicId="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd" uri="../xml/ns/public/common/annotation-1.xsd" />
+	<system systemId="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd" uri="../xml/ns/public/common/annotation-1.xsd" />
+
+    <public publicId="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd" uri="../xml/ns/test/foo-1.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd" uri="../xml/ns/test/foo-1.xsd" />
+
+    <!-- Bundled standard schemas -->
+	<public publicId="datatypes" uri="../xml/ns/standard/datatypes.dtd" />
+	<system systemId="datatypes" uri="../xml/ns/standard/datatypes.dtd" />
+
+	<public publicId="-//W3C//DTD XMLSchema 200102//EN" uri="../xml/ns/standard/XMLSchema.dtd" />
+	<public publicId="-//W3C//DTD XMLSCHEMA 200102//EN" uri="../xml/ns/standard/XMLSchema.dtd" />
+	<system systemId="-//W3C//DTD XMLSCHEMA 200102//EN" uri="../xml/ns/standard/XMLSchema.dtd" />
+
+	<public publicId="XMLSchema.dtd" uri="../xml/ns/standard/XMLSchema.dtd" />
+	<system systemId="XMLSchema.dtd" uri="../xml/ns/standard/XMLSchema.dtd" />
+
+	<public publicId="http://www.w3.org/2001/04/xmlenc#" uri="../xml/ns/standard/xenc-schema.xsd" />
+	<system systemId="http://www.w3.org/2001/04/xmlenc#" uri="../xml/ns/standard/xenc-schema.xsd" />
+
+	<public publicId="http://www.w3.org/2001/XMLSchema" uri="../xml/ns/standard/XMLSchema.xsd" />
+	<system systemId="http://www.w3.org/2001/XMLSchema" uri="../xml/ns/standard/XMLSchema.xsd" />
+
+	<public publicId="http://www.w3.org/XML/1998/namespace" uri="../xml/ns/standard/xml.xsd" />
+	<system systemId="http://www.w3.org/XML/1998/namespace" uri="../xml/ns/standard/xml.xsd" />
+
+	<public publicId="http://www.w3.org/2000/09/xmldsig#" uri="../xml/ns/standard/xmldsig-core-schema.xsd" />
+	<system systemId="http://www.w3.org/2000/09/xmldsig#" uri="../xml/ns/standard/xmldsig-core-schema.xsd" />
+
+
+</catalog>
