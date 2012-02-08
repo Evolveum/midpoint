@@ -146,7 +146,7 @@ public class PrismJaxbProcessor {
 	
 	public String marshalToString(Objectable objectable) throws JAXBException {
 		QName elementQName = determineElementQName(objectable);
-		JAXBElement<?> jaxbElement = new JAXBElement<Object>(elementQName, (Class<Object>) objectable.getClass(), objectable);
+		JAXBElement<Object> jaxbElement = new JAXBElement<Object>(elementQName, (Class) objectable.getClass(), objectable);
 		return marshalElementToString(jaxbElement);
 	}
 	
@@ -192,7 +192,7 @@ public class PrismJaxbProcessor {
 	
 	public void marshalToDom(Objectable objectable, Node parentNode) throws JAXBException {
 		QName elementQName = determineElementQName(objectable);
-		JAXBElement<?> jaxbElement = new JAXBElement<Object>(elementQName, (Class<Object>) objectable.getClass(), objectable);
+		JAXBElement<Object> jaxbElement = new JAXBElement<Object>(elementQName, (Class) objectable.getClass(), objectable);
 		marshalElementToDom(jaxbElement, parentNode);
 	}
 

@@ -20,10 +20,7 @@
  */
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.schema.TypedValue;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -87,19 +84,19 @@ public class XsdTypeConverter {
         addMapping(XMLGregorianCalendar.class, DOMUtil.XSD_DATETIME, true);
         addMapping(QName.class, DOMUtil.XSD_QNAME, true);
 
-        for (int i = 0; i < SchemaConstants.JAXB_PACKAGES.length; i++) {
-            String packageName = SchemaConstants.JAXB_PACKAGES[i];
-            Set<Class> classes = ClassPathUtil.listClasses(packageName);
-            if (classes.isEmpty()) {
-                LOGGER.warn("No classes found in the JAXB package " + packageName);
-            }
-            for (Class jaxbClass : classes) {
-                QName typeQName = JAXBUtil.getTypeQName(jaxbClass);
-                if (typeQName != null) {
-                    addMapping(jaxbClass, typeQName, true);
-                }
-            }
-        }
+//        for (int i = 0; i < SchemaConstants.JAXB_PACKAGES.length; i++) {
+//            String packageName = SchemaConstants.JAXB_PACKAGES[i];
+//            Set<Class> classes = ClassPathUtil.listClasses(packageName);
+//            if (classes.isEmpty()) {
+//                LOGGER.warn("No classes found in the JAXB package " + packageName);
+//            }
+//            for (Class jaxbClass : classes) {
+//                QName typeQName = JAXBUtil.getTypeQName(jaxbClass);
+//                if (typeQName != null) {
+//                    addMapping(jaxbClass, typeQName, true);
+//                }
+//            }
+//        }
         //addMapping(CredentialsType.PasswordType.class, JAXBUtil.getTypeQName(CredentialsType.Password.class), true);
     }
 
@@ -139,13 +136,13 @@ public class XsdTypeConverter {
                 return (T) xmlElement;
             } else if (type.equals(QName.class)) {
                 return (T) DOMUtil.getQNameValue(xmlElement);
-            } else if (JAXBUtil.isJaxbClass(type)) {
-                try {
-                    return JAXBUtil.unmarshal(xmlElement, type).getValue();
-                } catch (JAXBException e) {
-                    QName elementQName = JAXBUtil.getElementQName(xmlElement);
-                    throw new SchemaException("Cannot parse value of element " + elementQName + ": " + e.getMessage(), e, elementQName);
-                }
+//            } else if (JAXBUtil.isJaxbClass(type)) {
+//                try {
+//                    return JAXBUtil.unmarshal(xmlElement, type).getValue();
+//                } catch (JAXBException e) {
+//                    QName elementQName = JAXBUtil.getElementQName(xmlElement);
+//                    throw new SchemaException("Cannot parse value of element " + elementQName + ": " + e.getMessage(), e, elementQName);
+//                }
             } else {
                 String stringContent = xmlElement.getTextContent();
                 if (stringContent == null) {
@@ -280,16 +277,16 @@ public class XsdTypeConverter {
         if (type == null) {
             throw new IllegalArgumentException("No type mapping for conversion: " + val.getClass() + "(element " + elementName + ")");
         }
-        if (JAXBUtil.isJaxbClass(type)) {
-            JAXBElement jaxbElement = new JAXBElement(elementName, type, val);
-            return jaxbElement;
-        } else {
+//        if (JAXBUtil.isJaxbClass(type)) {
+//            JAXBElement jaxbElement = new JAXBElement(elementName, type, val);
+//            return jaxbElement;
+//        } else {
             if (doc == null) {
                 doc = DOMUtil.getDocument();
             }
             Element element = doc.createElementNS(elementName.getNamespaceURI(), elementName.getLocalPart());
             //TODO: switch to global namespace prefixes map
-            element.setPrefix(MidPointNamespacePrefixMapper.getPreferredPrefix(elementName.getNamespaceURI()));
+//            element.setPrefix(MidPointNamespacePrefixMapper.getPreferredPrefix(elementName.getNamespaceURI()));
             if (type.equals(Element.class)) {
                 return val;
             } else if (type.equals(String.class)) {
@@ -328,7 +325,7 @@ public class XsdTypeConverter {
                 DOMUtil.setXsiType(element, xsdType);
             }
             return element;
-        }
+//        }
     }
 
     private static QName getJavaToXsdMapping(Class<?> type) {
@@ -502,12 +499,12 @@ public class XsdTypeConverter {
         }
         if (xsdElement instanceof Element) {
             parentNode.appendChild((Element) xsdElement);
-        } else if (xsdElement instanceof JAXBElement) {
-            try {
-                JAXBUtil.marshal(xsdElement, parentNode);
-            } catch (JAXBException e) {
-                throw new SchemaException("Error marshalling element " + xsdElement + ": " + e.getMessage(), e);
-            }
+//        } else if (xsdElement instanceof JAXBElement) {
+//            try {
+//                JAXBUtil.marshal(xsdElement, parentNode);
+//            } catch (JAXBException e) {
+//                throw new SchemaException("Error marshalling element " + xsdElement + ": " + e.getMessage(), e);
+//            }
         } else {
             throw new IllegalStateException("The XSD type converter returned unknown element type: " + xsdElement + " (" + xsdElement.getClass().getName() + ")");
         }
