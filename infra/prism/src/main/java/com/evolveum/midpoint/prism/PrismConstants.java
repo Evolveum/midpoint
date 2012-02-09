@@ -43,6 +43,7 @@ public class PrismConstants {
 	public static final String A_ACCESS_UPDATE = "update";
 	public static final String A_ACCESS_READ = "read";
 	public static final QName A_PROPERTY_CONTAINER = new QName(NS_ANNOTATION,"propertyContainer");	
+	public static final QName A_OBJECT = new QName(NS_ANNOTATION,"object");
 	public static final QName A_IGNORE = new QName(NS_ANNOTATION, "ignore");
 	public static final QName A_EXTENSION = new QName(NS_ANNOTATION,"extension");
 	public static final QName A_EXTENSION_REF = new QName(NS_ANNOTATION,"ref");

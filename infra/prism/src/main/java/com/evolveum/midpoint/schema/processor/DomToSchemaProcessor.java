@@ -27,11 +27,8 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
@@ -418,6 +415,10 @@ class DomToSchemaProcessor {
 		if (xsType.getName() == null) {
 			return false;
 		}
+		Element annotationElement = getAnnotationElement(xsType.getAnnotation(), A_OBJECT);
+		if (annotationElement != null) {
+			return true;
+		}
 //		QName typeName = new QName(xsType.getTargetNamespace(),xsType.getName());
 //		if (typeName.equals(SchemaConstants.C_OBJECT_TYPE)) {
 //			return true;
@@ -515,7 +516,10 @@ class DomToSchemaProcessor {
 //			pcd = rod;
 
 		if (isObjectDefinition(xsType)) {
-			Class compileTimeClass = schemaRegistry.determineCompileTimeClass(elementName, complexTypeDefinition);
+			Class compileTimeClass = null;
+			if (schemaRegistry != null) {
+				compileTimeClass = schemaRegistry.determineCompileTimeClass(elementName, complexTypeDefinition);
+			}
 			pcd = new ObjectDefinition(elementName, complexTypeDefinition, prismContext, compileTimeClass );
 		} else {
 			pcd = new PropertyContainerDefinition(elementName, complexTypeDefinition, prismContext);

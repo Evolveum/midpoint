@@ -144,12 +144,15 @@ public class DOMUtil {
 	}
 
 	public static Document parseFile(String filePath) {
-
+		return parseFile(new File(filePath));
+	}
+	
+	public static Document parseFile(File file) {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setNamespaceAware(true);
 			DocumentBuilder loader = factory.newDocumentBuilder();
-			return loader.parse(new File(filePath));
+			return loader.parse(file);
 		} catch (SAXException ex) {
 			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
 		} catch (IOException ex) {
@@ -308,7 +311,7 @@ public class DOMUtil {
 		return null;
 	}
 
-	public static List<Element> getSubelementList(Node node) {
+	public static List<Element> listChildElements(Node node) {
 		List<Element> subelements = new ArrayList<Element>();
 		NodeList childNodes = node.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {

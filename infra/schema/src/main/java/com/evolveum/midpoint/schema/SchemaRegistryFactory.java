@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static javax.xml.XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 import com.evolveum.midpoint.prism.SchemaRegistry;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.namespace.PrefixMapper;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 
 /**
  * @author semancik
@@ -37,27 +39,48 @@ public class SchemaRegistryFactory {
 		SchemaRegistry schemaRegistry = new SchemaRegistry();
 		registerBuiltinSchemas(schemaRegistry);
 		schemaRegistry.setObjectSchemaNamespace(SchemaConstants.NS_COMMON);
-		schemaRegistry.setNamespacePrefixMapper(new PrefixMapper());
+		schemaRegistry.setNamespacePrefixMapper(createPrefixMapper());
 		return schemaRegistry;
 	}
 	
 	private void registerBuiltinSchemas(SchemaRegistry schemaRegistry) throws SchemaException {
 		String prefix;
 		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_COMMON);
-		schemaRegistry.registerMidPointSchemaResource("xml/ns/public/common/common-1.xsd",prefix);
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/common-1.xsd",prefix);
 		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_ANNOTATION);
-		schemaRegistry.registerMidPointSchemaResource("xml/ns/public/common/annotation-1.xsd",prefix);
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/annotation-1.xsd",prefix);
 		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_RESOURCE);
-		schemaRegistry.registerMidPointSchemaResource("xml/ns/public/resource/resource-schema-1.xsd",prefix);
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/resource-schema-1.xsd",prefix);
 		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_CAPABILITIES);
-		schemaRegistry.registerMidPointSchemaResource("xml/ns/public/resource/capabilities-1.xsd",prefix);
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/capabilities-1.xsd",prefix);
 		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_ICF_CONFIGURATION);
-		schemaRegistry.registerMidPointSchemaResource("xml/ns/public/connector/icf-1/connector-schema-1.xsd",prefix);
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/connector-schema-1.xsd",prefix);
 		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_ICF_SCHEMA);
-		schemaRegistry.registerMidPointSchemaResource("xml/ns/public/connector/icf-1/resource-schema-1.xsd",prefix);
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/resource-schema-1.xsd",prefix);
 		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(W3C_XML_SCHEMA_NS_URI);
 		schemaRegistry.registerSchemaResource("xml/ns/standard/XMLSchema.xsd",prefix);
 	}
+	
+	private NamespacePrefixMapper createPrefixMapper() {
+			globalNamespacePrefixMap.clear();
+			globalNamespacePrefixMap.put(SchemaConstants.NS_C, SchemaConstants.NS_C_PREFIX);
+			globalNamespacePrefixMap.put(SchemaConstants.NS_ANNOTATION, "a");
+			globalNamespacePrefixMap.put(SchemaConstants.NS_ICF_SCHEMA, "icfs");
+			globalNamespacePrefixMap.put(SchemaConstants.NS_ICF_CONFIGURATION, "icfc");
+			globalNamespacePrefixMap.put(SchemaConstants.NS_CAPABILITIES, "cap");
+			globalNamespacePrefixMap.put(SchemaConstants.NS_RESOURCE, "r");
+			globalNamespacePrefixMap.put(SchemaConstants.NS_FILTER, "f");
+			globalNamespacePrefixMap.put(SchemaConstants.NS_PROVISIONING_LIVE_SYNC, "ls");
+			globalNamespacePrefixMap.put(SchemaConstants.NS_SITUATION, "sit");
+			globalNamespacePrefixMap.put(
+					"http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd",
+					"ids");
+			globalNamespacePrefixMap.put(W3C_XML_SCHEMA_INSTANCE_NS_URI, "xsi");
+			globalNamespacePrefixMap.put(W3C_XML_SCHEMA_NS_URI, "xsd");
+			globalNamespacePrefixMap.put("http://www.w3.org/2001/04/xmlenc#", "enc");
+			globalNamespacePrefixMap.put("http://www.w3.org/2000/09/xmldsig#", "ds");
+	}
+
 
 	private void setupDebug() {
 		DebugUtil.setDefaultNamespacePrefix(SchemaConstants.NS_MIDPOINT_PUBLIC_PREFIX);

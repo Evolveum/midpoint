@@ -53,6 +53,10 @@ public class ObjectDefinition<T extends Objectable> extends PropertyContainerDef
 	ObjectDefinition(QName name, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, Class<T> jaxbClass) {
 		// Object definition can only be top-level, hence null parent
 		super(name, complexTypeDefinition, prismContext);
+		if (name != null) {
+			// Override default name for objects. In this case name is usually the element name
+			defaultName = name;
+		}
 		this.jaxbClass = jaxbClass;
 	}
 	

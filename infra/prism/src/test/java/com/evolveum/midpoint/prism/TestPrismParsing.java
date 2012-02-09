@@ -19,10 +19,13 @@
  */
 package com.evolveum.midpoint.prism;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -36,6 +39,8 @@ import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.PrismObject;
+import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.util.DOMUtil;
 
@@ -90,8 +95,27 @@ public class TestPrismParsing {
 		System.out.println("User:");
 		System.out.println(user.dump());
 		assertNotNull(user);
+		
+		assertPropertyValue(user, "fullName", "cpt. Jack Sparrow");
+		assertPropertyValue(user, "givenName", "Jack");
+		assertPropertyValue(user, "familyName", "Sparrow");
+		assertPropertyValue(user, "name", "jack");
+		
+		// TODO: extension
+		// TODO: oid
 	}
 	
+	private void assertPropertyValue(PrismObject<?> object, String propName, Object propValue) {
+		QName propQName = new QName(FOO_NS, propName);
+		Property property = object.findProperty(propQName);
+		assertNotNull("Property "+propQName+" not found in "+object, property);
+		Set<PropertyValue<Object>> pvals = property.getValues();
+		assertFalse("Empty property "+propQName+" in "+object, pvals == null || pvals.isEmpty());
+		assertEquals("Numver of values of property "+propQName+" in "+object, 1, pvals.size());
+		PropertyValue<Object> pval = pvals.iterator().next();
+		assertEquals("Values of property "+propQName+" in "+object, propValue, pval.getValue());
+	}
+
 //	@Test
 //	public void testParseFromJaxb() throws SchemaException, SAXException, IOException {
 //		PrismContext prismContext = constructPrismContext();
