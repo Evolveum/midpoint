@@ -77,7 +77,10 @@ public class PrismDomProcessor {
 			throw new SchemaException("No object definition for element "+elementName+" in schema "+schema);
 		}
 		PrismObject<T> object = parsePrismContainer(objectElement, objectDefinition, null);
-		// TODO: oid, version
+		String oid = objectElement.getAttribute("oid");
+		object.setOid(oid);
+		String version = objectElement.getAttribute("version");
+		object.setVersion(version);
 		return object;
 	}
 	

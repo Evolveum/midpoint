@@ -40,6 +40,7 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ObjectDefinition;
 import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -51,7 +52,8 @@ import com.evolveum.midpoint.util.DOMUtil;
 public class TestPrismParsing {
 	
 	private static final String TEST_DIRECTORY = "src/test/resources/parsing";
-	private static final String FOO_NS = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
+	private static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
+	private static final String NS_BAR = "http://www.example.com/bar";
 
 	@Test
 	public void testPrismContextConstruction() throws SchemaException, SAXException, IOException {
@@ -73,7 +75,7 @@ public class TestPrismParsing {
 		System.out.println("Object schema:");
 		System.out.println(objectSchema.dump());
 		
-		ObjectDefinition<UserType> userDefinition = objectSchema.findObjectDefinitionByElementName(new QName(FOO_NS,"user"));
+		ObjectDefinition<UserType> userDefinition = objectSchema.findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
 		assertNotNull("No user definition", userDefinition);
 
 	}
@@ -96,24 +98,33 @@ public class TestPrismParsing {
 		System.out.println(user.dump());
 		assertNotNull(user);
 		
+		assertEquals("Wrong oid", "c0c010c0-d34d-b33f-f00d-111111111111", user.getOid());
+		assertEquals("Wrong version", "42", user.getVersion());
 		assertPropertyValue(user, "fullName", "cpt. Jack Sparrow");
 		assertPropertyValue(user, "givenName", "Jack");
 		assertPropertyValue(user, "familyName", "Sparrow");
 		assertPropertyValue(user, "name", "jack");
 		
-		// TODO: extension
-		// TODO: oid
+		PropertyContainer extension = user.getExtension();
+		assertPropertyValue(extension, new QName(NS_BAR, "bar"), "BAR");
+		assertPropertyValue(extension, new QName(NS_BAR, "num"), 42);
+		Set<PropertyValue<Object>> multiPVals = extension.findProperty(new QName(NS_BAR, "multi")).getValues();
+		assertEquals("Multi",3,multiPVals.size());
 	}
 	
-	private void assertPropertyValue(PrismObject<?> object, String propName, Object propValue) {
-		QName propQName = new QName(FOO_NS, propName);
-		Property property = object.findProperty(propQName);
-		assertNotNull("Property "+propQName+" not found in "+object, property);
+	private void assertPropertyValue(PropertyContainer container, String propName, Object propValue) {
+		QName propQName = new QName(NS_FOO, propName);
+		assertPropertyValue(container, propQName, propValue);
+	}
+		
+	private void assertPropertyValue(PropertyContainer container, QName propQName, Object propValue) {
+		Property property = container.findProperty(propQName);
+		assertNotNull("Property "+propQName+" not found in "+container, property);
 		Set<PropertyValue<Object>> pvals = property.getValues();
-		assertFalse("Empty property "+propQName+" in "+object, pvals == null || pvals.isEmpty());
-		assertEquals("Numver of values of property "+propQName+" in "+object, 1, pvals.size());
+		assertFalse("Empty property "+propQName+" in "+container, pvals == null || pvals.isEmpty());
+		assertEquals("Numver of values of property "+propQName+" in "+container, 1, pvals.size());
 		PropertyValue<Object> pval = pvals.iterator().next();
-		assertEquals("Values of property "+propQName+" in "+object, propValue, pval.getValue());
+		assertEquals("Values of property "+propQName+" in "+container, propValue, pval.getValue());
 	}
 
 //	@Test
@@ -139,7 +150,7 @@ public class TestPrismParsing {
 		// Set default namespace?
 		schemaRegistry.setNamespacePrefixMapper(prefixMapper);
 		schemaRegistry.registerPrismSchemaResource("xml/ns/test/foo-1.xsd", "foo", ObjectFactory.class.getPackage());
-		schemaRegistry.setObjectSchemaNamespace(FOO_NS);
+		schemaRegistry.setObjectSchemaNamespace(NS_FOO);
 		schemaRegistry.initialize();
 		
 		PrismContext context = PrismContext.create(schemaRegistry);

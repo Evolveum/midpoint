@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.delta.PropertyDelta;
@@ -55,6 +56,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 public class PrismObject<T extends Objectable> extends PropertyContainer {
 
 	protected String oid;
+	protected String version;
 		
 	public PrismObject(QName name, ObjectDefinition definition, PrismContext prismContext, PropertyPath parentPath) {
 		super(name, definition, prismContext, parentPath);
@@ -75,6 +77,14 @@ public class PrismObject<T extends Objectable> extends PropertyContainer {
 		this.oid = oid;
 	}
 
+	public String getVersion() {
+		return version;
+	}
+
+	public void setVersion(String version) {
+		this.version = version;
+	}
+
 	@Override
 	public ObjectDefinition<T> getDefinition() {
 		return (ObjectDefinition<T>) super.getDefinition();
@@ -93,6 +103,10 @@ public class PrismObject<T extends Objectable> extends PropertyContainer {
 	public T getObjectable() {
 		// TODO
 		throw new UnsupportedOperationException();
+	}
+	
+	public PropertyContainer getExtension() {
+		return findPropertyContainer(new QName(getName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME));
 	}
 	
 	@Override

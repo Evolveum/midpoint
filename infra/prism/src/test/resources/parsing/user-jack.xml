@@ -18,7 +18,7 @@
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
-<user oid="c0c010c0-d34d-b33f-f00d-111111111111" 
+<user oid="c0c010c0-d34d-b33f-f00d-111111111111" version="42"
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
