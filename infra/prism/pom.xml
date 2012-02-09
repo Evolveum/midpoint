@@ -20,7 +20,8 @@
   ~ Portions Copyrighted 2011 [name of copyright owner]
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>infra</artifactId>
@@ -72,7 +73,7 @@
             <artifactId>util</artifactId>
             <version>2.0-SNAPSHOT</version>
         </dependency>
-                <dependency>
+        <dependency>
             <groupId>com.sun.xsom</groupId>
             <artifactId>xsom</artifactId>
         </dependency>
@@ -96,48 +97,23 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.cxf</groupId>
-                <artifactId>cxf-codegen-plugin</artifactId>
-                <version>${cxf.version}</version>
+                <groupId>org.jvnet.jaxb2.maven2</groupId>
+                <artifactId>maven-jaxb2-plugin</artifactId>
+                <version>0.8.0</version>
                 <executions>
                     <execution>
-                        <id>generate-sources</id>
-                        <phase>generate-sources</phase>
-                        <configuration>
-                            <sourceRoot>${project.build.directory}/generated/cxf</sourceRoot>
-                            <wsdlRoot>${project.directory}/src/main/resources/xml</wsdlRoot>
-                            <wsdlOptions>
-                                <wsdlOption>
-                                    <!-- Ugly hack. The fake WSDL includes all the XSD files we need to compile
-                                                  This is the only way I found to generate equals and hashCode methods with CXF.
-                                                  If you find anything better please correct it. -->
-                                    <wsdl>src/main/resources/xml/ns/private/fake/fakeWrapper.wsdl</wsdl>
-                                    <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog.xml</catalog>
-                                    <extraargs>
-                                        <extraarg>-impl</extraarg>
-                                        <extraarg>-verbose</extraarg>
-                                        <extraarg>-validate</extraarg>
-                                    </extraargs>
-                                </wsdlOption>
-                            </wsdlOptions>
-                        </configuration>
                         <goals>
-                            <goal>wsdl2java</goal>
+                            <goal>generate</goal>
                         </goals>
+                        <configuration>
+                            <verbose>true</verbose>
+                            <catalog>src/main/resources/META-INF/catalog.xml</catalog>
+                            <extension>true</extension>
+                            <schemaDirectory>src/main/resources/xml/ns/test</schemaDirectory>
+                            <generateDirectory>${project.build.directory}/generated-sources/xjc</generateDirectory>
+                        </configuration>
                     </execution>
                 </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.apache.cxf.xjcplugins</groupId>
-                        <artifactId>cxf-xjc-ts</artifactId>
-                        <version>${cxf-xjc.version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.jvnet.jaxb2_commons</groupId>
-                        <artifactId>jaxb2-basics</artifactId>
-                        <version>0.6.3</version>
-                    </dependency>
-                </dependencies>
             </plugin>
         </plugins>
     </build>

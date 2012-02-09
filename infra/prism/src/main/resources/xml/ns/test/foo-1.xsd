@@ -38,8 +38,8 @@
         </xsd:documentation>
         <xsd:appinfo>
             <jaxb:globalBindings>
-                <xjc:typeSubstitution type="complex"/>
-                <xjc:serializable uid="201202081233"/>
+                <xjc:typeSubstitution type="complex" />
+                <xjc:serializable uid="201202081233" />
             </jaxb:globalBindings>
         </xsd:appinfo>
     </xsd:annotation>
