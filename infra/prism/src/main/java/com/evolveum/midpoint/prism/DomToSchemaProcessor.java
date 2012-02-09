@@ -19,7 +19,7 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.schema.processor;
+package com.evolveum.midpoint.prism;
 
 import static com.evolveum.midpoint.prism.PrismConstants.*;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
@@ -45,8 +45,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.SchemaRegistry;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;

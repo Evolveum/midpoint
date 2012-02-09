@@ -37,12 +37,6 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.PrismObjectDefinition;
-import com.evolveum.midpoint.schema.processor.PrismObject;
-import com.evolveum.midpoint.schema.processor.PrismProperty;
-import com.evolveum.midpoint.schema.processor.PrismContainer;
-import com.evolveum.midpoint.schema.processor.PropertyValue;
-import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.util.DOMUtil;
 
 /**

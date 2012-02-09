@@ -45,9 +45,6 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
-import com.evolveum.midpoint.schema.processor.PrismObjectDefinition;
-import com.evolveum.midpoint.schema.processor.PrismObject;
-import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 
@@ -55,7 +52,7 @@ import com.evolveum.midpoint.util.JAXBUtil;
  * @author semancik
  *
  */
-public class PrismJaxbProcessor {
+class PrismJaxbProcessor {
 	
 	private SchemaRegistry schemaRegistry;
 	private JAXBContext context;

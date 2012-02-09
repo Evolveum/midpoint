@@ -21,8 +21,8 @@
 
 package com.evolveum.midpoint.schema.xjc.schema;
 
-import com.evolveum.midpoint.schema.processor.PrismObject;
-import com.evolveum.midpoint.schema.processor.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
 import com.evolveum.midpoint.schema.xjc.Processor;
 import static com.evolveum.midpoint.schema.xjc.util.ProcessorUtils.*;

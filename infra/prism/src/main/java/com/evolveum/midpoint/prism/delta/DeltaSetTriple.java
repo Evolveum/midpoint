@@ -18,9 +18,9 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.schema.delta;
+package com.evolveum.midpoint.prism.delta;
 
-import com.evolveum.midpoint.schema.processor.PropertyValue;
+import com.evolveum.midpoint.prism.PropertyValue;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 

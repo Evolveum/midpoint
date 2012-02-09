@@ -21,7 +21,7 @@ package com.evolveum.midpoint.model.api.hooks;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.schema.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 

@@ -21,15 +21,15 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.ComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.PrismObjectDefinition;
-import com.evolveum.midpoint.schema.processor.PrismContainer;
-import com.evolveum.midpoint.schema.processor.PrismContainerDefinition;
-import com.evolveum.midpoint.schema.processor.PrismPropertyDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -91,7 +91,7 @@ public class TestSchemaRegistry {
 		System.out.println(reg.dump());
 		
 		// Try midpoint schemas by parsing a XML file
-		com.evolveum.midpoint.schema.processor.Schema schema = reg.getSchema(FOO_NAMESPACE);
+		com.evolveum.midpoint.prism.Schema schema = reg.getSchema(FOO_NAMESPACE);
 		System.out.println("Parsed foo schema:");
 		System.out.println(schema.dump());
 		QName rootType = new QName(FOO_NAMESPACE, "RootType");
@@ -133,7 +133,7 @@ public class TestSchemaRegistry {
 		SchemaRegistry reg = new SchemaRegistry();
 		reg.initialize();
 		
-		com.evolveum.midpoint.schema.processor.Schema commonSchema = reg.getObjectSchema();
+		com.evolveum.midpoint.prism.Schema commonSchema = reg.getObjectSchema();
 		assertNotNull("No parsed common schema", commonSchema);
 		System.out.println("Parsed common schema:");
 		System.out.println(commonSchema.dump());
@@ -163,7 +163,7 @@ public class TestSchemaRegistry {
 		SchemaRegistry reg = new SchemaRegistry();
 		reg.initialize();
 		
-		com.evolveum.midpoint.schema.processor.Schema commonSchema = reg.getObjectSchema();
+		com.evolveum.midpoint.prism.Schema commonSchema = reg.getObjectSchema();
 		assertNotNull("No parsed common schema", commonSchema);
 		
 		PrismObjectDefinition<AccountShadowType> accountDef = commonSchema.findObjectDefinition(ObjectTypes.ACCOUNT, AccountShadowType.class);

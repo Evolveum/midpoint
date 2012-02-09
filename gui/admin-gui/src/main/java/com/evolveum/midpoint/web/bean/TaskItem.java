@@ -29,10 +29,10 @@ import java.util.List;
 
 import org.apache.commons.lang.time.DurationFormatUtils;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.XsdTypeConverter;
 import com.evolveum.midpoint.schema.ExtensionProcessor;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.PrismContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;

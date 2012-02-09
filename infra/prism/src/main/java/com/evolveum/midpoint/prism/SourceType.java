@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2011 Evolveum
  *
  * The contents of this file are subject to the terms
@@ -15,14 +15,18 @@
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
+ *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.schema.processor;
+
+package com.evolveum.midpoint.prism;
 
 /**
- * @author semancik
+ * This enum defines source from where a change in property value occured.
  *
+ * @author lazyman
  */
-public enum ChangeType {
-	ADD, MODIFY, DELETE;
+public enum SourceType {
+
+    SYNC_ACTION, RECONCILIATION, INBOUND, OUTBOUND, ASSIGNMENTS, ACTIVATIONS, CREDENTIALS;
 }

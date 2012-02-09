@@ -18,11 +18,12 @@
  *
  * Portions Copyrighted 2012 [name of copyright owner]
  */
-package com.evolveum.midpoint.schema.delta;
+package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;

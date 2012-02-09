@@ -27,9 +27,9 @@ import javax.xml.bind.JAXBElement;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.Schema;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;

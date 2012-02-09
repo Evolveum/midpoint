@@ -19,9 +19,8 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.schema.processor;
+package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 

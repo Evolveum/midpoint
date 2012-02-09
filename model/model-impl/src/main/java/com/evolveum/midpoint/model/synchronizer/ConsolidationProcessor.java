@@ -27,11 +27,18 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.PropertyValue;
 import com.evolveum.midpoint.prism.SchemaRegistry;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.delta.DeltaSetTriple;
-import com.evolveum.midpoint.schema.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.*;
@@ -265,7 +272,7 @@ public class ConsolidationProcessor {
     }
 
     /**
-     * This method checks {@link com.evolveum.midpoint.schema.delta.PropertyDelta} created during consolidation with
+     * This method checks {@link com.evolveum.midpoint.prism.delta.PropertyDelta} created during consolidation with
      * account sync deltas. If changes from property delta are in account sync deltas than they must be removed,
      * because they already had been applied (they came from sync, already happened).
      *
@@ -356,7 +363,7 @@ public class ConsolidationProcessor {
     /**
      * Simple util method which checks property values against already done delta from sync. See method
      * {@link ConsolidationProcessor#consolidateWithSync(com.evolveum.midpoint.model.AccountSyncContext,
-     * com.evolveum.midpoint.schema.delta.PropertyDelta)}.
+     * com.evolveum.midpoint.prism.delta.PropertyDelta)}.
      *
      * @param values           collection which has to be filtered
      * @param alreadyDoneDelta already applied delta from sync

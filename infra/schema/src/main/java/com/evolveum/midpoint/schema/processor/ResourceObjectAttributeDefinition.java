@@ -23,6 +23,10 @@ package com.evolveum.midpoint.schema.processor;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Definition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PropertyPath;
+
 /**
  * Resource Object Attribute Definition.
  * 

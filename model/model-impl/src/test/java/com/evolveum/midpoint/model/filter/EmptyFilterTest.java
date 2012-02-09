@@ -22,7 +22,8 @@ package com.evolveum.midpoint.model.filter;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-import com.evolveum.midpoint.schema.processor.PropertyValue;
+import com.evolveum.midpoint.prism.PropertyValue;
+
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;

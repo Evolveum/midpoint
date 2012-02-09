@@ -19,7 +19,7 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.schema.processor;
+package com.evolveum.midpoint.prism;
 
 import java.io.IOException;
 import java.text.MessageFormat;

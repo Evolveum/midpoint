@@ -34,7 +34,7 @@ import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
 
-import com.evolveum.midpoint.schema.processor.PropertyPath;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 

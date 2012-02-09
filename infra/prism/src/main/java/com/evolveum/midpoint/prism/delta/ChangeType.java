@@ -17,12 +17,12 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.schema.processor;
+package com.evolveum.midpoint.prism.delta;
 
 /**
  * @author semancik
  *
  */
-public enum ModificationType {
-	ADD, REPLACE, DELETE;
+public enum ChangeType {
+	ADD, MODIFY, DELETE;
 }

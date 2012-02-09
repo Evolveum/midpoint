@@ -29,17 +29,6 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.Item;
-import com.evolveum.midpoint.schema.processor.ItemDefinition;
-import com.evolveum.midpoint.schema.processor.PrismObjectDefinition;
-import com.evolveum.midpoint.schema.processor.PrismObject;
-import com.evolveum.midpoint.schema.processor.PrismProperty;
-import com.evolveum.midpoint.schema.processor.PrismContainer;
-import com.evolveum.midpoint.schema.processor.PrismContainerDefinition;
-import com.evolveum.midpoint.schema.processor.PrismPropertyDefinition;
-import com.evolveum.midpoint.schema.processor.PropertyPath;
-import com.evolveum.midpoint.schema.processor.PropertyValue;
-import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 
@@ -47,7 +36,7 @@ import com.evolveum.midpoint.util.JAXBUtil;
  * @author semancik
  *
  */
-public class PrismDomProcessor {
+class PrismDomProcessor {
 	
 	private static final QName DEFAULT_XSD_TYPE = DOMUtil.XSD_STRING;
 	

@@ -23,8 +23,8 @@ package com.evolveum.midpoint.task.impl;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.PrismProperty;
-import com.evolveum.midpoint.schema.processor.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;

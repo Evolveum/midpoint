@@ -23,7 +23,8 @@ package com.evolveum.midpoint.model.controller;
 
 import java.util.List;
 
-import com.evolveum.midpoint.schema.processor.PropertyValue;
+import com.evolveum.midpoint.prism.PropertyValue;
+
 import org.w3c.dom.Node;
 
 /**

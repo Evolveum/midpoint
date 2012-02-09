@@ -26,8 +26,8 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.refinery.EnhancedResourceType;
+import com.evolveum.midpoint.prism.Schema;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadata;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;

@@ -20,10 +20,10 @@
  */
 package com.evolveum.midpoint.common.expression;
 
+import com.evolveum.midpoint.prism.PropertyValue;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import org.w3c.dom.Element;

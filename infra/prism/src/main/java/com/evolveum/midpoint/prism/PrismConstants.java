@@ -21,7 +21,6 @@ package com.evolveum.midpoint.prism;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.PropertyPath;
 
 /**
  * @author semancik

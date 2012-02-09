@@ -20,15 +20,15 @@
  */
 package com.evolveum.midpoint.schema;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PropertyValue;
 import com.evolveum.midpoint.prism.TypedValue;
 import com.evolveum.midpoint.prism.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.PrismProperty;
-import com.evolveum.midpoint.schema.processor.PrismContainer;
-import com.evolveum.midpoint.schema.processor.PrismContainerDefinition;
-import com.evolveum.midpoint.schema.processor.PrismPropertyDefinition;
-import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
 

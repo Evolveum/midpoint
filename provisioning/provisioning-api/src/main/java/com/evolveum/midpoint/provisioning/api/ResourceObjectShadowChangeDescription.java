@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.provisioning.api;
 
-import com.evolveum.midpoint.schema.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;

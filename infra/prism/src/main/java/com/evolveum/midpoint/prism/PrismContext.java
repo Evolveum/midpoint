@@ -22,7 +22,6 @@ package com.evolveum.midpoint.prism;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.PrismObject;
 
 /**
  * @author semancik

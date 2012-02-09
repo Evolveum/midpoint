@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.test.util;
 
-import com.evolveum.midpoint.schema.processor.PropertyValue;
+import com.evolveum.midpoint.prism.PropertyValue;
 
 import java.util.Arrays;
 import java.util.Collection;

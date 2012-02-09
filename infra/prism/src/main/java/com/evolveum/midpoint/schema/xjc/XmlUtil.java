@@ -21,9 +21,9 @@
 
 package com.evolveum.midpoint.schema.xjc;
 
-import com.evolveum.midpoint.schema.processor.PrismProperty;
-import com.evolveum.midpoint.schema.processor.PrismContainer;
-import com.evolveum.midpoint.schema.processor.PropertyValue;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PropertyValue;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;

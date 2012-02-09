@@ -26,6 +26,10 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -33,10 +37,6 @@ import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
-import com.evolveum.midpoint.schema.processor.Item;
-import com.evolveum.midpoint.schema.processor.PrismProperty;
-import com.evolveum.midpoint.schema.processor.PrismContainer;
-import com.evolveum.midpoint.schema.processor.PrismContainerDefinition;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -321,7 +321,7 @@ public class ObjectImporter {
         }
 
         try {
-            com.evolveum.midpoint.schema.processor.Schema.parse(xsdElement);
+            com.evolveum.midpoint.prism.Schema.parse(xsdElement);
         } catch (SchemaException e) {
             result.recordFatalError("Error during " + schemaName + " schema integrity check: " + e.getMessage(), e);
             return;
@@ -348,9 +348,9 @@ public class ObjectImporter {
         	return null;
         }
 
-        com.evolveum.midpoint.schema.processor.Schema schema = null;
+        com.evolveum.midpoint.prism.Schema schema = null;
         try {
-            schema = com.evolveum.midpoint.schema.processor.Schema.parse(xsdElement);
+            schema = com.evolveum.midpoint.prism.Schema.parse(xsdElement);
         } catch (SchemaException e) {
             result.recordFatalError("Error during " + schemaName + " schema parsing: " + e.getMessage(), e);
             LOGGER.trace("Validation error: {}" + e.getMessage());

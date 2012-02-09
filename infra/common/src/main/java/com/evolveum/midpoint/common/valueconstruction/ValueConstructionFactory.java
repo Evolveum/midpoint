@@ -27,8 +27,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.schema.processor.PrismPropertyDefinition;
-import com.evolveum.midpoint.schema.processor.PropertyPath;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AsIsValueConstructorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.GenerateValueConstructorType;
