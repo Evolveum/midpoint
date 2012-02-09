@@ -30,6 +30,15 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.Validate;
 import org.h2.tools.Server;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.SocketAddress;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
+
 /**
  * @author lazyman
  */
@@ -44,7 +53,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     private boolean asServer = false;
     private String baseDir = "~/";
     private boolean tcpSSL = false;
-    private int port = 5436;
+    private int port = 5437;
     //connection for hibernate
     private String driverClassName = "org.h2.Driver";
     private String jdbcUrl = "jdbc:h2:file:~/midpoint";
@@ -173,33 +182,21 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
     @Override
     public void destroy() throws RepositoryServiceFactoryException {
-        if (!isEmbedded() || !isAsServer()) {
+        if (!isEmbedded()) {
             LOGGER.info("Repository is not running in embedded mode, shutdown complete.");
-            return;
         }
 
-        LOGGER.info("Shutting down embedded h2");
-        if (server != null && server.isRunning(true)) {
-            server.stop();
+        if (isAsServer()) {
+            LOGGER.info("Shutting down embedded H2");
+            if (server != null && server.isRunning(true))
+                server.stop();
+        } else {
+            LOGGER.info("H2 running as local instance (from file).");
         }
         LOGGER.info("Shutdown complete.");
     }
 
     private void startServer() throws RepositoryServiceFactoryException {
-        StringBuilder args = new StringBuilder();
-        args.append("-baseDir");
-        args.append(getBaseDir());
-        args.append(" ");
-        if (isTcpSSL()) {
-            args.append("-tcpSSL ");
-        }
-        args.append("-ifExists ");
-        if (getPort() > 0) {
-            args.append("-tcpPort");
-            args.append(getPort());
-            args.append(" ");
-        }
-
 //        [-help] or [-?]         Print the list of options
 //        [-web]                  Start the web server with the H2 Console
 //        [-webAllowOthers]       Allow other computers to connect - see below
@@ -224,6 +221,22 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 //        [-ifExists]             Only existing databases may be opened (all servers)
 //        [-trace]                Print additional trace information (all servers)
 
+        checkPort(getPort());
+
+        StringBuilder args = new StringBuilder();
+        args.append("-baseDir");
+        args.append(getBaseDir());
+        args.append(" ");
+        if (isTcpSSL()) {
+            args.append("-tcpSSL ");
+        }
+        args.append("-ifExists ");
+        if (getPort() > 0) {
+            args.append("-tcpPort");
+            args.append(getPort());
+            args.append(" ");
+        }
+
         try {
             server = Server.createTcpServer(args.toString()).start();
             server.start();
@@ -237,20 +250,20 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         LOGGER.info("Applying configuration");
         applyConfiguration();
 
-        if (isEmbedded() && isAsServer()) {
-            LOGGER.info("Starting h2 in server mode.");
-            startServer();
+        if (isEmbedded()) {
+            if (isAsServer()) {
+                LOGGER.info("Starting h2 in server mode.");
+                startServer();
+            } else {
+                LOGGER.info("H2 prepared to run in local mode (from file).");
+            }
+            initScript();
         } else {
             LOGGER.info("Repository is not running in embedded mode, initialization complete.");
         }
         //todo fix spring configuration somehow :)
 
-        LOGGER.info("Running init script.");
-        //todo init script
-
         LOGGER.info("Repository initialization finished.");
-
-
     }
 
     @Override
@@ -272,5 +285,79 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     @Override
     public Configuration getCurrentConfiguration() {
         return configuration;
+    }
+
+    private void initScript() throws RepositoryServiceFactoryException {
+        LOGGER.info("Running init script.");
+
+        Connection connection = null;
+        try {
+            File baseDir = new File(getBaseDir());
+            if (!baseDir.exists() || !baseDir.isDirectory()) {
+                throw new RepositoryServiceFactoryException("File '" + getBaseDir()
+                        + "' defined as baseDir doesn't exist or is not directory.");
+            }
+
+            Class.forName(org.h2.Driver.class.getName());
+            StringBuilder jdbcUrl = new StringBuilder("jdbc:h2:");
+            if (isAsServer()) {
+                //jdbc:h2:tcp://<server>[:<port>]/[<path>]<databaseName>
+                jdbcUrl.append("tcp://127.0.0.1:");
+                jdbcUrl.append(getPort());
+            } else {
+                //jdbc:h2:[file:][<path>]<databaseName>
+                jdbcUrl.append("file:");
+            }
+            jdbcUrl.append(baseDir.getAbsolutePath());
+            jdbcUrl.append("/midpoint");
+
+            LOGGER.debug("Connecting to created JDBC uri '{}'.", new Object[]{jdbcUrl.toString()});
+
+            connection = DriverManager.getConnection(jdbcUrl.toString(), "sa", "");
+            Statement statement = connection.createStatement();
+            statement.execute("create database midpoint if not exists");
+        } catch (Exception ex) {
+            LOGGER.error("Error occurred during repository initialization script loading, reason:\n{}",
+                    new Object[]{ex.getMessage()});
+
+            if (ex instanceof RepositoryServiceFactoryException) {
+                throw (RepositoryServiceFactoryException) ex;
+            } else {
+                throw new RepositoryServiceFactoryException(ex.getMessage(), ex);
+            }
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (Exception ex) {
+                LOGGER.error("Couldn't close JDBC conection, reason:\n{}", new Object[]{ex.getMessage()});
+            }
+        }
+    }
+
+    private void checkPort(int port) throws RepositoryServiceFactoryException {
+        if (port >= 65635 || port < 0) {
+            throw new RepositoryServiceFactoryException("Port must be in range 0-65634, not '" + port + "'.");
+        }
+
+        ServerSocket ss = null;
+        try {
+            ss = new ServerSocket();
+            ss.setReuseAddress(true);
+            SocketAddress endpoint = new InetSocketAddress(port);
+            ss.bind(endpoint);
+        } catch (IOException e) {
+            throw new RepositoryServiceFactoryException("Configured port (" + port + ") for H2 already in use.", e);
+        } finally {
+            try {
+                if (ss != null) {
+                    ss.close();
+                }
+            } catch (IOException ex) {
+                LOGGER.error("Reported IO error, while closing ServerSocket used to test availability " +
+                        "of port for H2 Server", ex);
+            }
+        }
     }
 }
