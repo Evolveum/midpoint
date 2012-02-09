@@ -21,16 +21,12 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
@@ -41,8 +37,6 @@ import org.xml.sax.EntityResolver;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -59,15 +53,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * user or role. But it is needed for interpreting dynamic schemas for resource
  * objects, extensions and so on.
  * 
- * Schema is immutable.
- * 
  * @author Radovan Semancik
  * 
  */
 public class Schema implements Dumpable, DebugDumpable, Serializable {
 
 	private static final long serialVersionUID = 5068618465625931984L;
-	private static final QName DEFAULT_XSD_TYPE = DOMUtil.XSD_STRING;
 
 	private static final Trace LOGGER = TraceManager.getTrace(Schema.class);
 	
@@ -147,18 +138,6 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 		return processor.parseSchema(schema);
 	}
 
-	public PropertyContainer parsePropertyContainer(Element domElement) throws SchemaException {
-		// locate appropriate definition based on the element name
-		QName domElementName = DOMUtil.getQName(domElement);
-		PropertyContainerDefinition propertyContainerDefinition = findItemDefinition(domElementName,
-				PropertyContainerDefinition.class);
-		if (propertyContainerDefinition == null) {
-			throw new SchemaException("No definition for element " + domElementName);
-		}
-		return propertyContainerDefinition.parseItem(domElement);
-	}
-
-
 	// TODO: Methods for searching the schema, such as findDefinitionByName(),
 	// etc.
 
@@ -178,6 +157,10 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 	public ObjectDefinition findObjectDefinitionByType(QName typeName) {
 		return findContainerDefinitionByType(typeName,ObjectDefinition.class);
 	}
+	
+	public ObjectDefinition findObjectDefinitionByElementName(QName elementName) {
+		return findContainerDefinitionByElementName(elementName, ObjectDefinition.class);
+	}
 
 	public <T extends Objectable> ObjectDefinition<T> findObjectDefinitionByType(QName typeName, Class<T> type) {
 		return findContainerDefinitionByType(typeName,ObjectDefinition.class);
@@ -196,7 +179,21 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 		}
 		return null;
 	}
-	
+
+	private <T extends PropertyContainerDefinition> T findContainerDefinitionByElementName(QName elementName, Class<T> type) {
+		if (elementName == null) {
+			throw new IllegalArgumentException("elementName must be supplied");
+		}
+		// TODO: check for multiple definition with the same type
+		for (Definition definition : definitions) {
+			if (type.isAssignableFrom(definition.getClass())
+					&& elementName.equals(definition.getDefaultName())) {
+				return (T) definition;
+			}
+		}
+		return null;
+	}
+
 
 	/**
 	 * Finds complex type definition by type name.
@@ -357,58 +354,6 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 			return elementName.substring(0, elementName.length() - 4);
 		}
 		return elementName;
-	}
-		
-	/**
-	 * Try to locate xsi:type definition in the elements and return appropriate ItemDefinition.
-	 */
-	public static ItemDefinition resolveDynamicItemDefinition(ItemDefinition parentDefinition, List<Object> valueElements, 
-			PrismContext prismContext) {
-		QName typeName = null;
-		QName elementName = null;
-		for (Object element: valueElements) {
-			if (elementName == null) {
-				elementName = JAXBUtil.getElementQName(element);
-			}
-			// TODO: try JAXB types
-			if (element instanceof Element) {
-				Element domElement = (Element)element;
-				if (DOMUtil.hasXsiType(domElement)) {
-					typeName = DOMUtil.resolveXsiType(domElement);
-					if (typeName != null) {
-						break;
-					}
-				}
-			}
-		}
-		// FIXME: now the definition assumes property, may also be property container?
-		if (typeName == null) {
-			return null;
-		}
-		PropertyDefinition propDef = new PropertyDefinition(elementName, elementName, typeName, prismContext);
-		// Set it to multi-value to be on the safe side
-		propDef.setMaxOccurs(-1);
-		// TODO: set "dynamic" flag
-		return propDef;
-	}
-	
-	/**
-	 * Create default ItemDefinition. Used as a last attempt to provide some useful definition. Kind of a hack.
-	 */
-	public static ItemDefinition createDefaultItemDefinition(ItemDefinition parentDefinition, List<Object> valueElements,
-			PrismContext prismContext) {
-		QName elementName = null;
-		for (Object element: valueElements) {
-			if (elementName == null) {
-				elementName = JAXBUtil.getElementQName(element);
-				break;
-			}
-		}
-		PropertyDefinition propDef = new PropertyDefinition(elementName, elementName, DEFAULT_XSD_TYPE, prismContext);
-		// Set it to multi-value to be on the safe side
-		propDef.setMaxOccurs(-1);
-		// TODO: set "dynamic" flag
-		return propDef;
 	}
 	
 	@Override

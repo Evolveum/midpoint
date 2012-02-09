@@ -83,14 +83,13 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	private Schema objectSchema = null;
 	private boolean initialized = false;
 	private String objectSchemaNamespace;
-	private NamespacePrefixMapper namespacePrefixMapper;
+	private DynamicNamespacePrefixMapper namespacePrefixMapper;
 	private PrismContext prismContext;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaRegistry.class);
 	
-	public SchemaRegistry(PrismContext prismContext) {
+	public SchemaRegistry() {
 		super();
-		this.prismContext = prismContext;
 		this.schemaDescriptions = new ArrayList<SchemaDescription>();
 		this.parsedSchemas = new HashMap<String, SchemaDescription>();
 		this.extensionSchemas = new HashMap<QName, ComplexTypeDefinition>();
@@ -104,12 +103,20 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		this.objectSchemaNamespace = objectSchemaNamespace;
 	}
 	
-	public NamespacePrefixMapper getNamespacePrefixMapper() {
+	public DynamicNamespacePrefixMapper getNamespacePrefixMapper() {
 		return namespacePrefixMapper;
 	}
 
-	public void setNamespacePrefixMapper(NamespacePrefixMapper namespacePrefixMapper) {
+	public void setNamespacePrefixMapper(DynamicNamespacePrefixMapper namespacePrefixMapper) {
 		this.namespacePrefixMapper = namespacePrefixMapper;
+	}
+
+	public PrismContext getPrismContext() {
+		return prismContext;
+	}
+
+	public void setPrismContext(PrismContext prismContext) {
+		this.prismContext = prismContext;
 	}
 
 	/**
@@ -124,10 +131,21 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	/**
 	 * Must be called before call to initialize()
 	 */
-	public void registerMidPointSchemaResource(String resourcePath, String usualPrefix) throws SchemaException {
+	public void registerPrismSchemaResource(String resourcePath, String usualPrefix) throws SchemaException {
 		SchemaDescription desc = SchemaDescription.parseResource(resourcePath);
 		desc.setUsualPrefix(usualPrefix);
-		desc.setMidPointSchema(true);
+		desc.setPrismSchema(true);
+		schemaDescriptions.add(desc);
+	}
+
+	/**
+	 * Must be called before call to initialize()
+	 */
+	public void registerPrismSchemaResource(String resourcePath, String usualPrefix, Package compileTimeClassesPackage) throws SchemaException {
+		SchemaDescription desc = SchemaDescription.parseResource(resourcePath);
+		desc.setUsualPrefix(usualPrefix);
+		desc.setPrismSchema(true);
+		desc.setCompileTimeClassesPackage(compileTimeClassesPackage);
 		schemaDescriptions.add(desc);
 	}
 
@@ -152,7 +170,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	
 	public void registerMidPointSchemaFile(File file) throws FileNotFoundException, SchemaException {
 		SchemaDescription desc = SchemaDescription.parseFile(file);
-		desc.setMidPointSchema(true);
+		desc.setPrismSchema(true);
 		schemaDescriptions.add(desc);
 	}
 	
@@ -218,7 +236,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 			
 			String namespace = schemaDescription.getNamespace();
 			
-			if (schemaDescription.isMidPointSchema()) {
+			if (schemaDescription.isPrismSchema()) {
 				Element domElement = schemaDescription.getDomElement();
 				Schema schema = Schema.parse(domElement, this);
 				//Schema schema = Schema.parse(domElement);
@@ -290,9 +308,12 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	}
 	
 	private void initializeObjectSchema() {
+		if (objectSchemaNamespace == null) {
+			throw new IllegalArgumentException("Object schema namespace is not set");
+		}
 		Schema commonSchema = parsedSchemas.get(objectSchemaNamespace).getSchema();
 		// FIXME
-		objectSchema = new Schema("NO NAMESPACE", prismContext);
+		objectSchema = new Schema(objectSchemaNamespace, prismContext);
 		for (Definition def: commonSchema.getDefinitions()) {
 			if (def instanceof ObjectDefinition<?>) {
 				QName typeName = def.getTypeName();
@@ -309,14 +330,14 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		}
 	}
 	
-	public Collection<Package> getJaxbPackages() {
-		Collection<Package> jaxbPackages = new ArrayList<Package>(schemaDescriptions.size());
+	public Collection<Package> getCompileTimePackages() {
+		Collection<Package> compileTimePackages = new ArrayList<Package>(schemaDescriptions.size());
 		for (SchemaDescription desc : schemaDescriptions) {
-			if (desc.getJaxbPackage() != null) {
-				jaxbPackages.add(desc.getJaxbPackage());
+			if (desc.getCompileTimeClassesPackage() != null) {
+				compileTimePackages.add(desc.getCompileTimeClassesPackage());
 			}
 		}
-		return jaxbPackages;
+		return compileTimePackages;
 	}
 	
 	private SchemaDescription lookupSchemaDescription(String namespace) {
@@ -527,6 +548,29 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	public Class determineCompileTimeClass(QName elementName, ComplexTypeDefinition complexTypeDefinition) {
 		// TODO Auto-generated method stub
 		throw new UnsupportedOperationException();
+	}
+
+	public Schema findSchemaByCompileTimeClass(Class<? extends Objectable> compileTimeClass) {
+		Package compileTimePackage = compileTimeClass.getPackage();
+		for (SchemaDescription desc: schemaDescriptions) {
+			if (compileTimePackage.equals(desc.getCompileTimeClassesPackage())) {
+				return desc.getSchema();
+			}
+		}
+		return null;
+	}
+
+	public Schema findSchemaByNamespace(String namespaceURI) {
+		// Prefer object schema
+		if (namespaceURI.equals(objectSchemaNamespace)) {
+			return getObjectSchema();
+		}
+		for (SchemaDescription desc: schemaDescriptions) {
+			if (namespaceURI.equals(desc.getSchema().getNamespace())) {
+				return desc.getSchema();
+			}
+		}
+		return null;
 	}
 	
 }

@@ -45,9 +45,9 @@ public class SchemaDescription implements Dumpable {
 	private String sourceDescription;
 	private InputStreamable streamable; 
 	private Node node;
-	private boolean isMidPointSchema = false;
+	private boolean isPrismSchema = false;
 	private Schema schema;
-	private Package jaxbPackage;
+	private Package compileTimeClassesPackage;
 
 	private SchemaDescription(String sourceDescription) {
 		this.sourceDescription = sourceDescription;
@@ -89,12 +89,12 @@ public class SchemaDescription implements Dumpable {
 		this.path = path;
 	}
 
-	public boolean isMidPointSchema() {
-		return isMidPointSchema;
+	public boolean isPrismSchema() {
+		return isPrismSchema;
 	}
 	
-	public void setMidPointSchema(boolean isMidPointSchema) {
-		this.isMidPointSchema = isMidPointSchema;
+	public void setPrismSchema(boolean isMidPointSchema) {
+		this.isPrismSchema = isMidPointSchema;
 	}
 	
 	public Schema getSchema() {
@@ -105,12 +105,12 @@ public class SchemaDescription implements Dumpable {
 		this.schema = schema;
 	}
 
-	public Package getJaxbPackage() {
-		return jaxbPackage;
+	public Package getCompileTimeClassesPackage() {
+		return compileTimeClassesPackage;
 	}
 
-	public void setJaxbPackage(Package jaxbPackage) {
-		this.jaxbPackage = jaxbPackage;
+	public void setCompileTimeClassesPackage(Package compileTimeClassesPackage) {
+		this.compileTimeClassesPackage = compileTimeClassesPackage;
 	}
 
 	public static SchemaDescription parseResource(final String resourcePath) throws SchemaException {

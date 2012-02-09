@@ -74,6 +74,19 @@
     <xsd:element name="name" type="xsd:string"/>
     <xsd:element name="displayName" type="xsd:string"/>
     <xsd:element name="description" type="xsd:string"/>
+    <xsd:element name="extension">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:propertyContainer/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
+                </xsd:any>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
 
     <!-- Basic Object Types -->
 
@@ -89,53 +102,18 @@
         <xsd:sequence>
             <xsd:element ref="tns:name" minOccurs="0"/>
             <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
 
         <xsd:attribute name="oid" type="xsd:string" use="optional"/>
         <xsd:attribute name="version" type="xsd:string" use="optional"/>
 
     </xsd:complexType>
-
-    <xsd:element name="extension">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:propertyContainer/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexType>
-            <xsd:sequence>
-                <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
-                </xsd:any>
-            </xsd:sequence>
-        </xsd:complexType>
-    </xsd:element>
-
-    <xsd:complexType name="ExtensibleObjectType">
-        <xsd:complexContent>
-            <xsd:extension base="tns:ObjectType">
-                <xsd:sequence>
-                    <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:complexType name="GenericObjectType">
-        <xsd:complexContent>
-            <xsd:extension base="tns:ExtensibleObjectType">
-                <xsd:sequence>
-                    <xsd:element name="objectType" type="xsd:anyURI">
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
     <xsd:element name="object" type="tns:ObjectType"/>
 
     <xsd:complexType name="UserType">
         <xsd:complexContent>
-            <xsd:extension base="tns:ExtensibleObjectType">
+            <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
                     <xsd:element name="fullName" type="xsd:string"/>
                     <xsd:element name="givenName" type="xsd:string"/>
@@ -145,6 +123,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="user" type="tns:UserType"/>
 
 </xsd:schema>
 

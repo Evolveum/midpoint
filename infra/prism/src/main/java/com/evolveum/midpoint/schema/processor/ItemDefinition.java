@@ -124,18 +124,6 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	 * @return created item instance
 	 */
 	abstract public Item instantiate(QName name, PropertyPath parentPath);
-
-	/**
-	 * Create at instance of the item initialized from the provided list of elements.
-	 * The definition name (ore default name) will be used as the instance (element) name.
-	 * 
-	 * @param elements content of the item
-	 * @return created item instance initialized with content
-	 * @throws SchemaException error parsing the provided elements
-	 */
-	abstract public Item parseItem(List<Object> elements, PropertyPath parentPath) throws SchemaException;
-	
-	abstract public Item parseItemFromJaxbObject(Object jaxbObject, PropertyPath parentPath) throws SchemaException;
 	
 	abstract <T extends ItemDefinition> T findItemDefinition(PropertyPath path, Class<T> clazz);
 	

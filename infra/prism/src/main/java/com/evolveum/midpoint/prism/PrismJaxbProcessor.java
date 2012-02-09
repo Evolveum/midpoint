@@ -43,8 +43,13 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.schema.processor.ObjectDefinition;
+import com.evolveum.midpoint.schema.processor.PrismObject;
+import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
 
 /**
  * @author semancik
@@ -61,7 +66,7 @@ public class PrismJaxbProcessor {
 	
 	public void initialize() {
 		StringBuilder sb = new StringBuilder();
-		Iterator<Package> iterator = schemaRegistry.getJaxbPackages().iterator();
+		Iterator<Package> iterator = schemaRegistry.getCompileTimePackages().iterator();
 		while (iterator.hasNext()) {
 			Package jaxbPackage = iterator.next();
 			sb.append(jaxbPackage.getName());
@@ -102,7 +107,7 @@ public class PrismJaxbProcessor {
 			// not a JAXB class
 			return false;
 		}
-		for (Package jaxbPackage: schemaRegistry.getJaxbPackages()) {
+		for (Package jaxbPackage: schemaRegistry.getCompileTimePackages()) {
 			if (jaxbPackage.equals(clazz.getPackage())) {
 				return true;
 			}
@@ -469,8 +474,25 @@ public class PrismJaxbProcessor {
 //        return object;
 //	}
 
-
+//	public <T extends Objectable> PrismObject<T> parseJaxb(T jaxbObject) throws SchemaException {
+//		Class<? extends Objectable> jaxbClass = jaxbObject.getClass();
+//		// Locate object definition
+//		Schema schema = schemaRegistry.findSchemaByCompileTimeClass(jaxbClass);
+//		if (schema == null) {
+//			throw new SchemaException("Cannot find schema that contains definition of compile-time class "+jaxbClass);
+//		}
+//		QName typeQName = JAXBUtil.getTypeQName(jaxbClass);
+//		ObjectDefinition<? extends Objectable> objectDefinition = schema.findObjectDefinitionByType(typeQName, jaxbClass);
+//		if (objectDefinition == null) {
+//			throw new SchemaException("Cannot find object definition of "+typeQName+" in schema "+schema);
+//		}
+//		return parseJaxbObject(jaxbObject, objectDefinition);
+//	}
 	
+//	private <T extends Objectable> PrismObject<T> parseJaxbObject(T jaxbObject, ObjectDefinition<? extends Objectable> objectDefinition) throws SchemaException {
+//		
+//	}
+
 	private QName determineElementQName(Objectable objectable) {
 		// TODO Auto-generated method stub
 		throw new UnsupportedOperationException();

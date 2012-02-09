@@ -19,6 +19,11 @@
  */
 package com.evolveum.midpoint.prism;
 
+import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.processor.PrismObject;
+
 /**
  * @author semancik
  *
@@ -27,12 +32,25 @@ public class PrismContext {
 	
 	private SchemaRegistry schemaRegistry;
 	private PrismJaxbProcessor prismJaxbProcessor;
+	private PrismDomProcessor prismDomProcessor;
+	
+	private PrismContext() {
+		// empty
+	}
 	
 	public static PrismContext create(SchemaRegistry schemaRegistry) {
 		PrismContext prismContext = new PrismContext();
+		prismContext.schemaRegistry = schemaRegistry;
+		schemaRegistry.setPrismContext(prismContext);
+
 		PrismJaxbProcessor prismJaxbProcessor = new PrismJaxbProcessor(schemaRegistry);
 		prismJaxbProcessor.initialize();
 		prismContext.prismJaxbProcessor = prismJaxbProcessor;
+		
+		PrismDomProcessor prismDomProcessor = new PrismDomProcessor(schemaRegistry);
+		prismDomProcessor.setPrismContext(prismContext);
+		prismContext.prismDomProcessor = prismDomProcessor;
+		
 		return prismContext;
 	}
 
@@ -50,6 +68,13 @@ public class PrismContext {
 
 	public void setPrismJaxbProcessor(PrismJaxbProcessor prismJaxbProcessor) {
 		this.prismJaxbProcessor = prismJaxbProcessor;
+	}
+
+	/**
+	 * Parses a DOM object and creates a prism from it. It copies data from the original object to the prism.  
+	 */
+	public <T extends Objectable> PrismObject<T> parseObject(Element objectElement) throws SchemaException {
+		return prismDomProcessor.parseObject(objectElement);
 	}
 	
 

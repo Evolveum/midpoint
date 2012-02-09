@@ -229,34 +229,6 @@ public class PropertyDefinition extends ItemDefinition {
 		this.prismContext = prismContext;
 	}
 
-	/* (non-Javadoc)
-      * @see com.evolveum.midpoint.schema.processor.Definition#parseItem(java.util.List)
-      */
-    @Override
-    public Property parseItem(List<Object> elements, PropertyPath parentPath) throws SchemaException {
-        if (elements == null || elements.isEmpty()) {
-            return null;
-        }
-        QName propName = JAXBUtil.getElementQName(elements.get(0));
-        Property prop = null;
-        if (elements.size() == 1) {
-            prop = this.instantiate(propName, parentPath);
-        } else {
-            // In-place modification not supported for multi-valued properties
-            prop = this.instantiate(propName, null);
-        }
-
-        if (!isMultiValue() && elements.size() > 1) {
-            throw new SchemaException("Attempt to store multiple values in single-valued property " + propName);
-        }
-
-        for (Object element : elements) {
-            Object value = XsdTypeConverter.toJavaValue(element, getTypeName());
-            prop.getValues().add(new PropertyValue(value));
-        }
-        return prop;
-    }
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -268,39 +240,6 @@ public class PropertyDefinition extends ItemDefinition {
             sb.append(" opt");
         }
         return sb.toString();
-    }
-
-    public Property parseFromValueElement(Element valueElement, PropertyPath parentPath) throws SchemaException {
-        Property prop = this.instantiate(parentPath);
-        if (isSingleValue()) {
-            prop.getValues().add(new PropertyValue(XsdTypeConverter.convertValueElementAsScalar(valueElement, getTypeName())));
-        } else {
-            List list = XsdTypeConverter.convertValueElementAsList(valueElement, getTypeName());
-            for (Object object : list) {
-                prop.getValues().add(new PropertyValue(object));
-            }
-        }
-        return prop;
-    }
-
-    @Override
-    public Property parseItemFromJaxbObject(Object jaxbObject, PropertyPath parentPath) throws SchemaException {
-        Property property = this.instantiate(parentPath);
-        if (isMultiValue()) {
-            // expect collection
-            if (jaxbObject instanceof Collection) {
-                Collection objects = (Collection) jaxbObject;
-                for (Object object : objects) {
-                    property.getValues().add(new PropertyValue<Object>(object));
-                }
-//                property.getValues().addAll((Collection) jaxbObject);
-            } else {
-                throw new SchemaException("Multi-valued property " + getName() + " got non-collection value of type " + jaxbObject.getClass().getName(), getName());
-            }
-        } else {
-            property.getValues().add(new PropertyValue(jaxbObject));
-        }
-        return property;
     }
 
     @Override

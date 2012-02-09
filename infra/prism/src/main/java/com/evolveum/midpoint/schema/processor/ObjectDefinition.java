@@ -75,20 +75,6 @@ public class ObjectDefinition<T extends Objectable> extends PropertyContainerDef
 //		return object;
 	}
 	
-	public T convertToObjectType(PrismObject<T> mpObject) throws SchemaException {		
-		if (jaxbClass == null) {
-			throw new IllegalStateException("No JAXB class was set for "+this);
-		}
-		T instance = instantiateJaxbClass(jaxbClass);
-		fillProperties(instance, mpObject);
-		return instance;		
-	}
-
-	protected void fillProperties(T instance, PrismObject<T> mpObject) throws SchemaException {
-		instance.setOid(mpObject.getOid());
-		super.fillProperties(instance, mpObject);
-	}
-
 	public PrismObject<T> instantiate(QName name) {
 		PrismObject<T> midPointObject = new PrismObject<T>(name, this, prismContext, null);
 		return midPointObject;

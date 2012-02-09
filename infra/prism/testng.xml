@@ -27,7 +27,7 @@
     </listeners>
     <test name="Prism" preserve-order="false" verbose="1">
         <classes>
-			<class name="com.evolveum.midpoint.prism.TestPrismFakeJaxb"/>
+			<class name="com.evolveum.midpoint.prism.TestPrismParsing"/>
         </classes>
     </test>
 </suite>
