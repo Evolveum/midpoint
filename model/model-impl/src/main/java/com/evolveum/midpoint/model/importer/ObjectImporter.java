@@ -34,9 +34,9 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.processor.Item;
-import com.evolveum.midpoint.schema.processor.Property;
-import com.evolveum.midpoint.schema.processor.PropertyContainer;
-import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
+import com.evolveum.midpoint.schema.processor.PrismContainer;
+import com.evolveum.midpoint.schema.processor.PrismContainerDefinition;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -106,7 +106,7 @@ public class ObjectImporter {
                     generateIdentifiers(object, repository,  objectResult);
                 }
 
-                PropertyContainer dynamicPart = null;
+                PrismContainer dynamicPart = null;
                 if (BooleanUtils.isTrue(options.isValidateDynamicSchema()) && objectResult.isAcceptable()) {
                     dynamicPart = validateWithDynamicSchemas(object, objectElement, repository, objectResult);
                 }
@@ -236,7 +236,7 @@ public class ObjectImporter {
         }
     }
 
-    protected PropertyContainer validateWithDynamicSchemas(ObjectType object, Element objectElement,
+    protected PrismContainer validateWithDynamicSchemas(ObjectType object, Element objectElement,
                                                            RepositoryService repository, OperationResult objectResult) {
 
         if (object instanceof ExtensibleObjectType) {
@@ -286,7 +286,7 @@ public class ObjectImporter {
                 return null;
             }
             QName configurationElementRef = new QName(connector.getNamespace(), SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_ELEMENT_LOCAL_NAME);
-            PropertyContainer propertyContainer = validateDynamicSchema(configurationElements, configurationElementRef, connector.getSchema(), "resourceConfiguration", objectResult);
+            PrismContainer propertyContainer = validateDynamicSchema(configurationElements, configurationElementRef, connector.getSchema(), "resourceConfiguration", objectResult);
 
             // Also check integrity of the resource schema
             checkSchema(resource.getSchema(), "resource", objectResult);
@@ -338,7 +338,7 @@ public class ObjectImporter {
      * @param schemaName
      * @param objectResult
      */
-    private PropertyContainer validateDynamicSchema(List<Object> contentElements, QName elementRef,
+    private PrismContainer validateDynamicSchema(List<Object> contentElements, QName elementRef,
                                                     XmlSchemaType dynamicSchema, String schemaName, OperationResult objectResult) {
         OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".validate" + StringUtils.capitalize(schemaName) + "Schema");
 
@@ -357,9 +357,9 @@ public class ObjectImporter {
             return null;
         }
 
-        PropertyContainerDefinition containerDefinition = schema.findItemDefinition(elementRef, PropertyContainerDefinition.class);
+        PrismContainerDefinition containerDefinition = schema.findItemDefinition(elementRef, PrismContainerDefinition.class);
 
-        PropertyContainer propertyContainer = null;
+        PrismContainer propertyContainer = null;
         try {
             propertyContainer = containerDefinition.parseAsContent(elementRef, contentElements, null);
         } catch (SchemaException e) {
@@ -656,27 +656,27 @@ public class ObjectImporter {
     }
 
 
-    private void encryptValuesInDynamicPart(PropertyContainer dynamicPart, ObjectType objectType,
+    private void encryptValuesInDynamicPart(PrismContainer dynamicPart, ObjectType objectType,
                                             OperationResult objectResult) {
         OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".encryptValues");
         encryptValuesInDynamicPartRecursive(dynamicPart, objectType, result);
         result.recordSuccessIfUnknown();
     }
 
-    private void encryptValuesInDynamicPartRecursive(PropertyContainer dynamicPart, ObjectType objectType,
+    private void encryptValuesInDynamicPartRecursive(PrismContainer dynamicPart, ObjectType objectType,
                                                      OperationResult result) {
         for (Item i : dynamicPart.getItems()) {
-            if (i instanceof Property) {
-                encryptProperty((Property) i, objectType, result);
-            } else if (i instanceof PropertyContainer) {
-                encryptValuesInDynamicPartRecursive((PropertyContainer) i, objectType, result);
+            if (i instanceof PrismProperty) {
+                encryptProperty((PrismProperty) i, objectType, result);
+            } else if (i instanceof PrismContainer) {
+                encryptValuesInDynamicPartRecursive((PrismContainer) i, objectType, result);
             } else {
                 throw new IllegalArgumentException("Unexpected item in property container: " + i);
             }
         }
     }
 
-    private void encryptProperty(Property property, ObjectType objectType, OperationResult result) {
+    private void encryptProperty(PrismProperty property, ObjectType objectType, OperationResult result) {
         if (!property.getDefinition().getTypeName().equals(SchemaConstants.R_PROTECTED_STRING_TYPE)) {
             return;
         }

@@ -20,7 +20,7 @@
 package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -37,25 +37,25 @@ public final class Change {
 	
     private Set<ResourceObjectAttribute> identifiers;
     private ObjectDelta<? extends ResourceObjectShadowType> objectDelta;
-    private Property token;
+    private PrismProperty token;
     private ResourceObjectShadowType oldShadow;
     private ResourceObjectShadowType currentShadow;
 
-    public Change(Set<ResourceObjectAttribute> identifiers, ObjectDelta<? extends ResourceObjectShadowType> change, Property token) {
+    public Change(Set<ResourceObjectAttribute> identifiers, ObjectDelta<? extends ResourceObjectShadowType> change, PrismProperty token) {
         this.identifiers = identifiers;
         this.objectDelta = change;
         this.currentShadow = null;
         this.token = token;
     }
 
-    public Change(Set<ResourceObjectAttribute> identifiers, ResourceObjectShadowType currentShadow, Property token) {
+    public Change(Set<ResourceObjectAttribute> identifiers, ResourceObjectShadowType currentShadow, PrismProperty token) {
         this.identifiers = identifiers;
         this.objectDelta = null;
         this.currentShadow = currentShadow;
         this.token = token;
     }
 
-    public Change(ObjectDelta<? extends ResourceObjectShadowType> change, Property token) {
+    public Change(ObjectDelta<? extends ResourceObjectShadowType> change, PrismProperty token) {
         this.objectDelta = change;
         this.token = token;
     }
@@ -76,11 +76,11 @@ public final class Change {
         this.identifiers = identifiers;
     }
 
-	public Property getToken() {
+	public PrismProperty getToken() {
 		return token;
 	}
 
-	public void setToken(Property token) {
+	public void setToken(PrismProperty token) {
 		this.token = token;
 	}
 

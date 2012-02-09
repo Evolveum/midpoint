@@ -299,7 +299,7 @@ public class ShadowConverter {
 		return sideEffectChanges;
 	}
 
-	public Property fetchCurrentToken(ResourceType resourceType, OperationResult parentResult)
+	public PrismProperty fetchCurrentToken(ResourceType resourceType, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException {
 
 		Validate.notNull(resourceType, "Resource must not be null.");
@@ -309,7 +309,7 @@ public class ShadowConverter {
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
 		Schema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType);
 		ResourceObjectDefinition objectClass = resourceSchema.findAccountDefinition();
-		Property lastToken = null;
+		PrismProperty lastToken = null;
 		try {
 			lastToken = connector.fetchCurrentToken(objectClass, parentResult);
 		} catch (GenericFrameworkException e) {
@@ -328,7 +328,7 @@ public class ShadowConverter {
 		return lastToken;
 	}
 
-	public List<Change> fetchChanges(ResourceType resource, Property lastToken, OperationResult parentResult)
+	public List<Change> fetchChanges(ResourceType resource, PrismProperty lastToken, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException {
 		Validate.notNull(resource, "Resource must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -519,7 +519,7 @@ public class ShadowConverter {
 
 				Set<ResourceObjectAttribute> changedProperties = rod.parseAttributes(modification.getValue()
 						.getAny());
-				for (Property p : changedProperties) {
+				for (PrismProperty p : changedProperties) {
 
 					AttributeModificationOperation attributeModification = new AttributeModificationOperation();
 					attributeModification.setChangeType(modification.getModificationType());

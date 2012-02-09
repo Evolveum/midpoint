@@ -34,9 +34,9 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.processor.ChangeType;
-import com.evolveum.midpoint.schema.processor.ObjectDefinition;
-import com.evolveum.midpoint.schema.processor.Property;
-import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.processor.PrismObjectDefinition;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
+import com.evolveum.midpoint.schema.processor.PrismPropertyDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -85,8 +85,8 @@ public class UserPolicyProcessor {
 			XPathHolder propertyXPath = new XPathHolder(propConstr.getProperty());
 			PropertyPath propertyPath = new PropertyPath(propertyXPath);
 			
-			ObjectDefinition<UserType> userDefinition = getUserDefinition();
-			PropertyDefinition propertyDefinition = userDefinition.findPropertyDefinition(propertyPath);
+			PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
+			PrismPropertyDefinition propertyDefinition = userDefinition.findPropertyDefinition(propertyPath);
 			if (propertyDefinition == null) {
 				throw new SchemaException("The property "+propertyPath+" is not a valid user property, defined in "+ObjectTypeUtil.toShortString(userTemplate));
 			}
@@ -97,7 +97,7 @@ public class UserPolicyProcessor {
 					propertyDefinition, null, 
 					"user template expression for "+propertyDefinition.getName()+" while processing user " + context.getUserNew());
 			
-			Property existingValue = context.getUserNew().findProperty(propertyPath);
+			PrismProperty existingValue = context.getUserNew().findProperty(propertyPath);
 			if (existingValue != null && !existingValue.isEmpty() && valueConstruction.isInitial()) {
 				// This valueConstruction only applies if the property does not have a value yet.
 				// ... but it does
@@ -106,7 +106,7 @@ public class UserPolicyProcessor {
 			
 			evaluateUserTemplateValueConstruction(valueConstruction, propertyDefinition, context, result);
 
-			Property output = valueConstruction.getOutput();
+			PrismProperty output = valueConstruction.getOutput();
 			PropertyDelta propDelta = new PropertyDelta(propertyPath);
 			
 			if (propertyDefinition.isMultiValue()) {
@@ -124,12 +124,12 @@ public class UserPolicyProcessor {
 		
 	}
 
-	private ObjectDefinition<UserType> getUserDefinition() {
+	private PrismObjectDefinition<UserType> getUserDefinition() {
 		return schemaRegistry.getObjectSchema().findObjectDefinition(UserType.class);
 	}
 
 	private void evaluateUserTemplateValueConstruction(
-			ValueConstruction valueConstruction, PropertyDefinition propertyDefinition, SyncContext context, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			ValueConstruction valueConstruction, PrismPropertyDefinition propertyDefinition, SyncContext context, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, context.getUserNew());
 		// TODO: variables

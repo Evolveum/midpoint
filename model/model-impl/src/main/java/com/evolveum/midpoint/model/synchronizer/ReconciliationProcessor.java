@@ -35,8 +35,8 @@ import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.PrismObject;
-import com.evolveum.midpoint.schema.processor.Property;
-import com.evolveum.midpoint.schema.processor.PropertyContainer;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
+import com.evolveum.midpoint.schema.processor.PrismContainer;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.SourceType;
@@ -124,7 +124,7 @@ public class ReconciliationProcessor {
 
     	PrismObject<AccountShadowType> account = accCtx.getAccountNew();
 
-        PropertyContainer attributesContainer = account.findPropertyContainer(AccountShadowType.F_ATTRIBUTES);
+        PrismContainer attributesContainer = account.findPropertyContainer(AccountShadowType.F_ATTRIBUTES);
         Collection<QName> attributeNames = MiscUtil.union(tripleMap.keySet(),attributesContainer.getPropertyNames());
 
         for (QName attrName: attributeNames) {
@@ -139,7 +139,7 @@ public class ReconciliationProcessor {
         		shouldBePValues = triple.getNonNegativeValues();
         	}
         	
-        	Property attribute = attributesContainer.findProperty(attrName);
+        	PrismProperty attribute = attributesContainer.findProperty(attrName);
         	Set<PropertyValue<Object>> arePValues = null;
         	if (attribute != null) {
         		arePValues = attribute.getValues(Object.class);
@@ -159,7 +159,7 @@ public class ReconciliationProcessor {
         			// "initial" value and the attribute already has a value. Skip it.
         			continue;
         		}
-        		Property shoudlBeProperty = shouldBeVc.getOutput();
+        		PrismProperty shoudlBeProperty = shouldBeVc.getOutput();
         		for (PropertyValue<Object> shouldBePPValue: shoudlBeProperty.getValues()) {
         			Object shouldBeValue = shouldBePPValue.getValue();
         			// Make sure this value is in the values
@@ -210,7 +210,7 @@ public class ReconciliationProcessor {
 	private boolean isInValues(Object value, Collection<PropertyValue<ValueConstruction>> shouldBePValues) {
 		for (PropertyValue<ValueConstruction> shouldBePValue: shouldBePValues) {
     		ValueConstruction shouldBeVc = shouldBePValue.getValue();
-    		Property shoudlBeProperty = shouldBeVc.getOutput();
+    		PrismProperty shoudlBeProperty = shouldBeVc.getOutput();
     		for (PropertyValue<Object> shouldBePPValue: shoudlBeProperty.getValues()) {
     			Object shouldBeValue = shouldBePPValue.getValue();
     			if (shouldBeValue.equals(value)) {

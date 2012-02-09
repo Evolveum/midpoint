@@ -38,7 +38,7 @@ import java.util.Set;
  *
  * @author Radovan Semancik
  */
-public class ResourceObjectAttribute extends Property {
+public class ResourceObjectAttribute extends PrismProperty {
 
 //    /**
 //     * Default constructor.
@@ -73,7 +73,7 @@ public class ResourceObjectAttribute extends Property {
 //        super(name, definition);
 //    }
 
-    public ResourceObjectAttribute(QName name, PropertyDefinition definition, Object element, PropertyPath parentPath) {
+    public ResourceObjectAttribute(QName name, PrismPropertyDefinition definition, Object element, PropertyPath parentPath) {
         super(name, definition, element, parentPath);
     }
 

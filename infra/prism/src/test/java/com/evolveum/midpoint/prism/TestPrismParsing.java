@@ -37,10 +37,10 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.ObjectDefinition;
+import com.evolveum.midpoint.schema.processor.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.processor.PrismObject;
-import com.evolveum.midpoint.schema.processor.Property;
-import com.evolveum.midpoint.schema.processor.PropertyContainer;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
+import com.evolveum.midpoint.schema.processor.PrismContainer;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -75,7 +75,7 @@ public class TestPrismParsing {
 		System.out.println("Object schema:");
 		System.out.println(objectSchema.dump());
 		
-		ObjectDefinition<UserType> userDefinition = objectSchema.findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+		PrismObjectDefinition<UserType> userDefinition = objectSchema.findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
 		assertNotNull("No user definition", userDefinition);
 
 	}
@@ -105,20 +105,20 @@ public class TestPrismParsing {
 		assertPropertyValue(user, "familyName", "Sparrow");
 		assertPropertyValue(user, "name", "jack");
 		
-		PropertyContainer extension = user.getExtension();
+		PrismContainer extension = user.getExtension();
 		assertPropertyValue(extension, new QName(NS_BAR, "bar"), "BAR");
 		assertPropertyValue(extension, new QName(NS_BAR, "num"), 42);
 		Set<PropertyValue<Object>> multiPVals = extension.findProperty(new QName(NS_BAR, "multi")).getValues();
 		assertEquals("Multi",3,multiPVals.size());
 	}
 	
-	private void assertPropertyValue(PropertyContainer container, String propName, Object propValue) {
+	private void assertPropertyValue(PrismContainer container, String propName, Object propValue) {
 		QName propQName = new QName(NS_FOO, propName);
 		assertPropertyValue(container, propQName, propValue);
 	}
 		
-	private void assertPropertyValue(PropertyContainer container, QName propQName, Object propValue) {
-		Property property = container.findProperty(propQName);
+	private void assertPropertyValue(PrismContainer container, QName propQName, Object propValue) {
+		PrismProperty property = container.findProperty(propQName);
 		assertNotNull("Property "+propQName+" not found in "+container, property);
 		Set<PropertyValue<Object>> pvals = property.getValues();
 		assertFalse("Empty property "+propQName+" in "+container, pvals == null || pvals.isEmpty());

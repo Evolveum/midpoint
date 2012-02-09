@@ -36,7 +36,7 @@ import org.w3c.dom.Text;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Definition;
-import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.processor.PrismPropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
@@ -82,7 +82,7 @@ public class SchemaFormParser {
 			String name = getName(object);
 			FormObject formObject = new FormObject(object.getTypeName(), name);
 
-			for (PropertyDefinition property : object.getPropertyDefinitions()) {
+			for (PrismPropertyDefinition property : object.getPropertyDefinitions()) {
 				if (!(property instanceof ResourceObjectAttributeDefinition)) {
 					continue;
 				}
@@ -230,7 +230,7 @@ public class SchemaFormParser {
 
 		FormObject object = new FormObject(definition.getTypeName(), getDisplayName(resource, definition));
 		Map<List<QName>, List<Object>> valueMap = createAttributeValueMap(account.getAttributes());
-		for (PropertyDefinition property : definition.getPropertyDefinitions()) {
+		for (PrismPropertyDefinition property : definition.getPropertyDefinitions()) {
 			if (!(property instanceof ResourceObjectAttributeDefinition)) {
 				continue;
 			}

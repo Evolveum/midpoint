@@ -38,9 +38,9 @@ import com.evolveum.midpoint.util.DebugUtil;
  * @author semancik
  * 
  */
-public class ObjectReference extends Property {
+public class ObjectReference extends PrismProperty {
 
-	public ObjectReference(QName name, PropertyDefinition definition, PrismContext prismContext, PropertyPath parentPath) {
+	public ObjectReference(QName name, PrismPropertyDefinition definition, PrismContext prismContext, PropertyPath parentPath) {
 		super(name, definition, prismContext, parentPath);
 	}
 

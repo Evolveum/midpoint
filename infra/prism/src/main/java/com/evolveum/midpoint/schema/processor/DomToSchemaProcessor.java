@@ -295,7 +295,7 @@ class DomToSchemaProcessor {
 					XSComplexType complexType = (XSComplexType)xsType;
 					ComplexTypeDefinition innerComplexTypeDefinition = createComplexTypeDefinition(complexType);
 					XSAnnotation containerAnnotation = complexType.getAnnotation();
-					PropertyContainerDefinition containerDefinition = createPropertyContainerDefinition(xsType,elementName,innerComplexTypeDefinition,containerAnnotation,false);
+					PrismContainerDefinition containerDefinition = createPropertyContainerDefinition(xsType,elementName,innerComplexTypeDefinition,containerAnnotation,false);
 					ctd.getDefinitions().add(containerDefinition);
 					
 				} else if (xsType.getName() == null) {
@@ -313,7 +313,7 @@ class DomToSchemaProcessor {
 					if (isAny(xsType)) {
 						// This is a element with xsd:any type. It has to be property container
 						XSAnnotation containerAnnotation = xsType.getAnnotation();
-						PropertyContainerDefinition containerDefinition = createPropertyContainerDefinition(xsType,elementName,null,containerAnnotation,false);
+						PrismContainerDefinition containerDefinition = createPropertyContainerDefinition(xsType,elementName,null,containerAnnotation,false);
 						ctd.getDefinitions().add(containerDefinition);
 					}
 					
@@ -322,7 +322,7 @@ class DomToSchemaProcessor {
 					// Create a property definition (even if this is a XSD complex type)
 					QName typeName = new QName(xsType.getTargetNamespace(), xsType.getName());
 
-					PropertyDefinition propDef = createPropertyDefinition(xsType, elementName, typeName, annotation);
+					PrismPropertyDefinition propDef = createPropertyDefinition(xsType, elementName, typeName, annotation);
 					
 					propDef.setMinOccurs(p.getMinOccurs());
 					propDef.setMaxOccurs(p.getMaxOccurs());
@@ -366,7 +366,7 @@ class DomToSchemaProcessor {
 				if (isPropertyContainer(xsType)) {
 					
 					ComplexTypeDefinition complexTypeDefinition = schema.findComplexTypeDefinition(typeQName);
-					PropertyContainerDefinition propertyContainerDefinition = createPropertyContainerDefinition(xsType, elementName, complexTypeDefinition, annotation, false);
+					PrismContainerDefinition propertyContainerDefinition = createPropertyContainerDefinition(xsType, elementName, complexTypeDefinition, annotation, false);
 					schema.getDefinitions().add(propertyContainerDefinition);
 					
 				} else {
@@ -374,7 +374,7 @@ class DomToSchemaProcessor {
 					// Create a top-level property definition (even if this is a XSD complex type)
 					// This is not really useful, just for the sake of completeness
 					QName typeName = new QName(xsType.getTargetNamespace(), xsType.getName());
-					PropertyDefinition propDef = createPropertyDefinition(xsType, elementName, typeName, annotation);
+					PrismPropertyDefinition propDef = createPropertyDefinition(xsType, elementName, typeName, annotation);
 					schema.getDefinitions().add(propDef);
 				}
 				
@@ -460,8 +460,8 @@ class DomToSchemaProcessor {
 	 * @param createResourceObject true if ResourceObjectDefinition should be created
 	 * @return appropriate PropertyContainerDefinition instance
 	 */
-	private PropertyContainerDefinition createPropertyContainerDefinition(XSType xsType, QName elementName, ComplexTypeDefinition complexTypeDefinition, XSAnnotation annotation, boolean createResourceObject) {
-		PropertyContainerDefinition pcd;
+	private PrismContainerDefinition createPropertyContainerDefinition(XSType xsType, QName elementName, ComplexTypeDefinition complexTypeDefinition, XSAnnotation annotation, boolean createResourceObject) {
+		PrismContainerDefinition pcd;
 		
 //		if (createResourceObject) {
 //			ResourceObjectDefinition rod = new ResourceObjectDefinition(schema, elementName, complexTypeDefinition);
@@ -520,9 +520,9 @@ class DomToSchemaProcessor {
 			if (schemaRegistry != null) {
 				compileTimeClass = schemaRegistry.determineCompileTimeClass(elementName, complexTypeDefinition);
 			}
-			pcd = new ObjectDefinition(elementName, complexTypeDefinition, prismContext, compileTimeClass );
+			pcd = new PrismObjectDefinition(elementName, complexTypeDefinition, prismContext, compileTimeClass );
 		} else {
-			pcd = new PropertyContainerDefinition(elementName, complexTypeDefinition, prismContext);
+			pcd = new PrismContainerDefinition(elementName, complexTypeDefinition, prismContext);
 		}
 		
 		// TODO: parse generic annotations
@@ -555,8 +555,8 @@ class DomToSchemaProcessor {
 	 * @param annotation
 	 * @return
 	 */
-	private PropertyDefinition createPropertyDefinition(XSType xsType, QName elementName, QName typeName, XSAnnotation annotation) {
-		PropertyDefinition prodDef;
+	private PrismPropertyDefinition createPropertyDefinition(XSType xsType, QName elementName, QName typeName, XSAnnotation annotation) {
+		PrismPropertyDefinition prodDef;
 //		if (isResourceObject) {
 //			ResourceObjectAttributeDefinition attrDef = new ResourceObjectAttributeDefinition(elementName, null, typeName);
 //			
@@ -571,7 +571,7 @@ class DomToSchemaProcessor {
 //						
 //			prodDef = attrDef;
 		
-		prodDef = new PropertyDefinition(elementName, elementName, typeName, prismContext);
+		prodDef = new PrismPropertyDefinition(elementName, elementName, typeName, prismContext);
 		
 		// Process generic annotations
 		

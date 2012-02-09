@@ -34,9 +34,9 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.Item;
-import com.evolveum.midpoint.schema.processor.ObjectDefinition;
-import com.evolveum.midpoint.schema.processor.Property;
-import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
+import com.evolveum.midpoint.schema.processor.PrismObjectDefinition;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
+import com.evolveum.midpoint.schema.processor.PrismContainerDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyPath;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.processor.Schema;
@@ -63,7 +63,7 @@ public class DeltaConvertor {
     }
 
     public static <T extends Objectable> ObjectDelta<T> createObjectDelta(ObjectModificationType objectModification,
-            ObjectDefinition<T> objDef) throws SchemaException {
+            PrismObjectDefinition<T> objDef) throws SchemaException {
         ObjectDelta<T> objectDelta = new ObjectDelta<T>(objDef.getJaxbClass(), ChangeType.MODIFY);
         objectDelta.setOid(objectModification.getOid());
 
@@ -103,18 +103,18 @@ public class DeltaConvertor {
      */
     public static PropertyDelta createPropertyDelta(PropertyModificationType propMod, Schema schema,
             Class<? extends Objectable> objectType) throws SchemaException {
-        ObjectDefinition<? extends Objectable> objectDefinition = schema.findObjectDefinition(objectType);
+        PrismObjectDefinition<? extends Objectable> objectDefinition = schema.findObjectDefinition(objectType);
         return createPropertyDelta(propMod, objectDefinition);
     }
 
-    public static PropertyDelta createPropertyDelta(PropertyModificationType propMod, PropertyContainerDefinition pcDef) throws
+    public static PropertyDelta createPropertyDelta(PropertyModificationType propMod, PrismContainerDefinition pcDef) throws
             SchemaException {
         if (propMod.getValue() == null) {
             throw new IllegalArgumentException("No value in property modificiation (path " + propMod.getPath() + ") while creating a property delta");
         }
         XPathHolder xpath = new XPathHolder(propMod.getPath());
         PropertyPath parentPath = xpath.toPropertyPath();
-        PropertyContainerDefinition containingPcd = pcDef.findPropertyContainerDefinition(parentPath);
+        PrismContainerDefinition containingPcd = pcDef.findPropertyContainerDefinition(parentPath);
         if (containingPcd == null) {
             throw new SchemaException("No container definition for " + parentPath + " (while creating delta for " + pcDef + ")");
         }
@@ -126,10 +126,10 @@ public class DeltaConvertor {
             throw new SchemaException("Expected presence of a property value (path " + propMod.getPath() + ") in a object modification, but found nothing");
         }
         Item item = items.iterator().next();
-        if (!(item instanceof Property)) {
+        if (!(item instanceof PrismProperty)) {
             throw new SchemaException("Expected presence of a property (" + item.getName() + ",path " + propMod.getPath() + ") in a object modification, but found " + item.getClass().getSimpleName() + " instead", item.getName());
         }
-        Property prop = (Property) item;
+        PrismProperty prop = (PrismProperty) item;
         PropertyDelta propDelta = new PropertyDelta(parentPath, prop.getName());
         if (propMod.getModificationType() == PropertyModificationTypeType.add) {
             propDelta.addValuesToAdd(prop.getValues());

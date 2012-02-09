@@ -32,7 +32,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.PrismObject;
-import com.evolveum.midpoint.schema.processor.ObjectDefinition;
+import com.evolveum.midpoint.schema.processor.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -77,7 +77,7 @@ public class DeleteUserAction extends BaseAction {
 
             //set old user
             Schema schema = getSchemaRegistry().getObjectSchema();
-            ObjectDefinition<UserType> userDefinition = schema.findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
+            PrismObjectDefinition<UserType> userDefinition = schema.findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
             PrismObject<UserType> oldUser = userDefinition.parseObjectType(userType);
             context.setUserOld(oldUser);
             context.setUserTypeOld(userType);

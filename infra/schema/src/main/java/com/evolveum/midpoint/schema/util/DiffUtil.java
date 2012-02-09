@@ -27,7 +27,7 @@ import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.PrismObject;
-import com.evolveum.midpoint.schema.processor.ObjectDefinition;
+import com.evolveum.midpoint.schema.processor.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -56,7 +56,7 @@ public class DiffUtil {
 	}
 
 	public static <T extends ObjectType> ObjectDelta<T> diff(T oldObjectType, T newObjectType, Class<T> type, Schema objectSchema) throws SchemaException {
-		ObjectDefinition<T> objectDefinition = objectSchema.findObjectDefinition(type);
+		PrismObjectDefinition<T> objectDefinition = objectSchema.findObjectDefinition(type);
 		PrismObject<T> oldObject = null;
 		if (oldObjectType != null) {
 			oldObject = objectDefinition.parseObjectType(oldObjectType);

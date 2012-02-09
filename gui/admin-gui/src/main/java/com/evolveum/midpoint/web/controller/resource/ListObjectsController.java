@@ -40,8 +40,8 @@ import org.springframework.stereotype.Controller;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
-import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.processor.PrismContainerDefinition;
+import com.evolveum.midpoint.schema.processor.PrismPropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
@@ -254,11 +254,11 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 			return qnames;
 		}
 
-		PropertyContainerDefinition container = schema.findContainerDefinitionByType(objectClass);
+		PrismContainerDefinition container = schema.findContainerDefinitionByType(objectClass);
 		if (container instanceof ResourceObjectDefinition) {
 			ResourceObjectDefinition definition = (ResourceObjectDefinition) container;
 
-			for (PropertyDefinition attribute : definition.getPropertyDefinitions()) {
+			for (PrismPropertyDefinition attribute : definition.getPropertyDefinitions()) {
 				LOGGER.debug("Adding {} as header (property).", new Object[] { attribute.getName() });
 				if (isPropertyAccetable(attribute.getName(), resource)) {
 					qnames.add(attribute.getName());

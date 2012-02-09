@@ -32,7 +32,7 @@ import org.apache.commons.lang.time.DurationFormatUtils;
 import com.evolveum.midpoint.prism.XsdTypeConverter;
 import com.evolveum.midpoint.schema.ExtensionProcessor;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.PropertyContainer;
+import com.evolveum.midpoint.schema.processor.PrismContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -69,7 +69,7 @@ public class TaskItem extends SelectableBean {
     private TaskItemBinding binding;
     private long progress;
     private OperationResult result;
-    private PropertyContainer extension;
+    private PrismContainer extension;
     private String taskIdentifier;
     
     private TaskManager taskManager;
@@ -388,11 +388,11 @@ public class TaskItem extends SelectableBean {
         this.result = result;
     }
 
-    public PropertyContainer getExtension() {
+    public PrismContainer getExtension() {
         return extension;
     }
 
-    public void setExtension(PropertyContainer extension) {
+    public void setExtension(PrismContainer extension) {
         this.extension = extension;
     }
 

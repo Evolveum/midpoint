@@ -43,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
  * @author Radovan Semancik
  * 
  */
-public final class ResourceObject extends PropertyContainer {
+public final class ResourceObject extends PrismContainer {
 	
 	protected ActivationType activation;
 	protected CredentialsType credentials;
@@ -130,13 +130,13 @@ public final class ResourceObject extends PropertyContainer {
 	 * @throws IllegalStateException
 	 *             if resource object has multiple identifiers
 	 */
-	public Property getIdentifier() {
+	public PrismProperty getIdentifier() {
 		Set<ResourceObjectAttribute> attrDefs = getIdentifiers();
 		if (attrDefs.size() > 1){
 			throw new IllegalStateException("Resource object has more than one identifier.");
 		}
 		
-		for (Property p : attrDefs){
+		for (PrismProperty p : attrDefs){
 			return p;
 		}
 		
@@ -191,7 +191,7 @@ public final class ResourceObject extends PropertyContainer {
 	 * @throws IllegalStateException
 	 *             if resource object has multiple secondary identifiers
 	 */
-	public Property getSecondaryIdentifier() {
+	public PrismProperty getSecondaryIdentifier() {
 		throw new IllegalStateException("not implemented yet.");
 		// TODO assert single value
 	}
@@ -210,7 +210,7 @@ public final class ResourceObject extends PropertyContainer {
 	 * 
 	 * @return set of secondary identifier properties
 	 */
-	public Set<Property> getSecondaryIdentifiers() {
+	public Set<PrismProperty> getSecondaryIdentifiers() {
 		throw new IllegalStateException("not implemented yet.");
 	}
 

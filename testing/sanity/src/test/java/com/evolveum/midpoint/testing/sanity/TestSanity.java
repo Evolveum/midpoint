@@ -2225,13 +2225,13 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // Test for extension. This will also roughly test extension processor
         // and schema processor
-        PropertyContainer taskExtension = task.getExtension();
+        PrismContainer taskExtension = task.getExtension();
         AssertJUnit.assertNotNull(taskExtension);
         display("Task extension", taskExtension);
-        Property shipStateProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever",
+        PrismProperty shipStateProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever",
                 "shipState"));
         AssertJUnit.assertEquals("capsized", shipStateProp.getValue(String.class).getValue());
-        Property deadProp = taskExtension
+        PrismProperty deadProp = taskExtension
                 .findProperty(new QName("http://myself.me/schemas/whatever", "dead"));
         AssertJUnit.assertEquals(Integer.class, deadProp.getValues().iterator().next().getValue().getClass());
         AssertJUnit.assertEquals(Integer.valueOf(42), deadProp.getValue(Integer.class).getValue());
@@ -2417,7 +2417,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
     private Object findSyncToken(Task syncCycle) {
         Object token = null;
-        Property tokenProperty = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
+        PrismProperty tokenProperty = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
         if (tokenProperty != null) {
             token = tokenProperty.getValue();
         }

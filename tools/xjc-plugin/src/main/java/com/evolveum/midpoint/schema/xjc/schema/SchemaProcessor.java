@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.schema.xjc.schema;
 
 import com.evolveum.midpoint.schema.processor.PrismObject;
-import com.evolveum.midpoint.schema.processor.PropertyContainer;
+import com.evolveum.midpoint.schema.processor.PrismContainer;
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
 import com.evolveum.midpoint.schema.xjc.Processor;
 import static com.evolveum.midpoint.schema.xjc.util.ProcessorUtils.*;
@@ -86,7 +86,7 @@ public class SchemaProcessor implements Processor {
     }
 
     private Set<JDefinedClass> updatePropertyContainer(Outline outline) {
-        return updateContainer(outline, PROPERTY_CONTAINER, PropertyContainer.class);
+        return updateContainer(outline, PROPERTY_CONTAINER, PrismContainer.class);
     }
 
     private Set<JDefinedClass> updateMidPointContainer(Outline outline) {
@@ -94,7 +94,7 @@ public class SchemaProcessor implements Processor {
     }
 
     private Set<JDefinedClass> updateContainer(Outline outline, QName annotation,
-            Class<? extends PropertyContainer> containerClass) {
+            Class<? extends PrismContainer> containerClass) {
 
         Set<JDefinedClass> containers = new HashSet<JDefinedClass>();
 
@@ -136,7 +136,7 @@ public class SchemaProcessor implements Processor {
     }
 
     private void createGetContainerMethod(JDefinedClass definedClass, JVar container,
-            Class<? extends PropertyContainer> containerClass, Outline outline) {
+            Class<? extends PrismContainer> containerClass, Outline outline) {
 
         JClass clazz = (JClass) outline.getModel().codeModel._ref(containerClass);
         JMethod getContainer = definedClass.method(JMod.PUBLIC, clazz, METHOD_GET_CONTAINER);
@@ -155,7 +155,7 @@ public class SchemaProcessor implements Processor {
     }
 
     private void createSetContainerMethod(JDefinedClass definedClass, JVar container,
-            Class<? extends PropertyContainer> containerClass, Outline outline) {
+            Class<? extends PrismContainer> containerClass, Outline outline) {
 
         JMethod setContainer = definedClass.method(JMod.PUBLIC, void.class, METHOD_SET_CONTAINER);
         addDeprecation(outline, setContainer); //add deprecation

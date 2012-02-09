@@ -34,7 +34,7 @@ import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.exception.*;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.processor.MidPointObject;
-import com.evolveum.midpoint.schema.processor.ObjectDefinition;
+import com.evolveum.midpoint.schema.processor.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -367,7 +367,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             T object = getObject(delta.getObjectTypeClass(), delta.getOid(), null, subResult);
 
             Schema schema = schemaRegistry.getObjectSchema();
-            ObjectDefinition<T> objectDef = schema.findObjectDefinition(delta.getObjectTypeClass());
+            PrismObjectDefinition<T> objectDef = schema.findObjectDefinition(delta.getObjectTypeClass());
 
             MidPointObject<T> midPointObject = objectDef.parseObjectType(object);
             if (LOGGER.isTraceEnabled()) {

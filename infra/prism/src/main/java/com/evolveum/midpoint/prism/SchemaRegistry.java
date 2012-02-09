@@ -58,7 +58,7 @@ import org.xml.sax.SAXParseException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.Definition;
-import com.evolveum.midpoint.schema.processor.ObjectDefinition;
+import com.evolveum.midpoint.schema.processor.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -315,12 +315,12 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		// FIXME
 		objectSchema = new Schema(objectSchemaNamespace, prismContext);
 		for (Definition def: commonSchema.getDefinitions()) {
-			if (def instanceof ObjectDefinition<?>) {
+			if (def instanceof PrismObjectDefinition<?>) {
 				QName typeName = def.getTypeName();
 				if (extensionSchemas.containsKey(typeName)) {
 					LOGGER.trace("Applying extension type for {}: {}", typeName, extensionSchemas.get(typeName));
-					ObjectDefinition<?> objDef = (ObjectDefinition<?>)def;
-					ObjectDefinition<?> enhDef = objDef.clone();
+					PrismObjectDefinition<?> objDef = (PrismObjectDefinition<?>)def;
+					PrismObjectDefinition<?> enhDef = objDef.clone();
 					enhDef.setExtensionDefinition(extensionSchemas.get(typeName));
 					def = enhDef;
 					LOGGER.trace("Resuting object type def:\n{}", enhDef.dump());

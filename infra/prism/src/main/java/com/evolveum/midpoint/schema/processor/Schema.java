@@ -150,23 +150,23 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 	 * @throws IllegalStateException
 	 *             if more than one definition is found
 	 */
-	public PropertyContainerDefinition findContainerDefinitionByType(QName typeName) {
-		return findContainerDefinitionByType(typeName,PropertyContainerDefinition.class);
+	public PrismContainerDefinition findContainerDefinitionByType(QName typeName) {
+		return findContainerDefinitionByType(typeName,PrismContainerDefinition.class);
 	}
 	
-	public ObjectDefinition findObjectDefinitionByType(QName typeName) {
-		return findContainerDefinitionByType(typeName,ObjectDefinition.class);
+	public PrismObjectDefinition findObjectDefinitionByType(QName typeName) {
+		return findContainerDefinitionByType(typeName,PrismObjectDefinition.class);
 	}
 	
-	public ObjectDefinition findObjectDefinitionByElementName(QName elementName) {
-		return findContainerDefinitionByElementName(elementName, ObjectDefinition.class);
+	public PrismObjectDefinition findObjectDefinitionByElementName(QName elementName) {
+		return findContainerDefinitionByElementName(elementName, PrismObjectDefinition.class);
 	}
 
-	public <T extends Objectable> ObjectDefinition<T> findObjectDefinitionByType(QName typeName, Class<T> type) {
-		return findContainerDefinitionByType(typeName,ObjectDefinition.class);
+	public <T extends Objectable> PrismObjectDefinition<T> findObjectDefinitionByType(QName typeName, Class<T> type) {
+		return findContainerDefinitionByType(typeName,PrismObjectDefinition.class);
 	}
 
-	private <T extends PropertyContainerDefinition> T findContainerDefinitionByType(QName typeName, Class<T> type) {
+	private <T extends PrismContainerDefinition> T findContainerDefinitionByType(QName typeName, Class<T> type) {
 		if (typeName == null) {
 			throw new IllegalArgumentException("typeName must be supplied");
 		}
@@ -180,7 +180,7 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 		return null;
 	}
 
-	private <T extends PropertyContainerDefinition> T findContainerDefinitionByElementName(QName elementName, Class<T> type) {
+	private <T extends PrismContainerDefinition> T findContainerDefinitionByElementName(QName elementName, Class<T> type) {
 		if (elementName == null) {
 			throw new IllegalArgumentException("elementName must be supplied");
 		}
@@ -285,11 +285,11 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 	 *            type name "relative" to schema namespace
 	 * @return new property container definition
 	 */
-	public PropertyContainerDefinition createPropertyContainerDefinition(String localTypeName) {
+	public PrismContainerDefinition createPropertyContainerDefinition(String localTypeName) {
 		QName typeName = new QName(getNamespace(), localTypeName);
 		QName name = new QName(getNamespace(), toElementName(localTypeName));
 		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinition(name, typeName, prismContext);
-		PropertyContainerDefinition def = new PropertyContainerDefinition(name, cTypeDef, prismContext);
+		PrismContainerDefinition def = new PrismContainerDefinition(name, cTypeDef, prismContext);
 		definitions.add(cTypeDef);
 		definitions.add(def);
 		return def;
@@ -306,7 +306,7 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 	 *            XSD type name of the element
 	 * @return new property definition
 	 */
-	public PropertyDefinition createPropertyDefinition(String localName, QName typeName) {
+	public PrismPropertyDefinition createPropertyDefinition(String localName, QName typeName) {
 		QName name = new QName(getNamespace(), localName);
 		return createPropertyDefinition(name, typeName);
 	}
@@ -322,7 +322,7 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 	 *            XSD type name "relative" to schema namespace
 	 * @return new property definition
 	 */
-	public PropertyDefinition createPropertyDefinition(String localName, String localTypeName) {
+	public PrismPropertyDefinition createPropertyDefinition(String localName, String localTypeName) {
 		QName name = new QName(getNamespace(), localName);
 		QName typeName = new QName(getNamespace(), localTypeName);
 		return createPropertyDefinition(name, typeName);
@@ -339,8 +339,8 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 	 *            XSD type name of the element
 	 * @return new property definition
 	 */
-	public PropertyDefinition createPropertyDefinition(QName name, QName typeName) {
-		PropertyDefinition def = new PropertyDefinition(name, name, typeName, prismContext);
+	public PrismPropertyDefinition createPropertyDefinition(QName name, QName typeName) {
+		PrismPropertyDefinition def = new PrismPropertyDefinition(name, name, typeName, prismContext);
 		definitions.add(def);
 		return def;
 	}

@@ -21,8 +21,8 @@
 
 package com.evolveum.midpoint.schema.xjc;
 
-import com.evolveum.midpoint.schema.processor.Property;
-import com.evolveum.midpoint.schema.processor.PropertyContainer;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
+import com.evolveum.midpoint.schema.processor.PrismContainer;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 
 import javax.xml.namespace.QName;
@@ -38,9 +38,9 @@ public final class XmlUtil {
     private XmlUtil() {
     }
 
-    public static <T> List<T> getPropertyValues(PropertyContainer container, QName name, Class<T> clazz) {
+    public static <T> List<T> getPropertyValues(PrismContainer container, QName name, Class<T> clazz) {
         List<T> values = new ArrayList<T>();
-        Property property = container.findProperty(name);
+        PrismProperty property = container.findProperty(name);
         if (property == null) {
             return values;
         }
@@ -55,8 +55,8 @@ public final class XmlUtil {
         return values;
     }
 
-    public static <T> T getPropertyValue(PropertyContainer container, QName name) {
-        Property property = container.findProperty(name);
+    public static <T> T getPropertyValue(PrismContainer container, QName name) {
+        PrismProperty property = container.findProperty(name);
         if (property == null) {
             return null;
         }
@@ -69,8 +69,8 @@ public final class XmlUtil {
         return (T) value.getValue();
     }
 
-    public static <T> void setPropertyValue(PropertyContainer container, QName name, T value) {
-        Property property = container.findOrCreateProperty(name, value.getClass());
+    public static <T> void setPropertyValue(PrismContainer container, QName name, T value) {
+        PrismProperty property = container.findOrCreateProperty(name, value.getClass());
         property.setValue(new PropertyValue(value));
     }
 }

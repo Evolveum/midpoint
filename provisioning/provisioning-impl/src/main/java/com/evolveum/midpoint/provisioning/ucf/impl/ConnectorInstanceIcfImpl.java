@@ -197,7 +197,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		// Create configuration type - the type used by the "configuration"
 		// element
-		PropertyContainerDefinition configurationContainerDef = mpSchema
+		PrismContainerDefinition configurationContainerDef = mpSchema
 				.createPropertyContainerDefinition(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
 		// element with "ConfigurationPropertiesType" - the dynamic part of
 		// configuration schema
@@ -222,7 +222,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		// Create definition of "configurationProperties" type
 		// (CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME)
-		PropertyContainerDefinition configDef = mpSchema
+		PrismContainerDefinition configDef = mpSchema
 				.createPropertyContainerDefinition(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME);
 		for (String icfPropertyName : icfConfigurationProperties.getPropertyNames()) {
 			ConfigurationProperty icfProperty = icfConfigurationProperties.getProperty(icfPropertyName);
@@ -231,7 +231,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			QName propXsdType = icfTypeToXsdType(icfProperty.getType());
 			LOGGER.trace("{}: Mapping ICF config schema property {} from {} to {}", new Object[] { this,
 					icfPropertyName, icfProperty.getType(), propXsdType });
-			PropertyDefinition propertyDefinifion = configDef.createPropertyDefinition(propXsdName,
+			PrismPropertyDefinition propertyDefinifion = configDef.createPropertyDefinition(propXsdName,
 					propXsdType);
 			propertyDefinifion.setDisplayName(icfProperty.getDisplayName(null));
 			propertyDefinifion.setHelp(icfProperty.getHelpMessage(null));
@@ -819,7 +819,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (operation instanceof AttributeModificationOperation) {
 				AttributeModificationOperation change = (AttributeModificationOperation) operation;
 				if (change.getChangeType().equals(PropertyModificationTypeType.add)) {
-					Property property = change.getNewAttribute();
+					PrismProperty property = change.getNewAttribute();
 					ResourceObjectAttribute addAttribute = new ResourceObjectAttribute(property.getName(),
 							property.getDefinition(), null, null);
 					addAttribute.addValues(property.getValues());
@@ -827,14 +827,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 				}
 				if (change.getChangeType().equals(PropertyModificationTypeType.delete)) {
-					Property property = change.getNewAttribute();
+					PrismProperty property = change.getNewAttribute();
 					ResourceObjectAttribute deleteAttribute = new ResourceObjectAttribute(property.getName(),
 							property.getDefinition(), null, null);
 					deleteAttribute.addValues(property.getValues());
 					valuesToRemove.add(deleteAttribute);
 				}
 				if (change.getChangeType().equals(PropertyModificationTypeType.replace)) {
-					Property property = change.getNewAttribute();
+					PrismProperty property = change.getNewAttribute();
 					ResourceObjectAttribute updateAttribute = new ResourceObjectAttribute(property.getName(),
 							property.getDefinition(), null, null);
 					updateAttribute.addValues(property.getValues());
@@ -1110,12 +1110,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public Property deserializeToken(Object serializedToken) {
+	public PrismProperty deserializeToken(Object serializedToken) {
 		return createTokenProperty(serializedToken);
 	}
 
 	@Override
-	public Property fetchCurrentToken(ResourceObjectDefinition objectClass, OperationResult parentResult)
+	public PrismProperty fetchCurrentToken(ResourceObjectDefinition objectClass, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
@@ -1131,13 +1131,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw new IllegalArgumentException("No token found.");
 		}
 
-		Property property = getToken(syncToken);
+		PrismProperty property = getToken(syncToken);
 		result.recordSuccess();
 		return property;
 	}
 
 	@Override
-	public List<Change> fetchChanges(ResourceObjectDefinition objectClass, Property lastToken,
+	public List<Change> fetchChanges(ResourceObjectDefinition objectClass, PrismProperty lastToken,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			SchemaException {
 
@@ -1681,7 +1681,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return xpathElement;
 	}
 
-	private SyncToken getSyncToken(Property tokenProperty) throws SchemaException {
+	private SyncToken getSyncToken(PrismProperty tokenProperty) throws SchemaException {
 		if (tokenProperty.getValue() == null) {
 			throw new IllegalArgumentException("Attempt to get token from a null property");
 		}
@@ -1703,19 +1703,19 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return syncToken;
 	}
 
-	private Property getToken(SyncToken syncToken) {
+	private PrismProperty getToken(SyncToken syncToken) {
 		Object object = syncToken.getValue();
 		return createTokenProperty(object);
 	}
 
-	private Property createTokenProperty(Object object) {
+	private PrismProperty createTokenProperty(Object object) {
 		QName type = XsdTypeConverter.toXsdType(object.getClass());
 
 		Set<PropertyValue<Object>> syncTokenValues = new HashSet<PropertyValue<Object>>();
 		syncTokenValues.add(new PropertyValue<Object>(object));
-		PropertyDefinition propDef = new PropertyDefinition(SchemaConstants.SYNC_TOKEN, type);
+		PrismPropertyDefinition propDef = new PrismPropertyDefinition(SchemaConstants.SYNC_TOKEN, type);
 
-		Property property = new Property(SchemaConstants.SYNC_TOKEN, propDef, null, null);
+		PrismProperty property = new PrismProperty(SchemaConstants.SYNC_TOKEN, propDef, null, null);
 		property.addValues(syncTokenValues);
 		return property;
 	}

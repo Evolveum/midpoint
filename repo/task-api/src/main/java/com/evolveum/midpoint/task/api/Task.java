@@ -27,8 +27,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.schema.PropertyModification;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.Property;
-import com.evolveum.midpoint.schema.processor.PropertyContainer;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
+import com.evolveum.midpoint.schema.processor.PrismContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -286,9 +286,9 @@ public interface Task extends Dumpable {
 	 * 
 	 * @return task extension
 	 */
-	public PropertyContainer getExtension();
+	public PrismContainer getExtension();
 	
-	public Property getExtension(QName propertyName);
+	public PrismProperty getExtension(QName propertyName);
 	
 	/**
 	 * TODO

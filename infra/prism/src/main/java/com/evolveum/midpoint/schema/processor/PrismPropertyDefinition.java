@@ -61,7 +61,7 @@ import java.util.List;
  *
  * @author Radovan Semancik
  */
-public class PropertyDefinition extends ItemDefinition {
+public class PrismPropertyDefinition extends ItemDefinition {
 
     private static final long serialVersionUID = 7259761997904371009L;
     private QName valueType;
@@ -72,7 +72,7 @@ public class PropertyDefinition extends ItemDefinition {
     private boolean read = true;
     private boolean update = true;
 
-    public PropertyDefinition(QName name, QName defaultName, QName typeName, PrismContext prismContext) {
+    public PrismPropertyDefinition(QName name, QName defaultName, QName typeName, PrismContext prismContext) {
         super(name, defaultName, typeName, prismContext);
     }
 
@@ -194,13 +194,13 @@ public class PropertyDefinition extends ItemDefinition {
     }
 
     @Override
-    public Property instantiate(PropertyPath parentPath) {
+    public PrismProperty instantiate(PropertyPath parentPath) {
         return instantiate(getNameOrDefaultName(), parentPath);
     }
 
     @Override
-    public Property instantiate(QName name, PropertyPath parentPath) {
-        return new Property(name, this, prismContext, parentPath);
+    public PrismProperty instantiate(QName name, PropertyPath parentPath) {
+        return new PrismProperty(name, this, prismContext, parentPath);
     }
 
     // TODO: factory methods for DOM and JAXB elements
@@ -273,7 +273,7 @@ public class PropertyDefinition extends ItemDefinition {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        PropertyDefinition other = (PropertyDefinition) obj;
+        PrismPropertyDefinition other = (PrismPropertyDefinition) obj;
         if (!Arrays.equals(allowedValues, other.allowedValues))
             return false;
         if (create != other.create)

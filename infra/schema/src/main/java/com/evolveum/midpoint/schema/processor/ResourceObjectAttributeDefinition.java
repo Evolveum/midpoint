@@ -41,7 +41,7 @@ import javax.xml.namespace.QName;
  * @author Radovan Semancik
  * 
  */
-public class ResourceObjectAttributeDefinition extends PropertyDefinition {
+public class ResourceObjectAttributeDefinition extends PrismPropertyDefinition {
 
 	private static final long serialVersionUID = 7092192397127114804L;
 	private String nativeAttributeName;

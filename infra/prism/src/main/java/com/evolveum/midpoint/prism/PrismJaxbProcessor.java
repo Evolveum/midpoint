@@ -45,7 +45,7 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
-import com.evolveum.midpoint.schema.processor.ObjectDefinition;
+import com.evolveum.midpoint.schema.processor.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.processor.PrismObject;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.util.DOMUtil;

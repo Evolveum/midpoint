@@ -37,8 +37,8 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
-import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.processor.PrismContainerDefinition;
+import com.evolveum.midpoint.schema.processor.PrismPropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
@@ -114,22 +114,22 @@ public class TestJaxbWithDynamicSchema {
 		
 		// THEN
 		
-		PropertyContainerDefinition newContainerDef = unSchema.findContainerDefinitionByType(new QName(SCHEMA_NS,"AccountObjectClass"));
+		PrismContainerDefinition newContainerDef = unSchema.findContainerDefinitionByType(new QName(SCHEMA_NS,"AccountObjectClass"));
 		assertEquals(new QName(SCHEMA_NS,"AccountObjectClass"),newContainerDef.getTypeName());
 		assertTrue(newContainerDef instanceof ResourceObjectDefinition);
 		ResourceObjectDefinition rod = (ResourceObjectDefinition) newContainerDef;
 		assertTrue(rod.isAccountType());
 		assertTrue(rod.isDefaultAccountType());
 		
-		PropertyDefinition loginDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"login"));
+		PrismPropertyDefinition loginDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"login"));
 		assertEquals(new QName(SCHEMA_NS,"login"), loginDef.getName());
 		assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
 
-		PropertyDefinition passwdDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"password"));
+		PrismPropertyDefinition passwdDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"password"));
 		assertEquals(new QName(SCHEMA_NS,"password"), passwdDef.getName());
 		assertEquals(SchemaConstants.R_PROTECTED_STRING_TYPE, passwdDef.getTypeName());
 
-		PropertyContainerDefinition credDef = newContainerDef.findPropertyContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
+		PrismContainerDefinition credDef = newContainerDef.findPropertyContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
 		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
 		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
 	}

@@ -71,7 +71,7 @@ public class SchemaProcessorTest {
 		schema.createPropertyDefinition("number1", DOMUtil.XSD_INTEGER);
 		
 		// Property container
-		PropertyContainerDefinition containerDefinition = schema.createPropertyContainerDefinition("ContainerType");
+		PrismContainerDefinition containerDefinition = schema.createPropertyContainerDefinition("ContainerType");
 		// ... in it ordinary property
 		containerDefinition.createPropertyDefinition("login", DOMUtil.XSD_STRING);
 		// ... and local property with a type from another schema
@@ -79,7 +79,7 @@ public class SchemaProcessorTest {
 		// ... property reference
 		containerDefinition.createPropertyDefinition(SchemaConstants.I_CREDENTIALS, SchemaConstants.I_CREDENTIALS_TYPE);
 		// ... read-only int property 
-		PropertyDefinition counterProperty = containerDefinition.createPropertyDefinition("counter", DOMUtil.XSD_INTEGER);
+		PrismPropertyDefinition counterProperty = containerDefinition.createPropertyDefinition("counter", DOMUtil.XSD_INTEGER);
 		counterProperty.setReadOnly();
 
 		System.out.println("Generic schema before serializing to XSD: ");
@@ -106,29 +106,29 @@ public class SchemaProcessorTest {
 		
 		// THEN
 	
-		PropertyDefinition number1def = newSchema.findItemDefinition(new QName(SCHEMA_NS,"number1"), PropertyDefinition.class);
+		PrismPropertyDefinition number1def = newSchema.findItemDefinition(new QName(SCHEMA_NS,"number1"), PrismPropertyDefinition.class);
 		assertEquals(new QName(SCHEMA_NS,"number1"),number1def.getName());
 		assertEquals(DOMUtil.XSD_INTEGER,number1def.getTypeName());
 		
-		PropertyContainerDefinition newContainerDef = schema.findContainerDefinitionByType(new QName(SCHEMA_NS,"ContainerType"));
+		PrismContainerDefinition newContainerDef = schema.findContainerDefinitionByType(new QName(SCHEMA_NS,"ContainerType"));
 		assertEquals(new QName(SCHEMA_NS,"ContainerType"),newContainerDef.getTypeName());
 		
-		PropertyDefinition loginDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"login"));
+		PrismPropertyDefinition loginDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"login"));
 		assertEquals(new QName(SCHEMA_NS,"login"), loginDef.getName());
 		assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
 		assertTrue("Read flag is wrong",loginDef.canRead());
 		assertTrue("Create flag is wrong",loginDef.canCreate());
 		assertTrue("Update flag is wrong",loginDef.canUpdate());
 
-		PropertyDefinition passwdDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"password"));
+		PrismPropertyDefinition passwdDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"password"));
 		assertEquals(new QName(SCHEMA_NS,"password"), passwdDef.getName());
 		assertEquals(SchemaConstants.R_PROTECTED_STRING_TYPE, passwdDef.getTypeName());
 
-		PropertyDefinition credDef = newContainerDef.findPropertyDefinition(new QName(SchemaConstants.NS_C,"credentials"));
+		PrismPropertyDefinition credDef = newContainerDef.findPropertyDefinition(new QName(SchemaConstants.NS_C,"credentials"));
 		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
 		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
 
-		PropertyDefinition countDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"counter"));
+		PrismPropertyDefinition countDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"counter"));
 		assertEquals(new QName(SCHEMA_NS,"counter"), countDef.getName());
 		assertEquals(DOMUtil.XSD_INTEGER, countDef.getTypeName());
 		assertTrue("Read flag is wrong",countDef.canRead());
@@ -185,29 +185,29 @@ public class SchemaProcessorTest {
 		
 		// THEN
 			
-		PropertyContainerDefinition newContainerDef = newSchema.findContainerDefinitionByType(new QName(SCHEMA_NS,"AccountObjectClass"));
+		PrismContainerDefinition newContainerDef = newSchema.findContainerDefinitionByType(new QName(SCHEMA_NS,"AccountObjectClass"));
 		assertEquals(new QName(SCHEMA_NS,"AccountObjectClass"),newContainerDef.getTypeName());
 		assertTrue(newContainerDef instanceof ResourceObjectDefinition);
 		ResourceObjectDefinition rod = (ResourceObjectDefinition) newContainerDef;
 		assertTrue(rod.isAccountType());
 		assertTrue(rod.isDefaultAccountType());
 		
-		PropertyDefinition loginDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"login"));
+		PrismPropertyDefinition loginDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"login"));
 		assertEquals(new QName(SCHEMA_NS,"login"), loginDef.getName());
 		assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
 		assertFalse(loginDef.isIgnored());
 
-		PropertyDefinition passwdDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"password"));
+		PrismPropertyDefinition passwdDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"password"));
 		assertEquals(new QName(SCHEMA_NS,"password"), passwdDef.getName());
 		assertEquals(SchemaConstants.R_PROTECTED_STRING_TYPE, passwdDef.getTypeName());
 		assertFalse(passwdDef.isIgnored());
 
-		PropertyContainerDefinition credDef = newContainerDef.findPropertyContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
+		PrismContainerDefinition credDef = newContainerDef.findPropertyContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
 		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
 		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
 		assertFalse(credDef.isIgnored());
 		
-		PropertyDefinition sepDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"sep"));
+		PrismPropertyDefinition sepDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"sep"));
 		assertEquals(new QName(SCHEMA_NS,"sep"), sepDef.getName());
 		assertEquals(DOMUtil.XSD_STRING, sepDef.getTypeName());
 		assertTrue(sepDef.isIgnored());

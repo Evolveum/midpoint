@@ -173,9 +173,9 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
                 .findContainerDefinitionByType(new QName(resource.getNamespace(), "AccountObjectClass"));
         ResourceObject resourceObject = accountDefinition.instantiate();
 
-        PropertyDefinition propertyDefinition = accountDefinition
+        PrismPropertyDefinition propertyDefinition = accountDefinition
                 .findPropertyDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
-        Property property = propertyDefinition.instantiate(null);
+        PrismProperty property = propertyDefinition.instantiate(null);
         property.setValue(new PropertyValue("uid=" + name + ",ou=people,dc=example,dc=com"));
         resourceObject.add(property);
 
@@ -285,7 +285,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 
         OperationResult result = new OperationResult(this.getClass().getName() + ".testFetchChanges");
         ResourceObjectDefinition accountDefinition = schema.findAccountDefinition();
-        Property lastToken = cc.fetchCurrentToken(accountDefinition, result);
+        PrismProperty lastToken = cc.fetchCurrentToken(accountDefinition, result);
 
         System.out.println("Property:");
         System.out.println(SchemaDebugUtil.prettyPrint(lastToken));
@@ -327,7 +327,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 
     }
 
-    private Property createProperty(String propertyName, String propertyValue) {
+    private PrismProperty createProperty(String propertyName, String propertyValue) {
         ResourceObjectDefinition accountDefinition = (ResourceObjectDefinition) schema
                 .findContainerDefinitionByType(new QName(resource.getNamespace(), "AccountObjectClass"));
         ResourceObjectAttributeDefinition propertyDef = accountDefinition.findAttributeDefinition(new QName(
@@ -340,7 +340,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
     private AttributeModificationOperation createReplaceChange(String propertyName, String propertyValue) {
         AttributeModificationOperation attributeModification = new AttributeModificationOperation();
         attributeModification.setChangeType(PropertyModificationTypeType.replace);
-        Property property = createProperty(propertyName, propertyValue);
+        PrismProperty property = createProperty(propertyName, propertyValue);
         attributeModification.setNewAttribute(property);
         System.out.println("-------replace attribute modification-----");
         System.out.println("property name: " + property.getName().getLocalPart());
@@ -357,7 +357,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
         AttributeModificationOperation attributeModification = new AttributeModificationOperation();
         attributeModification.setChangeType(PropertyModificationTypeType.add);
 
-        Property property = createProperty(propertyName, propertyValue);
+        PrismProperty property = createProperty(propertyName, propertyValue);
 
         attributeModification.setNewAttribute(property);
         System.out.println("-------add attribute modification-----");
@@ -373,7 +373,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
         AttributeModificationOperation attributeModification = new AttributeModificationOperation();
         attributeModification.setChangeType(PropertyModificationTypeType.delete);
 
-        Property property = createProperty(propertyName, propertyValue);
+        PrismProperty property = createProperty(propertyName, propertyValue);
 
         attributeModification.setNewAttribute(property);
         System.out.println("-------delete attribute modification-----");
@@ -479,7 +479,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertFalse("No identifiers for account object class ", accountDefinition
                 .getIdentifiers().isEmpty());
 
-        PropertyDefinition uidDefinition = accountDefinition
+        PrismPropertyDefinition uidDefinition = accountDefinition
                 .findPropertyDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
         AssertJUnit.assertNotNull(uidDefinition);
 

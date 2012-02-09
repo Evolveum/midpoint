@@ -37,8 +37,8 @@ import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.PrismObject;
-import com.evolveum.midpoint.schema.processor.Property;
-import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
+import com.evolveum.midpoint.schema.processor.PrismPropertyDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -65,14 +65,14 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 	private String shortDesc;
 	private ValueConstructionType valueConstructionType;
 	private ObjectResolver objectResolver;
-	private Property input;
-	private Property output;
-	private PropertyDefinition outputDefinition;
+	private PrismProperty input;
+	private PrismProperty output;
+	private PrismPropertyDefinition outputDefinition;
 	private PropertyPath outputPropertyParentPath;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ValueConstruction.class);
 	
-	ValueConstruction(ValueConstructionType valueConstructionType, PropertyDefinition outputDefinition,  PropertyPath outputPropertyParentPath,
+	ValueConstruction(ValueConstructionType valueConstructionType, PrismPropertyDefinition outputDefinition,  PropertyPath outputPropertyParentPath,
 			String shortDesc, Map<QName,ValueConstructor> constructors) {
 		this.shortDesc = shortDesc;
 		this.valueConstructionType = valueConstructionType;
@@ -93,11 +93,11 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 		this.objectResolver = objectResolver;
 	}
 	
-	public void setInput(Property input) {
+	public void setInput(PrismProperty input) {
 		this.input = input;
 	}
 	
-	public void setOutputDefinitionX(PropertyDefinition outputDefinition) {
+	public void setOutputDefinitionX(PrismPropertyDefinition outputDefinition) {
 		this.outputDefinition = outputDefinition;
 	}
 	
@@ -232,7 +232,7 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 		return constructors.get(valueConstructorElement.getName());
 	}
 
-	public Property getOutput() {
+	public PrismProperty getOutput() {
 		return output;
 	}
 	

@@ -96,15 +96,15 @@ public class TestValueConstruction {
                 new File(TEST_DIR, "construction-value.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
-        PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
+        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismPropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         OperationResult opResult = new OperationResult("testConstructionValue");
 
         // WHEN
         ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "literal construction");
         construction.evaluate(opResult);
-        Property result = construction.getOutput();
+        PrismProperty result = construction.getOutput();
 
         // THEN
         assertEquals("foobar", result.getValue(String.class).getValue());
@@ -117,15 +117,15 @@ public class TestValueConstruction {
                 new File(TEST_DIR, "construction-value-multi.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
-        PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "telephoneNumber"));
+        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismPropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "telephoneNumber"));
 
         OperationResult opResult = new OperationResult("testConstructionValueMulti");
 
         // WHEN
         ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "literal multi construction");
         construction.evaluate(opResult);
-        Property result = construction.getOutput();
+        PrismProperty result = construction.getOutput();
 
         // THEN
         Set<String> expected = new HashSet<String>();
@@ -142,10 +142,10 @@ public class TestValueConstruction {
                 new File(TEST_DIR, "construction-asis.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
-        PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
+        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismPropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
-        Property givenName = givenNameDef.instantiate(null);
+        PrismProperty givenName = givenNameDef.instantiate(null);
         givenName.setValue(new PropertyValue("barbar"));
 
         OperationResult opResult = new OperationResult("testConstructionAsIs");
@@ -154,7 +154,7 @@ public class TestValueConstruction {
         ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "asis construction");
         construction.setInput(givenName);
         construction.evaluate(opResult);
-        Property result = construction.getOutput();
+        PrismProperty result = construction.getOutput();
 
         // THEN
         assertEquals("barbar", result.getValue(String.class).getValue());
@@ -167,15 +167,15 @@ public class TestValueConstruction {
                 new File(TEST_DIR, "construction-expression-simple.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
-        PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
+        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismPropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         OperationResult opResult = new OperationResult("testConstructionExpressionSimple");
 
         // WHEN
         ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "simple expression construction");
         construction.evaluate(opResult);
-        Property result = construction.getOutput();
+        PrismProperty result = construction.getOutput();
         // THEN
         assertEquals("fooBAR", result.getValue(String.class).getValue());
     }
@@ -187,15 +187,15 @@ public class TestValueConstruction {
                 new File(TEST_DIR, "construction-expression-variables.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
-        PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
+        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismPropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         OperationResult opResult = new OperationResult("testConstructionExpressionVariables");
 
         // WHEN
         ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "variables expression construction");
         construction.evaluate(opResult);
-        Property result = construction.getOutput();
+        PrismProperty result = construction.getOutput();
 
         // THEN
         assertEquals("Captain Jack Sparrow", result.getValue(String.class).getValue());
@@ -208,8 +208,8 @@ public class TestValueConstruction {
                 new File(TEST_DIR, "construction-expression-system-variables.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
-        PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
+        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismPropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         OperationResult opResult = new OperationResult("testConstructionExpressionSystemVariables");
 
@@ -222,7 +222,7 @@ public class TestValueConstruction {
         construction.addVariableDefinition(ExpressionConstants.VAR_USER, ref);
 
         construction.evaluate(opResult);
-        Property result = construction.getOutput();
+        PrismProperty result = construction.getOutput();
 
         // THEN
         assertEquals("Captain Jack Sparrow", result.getValue(String.class).getValue());
@@ -239,8 +239,8 @@ public class TestValueConstruction {
                 new File(OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111111.xml"), UserType.class);
         UserType userType = userTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
-        PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
+        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismPropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         OperationResult opResult = new OperationResult("testConstructionExpressionSystemVariables");
 
@@ -250,7 +250,7 @@ public class TestValueConstruction {
         construction.addVariableDefinition(ExpressionConstants.VAR_USER, userType);
 
         construction.evaluate(opResult);
-        Property result = construction.getOutput();
+        PrismProperty result = construction.getOutput();
 
         // THEN
         assertEquals("Captain Jack Sparrow", result.getValue(String.class).getValue());
@@ -267,8 +267,8 @@ public class TestValueConstruction {
                 new File(OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111111.xml"), UserType.class);
         UserType userType = userTypeElement.getValue();
 
-        ObjectDefinition<UserType> userDef = schemaRegistry.getObjectSchema().findObjectDefinition(UserType.class);
-        PropertyDefinition givenNameDef = userDef.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
+        PrismObjectDefinition<UserType> userDef = schemaRegistry.getObjectSchema().findObjectDefinition(UserType.class);
+        PrismPropertyDefinition givenNameDef = userDef.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         OperationResult opResult = new OperationResult("testConstructionExpressionSystemVariables");
 
@@ -278,7 +278,7 @@ public class TestValueConstruction {
         construction.addVariableDefinition(ExpressionConstants.VAR_USER, userDef.parseObjectType(userType));
 
         construction.evaluate(opResult);
-        Property result = construction.getOutput();
+        PrismProperty result = construction.getOutput();
 
         // THEN
         assertEquals("Captain Jack Sparrow", result.getValue(String.class).getValue());
@@ -291,8 +291,8 @@ public class TestValueConstruction {
                 new File(TEST_DIR, "construction-expression-root-node.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
-        PropertyDefinition localityDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "locality"));
+        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismPropertyDefinition localityDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "locality"));
 
         OperationResult opResult = new OperationResult("testConstructionRootNode");
 
@@ -305,7 +305,7 @@ public class TestValueConstruction {
         construction.setRootNode(ref);
 
         construction.evaluate(opResult);
-        Property result = construction.getOutput();
+        PrismProperty result = construction.getOutput();
 
         // THEN
         Set<String> expected = new HashSet<String>();
@@ -321,15 +321,15 @@ public class TestValueConstruction {
                 new File(TEST_DIR, "construction-expression-list.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
-        PropertyDefinition ouDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "organizationalUnit"));
+        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismPropertyDefinition ouDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "organizationalUnit"));
 
         OperationResult opResult = new OperationResult("testConstructionExpressionList");
 
         // WHEN
         ValueConstruction construction = factory.createValueConstruction(valueConstructionType, ouDef, null, "list expression construction");
         construction.evaluate(opResult);
-        Property result = construction.getOutput();
+        PrismProperty result = construction.getOutput();
 
         // THEN
         Set<String> expected = new HashSet<String>();
@@ -351,15 +351,15 @@ public class TestValueConstruction {
                 new File(TEST_DIR, "construction-expression-scalar-list.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
-        PropertyDefinition ouDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "organizationalUnit"));
+        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismPropertyDefinition ouDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "organizationalUnit"));
 
         OperationResult opResult = new OperationResult("testConstructionExpressionScalarList");
 
         // WHEN
         ValueConstruction construction = factory.createValueConstruction(valueConstructionType, ouDef, null, "scalar list expression construction");
         construction.evaluate(opResult);
-        Property result = construction.getOutput();
+        PrismProperty result = construction.getOutput();
 
         // THEN
         Set<String> expected = new HashSet<String>();
@@ -375,10 +375,10 @@ public class TestValueConstruction {
                 new File(TEST_DIR, "construction-generate.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
-        PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
+        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismPropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
-        Property givenName = givenNameDef.instantiate(null);
+        PrismProperty givenName = givenNameDef.instantiate(null);
 
         OperationResult opResult = new OperationResult("testConstructionGenerate");
 
@@ -386,7 +386,7 @@ public class TestValueConstruction {
         ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "generate construction");
         construction.setInput(givenName);
         construction.evaluate(opResult);
-        Property result = construction.getOutput();
+        PrismProperty result = construction.getOutput();
 
         // THEN (1)
         String value1 = result.getValue(String.class).getValue();
@@ -413,10 +413,10 @@ public class TestValueConstruction {
                 new File(TEST_DIR, "construction-generate.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PropertyContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
-        PropertyDefinition propDef = userContainer.findPropertyDefinition(SchemaConstants.PATH_PASSWORD_VALUE);
+        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismPropertyDefinition propDef = userContainer.findPropertyDefinition(SchemaConstants.PATH_PASSWORD_VALUE);
 
-        Property prop = propDef.instantiate(null);
+        PrismProperty prop = propDef.instantiate(null);
 
         OperationResult opResult = new OperationResult("testConstructionGenerateProtectedString");
 
@@ -424,7 +424,7 @@ public class TestValueConstruction {
         ValueConstruction construction = factory.createValueConstruction(valueConstructionType, propDef, SchemaConstants.PATH_PASSWORD, "generate protected construction");
         construction.setInput(prop);
         construction.evaluate(opResult);
-        Property result = construction.getOutput();
+        PrismProperty result = construction.getOutput();
 
         // THEN
         ProtectedStringType value1 = result.getValue(ProtectedStringType.class).getValue();

@@ -45,7 +45,7 @@ import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.PrismObject;
-import com.evolveum.midpoint.schema.processor.ObjectDefinition;
+import com.evolveum.midpoint.schema.processor.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyPath;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.processor.Schema;
@@ -81,7 +81,7 @@ public class TestParseDiffPatch {
         // "Automatic" parsing
         PrismObject<UserType> userBefore = objectSchema.parseObject(new File(TEST_DIR, "user-jack-before.xml"), UserType.class);
         
-        ObjectDefinition<UserType> userDefinition = objectSchema.findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismObjectDefinition<UserType> userDefinition = objectSchema.findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
         assertNotNull("UserType definition not found in object schema", userDefinition);
         
         // "Manual" parsing

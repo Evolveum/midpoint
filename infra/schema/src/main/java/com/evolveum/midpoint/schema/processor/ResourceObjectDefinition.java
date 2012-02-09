@@ -49,7 +49,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
  * @author Radovan Semancik
  * 
  */
-public class ResourceObjectDefinition extends PropertyContainerDefinition {
+public class ResourceObjectDefinition extends PrismContainerDefinition {
 
 	private static final long serialVersionUID = 3943909626639924429L;
 	private Set<ResourceObjectAttributeDefinition> idenitifiers;
@@ -311,11 +311,11 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 		return new ResourceObject(getNameOrDefaultName(), this, null, null);
 	}
 	
-	public PropertyContainer instantiate(QName name) {
+	public PrismContainer instantiate(QName name) {
 		return new ResourceObject(name, this, null, null);
 	}
 	
-	public PropertyContainer instantiate(QName name, Object element) {
+	public PrismContainer instantiate(QName name, Object element) {
 		return new ResourceObject(name, this, element, null);
 	}
 
@@ -325,12 +325,12 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 	}
 	
 	@Override
-	public PropertyContainer instantiate(QName name, PropertyPath parentPath) {
+	public PrismContainer instantiate(QName name, PropertyPath parentPath) {
 		return new ResourceObject(name, this, null, parentPath);
 	}
 	
 	@Override
-	public PropertyContainer instantiate(QName name, Object element, PropertyPath parentPath) {
+	public PrismContainer instantiate(QName name, Object element, PropertyPath parentPath) {
 		return new ResourceObject(name, this, element, parentPath);
 	}
 

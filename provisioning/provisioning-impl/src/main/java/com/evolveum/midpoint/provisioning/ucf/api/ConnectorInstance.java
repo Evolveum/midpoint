@@ -21,8 +21,8 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.Property;
-import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
+import com.evolveum.midpoint.schema.processor.PrismContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
@@ -245,7 +245,7 @@ public interface ConnectorInstance {
 	 * @param serializedToken
 	 * @return
 	 */
-	public Property deserializeToken(Object serializedToken);
+	public PrismProperty deserializeToken(Object serializedToken);
 	
 	/**
 	 * Returns the latest token. In other words, returns a token that
@@ -256,7 +256,7 @@ public interface ConnectorInstance {
 	 * @return
 	 * @throws CommunicationException
 	 */
-	public Property fetchCurrentToken(ResourceObjectDefinition objectClass, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	public PrismProperty fetchCurrentToken(ResourceObjectDefinition objectClass, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Token may be null. That means "from the beginning of history".
@@ -264,7 +264,7 @@ public interface ConnectorInstance {
 	 * @param lastToken
 	 * @return
 	 */
-	public List<Change> fetchChanges(ResourceObjectDefinition objectClass, Property lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException;
+	public List<Change> fetchChanges(ResourceObjectDefinition objectClass, PrismProperty lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException;
 	
 	//public ValidationResult validateConfiguration(ResourceConfiguration newConfiguration);
 	

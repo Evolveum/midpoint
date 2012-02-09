@@ -70,12 +70,12 @@ public class ActivationProcessor {
             LOGGER.trace("userNew is null, skipping activation processing");
             return;
         }
-        Property userEnabledNew = userNew.findProperty(SchemaConstants.PATH_ACTIVATION_ENABLE);
+        PrismProperty userEnabledNew = userNew.findProperty(SchemaConstants.PATH_ACTIVATION_ENABLE);
 
         Schema commonSchema = schemaRegistry.getObjectSchema();
 
-        ObjectDefinition<AccountShadowType> accountDefinition = commonSchema.findObjectDefinition(AccountShadowType.class);
-        PropertyDefinition accountEnabledPropertyDefinition = accountDefinition.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_ENABLE);
+        PrismObjectDefinition<AccountShadowType> accountDefinition = commonSchema.findObjectDefinition(AccountShadowType.class);
+        PrismPropertyDefinition accountEnabledPropertyDefinition = accountDefinition.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_ENABLE);
 
         for (AccountSyncContext accCtx : context.getAccountContexts()) {
             ResourceAccountType rat = accCtx.getResourceAccountType();
@@ -120,7 +120,7 @@ public class ActivationProcessor {
             		SchemaConstants.PATH_ACTIVATION, "outbound activation in account type " + rat);
             enabledConstruction.setInput(userEnabledNew);
             enabledConstruction.evaluate(result);
-            Property accountEnabledNew = enabledConstruction.getOutput();
+            PrismProperty accountEnabledNew = enabledConstruction.getOutput();
             if (accountEnabledNew == null || accountEnabledNew.isEmpty()) {
                 LOGGER.trace("Activation 'enable' expression resulted in null or empty value, skipping activation processing for {}", rat);
                 continue;

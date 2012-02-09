@@ -38,7 +38,7 @@ import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.PrismObject;
-import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.processor.PrismPropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
@@ -190,7 +190,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		if (attrName == null) {
 			throw new SchemaException("Missing 'ref' in attribute construction in account construction in "+ObjectTypeUtil.toShortString(source));
 		}
-		PropertyDefinition outputDefinition = findAttributeDefinition(attrName);
+		PrismPropertyDefinition outputDefinition = findAttributeDefinition(attrName);
 		if (outputDefinition == null) {
 			throw new SchemaException("Attribute "+attrName+" not found in schema for account type "+getAccountType()+", "+ObjectTypeUtil.toShortString(getResource(result))+" as definied in "+ObjectTypeUtil.toShortString(source), attrName);
 		}

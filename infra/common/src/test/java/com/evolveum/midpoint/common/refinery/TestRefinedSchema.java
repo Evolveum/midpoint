@@ -24,9 +24,9 @@ import com.evolveum.midpoint.prism.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.PrismObject;
-import com.evolveum.midpoint.schema.processor.ObjectDefinition;
-import com.evolveum.midpoint.schema.processor.Property;
-import com.evolveum.midpoint.schema.processor.PropertyContainer;
+import com.evolveum.midpoint.schema.processor.PrismObjectDefinition;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
+import com.evolveum.midpoint.schema.processor.PrismContainer;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -127,7 +127,7 @@ public class TestRefinedSchema {
 
         // WHEN
 
-        ObjectDefinition<AccountShadowType> objectDefinition = defaultAccountDefinition.getObjectDefinition();
+        PrismObjectDefinition<AccountShadowType> objectDefinition = defaultAccountDefinition.getObjectDefinition();
 
         System.out.println("Refined account definition:");
         System.out.println(objectDefinition.dump());
@@ -143,7 +143,7 @@ public class TestRefinedSchema {
         assertProperty(accObject, SchemaConstants.I_OBJECT_CLASS, new QName(resourceType.getNamespace(), "AccountObjectClass"));
         assertProperty(accObject, new QName(SchemaConstants.NS_C, "accountType"), "user");
 
-        PropertyContainer attributes = accObject.findOrCreatePropertyContainer(SchemaConstants.I_ATTRIBUTES);
+        PrismContainer attributes = accObject.findOrCreatePropertyContainer(SchemaConstants.I_ATTRIBUTES);
         RefinedAccountDefinition attrDef = (RefinedAccountDefinition) attributes.getDefinition();
         assertAttributeDefs(attrDef, resourceType);
 
@@ -181,8 +181,8 @@ public class TestRefinedSchema {
 
     }
 
-    private void assertProperty(PropertyContainer cont, QName propName, Object value) {
-        Property prop = cont.findProperty(propName);
+    private void assertProperty(PrismContainer cont, QName propName, Object value) {
+        PrismProperty prop = cont.findProperty(propName);
         assertNotNull(propName + " in null", prop);
         assertEquals(propName + " has wrong name", propName, prop.getName());
         assertEquals(propName + " has wrong value", value, prop.getValue().getValue());

@@ -45,7 +45,7 @@ import com.evolveum.midpoint.prism.PrismContext;
  * @author Radovan Semancik
  * 
  */
-public class ObjectReferenceDefinition extends PropertyDefinition {
+public class ObjectReferenceDefinition extends PrismPropertyDefinition {
 
 	private static final long serialVersionUID = 2427488779612517600L;
 	private Set<QName> targetTypeNames;

@@ -34,8 +34,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.Property;
-import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
+import com.evolveum.midpoint.schema.processor.PrismPropertyDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -99,14 +99,14 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
     private ChangeNotificationDispatcher changeNotificationDispatcher;
 
     private Map<Task, SynchronizeAccountResultHandler> handlers;
-    private PropertyDefinition objectclassPropertyDefinition;
+    private PrismPropertyDefinition objectclassPropertyDefinition;
 
     private static final Trace LOGGER = TraceManager.getTrace(ImportAccountsFromResourceTaskHandler.class);
 
     public ImportAccountsFromResourceTaskHandler() {
         super();
         handlers = new HashMap<Task, SynchronizeAccountResultHandler>();
-        objectclassPropertyDefinition = new PropertyDefinition(ImportConstants.OBJECTCLASS_PROPERTY_NAME, DOMUtil.XSD_QNAME);
+        objectclassPropertyDefinition = new PrismPropertyDefinition(ImportConstants.OBJECTCLASS_PROPERTY_NAME, DOMUtil.XSD_QNAME);
     }
 
     @PostConstruct
@@ -141,7 +141,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         task.setObjectRef(ObjectTypeUtil.createObjectRef(resource));
 
         // Set objectclass
-        Property objectclassProperty = objectclassPropertyDefinition.instantiate(null);
+        PrismProperty objectclassProperty = objectclassPropertyDefinition.instantiate(null);
         objectclassProperty.setValue(new PropertyValue(objectclass));
         PropertyModification modification = objectclassProperty.createModification(
                 ModificationType.REPLACE, new PropertyValue<Object>(objectclass));
@@ -224,7 +224,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         }
 
         // Determine object class to import
-        Property objectclassProperty = task.getExtension(ImportConstants.OBJECTCLASS_PROPERTY_NAME);
+        PrismProperty objectclassProperty = task.getExtension(ImportConstants.OBJECTCLASS_PROPERTY_NAME);
         if (objectclassProperty == null) {
             LOGGER.error("Import: No objectclass specified");
             opResult.recordFatalError("No objectclass specified");

@@ -63,11 +63,11 @@ import java.util.*;
  *
  * @author Radovan Semancik
  */
-public class Property extends Item {
+public class PrismProperty extends Item {
 
     private Set<PropertyValue<Object>> values = new HashSet<PropertyValue<Object>>();
 
-    private static final Trace LOGGER = TraceManager.getTrace(Property.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PrismProperty.class);
 
 //    public Property() {
 //        super();
@@ -88,7 +88,7 @@ public class Property extends Item {
 //        }
 //    }
 
-    public Property(QName name, PropertyDefinition definition, PrismContext prismContext, PropertyPath parentPath) {
+    public PrismProperty(QName name, PrismPropertyDefinition definition, PrismContext prismContext, PropertyPath parentPath) {
         super(name, definition, prismContext, parentPath);
     }
 
@@ -100,8 +100,8 @@ public class Property extends Item {
      *
      * @return applicable property definition
      */
-    public PropertyDefinition getDefinition() {
-        return (PropertyDefinition) definition;
+    public PrismPropertyDefinition getDefinition() {
+        return (PrismPropertyDefinition) definition;
     }
 
     /**
@@ -109,7 +109,7 @@ public class Property extends Item {
      *
      * @param definition the definition to set
      */
-    public void setDefinition(PropertyDefinition definition) {
+    public void setDefinition(PrismPropertyDefinition definition) {
         this.definition = definition;
     }
 
@@ -276,7 +276,7 @@ public class Property extends Item {
         serializeToDom(parentNode, null, null, false);
     }
 
-    public void serializeToDom(Node parentNode, PropertyDefinition propDef, Set<PropertyValue<Object>> alternateValues,
+    public void serializeToDom(Node parentNode, PrismPropertyDefinition propDef, Set<PropertyValue<Object>> alternateValues,
             boolean recordType) throws SchemaException {
 
         if (propDef == null) {
@@ -328,7 +328,7 @@ public class Property extends Item {
      * <p/>
      * Package-private. Useful for some internal calls inside schema processor.
      */
-    List<Object> serializeToJaxb(Document doc, PropertyDefinition propDef) throws SchemaException {
+    List<Object> serializeToJaxb(Document doc, PrismPropertyDefinition propDef) throws SchemaException {
         // No need to record types, we have schema definition here
         return serializeToJaxb(doc, propDef, null, false);
     }
@@ -341,7 +341,7 @@ public class Property extends Item {
      * <p/>
      * Package-private. Useful for some internal calls inside schema processor.
      */
-    List<Object> serializeToJaxb(Document doc, PropertyDefinition propDef, Set<PropertyValue<Object>> alternateValues,
+    List<Object> serializeToJaxb(Document doc, PrismPropertyDefinition propDef, Set<PropertyValue<Object>> alternateValues,
             boolean recordType) throws SchemaException {
 
 
@@ -384,13 +384,13 @@ public class Property extends Item {
     }
 
     @Override
-    public Property clone() {
-        Property clone = new Property(getName(), getDefinition(), prismContext, getParentPath());
+    public PrismProperty clone() {
+        PrismProperty clone = new PrismProperty(getName(), getDefinition(), prismContext, getParentPath());
         copyValues(clone);
         return clone;
     }
 
-    protected void copyValues(Property clone) {
+    protected void copyValues(PrismProperty clone) {
         super.copyValues(clone);
         clone.values = new HashSet<PropertyValue<Object>>();
 //        for (PropertyValue<Object> value : values) {
@@ -415,7 +415,7 @@ public class Property extends Item {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        Property other = (Property) obj;
+        PrismProperty other = (PrismProperty) obj;
         if (values == null) {
             if (other.values != null)
                 return false;
@@ -434,7 +434,7 @@ public class Property extends Item {
      *         resulting property delta is applied on other property then other property and "this" property
      *         will be equal.
      */
-    public PropertyDelta compareRealValuesTo(Property other) {
+    public PropertyDelta compareRealValuesTo(PrismProperty other) {
         return compareTo(other, true);
     }
 
@@ -446,14 +446,14 @@ public class Property extends Item {
      *         resulting property delta is applied on other property then other property and "this" property
      *         will be equal.
      */
-    public PropertyDelta compareTo(Property other) {
+    public PropertyDelta compareTo(PrismProperty other) {
         return compareTo(other, false);
     }
 
-    private PropertyDelta compareTo(Property other, boolean compareReal) {
+    private PropertyDelta compareTo(PrismProperty other, boolean compareReal) {
         PropertyDelta delta = new PropertyDelta(getPath());
 
-        PropertyDefinition def = getDefinition();
+        PrismPropertyDefinition def = getDefinition();
 
         if (other != null) {
             for (PropertyValue<Object> value : getValues()) {

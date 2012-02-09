@@ -33,7 +33,7 @@ import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.processor.ComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.ItemDefinition;
-import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;

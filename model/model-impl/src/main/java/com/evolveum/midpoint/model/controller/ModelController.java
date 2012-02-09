@@ -76,7 +76,7 @@ import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.PrismObject;
-import com.evolveum.midpoint.schema.processor.ObjectDefinition;
+import com.evolveum.midpoint.schema.processor.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -702,7 +702,7 @@ public class ModelController implements ModelService {
 							result);
 					RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
 							schemaRegistry);
-					ObjectDefinition<AccountShadowType> accountDefinition = refinedSchema
+					PrismObjectDefinition<AccountShadowType> accountDefinition = refinedSchema
 							.getObjectDefinition(shadow);
 
 					// This creates a better delta than the one above

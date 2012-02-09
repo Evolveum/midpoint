@@ -53,7 +53,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.processor.ChangeType;
-import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -326,7 +326,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					SchemaDebugUtil.prettyPrint(resourceType));
 
 			// getting token form task
-			Property tokenProperty = null;
+			PrismProperty tokenProperty = null;
 
 			if (task.getExtension() != null) {
 				tokenProperty = task.getExtension(SchemaConstants.SYNC_TOKEN);
@@ -373,7 +373,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				// created in the resource was deleted before the sync run
 				// such a change should be skipped to process consistent changes
 				if (change.getOldShadow() == null) {
-					Property newToken = change.getToken();
+					PrismProperty newToken = change.getToken();
 					PropertyModification modificatedToken = getTokenModification(newToken);
 					modifications.add(modificatedToken);
 					processedChanges++;
@@ -408,7 +408,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					// get updated token from change,
 					// create property modification from new token
 					// and replace old token with the new one
-					Property newToken = change.getToken();
+					PrismProperty newToken = change.getToken();
 					PropertyModification modificatedToken = getTokenModification(newToken);
 					modifications.add(modificatedToken);
 					processedChanges++;
@@ -941,7 +941,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	}
 
-	private PropertyModification getTokenModification(Property token) {
+	private PropertyModification getTokenModification(PrismProperty token) {
 		PropertyModification propertyModification = token.createModification(ModificationType.REPLACE,
 				token.getValues());
 		return propertyModification;

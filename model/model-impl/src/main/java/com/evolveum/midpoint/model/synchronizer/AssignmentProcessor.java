@@ -34,7 +34,7 @@ import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -96,7 +96,7 @@ public class AssignmentProcessor {
 
         Collection<PropertyValue<AssignmentType>> assignmentsOld = new HashSet<PropertyValue<AssignmentType>>();
         if (context.getUserOld() != null) {
-            Property assignmentProperty = context.getUserOld().findProperty(UserType.F_ASSIGNMENT);
+            PrismProperty assignmentProperty = context.getUserOld().findProperty(UserType.F_ASSIGNMENT);
             if (assignmentProperty != null) {
             	assignmentsOld.addAll(assignmentProperty.getValues(AssignmentType.class));
             }
@@ -311,7 +311,7 @@ public class AssignmentProcessor {
             AccountConstruction ac = propertyValue.getValue();
             for (ValueConstruction attrConstr : ac.getAttributeConstructions()) {
 
-                Property output = attrConstr.getOutput();
+                PrismProperty output = attrConstr.getOutput();
                 QName attrName = output.getName();
                 DeltaSetTriple<ValueConstruction> valueTriple = attrMap.get(attrName);
                 if (valueTriple == null) {

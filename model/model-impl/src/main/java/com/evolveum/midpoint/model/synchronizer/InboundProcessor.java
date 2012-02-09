@@ -155,7 +155,7 @@ public class InboundProcessor {
                     delta = createUserPropertyDelta(inbound, propertyDelta, context.getUserNew());
                 } else if (oldAccount != null) {
                     LOGGER.debug("Processing inbound from account sync absolute state (oldAccount).");
-                    Property oldAccountProperty = oldAccount.findProperty(new PropertyPath(SchemaConstants.I_ATTRIBUTES), name);
+                    PrismProperty oldAccountProperty = oldAccount.findProperty(new PropertyPath(SchemaConstants.I_ATTRIBUTES), name);
                     delta = createUserPropertyDelta(inbound, oldAccountProperty, context.getUserNew());
                 }
 
@@ -181,7 +181,7 @@ public class InboundProcessor {
         }
 
         boolean initial = valueConstruction.isInitial() == null ? false : valueConstruction.isInitial();
-        Property property = newUser.findProperty(createUserPropertyPath(inbound));
+        PrismProperty property = newUser.findProperty(createUserPropertyPath(inbound));
         if (initial && (property == null || property.isEmpty())) {
             return true;
         }
@@ -189,12 +189,12 @@ public class InboundProcessor {
         return false;
     }
 
-    private PropertyDelta createUserPropertyDelta(ValueAssignmentType inbound, Property oldAccountProperty,
+    private PropertyDelta createUserPropertyDelta(ValueAssignmentType inbound, PrismProperty oldAccountProperty,
             PrismObject<UserType> newUser) {
         List<ValueFilterType> filters = inbound.getValueFilter();
 
         PropertyPath targetUserAttribute = createUserPropertyPath(inbound);
-        Property userProperty = newUser.findProperty(targetUserAttribute);
+        PrismProperty userProperty = newUser.findProperty(targetUserAttribute);
 
         PropertyDelta delta = null;
         if (userProperty != null) {
@@ -223,7 +223,7 @@ public class InboundProcessor {
         List<ValueFilterType> filters = inbound.getValueFilter();
 
         PropertyPath targetUserAttribute = createUserPropertyPath(inbound);
-        Property property = newUser.findProperty(targetUserAttribute);
+        PrismProperty property = newUser.findProperty(targetUserAttribute);
 
         PropertyDelta delta = new PropertyDelta(targetUserAttribute);
         if (propertyDelta.getValuesToAdd() != null) {
@@ -296,7 +296,7 @@ public class InboundProcessor {
         ValueConstructionType valueConstruction = inbound.getSource();
         boolean initial = valueConstruction.isInitial() == null ? false : valueConstruction.isInitial();
 
-        Property property = newUser.findOrCreateProperty(path.allExceptLast(),
+        PrismProperty property = newUser.findOrCreateProperty(path.allExceptLast(),
                 path.last(), String.class);
         if (initial && !property.isEmpty()) {
             //inbound will be constructed only if initial == false or initial == true and value doesn't exist
@@ -323,8 +323,8 @@ public class InboundProcessor {
             }
         }
 
-        Property input = accContext.getAccountNew().findProperty(path);
-        Property result;
+        PrismProperty input = accContext.getAccountNew().findProperty(path);
+        PrismProperty result;
         try {
         	// TODO: is the parentPath correct (null)?
             ValueConstruction construction = valueConstructionFactory.createValueConstruction(

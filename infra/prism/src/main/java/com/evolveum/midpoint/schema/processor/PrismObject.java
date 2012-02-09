@@ -53,12 +53,12 @@ import com.evolveum.midpoint.util.MiscUtil;
  * @author Radovan Semancik
  * 
  */
-public class PrismObject<T extends Objectable> extends PropertyContainer {
+public class PrismObject<T extends Objectable> extends PrismContainer {
 
 	protected String oid;
 	protected String version;
 		
-	public PrismObject(QName name, ObjectDefinition definition, PrismContext prismContext, PropertyPath parentPath) {
+	public PrismObject(QName name, PrismObjectDefinition definition, PrismContext prismContext, PropertyPath parentPath) {
 		super(name, definition, prismContext, parentPath);
 	}
 
@@ -86,8 +86,8 @@ public class PrismObject<T extends Objectable> extends PropertyContainer {
 	}
 
 	@Override
-	public ObjectDefinition<T> getDefinition() {
-		return (ObjectDefinition<T>) super.getDefinition();
+	public PrismObjectDefinition<T> getDefinition() {
+		return (PrismObjectDefinition<T>) super.getDefinition();
 	}
 	
 	@Override
@@ -97,7 +97,7 @@ public class PrismObject<T extends Objectable> extends PropertyContainer {
 	}
 
 	public Class<T> getJaxbClass() {
-		return ((ObjectDefinition)getDefinition()).getJaxbClass();
+		return ((PrismObjectDefinition)getDefinition()).getJaxbClass();
 	}
 
 	public T getObjectable() {
@@ -105,7 +105,7 @@ public class PrismObject<T extends Objectable> extends PropertyContainer {
 		throw new UnsupportedOperationException();
 	}
 	
-	public PropertyContainer getExtension() {
+	public PrismContainer getExtension() {
 		return findPropertyContainer(new QName(getName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME));
 	}
 	
@@ -136,8 +136,8 @@ public class PrismObject<T extends Objectable> extends PropertyContainer {
 		Collection<PropertyPath> allPropertyPaths = MiscUtil.union(thisPropertyPaths,otherPropertyPaths);
 		
 		for (PropertyPath path: allPropertyPaths) {
-			Property thisProperty = findProperty(path);
-			Property otherProperty = other.findProperty(path);
+			PrismProperty thisProperty = findProperty(path);
+			PrismProperty otherProperty = other.findProperty(path);
 			PropertyDelta propertyDelta = null;
 			
 			if (thisProperty == null) {

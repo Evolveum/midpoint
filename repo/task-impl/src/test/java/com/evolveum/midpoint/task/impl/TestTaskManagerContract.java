@@ -50,8 +50,8 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PropertyModification;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.Property;
-import com.evolveum.midpoint.schema.processor.PropertyContainer;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
+import com.evolveum.midpoint.schema.processor.PrismContainer;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -285,15 +285,15 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
 
         // Test for extension. This will also roughly test extension processor
         // and schema processor
-        PropertyContainer taskExtension = task.getExtension();
+        PrismContainer taskExtension = task.getExtension();
         AssertJUnit.assertNotNull(taskExtension);
         System.out.println(taskExtension.dump());
 
-        Property shipStateProp = taskExtension
+        PrismProperty shipStateProp = taskExtension
                 .findProperty(new QName("http://myself.me/schemas/whatever", "shipState"));
         AssertJUnit.assertEquals("capsized", shipStateProp.getValue(String.class).getValue());
 
-        Property deadProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever", "dead"));
+        PrismProperty deadProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever", "dead"));
         AssertJUnit.assertEquals(Integer.class, deadProp.getValues().iterator().next().getValue().getClass());
         AssertJUnit.assertEquals(Integer.valueOf(42), deadProp.getValue(Integer.class).getValue());
 
@@ -307,7 +307,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         // This has no type information or schema. The type has to be determined
         // from the java type
         GregorianCalendar sinkDate = new GregorianCalendar();
-        Property dateProp = taskExtension.createProperty(new QName("http://myself.me/schemas/whatever", "sinkTimestamp"), sinkDate.getClass());
+        PrismProperty dateProp = taskExtension.createProperty(new QName("http://myself.me/schemas/whatever", "sinkTimestamp"), sinkDate.getClass());
         mods.add(dateProp.createModification(PropertyModification.ModificationType.REPLACE, new PropertyValue<Object>(sinkDate)));
 
         task.modifyExtension(mods, result);

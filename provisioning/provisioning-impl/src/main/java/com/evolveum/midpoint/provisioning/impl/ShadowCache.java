@@ -30,7 +30,7 @@ import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ChangeType;
-import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
@@ -366,14 +366,14 @@ public class ShadowCache {
 		}
 	}
 
-	public Property fetchCurrentToken(ResourceType resourceType, OperationResult parentResult)
+	public PrismProperty fetchCurrentToken(ResourceType resourceType, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException {
 
 		Validate.notNull(resourceType, "Resource must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		LOGGER.trace("Getting last token");
-		Property lastToken = null;
+		PrismProperty lastToken = null;
 		try {
 			lastToken = shadowConverter.fetchCurrentToken(resourceType, parentResult);
 		} catch (CommunicationException e) {
@@ -387,7 +387,7 @@ public class ShadowCache {
 		return lastToken;
 	}
 
-	public List<Change> fetchChanges(ResourceType resourceType, Property lastToken,
+	public List<Change> fetchChanges(ResourceType resourceType, PrismProperty lastToken,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException, SchemaException {
 
@@ -521,7 +521,7 @@ public class ShadowCache {
 		}
 		AttributeModificationOperation attributeChange = new AttributeModificationOperation();
 		EnableDisable enableDisable = activationCapability.getEnableDisable();
-		Property property = new Property(enableDisable.getAttribute(), null, null, null);
+		PrismProperty property = new PrismProperty(enableDisable.getAttribute(), null, null, null);
 		List<String> enableValues = enableDisable.getEnableValue();
 
 		Iterator<String> i = enableValues.iterator();

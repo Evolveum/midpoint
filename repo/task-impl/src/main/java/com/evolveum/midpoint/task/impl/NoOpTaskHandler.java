@@ -23,8 +23,8 @@ package com.evolveum.midpoint.task.impl;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.Property;
-import com.evolveum.midpoint.schema.processor.PropertyContainer;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
+import com.evolveum.midpoint.schema.processor.PrismContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
@@ -62,15 +62,15 @@ public class NoOpTaskHandler implements TaskHandler {
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
 		
-        PropertyContainer taskExtension = task.getExtension();
-        Property delayProp = taskExtension.findProperty(new QName(EXT_SCHEMA_URI, "delay"));
+        PrismContainer taskExtension = task.getExtension();
+        PrismProperty delayProp = taskExtension.findProperty(new QName(EXT_SCHEMA_URI, "delay"));
         long delay;
         if (delayProp != null && !delayProp.getValues().isEmpty())
         	delay = delayProp.getValue(Integer.class).getValue();
         else
         	delay = 0;
 
-        Property stepsProp = taskExtension.findProperty(new QName(EXT_SCHEMA_URI, "steps"));
+        PrismProperty stepsProp = taskExtension.findProperty(new QName(EXT_SCHEMA_URI, "steps"));
         int steps;
         if (stepsProp != null && !stepsProp.getValues().isEmpty())
         	steps = stepsProp.getValue(Integer.class).getValue();

@@ -72,8 +72,8 @@ public class ComplexTypeDefinition extends Definition {
 		this.extensionForType = extensionForType;
 	}
 		
-	public PropertyDefinition createPropertyDefinifion(QName name, QName typeName) {
-		PropertyDefinition propDef = new PropertyDefinition(name, name, typeName, prismContext);
+	public PrismPropertyDefinition createPropertyDefinifion(QName name, QName typeName) {
+		PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, name, typeName, prismContext);
 		itemDefinitions.add(propDef);
 		return propDef;
 	}
@@ -81,19 +81,19 @@ public class ComplexTypeDefinition extends Definition {
 	// Creates reference to other schema
 	// TODO: maybe check if the name is in different namespace
 	// TODO: maybe create entirely new concept of property reference?
-	public PropertyDefinition createPropertyDefinifion(QName name) {
-		PropertyDefinition propDef = new PropertyDefinition(name, name, null, prismContext);
+	public PrismPropertyDefinition createPropertyDefinifion(QName name) {
+		PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, name, null, prismContext);
 		itemDefinitions.add(propDef);
 		return propDef;
 	}
 
-	public PropertyDefinition createPropertyDefinition(String localName, QName typeName) {
+	public PrismPropertyDefinition createPropertyDefinition(String localName, QName typeName) {
 		QName name = new QName(getSchemaNamespace(),localName);
 		return createPropertyDefinifion(name,typeName);
 	}
 
 	
-	public PropertyDefinition createPropertyDefinifion(String localName, String localTypeName) {
+	public PrismPropertyDefinition createPropertyDefinifion(String localName, String localTypeName) {
 		QName name = new QName(getSchemaNamespace(),localName);
 		QName typeName = new QName(getSchemaNamespace(),localTypeName);
 		return createPropertyDefinifion(name,typeName);

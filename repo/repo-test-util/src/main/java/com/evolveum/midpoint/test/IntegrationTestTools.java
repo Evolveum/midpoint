@@ -40,7 +40,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.PropertyContainer;
+import com.evolveum.midpoint.schema.processor.PrismContainer;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -307,7 +307,7 @@ public class IntegrationTestTools {
 		LOGGER.debug(entry.toLDIFString());
 	}
 
-	public static void display(String message, PropertyContainer propertyContainer) {
+	public static void display(String message, PrismContainer propertyContainer) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
 		System.out.println(propertyContainer.dump());
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);

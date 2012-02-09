@@ -131,7 +131,7 @@ public class ConsolidationProcessor {
 
             LOGGER.trace("Consolidating (modify) account {}, attribute {}", rat, attributeName);
 
-            PropertyContainer attributesPropertyContainer = null;
+            PrismContainer attributesPropertyContainer = null;
             if (accCtx.getAccountNew() != null) {
                 attributesPropertyContainer = accCtx.getAccountNew().findPropertyContainer(SchemaConstants.I_ATTRIBUTES);
             }
@@ -186,7 +186,7 @@ public class ConsolidationProcessor {
                     }
                     if (initialOnly) {
                         if (attributesPropertyContainer != null) {
-                            Property attributeNew = attributesPropertyContainer.findProperty(attributeName);
+                            PrismProperty attributeNew = attributesPropertyContainer.findProperty(attributeName);
                             if (attributeNew != null && !attributeNew.isEmpty()) {
                                 // There is already a value, skip this
                                 LOGGER.trace("Value {} is initial and the attribute already has a value, skipping it", value);
@@ -231,7 +231,7 @@ public class ConsolidationProcessor {
                     throw new IllegalStateException("Definition for account type " + accCtx.getResourceAccountType() + " not found in the context, but it should be there");
                 }
                 AccountShadowType newAccountType = rAccount.createBlankShadow();
-                ObjectDefinition<AccountShadowType> accountTypeDefinition = rAccount.getObjectDefinition();
+                PrismObjectDefinition<AccountShadowType> accountTypeDefinition = rAccount.getObjectDefinition();
                 PrismObject<AccountShadowType> newAccount = accountTypeDefinition.parseObjectType(newAccountType);
                 addDelta.setObjectToAdd(newAccount);
 
@@ -311,7 +311,7 @@ public class ConsolidationProcessor {
         }
 
         PrismObject<AccountShadowType> absoluteAccountState = accCtx.getAccountOld();
-        Property absoluteProperty = absoluteAccountState.findProperty(delta.getPath());
+        PrismProperty absoluteProperty = absoluteAccountState.findProperty(delta.getPath());
         if (absoluteProperty == null) {
             return delta;
         }
@@ -331,11 +331,11 @@ public class ConsolidationProcessor {
      *
      * @param values   collection with {@link PropertyValue} objects to add or delete (from {@link PropertyDelta}
      * @param adding   if true we removing {@link PropertyValue} from {@link Collection} values parameter if they
-     *                 already are in {@link Property} parameter. Otherwise we're removing {@link PropertyValue}
-     *                 from {@link Collection} values parameter if they already are not in {@link Property} parameter.
+     *                 already are in {@link PrismProperty} parameter. Otherwise we're removing {@link PropertyValue}
+     *                 from {@link Collection} values parameter if they already are not in {@link PrismProperty} parameter.
      * @param property property with absolute state
      */
-    private void cleanupAbsoluteValues(Collection<PropertyValue<Object>> values, boolean adding, Property property) {
+    private void cleanupAbsoluteValues(Collection<PropertyValue<Object>> values, boolean adding, PrismProperty property) {
         if (values == null) {
             return;
         }
@@ -395,7 +395,7 @@ public class ConsolidationProcessor {
 
     private void collectAllValuesFromValueConstruction(Collection<PropertyValue<Object>> allValues,
             PropertyValue<ValueConstruction> valConstr) {
-        Property output = valConstr.getValue().getOutput();
+        PrismProperty output = valConstr.getValue().getOutput();
         if (output == null) {
             return;
         }
@@ -413,7 +413,7 @@ public class ConsolidationProcessor {
             Collection<PropertyValue<ValueConstruction>> set) {
         Collection<PropertyValue<ValueConstruction>> contructions = new HashSet<PropertyValue<ValueConstruction>>();
         for (PropertyValue<ValueConstruction> valConstr : set) {
-            Property output = valConstr.getValue().getOutput();
+            PrismProperty output = valConstr.getValue().getOutput();
             if (output == null) {
                 continue;
             }

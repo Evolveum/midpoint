@@ -34,8 +34,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
-import com.evolveum.midpoint.schema.processor.Property;
-import com.evolveum.midpoint.schema.processor.PropertyContainer;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
+import com.evolveum.midpoint.schema.processor.PrismContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
@@ -90,7 +90,7 @@ public class TaskImpl implements Task {
 	private Long lastRunStartTimestamp;
 	private Long lastRunFinishTimestamp;
 	private Long nextRunStartTime;
-	private PropertyContainer extension;
+	private PrismContainer extension;
 	private long progress;
 	private TaskManagerImpl taskManager;
 	private RepositoryService repositoryService;
@@ -377,12 +377,12 @@ public class TaskImpl implements Task {
 	}
 
 	@Override
-	public PropertyContainer getExtension() {
+	public PrismContainer getExtension() {
 		return extension;
 	}
 	
 	@Override
-	public Property getExtension(QName propertyName) {
+	public PrismProperty getExtension(QName propertyName) {
 		return extension.findProperty(propertyName);
 	}
 

@@ -34,7 +34,7 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.ItemDefinition;
 import com.evolveum.midpoint.schema.processor.PrismObject;
-import com.evolveum.midpoint.schema.processor.ObjectDefinition;
+import com.evolveum.midpoint.schema.processor.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -96,11 +96,11 @@ public class RefinedResourceSchema extends Schema implements Dumpable, DebugDump
 		return getAccountDefinition(null);
 	}
 	
-	public ObjectDefinition<AccountShadowType> getObjectDefinition(String accountType) {
+	public PrismObjectDefinition<AccountShadowType> getObjectDefinition(String accountType) {
 		return getAccountDefinition(accountType).getObjectDefinition();
 	}
 	
-	public ObjectDefinition<AccountShadowType> getObjectDefinition(AccountShadowType shadow) {
+	public PrismObjectDefinition<AccountShadowType> getObjectDefinition(AccountShadowType shadow) {
 		return getObjectDefinition(shadow.getAccountType());
 	}
 		

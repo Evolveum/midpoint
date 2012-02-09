@@ -38,7 +38,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.PrismObject;
-import com.evolveum.midpoint.schema.processor.ObjectDefinition;
+import com.evolveum.midpoint.schema.processor.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
@@ -158,7 +158,7 @@ public class UserSynchronizer {
                 AccountShadowType account = provisioningService.getObject(AccountShadowType.class, accContext.getOid(),
                         null, subResult);
                 ResourceType resource = Utils.getResource(account, provisioningService, result);
-                ObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(
+                PrismObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(
                         resource, schemaRegistry).getObjectDefinition(account);
 
                 PrismObject<AccountShadowType> object = definition.instantiate(SchemaConstants.I_ACCOUNT_SHADOW_TYPE);

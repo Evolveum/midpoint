@@ -174,7 +174,7 @@ public class ModifyUserAction extends BaseAction {
         Schema schema = getSchemaRegistry().getObjectSchema();
         LOGGER.debug("Creating sync context.");
 
-        ObjectDefinition<UserType> userDefinition = schema.findObjectDefinitionByType(
+        PrismObjectDefinition<UserType> userDefinition = schema.findObjectDefinitionByType(
                 SchemaConstants.I_USER_TYPE);
 
         SyncContext context = new SyncContext();
@@ -188,7 +188,7 @@ public class ModifyUserAction extends BaseAction {
             return context;
         }
 
-        Property enable = oldUser.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ENABLE.allExceptLast(),
+        PrismProperty enable = oldUser.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ENABLE.allExceptLast(),
                 SchemaConstants.PATH_ACTIVATION_ENABLE.last(), Boolean.class);
         LOGGER.debug("User activation defined, activation property found {}", enable);
 

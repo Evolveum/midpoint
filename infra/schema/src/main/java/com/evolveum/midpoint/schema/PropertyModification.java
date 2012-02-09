@@ -23,7 +23,7 @@ package com.evolveum.midpoint.schema;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
-import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
@@ -47,7 +47,7 @@ public class PropertyModification {
     private XPathHolder path;
     // Storing property instead of property name, so a property definition that may be associated with property will
     // be passed on
-    private Property property;
+    private PrismProperty property;
     private Set<PropertyValue<Object>> modifyValues;
     private ModificationType modificationType;
 
@@ -77,7 +77,7 @@ public class PropertyModification {
      * @param path
      * @param values
      */
-    public PropertyModification(Property property, ModificationType modificationType, XPathHolder path, Set<PropertyValue<Object>> values) {
+    public PropertyModification(PrismProperty property, ModificationType modificationType, XPathHolder path, Set<PropertyValue<Object>> values) {
         super();
         this.path = path;
         this.property = property;
@@ -92,7 +92,7 @@ public class PropertyModification {
      * @param modificationType
      * @param values
      */
-    public PropertyModification(Property property, ModificationType modificationType, Set<PropertyValue<Object>> values) {
+    public PropertyModification(PrismProperty property, ModificationType modificationType, Set<PropertyValue<Object>> values) {
         super();
         this.path = new XPathHolder();
         this.property = property;
@@ -104,7 +104,7 @@ public class PropertyModification {
         return path;
     }
 
-    public Property getProperty() {
+    public PrismProperty getProperty() {
         return property;
     }
 

@@ -26,10 +26,10 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ObjectDefinition;
-import com.evolveum.midpoint.schema.processor.PropertyContainer;
-import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
-import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.processor.PrismObjectDefinition;
+import com.evolveum.midpoint.schema.processor.PrismContainer;
+import com.evolveum.midpoint.schema.processor.PrismContainerDefinition;
+import com.evolveum.midpoint.schema.processor.PrismPropertyDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -95,9 +95,9 @@ public class TestSchemaRegistry {
 		System.out.println("Parsed foo schema:");
 		System.out.println(schema.dump());
 		QName rootType = new QName(FOO_NAMESPACE, "RootType");
-		PropertyContainerDefinition rootDef = schema.findContainerDefinitionByType(rootType);
+		PrismContainerDefinition rootDef = schema.findContainerDefinitionByType(rootType);
 		assertNotNull("No parsed definition for type "+rootType,rootDef);
-		PropertyContainer parsedRoot = rootDef.parseItem(DOMUtil.getFirstChildElement(dataDoc));
+		PrismContainer parsedRoot = rootDef.parseItem(DOMUtil.getFirstChildElement(dataDoc));
 		System.out.println("Parsed root container:");
 		System.out.println(parsedRoot.dump());
 
@@ -112,8 +112,8 @@ public class TestSchemaRegistry {
 		schema = reg.getObjectSchema();
 		System.out.println("Object schema:");
 		System.out.println(schema.dump());
-		ObjectDefinition<UserType> userDef = schema.findObjectDefinition(UserType.class);
-		PropertyContainerDefinition extDef = userDef.findPropertyContainerDefinition(SchemaConstants.C_EXTENSION);
+		PrismObjectDefinition<UserType> userDef = schema.findObjectDefinition(UserType.class);
+		PrismContainerDefinition extDef = userDef.findPropertyContainerDefinition(SchemaConstants.C_EXTENSION);
 		assertTrue("Extension is not dynamic", extDef.isRuntimeSchema());
 		assertEquals("Wrong extension type", userExtTypeQName, extDef.getTypeName());
 		
@@ -138,7 +138,7 @@ public class TestSchemaRegistry {
 		System.out.println("Parsed common schema:");
 		System.out.println(commonSchema.dump());
 		
-		PropertyContainerDefinition userContainer = commonSchema.findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+		PrismContainerDefinition userContainer = commonSchema.findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
 		assertNotNull("No user container", userContainer);
 		
 		System.out.println("testCommonSchemaUserType:");
@@ -146,14 +146,14 @@ public class TestSchemaRegistry {
 		
 		assertFalse(userContainer.isWildcard());
 		
-		PropertyDefinition nameDef = userContainer.findPropertyDefinition(SchemaConstants.C_NAME);
+		PrismPropertyDefinition nameDef = userContainer.findPropertyDefinition(SchemaConstants.C_NAME);
 		assertNotNull("No name definition", nameDef);
 
-		PropertyContainerDefinition extensionDef = userContainer.findPropertyContainerDefinition(SchemaConstants.C_EXTENSION);
+		PrismContainerDefinition extensionDef = userContainer.findPropertyContainerDefinition(SchemaConstants.C_EXTENSION);
 		assertNotNull("No 'extension' definition", extensionDef);
 		assertTrue(extensionDef.isWildcard());
 		
-		PropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C,"givenName"));
+		PrismPropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C,"givenName"));
 		assertNotNull("No givenName definition", givenNameDef);
 	}
 	
@@ -166,20 +166,20 @@ public class TestSchemaRegistry {
 		com.evolveum.midpoint.schema.processor.Schema commonSchema = reg.getObjectSchema();
 		assertNotNull("No parsed common schema", commonSchema);
 		
-		ObjectDefinition<AccountShadowType> accountDef = commonSchema.findObjectDefinition(ObjectTypes.ACCOUNT, AccountShadowType.class);
+		PrismObjectDefinition<AccountShadowType> accountDef = commonSchema.findObjectDefinition(ObjectTypes.ACCOUNT, AccountShadowType.class);
 		assertNotNull("No account definition", accountDef);
 
 		System.out.println("testCommonSchemaAccountType:");
 		System.out.println(accountDef.dump());
 		
-		PropertyDefinition nameDef = accountDef.findPropertyDefinition(SchemaConstants.C_NAME);
+		PrismPropertyDefinition nameDef = accountDef.findPropertyDefinition(SchemaConstants.C_NAME);
 		assertNotNull("No name definition", nameDef);
 		
-		PropertyContainerDefinition extensionDef = accountDef.findPropertyContainerDefinition(SchemaConstants.C_EXTENSION);
+		PrismContainerDefinition extensionDef = accountDef.findPropertyContainerDefinition(SchemaConstants.C_EXTENSION);
 		assertNotNull("No 'extension' definition", extensionDef);
 		assertTrue(extensionDef.isWildcard());
 		
-		PropertyContainerDefinition attributesDef = accountDef.findPropertyContainerDefinition(SchemaConstants.I_ATTRIBUTES);
+		PrismContainerDefinition attributesDef = accountDef.findPropertyContainerDefinition(SchemaConstants.I_ATTRIBUTES);
 		assertNotNull("No 'attributes' definition", attributesDef);
 		assertTrue(attributesDef.isWildcard());
 	}

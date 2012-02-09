@@ -24,10 +24,10 @@ import com.evolveum.midpoint.prism.TypedValue;
 import com.evolveum.midpoint.prism.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.Property;
-import com.evolveum.midpoint.schema.processor.PropertyContainer;
-import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
-import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
+import com.evolveum.midpoint.schema.processor.PrismContainer;
+import com.evolveum.midpoint.schema.processor.PrismContainerDefinition;
+import com.evolveum.midpoint.schema.processor.PrismPropertyDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
@@ -42,7 +42,7 @@ public class ExtensionProcessor {
 
     public static final QName DEFAULT_TYPE = DOMUtil.XSD_STRING;
 
-    public static PropertyContainer parseExtension(Extension xmlExtension) throws SchemaException {
+    public static PrismContainer parseExtension(Extension xmlExtension) throws SchemaException {
         // Extension is optional, so don't die on null
         if (xmlExtension == null) {
             // Return empty set
@@ -52,8 +52,8 @@ public class ExtensionProcessor {
     }
 
 
-	public static PropertyContainer parseExtension(List<Object> xmlExtension) throws SchemaException {
-        PropertyContainer container = createEmptyExtensionContainer();
+	public static PrismContainer parseExtension(List<Object> xmlExtension) throws SchemaException {
+        PrismContainer container = createEmptyExtensionContainer();
 
         // Extension is optional, so don't die on null
         if (xmlExtension == null) {
@@ -68,17 +68,17 @@ public class ExtensionProcessor {
             QName propName = tval.getElementName();
             QName xsdType = tval.getXsdType();
 
-            Property property = container.createProperty(propName, value.getClass());
+            PrismProperty property = container.createProperty(propName, value.getClass());
             property.setValue(new PropertyValue(value));
 
             // create appropriate definition for the property - not to lose type information in serializations
-            PropertyDefinition def = new PropertyDefinition(propName, xsdType);
+            PrismPropertyDefinition def = new PrismPropertyDefinition(propName, xsdType);
             property.setDefinition(def);
         }
         return container;
     }
 
-    public static Extension createExtension(PropertyContainer extension) {
+    public static Extension createExtension(PrismContainer extension) {
         Extension xmlExtension = new Extension();
         List<Object> elements;
         try {
@@ -92,10 +92,10 @@ public class ExtensionProcessor {
         return xmlExtension;
     }
 
-	public static PropertyContainer createEmptyExtensionContainer() {
-		PropertyContainerDefinition pcd = new PropertyContainerDefinition(SchemaConstants.C_EXTENSION, null);
+	public static PrismContainer createEmptyExtensionContainer() {
+		PrismContainerDefinition pcd = new PrismContainerDefinition(SchemaConstants.C_EXTENSION, null);
 		pcd.setRuntimeSchema(true);
-		return new PropertyContainer(SchemaConstants.C_EXTENSION, pcd, null, null);
+		return new PrismContainer(SchemaConstants.C_EXTENSION, pcd, null, null);
 	}
 
 

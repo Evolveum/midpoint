@@ -209,7 +209,7 @@ public abstract class BaseAction implements Action {
             return;
         }
 
-        Property enable = object.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ENABLE.allExceptLast(),
+        PrismProperty enable = object.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ENABLE.allExceptLast(),
                 SchemaConstants.PATH_ACTIVATION_ENABLE.last(), Boolean.class);
         LOGGER.debug("Account activation defined, activation property found {}", enable);
 
@@ -257,7 +257,7 @@ public abstract class BaseAction implements Action {
             return null;
         }
 
-        ObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(
+        PrismObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(
                 change.getResource(), getSchemaRegistry()).getObjectDefinition(account);
 
         return definition.parseObjectType(account);

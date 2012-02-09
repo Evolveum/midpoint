@@ -109,7 +109,7 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
      *
      * @param definition the definition to set
      */
-    public void setDefinition(PropertyDefinition definition) {
+    public void setDefinition(PrismPropertyDefinition definition) {
         this.definition = definition;
     }
 

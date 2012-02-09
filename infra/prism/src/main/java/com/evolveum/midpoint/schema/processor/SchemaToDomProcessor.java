@@ -111,14 +111,14 @@ class SchemaToDomProcessor {
 			Collection<Definition> definitions = schema.getDefinitions();
 			for (Definition definition : definitions) {
 				
-				if (definition instanceof PropertyContainerDefinition) {
+				if (definition instanceof PrismContainerDefinition) {
 					// Add property container definition. This will add <complexType> and <element> definitions to XSD
-					addPropertyContainerDefinition((PropertyContainerDefinition) definition,
+					addPropertyContainerDefinition((PrismContainerDefinition) definition,
 							document.getDocumentElement());
 					
-				} else if (definition instanceof PropertyDefinition) {
+				} else if (definition instanceof PrismPropertyDefinition) {
 					// Add top-level property definition. It will create <element> XSD definition
-					addPropertyDefinition((PropertyDefinition) definition,
+					addPropertyDefinition((PrismPropertyDefinition) definition,
 							document.getDocumentElement());
 					
 				} else if (definition instanceof ComplexTypeDefinition){
@@ -151,7 +151,7 @@ class SchemaToDomProcessor {
 	 * @param definition PropertyContainerDefinition to process
 	 * @param parent element under which the XSD definition will be added
 	 */
-	private void addPropertyContainerDefinition(PropertyContainerDefinition definition,
+	private void addPropertyContainerDefinition(PrismContainerDefinition definition,
 			Element parent) {
 		
 		ComplexTypeDefinition complexTypeDefinition = definition.getComplexTypeDefinition();
@@ -165,7 +165,7 @@ class SchemaToDomProcessor {
 	 * @param definition midPoint PropertyDefinition
 	 * @param parent element under which the definition will be added
 	 */
-	private void addPropertyDefinition(PropertyDefinition definition, Element parent) {
+	private void addPropertyDefinition(PrismPropertyDefinition definition, Element parent) {
 		Element property = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "element"));
 		// Add to document first, so following methods will be able to resolve namespaces
 		parent.appendChild(property);
@@ -228,9 +228,9 @@ class SchemaToDomProcessor {
 
 		Set<ItemDefinition> definitions = definition.getDefinitions();
 		for (ItemDefinition def : definitions) {
-			if (def instanceof PropertyDefinition) {
-				addPropertyDefinition((PropertyDefinition) def, sequence);
-			} else if (def instanceof PropertyContainerDefinition) {
+			if (def instanceof PrismPropertyDefinition) {
+				addPropertyDefinition((PrismPropertyDefinition) def, sequence);
+			} else if (def instanceof PrismContainerDefinition) {
 				// TODO
 				throw new UnsupportedOperationException("Inner propertyContainers are not supported yet");
 			} else {
@@ -340,7 +340,7 @@ class SchemaToDomProcessor {
 	 * @param definition
 	 * @param parent element under which the definition will be added (inserted as the first sub-element)
 	 */
-	private void addPropertyAnnotation(PropertyDefinition definition, Element parent) {
+	private void addPropertyAnnotation(PrismPropertyDefinition definition, Element parent) {
 		Element annotation = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "annotation"));
 		parent.insertBefore(annotation, parent.getFirstChild());
 		Element appinfo = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "appinfo"));

@@ -45,12 +45,12 @@ import com.evolveum.midpoint.schema.exception.SystemException;
  * @author Radovan Semancik
  * 
  */
-public class ObjectDefinition<T extends Objectable> extends PropertyContainerDefinition {
+public class PrismObjectDefinition<T extends Objectable> extends PrismContainerDefinition {
 	private static final long serialVersionUID = -8298581031956931008L;
 	
 	protected Class<T> jaxbClass;
 
-	ObjectDefinition(QName name, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, Class<T> jaxbClass) {
+	PrismObjectDefinition(QName name, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, Class<T> jaxbClass) {
 		// Object definition can only be top-level, hence null parent
 		super(name, complexTypeDefinition, prismContext);
 		if (name != null) {
@@ -96,15 +96,15 @@ public class ObjectDefinition<T extends Objectable> extends PropertyContainerDef
 		return midPointObject;
 	}
 	
-	public ObjectDefinition<T> clone() {
-		ObjectDefinition<T> clone = new ObjectDefinition<T>(name, complexTypeDefinition, prismContext, jaxbClass);
+	public PrismObjectDefinition<T> clone() {
+		PrismObjectDefinition<T> clone = new PrismObjectDefinition<T>(name, complexTypeDefinition, prismContext, jaxbClass);
 		copyDefinitionData(clone);
 		return clone;
 	}
 
 	public void setExtensionDefinition(ComplexTypeDefinition extensionComplexTypeDefinition) {
 		QName extensionQName = getExtensionQName();
-		PropertyContainerDefinition newExtensionDef = new PropertyContainerDefinition(extensionQName, 
+		PrismContainerDefinition newExtensionDef = new PrismContainerDefinition(extensionQName, 
 				extensionComplexTypeDefinition, prismContext);
 		ComplexTypeDefinition newCtd = this.complexTypeDefinition.clone();
 		newExtensionDef.setRuntimeSchema(true);

@@ -27,7 +27,7 @@ import com.evolveum.midpoint.schema.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.processor.ChangeType;
 import com.evolveum.midpoint.schema.processor.PrismObject;
-import com.evolveum.midpoint.schema.processor.ObjectDefinition;
+import com.evolveum.midpoint.schema.processor.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -270,7 +270,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
                 && ChangeType.ADD.equals(accountSyncDelta.getChangeType())) {
             PrismObject<AccountShadowType> accountToAdd = accountSyncDelta.getObjectToAdd();
             if (accountToAdd != null) {
-                ObjectDefinition<AccountShadowType> objectDefinition = (ObjectDefinition<AccountShadowType>)
+                PrismObjectDefinition<AccountShadowType> objectDefinition = (PrismObjectDefinition<AccountShadowType>)
                         accountToAdd.getDefinition();
                 // TODO: remove constructor, use some factory method instead
                 oldAccount = new PrismObject<AccountShadowType>(accountToAdd.getName(), objectDefinition, null, null);

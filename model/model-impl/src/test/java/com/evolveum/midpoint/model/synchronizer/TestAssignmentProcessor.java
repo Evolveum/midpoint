@@ -401,7 +401,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         assertNull(userPrimaryDelta.getObjectToAdd());
         for (PropertyDelta propMod : userPrimaryDelta.getModifications()) {
             if (propMod.getValuesToDelete() != null) {
-                Property property = userOld.findProperty(propMod.getParentPath(), propMod.getName());
+                PrismProperty property = userOld.findProperty(propMod.getParentPath(), propMod.getName());
                 assertNotNull("Deleted property " + propMod.getParentPath() + "/" + propMod.getName() + " not found in user", property);
                 for (Object valueToDelete : propMod.getValuesToDelete()) {
                     if (!property.getValues().contains(valueToDelete)) {
@@ -428,7 +428,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         UserType userType = repositoryService.getObject(UserType.class, userOid, null, result);
 
         Schema commonSchema = schemaRegistry.getObjectSchema();
-        ObjectDefinition<UserType> userDefinition = commonSchema.findObjectDefinition(UserType.class);
+        PrismObjectDefinition<UserType> userDefinition = commonSchema.findObjectDefinition(UserType.class);
         PrismObject<UserType> user = userDefinition.parseObjectType(userType);
         context.setUserOld(user);
         context.setUserTypeOld(userType);
@@ -440,7 +440,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         AccountShadowType accountType = repositoryService.getObject(AccountShadowType.class, accountOid, null, result);
 
         Schema commonSchema = schemaRegistry.getObjectSchema();
-        ObjectDefinition<AccountShadowType> accountDefinition = commonSchema.findObjectDefinition(AccountShadowType.class);
+        PrismObjectDefinition<AccountShadowType> accountDefinition = commonSchema.findObjectDefinition(AccountShadowType.class);
 //        MidPointObject<AccountShadowType> account = accountDefinition.parseObjectType(accountType);
         ResourceAccountType rat = new ResourceAccountType(accountType.getResourceRef().getOid(), accountType.getAccountType());
         AccountSyncContext accountSyncContext = context.createAccountSyncContext(rat);

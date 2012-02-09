@@ -19,7 +19,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
-import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 
@@ -29,13 +29,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModification
  */
 public final class AttributeModificationOperation extends Operation {
 	private PropertyModificationTypeType changeType;
-	private Property newAttribute;
+	private PrismProperty newAttribute;
 
-	public Property getNewAttribute() {
+	public PrismProperty getNewAttribute() {
 		return newAttribute;
 	}
 	
-	public void setNewAttribute(Property newAttribute) {
+	public void setNewAttribute(PrismProperty newAttribute) {
 		this.newAttribute = newAttribute;
 	}
 

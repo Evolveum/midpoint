@@ -67,7 +67,7 @@ public class TestSchemaProcessorWithRegistry {
         JAXBElement<UserType> jaxbElement = JAXBUtil.unmarshal(new File(TEST_DIR, "user-jack.xml"), UserType.class);
         UserType userType = jaxbElement.getValue();
 
-        ObjectDefinition<UserType> userDefinition = commonSchema.findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismObjectDefinition<UserType> userDefinition = commonSchema.findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
         assertNotNull("UserType definition not found in parsed schema", userDefinition);
 
         // WHEN
@@ -85,12 +85,12 @@ public class TestSchemaProcessorWithRegistry {
         assertProperty(user, new QName(SchemaConstants.NS_C, "honorificPrefix"), "Cpt.");
         assertProperty(user.findOrCreatePropertyContainer(SchemaConstants.C_EXTENSION),
                 new QName(NS_FOO, "bar"), "BAR");
-        Property password = user.findOrCreatePropertyContainer(SchemaConstants.C_EXTENSION).findProperty(new QName(NS_FOO, "password"));
+        PrismProperty password = user.findOrCreatePropertyContainer(SchemaConstants.C_EXTENSION).findProperty(new QName(NS_FOO, "password"));
         assertNotNull(password);
         // TODO: check inside
         assertProperty(user.findOrCreatePropertyContainer(SchemaConstants.C_EXTENSION),
                 new QName(NS_FOO, "num"), 42);
-        Property multi = user.findOrCreatePropertyContainer(SchemaConstants.C_EXTENSION).findProperty(new QName(NS_FOO, "multi"));
+        PrismProperty multi = user.findOrCreatePropertyContainer(SchemaConstants.C_EXTENSION).findProperty(new QName(NS_FOO, "multi"));
         assertEquals(3, multi.getValues().size());
 
         // WHEN
@@ -119,7 +119,7 @@ public class TestSchemaProcessorWithRegistry {
         JAXBElement<AccountShadowType> jaxbElement = JAXBUtil.unmarshal(new File(TEST_DIR, "account-jack.xml"), AccountShadowType.class);
         AccountShadowType accType = jaxbElement.getValue();
 
-        ObjectDefinition<AccountShadowType> accDefinition = commonSchema.findObjectDefinition(ObjectTypes.ACCOUNT, AccountShadowType.class);
+        PrismObjectDefinition<AccountShadowType> accDefinition = commonSchema.findObjectDefinition(ObjectTypes.ACCOUNT, AccountShadowType.class);
         assertNotNull("account definition not found in parsed schema", accDefinition);
 
         PrismObject<AccountShadowType> account = accDefinition.parseObjectType(accType);
@@ -128,8 +128,8 @@ public class TestSchemaProcessorWithRegistry {
         System.out.println(account.dump());
     }
 
-    private void assertProperty(PropertyContainer cont, QName propName, Object value) {
-        Property prop = cont.findProperty(propName);
+    private void assertProperty(PrismContainer cont, QName propName, Object value) {
+        PrismProperty prop = cont.findProperty(propName);
         assertNotNull(propName + " in null", prop);
         assertEquals(propName + " has wrong name", propName, prop.getName());
         assertEquals(propName + " has wrong value", value, prop.getValue().getValue());

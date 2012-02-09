@@ -50,7 +50,7 @@ import java.util.*;
  *
  * @author Radovan Semancik
  */
-public class PropertyContainerDefinition extends ItemDefinition {
+public class PrismContainerDefinition extends ItemDefinition {
 
     private static final long serialVersionUID = -5068923696147960699L;
     private static final String ANY_GETTER_NAME = "getAny";
@@ -66,7 +66,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * The constructors should be used only occasionally (if used at all).
      * Use the factory methods in the ResourceObjectDefintion instead.
      */
-    PropertyContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext) {
+    PrismContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext) {
         super(name, determineDefaultName(complexTypeDefinition), determineTypeName(complexTypeDefinition), prismContext);
         this.complexTypeDefinition = complexTypeDefinition;
         if (complexTypeDefinition == null) {
@@ -169,18 +169,18 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * @param name property definition name
      * @return found property definition or null
      */
-    public PropertyDefinition findPropertyDefinition(QName name) {
-        return findItemDefinition(name, PropertyDefinition.class);
+    public PrismPropertyDefinition findPropertyDefinition(QName name) {
+        return findItemDefinition(name, PrismPropertyDefinition.class);
     }
 
-    public PropertyDefinition findPropertyDefinition(PropertyPath propertyPath) {
+    public PrismPropertyDefinition findPropertyDefinition(PropertyPath propertyPath) {
         if (propertyPath.isEmpty()) {
             throw new IllegalArgumentException("Property path is empty while searching for property definition in " + this);
         }
         if (propertyPath.size() == 1) {
             return findPropertyDefinition(propertyPath.first());
         }
-        PropertyContainerDefinition pcd = findPropertyContainerDefinition(propertyPath.first());
+        PrismContainerDefinition pcd = findPropertyContainerDefinition(propertyPath.first());
         return pcd.findPropertyDefinition(propertyPath.rest());
     }
 
@@ -192,8 +192,8 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * @param name property container definition name
      * @return found property container definition or null
      */
-    public PropertyContainerDefinition findPropertyContainerDefinition(QName name) {
-        return findItemDefinition(name, PropertyContainerDefinition.class);
+    public PrismContainerDefinition findPropertyContainerDefinition(QName name) {
+        return findItemDefinition(name, PrismContainerDefinition.class);
     }
 
     /**
@@ -204,8 +204,8 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * @param path property container path
      * @return found property container definition or null
      */
-    public PropertyContainerDefinition findPropertyContainerDefinition(PropertyPath path) {
-        return findItemDefinition(path, PropertyContainerDefinition.class);
+    public PrismContainerDefinition findPropertyContainerDefinition(PropertyPath path) {
+        return findItemDefinition(path, PrismContainerDefinition.class);
     }
 
     /**
@@ -238,11 +238,11 @@ public class PropertyContainerDefinition extends ItemDefinition {
      *
      * @return set of definitions
      */
-    public Set<PropertyDefinition> getPropertyDefinitions() {
-        Set<PropertyDefinition> props = new HashSet<PropertyDefinition>();
+    public Set<PrismPropertyDefinition> getPropertyDefinitions() {
+        Set<PrismPropertyDefinition> props = new HashSet<PrismPropertyDefinition>();
         for (ItemDefinition def : complexTypeDefinition.getDefinitions()) {
-            if (def instanceof PropertyDefinition) {
-                props.add((PropertyDefinition) def);
+            if (def instanceof PrismPropertyDefinition) {
+                props.add((PrismPropertyDefinition) def);
             }
         }
         return props;
@@ -263,7 +263,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * This is a preferred way how to create property container.
      */
     @Override
-    public PropertyContainer instantiate(PropertyPath parentPath) {
+    public PrismContainer instantiate(PropertyPath parentPath) {
         return instantiate(getNameOrDefaultName(), parentPath);
     }
 
@@ -273,21 +273,21 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * This is a preferred way how to create property container.
      */
     @Override
-    public PropertyContainer instantiate(QName name, PropertyPath parentPath) {
-        return new PropertyContainer(name, this, prismContext, parentPath);
+    public PrismContainer instantiate(QName name, PropertyPath parentPath) {
+        return new PrismContainer(name, this, prismContext, parentPath);
     }
 
     /**
      * Shallow clone
      */
     @Override
-    public PropertyContainerDefinition clone() {
-        PropertyContainerDefinition clone = new PropertyContainerDefinition(name, complexTypeDefinition, prismContext);
+    public PrismContainerDefinition clone() {
+        PrismContainerDefinition clone = new PrismContainerDefinition(name, complexTypeDefinition, prismContext);
         copyDefinitionData(clone);
         return clone;
     }
 
-    protected void copyDefinitionData(PropertyContainerDefinition clone) {
+    protected void copyDefinitionData(PrismContainerDefinition clone) {
         super.copyDefinitionData(clone);
         clone.complexTypeDefinition = this.complexTypeDefinition;
         clone.isRuntimeSchema = this.isRuntimeSchema;
@@ -302,8 +302,8 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * @param typeName XSD type of the property
      * @return created property definition
      */
-    public PropertyDefinition createPropertyDefinition(QName name, QName typeName) {
-        PropertyDefinition propDef = new PropertyDefinition(name, name, typeName, prismContext);
+    public PrismPropertyDefinition createPropertyDefinition(QName name, QName typeName) {
+        PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, name, typeName, prismContext);
         getDefinitions().add(propDef);
         return propDef;
     }
@@ -319,9 +319,9 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * @param maxOccurs maximal number of occurrences (-1 means unbounded)
      * @return created property definition
      */
-    public PropertyDefinition createPropertyDefinition(QName name, QName typeName,
+    public PrismPropertyDefinition createPropertyDefinition(QName name, QName typeName,
             int minOccurs, int maxOccurs) {
-        PropertyDefinition propDef = new PropertyDefinition(name, name, typeName, prismContext);
+        PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, name, typeName, prismContext);
         propDef.setMinOccurs(minOccurs);
         propDef.setMaxOccurs(maxOccurs);
         getDefinitions().add(propDef);
@@ -331,8 +331,8 @@ public class PropertyContainerDefinition extends ItemDefinition {
     // Creates reference to other schema
     // TODO: maybe check if the name is in different namespace
     // TODO: maybe create entirely new concept of property reference?
-    public PropertyDefinition createPropertyDefinition(QName name) {
-        PropertyDefinition propDef = new PropertyDefinition(name, name, null, prismContext);
+    public PrismPropertyDefinition createPropertyDefinition(QName name) {
+        PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, name, null, prismContext);
         getDefinitions().add(propDef);
         return propDef;
     }
@@ -346,7 +346,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * @param typeName  XSD type of the property
      * @return created property definition
      */
-    public PropertyDefinition createPropertyDefinition(String localName, QName typeName) {
+    public PrismPropertyDefinition createPropertyDefinition(String localName, QName typeName) {
         QName name = new QName(getSchemaNamespace(), localName);
         return createPropertyDefinition(name, typeName);
     }
@@ -360,7 +360,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * @param localTypeName XSD type of the property
      * @return created property definition
      */
-    public PropertyDefinition createPropertyDefinition(String localName, String localTypeName) {
+    public PrismPropertyDefinition createPropertyDefinition(String localName, String localTypeName) {
         QName name = new QName(getSchemaNamespace(), localName);
         QName typeName = new QName(getSchemaNamespace(), localTypeName);
         return createPropertyDefinition(name, typeName);
@@ -377,11 +377,11 @@ public class PropertyContainerDefinition extends ItemDefinition {
      * @param maxOccurs     maximal number of occurrences (-1 means unbounded)
      * @return created property definition
      */
-    public PropertyDefinition createPropertyDefinition(String localName, String localTypeName,
+    public PrismPropertyDefinition createPropertyDefinition(String localName, String localTypeName,
             int minOccurs, int maxOccurs) {
         QName name = new QName(getSchemaNamespace(), localName);
         QName typeName = new QName(getSchemaNamespace(), localTypeName);
-        PropertyDefinition propertyDefinition = createPropertyDefinition(name, typeName);
+        PrismPropertyDefinition propertyDefinition = createPropertyDefinition(name, typeName);
         propertyDefinition.setMinOccurs(minOccurs);
         propertyDefinition.setMaxOccurs(maxOccurs);
         return propertyDefinition;

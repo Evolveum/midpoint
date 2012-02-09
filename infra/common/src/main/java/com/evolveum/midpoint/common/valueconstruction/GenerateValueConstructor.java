@@ -33,8 +33,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.Property;
-import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
+import com.evolveum.midpoint.schema.processor.PrismPropertyDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyPath;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -62,8 +62,8 @@ public class GenerateValueConstructor implements ValueConstructor {
 	 * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(javax.xml.bind.JAXBElement, com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property, java.util.Map, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition, PropertyPath propertyParentPath,
-			Property input, Map<QName, Object> variables, String contextDescription, OperationResult result)
+	public PrismProperty construct(JAXBElement<?> constructorElement, PrismPropertyDefinition outputDefinition, PropertyPath propertyParentPath,
+			PrismProperty input, Map<QName, Object> variables, String contextDescription, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
 		Object constructorTypeObject = constructorElement.getValue();
@@ -93,7 +93,7 @@ public class GenerateValueConstructor implements ValueConstructor {
 			}
         }
         
-		Property output = outputDefinition.instantiate(propertyParentPath);
+		PrismProperty output = outputDefinition.instantiate(propertyParentPath);
 		PropertyValue<Object> pValue = new PropertyValue<Object>(value);
 		output.setValue(pValue);
 		

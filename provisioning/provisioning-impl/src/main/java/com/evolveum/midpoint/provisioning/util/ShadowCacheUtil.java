@@ -27,7 +27,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
-import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
@@ -146,7 +146,7 @@ public class ShadowCacheUtil {
 //		LOGGER.trace("Start converting activation type from simulated activation atribute");
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
-		Property activationProperty = ro.findProperty(activationCapability.getEnableDisable().getAttribute());
+		PrismProperty activationProperty = ro.findProperty(activationCapability.getEnableDisable().getAttribute());
 //		if (activationProperty == null) {
 //			LOGGER.debug("No simulated activation attribute was defined for the account.");
 //			return null;
@@ -295,7 +295,7 @@ public class ShadowCacheUtil {
             Set<ResourceObjectAttribute> identifiers = resourceObject.getIdentifiers();
             // We can use only single identifiers (not composite)
             if (identifiers.size() == 1) {
-                Property identifier = identifiers.iterator().next();
+                PrismProperty identifier = identifiers.iterator().next();
                 // Only single-valued identifiers
                 Set<PropertyValue<Object>> values = identifier.getValues();
                 if (values.size() == 1) {
@@ -323,7 +323,7 @@ public class ShadowCacheUtil {
         // Add all attributes to the shadow
         shadow.getAttributes().getAny().clear();
         Set<ResourceObjectAttribute> identifiers = resourceObject.getIdentifiers();
-        for (Property p : identifiers) {
+        for (PrismProperty p : identifiers) {
             try {
                 List<Object> eList = p.serializeToJaxb(doc);
                 shadow.getAttributes().getAny().addAll(eList);
@@ -346,7 +346,7 @@ public class ShadowCacheUtil {
         Document doc = DOMUtil.getDocument();
         List<Object> values = new ArrayList<Object>();
 
-        for (Property identifier : identifiers) {
+        for (PrismProperty identifier : identifiers) {
             values.addAll(identifier.serializeToJaxb(doc));
         }
         Element filter;
@@ -364,7 +364,7 @@ public class ShadowCacheUtil {
 
     public static QueryType createSearchShadowQuery(ResourceObject resourceObject, ResourceType resource, OperationResult parentResult) throws SchemaException {
         XPathHolder xpath = createXpathHolder();
-        Property identifier = resourceObject.getIdentifier();
+        PrismProperty identifier = resourceObject.getIdentifier();
 
         Set<PropertyValue<Object>> idValues = identifier.getValues();
         // Only one value is supported for an identifier

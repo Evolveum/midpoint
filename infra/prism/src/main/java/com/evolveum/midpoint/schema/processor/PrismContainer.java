@@ -55,7 +55,7 @@ import java.util.*;
  *
  * @author Radovan Semancik
  */
-public class PropertyContainer extends Item {
+public class PrismContainer extends Item {
     private static final long serialVersionUID = 5206821250098051028L;
 
     private Set<Item> items = new HashSet<Item>();
@@ -72,7 +72,7 @@ public class PropertyContainer extends Item {
 //        super(name, definition);
 //    }
 
-    public PropertyContainer(QName name, PropertyContainerDefinition definition, PrismContext prismContext, PropertyPath parentPath) {
+    public PrismContainer(QName name, PrismContainerDefinition definition, PrismContext prismContext, PropertyPath parentPath) {
         super(name, definition, prismContext, parentPath);
     }
 
@@ -100,11 +100,11 @@ public class PropertyContainer extends Item {
      *
      * @return set of properties that the property container contains.
      */
-    public Set<Property> getProperties() {
-        Set<Property> properties = new HashSet<Property>();
+    public Set<PrismProperty> getProperties() {
+        Set<PrismProperty> properties = new HashSet<PrismProperty>();
         for (Item item : items) {
-            if (item instanceof Property) {
-                properties.add((Property) item);
+            if (item instanceof PrismProperty) {
+                properties.add((PrismProperty) item);
             }
         }
         return properties;
@@ -112,7 +112,7 @@ public class PropertyContainer extends Item {
     
 	public Collection<QName> getPropertyNames() {
 		Collection<QName> names = new HashSet<QName>();
-		for (Property prop: getProperties()) {
+		for (PrismProperty prop: getProperties()) {
 			names.add(prop.getName());
 		}
 		return names;
@@ -185,8 +185,8 @@ public class PropertyContainer extends Item {
      *
      * @return applicable property container definition
      */
-    public PropertyContainerDefinition getDefinition() {
-        return (PropertyContainerDefinition) definition;
+    public PrismContainerDefinition getDefinition() {
+        return (PrismContainerDefinition) definition;
     }
 
     /**
@@ -194,7 +194,7 @@ public class PropertyContainer extends Item {
      *
      * @param definition the definition to set
      */
-    public void setDefinition(PropertyContainerDefinition definition) {
+    public void setDefinition(PrismContainerDefinition definition) {
         this.definition = definition;
     }
     
@@ -211,10 +211,10 @@ public class PropertyContainer extends Item {
 			} else {
 				subPath = basePath.subPath(item.getName());
 			}
-    		if (item instanceof Property) {
+    		if (item instanceof PrismProperty) {
     			list.add(subPath);
-    		} else if (item instanceof PropertyContainer) {
-    			list.addAll(((PropertyContainer)item).listPropertyPaths(subPath));
+    		} else if (item instanceof PrismContainer) {
+    			list.addAll(((PrismContainer)item).listPropertyPaths(subPath));
     		}
     	}
     	return list;
@@ -228,43 +228,43 @@ public class PropertyContainer extends Item {
      * @param propertyQName property name to find.
      * @return found property or null
      */
-    public Property findProperty(QName propertyQName) {
+    public PrismProperty findProperty(QName propertyQName) {
         for (Item item : items) {
-            if (item instanceof Property && propertyQName.equals(item.getName())) {
-                return (Property) item;
+            if (item instanceof PrismProperty && propertyQName.equals(item.getName())) {
+                return (PrismProperty) item;
             }
         }
         return null;
     }
 
-    public PropertyContainer findPropertyContainer(QName name) {
-        return findItem(name, PropertyContainer.class);
+    public PrismContainer findPropertyContainer(QName name) {
+        return findItem(name, PrismContainer.class);
     }
 
-    public PropertyContainer findPropertyContainer(PropertyPath parentPath) {
+    public PrismContainer findPropertyContainer(PropertyPath parentPath) {
         if (parentPath == null || parentPath.isEmpty()) {
             return this;
         }
-        PropertyContainer subContainer = findItem(parentPath.first(), PropertyContainer.class);
+        PrismContainer subContainer = findItem(parentPath.first(), PrismContainer.class);
         if (subContainer == null) {
             return null;
         }
         return subContainer.findPropertyContainer(parentPath.rest());
     }
 
-    public Property findProperty(PropertyPath parentPath, QName propertyQName) {
-        PropertyContainer pc = findPropertyContainer(parentPath);
+    public PrismProperty findProperty(PropertyPath parentPath, QName propertyQName) {
+        PrismContainer pc = findPropertyContainer(parentPath);
         return pc.findProperty(propertyQName);
     }
 
-    public Property findProperty(PropertyPath propertyPath) {
+    public PrismProperty findProperty(PropertyPath propertyPath) {
         if (propertyPath.size() == 0) {
             return null;
         }
         if (propertyPath.size() == 1) {
             return findProperty(propertyPath.first());
         }
-        PropertyContainer pc = findPropertyContainer(propertyPath.allExceptLast());
+        PrismContainer pc = findPropertyContainer(propertyPath.allExceptLast());
         if (pc == null) {
             return null;
         }
@@ -316,76 +316,76 @@ public class PropertyContainer extends Item {
      * @param propertyDefinition property definition to find.
      * @return found property or null
      */
-    public Property findProperty(PropertyDefinition propertyDefinition) {
+    public PrismProperty findProperty(PrismPropertyDefinition propertyDefinition) {
         if (propertyDefinition == null) {
             throw new IllegalArgumentException("No property definition");
         }
         return findProperty(propertyDefinition.getName());
     }
 
-    public PropertyContainer findOrCreatePropertyContainer(QName containerName) {
-        PropertyContainer container = findItem(containerName, PropertyContainer.class);
+    public PrismContainer findOrCreatePropertyContainer(QName containerName) {
+        PrismContainer container = findItem(containerName, PrismContainer.class);
         if (container != null) {
             return container;
         }
         return createPropertyContainer(containerName);
     }
 
-    public PropertyContainer findOrCreatePropertyContainer(PropertyPath containerPath) {
+    public PrismContainer findOrCreatePropertyContainer(PropertyPath containerPath) {
         if (containerPath.size() == 0) {
             return this;
         }
-        PropertyContainer container = findOrCreatePropertyContainer(containerPath.first());
+        PrismContainer container = findOrCreatePropertyContainer(containerPath.first());
         return container.findOrCreatePropertyContainer(containerPath.rest());
     }
 
     // The valueClass is kind of a hack
-    public Property findOrCreateProperty(QName propertyQName, Class<?> valueClass) {
-        Property property = findItem(propertyQName, Property.class);
+    public PrismProperty findOrCreateProperty(QName propertyQName, Class<?> valueClass) {
+        PrismProperty property = findItem(propertyQName, PrismProperty.class);
         if (property != null) {
             return property;
         }
         return createProperty(propertyQName, valueClass);
     }
 
-    public Property findOrCreateProperty(PropertyPath parentPath, QName propertyQName, Class<?> valueClass) {
-        PropertyContainer container = findOrCreatePropertyContainer(parentPath);
+    public PrismProperty findOrCreateProperty(PropertyPath parentPath, QName propertyQName, Class<?> valueClass) {
+        PrismContainer container = findOrCreatePropertyContainer(parentPath);
         if (container == null) {
             throw new IllegalArgumentException("No container");
         }
         return container.findOrCreateProperty(propertyQName, valueClass);
     }
 
-    public PropertyContainer createPropertyContainer(QName containerName) {
+    public PrismContainer createPropertyContainer(QName containerName) {
         if (getDefinition() == null) {
             throw new IllegalStateException("No definition of container "+containerName);
         }
-        PropertyContainerDefinition containerDefinition = getDefinition().findPropertyContainerDefinition(containerName);
+        PrismContainerDefinition containerDefinition = getDefinition().findPropertyContainerDefinition(containerName);
         if (containerDefinition == null) {
             throw new IllegalArgumentException("No definition of container '" + containerName + "' in " + getDefinition());
         }
-        PropertyContainer container = containerDefinition.instantiate(this.getPath());
+        PrismContainer container = containerDefinition.instantiate(this.getPath());
         add(container);
         return container;
     }
 
-    public Property createProperty(QName propertyName, Class<?> valueClass) {
+    public PrismProperty createProperty(QName propertyName, Class<?> valueClass) {
         if (getDefinition() == null) {
             throw new IllegalStateException("No definition");
         }
-        PropertyDefinition propertyDefinition = getDefinition().findPropertyDefinition(propertyName);
+        PrismPropertyDefinition propertyDefinition = getDefinition().findPropertyDefinition(propertyName);
         if (propertyDefinition == null) {
         	// HACK: sometimes we don't know if the definition is runtime or not (e.g. applying a patch)
         	// therefore pretend that everything without a definition is runtime (for now)
 //        	if (this.getDefinition().isRuntimeSchema) {
         		// HACK: create the definition "on demand" based on the property java type.
         		QName typeName = XsdTypeConverter.toXsdType(valueClass);
-        		propertyDefinition = new PropertyDefinition(propertyName, propertyName, typeName, prismContext);
+        		propertyDefinition = new PrismPropertyDefinition(propertyName, propertyName, typeName, prismContext);
 //        	} else {
 //        		throw new IllegalArgumentException("No definition of property '" + propertyName + "' in " + getDefinition());
 //        	}
         }
-        Property property = propertyDefinition.instantiate(this.getPath());
+        PrismProperty property = propertyDefinition.instantiate(this.getPath());
         add(property);
         return property;
     }
@@ -429,8 +429,8 @@ public class PropertyContainer extends Item {
         // in the schema so we produce valid XML
         // TODO: FIXME
         for (Item item : items) {
-            if (item instanceof Property) {
-                Property prop = (Property) item;
+            if (item instanceof PrismProperty) {
+                PrismProperty prop = (PrismProperty) item;
                 if (prop.getDefinition() != null) {
                     elements.addAll(prop.serializeToJaxb(doc));
                 } else {
@@ -446,13 +446,13 @@ public class PropertyContainer extends Item {
     }
 
     @Override
-    public PropertyContainer clone() {
-        PropertyContainer clone = new PropertyContainer(getName(), getDefinition(), prismContext, getParentPath());
+    public PrismContainer clone() {
+        PrismContainer clone = new PrismContainer(getName(), getDefinition(), prismContext, getParentPath());
         copyValues(clone);
         return clone;
     }
 
-    protected void copyValues(PropertyContainer clone) {
+    protected void copyValues(PrismContainer clone) {
         super.copyValues(clone);
         for (Item item : items) {
             clone.items.add(item.clone());
@@ -475,7 +475,7 @@ public class PropertyContainer extends Item {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		PropertyContainer other = (PropertyContainer) obj;
+		PrismContainer other = (PrismContainer) obj;
 		if (items == null) {
 			if (other.items != null)
 				return false;

@@ -26,8 +26,8 @@ import com.evolveum.midpoint.prism.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.Property;
-import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
+import com.evolveum.midpoint.schema.processor.PrismPropertyDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyPath;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -53,8 +53,8 @@ public class ExpressionValueConstructor implements ValueConstructor {
       * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property)
       */
     @Override
-    public Property construct(JAXBElement<?> constructorElement, PropertyDefinition outputDefinition, PropertyPath propertyParentPath,
-            Property input, Map<QName, Object> variables, String contextDescription, OperationResult result)
+    public PrismProperty construct(JAXBElement<?> constructorElement, PrismPropertyDefinition outputDefinition, PropertyPath propertyParentPath,
+            PrismProperty input, Map<QName, Object> variables, String contextDescription, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
         Object constructorTypeObject = constructorElement.getValue();
@@ -69,7 +69,7 @@ public class ExpressionValueConstructor implements ValueConstructor {
 
         QName typeName = outputDefinition.getTypeName();
         Class<Object> type = XsdTypeConverter.toJavaType(typeName);
-        Property output = outputDefinition.instantiate(propertyParentPath);
+        PrismProperty output = outputDefinition.instantiate(propertyParentPath);
 
         if (outputDefinition.isMultiValue()) {
             List<PropertyValue<Object>> resultValues = expression.evaluateList(type, result);

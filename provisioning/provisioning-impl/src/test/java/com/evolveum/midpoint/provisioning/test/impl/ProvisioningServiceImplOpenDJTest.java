@@ -65,7 +65,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
+import com.evolveum.midpoint.schema.processor.PrismContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -246,9 +246,9 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			assertNotNull("Cannot parse schema",schema);
 			assertFalse("Empty schema",schema.isEmpty());
 			display("Parsed connector schema",schema);
-			PropertyContainerDefinition definition = schema.findItemDefinition("configuration",PropertyContainerDefinition.class);
+			PrismContainerDefinition definition = schema.findItemDefinition("configuration",PrismContainerDefinition.class);
 			assertNotNull("Definition of <configuration> property container not found",definition);
-			PropertyContainerDefinition pcd = (PropertyContainerDefinition)definition;
+			PrismContainerDefinition pcd = (PrismContainerDefinition)definition;
 			assertFalse("Empty definition",pcd.isEmpty());
 		}
 	}

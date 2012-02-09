@@ -114,7 +114,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
 
     public PropertyDelta getPropertyDelta(PropertyPath propertyPath) {
         if (changeType == ChangeType.ADD) {
-            Property property = objectToAdd.findProperty(propertyPath);
+            PrismProperty property = objectToAdd.findProperty(propertyPath);
             if (property == null) {
                 return null;
             }
@@ -355,7 +355,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
             addModification(newPropertyDelta);
         } else if (changeType == ChangeType.ADD) {
         	Class<?> valueClass = newPropertyDelta.getValueClass();
-            Property property = objectToAdd.findOrCreateProperty(newPropertyDelta.getParentPath(), newPropertyDelta.getName(), valueClass);
+            PrismProperty property = objectToAdd.findOrCreateProperty(newPropertyDelta.getParentPath(), newPropertyDelta.getName(), valueClass);
             newPropertyDelta.applyTo(property);
         }
         // nothing to do for DELETE

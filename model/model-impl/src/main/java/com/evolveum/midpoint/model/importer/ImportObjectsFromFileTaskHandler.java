@@ -26,8 +26,8 @@ import com.evolveum.midpoint.schema.PropertyModification;
 import com.evolveum.midpoint.schema.PropertyModification.ModificationType;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.Property;
-import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
+import com.evolveum.midpoint.schema.processor.PrismPropertyDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -72,14 +72,14 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
     private ChangeNotificationDispatcher changeNotificationDispatcher;
 
     //private Map<Task,ImportAccountsFromResourceResultHandler> handlers;
-    private PropertyDefinition filenamePropertyDefinition;
+    private PrismPropertyDefinition filenamePropertyDefinition;
 
     private static final Trace LOGGER = TraceManager.getTrace(ImportObjectsFromFileTaskHandler.class);
 
     public ImportObjectsFromFileTaskHandler() {
         super();
         //handlers = new HashMap<Task, ImportAccountsFromResourceResultHandler>();
-        filenamePropertyDefinition = new PropertyDefinition(ImportConstants.FILENAME_PROPERTY_NAME, DOMUtil.XSD_STRING);
+        filenamePropertyDefinition = new PrismPropertyDefinition(ImportConstants.FILENAME_PROPERTY_NAME, DOMUtil.XSD_STRING);
     }
 
     @PostConstruct
@@ -112,7 +112,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
         // TODO: bind task to this node
 
         // Set filename
-        Property filenameProperty = filenamePropertyDefinition.instantiate(null);
+        PrismProperty filenameProperty = filenamePropertyDefinition.instantiate(null);
         PropertyModification modification = filenameProperty.createModification(
                 ModificationType.REPLACE, new PropertyValue<Object>(input.getAbsolutePath()));
         List<PropertyModification> modifications = new ArrayList<PropertyModification>();
@@ -154,7 +154,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 
         // Determine the input file from task extension
 
-        Property filenameProperty = task.getExtension(ImportConstants.FILENAME_PROPERTY_NAME);
+        PrismProperty filenameProperty = task.getExtension(ImportConstants.FILENAME_PROPERTY_NAME);
         if (filenameProperty == null) {
             LOGGER.error("Import: No file specified");
             opResult.recordFatalError("No file specified");

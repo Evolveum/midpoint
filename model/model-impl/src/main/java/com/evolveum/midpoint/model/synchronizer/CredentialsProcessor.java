@@ -74,12 +74,12 @@ public class CredentialsProcessor {
             LOGGER.trace("userNew is null, skipping credentials processing");
             return;
         }
-        Property userPasswordNew = context.getUserNew().findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+        PrismProperty userPasswordNew = context.getUserNew().findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
 
         Schema commonSchema = schemaRegistry.getObjectSchema();
 
-        ObjectDefinition<AccountShadowType> accountDefinition = commonSchema.findObjectDefinition(AccountShadowType.class);
-        PropertyDefinition accountPasswordPropertyDefinition = accountDefinition.findPropertyDefinition(SchemaConstants.PATH_PASSWORD_VALUE);
+        PrismObjectDefinition<AccountShadowType> accountDefinition = commonSchema.findObjectDefinition(AccountShadowType.class);
+        PrismPropertyDefinition accountPasswordPropertyDefinition = accountDefinition.findPropertyDefinition(SchemaConstants.PATH_PASSWORD_VALUE);
 
         for (AccountSyncContext accCtx : context.getAccountContexts()) {
             ResourceAccountType rat = accCtx.getResourceAccountType();
@@ -119,7 +119,7 @@ public class CredentialsProcessor {
             		accountPasswordPropertyDefinition, null, "outbound password in account type " + rat);
             passwordConstruction.setInput(userPasswordNew);
             passwordConstruction.evaluate(result);
-            Property accountPasswordNew = passwordConstruction.getOutput();
+            PrismProperty accountPasswordNew = passwordConstruction.getOutput();
             if (accountPasswordNew == null) {
                 LOGGER.trace("Credentials 'password' expression resulted in null, skipping credentials processing for {}", rat);
                 continue;

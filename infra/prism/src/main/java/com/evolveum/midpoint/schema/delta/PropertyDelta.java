@@ -167,10 +167,10 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
     /**
      * Apply this delta (path) to a property container.
      */
-    public void applyTo(PropertyContainer propertyContainer) {
+    public void applyTo(PrismContainer propertyContainer) {
         // valueClass is kind of HACK, it should be FIXME
         Class<?> valueClass = getValueClass();
-        Property property = propertyContainer.findOrCreateProperty(getParentPath(), getName(), valueClass);
+        PrismProperty property = propertyContainer.findOrCreateProperty(getParentPath(), getName(), valueClass);
         applyTo(property);
     }
 
@@ -190,7 +190,7 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
     /**
      * Apply this delta (path) to a property.
      */
-    public void applyTo(Property property) {
+    public void applyTo(PrismProperty property) {
         if (valuesToReplace != null) {
             property.replaceValues(valuesToReplace);
             return;
@@ -299,11 +299,11 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
      * is applied.
      * Assumes "replace" delta.
      */
-    public Property getPropertyNew(PropertyDefinition propertyDefinition, PropertyPath parentPath) {
+    public PrismProperty getPropertyNew(PrismPropertyDefinition propertyDefinition, PropertyPath parentPath) {
         if (valuesToAdd != null && valuesToDelete != null) {
             throw new IllegalStateException("Cannot fetch new property state, not a 'replace' delta");
         }
-        Property prop = propertyDefinition.instantiate(parentPath);
+        PrismProperty prop = propertyDefinition.instantiate(parentPath);
         if (valuesToReplace == null || valuesToReplace.isEmpty()) {
             return prop;
         }

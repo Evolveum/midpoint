@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.schema.xjc;
 
-import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PrismProperty;
 import com.evolveum.midpoint.schema.processor.PropertyValue;
 import org.apache.commons.lang.Validate;
 
@@ -31,7 +31,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 /**
- * This class is used to wrap {@link Property} values for JAXB objects with
+ * This class is used to wrap {@link PrismProperty} values for JAXB objects with
  * {@link java.util.List} properties.
  * <p/>
  * This list implementation is based on {@link java.util.Set} so indexes are
@@ -41,9 +41,9 @@ import java.util.Iterator;
  */
 public class PropertyArrayList<T> extends AbstractList<T> {
 
-    private Property property;
+    private PrismProperty property;
 
-    public PropertyArrayList(Property property) {
+    public PropertyArrayList(PrismProperty property) {
         Validate.notNull(property, "Property must not be null.");
         this.property = property;
     }
