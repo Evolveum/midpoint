@@ -24,8 +24,8 @@ package com.evolveum.midpoint.schema.xjc.schema;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
+import com.evolveum.midpoint.schema.xjc.PrismForJAXBUtil;
 import com.evolveum.midpoint.schema.xjc.Processor;
-import static com.evolveum.midpoint.schema.xjc.util.ProcessorUtils.*;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.model.CClassInfo;
@@ -38,6 +38,8 @@ import org.xml.sax.SAXException;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.namespace.QName;
 import java.util.*;
+
+import static com.evolveum.midpoint.schema.xjc.util.ProcessorUtils.*;
 
 /**
  * Simple proof of concept for our custom XJC plugin.
@@ -55,10 +57,14 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_SET_PROPERTY_VALUE = "setPropertyValue";
     private static final String METHOD_GET_CONTAINER = "getContainer";
     private static final String METHOD_SET_CONTAINER = "setContainer";
+    private static final String METHOD_TO_STRING = "toString";
+    private static final String METHOD_DEBUG_DUMP = "debugDump";
+    private static final int METHOD_DEBUG_DUMP_INDENT = 3;
+    private static final String METHOD_EQUALS = "equals";
+    private static final String METHOD_EQUIVALENT = "equivalent";
+    private static final String METHOD_HASH_CODE = "hashCode";
 
     //todo change annotation on ObjectType in common-1.xsd to a:midPointContainer
-
-    //todo implement equals and hash methods for objects with property containers
 
     @Override
     public boolean run(Outline outline, Options options, ErrorHandler errorHandler) throws SAXException {
@@ -70,12 +76,10 @@ public class SchemaProcessor implements Processor {
             addComplextType(outline, namespaceFields);
             addFieldQNames(outline, namespaceFields);
 
-//            Set<JDefinedClass> containers = updateMidPointContainer(outline);
-//            containers.addAll(updatePropertyContainer(outline));
-//
-//            addContainerUtilMethodsToObjectType(outline);
-//
-//            updateFields(outline, containers);
+            Set<JDefinedClass> containers = updateMidPointContainer(outline);
+            containers.addAll(updatePropertyContainer(outline));
+
+            updateFields(outline, containers);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException("Couldn't process MidPoint JAXB customisation, reason: "
@@ -127,12 +131,56 @@ public class SchemaProcessor implements Processor {
 
             //create getContainer
             createGetContainerMethod(definedClass, container, containerClass, outline);
-
             //create setContainer
             createSetContainerMethod(definedClass, container, containerClass, outline);
+
+            System.out.println("Creating toString, equals, hashCode methods.");
+            //create toString
+            createToStringMethod(definedClass, outline);
+            //create equals
+            createEqualsMethod(definedClass, outline);
+            //create hash
+            createHashCodeMethod(definedClass, outline);
         }
 
         return containers;
+    }
+
+    private void createHashCodeMethod(JDefinedClass definedClass, Outline outline) {
+        JMethod hashCode = definedClass.method(JMod.PUBLIC, int.class, METHOD_HASH_CODE);
+        hashCode.annotate((JClass) outline.getModel().codeModel._ref(Override.class));
+        JBlock body = hashCode.body();
+        body._return(JExpr.invoke(METHOD_GET_CONTAINER).invoke(METHOD_HASH_CODE));
+    }
+
+    private void createEqualsMethod(JDefinedClass definedClass, Outline outline) {
+        JClass object = (JClass) outline.getModel().codeModel._ref(Object.class);
+
+        JMethod equals = definedClass.method(JMod.PUBLIC, boolean.class, METHOD_EQUALS);
+        JVar obj = equals.param(object, "obj");
+        equals.annotate((JClass) outline.getModel().codeModel._ref(Override.class));
+
+        JBlock body = equals.body();
+        JBlock ifNull = body._if(obj._instanceof(definedClass).not())._then();
+        ifNull._return(JExpr.lit(false));
+
+        JVar other = body.decl(definedClass, "other", JExpr.cast(definedClass, obj));
+
+        JInvocation invocation = JExpr.invoke(METHOD_GET_CONTAINER).invoke(METHOD_EQUIVALENT);
+        invocation.arg(other.invoke(METHOD_GET_CONTAINER));
+        body._return(invocation);
+    }
+
+    private void createToStringMethod(JDefinedClass definedClass, Outline outline) {
+        JClass clazz = (JClass) outline.getModel().codeModel._ref(String.class);
+
+        JMethod toString = definedClass.method(JMod.PUBLIC, clazz, METHOD_TO_STRING);
+        toString.annotate((JClass) outline.getModel().codeModel._ref(Override.class));
+
+        JBlock body = toString.body();
+        JInvocation invocation = JExpr.invoke(METHOD_GET_CONTAINER).invoke(METHOD_DEBUG_DUMP);
+        invocation.arg(JExpr.lit(METHOD_DEBUG_DUMP_INDENT));
+        body._return(invocation);
     }
 
     private void createGetContainerMethod(JDefinedClass definedClass, JVar container,
@@ -140,8 +188,6 @@ public class SchemaProcessor implements Processor {
 
         JClass clazz = (JClass) outline.getModel().codeModel._ref(containerClass);
         JMethod getContainer = definedClass.method(JMod.PUBLIC, clazz, METHOD_GET_CONTAINER);
-        //add deprecation
-        addDeprecation(outline, getContainer);
 
         //create method body
         JBlock body = getContainer.body();
@@ -149,6 +195,9 @@ public class SchemaProcessor implements Processor {
 
         JInvocation newContainer = (JInvocation) JExpr._new(clazz);
         newContainer.arg(JExpr.ref(COMPLEX_TYPE_FIELD));
+        newContainer.arg(JExpr._null());
+        newContainer.arg(JExpr._null());
+        newContainer.arg(JExpr._null());
         then.assign(container, newContainer);
 
         body._return(container);
@@ -158,7 +207,6 @@ public class SchemaProcessor implements Processor {
             Class<? extends PrismContainer> containerClass, Outline outline) {
 
         JMethod setContainer = definedClass.method(JMod.PUBLIC, void.class, METHOD_SET_CONTAINER);
-        addDeprecation(outline, setContainer); //add deprecation
         JVar methodContainer = setContainer.param(containerClass, "container");
         //create method body
         JBlock body = setContainer.body();
@@ -311,40 +359,6 @@ public class SchemaProcessor implements Processor {
         }
     }
 
-    private void addContainerUtilMethodsToObjectType(Outline outline) {
-        QName objectType = new QName(PrefixMapper.C.getNamespace(), "ObjectType");
-        ClassOutline classOutline = findClassOutline(outline, objectType);
-
-        if (classOutline == null) {
-            throw new IllegalStateException("Couldn't find class outline for " + objectType);
-        }
-
-        JDefinedClass implClass = classOutline.implClass;
-
-        JMethod getPropertyValues = implClass.method(JMod.NONE, List.class, METHOD_GET_PROPERTY_VALUES);
-        JTypeVar T = getPropertyValues.generify("T");
-        JClass listClass = (JClass) outline.getModel().codeModel.ref(List.class).narrow(T);
-        getPropertyValues.type(listClass);
-        getPropertyValues.param(QName.class, "name");
-        JClass clazz = (JClass) outline.getModel().codeModel.ref(Class.class).narrow(T);
-        getPropertyValues.param(clazz, "clazz");
-        createGetPropertiesBody(getPropertyValues, outline);
-
-        JMethod getPropertyValue = implClass.method(JMod.NONE, Object.class, METHOD_GET_PROPERTY_VALUE);
-        T = getPropertyValue.generify("T");
-        getPropertyValue.type(T);
-        getPropertyValue.param(QName.class, "name");
-        clazz = (JClass) outline.getModel().codeModel.ref(Class.class).narrow(T);
-        getPropertyValue.param(clazz, "clazz");
-        createGetPropertyBody(getPropertyValue, outline);
-
-        JMethod setPropertyValue = implClass.method(JMod.NONE, void.class, METHOD_SET_PROPERTY_VALUE);
-        T = setPropertyValue.generify("T");
-        setPropertyValue.param(QName.class, "name");
-        setPropertyValue.param(T, "value");
-        createSetPropertyBody(setPropertyValue, outline);
-    }
-
     /**
      * adding Deprecation annotation and small comment to method
      */
@@ -433,21 +447,6 @@ public class SchemaProcessor implements Processor {
         return true;
     }
 
-    private void createGetPropertiesBody(JMethod method, Outline outline) {
-        //todo implement
-        notYetImplementedException(outline, method);
-    }
-
-    private void createGetPropertyBody(JMethod method, Outline outline) {
-        //todo implement
-        notYetImplementedException(outline, method);
-    }
-
-    private void createSetPropertyBody(JMethod method, Outline outline) {
-        //todo implement
-        notYetImplementedException(outline, method);
-    }
-
     private boolean updateContainerFieldType(JFieldVar field, ClassOutline classOutline) {
         //only setter method must be updated
         String methodName = getSetterMethod(classOutline, field);
@@ -510,8 +509,10 @@ public class SchemaProcessor implements Processor {
     private void createFieldSetterBody(JMethod method, JFieldVar field, ClassOutline classOutline) {
         JBlock body = method.body();
 
-        JInvocation invocation = body.invoke(METHOD_SET_PROPERTY_VALUE);
+        JClass prismUtil = (JClass) classOutline.parent().getModel().codeModel._ref(PrismForJAXBUtil.class);
+        JInvocation invocation = body.staticInvoke(prismUtil, METHOD_SET_PROPERTY_VALUE);
         //push arguments
+        invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
         invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
         invocation.arg(method.listParams()[0]);
     }
@@ -519,13 +520,16 @@ public class SchemaProcessor implements Processor {
     private void createFieldGetterBody(JMethod method, JFieldVar field, ClassOutline classOutline, boolean isList) {
         JBlock body = method.body();
 
+        JClass prismUtil = (JClass) classOutline.parent().getModel().codeModel._ref(PrismForJAXBUtil.class);
+
         JInvocation invocation;
         if (isList) {
-            invocation = JExpr.invoke(METHOD_GET_PROPERTY_VALUES);
+            invocation = prismUtil.staticInvoke(METHOD_GET_PROPERTY_VALUES);
         } else {
-            invocation = JExpr.invoke(METHOD_GET_PROPERTY_VALUE);
+            invocation = prismUtil.staticInvoke(METHOD_GET_PROPERTY_VALUE);
         }
         //push arguments
+        invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
         invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
         JType type = field.type();
         if (type.isPrimitive()) {

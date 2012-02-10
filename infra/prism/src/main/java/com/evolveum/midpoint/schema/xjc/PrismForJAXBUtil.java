@@ -33,9 +33,9 @@ import java.util.Set;
 /**
  * @author lazyman
  */
-public final class XmlUtil {
+public final class PrismForJAXBUtil {
 
-    private XmlUtil() {
+    private PrismForJAXBUtil() {
     }
 
     public static <T> List<T> getPropertyValues(PrismContainer container, QName name, Class<T> clazz) {
@@ -55,7 +55,7 @@ public final class XmlUtil {
         return values;
     }
 
-    public static <T> T getPropertyValue(PrismContainer container, QName name) {
+    public static <T> T getPropertyValue(PrismContainer container, QName name, Class<T> clazz) {
         PrismProperty property = container.findProperty(name);
         if (property == null) {
             return null;
