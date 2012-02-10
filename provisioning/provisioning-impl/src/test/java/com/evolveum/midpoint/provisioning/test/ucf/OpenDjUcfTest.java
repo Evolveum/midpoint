@@ -25,7 +25,7 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.Schema;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
@@ -181,22 +181,22 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
         PrismPropertyDefinition propertyDefinition = accountDefinition
                 .findPropertyDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
         PrismProperty property = propertyDefinition.instantiate(null);
-        property.setValue(new PropertyValue("uid=" + name + ",ou=people,dc=example,dc=com"));
+        property.setValue(new PrismPropertyValue("uid=" + name + ",ou=people,dc=example,dc=com"));
         resourceObject.add(property);
 
         propertyDefinition = accountDefinition.findPropertyDefinition(new QName(resource.getNamespace(), "sn"));
         property = propertyDefinition.instantiate(resourceObject.getPath());
-        property.setValue(new PropertyValue(familyName));
+        property.setValue(new PrismPropertyValue(familyName));
         resourceObject.add(property);
 
         propertyDefinition = accountDefinition.findPropertyDefinition(new QName(resource.getNamespace(), "cn"));
         property = propertyDefinition.instantiate(null);
-        property.setValue(new PropertyValue(givenName + " " + familyName));
+        property.setValue(new PrismPropertyValue(givenName + " " + familyName));
         resourceObject.add(property);
 
         propertyDefinition = accountDefinition.findPropertyDefinition(new QName(resource.getNamespace(), "givenName"));
         property = propertyDefinition.instantiate(null);
-        property.setValue(new PropertyValue(givenName));
+        property.setValue(new PrismPropertyValue(givenName));
         resourceObject.add(property);
 
         Set<Operation> operation = new HashSet<Operation>();
@@ -338,7 +338,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
         ResourceObjectAttributeDefinition propertyDef = accountDefinition.findAttributeDefinition(new QName(
                 resource.getNamespace(), propertyName));
         ResourceObjectAttribute property = propertyDef.instantiate(null);
-        property.setValue(new PropertyValue(propertyValue));
+        property.setValue(new PrismPropertyValue(propertyValue));
         return property;
     }
 
@@ -673,17 +673,17 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
         ResourceObjectAttributeDefinition road = accountDefinition.findAttributeDefinition(new QName(resource
                 .getNamespace(), "sn"));
         ResourceObjectAttribute roa = road.instantiate(null);
-        roa.setValue(new PropertyValue(sn));
+        roa.setValue(new PrismPropertyValue(sn));
         resourceObject.add(roa);
 
         road = accountDefinition.findAttributeDefinition(new QName(resource.getNamespace(), "cn"));
         roa = road.instantiate(null);
-        roa.setValue(new PropertyValue(cn));
+        roa.setValue(new PrismPropertyValue(cn));
         resourceObject.add(roa);
 
         road = accountDefinition.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
         roa = road.instantiate(null);
-        roa.setValue(new PropertyValue(dn));
+        roa.setValue(new PrismPropertyValue(dn));
         resourceObject.add(roa);
 
         return resourceObject;

@@ -28,7 +28,7 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.SchemaRegistry;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
@@ -117,13 +117,13 @@ public class OutboundProcessor {
                     if (accountDelta != null && accountDelta.getChangeType() == ChangeType.ADD) {
                         // Special behavior for add. In case the account is added we don't care how the expression output has
                         // changed. We will add all the values
-                        attrDeltaTriple.getPlusSet().add(new PropertyValue<ValueConstruction>(evaluatedOutboundValueConstructionNew));
+                        attrDeltaTriple.getPlusSet().add(new PrismPropertyValue<ValueConstruction>(evaluatedOutboundValueConstructionNew));
 
                     } else {
                         // Diff new and old values, distributed the deltas accordingly
 
-                        Collection<PropertyValue<Object>> valuesOld = evaluatedOutboundValueConstructionOld.getOutput().getValues();
-                        Collection<PropertyValue<Object>> valuesNew = evaluatedOutboundValueConstructionNew.getOutput().getValues();
+                        Collection<PrismPropertyValue<Object>> valuesOld = evaluatedOutboundValueConstructionOld.getOutput().getValues();
+                        Collection<PrismPropertyValue<Object>> valuesNew = evaluatedOutboundValueConstructionNew.getOutput().getValues();
                         DeltaSetTriple<Object> valueDeltaTriple = DeltaSetTriple.diff(valuesOld, valuesNew);
 
                         // Clonning the value construction is necessary, as we need three of them
@@ -133,13 +133,13 @@ public class OutboundProcessor {
                         ValueConstruction zeroValueConstruction = evaluatedOutboundValueConstructionNew.clone();
 
                         plusValueConstruction.getOutput().getValues().addAll(valueDeltaTriple.getPlusSet());
-                        attrDeltaTriple.getPlusSet().add(new PropertyValue<ValueConstruction>(plusValueConstruction));
+                        attrDeltaTriple.getPlusSet().add(new PrismPropertyValue<ValueConstruction>(plusValueConstruction));
 
                         minusValueConstruction.getOutput().getValues().addAll(valueDeltaTriple.getMinusSet());
-                        attrDeltaTriple.getMinusSet().add(new PropertyValue<ValueConstruction>(minusValueConstruction));
+                        attrDeltaTriple.getMinusSet().add(new PrismPropertyValue<ValueConstruction>(minusValueConstruction));
 
                         zeroValueConstruction.getOutput().getValues().addAll(valueDeltaTriple.getZeroSet());
-                        attrDeltaTriple.getZeroSet().add(new PropertyValue<ValueConstruction>(zeroValueConstruction));
+                        attrDeltaTriple.getZeroSet().add(new PrismPropertyValue<ValueConstruction>(zeroValueConstruction));
                     }
 
                 }

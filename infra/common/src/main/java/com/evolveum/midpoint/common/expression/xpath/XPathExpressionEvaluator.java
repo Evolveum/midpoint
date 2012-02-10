@@ -21,7 +21,7 @@
 package com.evolveum.midpoint.common.expression.xpath;
 
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.XmlTypeConverter;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -53,7 +53,7 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
     private XPathFactory factory = XPathFactory.newInstance();
 
     @Override
-    public <T> PropertyValue<T> evaluateScalar(Class<T> type, Element code, Map<QName, Object> variables,
+    public <T> PrismPropertyValue<T> evaluateScalar(Class<T> type, Element code, Map<QName, Object> variables,
             ObjectResolver objectResolver, String contextDescription, OperationResult result) throws
             ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException {
@@ -62,7 +62,7 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
 
         Object evaluatedExpression = evaluate(returnType, code, variables, objectResolver, contextDescription, result);
 
-        PropertyValue<T> propertyValue = convertScalar(type, returnType, evaluatedExpression, contextDescription);
+        PrismPropertyValue<T> propertyValue = convertScalar(type, returnType, evaluatedExpression, contextDescription);
         T value = propertyValue.getValue();
         if (value == null || ((value instanceof String) && ((String) value).isEmpty())) {
             return null;
@@ -75,7 +75,7 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
       * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluateList(java.lang.Class, org.w3c.dom.Element, java.util.Map, com.evolveum.midpoint.schema.util.ObjectResolver, java.lang.String)
       */
     @Override
-    public <T> List<PropertyValue<T>> evaluateList(Class<T> type, Element code, Map<QName, Object> variables,
+    public <T> List<PrismPropertyValue<T>> evaluateList(Class<T> type, Element code, Map<QName, Object> variables,
             ObjectResolver objectResolver, String contextDescription, OperationResult result) throws
             ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException {
@@ -196,17 +196,17 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
         throw new ExpressionEvaluationException("Unsupported return type " + type);
     }
 
-    private <T> PropertyValue<T> convertScalar(Class<T> type, QName returnType, Object value,
+    private <T> PrismPropertyValue<T> convertScalar(Class<T> type, QName returnType, Object value,
             String contextDescription) throws ExpressionEvaluationException {
         if (type.isAssignableFrom(value.getClass())) {
-            return new PropertyValue<T>((T) value);
+            return new PrismPropertyValue<T>((T) value);
         }
         try {
             if (value instanceof String) {
-                return new PropertyValue<T>(XmlTypeConverter.toJavaValue((String) value, type));
+                return new PrismPropertyValue<T>(XmlTypeConverter.toJavaValue((String) value, type));
             }
             if (value instanceof Element) {
-                return new PropertyValue<T>(XmlTypeConverter.convertValueElementAsScalar((Element) value, type));
+                return new PrismPropertyValue<T>(XmlTypeConverter.convertValueElementAsScalar((Element) value, type));
             }
             throw new ExpressionEvaluationException("Unexpected scalar return type " + value.getClass().getName());
         } catch (SchemaException e) {
@@ -218,9 +218,9 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
         }
     }
 
-    private <T> List<PropertyValue<T>> convertList(Class<T> type, NodeList valueNodes, String contextDescription) throws
+    private <T> List<PrismPropertyValue<T>> convertList(Class<T> type, NodeList valueNodes, String contextDescription) throws
             ExpressionEvaluationException {
-        List<PropertyValue<T>> values = new ArrayList<PropertyValue<T>>();
+        List<PrismPropertyValue<T>> values = new ArrayList<PrismPropertyValue<T>>();
         if (valueNodes == null) {
             return values;
         }
@@ -231,7 +231,7 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
                 if (item == null || ((item instanceof String) && ((String) item).isEmpty())) {
                     continue;
                 }
-                values.add(new PropertyValue<T>(item));
+                values.add(new PrismPropertyValue<T>(item));
             }
             return values;
         } catch (SchemaException e) {

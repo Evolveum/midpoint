@@ -48,7 +48,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PropertyModification;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -300,15 +300,15 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         List<PropertyModification> mods = new ArrayList<PropertyModification>();
         // One more mariner drowned
         int newDead = deadProp.getValue(Integer.class).getValue().intValue() + 1;
-        mods.add(deadProp.createModification(PropertyModification.ModificationType.REPLACE, new PropertyValue<Object>(Integer.valueOf(newDead))));
+        mods.add(deadProp.createModification(PropertyModification.ModificationType.REPLACE, new PrismPropertyValue<Object>(Integer.valueOf(newDead))));
         // ... then the ship was lost
-        mods.add(shipStateProp.createModification(PropertyModification.ModificationType.REPLACE, new PropertyValue<Object>("sunk")));
+        mods.add(shipStateProp.createModification(PropertyModification.ModificationType.REPLACE, new PrismPropertyValue<Object>("sunk")));
         // ... so remember the date
         // This has no type information or schema. The type has to be determined
         // from the java type
         GregorianCalendar sinkDate = new GregorianCalendar();
         PrismProperty dateProp = taskExtension.createProperty(new QName("http://myself.me/schemas/whatever", "sinkTimestamp"), sinkDate.getClass());
-        mods.add(dateProp.createModification(PropertyModification.ModificationType.REPLACE, new PropertyValue<Object>(sinkDate)));
+        mods.add(dateProp.createModification(PropertyModification.ModificationType.REPLACE, new PrismPropertyValue<Object>(sinkDate)));
 
         task.modifyExtension(mods, result);
 
@@ -334,7 +334,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         dateProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever", "sinkTimestamp"));
         AssertJUnit.assertNotNull("sinkTimestamp is null", dateProp);
         AssertJUnit.assertEquals(GregorianCalendar.class, dateProp.getValues().iterator().next().getValue().getClass());
-        PropertyValue<GregorianCalendar> fetchedDate = dateProp.getValue(GregorianCalendar.class);
+        PrismPropertyValue<GregorianCalendar> fetchedDate = dateProp.getValue(GregorianCalendar.class);
         AssertJUnit.assertTrue(fetchedDate.getValue().compareTo(sinkDate) == 0);
 
         // stop the task to keep the log clean

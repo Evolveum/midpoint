@@ -23,7 +23,7 @@
 package com.evolveum.midpoint.model.filter;
 
 import com.evolveum.midpoint.model.controller.Filter;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -51,7 +51,7 @@ public abstract class AbstractFilter implements Filter {
         this.parameters = parameters;
     }
 
-    protected <T extends Object> String getStringValue(PropertyValue<T> propertyValue) {
+    protected <T extends Object> String getStringValue(PrismPropertyValue<T> propertyValue) {
         Object value = propertyValue.getValue();
         String text = null;
         if (value != null) {

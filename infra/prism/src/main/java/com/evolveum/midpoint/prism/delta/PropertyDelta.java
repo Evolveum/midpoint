@@ -25,7 +25,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -60,9 +60,9 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
      */
     PropertyPath parentPath;
 
-    Collection<PropertyValue<Object>> valuesToReplace = null;
-    Collection<PropertyValue<Object>> valuesToAdd = null;
-    Collection<PropertyValue<Object>> valuesToDelete = null;
+    Collection<PrismPropertyValue<Object>> valuesToReplace = null;
+    Collection<PrismPropertyValue<Object>> valuesToAdd = null;
+    Collection<PrismPropertyValue<Object>> valuesToDelete = null;
 
     public PropertyDelta(QName name) {
         this.name = name;
@@ -75,7 +75,7 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
     }
 
     public PropertyDelta(PropertyPath propertyPath) {
-        this.name = propertyPath.last();
+        this.name = propertyPath.last().getName();
         this.parentPath = propertyPath.allExceptLast();
     }
 
@@ -103,11 +103,11 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         return (valuesToReplace != null);
     }
 
-    public Collection<PropertyValue<Object>> getValuesToAdd() {
+    public Collection<PrismPropertyValue<Object>> getValuesToAdd() {
         return valuesToAdd;
     }
 
-    public Collection<PropertyValue<Object>> getValuesToDelete() {
+    public Collection<PrismPropertyValue<Object>> getValuesToDelete() {
         return valuesToDelete;
     }
 
@@ -123,7 +123,7 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         }
     }
     
-    public Collection<PropertyValue<Object>> getValuesToReplace() {
+    public Collection<PrismPropertyValue<Object>> getValuesToReplace() {
     	return valuesToReplace;
     }
 
@@ -131,7 +131,7 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
      * Returns all values regardless of whether they are added or removed or replaced.
      * Useful for iterating over all the changed values.
      */
-    public <T> Collection<PropertyValue<T>> getValues(Class<T> type) {
+    public <T> Collection<PrismPropertyValue<T>> getValues(Class<T> type) {
         checkConsistence();
         if (valuesToReplace != null) {
             return (Collection) valuesToReplace;
@@ -174,7 +174,7 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
     public void applyTo(PrismContainer propertyContainer) {
         // valueClass is kind of HACK, it should be FIXME
         Class<?> valueClass = getValueClass();
-        PrismProperty property = propertyContainer.findOrCreateProperty(getParentPath(), getName(), valueClass);
+        PrismProperty property = null; //FIXME propertyContainer.findOrCreateProperty(getParentPath(), getName(), valueClass);
         applyTo(property);
     }
 
@@ -207,35 +207,35 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         }
     }
 
-    public void addValuesToAdd(Collection<PropertyValue<Object>> newValues) {
+    public void addValuesToAdd(Collection<PrismPropertyValue<Object>> newValues) {
         if (valuesToAdd == null) {
             valuesToAdd = newValueCollection();
         }
         valuesToAdd.addAll(newValues);
     }
 
-    public void addValueToAdd(PropertyValue<Object> newValue) {
+    public void addValueToAdd(PrismPropertyValue<Object> newValue) {
         if (valuesToAdd == null) {
             valuesToAdd = newValueCollection();
         }
         valuesToAdd.add(newValue);
     }
 
-    public void addValuesToDelete(Collection<PropertyValue<Object>> newValues) {
+    public void addValuesToDelete(Collection<PrismPropertyValue<Object>> newValues) {
         if (valuesToDelete == null) {
             valuesToDelete = newValueCollection();
         }
         valuesToDelete.addAll(newValues);
     }
 
-    public void addValueToDelete(PropertyValue<Object> newValue) {
+    public void addValueToDelete(PrismPropertyValue<Object> newValue) {
         if (valuesToDelete == null) {
             valuesToDelete = newValueCollection();
         }
         valuesToDelete.add(newValue);
     }
 
-    public void setValuesToReplace(Collection<PropertyValue<Object>> newValues) {
+    public void setValuesToReplace(Collection<PrismPropertyValue<Object>> newValues) {
         if (valuesToReplace == null) {
             valuesToReplace = newValueCollection();
         } else {
@@ -251,23 +251,23 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         return false;
     }
 
-    private Collection<PropertyValue<Object>> newValueCollection() {
-        return new HashSet<PropertyValue<Object>>();
+    private Collection<PrismPropertyValue<Object>> newValueCollection() {
+        return new HashSet<PrismPropertyValue<Object>>();
     }
 
-    public boolean isValueToAdd(PropertyValue<?> value) {
+    public boolean isValueToAdd(PrismPropertyValue<?> value) {
         if (valuesToAdd == null) {
             return false;
         }
         return valuesToAdd.contains(value);
     }
 
-    public boolean isRealValueToAdd(PropertyValue<?> value) {
+    public boolean isRealValueToAdd(PrismPropertyValue<?> value) {
         if (valuesToAdd == null) {
             return false;
         }
 
-        for (PropertyValue valueToAdd : valuesToAdd) {
+        for (PrismPropertyValue valueToAdd : valuesToAdd) {
             if (valueToAdd.equalsRealValue(value)) {
                 return true;
             }
@@ -276,19 +276,19 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         return false;
     }
 
-    public boolean isValueToDelete(PropertyValue<?> value) {
+    public boolean isValueToDelete(PrismPropertyValue<?> value) {
         if (valuesToDelete == null) {
             return false;
         }
         return valuesToDelete.contains(value);
     }
 
-    public boolean isRealValueToDelete(PropertyValue<?> value) {
+    public boolean isRealValueToDelete(PrismPropertyValue<?> value) {
         if (valuesToDelete == null) {
             return false;
         }
 
-        for (PropertyValue valueToAdd : valuesToDelete) {
+        for (PrismPropertyValue valueToAdd : valuesToDelete) {
             if (valueToAdd.equalsRealValue(value)) {
                 return true;
             }
@@ -307,7 +307,7 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         if (valuesToAdd != null && valuesToDelete != null) {
             throw new IllegalStateException("Cannot fetch new property state, not a 'replace' delta");
         }
-        PrismProperty prop = propertyDefinition.instantiate(parentPath);
+        PrismProperty prop = propertyDefinition.instantiate();
         if (valuesToReplace == null || valuesToReplace.isEmpty()) {
             return prop;
         }
@@ -372,7 +372,7 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         return debugDump();
     }
 
-    private void dumpValues(StringBuilder sb, String label, Collection<PropertyValue<Object>> values, int indent) {
+    private void dumpValues(StringBuilder sb, String label, Collection<PrismPropertyValue<Object>> values, int indent) {
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);
         }
@@ -380,7 +380,7 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         if (values == null) {
             sb.append("(null)");
         } else {
-            Iterator<PropertyValue<Object>> i = values.iterator();
+            Iterator<PrismPropertyValue<Object>> i = values.iterator();
             while (i.hasNext()) {
                 sb.append(DebugUtil.prettyPrint(i.next()));
                 if (i.hasNext()) {

@@ -43,9 +43,11 @@ import java.io.Serializable;
  */
 public abstract class Item implements Dumpable, DebugDumpable, Serializable {
 
+	// The object should basically work without definition and prismContext. This is the
+	// usual case when it is constructed "out of the blue", e.g. as a new JAXB object
+	// It may not work perfectly, but basic things should work
     protected QName name;
     protected Definition definition;
-    protected PropertyPath parentPath;
     transient protected PrismContext prismContext;
 
 
@@ -53,12 +55,11 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
      * The constructors should be used only occasionally (if used at all).
      * Use the factory methods in the ResourceObjectDefintion instead.
      */
-    public Item(QName name, Definition definition, PrismContext prismContext, PropertyPath parentPath) {
+    public Item(QName name, Definition definition, PrismContext prismContext) {
         super();
         this.name = name;
         this.definition = definition;
         this.prismContext = prismContext;
-        this.parentPath = parentPath;
     }
 
     /**
@@ -112,25 +113,6 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
         this.definition = definition;
     }
 
-	public PropertyPath getParentPath() {
-		if (parentPath == null) {
-			return PropertyPath.EMPTY_PATH;
-		}
-		return parentPath;
-	}
-
-	public void setParentPath(PropertyPath parentPath) {
-		this.parentPath = parentPath;
-	}
-
-	public PropertyPath getPath() {
-		if (parentPath == null) {
-			return new PropertyPath(name);
-		} else {
-			return parentPath.subPath(name);
-		}
-	}
-
 	/**
      * Returns a display name for the property type.
      * <p/>
@@ -175,7 +157,7 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
      * @return property serialized to DOM Element or JAXBElement
      * @throws SchemaException No definition or inconsistent definition
      */
-    abstract public void serializeToDom(Node parentNode) throws SchemaException;
+//    abstract public void serializeToDom(Node parentNode) throws SchemaException;
     
     public void revive(PrismContext prismContext) {
     	if (this.prismContext != null) {
@@ -192,7 +174,6 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
     protected void copyValues(Item clone) {
         clone.name = this.name;
         clone.definition = this.definition;
-        clone.parentPath = this.parentPath;
         clone.prismContext = this.prismContext;
     }
 
@@ -202,7 +183,6 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
         int result = 1;
         result = prime * result + ((definition == null) ? 0 : definition.hashCode());
         result = prime * result + ((name == null) ? 0 : name.hashCode());
-        result = prime * result + ((parentPath == null) ? 0 : parentPath.hashCode());
         result = prime * result + ((prismContext == null) ? 0 : prismContext.hashCode());
         return result;
     }
@@ -220,11 +200,6 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
             if (other.definition != null)
                 return false;
         } else if (!definition.equals(other.definition))
-            return false;
-        if (parentPath == null) {
-            if (other.parentPath != null)
-                return false;
-        } else if (!parentPath.equals(other.parentPath))
             return false;
         if (prismContext == null) {
             if (other.prismContext != null)

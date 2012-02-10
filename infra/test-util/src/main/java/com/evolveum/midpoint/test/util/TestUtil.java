@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.test.util;
 
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,9 +37,9 @@ import static org.testng.AssertJUnit.assertEquals;
  */
 public class TestUtil {
 
-    public static <T> void assertPropertyValueSetEquals(Collection<PropertyValue<T>> actual, T... expected) {
+    public static <T> void assertPropertyValueSetEquals(Collection<PrismPropertyValue<T>> actual, T... expected) {
         Set<T> set = new HashSet<T>();
-        for (PropertyValue<T> value : actual) {
+        for (PrismPropertyValue<T> value : actual) {
             set.add(value.getValue());
         }
         assertSetEquals(set, expected);

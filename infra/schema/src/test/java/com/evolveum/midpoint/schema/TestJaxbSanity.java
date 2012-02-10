@@ -28,7 +28,7 @@ import javax.xml.bind.JAXBException;
 
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -83,8 +83,8 @@ public class TestJaxbSanity {
 		
 		assertTrue("HashCode does not match", resource1.hashCode() == resource2.hashCode());
 		
-		PropertyValue<Object> pv1 = new PropertyValue<Object>(resource1.getConfiguration());
-		PropertyValue<Object> pv2 = new PropertyValue<Object>(resource2.getConfiguration());
+		PrismPropertyValue<Object> pv1 = new PrismPropertyValue<Object>(resource1.getConfiguration());
+		PrismPropertyValue<Object> pv2 = new PrismPropertyValue<Object>(resource2.getConfiguration());
 		
 		assertTrue("Real property values not equal",pv1.equalsRealValue(pv2));
 	}

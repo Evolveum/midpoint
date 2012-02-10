@@ -57,6 +57,8 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 
 	private static final long serialVersionUID = -2643332934312107274L;
 	protected QName name;
+	private int minOccurs = 1;
+    private int maxOccurs = 1;
 
 	// TODO: annotations
 	
@@ -109,20 +111,85 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		}
 		return defaultName;
 	}
+	
+    /**
+     * Return the number of minimal value occurrences.
+     *
+     * @return the minOccurs
+     */
+    public int getMinOccurs() {
+        return minOccurs;
+    }
+
+    public void setMinOccurs(int minOccurs) {
+        this.minOccurs = minOccurs;
+    }
+    
+    /**
+     * Return the number of maximal value occurrences.
+     * <p/>
+     * Any negative number means "unbounded".
+     *
+     * @return the maxOccurs
+     */
+    public int getMaxOccurs() {
+        return maxOccurs;
+    }
+
+    public void setMaxOccurs(int maxOccurs) {
+        this.maxOccurs = maxOccurs;
+    }
+    
+    /**
+     * Returns true if property is single-valued.
+     *
+     * @return true if property is single-valued.
+     */
+    public boolean isSingleValue() {
+        return getMaxOccurs() >= 0 && getMaxOccurs() <= 1;
+    }
+
+    /**
+     * Returns true if property is multi-valued.
+     *
+     * @return true if property is multi-valued.
+     */
+    public boolean isMultiValue() {
+        return getMaxOccurs() < 0 || getMaxOccurs() > 1;
+    }
+
+    /**
+     * Returns true if property is mandatory.
+     *
+     * @return true if property is mandatory.
+     */
+    public boolean isMandatory() {
+        return getMinOccurs() > 0;
+    }
+
+    /**
+     * Returns true if property is optional.
+     *
+     * @return true if property is optional.
+     */
+    public boolean isOptional() {
+        return getMinOccurs() == 0;
+    }
+
 		
 	/**
 	 * Create an item instance. Definition name or default name will
 	 * used as an element name for the instance. The instance will otherwise be empty.
 	 * @return created item instance
 	 */
-	abstract public Item instantiate(PropertyPath parentPath);
+	abstract public Item instantiate();
 
 	/**
 	 * Create an item instance. Definition name will use provided name.
 	 * for the instance. The instance will otherwise be empty.
 	 * @return created item instance
 	 */
-	abstract public Item instantiate(QName name, PropertyPath parentPath);
+	abstract public Item instantiate(QName name);
 	
 	abstract <T extends ItemDefinition> T findItemDefinition(PropertyPath path, Class<T> clazz);
 	
@@ -136,6 +203,8 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + maxOccurs;
+        result = prime * result + minOccurs;
 		return result;
 	}
 
@@ -153,6 +222,10 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 				return false;
 		} else if (!name.equals(other.name))
 			return false;
+		if (maxOccurs != other.maxOccurs)
+            return false;
+        if (minOccurs != other.minOccurs)
+            return false;
 		return true;
 	}
 

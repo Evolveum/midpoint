@@ -36,7 +36,7 @@ import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.SchemaRegistry;
 import com.evolveum.midpoint.prism.SourceType;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -226,7 +226,7 @@ public abstract class BaseAction implements Action {
             accContext.setAccountSecondaryDelta(accDelta);
         }
 
-        PropertyValue<Boolean> value = enable.getValue(Boolean.class);
+        PrismPropertyValue<Boolean> value = enable.getValue(Boolean.class);
         if (value != null) {
             Boolean isEnabled = value.getValue();
             if (isEnabled == null) {
@@ -334,11 +334,11 @@ public abstract class BaseAction implements Action {
         delta.clear();
 
         Boolean newValue = ActivationDecision.ENABLE.equals(activationDecision) ? Boolean.TRUE : Boolean.FALSE;
-        PropertyValue value = new PropertyValue<Object>(newValue, SourceType.SYNC_ACTION, null);
+        PrismPropertyValue value = new PrismPropertyValue<Object>(newValue, SourceType.SYNC_ACTION, null);
         if (oldValue == null) {
             delta.addValueToAdd(value);
         } else {
-            Collection<PropertyValue<Object>> values = new ArrayList<PropertyValue<Object>>();
+            Collection<PrismPropertyValue<Object>> values = new ArrayList<PrismPropertyValue<Object>>();
             values.add(value);
             delta.setValuesToReplace(values);
         }

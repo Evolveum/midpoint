@@ -31,7 +31,7 @@ import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.Schema;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -198,7 +198,7 @@ public class ModifyUserAction extends BaseAction {
                 SchemaConstants.PATH_ACTIVATION_ENABLE.last(), Boolean.class);
         LOGGER.debug("User activation defined, activation property found {}", enable);
 
-        PropertyValue<Boolean> value = enable.getValue(Boolean.class);
+        PrismPropertyValue<Boolean> value = enable.getValue(Boolean.class);
         if (value != null) {
             Boolean isEnabled = value.getValue();
             if (isEnabled == null) {

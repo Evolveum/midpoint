@@ -22,7 +22,7 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
@@ -535,9 +535,9 @@ public class ShadowCache {
 		}
 		String disableValue = enableDisable.getDisableValue().iterator().next();
 		if (enabled) {
-			property.setValue(new PropertyValue(enableValue));
+			property.setValue(new PrismPropertyValue(enableValue));
 		} else {
-			property.setValue(new PropertyValue(disableValue));
+			property.setValue(new PrismPropertyValue(disableValue));
 		}
 		// property.setValue(String.valueOf(!enabled));
 		attributeChange.setNewAttribute(property);

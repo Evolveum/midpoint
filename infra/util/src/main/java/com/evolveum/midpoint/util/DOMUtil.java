@@ -70,9 +70,13 @@ public class DOMUtil {
 
 	public static final String W3C_XML_SCHEMA_XMLNS_URI = "http://www.w3.org/2000/xmlns/";
 	public static final String W3C_XML_SCHEMA_XMLNS_PREFIX = "xmlns";
+	
+	public static final String W3C_XML_XML_URI = "http://www.w3.org/XML/1998/namespace";
+	public static final String W3C_XML_XML_PREFIX = "xml";
 
 	public static final String NS_W3C_XSI_PREFIX = "xsi";
 	public static final QName XSI_TYPE = new QName(W3C_XML_SCHEMA_INSTANCE_NS_URI, "type", NS_W3C_XSI_PREFIX);
+	public static final QName XML_ID_ATTRIBUTE = new QName(W3C_XML_XML_URI, "id", W3C_XML_XML_PREFIX);
 
 	public static final String NS_W3C_XML_SCHEMA_PREFIX = "xsd";
 	public static final QName XSD_SCHEMA_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "schema",
@@ -102,6 +106,7 @@ public class DOMUtil {
 	// To generate random namespace prefixes
 	private static Random rnd = new Random();
 	private static final DocumentBuilder loader;
+	
 
 	static {
 		try {

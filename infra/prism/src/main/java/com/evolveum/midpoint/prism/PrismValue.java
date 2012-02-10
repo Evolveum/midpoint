@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (c) 2011 Evolveum
  *
  * The contents of this file are subject to the terms
@@ -15,28 +15,39 @@
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
- *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
-package com.evolveum.midpoint.model.controller;
-
-import java.util.List;
-
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-
-import org.w3c.dom.Node;
+package com.evolveum.midpoint.prism;
 
 /**
- * 
- * @author Igor Farinic
- * 
+ * @author semancik
+ *
  */
-public interface Filter {
+public abstract class PrismValue {
+	
+	private SourceType type;
+    private Objectable source;
+    
+    PrismValue(SourceType type, Objectable source) {
+		super();
+		this.type = type;
+		this.source = source;
+	}
 
-	void setParameters(List<Object> parameters);
+	public void setSource(Objectable source) {
+        this.source = source;
+    }
 
-	List<Object> getParameters();
+    public void setType(SourceType type) {
+        this.type = type;
+    }
+    
+    public SourceType getType() {
+        return type;
+    }
 
-	<T extends  Object> PrismPropertyValue<T> apply(PrismPropertyValue<T> value);
+    public Objectable getSource() {
+        return source;
+    }
+
 }

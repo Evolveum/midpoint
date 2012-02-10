@@ -54,6 +54,7 @@ public class PrismContainerDefinition extends ItemDefinition {
     private static final long serialVersionUID = -5068923696147960699L;
     private static final String ANY_GETTER_NAME = "getAny";
     protected ComplexTypeDefinition complexTypeDefinition;
+ 
     /**
      * This means that the property container is not defined by fixed (compile-time) schema.
      * This in fact means that we need to use getAny in a JAXB types. It does not influence the
@@ -102,11 +103,10 @@ public class PrismContainerDefinition extends ItemDefinition {
     public void setComplexTypeDefinition(ComplexTypeDefinition complexTypeDefinition) {
         this.complexTypeDefinition = complexTypeDefinition;
     }
-
+        
     public boolean isWildcard() {
         return (complexTypeDefinition == null);
     }
-    
     
     @Override
 	void revive(PrismContext prismContext) {
@@ -147,7 +147,7 @@ public class PrismContainerDefinition extends ItemDefinition {
         if (path.isEmpty()) {
             return (T) this;
         }
-        QName first = path.first();
+        QName first = path.first().getName();
         for (ItemDefinition def : getDefinitions()) {
             if (first.equals(def.getName())) {
                 return def.findItemDefinition(path.rest(), clazz);
@@ -177,9 +177,9 @@ public class PrismContainerDefinition extends ItemDefinition {
             throw new IllegalArgumentException("Property path is empty while searching for property definition in " + this);
         }
         if (propertyPath.size() == 1) {
-            return findPropertyDefinition(propertyPath.first());
+            return findPropertyDefinition(propertyPath.first().getName());
         }
-        PrismContainerDefinition pcd = findPropertyContainerDefinition(propertyPath.first());
+        PrismContainerDefinition pcd = findPropertyContainerDefinition(propertyPath.first().getName());
         return pcd.findPropertyDefinition(propertyPath.rest());
     }
 
@@ -262,8 +262,8 @@ public class PrismContainerDefinition extends ItemDefinition {
      * This is a preferred way how to create property container.
      */
     @Override
-    public PrismContainer instantiate(PropertyPath parentPath) {
-        return instantiate(getNameOrDefaultName(), parentPath);
+    public PrismContainer instantiate() {
+        return instantiate(getNameOrDefaultName());
     }
 
     /**
@@ -272,8 +272,8 @@ public class PrismContainerDefinition extends ItemDefinition {
      * This is a preferred way how to create property container.
      */
     @Override
-    public PrismContainer instantiate(QName name, PropertyPath parentPath) {
-        return new PrismContainer(name, this, prismContext, parentPath);
+    public PrismContainer instantiate(QName name) {
+        return new PrismContainer(name, this, prismContext);
     }
 
     /**

@@ -65,7 +65,7 @@ class PrismDomProcessor {
 		if (objectDefinition == null) {
 			throw new SchemaException("No object definition for element "+elementName+" in schema "+schema);
 		}
-		PrismObject<T> object = parsePrismContainer(objectElement, objectDefinition, null);
+		PrismObject<T> object = parsePrismContainer(objectElement, objectDefinition);
 		String oid = objectElement.getAttribute("oid");
 		object.setOid(oid);
 		String version = objectElement.getAttribute("version");
@@ -73,7 +73,7 @@ class PrismDomProcessor {
 		return object;
 	}
 	
-	public PrismContainer parsePropertyContainer(Element domElement) throws SchemaException {
+	public PrismContainer parsePrismContainer(Element domElement) throws SchemaException {
 		// locate appropriate definition based on the element name
 		QName elementName = DOMUtil.getQName(domElement);
 		Schema schema = schemaRegistry.findSchemaByNamespace(elementName.getNamespaceURI());
@@ -82,27 +82,31 @@ class PrismDomProcessor {
 		if (propertyContainerDefinition == null) {
 			throw new SchemaException("No definition for element " + elementName);
 		}
-		return parsePrismContainer(domElement, propertyContainerDefinition, null);
+		return parsePrismContainer(domElement, propertyContainerDefinition);
 	}
 
-	private <T extends PrismContainer> T parsePrismContainer(Element element, PrismContainerDefinition containerDefinition, PropertyPath parentPath) throws SchemaException {
-		QName elementQName = DOMUtil.getQName(element);
-        T container = (T) containerDefinition.instantiate(elementQName, parentPath);
-        List<Element> childElements = DOMUtil.listChildElements(element);
-        container.getItems().addAll(parsePrismContainerItems(childElements, containerDefinition, container.getPath()));
+	private <T extends PrismContainer> T parsePrismContainer(Element domElement, PrismContainerDefinition propertyContainerDefinition) throws SchemaException {
+		List<Element> valueElements = new ArrayList<Element>(1);
+		valueElements.add(domElement);
+		return parsePrismContainer(valueElements, propertyContainerDefinition);
+	}
+
+	private <T extends PrismContainer> T parsePrismContainer(List<Element> valueElements, PrismContainerDefinition containerDefinition) throws SchemaException {
+		QName elementQName = DOMUtil.getQName(valueElements.get(0));
+        T container = (T) containerDefinition.instantiate(elementQName);
+        for (Element element: valueElements) {
+        	String id = element.getAttributeNS(DOMUtil.XML_ID_ATTRIBUTE.getNamespaceURI(), DOMUtil.XML_ID_ATTRIBUTE.getLocalPart());
+        	PrismContainerValue pval = new PrismContainerValue(null, null, container, id);
+            List<Element> childElements = DOMUtil.listChildElements(element);
+            pval.addAll(parsePrismContainerItems(childElements, containerDefinition));
+            container.add(pval);
+        }
+        container.trim();
         return container;
 	}
 	
-	private <T extends PrismContainer> T parsePrismContainer(List<Element> valueElements, PrismContainerDefinition containerDefinition, PropertyPath parentPath) throws SchemaException {
-		if (valueElements.size() == 1) {
-			return parsePrismContainer(valueElements.get(0), containerDefinition, parentPath);
-		} else {
-			throw new UnsupportedOperationException("We don't support multi-valued prism containers yet");
-		}
-	}
-
-	private Collection<? extends Item> parsePrismContainerItems(List<Element> childElements, PrismContainerDefinition containerDefinition, PropertyPath parentPath) throws SchemaException {
-		return parsePrismContainerItems(childElements, containerDefinition, parentPath, null);
+	private Collection<? extends Item> parsePrismContainerItems(List<Element> childElements, PrismContainerDefinition containerDefinition) throws SchemaException {
+		return parsePrismContainerItems(childElements, containerDefinition, null);
 	}
 	
     /**
@@ -117,7 +121,7 @@ class PrismDomProcessor {
      * TODO: maybe we need to check them
      */
     protected Collection<? extends Item> parsePrismContainerItems(List<Element> elements, PrismContainerDefinition containerDefinition, 
-    		PropertyPath parentPath, Collection<? extends ItemDefinition> selection) throws SchemaException {
+    		Collection<? extends ItemDefinition> selection) throws SchemaException {
 
         // TODO: more robustness in handling schema violations (min/max constraints, etc.)
 
@@ -170,7 +174,7 @@ class PrismDomProcessor {
                 throw new SchemaException("Item " + elementQName + " has no definition", elementQName);
             }
             
-            Item item = parseItem(valueElements, def, parentPath);
+            Item item = parseItem(valueElements, def);
             props.add(item);
         }
         return props;
@@ -228,18 +232,12 @@ class PrismDomProcessor {
 		return propDef;
 	}
     
-    public PrismProperty parsePrismProperty(List<Element> valueElements, PrismPropertyDefinition propertyDefinition, PropertyPath parentPath) throws SchemaException {
+    public PrismProperty parsePrismProperty(List<Element> valueElements, PrismPropertyDefinition propertyDefinition) throws SchemaException {
         if (valueElements == null || valueElements.isEmpty()) {
             return null;
         }
         QName propName = DOMUtil.getQName(valueElements.get(0));
-        PrismProperty prop = null;
-        if (valueElements.size() == 1) {
-            prop = propertyDefinition.instantiate(propName, parentPath);
-        } else {
-            // In-place modification not supported for multi-valued properties
-            prop = propertyDefinition.instantiate(propName, null);
-        }
+        PrismProperty prop = propertyDefinition.instantiate(propName);
 
         if (!propertyDefinition.isMultiValue() && valueElements.size() > 1) {
             throw new SchemaException("Attempt to store multiple values in single-valued property " + propName);
@@ -247,7 +245,7 @@ class PrismDomProcessor {
 
         for (Object element : valueElements) {
             Object value = XmlTypeConverter.toJavaValue(element, propertyDefinition.getTypeName());
-            prop.getValues().add(new PropertyValue(value));
+            prop.getValues().add(new PrismPropertyValue(value));
         }
         return prop;
     }
@@ -256,11 +254,11 @@ class PrismDomProcessor {
      * This gets definition of an unspecified type. It has to find the right method to call.
      * Value elements have the same element name. They may be elements of a property or a container. 
      */
-	private Item parseItem(List<Element> valueElements, ItemDefinition def, PropertyPath parentPath) throws SchemaException {
+	private Item parseItem(List<Element> valueElements, ItemDefinition def) throws SchemaException {
 		if (def instanceof PrismContainerDefinition) {
-			return parsePrismContainer(valueElements, (PrismContainerDefinition)def, parentPath);
+			return parsePrismContainer(valueElements, (PrismContainerDefinition)def);
 		} if (def instanceof PrismPropertyDefinition) {
-			return parsePrismProperty(valueElements, (PrismPropertyDefinition)def, parentPath);
+			return parsePrismProperty(valueElements, (PrismPropertyDefinition)def);
 		} else {
 			throw new IllegalArgumentException("Attempt to parse unknown definition type "+def.getClass().getName());
 		}

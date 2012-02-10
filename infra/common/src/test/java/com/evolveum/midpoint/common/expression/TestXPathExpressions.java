@@ -21,7 +21,7 @@
 package com.evolveum.midpoint.common.expression;
 
 import com.evolveum.midpoint.common.expression.xpath.XPathExpressionEvaluator;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -73,7 +73,7 @@ public class TestXPathExpressions {
 
         // WHEN
         Expression expression = factory.createExpression(expressionType, "simple thing");
-        PropertyValue<String> result = expression.evaluateScalar(String.class, opResult);
+        PrismPropertyValue<String> result = expression.evaluateScalar(String.class, opResult);
 
         // THEN
         assertEquals("foobar", result.getValue());
@@ -90,7 +90,7 @@ public class TestXPathExpressions {
 
         // WHEN
         Expression expression = factory.createExpression(expressionType, "string variable thing");
-        PropertyValue<String> result = expression.evaluateScalar(String.class, opResult);
+        PrismPropertyValue<String> result = expression.evaluateScalar(String.class, opResult);
 
         // THEN
         assertEquals("FOOBAR", result.getValue());
@@ -108,7 +108,7 @@ public class TestXPathExpressions {
 
         // WHEN
         Expression expression = factory.createExpression(expressionType, "objectref variable thing");
-        PropertyValue<String> result = expression.evaluateScalar(String.class, opResult);
+        PrismPropertyValue<String> result = expression.evaluateScalar(String.class, opResult);
 
         // THEN
         assertEquals("Captain Jack Sparrow", result.getValue());
@@ -132,7 +132,7 @@ public class TestXPathExpressions {
         ref.setType(SchemaConstants.I_USER_TYPE);
         expression.addVariableDefinition(SchemaConstants.I_USER, ref);
 
-        PropertyValue<String> result = expression.evaluateScalar(String.class, opResult);
+        PrismPropertyValue<String> result = expression.evaluateScalar(String.class, opResult);
 
         // THEN
         assertEquals("Jack", result.getValue());
@@ -155,7 +155,7 @@ public class TestXPathExpressions {
         ref.setType(SchemaConstants.I_USER_TYPE);
         expression.setRootNode(ref);
 
-        PropertyValue<String> result = expression.evaluateScalar(String.class, opResult);
+        PrismPropertyValue<String> result = expression.evaluateScalar(String.class, opResult);
 
         // THEN
         assertEquals("Black Pearl", result.getValue());
@@ -172,7 +172,7 @@ public class TestXPathExpressions {
 
         // WHEN
         Expression expression = factory.createExpression(expressionType, "list thing");
-        List<PropertyValue<String>> results = expression.evaluateList(String.class, opResult);
+        List<PrismPropertyValue<String>> results = expression.evaluateList(String.class, opResult);
 
         // THEN
         List<String> expected = new ArrayList<String>();

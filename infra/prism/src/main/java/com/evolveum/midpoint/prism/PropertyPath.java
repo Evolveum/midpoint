@@ -35,72 +35,117 @@ public class PropertyPath {
 	
 	public static final PropertyPath EMPTY_PATH = new PropertyPath();
 	
-	private List<QName> qnames;
+	private List<PropertyPathSegment> segments;
 
 	public PropertyPath() {
-		qnames = new ArrayList<QName>(0);
+		segments = new ArrayList<PropertyPathSegment>(0);
 	}
 	
-	public PropertyPath(List<QName> qnames) {
-		this.qnames = new ArrayList<QName>(qnames.size());
-		this.qnames.addAll(qnames);
-	}
+//	public PropertyPath(List<QName> qnames) {
+//		this.segments = new ArrayList<PropertyPathSegment>(qnames.size());
+//		addAll(qnames);
+//	}
+			
+//	public PropertyPath(List<QName> qnames, QName subName) {
+//		this.segments = new ArrayList<PropertyPathSegment>(qnames.size()+1);
+//		addAll(qnames);
+//		add(subName);
+//	}
 	
-	public PropertyPath(List<QName> qnames, QName subName) {
-		this.qnames = new ArrayList<QName>(qnames.size()+1);
-		this.qnames.addAll(qnames);
-		this.qnames.add(subName);
-	}
-	
-	public PropertyPath(QName... segments) {
-		this.qnames = new ArrayList<QName>(segments.length);
-		for (QName segment : segments) {
-			this.qnames.add(segment);
+	public PropertyPath(QName... qnames) {
+		this.segments = new ArrayList<PropertyPathSegment>(qnames.length);
+		for (QName qname : qnames) {
+			add(qname);
 		}
 	}
 	
 	public PropertyPath(PropertyPath parentPath, QName subName) {
-		this.qnames = new ArrayList<QName>(parentPath.qnames.size()+1);
-		qnames.addAll(parentPath.qnames);
-		qnames.add(subName);
+		this.segments = new ArrayList<PropertyPathSegment>(parentPath.segments.size()+1);
+		segments.addAll(parentPath.segments);
+		add(subName);
+	}
+
+	
+	public PropertyPath(List<PropertyPathSegment> segments) {
+		this.segments = new ArrayList<PropertyPathSegment>(segments.size());
+		this.segments.addAll(segments);
+	}
+			
+	public PropertyPath(List<PropertyPathSegment> segments, PropertyPathSegment subSegment) {
+		this.segments = new ArrayList<PropertyPathSegment>(segments.size()+1);
+		this.segments.addAll(segments);
+		this.segments.add(subSegment);
+	}
+	
+	public PropertyPath(List<PropertyPathSegment> segments, QName subName) {
+		this.segments = new ArrayList<PropertyPathSegment>(segments.size()+1);
+		this.segments.addAll(segments);
+		add(subName);
+	}
+	
+	public PropertyPath(PropertyPathSegment... segments) {
+		this.segments = new ArrayList<PropertyPathSegment>(segments.length);
+		for (PropertyPathSegment seg : segments) {
+			this.segments.add(seg);
+		}
+	}
+	
+	public PropertyPath(PropertyPath parentPath, PropertyPathSegment subSegment) {
+		this.segments = new ArrayList<PropertyPathSegment>(parentPath.segments.size()+1);
+		this.segments.addAll(parentPath.segments);
+		this.segments.add(subSegment);
 	}
 
 	public PropertyPath subPath(QName subName) {
-		return new PropertyPath(qnames,subName);
+		return new PropertyPath(segments, subName);
 	}
 	
-	public List<QName> getSegments() {
-		return qnames;
+	public PropertyPath subPath(PropertyPathSegment subSegment) {
+		return new PropertyPath(segments, subSegment);
 	}
 	
-	public QName first() {
-		return qnames.get(0);
+//	private void addAll(List<QName> qnames) {
+//		for (QName qname: qnames) {
+//			add(qname);
+//		}
+//	}
+	
+	private void add(QName qname) {
+		this.segments.add(new PropertyPathSegment(qname));
+	}
+		
+	public List<PropertyPathSegment> getSegments() {
+		return segments;
+	}
+	
+	public PropertyPathSegment first() {
+		return segments.get(0);
 	}
 
 	public PropertyPath rest() {
-		return new PropertyPath(qnames.subList(1, qnames.size()));
+		return new PropertyPath(segments.subList(1, segments.size()));
 	}
 	
-	public QName last() {
-		return qnames.get(qnames.size()-1);
+	public PropertyPathSegment last() {
+		return segments.get(segments.size()-1);
 	}
 
 	public PropertyPath allExceptLast() {
-		return new PropertyPath(qnames.subList(0, qnames.size()-1));
+		return new PropertyPath(segments.subList(0, segments.size()-1));
 	}
 	
 	public int size() {
-		return qnames.size();
+		return segments.size();
 	}
 
 	public boolean isEmpty() {
-		return qnames.isEmpty();
+		return segments.isEmpty();
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		Iterator<QName> iterator = qnames.iterator();
+		Iterator<PropertyPathSegment> iterator = segments.iterator();
 		while (iterator.hasNext()) {
 			sb.append(DebugUtil.prettyPrint(iterator.next()));
 			if (iterator.hasNext()) {
@@ -114,7 +159,7 @@ public class PropertyPath {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((qnames == null) ? 0 : qnames.hashCode());
+		result = prime * result + ((segments == null) ? 0 : segments.hashCode());
 		return result;
 	}
 
@@ -127,10 +172,10 @@ public class PropertyPath {
 		if (getClass() != obj.getClass())
 			return false;
 		PropertyPath other = (PropertyPath) obj;
-		if (qnames == null) {
-			if (other.qnames != null)
+		if (segments == null) {
+			if (other.segments != null)
 				return false;
-		} else if (!qnames.equals(other.qnames))
+		} else if (!segments.equals(other.segments))
 			return false;
 		return true;
 	}

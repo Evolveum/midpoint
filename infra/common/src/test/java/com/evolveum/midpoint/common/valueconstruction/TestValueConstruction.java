@@ -31,7 +31,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -151,7 +151,7 @@ public class TestValueConstruction {
         PrismPropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         PrismProperty givenName = givenNameDef.instantiate(null);
-        givenName.setValue(new PropertyValue("barbar"));
+        givenName.setValue(new PrismPropertyValue("barbar"));
 
         OperationResult opResult = new OperationResult("testConstructionAsIs");
 
@@ -442,11 +442,11 @@ public class TestValueConstruction {
 
 
 
-    private void assertPropertyValueList(Set expected, Set<PropertyValue<Object>> results) {
+    private void assertPropertyValueList(Set expected, Set<PrismPropertyValue<Object>> results) {
         assertEquals(expected.size(), results.size());
 
         Set<Object> values = new HashSet<Object>();
-        for (PropertyValue result : results) {
+        for (PrismPropertyValue result : results) {
             values.add(result.getValue());
         }
         assertEquals(expected, values);

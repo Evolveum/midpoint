@@ -21,7 +21,7 @@
 package com.evolveum.midpoint.model.filter;
 
 import com.evolveum.midpoint.model.controller.Filter;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
@@ -48,14 +48,14 @@ public class DiacriticsFilterTest {
 
     @Test
     public void testEmptyValue() {
-        PropertyValue<String> value = new PropertyValue<String>("");
+        PrismPropertyValue<String> value = new PrismPropertyValue<String>("");
         value = filter.apply(value);
         AssertJUnit.assertEquals("", value.getValue());
     }
 
     @Test
     public void testValueTextNode() {
-        PropertyValue<String> value = new PropertyValue<String>(input);
+        PrismPropertyValue<String> value = new PrismPropertyValue<String>(input);
         value = filter.apply(value);
         AssertJUnit.assertEquals(expected, value.getValue());
     }

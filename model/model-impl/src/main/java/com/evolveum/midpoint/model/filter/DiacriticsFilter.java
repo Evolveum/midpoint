@@ -20,7 +20,7 @@
  */
 package com.evolveum.midpoint.model.filter;
 
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
@@ -37,7 +37,7 @@ public class DiacriticsFilter extends AbstractFilter {
     private static final Trace LOGGER = TraceManager.getTrace(DiacriticsFilter.class);
 
     @Override
-    public <T extends Object> PropertyValue<T> apply(PropertyValue<T> propertyValue) {
+    public <T extends Object> PrismPropertyValue<T> apply(PrismPropertyValue<T> propertyValue) {
         Validate.notNull(propertyValue, "Node must not be null.");
 
         String text = getStringValue(propertyValue);

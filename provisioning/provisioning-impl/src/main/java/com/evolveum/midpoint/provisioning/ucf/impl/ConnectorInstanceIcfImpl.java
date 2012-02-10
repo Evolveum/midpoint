@@ -25,7 +25,7 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.Schema;
 import com.evolveum.midpoint.prism.XmlTypeConverter;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -1042,7 +1042,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			AttributeModificationOperation uidMod = new AttributeModificationOperation();
 			uidMod.setChangeType(PropertyModificationTypeType.replace);
 			ResourceObjectAttribute uidAttr = getUidDefinition(identifiers).instantiate(null);
-			uidAttr.setValue(new PropertyValue(uid.getUidValue()));
+			uidAttr.setValue(new PrismPropertyValue(uid.getUidValue()));
 			sideEffectChanges.add(uidMod);
 		}
 		return sideEffectChanges;
@@ -1435,7 +1435,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	private ResourceObjectAttribute setUidAttribute(Uid uid) {
 		ResourceObjectAttribute uidRoa = new ResourceObjectAttribute(ConnectorFactoryIcfImpl.ICFS_UID, null, null, null);
-		uidRoa.setValue(new PropertyValue(uid.getUidValue()));
+		uidRoa.setValue(new PrismPropertyValue(uid.getUidValue()));
 		return uidRoa;
 	}
 
@@ -1514,7 +1514,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					// of them may need it (e.g. GuardedString)
 					for (Object icfValue : icfAttr.getValue()) {
 						Object value = convertValueFromIcf(icfValue, qname);
-						roa.getValues().add(new PropertyValue<Object>(value));
+						roa.getValues().add(new PrismPropertyValue<Object>(value));
 					}
 				}
 
@@ -1529,7 +1529,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					// of them may need it (e.g. GuardedString)
 					for (Object icfValue : icfAttr.getValue()) {
 						Object value = convertValueFromIcf(icfValue, qname);
-						roa.getValues().add(new PropertyValue<Object>(value));
+						roa.getValues().add(new PrismPropertyValue<Object>(value));
 
 					}
 
@@ -1576,7 +1576,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			String attrName = convertAttributeNameToIcf(attribute.getName(), parentResult);
 
 			Set<Object> convertedAttributeValues = new HashSet<Object>();
-			for (PropertyValue<Object> value : attribute.getValues()) {
+			for (PrismPropertyValue<Object> value : attribute.getValues()) {
 				convertedAttributeValues.add(convertValueToIcf(value, attribute.getName()));
 			}
 
@@ -1592,8 +1592,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			return null;
 		}
 
-		if (value instanceof PropertyValue) {
-			return convertValueToIcf(((PropertyValue) value).getValue(), propName);
+		if (value instanceof PrismPropertyValue) {
+			return convertValueToIcf(((PrismPropertyValue) value).getValue(), propName);
 		}
 
 		if (value instanceof ProtectedStringType) {
@@ -1716,8 +1716,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private PrismProperty createTokenProperty(Object object) {
 		QName type = XmlTypeConverter.toXsdType(object.getClass());
 
-		Set<PropertyValue<Object>> syncTokenValues = new HashSet<PropertyValue<Object>>();
-		syncTokenValues.add(new PropertyValue<Object>(object));
+		Set<PrismPropertyValue<Object>> syncTokenValues = new HashSet<PrismPropertyValue<Object>>();
+		syncTokenValues.add(new PrismPropertyValue<Object>(object));
 		PrismPropertyDefinition propDef = new PrismPropertyDefinition(SchemaConstants.SYNC_TOKEN, type);
 
 		PrismProperty property = new PrismProperty(SchemaConstants.SYNC_TOKEN, propDef, null, null);

@@ -21,7 +21,9 @@
 
 package com.evolveum.midpoint.prism;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -56,8 +58,8 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 	protected String oid;
 	protected String version;
 		
-	public PrismObject(QName name, PrismObjectDefinition definition, PrismContext prismContext, PropertyPath parentPath) {
-		super(name, definition, prismContext, parentPath);
+	public PrismObject(QName name, PrismObjectDefinition definition, PrismContext prismContext) {
+		super(name, definition, prismContext);
 	}
 
 	/**
@@ -88,12 +90,6 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 		return (PrismObjectDefinition<T>) super.getDefinition();
 	}
 	
-	@Override
-	public PropertyPath getPath() {
-		// Path and parent path are the same for objects (both are empty).
-		return getParentPath();
-	}
-
 	public Class<T> getJaxbClass() {
 		return ((PrismObjectDefinition)getDefinition()).getJaxbClass();
 	}
@@ -104,12 +100,30 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 	}
 	
 	public PrismContainer getExtension() {
-		return findPropertyContainer(new QName(getName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME));
+		return getValue().findItem(new QName(getName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME), PrismContainer.class);
 	}
 	
 	@Override
+	public <T extends Item> T findItem(PropertyPath path, Class<T> type) {
+		// Objects are only a single-valued containers. The path of the object itself is "empty".
+		// Fix this special behavior here.
+		PropertyPathSegment first = path.first();
+		Item subitem = getValue().findItem(first.getName(), Item.class);
+		if (subitem == null) {
+			return null;
+		}
+		if (subitem instanceof PrismContainer) {
+			return ((PrismContainer)subitem).findItem(path, type);
+		} else if (type.isAssignableFrom(subitem.getClass())){
+			return (T) subitem;
+		} else {
+			return null;
+		}
+	}
+
+	@Override
 	public PrismObject<T> clone() {
-		PrismObject<T> clone = new PrismObject<T>(getName(), getDefinition(), prismContext, getParentPath());
+		PrismObject<T> clone = new PrismObject<T>(getName(), getDefinition(), prismContext);
 		copyValues(clone);
 		return clone;
 	}
@@ -155,6 +169,12 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 		return objectDelta;
 	}
 	
+	private Collection<PropertyPath> listPropertyPaths() {
+		List<PropertyPath> list = new ArrayList<PropertyPath>();
+		addPropertyPathsToList(new PropertyPath(), list);
+		return list;
+	}
+
 	/**
 	 * Note: hashcode and equals compare the objects in the "java way". That means the objects must be
 	 * almost preciselly equal to match (e.g. including source demarcation in values and other "annotations").
@@ -215,7 +235,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 	 */
 	@Override
 	protected String getDebugDumpClassName() {
-		return "MidPoint object";
+		return "PO";
 	}
 	
 	@Override
@@ -223,10 +243,10 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 		return ", "+getOid();
 	}
 
-	public Node serializeToDom() throws SchemaException {
-		Node doc = DOMUtil.getDocument();
-		serializeToDom(doc);
-		return doc;
-	}
+//	public Node serializeToDom() throws SchemaException {
+//		Node doc = DOMUtil.getDocument();
+//		serializeToDom(doc);
+//		return doc;
+//	}
 	
 }

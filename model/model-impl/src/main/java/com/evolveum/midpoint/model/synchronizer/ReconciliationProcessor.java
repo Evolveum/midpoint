@@ -30,7 +30,7 @@ import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.SchemaRegistry;
 import com.evolveum.midpoint.prism.SourceType;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -132,25 +132,25 @@ public class ReconciliationProcessor {
         	RefinedAttributeDefinition attributeDefinition = accountDefinition.getAttributeDefinition(attrName);
         	
         	DeltaSetTriple<ValueConstruction> triple = tripleMap.get(attrName);
-        	Collection<PropertyValue<ValueConstruction>> shouldBePValues = null;
+        	Collection<PrismPropertyValue<ValueConstruction>> shouldBePValues = null;
         	if (triple == null) {
-        		shouldBePValues = new HashSet<PropertyValue<ValueConstruction>>();
+        		shouldBePValues = new HashSet<PrismPropertyValue<ValueConstruction>>();
         	} else {
         		shouldBePValues = triple.getNonNegativeValues();
         	}
         	
         	PrismProperty attribute = attributesContainer.findProperty(attrName);
-        	Set<PropertyValue<Object>> arePValues = null;
+        	Set<PrismPropertyValue<Object>> arePValues = null;
         	if (attribute != null) {
         		arePValues = attribute.getValues(Object.class);
         	} else {
-        		arePValues = new HashSet<PropertyValue<Object>>();
+        		arePValues = new HashSet<PrismPropertyValue<Object>>();
         	}
         	
         	// Too loud :-)
         	//LOGGER.trace("SHOULD BE:\n{}\nIS:\n{}",shouldBePValues,arePValues);
         	
-        	for (PropertyValue<ValueConstruction> shouldBePValue: shouldBePValues) {
+        	for (PrismPropertyValue<ValueConstruction> shouldBePValue: shouldBePValues) {
         		ValueConstruction shouldBeVc = shouldBePValue.getValue();
         		if (shouldBeVc == null) {
         			continue;
@@ -160,7 +160,7 @@ public class ReconciliationProcessor {
         			continue;
         		}
         		PrismProperty shoudlBeProperty = shouldBeVc.getOutput();
-        		for (PropertyValue<Object> shouldBePPValue: shoudlBeProperty.getValues()) {
+        		for (PrismPropertyValue<Object> shouldBePPValue: shoudlBeProperty.getValues()) {
         			Object shouldBeValue = shouldBePPValue.getValue();
         			// Make sure this value is in the values
         			if (!isInValues(shouldBeValue, arePValues)) {
@@ -170,7 +170,7 @@ public class ReconciliationProcessor {
         	}
         	
         	if (!attributeDefinition.isTolerant()) {
-        		for (PropertyValue<Object> isPValue: arePValues) {
+        		for (PrismPropertyValue<Object> isPValue: arePValues) {
         			if (!isInValues(isPValue.getValue(), shouldBePValues)) {
         				recordDelta(accCtx, attrName, ChangeType.DELETE, isPValue.getValue());
         			}
@@ -183,7 +183,7 @@ public class ReconciliationProcessor {
 		LOGGER.trace("Reconciliation will {} value of attribute {}: {}", new Object[]{changeType, attrName, value});
 		
 		PropertyDelta attrDelta = new PropertyDelta(SchemaConstants.PATH_ATTRIBUTES, attrName);
-		PropertyValue<Object> pValue = new PropertyValue<Object>(value, SourceType.RECONCILIATION, null);
+		PrismPropertyValue<Object> pValue = new PrismPropertyValue<Object>(value, SourceType.RECONCILIATION, null);
 		if (changeType == ChangeType.ADD) {
 			attrDelta.addValueToAdd(pValue);
 		} else if (changeType == ChangeType.DELETE) {
@@ -195,11 +195,11 @@ public class ReconciliationProcessor {
 		accCtx.addToSecondaryDelta(attrDelta);
 	}
 
-	private boolean isInValues(Object shouldBeValue, Set<PropertyValue<Object>> arePValues) {
+	private boolean isInValues(Object shouldBeValue, Set<PrismPropertyValue<Object>> arePValues) {
 		if (arePValues == null || arePValues.isEmpty()) {
 			return false;
 		}
-		for (PropertyValue<Object> isPValue: arePValues) {
+		for (PrismPropertyValue<Object> isPValue: arePValues) {
 			if (isPValue.getValue().equals(shouldBeValue)) {
 				return true;
 			}
@@ -207,11 +207,11 @@ public class ReconciliationProcessor {
 		return false;
 	}
 	
-	private boolean isInValues(Object value, Collection<PropertyValue<ValueConstruction>> shouldBePValues) {
-		for (PropertyValue<ValueConstruction> shouldBePValue: shouldBePValues) {
+	private boolean isInValues(Object value, Collection<PrismPropertyValue<ValueConstruction>> shouldBePValues) {
+		for (PrismPropertyValue<ValueConstruction> shouldBePValue: shouldBePValues) {
     		ValueConstruction shouldBeVc = shouldBePValue.getValue();
     		PrismProperty shoudlBeProperty = shouldBeVc.getOutput();
-    		for (PropertyValue<Object> shouldBePPValue: shoudlBeProperty.getValues()) {
+    		for (PrismPropertyValue<Object> shouldBePPValue: shoudlBeProperty.getValues()) {
     			Object shouldBeValue = shouldBePPValue.getValue();
     			if (shouldBeValue.equals(value)) {
     				return true;

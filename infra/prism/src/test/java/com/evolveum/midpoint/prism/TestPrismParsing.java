@@ -102,8 +102,13 @@ public class TestPrismParsing {
 		PrismContainer extension = user.getExtension();
 		assertPropertyValue(extension, new QName(NS_BAR, "bar"), "BAR");
 		assertPropertyValue(extension, new QName(NS_BAR, "num"), 42);
-		Set<PropertyValue<Object>> multiPVals = extension.findProperty(new QName(NS_BAR, "multi")).getValues();
+		Set<PrismPropertyValue<Object>> multiPVals = extension.findProperty(new QName(NS_BAR, "multi")).getValues();
 		assertEquals("Multi",3,multiPVals.size());
+		
+		PropertyPath barPath = new PropertyPath(new QName(NS_FOO,"extension"), new QName(NS_BAR,"bar"));
+		PrismProperty barProperty = user.findProperty(barPath);
+		assertNotNull("Property "+barPath+" not found", barProperty);
+		assertPropertyValue(barProperty, "BAR");
 	}
 	
 	private void assertPropertyValue(PrismContainer container, String propName, Object propValue) {
@@ -112,13 +117,18 @@ public class TestPrismParsing {
 	}
 		
 	private void assertPropertyValue(PrismContainer container, QName propQName, Object propValue) {
-		PrismProperty property = container.findProperty(propQName);
+		PrismProperty property = container.getValue().findProperty(propQName);
 		assertNotNull("Property "+propQName+" not found in "+container, property);
-		Set<PropertyValue<Object>> pvals = property.getValues();
-		assertFalse("Empty property "+propQName+" in "+container, pvals == null || pvals.isEmpty());
-		assertEquals("Numver of values of property "+propQName+" in "+container, 1, pvals.size());
-		PropertyValue<Object> pval = pvals.iterator().next();
-		assertEquals("Values of property "+propQName+" in "+container, propValue, pval.getValue());
+		assertPropertyValue(property, propValue);
+	}
+	
+	private void assertPropertyValue(PrismProperty property, Object propValue) {
+		Set<PrismPropertyValue<Object>> pvals = property.getValues();
+		QName propQName = property.getName();
+		assertFalse("Empty property "+propQName, pvals == null || pvals.isEmpty());
+		assertEquals("Numver of values of property "+propQName, 1, pvals.size());
+		PrismPropertyValue<Object> pval = pvals.iterator().next();
+		assertEquals("Values of property "+propQName, propValue, pval.getValue());
 	}
 
 //	@Test

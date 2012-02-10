@@ -24,7 +24,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.TypedValue;
 import com.evolveum.midpoint.prism.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -69,7 +69,7 @@ public class ExtensionProcessor {
             QName xsdType = tval.getXsdType();
 
             PrismProperty property = container.createProperty(propName, value.getClass());
-            property.setValue(new PropertyValue(value));
+            property.setValue(new PrismPropertyValue(value));
 
             // create appropriate definition for the property - not to lose type information in serializations
             PrismPropertyDefinition def = new PrismPropertyDefinition(propName, xsdType);

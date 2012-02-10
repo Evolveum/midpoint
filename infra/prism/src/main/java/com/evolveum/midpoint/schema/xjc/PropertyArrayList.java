@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.schema.xjc;
 
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 
 import org.apache.commons.lang.Validate;
 
@@ -69,7 +69,7 @@ public class PropertyArrayList<T> extends AbstractList<T> {
         }
 
         for (T object : ts) {
-            property.addValue(new PropertyValue<Object>(object, null, null));
+            property.addValue(new PrismPropertyValue<Object>(object, null, null));
         }
 
         return true;
@@ -93,14 +93,14 @@ public class PropertyArrayList<T> extends AbstractList<T> {
         add(t);
     }
 
-    private PropertyValue<Object> getPropertyValue(int index) {
+    private PrismPropertyValue<Object> getPropertyValue(int index) {
         if (index < 0 || index >= size()) {
             throw new IndexOutOfBoundsException("Can't get object on position '"
                     + index + "', list size is '" + size() + "'.");
         }
 
         //at least we try to get object on index defined by parameter
-        Iterator<PropertyValue<Object>> iterator = property.getValues().iterator();
+        Iterator<PrismPropertyValue<Object>> iterator = property.getValues().iterator();
         for (int i = 0; i < index; i++) {
             iterator.next();
         }
@@ -110,7 +110,7 @@ public class PropertyArrayList<T> extends AbstractList<T> {
 
     @Override
     public T remove(int i) {
-        PropertyValue<Object> value = getPropertyValue(i);
+        PrismPropertyValue<Object> value = getPropertyValue(i);
         property.deleteValue(value);
 
         return (T) value.getValue();

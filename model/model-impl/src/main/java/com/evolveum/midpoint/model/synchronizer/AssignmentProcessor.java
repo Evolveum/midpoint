@@ -28,7 +28,7 @@ import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.SchemaRegistry;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -94,7 +94,7 @@ public class AssignmentProcessor {
             }
         }
 
-        Collection<PropertyValue<AssignmentType>> assignmentsOld = new HashSet<PropertyValue<AssignmentType>>();
+        Collection<PrismPropertyValue<AssignmentType>> assignmentsOld = new HashSet<PrismPropertyValue<AssignmentType>>();
         if (context.getUserOld() != null) {
             PrismProperty assignmentProperty = context.getUserOld().findProperty(UserType.F_ASSIGNMENT);
             if (assignmentProperty != null) {
@@ -104,7 +104,7 @@ public class AssignmentProcessor {
         	// TODO: legacy code, should be removed after complete switch to our objects
             List<AssignmentType> assignments = context.getUserTypeOld().getAssignment();
             for (AssignmentType assignment : assignments) {
-                assignmentsOld.add(new PropertyValue<AssignmentType>(assignment));
+                assignmentsOld.add(new PrismPropertyValue<AssignmentType>(assignment));
             }
         }
 
@@ -113,7 +113,7 @@ public class AssignmentProcessor {
         LOGGER.trace("Assignment delta {}", assignmentDelta.dump());
 
         // TODO: preprocess assignment delta. If it is replace, then we need to convert it to: delete all existing assignments, add all new assignments
-        Collection<PropertyValue<AssignmentType>> changedAssignments = assignmentDelta.getValues(AssignmentType.class);
+        Collection<PrismPropertyValue<AssignmentType>> changedAssignments = assignmentDelta.getValues(AssignmentType.class);
 
         AssignmentEvaluator assignmentEvaluator = new AssignmentEvaluator();
         assignmentEvaluator.setRepository(repositoryService);
@@ -122,9 +122,9 @@ public class AssignmentProcessor {
         assignmentEvaluator.setSchemaRegistry(schemaRegistry);
         assignmentEvaluator.setValueConstructionFactory(valueConstructionFactory);
 
-        Map<ResourceAccountType, Collection<PropertyValue<AccountConstruction>>> zeroAccountMap = new HashMap<ResourceAccountType, Collection<PropertyValue<AccountConstruction>>>();
-        Map<ResourceAccountType, Collection<PropertyValue<AccountConstruction>>> plusAccountMap = new HashMap<ResourceAccountType, Collection<PropertyValue<AccountConstruction>>>();
-        Map<ResourceAccountType, Collection<PropertyValue<AccountConstruction>>> minusAccountMap = new HashMap<ResourceAccountType, Collection<PropertyValue<AccountConstruction>>>();
+        Map<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>> zeroAccountMap = new HashMap<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>>();
+        Map<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>> plusAccountMap = new HashMap<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>>();
+        Map<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>> minusAccountMap = new HashMap<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>>();
 
         LOGGER.trace("Old assignments {}", SchemaDebugUtil.prettyPrint(assignmentsOld));
         LOGGER.trace("Changed assignments {}", SchemaDebugUtil.prettyPrint(changedAssignments));
@@ -135,8 +135,8 @@ public class AssignmentProcessor {
         }
 
         Collection<AssignmentType> newAssignments = new HashSet<AssignmentType>();
-        Collection<PropertyValue<AssignmentType>> allAssignments = MiscUtil.union(assignmentsOld, changedAssignments);
-        for (PropertyValue<AssignmentType> propertyValue : allAssignments) {
+        Collection<PrismPropertyValue<AssignmentType>> allAssignments = MiscUtil.union(assignmentsOld, changedAssignments);
+        for (PrismPropertyValue<AssignmentType> propertyValue : allAssignments) {
             AssignmentType assignmentType = propertyValue.getValue();
 
             LOGGER.trace("Processing assignment {}", SchemaDebugUtil.prettyPrint(assignmentType));
@@ -230,29 +230,29 @@ public class AssignmentProcessor {
     }
 
     private void collectToAccountMap(
-            Map<ResourceAccountType, Collection<PropertyValue<AccountConstruction>>> accountMap,
+            Map<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>> accountMap,
             Assignment evaluatedAssignment, OperationResult result) throws ObjectNotFoundException, SchemaException {
         for (AccountConstruction accountConstruction : evaluatedAssignment.getAccountConstructions()) {
             String resourceOid = accountConstruction.getResource(result).getOid();
             String accountType = accountConstruction.getAccountType();
             ResourceAccountType rat = new ResourceAccountType(resourceOid, accountType);
-            Collection<PropertyValue<AccountConstruction>> constructions = null;
+            Collection<PrismPropertyValue<AccountConstruction>> constructions = null;
             if (accountMap.containsKey(rat)) {
                 constructions = accountMap.get(rat);
             } else {
-                constructions = new HashSet<PropertyValue<AccountConstruction>>();
+                constructions = new HashSet<PrismPropertyValue<AccountConstruction>>();
                 accountMap.put(rat, constructions);
             }
-            constructions.add(new PropertyValue<AccountConstruction>(accountConstruction));
+            constructions.add(new PrismPropertyValue<AccountConstruction>(accountConstruction));
         }
     }
 
-    private String dumpAccountMap(Map<ResourceAccountType, Collection<PropertyValue<AccountConstruction>>> accountMap) {
+    private String dumpAccountMap(Map<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>> accountMap) {
         StringBuilder sb = new StringBuilder();
-        Set<Entry<ResourceAccountType, Collection<PropertyValue<AccountConstruction>>>> entrySet = accountMap.entrySet();
-        Iterator<Entry<ResourceAccountType, Collection<PropertyValue<AccountConstruction>>>> i = entrySet.iterator();
+        Set<Entry<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>>> entrySet = accountMap.entrySet();
+        Iterator<Entry<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>>> i = entrySet.iterator();
         while (i.hasNext()) {
-            Entry<ResourceAccountType, Collection<PropertyValue<AccountConstruction>>> entry = i.next();
+            Entry<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>> entry = i.next();
             sb.append(entry.getKey()).append(": ");
             sb.append(SchemaDebugUtil.prettyPrint(entry.getValue()));
             if (i.hasNext()) {
@@ -307,7 +307,7 @@ public class AssignmentProcessor {
 
         Map<QName, DeltaSetTriple<ValueConstruction>> attrMap = new HashMap<QName, DeltaSetTriple<ValueConstruction>>();
 
-        for (PropertyValue<AccountConstruction> propertyValue : accountDeltaSetTriple.union()) {
+        for (PrismPropertyValue<AccountConstruction> propertyValue : accountDeltaSetTriple.union()) {
             AccountConstruction ac = propertyValue.getValue();
             for (ValueConstruction attrConstr : ac.getAttributeConstructions()) {
 
@@ -318,7 +318,7 @@ public class AssignmentProcessor {
                     valueTriple = new DeltaSetTriple<ValueConstruction>();
                     attrMap.put(attrName, valueTriple);
                 }
-                valueTriple.distributeAs(new PropertyValue<ValueConstruction>(attrConstr), accountDeltaSetTriple, propertyValue);
+                valueTriple.distributeAs(new PrismPropertyValue<ValueConstruction>(attrConstr), accountDeltaSetTriple, propertyValue);
 
             }
         }

@@ -22,7 +22,7 @@
 
 package com.evolveum.midpoint.model.filter;
 
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.Validate;
@@ -39,7 +39,7 @@ public class EmptyFilter extends AbstractFilter {
     private static final Trace LOGGER = TraceManager.getTrace(EmptyFilter.class);
 
     @Override
-    public <T extends Object> PropertyValue<T> apply(PropertyValue<T> value) {
+    public <T extends Object> PrismPropertyValue<T> apply(PrismPropertyValue<T> value) {
         Validate.notNull(value, "Node must not be null.");
 
         LOGGER.debug("EmptyFilter see {}", value.toString());

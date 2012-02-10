@@ -20,7 +20,7 @@
  */
 package com.evolveum.midpoint.common.expression;
 
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -126,12 +126,12 @@ public class Expression {
         variables.put(name, value);
     }
 
-    public <T> PropertyValue<T> evaluateScalar(Class<T> type, OperationResult result) throws
+    public <T> PrismPropertyValue<T> evaluateScalar(Class<T> type, OperationResult result) throws
             ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
         // Return type override
         if (returnType == ExpressionReturnTypeType.LIST) {
-            List<PropertyValue<T>> retList = evaluateList(type, result);
+            List<PrismPropertyValue<T>> retList = evaluateList(type, result);
             if (retList.isEmpty()) {
                 return null;
             }
@@ -147,7 +147,7 @@ public class Expression {
         // Normal evaluation
         try {
 
-            PropertyValue<T> ret = evaluator.evaluateScalar(type, code, variables, objectResolver, shortDesc, result);
+            PrismPropertyValue<T> ret = evaluator.evaluateScalar(type, code, variables, objectResolver, shortDesc, result);
 
             traceExpressionSuccess("scalar", type, ret);
             return ret;
@@ -166,13 +166,13 @@ public class Expression {
         }
     }
 
-    public <T> List<PropertyValue<T>> evaluateList(Class<T> type, OperationResult result) throws
+    public <T> List<PrismPropertyValue<T>> evaluateList(Class<T> type, OperationResult result) throws
             ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
         // Return type override
         if (returnType == ExpressionReturnTypeType.SCALAR) {
-            PropertyValue<T> ret = evaluateScalar(type, result);
-            List<PropertyValue<T>> retList = new ArrayList<PropertyValue<T>>(1);
+            PrismPropertyValue<T> ret = evaluateScalar(type, result);
+            List<PrismPropertyValue<T>> retList = new ArrayList<PrismPropertyValue<T>>(1);
             if (ret != null) {
                 retList.add(ret);
             }
@@ -182,7 +182,7 @@ public class Expression {
         // Normal evaluation
         try {
 
-            List<PropertyValue<T>> ret = evaluator.evaluateList(type, code, variables, objectResolver, shortDesc, result);
+            List<PrismPropertyValue<T>> ret = evaluator.evaluateList(type, code, variables, objectResolver, shortDesc, result);
 
             traceExpressionSuccess("list", type, ret);
             return ret;

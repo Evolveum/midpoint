@@ -32,33 +32,21 @@ import org.w3c.dom.Element;
 /**
  * @author lazyman
  */
-public class PropertyValue<T> implements Dumpable, DebugDumpable, Serializable {
+public class PrismPropertyValue<T> extends PrismValue implements Dumpable, DebugDumpable, Serializable {
 
     private T value;
-    private SourceType type;
-    private Objectable source;
 
-    public PropertyValue(T value) {
+    public PrismPropertyValue(T value) {
         this(value, null, null);
     }
 
-    public PropertyValue(T value, SourceType type, Objectable source) {
-        if (value instanceof PropertyValue) {
+    public PrismPropertyValue(T value, SourceType type, Objectable source) {
+    	super(type,source);
+        if (value instanceof PrismPropertyValue) {
             throw new IllegalArgumentException("Probably problem somewhere, encapsulating property " +
                     "value object to another property value.");
         }
-
         this.value = value;
-        this.type = type;
-        this.source = source;
-    }
-
-    public void setSource(Objectable source) {
-        this.source = source;
-    }
-
-    public void setType(SourceType type) {
-        this.type = type;
     }
 
     public void setValue(T value) {
@@ -67,14 +55,6 @@ public class PropertyValue<T> implements Dumpable, DebugDumpable, Serializable {
 
     public T getValue() {
         return value;
-    }
-
-    public SourceType getType() {
-        return type;
-    }
-
-    public Objectable getSource() {
-        return source;
     }
 
     public String toString() {
@@ -111,7 +91,7 @@ public class PropertyValue<T> implements Dumpable, DebugDumpable, Serializable {
         return hash;
     }
 
-    public boolean equalsRealValue(PropertyValue<T> pValueToCompare) {
+    public boolean equalsRealValue(PrismPropertyValue<T> pValueToCompare) {
         if (pValueToCompare == null) {
             return false;
         }
@@ -139,10 +119,10 @@ public class PropertyValue<T> implements Dumpable, DebugDumpable, Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof PropertyValue)) {
+        if (!(o instanceof PrismPropertyValue)) {
             return false;
         }
-        PropertyValue other = (PropertyValue) o;
+        PrismPropertyValue other = (PrismPropertyValue) o;
 
         return equals(getValue(), other.getValue())
                 && equals(getSource(), other.getSource())
@@ -175,7 +155,7 @@ public class PropertyValue<T> implements Dumpable, DebugDumpable, Serializable {
     }
 
     @Override
-    public PropertyValue<T> clone() {
-        return new PropertyValue(getValue(), getType(), getSource());
+    public PrismPropertyValue<T> clone() {
+        return new PrismPropertyValue(getValue(), getType(), getSource());
     }
 }

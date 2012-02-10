@@ -32,7 +32,7 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -94,7 +94,7 @@ public class GenerateValueConstructor implements ValueConstructor {
         }
         
 		PrismProperty output = outputDefinition.instantiate(propertyParentPath);
-		PropertyValue<Object> pValue = new PropertyValue<Object>(value);
+		PrismPropertyValue<Object> pValue = new PrismPropertyValue<Object>(value);
 		output.setValue(pValue);
 		
 		return output;

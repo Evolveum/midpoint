@@ -31,7 +31,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.Schema;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -143,13 +143,13 @@ public class SchemaProcessorBasicTest {
         assertEquals("Wrong path", new PropertyPath(FIRST_QNAME, loginDef.getName()), loginInst.getPath());
 
         // Set some value
-        loginInst.setValue(new PropertyValue("FOOBAR"));
+        loginInst.setValue(new PrismPropertyValue("FOOBAR"));
         accInst.getItems().add(loginInst);
 
         // Same thing with the prop2 property (type int)
         PrismPropertyDefinition groupDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "group"));
         PrismProperty groupInst = groupDef.instantiate(accInst.getPath());
-        groupInst.setValue(new PropertyValue(321));
+        groupInst.setValue(new PrismPropertyValue(321));
         accInst.getItems().add(groupInst);
 
 
@@ -195,7 +195,7 @@ public class SchemaProcessorBasicTest {
                 AssertJUnit.assertEquals("barbar", prop.getValue(String.class).getValue());
             }
             if (prop.getName().getLocalPart().equals("group")) {
-                PropertyValue<Integer> val = prop.getValue(Integer.class);
+                PrismPropertyValue<Integer> val = prop.getValue(Integer.class);
                 AssertJUnit.assertEquals(Integer.valueOf(123456), val.getValue());
             }
             if (prop.getName().getLocalPart().equals("ufo")) {

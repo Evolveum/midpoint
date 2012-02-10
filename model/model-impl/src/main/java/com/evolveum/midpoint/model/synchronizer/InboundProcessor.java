@@ -33,7 +33,7 @@ import com.evolveum.midpoint.model.controller.FilterManager;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.SchemaRegistry;
 import com.evolveum.midpoint.prism.SourceType;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -234,8 +234,8 @@ public class InboundProcessor {
         PropertyDelta delta = new PropertyDelta(targetUserAttribute);
         if (propertyDelta.getValuesToAdd() != null) {
             LOGGER.trace("Checking account sync property delta values to add");
-            for (PropertyValue<Object> value : propertyDelta.getValuesToAdd()) {
-                PropertyValue<Object> filteredValue = filterValue(value, filters);
+            for (PrismPropertyValue<Object> value : propertyDelta.getValuesToAdd()) {
+                PrismPropertyValue<Object> filteredValue = filterValue(value, filters);
 
                 if (property != null && property.hasRealValue(filteredValue)) {
                     continue;
@@ -243,7 +243,7 @@ public class InboundProcessor {
 
                 //if property is not multi value replace existing attribute
                 if (property != null && !property.getDefinition().isMultiValue() && !property.isEmpty()) {
-                    Collection<PropertyValue<Object>> replace = new ArrayList<PropertyValue<Object>>();
+                    Collection<PrismPropertyValue<Object>> replace = new ArrayList<PrismPropertyValue<Object>>();
                     replace.add(filteredValue);
                     delta.setValuesToReplace(replace);
                 } else {
@@ -253,8 +253,8 @@ public class InboundProcessor {
         }
         if (propertyDelta.getValuesToDelete() != null) {
             LOGGER.trace("Checking account sync property delta values to delete");
-            for (PropertyValue<Object> value : propertyDelta.getValuesToDelete()) {
-                PropertyValue<Object> filteredValue = filterValue(value, filters);
+            for (PrismPropertyValue<Object> value : propertyDelta.getValuesToDelete()) {
+                PrismPropertyValue<Object> filteredValue = filterValue(value, filters);
 
                 if (property == null || property.hasRealValue(filteredValue)) {
                     delta.addValueToDelete(filteredValue);
@@ -276,8 +276,8 @@ public class InboundProcessor {
         return path;
     }
 
-    private PropertyValue<Object> filterValue(PropertyValue<Object> propertyValue, List<ValueFilterType> filters) {
-        PropertyValue<Object> filteredValue = propertyValue.clone();
+    private PrismPropertyValue<Object> filterValue(PrismPropertyValue<Object> propertyValue, List<ValueFilterType> filters) {
+        PrismPropertyValue<Object> filteredValue = propertyValue.clone();
         filteredValue.setType(SourceType.INBOUND);
 
         if (filters == null || filters.isEmpty()) {

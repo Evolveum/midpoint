@@ -30,7 +30,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.Schema;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
@@ -455,13 +455,13 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
 //		accountSyncContext.setAccountOld(account);
     }
 
-    private Object getSingleValueFromDeltaSetTripleWithCheck(DeltaSetTriple<ValueConstruction> triple, Collection<PropertyValue<ValueConstruction>> set) {
+    private Object getSingleValueFromDeltaSetTripleWithCheck(DeltaSetTriple<ValueConstruction> triple, Collection<PrismPropertyValue<ValueConstruction>> set) {
     	Collection<Object> values = getMultiValueFromDeltaSetTripleWithCheck(triple,set);
     	assertEquals(1,values.size());
     	return values.iterator().next();
     }
     
-    private Collection<Object> getMultiValueFromDeltaSetTripleWithCheck(DeltaSetTriple<ValueConstruction> triple, Collection<PropertyValue<ValueConstruction>> set) {	
+    private Collection<Object> getMultiValueFromDeltaSetTripleWithCheck(DeltaSetTriple<ValueConstruction> triple, Collection<PrismPropertyValue<ValueConstruction>> set) {	
     	if (triple.getZeroSet() != set) {
     		assertTrue("Zero set not empty",triple.getZeroSet().isEmpty());
     	}
@@ -474,12 +474,12 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
     	return getMultiValueFromDeltaSetTriple(set);
     }
 
-    private Collection<Object> getMultiValueFromDeltaSetTriple(Collection<PropertyValue<ValueConstruction>> set) {	
+    private Collection<Object> getMultiValueFromDeltaSetTriple(Collection<PrismPropertyValue<ValueConstruction>> set) {	
     	Collection<Object> values = new HashSet<Object>();
-        for (PropertyValue<ValueConstruction> value: set) {
+        for (PrismPropertyValue<ValueConstruction> value: set) {
 	        ValueConstruction vc = value.getValue();
-	        Set<PropertyValue<Object>> propValues = vc.getOutput().getValues();
-	        for (PropertyValue<Object> pval: propValues) {
+	        Set<PrismPropertyValue<Object>> propValues = vc.getOutput().getValues();
+	        for (PrismPropertyValue<Object> pval: propValues) {
 	        	values.add(pval.getValue());
 	        }
         }

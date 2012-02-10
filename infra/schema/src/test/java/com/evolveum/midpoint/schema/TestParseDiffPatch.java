@@ -41,7 +41,7 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.Schema;
 import com.evolveum.midpoint.prism.SchemaRegistry;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -288,9 +288,9 @@ public class TestParseDiffPatch {
 		assertSet(propertyPath.last(), propertyDelta.getValuesToDelete(), expectedValues);
 	}
 
-	private void assertSet(QName propertyName, Collection<PropertyValue<Object>> valuesFromDelta, Object[] expectedValues) {
+	private void assertSet(QName propertyName, Collection<PrismPropertyValue<Object>> valuesFromDelta, Object[] expectedValues) {
 		assertEquals("Wrong number of values",expectedValues.length, valuesFromDelta.size());
-		for (PropertyValue<Object> valueToReplace: valuesFromDelta) {
+		for (PrismPropertyValue<Object> valueToReplace: valuesFromDelta) {
 			boolean found = false;
 			for (Object value: expectedValues) {
 				if (value.equals(valueToReplace.getValue())) {

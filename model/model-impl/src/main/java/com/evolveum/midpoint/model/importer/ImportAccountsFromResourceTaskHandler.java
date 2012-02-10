@@ -26,7 +26,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.sync.SynchronizeAccountResultHandler;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.SchemaRegistry;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -142,9 +142,9 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 
         // Set objectclass
         PrismProperty objectclassProperty = objectclassPropertyDefinition.instantiate(null);
-        objectclassProperty.setValue(new PropertyValue(objectclass));
+        objectclassProperty.setValue(new PrismPropertyValue(objectclass));
         PropertyModification modification = objectclassProperty.createModification(
-                ModificationType.REPLACE, new PropertyValue<Object>(objectclass));
+                ModificationType.REPLACE, new PrismPropertyValue<Object>(objectclass));
         List<PropertyModification> modifications = new ArrayList<PropertyModification>();
         modifications.add(modification);
         try {

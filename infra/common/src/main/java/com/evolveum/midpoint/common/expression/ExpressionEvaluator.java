@@ -20,7 +20,7 @@
  */
 package com.evolveum.midpoint.common.expression;
 
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -37,11 +37,11 @@ import java.util.Map;
  */
 public interface ExpressionEvaluator {
 
-    public <T> PropertyValue<T> evaluateScalar(Class<T> type, Element code, Map<QName, Object> variables, ObjectResolver objectResolver,
+    public <T> PrismPropertyValue<T> evaluateScalar(Class<T> type, Element code, Map<QName, Object> variables, ObjectResolver objectResolver,
                                                String contextDescription, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException;
 
-    public <T> List<PropertyValue<T>> evaluateList(Class<T> type, Element code, Map<QName, Object> variables, ObjectResolver objectResolver,
+    public <T> List<PrismPropertyValue<T>> evaluateList(Class<T> type, Element code, Map<QName, Object> variables, ObjectResolver objectResolver,
                                                    String contextDescription, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException;
 

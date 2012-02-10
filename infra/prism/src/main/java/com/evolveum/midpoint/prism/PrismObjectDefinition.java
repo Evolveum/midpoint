@@ -76,20 +76,9 @@ public class PrismObjectDefinition<T extends Objectable> extends PrismContainerD
 //		return object;
 	}
 	
-	public PrismObject<T> instantiate(QName name) {
-		PrismObject<T> midPointObject = new PrismObject<T>(name, this, prismContext, null);
-		return midPointObject;
-	}
-
-	/**
-	 * Just for "compatibility".
-	 */
 	@Override
-	public PrismObject<T> instantiate(QName name, PropertyPath parentPath) {
-		if (parentPath != null) {
-			throw new IllegalArgumentException("Objects cannot have parents");
-		}
-		PrismObject<T> midPointObject = new PrismObject<T>(name, this, null, parentPath);
+	public PrismObject<T> instantiate(QName name) {
+		PrismObject<T> midPointObject = new PrismObject<T>(name, this, prismContext);
 		return midPointObject;
 	}
 	

@@ -22,7 +22,7 @@ package com.evolveum.midpoint.model.importer;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.schema.PropertyModification;
@@ -114,7 +114,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
         // Set filename
         PrismProperty filenameProperty = filenamePropertyDefinition.instantiate(null);
         PropertyModification modification = filenameProperty.createModification(
-                ModificationType.REPLACE, new PropertyValue<Object>(input.getAbsolutePath()));
+                ModificationType.REPLACE, new PrismPropertyValue<Object>(input.getAbsolutePath()));
         List<PropertyModification> modifications = new ArrayList<PropertyModification>();
         modifications.add(modification);
         try {

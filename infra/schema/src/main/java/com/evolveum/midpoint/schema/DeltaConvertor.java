@@ -32,7 +32,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.Schema;
 import com.evolveum.midpoint.prism.XmlTypeConverter;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -187,11 +187,11 @@ public class DeltaConvertor {
         return mods;
     }
 
-    private static void addModValues(PropertyDelta delta, PropertyModificationType mod, Collection<PropertyValue<Object>> values,
+    private static void addModValues(PropertyDelta delta, PropertyModificationType mod, Collection<PrismPropertyValue<Object>> values,
             Document document) throws SchemaException {
         Value modValue = new Value();
         mod.setValue(modValue);
-        for (PropertyValue<Object> value : values) {
+        for (PrismPropertyValue<Object> value : values) {
         	// Always record xsi:type. This is FIXME, but should work OK for now (until we put definition into deltas)
             modValue.getAny().add(XmlTypeConverter.toXsdElement(value.getValue(), delta.getName(), document, true));
         }

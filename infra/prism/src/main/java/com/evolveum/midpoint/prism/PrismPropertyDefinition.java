@@ -63,8 +63,6 @@ public class PrismPropertyDefinition extends ItemDefinition {
 
     private static final long serialVersionUID = 7259761997904371009L;
     private QName valueType;
-    private int minOccurs = 1;
-    private int maxOccurs = 1;
     private Object[] allowedValues;
     private boolean create = true;
     private boolean read = true;
@@ -127,78 +125,15 @@ public class PrismPropertyDefinition extends ItemDefinition {
         this.valueType = valueType;
     }
 
-    /**
-     * Return the number of minimal value occurrences.
-     *
-     * @return the minOccurs
-     */
-    public int getMinOccurs() {
-        return minOccurs;
-    }
 
-    public void setMinOccurs(int minOccurs) {
-        this.minOccurs = minOccurs;
-    }
-
-    /**
-     * Return the number of maximal value occurrences.
-     * <p/>
-     * Any negative number means "unbounded".
-     *
-     * @return the maxOccurs
-     */
-    public int getMaxOccurs() {
-        return maxOccurs;
-    }
-
-    public void setMaxOccurs(int maxOccurs) {
-        this.maxOccurs = maxOccurs;
-    }
-
-    /**
-     * Returns true if property is single-valued.
-     *
-     * @return true if property is single-valued.
-     */
-    public boolean isSingleValue() {
-        return getMaxOccurs() >= 0 && getMaxOccurs() <= 1;
-    }
-
-    /**
-     * Returns true if property is multi-valued.
-     *
-     * @return true if property is multi-valued.
-     */
-    public boolean isMultiValue() {
-        return getMaxOccurs() < 0 || getMaxOccurs() > 1;
-    }
-
-    /**
-     * Returns true if property is mandatory.
-     *
-     * @return true if property is mandatory.
-     */
-    public boolean isMandatory() {
-        return getMinOccurs() > 0;
-    }
-
-    /**
-     * Returns true if property is optional.
-     *
-     * @return true if property is optional.
-     */
-    public boolean isOptional() {
-        return getMinOccurs() == 0;
+    @Override
+    public PrismProperty instantiate() {
+        return instantiate(getNameOrDefaultName());
     }
 
     @Override
-    public PrismProperty instantiate(PropertyPath parentPath) {
-        return instantiate(getNameOrDefaultName(), parentPath);
-    }
-
-    @Override
-    public PrismProperty instantiate(QName name, PropertyPath parentPath) {
-        return new PrismProperty(name, this, prismContext, parentPath);
+    public PrismProperty instantiate(QName name) {
+        return new PrismProperty(name, this, prismContext);
     }
 
     // TODO: factory methods for DOM and JAXB elements
@@ -255,8 +190,6 @@ public class PrismPropertyDefinition extends ItemDefinition {
         int result = super.hashCode();
         result = prime * result + Arrays.hashCode(allowedValues);
         result = prime * result + (create ? 1231 : 1237);
-        result = prime * result + maxOccurs;
-        result = prime * result + minOccurs;
         result = prime * result + (read ? 1231 : 1237);
         result = prime * result + (update ? 1231 : 1237);
         result = prime * result + ((valueType == null) ? 0 : valueType.hashCode());
@@ -275,10 +208,6 @@ public class PrismPropertyDefinition extends ItemDefinition {
         if (!Arrays.equals(allowedValues, other.allowedValues))
             return false;
         if (create != other.create)
-            return false;
-        if (maxOccurs != other.maxOccurs)
-            return false;
-        if (minOccurs != other.minOccurs)
             return false;
         if (read != other.read)
             return false;

@@ -23,7 +23,7 @@ package com.evolveum.midpoint.provisioning.util;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.provisioning.impl.ShadowConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -297,9 +297,9 @@ public class ShadowCacheUtil {
             if (identifiers.size() == 1) {
                 PrismProperty identifier = identifiers.iterator().next();
                 // Only single-valued identifiers
-                Set<PropertyValue<Object>> values = identifier.getValues();
+                Set<PrismPropertyValue<Object>> values = identifier.getValues();
                 if (values.size() == 1) {
-                    PropertyValue<Object> value = values.iterator().next();
+                    PrismPropertyValue<Object> value = values.iterator().next();
                     // and only strings
                     if (value.getValue() instanceof String) {
                         return (String) value.getValue();
@@ -366,7 +366,7 @@ public class ShadowCacheUtil {
         XPathHolder xpath = createXpathHolder();
         PrismProperty identifier = resourceObject.getIdentifier();
 
-        Set<PropertyValue<Object>> idValues = identifier.getValues();
+        Set<PrismPropertyValue<Object>> idValues = identifier.getValues();
         // Only one value is supported for an identifier
         if (idValues.size() > 1) {
 //			LOGGER.error("More than one identifier value is not supported");

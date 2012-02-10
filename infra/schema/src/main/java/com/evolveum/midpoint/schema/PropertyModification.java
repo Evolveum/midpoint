@@ -21,7 +21,7 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
@@ -48,7 +48,7 @@ public class PropertyModification {
     // Storing property instead of property name, so a property definition that may be associated with property will
     // be passed on
     private PrismProperty property;
-    private Set<PropertyValue<Object>> modifyValues;
+    private Set<PrismPropertyValue<Object>> modifyValues;
     private ModificationType modificationType;
 
     public enum ModificationType {
@@ -68,7 +68,7 @@ public class PropertyModification {
     }
 
     public PropertyModification() {
-        modifyValues = new HashSet<PropertyValue<Object>>();
+        modifyValues = new HashSet<PrismPropertyValue<Object>>();
     }
 
     /**
@@ -77,7 +77,7 @@ public class PropertyModification {
      * @param path
      * @param values
      */
-    public PropertyModification(PrismProperty property, ModificationType modificationType, XPathHolder path, Set<PropertyValue<Object>> values) {
+    public PropertyModification(PrismProperty property, ModificationType modificationType, XPathHolder path, Set<PrismPropertyValue<Object>> values) {
         super();
         this.path = path;
         this.property = property;
@@ -92,7 +92,7 @@ public class PropertyModification {
      * @param modificationType
      * @param values
      */
-    public PropertyModification(PrismProperty property, ModificationType modificationType, Set<PropertyValue<Object>> values) {
+    public PropertyModification(PrismProperty property, ModificationType modificationType, Set<PrismPropertyValue<Object>> values) {
         super();
         this.path = new XPathHolder();
         this.property = property;
@@ -112,7 +112,7 @@ public class PropertyModification {
         return property.getName();
     }
 
-    public Set<PropertyValue<Object>> getValues() {
+    public Set<PrismPropertyValue<Object>> getValues() {
         return modifyValues;
     }
 
