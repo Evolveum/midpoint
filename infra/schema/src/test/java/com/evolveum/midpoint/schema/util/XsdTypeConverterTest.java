@@ -22,7 +22,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.evolveum.midpoint.prism.XsdTypeConverter;
+import com.evolveum.midpoint.prism.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -45,8 +45,8 @@ public class XsdTypeConverterTest {
 
 	@Test
 	public void testXsdMappingInitialization() {
-		assertTrue(XsdTypeConverter.canConvert(ProtectedStringType.class));
-		QName xsdType = XsdTypeConverter.toXsdType(ProtectedStringType.class);
+		assertTrue(XmlTypeConverter.canConvert(ProtectedStringType.class));
+		QName xsdType = XmlTypeConverter.toXsdType(ProtectedStringType.class);
 		System.out.println("ProtectedStringType QName: "+xsdType);
 	}
 	
@@ -60,7 +60,7 @@ public class XsdTypeConverterTest {
 				"<c:clearValue>3lizab3th</c:clearValue></password>");
 		Element element = DOMUtil.getFirstChildElement(document);
 		
-		Object value = XsdTypeConverter.toJavaValue(element);
+		Object value = XmlTypeConverter.toJavaValue(element);
 		
 		System.out.println("XML -> ProtectedStringType: "+value);
 		assertNotNull(value);
@@ -74,7 +74,7 @@ public class XsdTypeConverterTest {
 		ps.setClearValue("abra kadabra");
 		Document doc = DOMUtil.getDocument();
 		
-		Object xsdElement = XsdTypeConverter.toXsdElement(ps, FOO_QNAME, doc, true);
+		Object xsdElement = XmlTypeConverter.toXsdElement(ps, FOO_QNAME, doc, true);
 		
 		System.out.println("ProtectedStringType -> XML");
 		System.out.println(xsdElement);
@@ -99,7 +99,7 @@ public class XsdTypeConverterTest {
 		JAXBElement<ProtectedStringType> pse = new JAXBElement<ProtectedStringType>(FOO_QNAME,ProtectedStringType.class,ps);
 		shadow.getAttributes().getAny().add(pse);
 		
-		shadow.getAttributes().getAny().add(XsdTypeConverter.toXsdElement(42, BAR_QNAME, null, true));
+		shadow.getAttributes().getAny().add(XmlTypeConverter.toXsdElement(42, BAR_QNAME, null, true));
 		
 		Document doc = DOMUtil.getDocument();
 		JAXBElement<AccountShadowType> accountElement = new JAXBElement<AccountShadowType>(ObjectTypes.ACCOUNT.getQName(),AccountShadowType.class,shadow);

@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PropertyValue;
-import com.evolveum.midpoint.prism.XsdTypeConverter;
+import com.evolveum.midpoint.prism.XmlTypeConverter;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -68,7 +68,7 @@ public class ExpressionValueConstructor implements ValueConstructor {
         expression.addVariableDefinitions(variables);
 
         QName typeName = outputDefinition.getTypeName();
-        Class<Object> type = XsdTypeConverter.toJavaType(typeName);
+        Class<Object> type = XmlTypeConverter.toJavaType(typeName);
         PrismProperty output = outputDefinition.instantiate(propertyParentPath);
 
         if (outputDefinition.isMultiValue()) {

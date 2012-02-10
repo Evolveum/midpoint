@@ -27,7 +27,7 @@ import java.util.Random;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.XsdTypeConverter;
+import com.evolveum.midpoint.prism.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ResultArrayList;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadata;
@@ -90,7 +90,7 @@ public class MiscSchemaUtil {
 
 	public static CachingMetadata generateCachingMetadata() {
 		CachingMetadata cmd = new CachingMetadata();
-		XMLGregorianCalendar xmlGregorianCalendarNow = XsdTypeConverter.toXMLGregorianCalendar(System.currentTimeMillis());
+		XMLGregorianCalendar xmlGregorianCalendarNow = XmlTypeConverter.toXMLGregorianCalendar(System.currentTimeMillis());
 		cmd.setRetrievalTimestamp(xmlGregorianCalendarNow);
 		cmd.setSerialNumber(generateSerialNumber());
 		return cmd;

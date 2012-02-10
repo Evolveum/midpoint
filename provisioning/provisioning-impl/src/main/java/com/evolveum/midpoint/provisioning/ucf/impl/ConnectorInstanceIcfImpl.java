@@ -27,7 +27,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PropertyValue;
 import com.evolveum.midpoint.prism.Schema;
-import com.evolveum.midpoint.prism.XsdTypeConverter;
+import com.evolveum.midpoint.prism.XmlTypeConverter;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
@@ -278,7 +278,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// will be fixed later
 			propXsdType = SchemaConstants.R_PROTECTED_BYTE_ARRAY_TYPE;
 		} else {
-			propXsdType = XsdTypeConverter.toXsdType(type);
+			propXsdType = XmlTypeConverter.toXsdType(type);
 		}
 		return propXsdType;
 	}
@@ -1714,7 +1714,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	private PrismProperty createTokenProperty(Object object) {
-		QName type = XsdTypeConverter.toXsdType(object.getClass());
+		QName type = XmlTypeConverter.toXsdType(object.getClass());
 
 		Set<PropertyValue<Object>> syncTokenValues = new HashSet<PropertyValue<Object>>();
 		syncTokenValues.add(new PropertyValue<Object>(object));
@@ -2018,7 +2018,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// Guarded byte array is a special ICF beast
 			// TODO
 		}
-		value = XsdTypeConverter.toJavaValue(configElement, midPointClass);
+		value = XmlTypeConverter.toJavaValue(configElement, midPointClass);
 		if (type.equals(GuardedString.class)) {
 			// Guarded string is a special ICF beast
 			// The value must be ProtectedStringType

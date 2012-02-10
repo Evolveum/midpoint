@@ -33,8 +33,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -55,80 +53,23 @@ import java.util.*;
  *
  * @author Radovan Semancik
  */
-public class XsdTypeConverter {
+public class XmlTypeConverter {
+	
+	private static DatatypeFactory datatypeFactory = null;
 
-    private static final String BOOLEAN_XML_VALUE_TRUE = "true";
-    private static final String BOOLEAN_XML_VALUE_FALSE = "false";
+    private static final Trace LOGGER = TraceManager.getTrace(XmlTypeConverter.class);
 
-    private static Map<Class, QName> javaToXsdTypeMap;
-    private static Map<QName, Class> xsdToJavaTypeMap;
-    private static DatatypeFactory datatypeFactory = null;
-
-    private static final Trace LOGGER = TraceManager.getTrace(XsdTypeConverter.class);
-
-    private static void initTypeMap() throws IOException, ClassNotFoundException {
-
-        javaToXsdTypeMap = new HashMap<Class, QName>();
-        xsdToJavaTypeMap = new HashMap<QName, Class>();
-        addMapping(String.class, DOMUtil.XSD_STRING, true);
-        addMapping(char.class, DOMUtil.XSD_STRING, false);
-        addMapping(File.class, DOMUtil.XSD_STRING, false);
-        addMapping(int.class, DOMUtil.XSD_INTEGER, true);
-        addMapping(Integer.class, DOMUtil.XSD_INTEGER, false);
-        addMapping(long.class, DOMUtil.XSD_INTEGER, false);
-        addMapping(Long.class, DOMUtil.XSD_INTEGER, false);
-        addMapping(boolean.class, DOMUtil.XSD_BOOLEAN, true);
-        addMapping(Boolean.class, DOMUtil.XSD_BOOLEAN, false);
-        addMapping(byte[].class, DOMUtil.XSD_BASE64BINARY, true);
-        addMapping(GregorianCalendar.class, DOMUtil.XSD_DATETIME, true);
-        addMapping(XMLGregorianCalendar.class, DOMUtil.XSD_DATETIME, true);
-        addMapping(QName.class, DOMUtil.XSD_QNAME, true);
-
-//        for (int i = 0; i < SchemaConstants.JAXB_PACKAGES.length; i++) {
-//            String packageName = SchemaConstants.JAXB_PACKAGES[i];
-//            Set<Class> classes = ClassPathUtil.listClasses(packageName);
-//            if (classes.isEmpty()) {
-//                LOGGER.warn("No classes found in the JAXB package " + packageName);
-//            }
-//            for (Class jaxbClass : classes) {
-//                QName typeQName = JAXBUtil.getTypeQName(jaxbClass);
-//                if (typeQName != null) {
-//                    addMapping(jaxbClass, typeQName, true);
-//                }
-//            }
-//        }
-        //addMapping(CredentialsType.PasswordType.class, JAXBUtil.getTypeQName(CredentialsType.Password.class), true);
-    }
-
-    private static void addMapping(Class javaClass, QName xsdType, boolean both) {
-        LOGGER.trace("Adding XSD type mapping {} {} {} ", new Object[]{javaClass, both ? "<->" : " ->",
-                xsdType});
-        javaToXsdTypeMap.put(javaClass, xsdType);
-        if (both) {
-            xsdToJavaTypeMap.put(xsdType, javaClass);
-        }
-    }
-
-    public static QName toXsdType(Class javaClass) {
-        QName xsdType = getJavaToXsdMapping(javaClass);
-        if (xsdType == null) {
-            throw new IllegalArgumentException("No XSD mapping for Java type " + javaClass.getCanonicalName());
-        }
-        return xsdType;
-    }
-
-    public static Class toJavaType(QName xsdType) {
-        Class javaType = xsdToJavaTypeMap.get(xsdType);
-        if (javaType == null) {
-            if (xsdType.getNamespaceURI().equals(XMLConstants.W3C_XML_SCHEMA_NS_URI)) {
-                throw new IllegalArgumentException("No type mapping for XSD type " + xsdType);
-            } else {
-                return Element.class;
+    private static DatatypeFactory getDatatypeFactory() {
+        if (datatypeFactory == null) {
+            try {
+                datatypeFactory = DatatypeFactory.newInstance();
+            } catch (DatatypeConfigurationException ex) {
+                throw new IllegalStateException("Cannot construct DatatypeFactory: " + ex.getMessage(), ex);
             }
         }
-        return javaType;
+        return datatypeFactory;
     }
-
+    
     public static <T> T toJavaValue(Object element, Class<T> type) throws SchemaException {
         if (element instanceof Element) {
             Element xmlElement = (Element) element;
@@ -136,13 +77,6 @@ public class XsdTypeConverter {
                 return (T) xmlElement;
             } else if (type.equals(QName.class)) {
                 return (T) DOMUtil.getQNameValue(xmlElement);
-//            } else if (JAXBUtil.isJaxbClass(type)) {
-//                try {
-//                    return JAXBUtil.unmarshal(xmlElement, type).getValue();
-//                } catch (JAXBException e) {
-//                    QName elementQName = JAXBUtil.getElementQName(xmlElement);
-//                    throw new SchemaException("Cannot parse value of element " + elementQName + ": " + e.getMessage(), e, elementQName);
-//                }
             } else {
                 String stringContent = xmlElement.getTextContent();
                 if (stringContent == null) {
@@ -154,8 +88,6 @@ public class XsdTypeConverter {
                 }
                 return javaValue;
             }
-        } else if (element instanceof JAXBElement) {
-            return ((JAXBElement<T>) element).getValue();
         } else {
             throw new IllegalArgumentException("Unsupported element type: " + element.getClass().getName() + ": " + element);
         }
@@ -193,7 +125,7 @@ public class XsdTypeConverter {
 
 
     public static Object toJavaValue(Object xmlElement, QName type) throws SchemaException {
-        return toJavaValue(xmlElement, toJavaType(type));
+        return toJavaValue(xmlElement, XsdTypeMapper.toJavaType(type));
     }
 
     /**
@@ -230,12 +162,8 @@ public class XsdTypeConverter {
                 }
             }
             return new TypedValue(toJavaValue(xmlElement, xsiType), xsiType, DOMUtil.getQName(xmlElement));
-        } else if (element instanceof JAXBElement) {
-            // JAXB Element
-            JAXBElement jaxbElement = (JAXBElement) element;
-            return new TypedValue(jaxbElement.getValue(), toXsdType(jaxbElement.getDeclaredType()), jaxbElement.getName());
         } else {
-            throw new IllegalArgumentException("Unsupported element type " + element.getClass().getName() + " in " + XsdTypeConverter.class.getSimpleName());
+            throw new IllegalArgumentException("Unsupported element type " + element.getClass().getName() + " in " + XmlTypeConverter.class.getSimpleName());
         }
     }
 
@@ -248,7 +176,7 @@ public class XsdTypeConverter {
             if (recordType) {
                 if (typeName == null) {
                     // if no type was specified, just record the one that was used for automatic conversion
-                    typeName = toXsdType(val.getClass());
+                    typeName = XsdTypeMapper.toXsdType(val.getClass());
                 }
                 DOMUtil.setXsiType(createdElement, typeName);
             }
@@ -273,7 +201,7 @@ public class XsdTypeConverter {
             // if no value is specified, do not create element
             return null;
         }
-        Class type = getTypeFromClass(val.getClass());
+        Class type = XsdTypeMapper.getTypeFromClass(val.getClass());
         if (type == null) {
             throw new IllegalArgumentException("No type mapping for conversion: " + val.getClass() + "(element " + elementName + ")");
         }
@@ -305,9 +233,9 @@ public class XsdTypeConverter {
             } else if (type.equals(Boolean.class)) {
                 Boolean bool = (Boolean) val;
                 if (bool.booleanValue()) {
-                    element.setTextContent(BOOLEAN_XML_VALUE_TRUE);
+                    element.setTextContent(XsdTypeMapper.BOOLEAN_XML_VALUE_TRUE);
                 } else {
-                    element.setTextContent(BOOLEAN_XML_VALUE_FALSE);
+                    element.setTextContent(XsdTypeMapper.BOOLEAN_XML_VALUE_FALSE);
                 }
             } else if (type.equals(GregorianCalendar.class)) {
                 XMLGregorianCalendar xmlCal = toXMLGregorianCalendar((GregorianCalendar) val);
@@ -321,42 +249,15 @@ public class XsdTypeConverter {
                 throw new IllegalArgumentException("Unknown type for conversion: " + type + "(element " + elementName + ")");
             }
             if (recordType) {
-                QName xsdType = toXsdType(val.getClass());
+                QName xsdType = XsdTypeMapper.toXsdType(val.getClass());
                 DOMUtil.setXsiType(element, xsdType);
             }
             return element;
 //        }
     }
 
-    private static QName getJavaToXsdMapping(Class<?> type) {
-        if (javaToXsdTypeMap.containsKey(type)) {
-            return javaToXsdTypeMap.get(type);
-        }
-        Class<?> superType = type.getSuperclass();
-        if (superType != null) {
-            return getJavaToXsdMapping(superType);
-        }
-        return null;
-    }
-
-    /**
-     * Returns the class in the type mapping.
-     * The class supplied by the caller may be a subclass of what we have in the map.
-     * This returns the class that in the mapping.
-     */
-    private static Class<?> getTypeFromClass(Class<?> clazz) {
-        if (javaToXsdTypeMap.containsKey(clazz)) {
-            return clazz;
-        }
-        Class<?> superClazz = clazz.getSuperclass();
-        if (superClazz != null) {
-            return getTypeFromClass(superClazz);
-        }
-        return null;
-    }
-
     public static boolean canConvert(Class<?> clazz) {
-        return (getJavaToXsdMapping(clazz) != null);
+        return (XsdTypeMapper.getJavaToXsdMapping(clazz) != null);
     }
 
     public static <T> T convertValueElementAsScalar(Element valueElement, Class<T> type) throws SchemaException {
@@ -384,7 +285,7 @@ public class XsdTypeConverter {
     }
 
     public static List<?> convertValueElementAsList(Element valueElement, QName xsdType) throws SchemaException {
-        Class<?> type = toJavaType(xsdType);
+        Class<?> type = XsdTypeMapper.toJavaType(xsdType);
         return convertValueElementAsList(valueElement.getChildNodes(), type);
     }
 
@@ -416,11 +317,11 @@ public class XsdTypeConverter {
                     Class<?> overrideType = String.class;
                     if (DOMUtil.hasXsiType(element)) {
                         QName xsiType = DOMUtil.resolveXsiType(element);
-                        overrideType = toJavaType(xsiType);
+                        overrideType = XsdTypeMapper.toJavaType(xsiType);
                     }
-                    value = (T) XsdTypeConverter.toJavaValue(element, overrideType);
+                    value = (T) XmlTypeConverter.toJavaValue(element, overrideType);
                 } else {
-                    value = XsdTypeConverter.toJavaValue(element, type);
+                    value = XmlTypeConverter.toJavaValue(element, type);
                 }
                 values.add(value);
             }
@@ -444,53 +345,11 @@ public class XsdTypeConverter {
         }
         if (type.equals(Object.class)) {
             // Try string as default type
-            return (T) XsdTypeConverter.toJavaValue(sb.toString(), String.class);
+            return (T) XmlTypeConverter.toJavaValue(sb.toString(), String.class);
         }
-        return XsdTypeConverter.toJavaValue(sb.toString(), type);
+        return XmlTypeConverter.toJavaValue(sb.toString(), type);
     }
 
-    public static XMLGregorianCalendar toXMLGregorianCalendar(long timeInMillis) {
-        GregorianCalendar gregorianCalendar = new GregorianCalendar();
-        gregorianCalendar.setTimeInMillis(timeInMillis);
-        return toXMLGregorianCalendar(gregorianCalendar);
-    }
-    
-    public static XMLGregorianCalendar toXMLGregorianCalendar(GregorianCalendar cal) {
-        return getDatatypeFactory().newXMLGregorianCalendar(cal);
-    }
-
-    public static long toMillis(XMLGregorianCalendar xmlCal) {
-        return xmlCal.toGregorianCalendar().getTimeInMillis();
-    }
-
-    private static DatatypeFactory getDatatypeFactory() {
-        if (datatypeFactory == null) {
-            try {
-                datatypeFactory = DatatypeFactory.newInstance();
-            } catch (DatatypeConfigurationException ex) {
-                throw new IllegalStateException("Cannot construct DatatypeFactory: " + ex.getMessage(), ex);
-            }
-        }
-        return datatypeFactory;
-    }
-
-    static {
-        try {
-            initTypeMap();
-        } catch (Exception e) {
-            LOGGER.error("Cannot initialize XSD type mapping: " + e.getMessage(), e);
-            throw new IllegalStateException("Cannot initialize XSD type mapping: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * @param val
-     * @param xsdType
-     * @param name
-     * @param parentNode
-     * @param recordType
-     * @throws JAXBException
-     */
     public static void appendBelowNode(Object val, QName xsdType, QName name, Node parentNode,
                                        boolean recordType) throws SchemaException {
         Object xsdElement = toXsdElement(val, xsdType, name, parentNode.getOwnerDocument(), recordType);
@@ -510,4 +369,17 @@ public class XsdTypeConverter {
         }
     }
 
+    public static XMLGregorianCalendar toXMLGregorianCalendar(long timeInMillis) {
+        GregorianCalendar gregorianCalendar = new GregorianCalendar();
+        gregorianCalendar.setTimeInMillis(timeInMillis);
+        return toXMLGregorianCalendar(gregorianCalendar);
+    }
+    
+    public static XMLGregorianCalendar toXMLGregorianCalendar(GregorianCalendar cal) {
+        return getDatatypeFactory().newXMLGregorianCalendar(cal);
+    }
+
+    public static long toMillis(XMLGregorianCalendar xmlCal) {
+        return xmlCal.toGregorianCalendar().getTimeInMillis();
+    }
 }

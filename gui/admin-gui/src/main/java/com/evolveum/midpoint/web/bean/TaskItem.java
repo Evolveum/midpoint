@@ -30,7 +30,7 @@ import java.util.List;
 import org.apache.commons.lang.time.DurationFormatUtils;
 
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.XsdTypeConverter;
+import com.evolveum.midpoint.prism.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ExtensionProcessor;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -133,13 +133,13 @@ public class TaskItem extends SelectableBean {
         this.oid = taskType.getOid();
         this.name = taskType.getName();
         if (taskType.getLastRunStartTimestamp() != null) {
-            lastRunStartTimestampLong = XsdTypeConverter.toMillis(taskType.getLastRunStartTimestamp());
+            lastRunStartTimestampLong = XmlTypeConverter.toMillis(taskType.getLastRunStartTimestamp());
         }
         if (taskType.getLastRunFinishTimestamp() != null) {
-            lastRunFinishTimestampLong = XsdTypeConverter.toMillis(taskType.getLastRunFinishTimestamp());
+            lastRunFinishTimestampLong = XmlTypeConverter.toMillis(taskType.getLastRunFinishTimestamp());
         }
         if (taskType.getNextRunStartTime() != null) {
-            nextRunStartTimeLong = XsdTypeConverter.toMillis(taskType.getNextRunStartTime());
+            nextRunStartTimeLong = XmlTypeConverter.toMillis(taskType.getNextRunStartTime());
         }
 
         this.executionStatus = TaskItemExecutionStatus
@@ -223,7 +223,7 @@ public class TaskItem extends SelectableBean {
         // beware that the schedule & recurring type must be known for this taskType
         long nextRunTime = taskManager.determineNextRunStartTime(taskType);		// for single-run tasks returns 0
         if (nextRunTime > 0)
-        	taskType.setNextRunStartTime(XsdTypeConverter.toXMLGregorianCalendar(nextRunTime));
+        	taskType.setNextRunStartTime(XmlTypeConverter.toXMLGregorianCalendar(nextRunTime));
         
         if (getResult() != null) {
             taskType.setResult(getResult().createOperationResultType());

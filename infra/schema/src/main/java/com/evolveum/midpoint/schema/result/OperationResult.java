@@ -39,7 +39,7 @@ import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.XsdTypeConverter;
+import com.evolveum.midpoint.prism.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommonException;
@@ -691,7 +691,7 @@ public class OperationResult implements Serializable, Dumpable {
 			Element element = (Element)value;
 			if (SchemaConstants.C_VALUE.equals(DOMUtil.getQName(element))) {
 				try {
-					Object cvalue = XsdTypeConverter.toJavaValue(value);
+					Object cvalue = XmlTypeConverter.toJavaValue(value);
 					return SchemaDebugUtil.prettyPrint(cvalue);
 				} catch (Exception e) {
 					return "value: "+element.getTextContent();
@@ -836,9 +836,9 @@ public class OperationResult implements Serializable, Dumpable {
 				// Store only reference on the OID. This is faster and getObject can be used to retrieve
 				// the object if needed. Although is does not provide 100% accuracy, it is a good tradeoff.
 				setObjectReferenceEntry(entryType, ((ObjectType)value));
-			} else if (XsdTypeConverter.canConvert(value.getClass())) {
+			} else if (XmlTypeConverter.canConvert(value.getClass())) {
 				try {
-					entryType.setAny(XsdTypeConverter.toXsdElement(value, SchemaConstants.C_VALUE, doc, true));
+					entryType.setAny(XmlTypeConverter.toXsdElement(value, SchemaConstants.C_VALUE, doc, true));
 				} catch (SchemaException e) {
 					LOGGER.error("Cannot convert value {} to XML: {}",value,e.getMessage());
 					setUnknownJavaObjectEntry(entryType, value);

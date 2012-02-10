@@ -377,7 +377,7 @@ public class PrismContainer extends Item {
         	// therefore pretend that everything without a definition is runtime (for now)
 //        	if (this.getDefinition().isRuntimeSchema) {
         		// HACK: create the definition "on demand" based on the property java type.
-        		QName typeName = XsdTypeConverter.toXsdType(valueClass);
+        		QName typeName = XsdTypeMapper.toXsdType(valueClass);
         		propertyDefinition = new PrismPropertyDefinition(propertyName, propertyName, typeName, prismContext);
 //        	} else {
 //        		throw new IllegalArgumentException("No definition of property '" + propertyName + "' in " + getDefinition());

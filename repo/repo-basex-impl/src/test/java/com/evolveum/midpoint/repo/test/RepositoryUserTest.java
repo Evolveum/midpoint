@@ -42,7 +42,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.XsdTypeConverter;
+import com.evolveum.midpoint.prism.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -160,7 +160,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			// assert correct xsi:type attribute
 			QName xsiType = DOMUtil.resolveXsiType(ext2,"default");
 			assertEquals(DOMUtil.XSD_INTEGER,xsiType);
-			Object lootObject = XsdTypeConverter.toJavaValue(ext2);
+			Object lootObject = XmlTypeConverter.toJavaValue(ext2);
 			assertTrue(lootObject instanceof Integer);
 			assertEquals(123123,lootObject);
 

@@ -35,7 +35,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.XsdTypeConverter;
+import com.evolveum.midpoint.prism.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -245,7 +245,7 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 			throw new IllegalArgumentException("Expected static value constructor but found "+valueConstructor.getName()+" in value construction");
 		}
 		Element element = (Element)valueConstructor.getValue();
-		return XsdTypeConverter.convertValueElementAsList(element);
+		return XmlTypeConverter.convertValueElementAsList(element);
 	}
 	
 	/**

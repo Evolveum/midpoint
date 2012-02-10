@@ -246,7 +246,7 @@ class PrismDomProcessor {
         }
 
         for (Object element : valueElements) {
-            Object value = XsdTypeConverter.toJavaValue(element, propertyDefinition.getTypeName());
+            Object value = XmlTypeConverter.toJavaValue(element, propertyDefinition.getTypeName());
             prop.getValues().add(new PropertyValue(value));
         }
         return prop;

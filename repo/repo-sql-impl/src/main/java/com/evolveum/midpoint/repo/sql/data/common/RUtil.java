@@ -112,9 +112,9 @@ public final class RUtil {
         Validate.notNull(object, "Object must not be null.");
 
         RValue value;
-        if ((object instanceof Element) || XsdTypeConverter.canConvert(object.getClass())) {
+        if ((object instanceof Element) || XmlTypeConverter.canConvert(object.getClass())) {
             try {
-                Object javaValue = XsdTypeConverter.toJavaValue(object);
+                Object javaValue = XmlTypeConverter.toJavaValue(object);
                 System.out.println(javaValue.getClass());
                 if (javaValue == null) {
                     throw new DtoTranslationException("Value converted from '" + object.toString() + "' is null.");

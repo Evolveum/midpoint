@@ -36,7 +36,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.evolveum.midpoint.prism.XsdTypeConverter;
+import com.evolveum.midpoint.prism.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -130,7 +130,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 
 		Element valueExpressionElement = findChildElement(resource.getSynchronization().getCorrelation()
 				.getFilter(), SchemaConstants.NS_C, "valueExpression");
-		ExpressionType expression = XsdTypeConverter
+		ExpressionType expression = XmlTypeConverter
 				.toJavaValue(valueExpressionElement, ExpressionType.class);
 		LOGGER.debug(SchemaDebugUtil.prettyPrint(expression));
 

@@ -22,7 +22,7 @@ package com.evolveum.midpoint.common.expression.xpath;
 
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.prism.PropertyValue;
-import com.evolveum.midpoint.prism.XsdTypeConverter;
+import com.evolveum.midpoint.prism.XmlTypeConverter;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -203,10 +203,10 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
         }
         try {
             if (value instanceof String) {
-                return new PropertyValue<T>(XsdTypeConverter.toJavaValue((String) value, type));
+                return new PropertyValue<T>(XmlTypeConverter.toJavaValue((String) value, type));
             }
             if (value instanceof Element) {
-                return new PropertyValue<T>(XsdTypeConverter.convertValueElementAsScalar((Element) value, type));
+                return new PropertyValue<T>(XmlTypeConverter.convertValueElementAsScalar((Element) value, type));
             }
             throw new ExpressionEvaluationException("Unexpected scalar return type " + value.getClass().getName());
         } catch (SchemaException e) {
@@ -226,7 +226,7 @@ public class XPathExpressionEvaluator implements ExpressionEvaluator {
         }
 
         try {
-            List<T> list = XsdTypeConverter.convertValueElementAsList(valueNodes, type);
+            List<T> list = XmlTypeConverter.convertValueElementAsList(valueNodes, type);
             for (T item : list) {
                 if (item == null || ((item instanceof String) && ((String) item).isEmpty())) {
                     continue;

@@ -24,7 +24,7 @@ import it.sauronsoftware.cron4j.Predictor;
 
 import java.util.Date;
 
-import com.evolveum.midpoint.prism.XsdTypeConverter;
+import com.evolveum.midpoint.prism.XmlTypeConverter;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -75,7 +75,7 @@ public class ScheduleEvaluator {
 			}
 			
 			// otherwise let us look whether we are behind tolerance window
-			long nextRunTime = XsdTypeConverter.toMillis(taskType.getNextRunStartTime());
+			long nextRunTime = XmlTypeConverter.toMillis(taskType.getNextRunStartTime());
 			long tolerance = taskType.getSchedule().getMissedScheduleTolerance().longValue() * 1000L;
 			return System.currentTimeMillis() > nextRunTime + tolerance;
 			

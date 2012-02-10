@@ -294,7 +294,7 @@ public class PrismProperty extends Item {
                 xsdType = propDef.getTypeName();
             }
             try {
-                XsdTypeConverter.appendBelowNode(val.getValue(), xsdType, getName(), parentNode, recordType);
+                XmlTypeConverter.appendBelowNode(val.getValue(), xsdType, getName(), parentNode, recordType);
             } catch (SchemaException e) {
                 throw new SchemaException(e.getMessage() + ", while converting " + propDef.getTypeName(), e);
             }
@@ -372,7 +372,7 @@ public class PrismProperty extends Item {
             }
 
             try {
-                elements.add(XsdTypeConverter.toXsdElement(val.getValue(), xsdType, getName(), doc, recordType));
+                elements.add(XmlTypeConverter.toXsdElement(val.getValue(), xsdType, getName(), doc, recordType));
             } catch (SchemaException e) {
                 throw new SchemaException(e.getMessage() + ", while converting " + propDef.getTypeName(), e);
             }

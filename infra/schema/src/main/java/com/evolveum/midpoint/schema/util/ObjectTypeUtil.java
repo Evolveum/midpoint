@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.XsdTypeConverter;
+import com.evolveum.midpoint.prism.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -142,9 +142,9 @@ public class ObjectTypeUtil {
                     // Empty value, that means empty element set. Nothing to do.
                     // This may be used e.g. for deleting all values (replacing by empty
                     // value)
-                } else if (XsdTypeConverter.canConvert(value.getClass())) {
+                } else if (XmlTypeConverter.canConvert(value.getClass())) {
                     try {
-                        Object e = XsdTypeConverter.toXsdElement(value, propertyName, doc);
+                        Object e = XmlTypeConverter.toXsdElement(value, propertyName, doc);
                         jaxbValue.getAny().add(e);
                     } catch (SchemaException ex) {
                         throw new SystemException("Unexpected JAXB problem while converting " + propertyName + " : "
@@ -366,7 +366,7 @@ public class ObjectTypeUtil {
         if (valueElements.size() > 1) {
             throw new IllegalStateException("Multiple values during modification of property " + propertyName + " while expeting just a single value");
         }
-        return XsdTypeConverter.toJavaValue(valueElements.get(0), propertyClass);
+        return XmlTypeConverter.toJavaValue(valueElements.get(0), propertyClass);
     }
 
     public static PropertyModificationType getPropertyModification(ObjectModificationType objectChange, XPathHolder path,

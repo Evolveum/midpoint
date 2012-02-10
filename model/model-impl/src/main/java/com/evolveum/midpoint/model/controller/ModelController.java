@@ -60,7 +60,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.Schema;
 import com.evolveum.midpoint.prism.SchemaRegistry;
-import com.evolveum.midpoint.prism.XsdTypeConverter;
+import com.evolveum.midpoint.prism.XmlTypeConverter;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -782,7 +782,7 @@ public class ModelController implements ModelService {
 				if (propModType.getModificationType() == PropertyModificationTypeType.add) {
 
 					for (Object element : propModType.getValue().getAny()) {
-						AccountShadowType accountShadowType = XsdTypeConverter.toJavaValue(element,
+						AccountShadowType accountShadowType = XmlTypeConverter.toJavaValue(element,
 								AccountShadowType.class);
 						if (accountShadowType == null) {
 							throw new SchemaException(

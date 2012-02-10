@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PropertyValue;
 import com.evolveum.midpoint.prism.TypedValue;
-import com.evolveum.midpoint.prism.XsdTypeConverter;
+import com.evolveum.midpoint.prism.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -63,7 +63,7 @@ public class ExtensionProcessor {
         // There is no extension schema at the moment. Therefore assume that all properties are strings unless there is an
         // explicit xsi:type specification
         for (Object element : xmlExtension) {
-            TypedValue tval = XsdTypeConverter.toTypedJavaValueWithDefaultType(element, DEFAULT_TYPE);
+            TypedValue tval = XmlTypeConverter.toTypedJavaValueWithDefaultType(element, DEFAULT_TYPE);
             Object value = tval.getValue();
             QName propName = tval.getElementName();
             QName xsdType = tval.getXsdType();

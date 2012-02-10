@@ -28,7 +28,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.XsdTypeConverter;
+import com.evolveum.midpoint.prism.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ExtensionProcessor;
 import com.evolveum.midpoint.schema.PropertyModification;
@@ -162,13 +162,13 @@ public class TaskImpl implements Task {
 		objectRef = taskType.getObjectRef();
 		name = taskType.getName();
 		if (taskType.getLastRunStartTimestamp()!=null) {
-			lastRunStartTimestamp = new Long(XsdTypeConverter.toMillis(taskType.getLastRunStartTimestamp()));
+			lastRunStartTimestamp = new Long(XmlTypeConverter.toMillis(taskType.getLastRunStartTimestamp()));
 		}
 		if (taskType.getLastRunFinishTimestamp()!=null) {
-			lastRunFinishTimestamp = new Long(XsdTypeConverter.toMillis(taskType.getLastRunFinishTimestamp()));
+			lastRunFinishTimestamp = new Long(XmlTypeConverter.toMillis(taskType.getLastRunFinishTimestamp()));
 		}
 		if (taskType.getNextRunStartTime()!=null) {
-			nextRunStartTime = new Long(XsdTypeConverter.toMillis(taskType.getNextRunStartTime()));
+			nextRunStartTime = new Long(XmlTypeConverter.toMillis(taskType.getNextRunStartTime()));
 		}
 		if (taskType.getProgress()!=null) {
 			progress = taskType.getProgress().longValue();

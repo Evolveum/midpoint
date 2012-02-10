@@ -40,7 +40,7 @@ public abstract class RSimpleValue<T> extends RValue {
     @Override
     public Object toObject() throws DtoTranslationException {
         try {
-            return XsdTypeConverter.toXsdElement(getValue(), getType(), getName(), DOMUtil.getDocument(), true);
+            return XmlTypeConverter.toXsdElement(getValue(), getType(), getName(), DOMUtil.getDocument(), true);
         } catch (SchemaException ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
@@ -50,6 +50,6 @@ public abstract class RSimpleValue<T> extends RValue {
     public void insertValueFromElement(Element element) throws SchemaException {
         Validate.notNull(element, "Element must not be null.");
 
-        setValue((T) XsdTypeConverter.toJavaValue(element));
+        setValue((T) XmlTypeConverter.toJavaValue(element));
     }
 }

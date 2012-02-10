@@ -30,7 +30,7 @@ import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.expr.ExpressionException;
 import com.evolveum.midpoint.model.expr.ExpressionHandler;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.XsdTypeConverter;
+import com.evolveum.midpoint.prism.XmlTypeConverter;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
@@ -522,7 +522,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                     Element value = document.createElementNS(SchemaConstants.NS_C, "value");
                     equal.appendChild(value);
                     Element attribute = document.createElementNS(ref.getNamespaceURI(), ref.getLocalPart());
-                    ExpressionType valueExpression = XsdTypeConverter.toJavaValue(valueExpressionElement,
+                    ExpressionType valueExpression = XmlTypeConverter.toJavaValue(valueExpressionElement,
                             ExpressionType.class);
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("Filter transformed to expression\n{}", JAXBUtil.silentMarshalWrap(valueExpression));
