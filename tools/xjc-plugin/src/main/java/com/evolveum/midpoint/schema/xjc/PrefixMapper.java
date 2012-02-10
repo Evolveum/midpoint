@@ -38,9 +38,9 @@ public enum PrefixMapper {
 
     S("http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd", "SITUATION"),
 
-    ICF_S("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd", "ICF_RESOURCE"),
+    ICF_S("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd", "ICF_SCHEMA"),
 
-    ICF_C("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd", "ICF_SCHEMA"),
+    ICF_C("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd", "ICF_CONFIGURATION"),
 
     ENC("http://www.w3.org/2001/04/xmlenc#", "XML_ENC"),
 
