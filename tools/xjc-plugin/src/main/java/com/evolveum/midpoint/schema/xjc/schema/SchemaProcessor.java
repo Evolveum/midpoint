@@ -63,6 +63,7 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_EQUALS = "equals";
     private static final String METHOD_EQUIVALENT = "equivalent";
     private static final String METHOD_HASH_CODE = "hashCode";
+    private static final String METHOD_ADD_REPLACE_EXISTING = "addReplaceExisting";
 
     //todo change annotation on ObjectType in common-1.xsd to a:midPointContainer
 
@@ -101,17 +102,12 @@ public class SchemaProcessor implements Processor {
             Class<? extends PrismContainer> containerClass) {
 
         Set<JDefinedClass> containers = new HashSet<JDefinedClass>();
-
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
 
             QName qname = entry.getValue().getTypeName();
-            if (qname == null) {
-                continue;
-            }
-
-            if (!hasAnnotation(classOutline, annotation)) {
+            if (qname == null || !hasAnnotation(classOutline, annotation)) {
                 continue;
             }
 
@@ -135,11 +131,9 @@ public class SchemaProcessor implements Processor {
             createSetContainerMethod(definedClass, container, containerClass, outline);
 
             System.out.println("Creating toString, equals, hashCode methods.");
-            //create toString
+            //create toString, equals, hashCode
             createToStringMethod(definedClass, outline);
-            //create equals
             createEqualsMethod(definedClass, outline);
-            //create hash
             createHashCodeMethod(definedClass, outline);
         }
 
@@ -310,12 +304,8 @@ public class SchemaProcessor implements Processor {
             JDefinedClass implClass = classOutline.implClass;
             Map<String, JFieldVar> fields = implClass.fields();
 
-            if (fields == null) {
-                continue;
-            }
-
-            if (!isPropertyContainer(classOutline.implClass, outline)) {
-                //it's PropertyContainer, MidPointObject class
+            if (fields == null || !isPropertyContainer(classOutline.implClass, outline)) {
+                //it's PropertyContainer, MidPointObject class or doesn't have fields
                 continue;
             }
 
@@ -435,13 +425,13 @@ public class SchemaProcessor implements Processor {
         JMethod oldMethod = definedClass.getMethod("getOid", new JType[]{});
         JMethod method = recreateMethod(oldMethod, definedClass);
         JBlock body = method.body();
-        body._return(JExpr.invoke("getContainer").invoke("getOid"));
+        body._return(JExpr.invoke(METHOD_GET_CONTAINER).invoke("getOid"));
         copyAnnotations(method, field, oldMethod);
 
         method = definedClass.getMethod("setOid", new JType[]{string});
         method = recreateMethod(method, definedClass);
         body = method.body();
-        JInvocation invocation = body.invoke(JExpr.invoke("getContainer"), method.name());
+        JInvocation invocation = body.invoke(JExpr.invoke(METHOD_GET_CONTAINER), method.name());
         invocation.arg(method.listParams()[0]);
 
         return true;
@@ -455,23 +445,15 @@ public class SchemaProcessor implements Processor {
         method = recreateMethod(method, definedClass);
 
         JBlock body = method.body();
-        body.directStatement("//todo do not use setValue but remove container from parent " +
-                "property container, update if user set/remove method");
         JVar param = method.listParams()[0];
         body.assign(JExpr._this().ref(field), param);
+
         JConditional condition = body._if(param.eq(JExpr._null()));
         JBlock thenBlock = condition._then();
-
-        JInvocation invocation = thenBlock.invoke(METHOD_SET_PROPERTY_VALUE);
-        //push arguments
-        invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
-        invocation.arg(JExpr._null());
-
+        thenBlock.directStatement("//todo how do we remove property container from parent container???");
         JBlock elseBlock = condition._else();
-        invocation = elseBlock.invoke(METHOD_SET_PROPERTY_VALUE);
-        //push arguments
-        invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
-        invocation.arg(JExpr.invoke(param, METHOD_GET_CONTAINER));
+        JInvocation addReplace = elseBlock.invoke(JExpr.invoke(METHOD_GET_CONTAINER), METHOD_ADD_REPLACE_EXISTING);
+        addReplace.arg(JExpr.invoke(param, METHOD_GET_CONTAINER));
 
         return false;
     }

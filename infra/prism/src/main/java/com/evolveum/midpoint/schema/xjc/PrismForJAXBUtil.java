@@ -24,6 +24,7 @@ package com.evolveum.midpoint.schema.xjc;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PropertyValue;
+import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -39,23 +40,34 @@ public final class PrismForJAXBUtil {
     }
 
     public static <T> List<T> getPropertyValues(PrismContainer container, QName name, Class<T> clazz) {
-        List<T> values = new ArrayList<T>();
-        PrismProperty property = container.findProperty(name);
-        if (property == null) {
-            return values;
-        }
-
-        Set<PropertyValue<T>> set = property.getValues(clazz);
-        if (set != null) {
-            for (PropertyValue<T> value : set) {
-                values.add(value.getValue());
-            }
-        }
-
-        return values;
+        Validate.notNull(container, "Container must not be null.");
+        Validate.notNull(name, "QName must not be null.");
+        Validate.notNull(clazz, "Class type must not be null.");
+        
+        PrismProperty property = container.findOrCreateProperty(name, clazz);
+        return new PropertyArrayList<T>(property);
+        
+//        List<T> values = new ArrayList<T>();
+//        PrismProperty property = container.findProperty(name);
+//        if (property == null) {
+//            return values;
+//        }
+//
+//        Set<PropertyValue<T>> set = property.getValues(clazz);
+//        if (set != null) {
+//            for (PropertyValue<T> value : set) {
+//                values.add(value.getValue());
+//            }
+//        }
+//
+//        return values;
     }
 
     public static <T> T getPropertyValue(PrismContainer container, QName name, Class<T> clazz) {
+        Validate.notNull(container, "Container must not be null.");
+        Validate.notNull(name, "QName must not be null.");
+        Validate.notNull(clazz, "Class type must not be null.");
+
         PrismProperty property = container.findProperty(name);
         if (property == null) {
             return null;
@@ -70,6 +82,9 @@ public final class PrismForJAXBUtil {
     }
 
     public static <T> void setPropertyValue(PrismContainer container, QName name, T value) {
+        Validate.notNull(container, "Container must not be null.");
+        Validate.notNull(name, "QName must not be null.");
+
         PrismProperty property = container.findOrCreateProperty(name, value.getClass());
         property.setValue(new PropertyValue(value));
     }
