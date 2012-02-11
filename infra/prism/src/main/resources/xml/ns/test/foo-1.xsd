@@ -91,23 +91,19 @@
     <!-- Basic Object Types -->
 
     <xsd:complexType name="ObjectType" abstract="true">
-
         <xsd:annotation>
             <xsd:appinfo>
                 <a:propertyContainer/>
                 <a:object/>
             </xsd:appinfo>
         </xsd:annotation>
-
         <xsd:sequence>
             <xsd:element ref="tns:name" minOccurs="0"/>
             <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
-
         <xsd:attribute name="oid" type="xsd:string" use="optional"/>
         <xsd:attribute name="version" type="xsd:string" use="optional"/>
-
     </xsd:complexType>
     <xsd:element name="object" type="tns:ObjectType"/>
 
@@ -115,15 +111,43 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
+                	<!-- Single-valued properties -->
                     <xsd:element name="fullName" type="xsd:string"/>
                     <xsd:element name="givenName" type="xsd:string"/>
                     <xsd:element name="familyName" type="xsd:string"/>
+                    <!-- Multi-valued property -->
                     <xsd:element name="additionalNames" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                    <!-- Multi-valued container -->
+                    <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded"/>
+                    <!-- Single-valued container -->
+                    <xsd:element name="activation" type="tns:ActivationType" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="user" type="tns:UserType"/>
+
+    <xsd:complexType name="AssignmentType">
+    	<xsd:annotation>
+            <xsd:appinfo>
+                <a:propertyContainer/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="description" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+	<xsd:complexType name="ActivationType">
+    	<xsd:annotation>
+            <xsd:appinfo>
+                <a:propertyContainer/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="enabled" type="xsd:boolean"/>
+        </xsd:sequence>
+    </xsd:complexType>
 
 </xsd:schema>
 

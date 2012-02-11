@@ -38,6 +38,17 @@
     <givenName>Jack</givenName>
     <familyName>Sparrow</familyName>
 
+	<assignment xml:id="1111">
+		<description>Assignment 1</description>
+	</assignment>
+
+	<assignment xml:id="1112">
+		<description>Assignment 2</description>
+	</assignment>
+
+	<activation>
+		<enabled>true</enabled>
+	</activation>
 <!--     
     <credentials>
         <password>

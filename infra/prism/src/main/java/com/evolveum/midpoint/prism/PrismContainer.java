@@ -80,6 +80,16 @@ public class PrismContainer extends Item {
     	}
     }
     
+    public PrismContainerValue getValue(String id) {
+    	for (PrismContainerValue pval: values) {
+    		if ((id == null && pval.getId() == null) ||
+    				id.equals(pval.getId())) {
+    			return pval;
+    		}
+    	}
+    	return null;
+    }
+    
     public void add(PrismContainerValue pValue) {
     	values.add(pValue);
     }
@@ -183,6 +193,10 @@ public class PrismContainer extends Item {
     
     public PrismContainer findPropertyContainer(PropertyPath path) {
         return findItem(path, PrismContainer.class);
+    }
+    
+    public PrismContainer findPropertyContainer(QName containerName) {
+        return findItem(containerName, PrismContainer.class);
     }
 
     public PrismProperty findProperty(PropertyPath path) {

@@ -29,6 +29,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 
 /**
  * @author semancik
@@ -48,6 +50,11 @@ public class TestPrismParsing {
 	private static final String TEST_DIRECTORY = "src/test/resources/parsing";
 	private static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
 	private static final String NS_BAR = "http://www.example.com/bar";
+	
+	@BeforeSuite
+	public void setupDebug() {
+		DebugUtil.setDefaultNamespacePrefix("http://midpoint.evolveum.com/xml/ns");
+	}
 
 	@Test
 	public void testPrismContextConstruction() throws SchemaException, SAXException, IOException {
@@ -109,6 +116,43 @@ public class TestPrismParsing {
 		PrismProperty barProperty = user.findProperty(barPath);
 		assertNotNull("Property "+barPath+" not found", barProperty);
 		assertPropertyValue(barProperty, "BAR");
+		
+		PropertyPath enabledPath = new PropertyPath(new QName(NS_FOO,"activation"), new QName(NS_FOO,"enabled"));
+		PrismProperty enabledProperty1 = user.findProperty(enabledPath);
+		assertNotNull("Property "+enabledPath+" not found", enabledProperty1);
+		assertPropertyValue(enabledProperty1, true);
+				
+		QName actName = new QName(NS_FOO,"activation");
+		// Use path
+		PropertyPath actPath = new PropertyPath(actName);
+		PrismContainer actContainer1 = user.findPropertyContainer(actPath);
+		assertNotNull("Property "+actPath+" not found", actContainer1);
+		assertEquals("Wrong activation name",actName,actContainer1.getName());
+		// Use name
+		PrismContainer actContainer2 = user.findPropertyContainer(actName);
+		assertNotNull("Property "+actName+" not found", actContainer2);
+		assertEquals("Wrong activation name",actName,actContainer2.getName());
+		// Compare
+		assertEquals("Eh?",actContainer1,actContainer2);
+		
+		PrismProperty enabledProperty2 = actContainer1.findProperty(new QName(NS_FOO,"enabled"));
+		assertNotNull("Property enabled not found", enabledProperty2);
+		assertPropertyValue(enabledProperty2, true);
+		assertEquals("Eh?",enabledProperty1,enabledProperty2);
+		
+		QName assName = new QName(NS_FOO,"assignment");
+		QName descriptionName = new QName(NS_FOO,"description");
+		PrismContainer assContainer = user.findPropertyContainer(assName);
+		assertEquals("Wrong assignement values", 2, assContainer.getValues().size());
+		PrismProperty a2DescProperty = assContainer.getValue("1112").findProperty(descriptionName);
+		assertEquals("Wrong assigment 2 description", "Assignment 2", a2DescProperty.getValue().getValue());
+		
+		PropertyPath a1Path = new PropertyPath(new PropertyPathSegment(assName, "1111"),
+				new PropertyPathSegment(descriptionName));
+		PrismProperty a1Property = user.findProperty(a1Path);
+		assertNotNull("Property "+a1Path+" not found", a1Property);
+		assertPropertyValue(a1Property, "Assignment 1");
+
 	}
 	
 	private void assertPropertyValue(PrismContainer container, String propName, Object propValue) {
