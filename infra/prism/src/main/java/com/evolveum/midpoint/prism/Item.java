@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -29,6 +30,7 @@ import org.w3c.dom.Node;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.lang.reflect.Constructor;
 
 
 /**
@@ -55,13 +57,13 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
      * The constructors should be used only occasionally (if used at all).
      * Use the factory methods in the ResourceObjectDefintion instead.
      */
-    public Item(QName name, Definition definition, PrismContext prismContext) {
+    Item(QName name, Definition definition, PrismContext prismContext) {
         super();
         this.name = name;
         this.definition = definition;
         this.prismContext = prismContext;
     }
-
+    
     /**
      * Returns applicable property definition.
      * <p/>
@@ -175,6 +177,17 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
         clone.name = this.name;
         clone.definition = this.definition;
         clone.prismContext = this.prismContext;
+    }
+    
+    public static <T extends Item> T createNewDefinitionlessItem(QName name, Class<T> type, PrismContext prismContext) {
+    	T item = null;
+		try {
+			Constructor<T> constructor = type.getConstructor(QName.class, Definition.class, PrismContext.class);
+			item = constructor.newInstance(name, null, prismContext);
+		} catch (Exception e) {
+			throw new SystemException("Error creating new definitionless "+type.getSimpleName()+": "+e.getMessage(),e);
+		}
+    	return item;
     }
 
     @Override

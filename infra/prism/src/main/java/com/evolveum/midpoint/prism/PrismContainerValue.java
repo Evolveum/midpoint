@@ -190,13 +190,29 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
     }
     
     public <T extends Item> T findItem(QName itemName, Class<T> type) {
+    	return findCreateItem(itemName, type, false);
+    }
+    
+    <T extends Item> T findCreateItem(QName itemName, Class<T> type, boolean create) {
     	for (Item item : items) {
-            if (type.isAssignableFrom(item.getClass()) &&
-            		itemName.equals(item.getName())) {
-            	return (T)item;
+            if (itemName.equals(item.getName())) {
+            	if (type.isAssignableFrom(item.getClass())) {
+            		return (T)item;
+            	} else {
+            		if (create) {
+            			throw new IllegalStateException("The " + type.getSimpleName() + " cannot be created because "
+        						+ item.getClass().getSimpleName() + " with the same name exists ("+item.getName()+")");
+            		} else {
+            			return null;
+            		}
+            	}
             }
         }
-        return null;
+    	if (create) {
+    		return createSubItem(itemName, type);
+    	} else {
+    		return null;
+    	}
     }
     
     public <T extends Item> T findItem(ItemDefinition itemDefinition, Class<T> type) {
@@ -208,16 +224,30 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
 
 
     // Expects that "self" path is NOT present in propPath
-    <T extends Item> T findItem(PropertyPath propPath, Class<T> type) {
+    <T extends Item> T findCreateItem(PropertyPath propPath, Class<T> type, boolean create) {
     	PropertyPathSegment first = propPath.first();
+    	PropertyPath rest = propPath.rest();
     	for (Item item : items) {
-            if (type.isAssignableFrom(item.getClass()) &&
-            		first.getName().equals(item.getName())) {
-            	if (item instanceof PrismContainer) {
-            		return ((PrismContainer)item).findItem(propPath, type);
-            	} else {
-            		if (propPath.rest().isEmpty()) {
+            if (first.getName().equals(item.getName())) {
+            	if (type.isAssignableFrom(item.getClass())) {
+            		if (rest.isEmpty()) {
             			return (T)item;
+            		}
+            		// Go deeper
+	            	if (item instanceof PrismContainer) {
+	            		return ((PrismContainer)item).findCreateItem(propPath, type, create);
+	            	} else {
+            			if (create) {
+            				throw new IllegalStateException("Cannot create " + type.getSimpleName() + " under a "
+            						+ item.getClass().getSimpleName() + " ("+item.getName()+")");
+            			} else {
+            				return null;
+            			}
+	            	}
+            	} else {
+            		if (create) {
+            			throw new IllegalStateException("The " + type.getSimpleName() + " cannot be created because "
+        						+ item.getClass().getSimpleName() + " with the same name exists ("+item.getName()+")");
             		} else {
             			return null;
             		}
@@ -225,7 +255,40 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
                 
             }
         }
-        return null;
+    	if (create) {
+    		T subItem = createSubItem(first.getName(), type);
+    		if (rest.isEmpty()) {
+    			return (T)subItem;
+    		}
+    		// Go deeper
+        	if (subItem instanceof PrismContainer) {
+        		return ((PrismContainer)subItem).findCreateItem(propPath, type, create);
+        	} else {
+				throw new IllegalStateException("Cannot create " + type.getSimpleName() + " under a "
+						+ subItem.getClass().getSimpleName() + " ("+subItem.getName()+")");
+        	}
+    	} else {
+    		return null;
+    	}
+    }
+    
+    private <T extends Item> T createSubItem(QName name, Class<T> type) {
+    	// the item with specified name does not exist, create it now
+		Item newItem = null;
+		if (container.getDefinition() != null) {
+			ItemDefinition itemDefinition = container.getDefinition().findItemDefinition(name);
+			newItem = itemDefinition.instantiate(name);
+		} else {
+			newItem = Item.createNewDefinitionlessItem(name, type, container.prismContext);
+		}
+		
+		if (type.isAssignableFrom(newItem.getClass())) {
+			items.add(newItem);
+			return (T)newItem;
+    	} else {
+			throw new IllegalStateException("The " + type.getSimpleName() + " cannot be created because the item should be of type "
+					+ newItem.getClass().getSimpleName() + " ("+newItem.getName()+")");
+    	}
     }
 
     public PrismContainer findOrCreatePropertyContainer(QName containerName) {

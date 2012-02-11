@@ -23,7 +23,7 @@ package com.evolveum.midpoint.schema.xjc;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
@@ -44,7 +44,8 @@ public final class PrismForJAXBUtil {
         Validate.notNull(name, "QName must not be null.");
         Validate.notNull(clazz, "Class type must not be null.");
         
-        PrismProperty property = container.findOrCreateProperty(name, clazz);
+        //PrismProperty property = container.findOrCreateProperty(name, clazz);
+        PrismProperty property = container.findOrCreateProperty(name);
         return new PropertyArrayList<T>(property);
         
 //        List<T> values = new ArrayList<T>();
@@ -73,7 +74,7 @@ public final class PrismForJAXBUtil {
             return null;
         }
 
-        PropertyValue<Object> value = property.getValue();
+        PrismPropertyValue<Object> value = property.getValue();
         if (value == null) {
             return null;
         }
@@ -85,7 +86,8 @@ public final class PrismForJAXBUtil {
         Validate.notNull(container, "Container must not be null.");
         Validate.notNull(name, "QName must not be null.");
 
-        PrismProperty property = container.findOrCreateProperty(name, value.getClass());
-        property.setValue(new PropertyValue(value));
+        //PrismProperty property = container.findOrCreateProperty(name, value.getClass());
+        PrismProperty property = container.findOrCreateProperty(name);
+        property.setValue(new PrismPropertyValue(value));
     }
 }

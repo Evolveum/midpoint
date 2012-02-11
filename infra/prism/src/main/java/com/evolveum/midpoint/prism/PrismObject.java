@@ -105,22 +105,31 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 	
 	@Override
 	public <T extends Item> T findItem(PropertyPath path, Class<T> type) {
+		return findCreateItem(path, type, false);
+	}
+		
+	@Override
+	<T extends Item> T findCreateItem(PropertyPath path, Class<T> type, boolean create) {
 		// Objects are only a single-valued containers. The path of the object itself is "empty".
 		// Fix this special behavior here.
 		PropertyPathSegment first = path.first();
-		Item subitem = getValue().findItem(first.getName(), Item.class);
+		Item subitem = getValue().findCreateItem(first.getName(), Item.class, create);
 		if (subitem == null) {
 			return null;
 		}
 		if (subitem instanceof PrismContainer) {
-			return ((PrismContainer)subitem).findItem(path, type);
+			return ((PrismContainer)subitem).findCreateItem(path, type, create);
 		} else if (type.isAssignableFrom(subitem.getClass())){
 			return (T) subitem;
 		} else {
+			if (create) {
+				throw new IllegalStateException("The " + type.getSimpleName() + " cannot be created because "
+						+ subitem.getClass().getSimpleName() + " with the same name exists"); 
+			}
 			return null;
 		}
 	}
-
+	
 	@Override
 	public PrismObject<T> clone() {
 		PrismObject<T> clone = new PrismObject<T>(getName(), getDefinition(), prismContext);

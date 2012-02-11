@@ -126,15 +126,23 @@ public class PrismContainer extends Item {
     }
     
     public <T extends Item> T findItem(QName itemQName, Class<T> type) {
+    	return findCreateItem(itemQName, type, false);
+    }
+    
+    <T extends Item> T findCreateItem(QName itemQName, Class<T> type, boolean create) {
     	if (isSingleValue()) {
-    		return values.get(0).findItem(itemQName, type);
+    		return values.get(0).findCreateItem(itemQName, type, create);
     	} else {
     		throw new IllegalStateException("Attempt to get find item by QName in a multivalued container "+getName());
     	}
     }
         
-    // Expects that "self" path IS present in propPath
     public <T extends Item> T findItem(PropertyPath propPath, Class<T> type) {
+    	return findCreateItem(propPath, type, false);
+    }
+    
+    // Expects that "self" path IS present in propPath
+    <T extends Item> T findCreateItem(PropertyPath propPath, Class<T> type, boolean create) {
     	if (propPath == null || propPath.isEmpty()) {
     		throw new IllegalArgumentException("Empty path specified");
     	}
@@ -144,24 +152,29 @@ public class PrismContainer extends Item {
     	}
     	PropertyPath rest = propPath.rest();
     	if (rest.isEmpty()) {
-    		// This is the end :-)
+    		// This is the end ...
     		if (type.isAssignableFrom(getClass())) {
     			return (T) this;
     		} else {
-    			return null;
+    			if (create) {
+    				throw new IllegalStateException("The " + type.getSimpleName() + " cannot be created because "
+    						+ this.getClass().getSimpleName() + " with the same name exists"); 
+    			} else {
+    				return null;
+    			}
     		}
     	}
     	// Othewise descent to the correct value
     	if (first.getId() == null) {
     		if (values.size() == 1) {
-    			return values.get(0).findItem(rest, type);
+    			return values.get(0).findCreateItem(rest, type, create);
     		} else {
     			throw new IllegalArgumentException("Attempt to get segment "+first+" without an ID from a multi-valued container "+getName());
     		}
     	} else {
 	        for (PrismContainerValue pval : values) {
 	        	if (first.getId().equals(pval.getId())) {
-	        		return pval.findItem(rest, type);
+	        		return pval.findCreateItem(rest, type, create);
 	        	}
 	        }
 	        return null;
@@ -181,15 +194,18 @@ public class PrismContainer extends Item {
     }
 
     
-//    public PrismContainer findOrCreatePropertyContainer(PropertyPath containerPath) {
-//        if (containerPath.size() == 0) {
-//            return this;
-//        }
-//        PrismContainer container = findOrCreatePropertyContainer(containerPath.first());
-//        return container.findOrCreatePropertyContainer(containerPath.rest());
-//    }
-
+    public PrismContainer findOrCreatePropertyContainer(PropertyPath containerPath) {
+        return findCreateItem(containerPath, PrismContainer.class, true);
+    }
     
+    public PrismProperty findOrCreateProperty(PropertyPath propertyPath) {
+        return findCreateItem(propertyPath, PrismProperty.class, true);
+    }
+    
+    public PrismProperty findOrCreateProperty(QName propertyName) {
+        return findCreateItem(propertyName, PrismProperty.class, true);
+    }
+ 
     // Expects that the "self" path segment is NOT included in the basePath
     void addPropertyPathsToList(PropertyPath basePath, Collection<PropertyPath> list) {
     	boolean addIds = true;
