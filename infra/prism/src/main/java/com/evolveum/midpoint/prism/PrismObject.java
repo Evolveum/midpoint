@@ -58,6 +58,10 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 	protected String oid;
 	protected String version;
 		
+	public PrismObject(QName name) {
+		super(name);
+	}
+	
 	public PrismObject(QName name, PrismObjectDefinition definition, PrismContext prismContext) {
 		super(name, definition, prismContext);
 	}

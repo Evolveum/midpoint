@@ -47,6 +47,8 @@ public class TestPrismConstruction {
 	private static final String NS_BAR = "http://www.example.com/bar";
 	private static final String USER_OID = "1234567890";
 	
+	private static final QName USER_QNAME = new QName(NS_FOO,"user");
+	
 	private static final QName USER_FULLNAME_QNAME = new QName(NS_FOO,"fullName");
 	
 	private static final QName USER_ACTIVATION_QNAME = new QName(NS_FOO,"activation");
@@ -78,12 +80,48 @@ public class TestPrismConstruction {
 		
 		// WHEN
 		PrismObject<UserType> user = userDefinition.instantiate();
+		// Fill-in object values, checking presence of definition while doing so
+		fillInUserDrake(user, true);
+		
+		// THEN
+		System.out.println("User:");
+		System.out.println(user.dump());
+		// Check if the values are correct, also checking definitions
+		assertUserDrake(user, true);
+	}
+	
+	/**
+	 * Construct object without schema. Starts by creating object "out of the blue" and
+	 * the working downwards. 
+	 */
+	@Test
+	public void testDefinitionlessConstruction() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testDefinitionlessConstruction ]===");
+
+		// GIVEN
+		// No context needed
+		// PrismContext ctx = constructPrismContext();
+		
+		// WHEN
+		PrismObject<UserType> user = new PrismObject<UserType>(USER_QNAME);
+		// Fill-in object values, no schema checking
+		fillInUserDrake(user, false);
+		
+		// THEN
+		System.out.println("User:");
+		System.out.println(user.dump());
+		// Check if the values are correct, no schema checking
+		assertUserDrake(user, false);
+	}
+
+	
+	private void fillInUserDrake(PrismObject<UserType> user, boolean assertDefinitions) {
 		user.setOid(USER_OID);
 		
 		// fullName
 		PrismProperty fullNameProperty = user.findOrCreateProperty(USER_FULLNAME_QNAME);
 		assertEquals(USER_FULLNAME_QNAME, fullNameProperty.getName());
-		assertDefinition(fullNameProperty, DOMUtil.XSD_STRING, 1, 1);
+		if (assertDefinitions) assertDefinition(fullNameProperty, DOMUtil.XSD_STRING, 1, 1);
 		fullNameProperty.setValue(new PrismPropertyValue<String>("Sir Fancis Drake"));
 		PrismProperty fullNamePropertyAgain = user.findOrCreateProperty(USER_FULLNAME_QNAME);
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
@@ -92,7 +130,7 @@ public class TestPrismConstruction {
 		// activation
 		PrismContainer activationContainer = user.findOrCreatePropertyContainer(USER_ACTIVATION_QNAME);
 		assertEquals(USER_ACTIVATION_QNAME, activationContainer.getName());
-		assertDefinition(activationContainer, ACTIVATION_TYPE_QNAME, 0, 1);
+		if (assertDefinitions) assertDefinition(activationContainer, ACTIVATION_TYPE_QNAME, 0, 1);
 		PrismContainer activationContainerAgain = user.findOrCreatePropertyContainer(USER_ACTIVATION_QNAME);
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
 		assertTrue("Property not the same", activationContainer == activationContainerAgain);
@@ -100,7 +138,7 @@ public class TestPrismConstruction {
 		// activation/enabled
 		PrismProperty enabledProperty = user.findOrCreateProperty(USER_ENABLED_PATH);
 		assertEquals(USER_ENABLED_QNAME, enabledProperty.getName());
-		assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 1, 1);
+		if (assertDefinitions) assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 1, 1);
 		enabledProperty.setValue(new PrismPropertyValue<Boolean>(true));
 		PrismProperty enabledPropertyAgain = activationContainer.findOrCreateProperty(USER_ENABLED_QNAME);
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
@@ -109,7 +147,7 @@ public class TestPrismConstruction {
 		// assignment
 		PrismContainer assignmentContainer = user.findOrCreatePropertyContainer(USER_ASSIGNMENT_QNAME);
 		assertEquals(USER_ASSIGNMENT_QNAME, assignmentContainer.getName());
-		assertDefinition(assignmentContainer, ASSIGNMENT_TYPE_QNAME, 0, -1);
+		if (assertDefinitions) assertDefinition(assignmentContainer, ASSIGNMENT_TYPE_QNAME, 0, -1);
 		PrismContainer assignmentContainerAgain = user.findOrCreatePropertyContainer(USER_ASSIGNMENT_QNAME);
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
 		assertTrue("Property not the same", assignmentContainer == assignmentContainerAgain);
@@ -130,51 +168,48 @@ public class TestPrismConstruction {
 		PrismContainerValue assRedContainerValue = assignmentContainer.createNewValue();
 		PrismProperty assRedDescriptionProperty = assRedContainerValue.findOrCreateProperty(USER_DESCRIPTION_QNAME);
 		assRedDescriptionProperty.addValue(new PrismPropertyValue<Object>("Assignment created out of the red"));
-		
-		// TODO
-		
-		// THEN
-		System.out.println("User:");
-		System.out.println(user.dump());
-		
+	}
+	
+	private void assertUserDrake(PrismObject<UserType> user, boolean assertDefinitions) {
 		assertEquals("Wrong OID", USER_OID, user.getOid());
 		// fullName
-		fullNameProperty = user.findProperty(USER_FULLNAME_QNAME);
-		assertDefinition(fullNameProperty, DOMUtil.XSD_STRING, 1, 1);
+		PrismProperty fullNameProperty = user.findProperty(USER_FULLNAME_QNAME);
+		if (assertDefinitions) assertDefinition(fullNameProperty, DOMUtil.XSD_STRING, 1, 1);
 		assertEquals("Wrong fullname", "Sir Fancis Drake", fullNameProperty.getValue().getValue());
 		// activation
-		activationContainer = user.findPropertyContainer(USER_ACTIVATION_QNAME);
+		PrismContainer activationContainer = user.findPropertyContainer(USER_ACTIVATION_QNAME);
 		assertEquals(USER_ACTIVATION_QNAME, activationContainer.getName());
-		assertDefinition(activationContainer, ACTIVATION_TYPE_QNAME, 0, 1);
+		if (assertDefinitions) assertDefinition(activationContainer, ACTIVATION_TYPE_QNAME, 0, 1);
 		// activation/enabled
-		enabledProperty = user.findProperty(USER_ENABLED_PATH);
+		PrismProperty enabledProperty = user.findProperty(USER_ENABLED_PATH);
 		assertEquals(USER_ENABLED_QNAME, enabledProperty.getName());
-		assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 1, 1);
+		if (assertDefinitions) assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 1, 1);
 		assertEquals("Wrong enabled", true, enabledProperty.getValue().getValue());
 		// assignment
-		assignmentContainer = user.findPropertyContainer(USER_ASSIGNMENT_QNAME);
+		PrismContainer assignmentContainer = user.findPropertyContainer(USER_ASSIGNMENT_QNAME);
 		assertEquals(USER_ASSIGNMENT_QNAME, assignmentContainer.getName());
-		assertDefinition(assignmentContainer, ASSIGNMENT_TYPE_QNAME, 0, -1);
+		if (assertDefinitions) assertDefinition(assignmentContainer, ASSIGNMENT_TYPE_QNAME, 0, -1);
 		// assignment values
 		List<PrismContainerValue> assValues = assignmentContainer.getValues();
 		assertEquals("Wrong number of assignment values", 3, assValues.size());
 		// assignment values: blue
 		PrismContainerValue assBlueValue = assValues.get(0);
-		assBlueDescriptionProperty = assBlueValue.findProperty(USER_DESCRIPTION_QNAME);
-		assertDefinition(assBlueDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
+		PrismProperty assBlueDescriptionProperty = assBlueValue.findProperty(USER_DESCRIPTION_QNAME);
+		if (assertDefinitions) assertDefinition(assBlueDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
 		assertEquals("Wrong blue assignment description", "Assignment created out of the blue", assBlueDescriptionProperty.getValue().getValue());
 		// assignment values: cyan
 		PrismContainerValue assCyanValue = assValues.get(1);
-		assCyanDescriptionProperty = assCyanValue.findProperty(USER_DESCRIPTION_QNAME);
-		assertDefinition(assCyanDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
+		PrismProperty assCyanDescriptionProperty = assCyanValue.findProperty(USER_DESCRIPTION_QNAME);
+		if (assertDefinitions) assertDefinition(assCyanDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
 		assertEquals("Wrong cyan assignment description", "Assignment created out of the cyan", assCyanDescriptionProperty.getValue().getValue());
 		// assignment values: red
 		PrismContainerValue assRedValue = assValues.get(2);
-		assCyanDescriptionProperty = assRedValue.findProperty(USER_DESCRIPTION_QNAME);
-		assertDefinition(assRedDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
+		PrismProperty assRedDescriptionProperty = assRedValue.findProperty(USER_DESCRIPTION_QNAME);
+		if (assertDefinitions) assertDefinition(assRedDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
 		assertEquals("Wrong red assignment description", "Assignment created out of the red", assRedDescriptionProperty.getValue().getValue());
 		
 	}
+
 
 	private void assertDefinition(Item item, QName type, int minOccurs, int maxOccurs) {
 		ItemDefinition definition = item.getDefinition();
@@ -182,24 +217,8 @@ public class TestPrismConstruction {
 		assertEquals("Wrong definition type in "+item.getName(), type, definition.getTypeName());
 		assertEquals("Wrong definition minOccurs in "+item.getName(), minOccurs, definition.getMinOccurs());
 		assertEquals("Wrong definition maxOccurs in "+item.getName(), maxOccurs, definition.getMaxOccurs());
-	}
-
-	/**
-	 * Construct object without schema. Starts by creating object "out of the blue" and
-	 * the working downwards. 
-	 */
-	@Test
-	public void testDefinitionlessConstruction() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testDefinitionlessConstruction ]===");
-		
-		// GIVEN
-		// No context needed
-		// PrismContext ctx = constructPrismContext();
-		
-		// WHEN
-		// TODO
-	}
-
+	}	
+	
 	private PrismContext constructPrismContext() throws SchemaException, SAXException, IOException {
 		SchemaRegistry schemaRegistry = new SchemaRegistry();
 		DynamicNamespacePrefixMapper prefixMapper = new GlobalDynamicNamespacePrefixMapper();
