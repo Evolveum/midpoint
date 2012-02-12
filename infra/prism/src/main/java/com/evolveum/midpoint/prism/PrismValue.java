@@ -28,6 +28,10 @@ public abstract class PrismValue {
 	private SourceType type;
     private Objectable source;
     
+    PrismValue() {
+		super();
+	}
+    
     PrismValue(SourceType type, Objectable source) {
 		super();
 		this.type = type;

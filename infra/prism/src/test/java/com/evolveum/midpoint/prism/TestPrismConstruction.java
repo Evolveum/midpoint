@@ -114,12 +114,22 @@ public class TestPrismConstruction {
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
 		assertTrue("Property not the same", assignmentContainer == assignmentContainerAgain);
 		
-		// assignment values: construct assignment value "out of the blue" and then add it.
-		
+		// assignment values: construct assignment value as a new container "out of the blue" and then add it.
 		PrismContainer assBlueContainer = new PrismContainer(USER_ASSIGNMENT_QNAME);
 		PrismProperty assBlueDescriptionProperty = assBlueContainer.findOrCreateProperty(USER_DESCRIPTION_QNAME);
 		assBlueDescriptionProperty.addValue(new PrismPropertyValue<Object>("Assignment created out of the blue"));
 		assignmentContainer.mergeValues(assBlueContainer);
+		
+		// assignment values: construct assignment value as a new container value "out of the blue" and then add it.
+		PrismContainerValue assCyanContainerValue = new PrismContainerValue();
+		PrismProperty assCyanDescriptionProperty = assCyanContainerValue.findOrCreateProperty(USER_DESCRIPTION_QNAME);
+		assCyanDescriptionProperty.addValue(new PrismPropertyValue<Object>("Assignment created out of the cyan"));
+		assignmentContainer.mergeValue(assCyanContainerValue);
+		
+		// assignment values: construct assignment value from existing container
+		PrismContainerValue assRedContainerValue = assignmentContainer.createNewValue();
+		PrismProperty assRedDescriptionProperty = assRedContainerValue.findOrCreateProperty(USER_DESCRIPTION_QNAME);
+		assRedDescriptionProperty.addValue(new PrismPropertyValue<Object>("Assignment created out of the red"));
 		
 		// TODO
 		
@@ -147,12 +157,22 @@ public class TestPrismConstruction {
 		assertDefinition(assignmentContainer, ASSIGNMENT_TYPE_QNAME, 0, -1);
 		// assignment values
 		List<PrismContainerValue> assValues = assignmentContainer.getValues();
-		assertEquals("Wrong number of assignment values", 1, assValues.size());
+		assertEquals("Wrong number of assignment values", 3, assValues.size());
 		// assignment values: blue
 		PrismContainerValue assBlueValue = assValues.get(0);
 		assBlueDescriptionProperty = assBlueValue.findProperty(USER_DESCRIPTION_QNAME);
 		assertDefinition(assBlueDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
 		assertEquals("Wrong blue assignment description", "Assignment created out of the blue", assBlueDescriptionProperty.getValue().getValue());
+		// assignment values: cyan
+		PrismContainerValue assCyanValue = assValues.get(1);
+		assCyanDescriptionProperty = assCyanValue.findProperty(USER_DESCRIPTION_QNAME);
+		assertDefinition(assCyanDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
+		assertEquals("Wrong cyan assignment description", "Assignment created out of the cyan", assCyanDescriptionProperty.getValue().getValue());
+		// assignment values: red
+		PrismContainerValue assRedValue = assValues.get(2);
+		assCyanDescriptionProperty = assRedValue.findProperty(USER_DESCRIPTION_QNAME);
+		assertDefinition(assRedDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
+		assertEquals("Wrong red assignment description", "Assignment created out of the red", assRedDescriptionProperty.getValue().getValue());
 		
 	}
 

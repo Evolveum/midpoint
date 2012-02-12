@@ -44,9 +44,13 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
     private PrismContainer container;
     private String id;
     
+    PrismContainerValue() {
+    	super();
+    	// Nothing to do
+    }
+    
     PrismContainerValue(SourceType type, Objectable source, PrismContainer container, String id) {
 		super(type, source);
-		items = new ArrayList<Item>();
 		this.container = container;
 		this.id = id;
 	}
@@ -307,13 +311,12 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
         return createPropertyContainer(containerName);
     }
 
-    // The valueClass is kind of a hack
-    public PrismProperty findOrCreateProperty(QName propertyQName, Class<?> valueClass) {
+    public PrismProperty findOrCreateProperty(QName propertyQName) {
         PrismProperty property = findItem(propertyQName, PrismProperty.class);
         if (property != null) {
             return property;
         }
-        return createProperty(propertyQName, valueClass);
+        return createProperty(propertyQName);
     }
 
 //    public PrismProperty findOrCreateProperty(PropertyPath parentPath, QName propertyQName, Class<?> valueClass) {
@@ -337,23 +340,28 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
         return container;
     }
 
-    public PrismProperty createProperty(QName propertyName, Class<?> valueClass) {
-        if (container.getDefinition() == null) {
-            throw new IllegalStateException("No definition");
+    public PrismProperty createProperty(QName propertyName) {
+        PrismPropertyDefinition propertyDefinition = null;
+        if (container != null && container.getDefinition() != null) {
+        	propertyDefinition = container.getDefinition().findPropertyDefinition(propertyName);
+        	if (propertyDefinition == null) {
+        		// container has definition, but there is no property definition. This is either runtime schema
+        		// or an error
+        		if (container.getDefinition().isRuntimeSchema) {
+        			// TODO: create opportunistic runtime definition
+            		//propertyDefinition = new PrismPropertyDefinition(propertyName, propertyName, typeName, container.prismContext);
+        		} else {
+        			throw new IllegalArgumentException("No definition for property "+propertyName+" in "+container);
+        		}
+        	}
         }
-        PrismPropertyDefinition propertyDefinition = container.getDefinition().findPropertyDefinition(propertyName);
+        PrismProperty property = null;
         if (propertyDefinition == null) {
-        	// HACK: sometimes we don't know if the definition is runtime or not (e.g. applying a patch)
-        	// therefore pretend that everything without a definition is runtime (for now)
-//        	if (this.getDefinition().isRuntimeSchema) {
-        		// HACK: create the definition "on demand" based on the property java type.
-        		QName typeName = XsdTypeMapper.toXsdType(valueClass);
-        		propertyDefinition = new PrismPropertyDefinition(propertyName, propertyName, typeName, container.prismContext);
-//        	} else {
-//        		throw new IllegalArgumentException("No definition of property '" + propertyName + "' in " + getDefinition());
-//        	}
+        	// Definitionless
+        	property = new PrismProperty(propertyName);
+        } else {
+        	property = propertyDefinition.instantiate();
         }
-        PrismProperty property = propertyDefinition.instantiate();
         add(property);
         return property;
     }

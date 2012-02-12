@@ -126,6 +126,13 @@ public class PrismContainer extends Item {
     	values.add(pValue);
     }
     
+    public PrismContainerValue createNewValue() {
+    	PrismContainerValue pValue = new PrismContainerValue();
+    	pValue.setContainer(this);
+    	values.add(pValue);
+    	return pValue;
+    }
+    
     public void mergeValues(PrismContainer other) {
     	mergeValues(other.getValues());
     }
