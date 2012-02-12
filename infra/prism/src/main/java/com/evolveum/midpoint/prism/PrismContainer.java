@@ -198,7 +198,7 @@ public class PrismContainer extends Item {
     }
     
     @Override
-	void applyDefinition(ItemDefinition definition) {
+	public void applyDefinition(ItemDefinition definition) {
     	if (!(definition instanceof PrismContainerDefinition)) {
     		throw new IllegalArgumentException("Cannot apply "+definition+" to container");
     	}

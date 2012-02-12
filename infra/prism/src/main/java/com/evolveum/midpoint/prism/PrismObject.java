@@ -108,6 +108,14 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 	}
 	
 	@Override
+	public void applyDefinition(ItemDefinition definition) {
+    	if (!(definition instanceof PrismObjectDefinition)) {
+    		throw new IllegalArgumentException("Cannot apply "+definition+" to object");
+    	}
+    	super.applyDefinition(definition);
+	}
+	
+	@Override
 	public <T extends Item> T findItem(PropertyPath path, Class<T> type) {
 		return findCreateItem(path, type, false);
 	}

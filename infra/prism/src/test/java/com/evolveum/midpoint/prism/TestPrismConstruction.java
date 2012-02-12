@@ -100,7 +100,6 @@ public class TestPrismConstruction {
 
 		// GIVEN
 		// No context needed
-		// PrismContext ctx = constructPrismContext();
 		
 		// WHEN
 		PrismObject<UserType> user = new PrismObject<UserType>(USER_QNAME);
@@ -112,6 +111,39 @@ public class TestPrismConstruction {
 		System.out.println(user.dump());
 		// Check if the values are correct, no schema checking
 		assertUserDrake(user, false);
+	}
+	
+	/**
+	 * Construct object without schema. Starts by creating object "out of the blue" and
+	 * the working downwards. Then apply the schema. Check definitions.
+	 */
+	@Test
+	public void testDefinitionlessConstructionAndSchemaApplication() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testDefinitionlessConstructionAndSchemaApplication ]===");
+
+		// GIVEN
+		// No context needed (yet)
+		
+		PrismObject<UserType> user = new PrismObject<UserType>(USER_QNAME);
+		// Fill-in object values, no schema checking
+		fillInUserDrake(user, false);
+		// Make sure the object is OK
+		assertUserDrake(user, false);
+		
+		PrismContext ctx = constructPrismContext();
+		PrismObjectDefinition<UserType> userDefinition =
+			ctx.getSchemaRegistry().getObjectSchema().findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+		
+		// WHEN
+		user.applyDefinition(userDefinition);
+			
+		// THEN
+		System.out.println("User:");
+		System.out.println(user.dump());
+		
+		// Check schema now 
+		assertUserDrake(user, true);
+
 	}
 
 	
