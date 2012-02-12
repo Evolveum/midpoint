@@ -61,11 +61,6 @@ public class PrismContainer extends Item {
     public PrismContainer(QName name, PrismContainerDefinition definition, PrismContext prismContext) {
         super(name, definition, prismContext);
         values = new ArrayList<PrismContainerValue>();
-        
-        // Insert first empty value. This simulates empty single-valued container. It the container exists
-        // it is clear that it has at least one value (and that value is empty).
-        PrismContainerValue pValue = new PrismContainerValue(null, null, this, null);
-        values.add(pValue);
     }
 
     public List<PrismContainerValue> getValues() {
@@ -73,12 +68,42 @@ public class PrismContainer extends Item {
     }
    
     public PrismContainerValue getValue() {
-    	if (isSingleValue()) {
+    	if (values.size() == 1) {
     		return values.get(0);
-    	} else {
+		}
+    	if (values.size() > 1) {
     		throw new IllegalStateException("Attempt to get single value from a multivalued container "+getName());
     	}
+    	if (getDefinition() != null) {
+			if (getDefinition().isSingleValue()) {
+				// Insert first empty value. This simulates empty single-valued container. It the container exists
+		        // it is clear that it has at least one value (and that value is empty).
+		        PrismContainerValue pValue = new PrismContainerValue(null, null, this, null);
+		        values.add(pValue);
+		        return pValue;
+			} else {
+				throw new IllegalStateException("Attempt to get single value from a multivalued container "+getName());
+			}
+		} else {
+			// Insert first empty value. This simulates empty single-valued container. It the container exists
+	        // it is clear that it has at least one value (and that value is empty).
+	        PrismContainerValue pValue = new PrismContainerValue(null, null, this, null);
+	        values.add(pValue);
+	        return pValue;
+		}
     }
+    
+	private boolean canAssumeSingleValue() {
+		if (getDefinition() != null) {
+			return getDefinition().isSingleValue();
+		} else {
+			if (values.size() <= 1) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
     
     public PrismContainerValue getValue(String id) {
     	for (PrismContainerValue pval: values) {
@@ -107,13 +132,6 @@ public class PrismContainer extends Item {
     	}
     }
     
-	private boolean isSingleValue() {
-		if (getDefinition() != null) {
-			return getDefinition().isSingleValue();
-		}
-		return values.size() == 1;
-	}
-
     /**
      * Returns applicable property container definition.
      * <p/>
@@ -140,11 +158,7 @@ public class PrismContainer extends Item {
     }
     
     <T extends Item> T findCreateItem(QName itemQName, Class<T> type, boolean create) {
-    	if (isSingleValue()) {
-    		return values.get(0).findCreateItem(itemQName, type, create);
-    	} else {
-    		throw new IllegalStateException("Attempt to get find item by QName in a multivalued container "+getName());
-    	}
+   		return getValue().findCreateItem(itemQName, type, create);
     }
         
     public <T extends Item> T findItem(PropertyPath propPath, Class<T> type) {
@@ -176,8 +190,8 @@ public class PrismContainer extends Item {
     	}
     	// Othewise descent to the correct value
     	if (first.getId() == null) {
-    		if (values.size() == 1) {
-    			return values.get(0).findCreateItem(rest, type, create);
+    		if (canAssumeSingleValue()) {
+    			return getValue().findCreateItem(rest, type, create);
     		} else {
     			throw new IllegalArgumentException("Attempt to get segment "+first+" without an ID from a multi-valued container "+getName());
     		}
@@ -191,7 +205,7 @@ public class PrismContainer extends Item {
     	}
     }
     
-    public PrismContainer findPropertyContainer(PropertyPath path) {
+	public PrismContainer findPropertyContainer(PropertyPath path) {
         return findItem(path, PrismContainer.class);
     }
     

@@ -101,7 +101,6 @@ class PrismDomProcessor {
             pval.addAll(parsePrismContainerItems(childElements, containerDefinition));
             container.add(pval);
         }
-        container.trim();
         return container;
 	}
 	

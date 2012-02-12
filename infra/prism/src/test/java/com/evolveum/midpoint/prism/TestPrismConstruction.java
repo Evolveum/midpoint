@@ -46,11 +46,16 @@ public class TestPrismConstruction {
 	private static final String USER_OID = "1234567890";
 	
 	private static final QName USER_FULLNAME_QNAME = new QName(NS_FOO,"fullName");
+	
 	private static final QName USER_ACTIVATION_QNAME = new QName(NS_FOO,"activation");
 	private static final QName USER_ENABLED_QNAME = new QName(NS_FOO,"enabled");
 	private static final PropertyPath USER_ENABLED_PATH = new PropertyPath(USER_ACTIVATION_QNAME, USER_ENABLED_QNAME);
-	
 	private static final QName ACTIVATION_TYPE_QNAME = new QName(NS_FOO,"ActivationType");
+	
+	private static final QName USER_ASSIGNMENT_QNAME = new QName(NS_FOO,"assignment");
+	private static final QName USER_DESCRIPTION_QNAME = new QName(NS_FOO,"description");
+	private static final PropertyPath USER_ASSIGNMENT_DESCRIPTION_PATH = new PropertyPath(USER_ASSIGNMENT_QNAME, USER_DESCRIPTION_QNAME);
+	private static final QName ASSIGNMENT_TYPE_QNAME = new QName(NS_FOO,"AssignmentType");
 	
 	@BeforeSuite
 	public void setupDebug() {
@@ -99,6 +104,14 @@ public class TestPrismConstruction {
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
 		assertTrue("Property not the same", enabledProperty == enabledPropertyAgain);
 		
+		// assignment
+		PrismContainer assignmentContainer = user.findOrCreatePropertyContainer(USER_ASSIGNMENT_QNAME);
+		assertEquals(USER_ASSIGNMENT_QNAME, assignmentContainer.getName());
+		assertDefinition(assignmentContainer.getDefinition(), ASSIGNMENT_TYPE_QNAME, 0, -1);
+		PrismContainer assignmentContainerAgain = user.findOrCreatePropertyContainer(USER_ASSIGNMENT_QNAME);
+		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
+		assertTrue("Property not the same", assignmentContainer == assignmentContainerAgain);
+		
 		// TODO
 		
 		// THEN
@@ -119,6 +132,10 @@ public class TestPrismConstruction {
 		assertEquals(USER_ENABLED_QNAME, enabledProperty.getName());
 		assertDefinition(enabledProperty.getDefinition(), DOMUtil.XSD_BOOLEAN, 1, 1);
 		assertEquals("Wrong enabled", true, enabledProperty.getValue().getValue());
+		// assignment
+		assignmentContainer = user.findPropertyContainer(USER_ASSIGNMENT_QNAME);
+		assertEquals(USER_ASSIGNMENT_QNAME, assignmentContainer.getName());
+		assertDefinition(assignmentContainer.getDefinition(), ASSIGNMENT_TYPE_QNAME, 0, -1);
 	}
 
 	private void assertDefinition(ItemDefinition definition, QName type, int minOccurs, int maxOccurs) {
