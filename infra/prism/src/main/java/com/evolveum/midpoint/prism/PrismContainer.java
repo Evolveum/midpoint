@@ -260,11 +260,11 @@ public class PrismContainer extends Item {
     	}
     }
     
-	public PrismContainer findPropertyContainer(PropertyPath path) {
+	public PrismContainer findContainer(PropertyPath path) {
         return findItem(path, PrismContainer.class);
     }
     
-    public PrismContainer findPropertyContainer(QName containerName) {
+    public PrismContainer findContainer(QName containerName) {
         return findItem(containerName, PrismContainer.class);
     }
 
@@ -277,11 +277,11 @@ public class PrismContainer extends Item {
     }
 
     
-    public PrismContainer findOrCreatePropertyContainer(PropertyPath containerPath) {
+    public PrismContainer findOrCreateContainer(PropertyPath containerPath) {
         return findCreateItem(containerPath, PrismContainer.class, true);
     }
     
-    public PrismContainer findOrCreatePropertyContainer(QName containerName) {
+    public PrismContainer findOrCreateContainer(QName containerName) {
         return findCreateItem(containerName, PrismContainer.class, true);
     }
     

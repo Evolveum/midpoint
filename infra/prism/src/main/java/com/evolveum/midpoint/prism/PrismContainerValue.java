@@ -303,12 +303,12 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
     	}
     }
 
-    public PrismContainer findOrCreatePropertyContainer(QName containerName) {
+    public PrismContainer findOrCreateContainer(QName containerName) {
         PrismContainer container = findItem(containerName, PrismContainer.class);
         if (container != null) {
             return container;
         }
-        return createPropertyContainer(containerName);
+        return createContainer(containerName);
     }
 
     public PrismProperty findOrCreateProperty(QName propertyQName) {
@@ -327,11 +327,11 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
 //        return container.findOrCreateProperty(propertyQName, valueClass);
 //    }
 
-    public PrismContainer createPropertyContainer(QName containerName) {
+    public PrismContainer createContainer(QName containerName) {
         if (container.getDefinition() == null) {
             throw new IllegalStateException("No definition of container "+containerName);
         }
-        PrismContainerDefinition containerDefinition = container.getDefinition().findPropertyContainerDefinition(containerName);
+        PrismContainerDefinition containerDefinition = container.getDefinition().findContainerDefinition(containerName);
         if (containerDefinition == null) {
             throw new IllegalArgumentException("No definition of container '" + containerName + "' in " + container.getDefinition());
         }

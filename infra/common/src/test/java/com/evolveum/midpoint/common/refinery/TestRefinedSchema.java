@@ -143,7 +143,7 @@ public class TestRefinedSchema {
         assertProperty(accObject, SchemaConstants.I_OBJECT_CLASS, new QName(resourceType.getNamespace(), "AccountObjectClass"));
         assertProperty(accObject, new QName(SchemaConstants.NS_C, "accountType"), "user");
 
-        PrismContainer attributes = accObject.findOrCreatePropertyContainer(SchemaConstants.I_ATTRIBUTES);
+        PrismContainer attributes = accObject.findOrCreateContainer(SchemaConstants.I_ATTRIBUTES);
         RefinedAccountDefinition attrDef = (RefinedAccountDefinition) attributes.getDefinition();
         assertAttributeDefs(attrDef, resourceType);
 

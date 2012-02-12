@@ -124,7 +124,7 @@ public class ReconciliationProcessor {
 
     	PrismObject<AccountShadowType> account = accCtx.getAccountNew();
 
-        PrismContainer attributesContainer = account.findPropertyContainer(AccountShadowType.F_ATTRIBUTES);
+        PrismContainer attributesContainer = account.findContainer(AccountShadowType.F_ATTRIBUTES);
         Collection<QName> attributeNames = MiscUtil.union(tripleMap.keySet(),attributesContainer.getPropertyNames());
 
         for (QName attrName: attributeNames) {

@@ -129,7 +129,7 @@ public class TestJaxbWithDynamicSchema {
 		assertEquals(new QName(SCHEMA_NS,"password"), passwdDef.getName());
 		assertEquals(SchemaConstants.R_PROTECTED_STRING_TYPE, passwdDef.getTypeName());
 
-		PrismContainerDefinition credDef = newContainerDef.findPropertyContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
+		PrismContainerDefinition credDef = newContainerDef.findContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
 		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
 		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
 	}

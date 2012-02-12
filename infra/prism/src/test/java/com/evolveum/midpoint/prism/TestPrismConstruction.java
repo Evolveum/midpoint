@@ -160,10 +160,10 @@ public class TestPrismConstruction {
 		assertTrue("Property not the same", fullNameProperty == fullNamePropertyAgain);
 		
 		// activation
-		PrismContainer activationContainer = user.findOrCreatePropertyContainer(USER_ACTIVATION_QNAME);
+		PrismContainer activationContainer = user.findOrCreateContainer(USER_ACTIVATION_QNAME);
 		assertEquals(USER_ACTIVATION_QNAME, activationContainer.getName());
 		if (assertDefinitions) assertDefinition(activationContainer, ACTIVATION_TYPE_QNAME, 0, 1);
-		PrismContainer activationContainerAgain = user.findOrCreatePropertyContainer(USER_ACTIVATION_QNAME);
+		PrismContainer activationContainerAgain = user.findOrCreateContainer(USER_ACTIVATION_QNAME);
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
 		assertTrue("Property not the same", activationContainer == activationContainerAgain);
 		
@@ -177,10 +177,10 @@ public class TestPrismConstruction {
 		assertTrue("Property not the same", enabledProperty == enabledPropertyAgain);
 		
 		// assignment
-		PrismContainer assignmentContainer = user.findOrCreatePropertyContainer(USER_ASSIGNMENT_QNAME);
+		PrismContainer assignmentContainer = user.findOrCreateContainer(USER_ASSIGNMENT_QNAME);
 		assertEquals(USER_ASSIGNMENT_QNAME, assignmentContainer.getName());
 		if (assertDefinitions) assertDefinition(assignmentContainer, ASSIGNMENT_TYPE_QNAME, 0, -1);
-		PrismContainer assignmentContainerAgain = user.findOrCreatePropertyContainer(USER_ASSIGNMENT_QNAME);
+		PrismContainer assignmentContainerAgain = user.findOrCreateContainer(USER_ASSIGNMENT_QNAME);
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
 		assertTrue("Property not the same", assignmentContainer == assignmentContainerAgain);
 		
@@ -209,7 +209,7 @@ public class TestPrismConstruction {
 		if (assertDefinitions) assertDefinition(fullNameProperty, DOMUtil.XSD_STRING, 1, 1);
 		assertEquals("Wrong fullname", "Sir Fancis Drake", fullNameProperty.getValue().getValue());
 		// activation
-		PrismContainer activationContainer = user.findPropertyContainer(USER_ACTIVATION_QNAME);
+		PrismContainer activationContainer = user.findContainer(USER_ACTIVATION_QNAME);
 		assertEquals(USER_ACTIVATION_QNAME, activationContainer.getName());
 		if (assertDefinitions) assertDefinition(activationContainer, ACTIVATION_TYPE_QNAME, 0, 1);
 		// activation/enabled
@@ -218,7 +218,7 @@ public class TestPrismConstruction {
 		if (assertDefinitions) assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 1, 1);
 		assertEquals("Wrong enabled", true, enabledProperty.getValue().getValue());
 		// assignment
-		PrismContainer assignmentContainer = user.findPropertyContainer(USER_ASSIGNMENT_QNAME);
+		PrismContainer assignmentContainer = user.findContainer(USER_ASSIGNMENT_QNAME);
 		assertEquals(USER_ASSIGNMENT_QNAME, assignmentContainer.getName());
 		if (assertDefinitions) assertDefinition(assignmentContainer, ASSIGNMENT_TYPE_QNAME, 0, -1);
 		// assignment values

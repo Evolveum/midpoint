@@ -205,7 +205,7 @@ public class SchemaProcessorTest {
 		assertEquals(SchemaConstants.R_PROTECTED_STRING_TYPE, passwdDef.getTypeName());
 		assertFalse(passwdDef.isIgnored());
 
-		PrismContainerDefinition credDef = newContainerDef.findPropertyContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
+		PrismContainerDefinition credDef = newContainerDef.findContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
 		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
 		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
 		assertFalse(credDef.isIgnored());

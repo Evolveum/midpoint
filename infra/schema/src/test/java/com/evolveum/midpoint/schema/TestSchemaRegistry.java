@@ -113,7 +113,7 @@ public class TestSchemaRegistry {
 		System.out.println("Object schema:");
 		System.out.println(schema.dump());
 		PrismObjectDefinition<UserType> userDef = schema.findObjectDefinition(UserType.class);
-		PrismContainerDefinition extDef = userDef.findPropertyContainerDefinition(SchemaConstants.C_EXTENSION);
+		PrismContainerDefinition extDef = userDef.findContainerDefinition(SchemaConstants.C_EXTENSION);
 		assertTrue("Extension is not dynamic", extDef.isRuntimeSchema());
 		assertEquals("Wrong extension type", userExtTypeQName, extDef.getTypeName());
 		
@@ -149,7 +149,7 @@ public class TestSchemaRegistry {
 		PrismPropertyDefinition nameDef = userContainer.findPropertyDefinition(SchemaConstants.C_NAME);
 		assertNotNull("No name definition", nameDef);
 
-		PrismContainerDefinition extensionDef = userContainer.findPropertyContainerDefinition(SchemaConstants.C_EXTENSION);
+		PrismContainerDefinition extensionDef = userContainer.findContainerDefinition(SchemaConstants.C_EXTENSION);
 		assertNotNull("No 'extension' definition", extensionDef);
 		assertTrue(extensionDef.isWildcard());
 		
@@ -175,11 +175,11 @@ public class TestSchemaRegistry {
 		PrismPropertyDefinition nameDef = accountDef.findPropertyDefinition(SchemaConstants.C_NAME);
 		assertNotNull("No name definition", nameDef);
 		
-		PrismContainerDefinition extensionDef = accountDef.findPropertyContainerDefinition(SchemaConstants.C_EXTENSION);
+		PrismContainerDefinition extensionDef = accountDef.findContainerDefinition(SchemaConstants.C_EXTENSION);
 		assertNotNull("No 'extension' definition", extensionDef);
 		assertTrue(extensionDef.isWildcard());
 		
-		PrismContainerDefinition attributesDef = accountDef.findPropertyContainerDefinition(SchemaConstants.I_ATTRIBUTES);
+		PrismContainerDefinition attributesDef = accountDef.findContainerDefinition(SchemaConstants.I_ATTRIBUTES);
 		assertNotNull("No 'attributes' definition", attributesDef);
 		assertTrue(attributesDef.isWildcard());
 	}

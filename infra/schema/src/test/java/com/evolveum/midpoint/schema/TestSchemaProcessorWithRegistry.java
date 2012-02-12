@@ -88,14 +88,14 @@ public class TestSchemaProcessorWithRegistry {
         assertProperty(user, new QName(SchemaConstants.NS_C, "givenName"), "Jack");
         assertProperty(user, new QName(SchemaConstants.NS_C, "familyName"), "Sparrow");
         assertProperty(user, new QName(SchemaConstants.NS_C, "honorificPrefix"), "Cpt.");
-        assertProperty(user.findOrCreatePropertyContainer(SchemaConstants.C_EXTENSION),
+        assertProperty(user.findOrCreateContainer(SchemaConstants.C_EXTENSION),
                 new QName(NS_FOO, "bar"), "BAR");
-        PrismProperty password = user.findOrCreatePropertyContainer(SchemaConstants.C_EXTENSION).findProperty(new QName(NS_FOO, "password"));
+        PrismProperty password = user.findOrCreateContainer(SchemaConstants.C_EXTENSION).findProperty(new QName(NS_FOO, "password"));
         assertNotNull(password);
         // TODO: check inside
-        assertProperty(user.findOrCreatePropertyContainer(SchemaConstants.C_EXTENSION),
+        assertProperty(user.findOrCreateContainer(SchemaConstants.C_EXTENSION),
                 new QName(NS_FOO, "num"), 42);
-        PrismProperty multi = user.findOrCreatePropertyContainer(SchemaConstants.C_EXTENSION).findProperty(new QName(NS_FOO, "multi"));
+        PrismProperty multi = user.findOrCreateContainer(SchemaConstants.C_EXTENSION).findProperty(new QName(NS_FOO, "multi"));
         assertEquals(3, multi.getValues().size());
 
         // WHEN

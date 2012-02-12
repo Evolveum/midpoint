@@ -140,7 +140,7 @@ public class ConsolidationProcessor {
 
             PrismContainer attributesPropertyContainer = null;
             if (accCtx.getAccountNew() != null) {
-                attributesPropertyContainer = accCtx.getAccountNew().findPropertyContainer(SchemaConstants.I_ATTRIBUTES);
+                attributesPropertyContainer = accCtx.getAccountNew().findContainer(SchemaConstants.I_ATTRIBUTES);
             }
 
             Collection<PrismPropertyValue<Object>> allValues = collectAllValues(triple);

@@ -114,7 +114,7 @@ public class DeltaConvertor {
         }
         XPathHolder xpath = new XPathHolder(propMod.getPath());
         PropertyPath parentPath = xpath.toPropertyPath();
-        PrismContainerDefinition containingPcd = pcDef.findPropertyContainerDefinition(parentPath);
+        PrismContainerDefinition containingPcd = pcDef.findContainerDefinition(parentPath);
         if (containingPcd == null) {
             throw new SchemaException("No container definition for " + parentPath + " (while creating delta for " + pcDef + ")");
         }

@@ -125,11 +125,11 @@ public class TestPrismParsing {
 		QName actName = new QName(NS_FOO,"activation");
 		// Use path
 		PropertyPath actPath = new PropertyPath(actName);
-		PrismContainer actContainer1 = user.findPropertyContainer(actPath);
+		PrismContainer actContainer1 = user.findContainer(actPath);
 		assertNotNull("Property "+actPath+" not found", actContainer1);
 		assertEquals("Wrong activation name",actName,actContainer1.getName());
 		// Use name
-		PrismContainer actContainer2 = user.findPropertyContainer(actName);
+		PrismContainer actContainer2 = user.findContainer(actName);
 		assertNotNull("Property "+actName+" not found", actContainer2);
 		assertEquals("Wrong activation name",actName,actContainer2.getName());
 		// Compare
@@ -142,7 +142,7 @@ public class TestPrismParsing {
 		
 		QName assName = new QName(NS_FOO,"assignment");
 		QName descriptionName = new QName(NS_FOO,"description");
-		PrismContainer assContainer = user.findPropertyContainer(assName);
+		PrismContainer assContainer = user.findContainer(assName);
 		assertEquals("Wrong assignement values", 2, assContainer.getValues().size());
 		PrismProperty a2DescProperty = assContainer.getValue("1112").findProperty(descriptionName);
 		assertEquals("Wrong assigment 2 description", "Assignment 2", a2DescProperty.getValue().getValue());

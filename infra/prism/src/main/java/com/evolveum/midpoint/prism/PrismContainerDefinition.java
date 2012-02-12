@@ -179,7 +179,7 @@ public class PrismContainerDefinition extends ItemDefinition {
         if (propertyPath.size() == 1) {
             return findPropertyDefinition(propertyPath.first().getName());
         }
-        PrismContainerDefinition pcd = findPropertyContainerDefinition(propertyPath.first().getName());
+        PrismContainerDefinition pcd = findContainerDefinition(propertyPath.first().getName());
         return pcd.findPropertyDefinition(propertyPath.rest());
     }
 
@@ -191,7 +191,7 @@ public class PrismContainerDefinition extends ItemDefinition {
      * @param name property container definition name
      * @return found property container definition or null
      */
-    public PrismContainerDefinition findPropertyContainerDefinition(QName name) {
+    public PrismContainerDefinition findContainerDefinition(QName name) {
         return findItemDefinition(name, PrismContainerDefinition.class);
     }
 
@@ -203,7 +203,7 @@ public class PrismContainerDefinition extends ItemDefinition {
      * @param path property container path
      * @return found property container definition or null
      */
-    public PrismContainerDefinition findPropertyContainerDefinition(PropertyPath path) {
+    public PrismContainerDefinition findContainerDefinition(PropertyPath path) {
         return findItemDefinition(path, PrismContainerDefinition.class);
     }
 
