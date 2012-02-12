@@ -212,6 +212,10 @@ public class PrismContainer extends Item {
         return findCreateItem(containerPath, PrismContainer.class, true);
     }
     
+    public PrismContainer findOrCreatePropertyContainer(QName containerName) {
+        return findCreateItem(containerName, PrismContainer.class, true);
+    }
+    
     public PrismProperty findOrCreateProperty(PropertyPath propertyPath) {
         return findCreateItem(propertyPath, PrismProperty.class, true);
     }

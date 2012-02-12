@@ -28,6 +28,7 @@
     <test name="Prism" preserve-order="false" verbose="1">
         <classes>
 			<class name="com.evolveum.midpoint.prism.TestPrismParsing"/>
+			<class name="com.evolveum.midpoint.prism.TestPrismConstruction"/>
         </classes>
     </test>
 </suite>

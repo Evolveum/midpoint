@@ -77,6 +77,12 @@ public class PrismObjectDefinition<T extends Objectable> extends PrismContainerD
 	}
 	
 	@Override
+	public PrismObject<T> instantiate() {
+		PrismObject<T> midPointObject = new PrismObject<T>(getNameOrDefaultName(), this, prismContext);
+		return midPointObject;
+	}
+	
+	@Override
 	public PrismObject<T> instantiate(QName name) {
 		PrismObject<T> midPointObject = new PrismObject<T>(name, this, prismContext);
 		return midPointObject;

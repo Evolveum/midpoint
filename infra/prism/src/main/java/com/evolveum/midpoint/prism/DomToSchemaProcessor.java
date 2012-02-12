@@ -277,10 +277,10 @@ class DomToSchemaProcessor {
 			if (pterm.isElementDecl()) {
 				XSAnnotation annotation = selectAnnotationToUse(p.getAnnotation(), pterm.getAnnotation());
 
-				XSElementDecl element = pterm.asElementDecl();
-				QName elementName = new QName(element.getTargetNamespace(), element.getName());
+				XSElementDecl elementDecl = pterm.asElementDecl();
+				QName elementName = new QName(elementDecl.getTargetNamespace(), elementDecl.getName());
 				
-				XSType xsType = element.getType();
+				XSType xsType = elementDecl.getType();
 				
 				if (isObjectDefinition(xsType)) {					
 					// This is object reference. It also has its *Ref equivalent which will get parsed.
@@ -293,7 +293,8 @@ class DomToSchemaProcessor {
 					XSComplexType complexType = (XSComplexType)xsType;
 					ComplexTypeDefinition innerComplexTypeDefinition = createComplexTypeDefinition(complexType);
 					XSAnnotation containerAnnotation = complexType.getAnnotation();
-					PrismContainerDefinition containerDefinition = createPropertyContainerDefinition(xsType,elementName,innerComplexTypeDefinition,containerAnnotation,false);
+					PrismContainerDefinition containerDefinition = createPropertyContainerDefinition(xsType, p, 
+							innerComplexTypeDefinition, containerAnnotation);
 					ctd.getDefinitions().add(containerDefinition);
 					
 				} else if (xsType.getName() == null) {
@@ -311,7 +312,8 @@ class DomToSchemaProcessor {
 					if (isAny(xsType)) {
 						// This is a element with xsd:any type. It has to be property container
 						XSAnnotation containerAnnotation = xsType.getAnnotation();
-						PrismContainerDefinition containerDefinition = createPropertyContainerDefinition(xsType,elementName,null,containerAnnotation,false);
+						PrismContainerDefinition containerDefinition = createPropertyContainerDefinition(xsType, p,
+								null, containerAnnotation);
 						ctd.getDefinitions().add(containerDefinition);
 					}
 					
@@ -364,7 +366,8 @@ class DomToSchemaProcessor {
 				if (isPropertyContainer(xsType)) {
 					
 					ComplexTypeDefinition complexTypeDefinition = schema.findComplexTypeDefinition(typeQName);
-					PrismContainerDefinition propertyContainerDefinition = createPropertyContainerDefinition(xsType, elementName, complexTypeDefinition, annotation, false);
+					PrismContainerDefinition propertyContainerDefinition = createPropertyContainerDefinition(xsType, xsElementDecl,
+							complexTypeDefinition, annotation);
 					schema.getDefinitions().add(propertyContainerDefinition);
 					
 				} else {
@@ -458,8 +461,18 @@ class DomToSchemaProcessor {
 	 * @param createResourceObject true if ResourceObjectDefinition should be created
 	 * @return appropriate PropertyContainerDefinition instance
 	 */
-	private PrismContainerDefinition createPropertyContainerDefinition(XSType xsType, QName elementName, ComplexTypeDefinition complexTypeDefinition, XSAnnotation annotation, boolean createResourceObject) {
-		PrismContainerDefinition pcd;
+	private PrismContainerDefinition createPropertyContainerDefinition(XSType xsType, XSParticle elementParticle, 
+			ComplexTypeDefinition complexTypeDefinition, XSAnnotation annotation) {	
+		XSTerm elementTerm = elementParticle.getTerm();
+		XSElementDecl elementDecl = elementTerm.asElementDecl();
+		
+		PrismContainerDefinition pcd = createPropertyContainerDefinition(xsType, elementDecl, complexTypeDefinition, annotation);
+		pcd.setMinOccurs(elementParticle.getMinOccurs());
+		pcd.setMaxOccurs(elementParticle.getMaxOccurs());
+		return pcd;
+	}
+	
+	private PrismContainerDefinition createPropertyContainerDefinition(XSType xsType, XSElementDecl elementDecl, ComplexTypeDefinition complexTypeDefinition, XSAnnotation annotation) {
 		
 //		if (createResourceObject) {
 //			ResourceObjectDefinition rod = new ResourceObjectDefinition(schema, elementName, complexTypeDefinition);
@@ -513,6 +526,9 @@ class DomToSchemaProcessor {
 //			
 //			pcd = rod;
 
+		QName elementName = new QName(elementDecl.getTargetNamespace(), elementDecl.getName());
+		PrismContainerDefinition pcd =  null;
+		
 		if (isObjectDefinition(xsType)) {
 			Class compileTimeClass = null;
 			if (schemaRegistry != null) {
