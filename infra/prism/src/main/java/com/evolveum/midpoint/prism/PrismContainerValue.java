@@ -92,6 +92,14 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
 	public void setId(String id) {
 		this.id = id;
 	}
+	
+	PrismContainer getContainer() {
+		return container;
+	}
+
+	void setContainer(PrismContainer container) {
+		this.container = container;
+	}
 
 	public Collection<QName> getPropertyNames() {
 		Collection<QName> names = new HashSet<QName>();
@@ -279,7 +287,7 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
 			ItemDefinition itemDefinition = container.getDefinition().findItemDefinition(name);
 			newItem = itemDefinition.instantiate(name);
 		} else {
-			newItem = Item.createNewDefinitionlessItem(name, type, container.prismContext);
+			newItem = Item.createNewDefinitionlessItem(name, type);
 		}
 		
 		if (type.isAssignableFrom(newItem.getClass())) {
@@ -349,7 +357,13 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
         add(property);
         return property;
     }
-
+    
+	public void applyDefinition(PrismContainerDefinition definition) {
+		for (Item item: items) {
+			ItemDefinition itemDefinition = definition.findItemDefinition(item.getName());
+			item.applyDefinition(itemDefinition);
+		}
+	}
 
     public void revive(PrismContext prismContext) {
 		for (Item item: items) {
@@ -405,4 +419,5 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
         }
         return sb.toString();
     }
+
 }

@@ -59,7 +59,12 @@ public class PrismContainer extends Item {
 
     List<PrismContainerValue> values;
 
-    public PrismContainer(QName name, PrismContainerDefinition definition, PrismContext prismContext) {
+    public PrismContainer(QName name) {
+        super(name);
+        values = new ArrayList<PrismContainerValue>();
+    }
+    
+    PrismContainer(QName name, PrismContainerDefinition definition, PrismContext prismContext) {
         super(name, definition, prismContext);
         values = new ArrayList<PrismContainerValue>();
     }
@@ -117,10 +122,41 @@ public class PrismContainer extends Item {
     }
     
     public void add(PrismContainerValue pValue) {
+    	pValue.setContainer(this);
     	values.add(pValue);
     }
     
-    /**
+    public void mergeValues(PrismContainer other) {
+    	mergeValues(other.getValues());
+    }
+    
+    public void mergeValues(Collection<PrismContainerValue> otherValues) {
+    	for (PrismContainerValue otherValue : otherValues) {
+    		mergeValue(otherValue);
+    	}
+    }
+    
+	public void mergeValue(PrismContainerValue otherValue) {
+		Iterator<PrismContainerValue> iterator = values.iterator();
+		while (iterator.hasNext()) {
+			PrismContainerValue thisValue = iterator.next();
+			if (thisValue.equals(otherValue)) {
+				// Same values, nothing to merge
+				return;
+			}
+			if (thisValue.getId() != null && thisValue.getId().equals(otherValue.getId())) {
+				// Different value but same id. New value overwrites.
+				iterator.remove();
+			}
+		}
+		otherValue.setContainer(this);
+		if (getDefinition() != null) {
+			otherValue.applyDefinition(getDefinition());
+		}
+		values.add(otherValue);
+	}
+
+	/**
      * Remove all empty values
      */
     public void trim() {
@@ -154,7 +190,18 @@ public class PrismContainer extends Item {
         this.definition = definition;
     }
     
-    public <T extends Item> T findItem(QName itemQName, Class<T> type) {
+    @Override
+	void applyDefinition(ItemDefinition definition) {
+    	if (!(definition instanceof PrismContainerDefinition)) {
+    		throw new IllegalArgumentException("Cannot apply "+definition+" to container");
+    	}
+    	this.definition = definition;
+		for (PrismContainerValue pval: values) {
+			pval.applyDefinition((PrismContainerDefinition)definition);
+		}
+	}
+
+	public <T extends Item> T findItem(QName itemQName, Class<T> type) {
     	return findCreateItem(itemQName, type, false);
     }
     

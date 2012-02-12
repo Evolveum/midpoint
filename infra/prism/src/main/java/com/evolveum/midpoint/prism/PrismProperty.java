@@ -67,30 +67,15 @@ public class PrismProperty extends Item {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismProperty.class);
 
-//    public Property() {
-//        super();
-//    }
-//
-//    public Property(QName name) {
-//        super(name);
-//    }
-//
-//    public Property(QName name, PropertyDefinition definition) {
-//        super(name, definition);
-//    }
-//
-//    public Property(QName name, PropertyDefinition definition, Set<PropertyValue<Object>> values) {
-//        super(name, definition);
-//        if (values != null) {
-//            this.values = values;
-//        }
-//    }
+    public PrismProperty(QName name) {
+        super(name);
+    }
 
-    public PrismProperty(QName name, PrismPropertyDefinition definition, PrismContext prismContext) {
+    PrismProperty(QName name, PrismPropertyDefinition definition, PrismContext prismContext) {
         super(name, definition, prismContext);
     }
 
-    /**
+	/**
      * Returns applicable property definition.
      * <p/>
      * May return null if no definition is applicable or the definition is not
@@ -380,8 +365,16 @@ public class PrismProperty extends Item {
         }
         return elements;
     }
-
+    
     @Override
+	void applyDefinition(ItemDefinition definition) {
+		if (!(definition instanceof PrismPropertyDefinition)) {
+			throw new IllegalArgumentException("Cannot apply "+definition+" to property");
+		}
+		this.definition = definition;
+	}
+
+	@Override
     public PrismProperty clone() {
         PrismProperty clone = new PrismProperty(getName(), getDefinition(), prismContext);
         copyValues(clone);

@@ -49,21 +49,31 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
 	// usual case when it is constructed "out of the blue", e.g. as a new JAXB object
 	// It may not work perfectly, but basic things should work
     protected QName name;
-    protected Definition definition;
+    protected ItemDefinition definition;
     transient protected PrismContext prismContext;
 
+    /**
+     * This is used for definition-less construction, e.g. in JAXB beans.
+     * 
+     * The constructors should be used only occasionally (if used at all).
+     * Use the factory methods in the ResourceObjectDefintion instead.
+     */
+    Item(QName name) {
+        super();
+        this.name = name;
+    }
 
     /**
      * The constructors should be used only occasionally (if used at all).
      * Use the factory methods in the ResourceObjectDefintion instead.
      */
-    Item(QName name, Definition definition, PrismContext prismContext) {
+    Item(QName name, ItemDefinition definition, PrismContext prismContext) {
         super();
         this.name = name;
         this.definition = definition;
         this.prismContext = prismContext;
     }
-    
+        
     /**
      * Returns applicable property definition.
      * <p/>
@@ -72,7 +82,7 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
      *
      * @return applicable property definition
      */
-    public Definition getDefinition() {
+    public ItemDefinition getDefinition() {
         return definition;
     }
 
@@ -161,6 +171,8 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
      */
 //    abstract public void serializeToDom(Node parentNode) throws SchemaException;
     
+    abstract void applyDefinition(ItemDefinition definition);
+    
     public void revive(PrismContext prismContext) {
     	if (this.prismContext != null) {
     		return;
@@ -179,13 +191,13 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
         clone.prismContext = this.prismContext;
     }
     
-    public static <T extends Item> T createNewDefinitionlessItem(QName name, Class<T> type, PrismContext prismContext) {
+    public static <T extends Item> T createNewDefinitionlessItem(QName name, Class<T> type) {
     	T item = null;
 		try {
-			Constructor<T> constructor = type.getConstructor(QName.class, Definition.class, PrismContext.class);
-			item = constructor.newInstance(name, null, prismContext);
+			Constructor<T> constructor = type.getConstructor(QName.class);
+			item = constructor.newInstance(name);
 		} catch (Exception e) {
-			throw new SystemException("Error creating new definitionless "+type.getSimpleName()+": "+e.getMessage(),e);
+			throw new SystemException("Error creating new definitionless "+type.getSimpleName()+": "+e.getClass().getName()+" "+e.getMessage(),e);
 		}
     	return item;
     }

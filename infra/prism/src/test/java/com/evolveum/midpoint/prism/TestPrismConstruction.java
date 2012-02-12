@@ -19,9 +19,11 @@
  */
 package com.evolveum.midpoint.prism;
 
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import java.io.IOException;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -81,7 +83,7 @@ public class TestPrismConstruction {
 		// fullName
 		PrismProperty fullNameProperty = user.findOrCreateProperty(USER_FULLNAME_QNAME);
 		assertEquals(USER_FULLNAME_QNAME, fullNameProperty.getName());
-		assertDefinition(fullNameProperty.getDefinition(), DOMUtil.XSD_STRING, 1, 1);
+		assertDefinition(fullNameProperty, DOMUtil.XSD_STRING, 1, 1);
 		fullNameProperty.setValue(new PrismPropertyValue<String>("Sir Fancis Drake"));
 		PrismProperty fullNamePropertyAgain = user.findOrCreateProperty(USER_FULLNAME_QNAME);
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
@@ -90,7 +92,7 @@ public class TestPrismConstruction {
 		// activation
 		PrismContainer activationContainer = user.findOrCreatePropertyContainer(USER_ACTIVATION_QNAME);
 		assertEquals(USER_ACTIVATION_QNAME, activationContainer.getName());
-		assertDefinition(activationContainer.getDefinition(), ACTIVATION_TYPE_QNAME, 0, 1);
+		assertDefinition(activationContainer, ACTIVATION_TYPE_QNAME, 0, 1);
 		PrismContainer activationContainerAgain = user.findOrCreatePropertyContainer(USER_ACTIVATION_QNAME);
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
 		assertTrue("Property not the same", activationContainer == activationContainerAgain);
@@ -98,7 +100,7 @@ public class TestPrismConstruction {
 		// activation/enabled
 		PrismProperty enabledProperty = user.findOrCreateProperty(USER_ENABLED_PATH);
 		assertEquals(USER_ENABLED_QNAME, enabledProperty.getName());
-		assertDefinition(enabledProperty.getDefinition(), DOMUtil.XSD_BOOLEAN, 1, 1);
+		assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 1, 1);
 		enabledProperty.setValue(new PrismPropertyValue<Boolean>(true));
 		PrismProperty enabledPropertyAgain = activationContainer.findOrCreateProperty(USER_ENABLED_QNAME);
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
@@ -107,10 +109,17 @@ public class TestPrismConstruction {
 		// assignment
 		PrismContainer assignmentContainer = user.findOrCreatePropertyContainer(USER_ASSIGNMENT_QNAME);
 		assertEquals(USER_ASSIGNMENT_QNAME, assignmentContainer.getName());
-		assertDefinition(assignmentContainer.getDefinition(), ASSIGNMENT_TYPE_QNAME, 0, -1);
+		assertDefinition(assignmentContainer, ASSIGNMENT_TYPE_QNAME, 0, -1);
 		PrismContainer assignmentContainerAgain = user.findOrCreatePropertyContainer(USER_ASSIGNMENT_QNAME);
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
 		assertTrue("Property not the same", assignmentContainer == assignmentContainerAgain);
+		
+		// assignment values: construct assignment value "out of the blue" and then add it.
+		
+		PrismContainer assBlueContainer = new PrismContainer(USER_ASSIGNMENT_QNAME);
+		PrismProperty assBlueDescriptionProperty = assBlueContainer.findOrCreateProperty(USER_DESCRIPTION_QNAME);
+		assBlueDescriptionProperty.addValue(new PrismPropertyValue<Object>("Assignment created out of the blue"));
+		assignmentContainer.mergeValues(assBlueContainer);
 		
 		// TODO
 		
@@ -121,27 +130,38 @@ public class TestPrismConstruction {
 		assertEquals("Wrong OID", USER_OID, user.getOid());
 		// fullName
 		fullNameProperty = user.findProperty(USER_FULLNAME_QNAME);
-		assertDefinition(fullNameProperty.getDefinition(), DOMUtil.XSD_STRING, 1, 1);
+		assertDefinition(fullNameProperty, DOMUtil.XSD_STRING, 1, 1);
 		assertEquals("Wrong fullname", "Sir Fancis Drake", fullNameProperty.getValue().getValue());
 		// activation
 		activationContainer = user.findPropertyContainer(USER_ACTIVATION_QNAME);
 		assertEquals(USER_ACTIVATION_QNAME, activationContainer.getName());
-		assertDefinition(activationContainer.getDefinition(), ACTIVATION_TYPE_QNAME, 0, 1);
+		assertDefinition(activationContainer, ACTIVATION_TYPE_QNAME, 0, 1);
 		// activation/enabled
 		enabledProperty = user.findProperty(USER_ENABLED_PATH);
 		assertEquals(USER_ENABLED_QNAME, enabledProperty.getName());
-		assertDefinition(enabledProperty.getDefinition(), DOMUtil.XSD_BOOLEAN, 1, 1);
+		assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 1, 1);
 		assertEquals("Wrong enabled", true, enabledProperty.getValue().getValue());
 		// assignment
 		assignmentContainer = user.findPropertyContainer(USER_ASSIGNMENT_QNAME);
 		assertEquals(USER_ASSIGNMENT_QNAME, assignmentContainer.getName());
-		assertDefinition(assignmentContainer.getDefinition(), ASSIGNMENT_TYPE_QNAME, 0, -1);
+		assertDefinition(assignmentContainer, ASSIGNMENT_TYPE_QNAME, 0, -1);
+		// assignment values
+		List<PrismContainerValue> assValues = assignmentContainer.getValues();
+		assertEquals("Wrong number of assignment values", 1, assValues.size());
+		// assignment values: blue
+		PrismContainerValue assBlueValue = assValues.get(0);
+		assBlueDescriptionProperty = assBlueValue.findProperty(USER_DESCRIPTION_QNAME);
+		assertDefinition(assBlueDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
+		assertEquals("Wrong blue assignment description", "Assignment created out of the blue", assBlueDescriptionProperty.getValue().getValue());
+		
 	}
 
-	private void assertDefinition(ItemDefinition definition, QName type, int minOccurs, int maxOccurs) {
-		assertEquals("Wrong definition type", type, definition.getTypeName());
-		assertEquals("Wrong definition minOccurs", minOccurs, definition.getMinOccurs());
-		assertEquals("Wrong definition maxOccurs", maxOccurs, definition.getMaxOccurs());
+	private void assertDefinition(Item item, QName type, int minOccurs, int maxOccurs) {
+		ItemDefinition definition = item.getDefinition();
+		assertNotNull("No definition in "+item.getName(), definition);
+		assertEquals("Wrong definition type in "+item.getName(), type, definition.getTypeName());
+		assertEquals("Wrong definition minOccurs in "+item.getName(), minOccurs, definition.getMinOccurs());
+		assertEquals("Wrong definition maxOccurs in "+item.getName(), maxOccurs, definition.getMaxOccurs());
 	}
 
 	/**
