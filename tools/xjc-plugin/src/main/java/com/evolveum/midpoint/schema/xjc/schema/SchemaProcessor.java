@@ -48,21 +48,26 @@ import static com.evolveum.midpoint.schema.xjc.util.ProcessorUtils.*;
  */
 public class SchemaProcessor implements Processor {
 
-    private static final String COMPLEX_TYPE_FIELD = "COMPLEX_TYPE";
-    private static final String CONTAINER_FIELD_NAME = "container";
+    //annotations for schema processor
     private static final QName PROPERTY_CONTAINER = new QName(PrefixMapper.A.getNamespace(), "propertyContainer");
     private static final QName MIDPOINT_CONTAINER = new QName(PrefixMapper.A.getNamespace(), "midPointContainer");
+    //fields and methods for prism containers/prism objects
+    private static final String COMPLEX_TYPE_FIELD = "COMPLEX_TYPE";
+    private static final String CONTAINER_FIELD_NAME = "container";
+    private static final String METHOD_GET_CONTAINER = "getContainer";
+    private static final String METHOD_SET_CONTAINER = "setContainer";
+    //methods in PrismForJAXBUtil
     private static final String METHOD_GET_PROPERTY_VALUE = "getPropertyValue";
     private static final String METHOD_GET_PROPERTY_VALUES = "getPropertyValues";
     private static final String METHOD_SET_PROPERTY_VALUE = "setPropertyValue";
-    private static final String METHOD_GET_CONTAINER = "getContainer";
-    private static final String METHOD_SET_CONTAINER = "setContainer";
+    //equals, toString, hashCode methods
     private static final String METHOD_TO_STRING = "toString";
     private static final String METHOD_DEBUG_DUMP = "debugDump";
     private static final int METHOD_DEBUG_DUMP_INDENT = 3;
     private static final String METHOD_EQUALS = "equals";
     private static final String METHOD_EQUIVALENT = "equivalent";
     private static final String METHOD_HASH_CODE = "hashCode";
+    //prism container handling
     private static final String METHOD_ADD_REPLACE_EXISTING = "addReplaceExisting";
 
     //todo change annotation on ObjectType in common-1.xsd to a:midPointContainer
@@ -189,7 +194,6 @@ public class SchemaProcessor implements Processor {
 
         JInvocation newContainer = (JInvocation) JExpr._new(clazz);
         newContainer.arg(JExpr.ref(COMPLEX_TYPE_FIELD));
-        newContainer.arg(JExpr._null());
         newContainer.arg(JExpr._null());
         newContainer.arg(JExpr._null());
         then.assign(container, newContainer);

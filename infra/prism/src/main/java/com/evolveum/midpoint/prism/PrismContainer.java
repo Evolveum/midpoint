@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -328,6 +329,24 @@ public class PrismContainer extends Item {
 			return false;
 		return true;
 	}
+
+    /**
+     * this method ignores some part of the object during comparison (e.g. source demarkation in values)
+     * These methods compare the "meaningful" parts of the objects.
+     */
+    public boolean equivalent(Object obj) {
+        // Alibistic implementation for now. But should work well.
+        if (this == obj)
+            return true;
+        if (getClass() != obj.getClass())
+            return false;
+        PrismContainer other = (PrismContainer) obj;
+
+        //todo probably better comparation (ignore some part of object)
+        return equals(other);
+//        ObjectDelta<T> delta = compareTo(other);
+//        return delta.isEmpty();
+    }
 
 	@Override
     public String toString() {

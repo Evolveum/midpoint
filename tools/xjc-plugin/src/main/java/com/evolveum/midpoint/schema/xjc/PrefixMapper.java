@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.schema.xjc;
 
+import javax.xml.XMLConstants;
+
 /**
  * @author lazyman
  */
@@ -46,7 +48,7 @@ public enum PrefixMapper {
 
     DSIG("http://www.w3.org/2000/09/xmldsig#", "XML_DSIG"),
 
-    XSD("http://www.w3.org/2001/XMLSchema", "XSD");
+    XSD(XMLConstants.W3C_XML_SCHEMA_NS_URI, "XSD");
 
     public static final String DEFAULT_PREFIX = "O_";
     private String namespace;
