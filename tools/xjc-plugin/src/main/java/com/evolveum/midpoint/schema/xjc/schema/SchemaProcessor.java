@@ -32,12 +32,17 @@ import com.sun.tools.xjc.model.CClassInfo;
 import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
+import com.sun.xml.xsom.XSElementDecl;
+import com.sun.xml.xsom.XSSchema;
+import com.sun.xml.xsom.XSSchemaSet;
+import com.sun.xml.xsom.XSType;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.Map.Entry;
 
 import static com.evolveum.midpoint.schema.xjc.util.ProcessorUtils.*;
 
@@ -56,6 +61,7 @@ public class SchemaProcessor implements Processor {
     private static final String CONTAINER_FIELD_NAME = "container";
     private static final String METHOD_GET_CONTAINER = "getContainer";
     private static final String METHOD_SET_CONTAINER = "setContainer";
+    private static final String METHOD_GET_CONTAINER_NAME = "getContainerName";
     //methods in PrismForJAXBUtil
     private static final String METHOD_GET_PROPERTY_VALUE = "getPropertyValue";
     private static final String METHOD_GET_PROPERTY_VALUES = "getPropertyValues";
@@ -69,6 +75,8 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_HASH_CODE = "hashCode";
     //prism container handling
     private static final String METHOD_ADD_REPLACE_EXISTING = "addReplaceExisting";
+    //map which contains mapping from complex type qnames to element names
+    private Map<QName, List<QName>> complexTypeToElementName;
 
     //todo change annotation on ObjectType in common-1.xsd to a:midPointContainer
 
@@ -80,6 +88,7 @@ public class SchemaProcessor implements Processor {
 
             Map<String, JFieldVar> namespaceFields = stepSchemaConstants.getNamespaceFields();
             addComplextType(outline, namespaceFields);
+            addContainerName(outline, namespaceFields);
             addFieldQNames(outline, namespaceFields);
 
             Set<JDefinedClass> containers = updateMidPointContainer(outline);
@@ -131,7 +140,7 @@ public class SchemaProcessor implements Processor {
             container.annotate((JClass) outline.getModel().codeModel._ref(XmlTransient.class));
 
             //create getContainer
-            createGetContainerMethod(definedClass, container, containerClass, outline);
+            createGetContainerMethod(classOutline, container, containerClass);
             //create setContainer
             createSetContainerMethod(definedClass, container, containerClass, outline);
 
@@ -182,10 +191,10 @@ public class SchemaProcessor implements Processor {
         body._return(invocation);
     }
 
-    private void createGetContainerMethod(JDefinedClass definedClass, JVar container,
-            Class<? extends PrismContainer> containerClass, Outline outline) {
-
-        JClass clazz = (JClass) outline.getModel().codeModel._ref(containerClass);
+    private void createGetContainerMethod(ClassOutline classOutline, JVar container,
+            Class<? extends PrismContainer> containerClass) {
+        JDefinedClass definedClass = classOutline.implClass;
+        JClass clazz = (JClass) classOutline.parent().getModel().codeModel._ref(containerClass);
         JMethod getContainer = definedClass.method(JMod.PUBLIC, clazz, METHOD_GET_CONTAINER);
 
         //create method body
@@ -193,9 +202,7 @@ public class SchemaProcessor implements Processor {
         JBlock then = body._if(container.eq(JExpr._null()))._then();
 
         JInvocation newContainer = (JInvocation) JExpr._new(clazz);
-        newContainer.arg(JExpr.ref(COMPLEX_TYPE_FIELD));
-        newContainer.arg(JExpr._null());
-        newContainer.arg(JExpr._null());
+        newContainer.arg(JExpr.invoke(METHOD_GET_CONTAINER_NAME));
         then.assign(container, newContainer);
 
         body._return(container);
@@ -209,10 +216,10 @@ public class SchemaProcessor implements Processor {
         //create method body
         JBlock body = setContainer.body();
         JBlock then = body._if(methodContainer.eq(JExpr._null()))._then();
-        then.assign(container, JExpr._null());
+        then.assign(JExpr._this().ref(container), JExpr._null());
         then._return();
 
-        JInvocation equals = JExpr.invoke(JExpr.ref(COMPLEX_TYPE_FIELD), "equals");
+        JInvocation equals = JExpr.invoke(JExpr.invoke(METHOD_GET_CONTAINER_NAME), "equals");
         equals.arg(methodContainer.invoke("getName"));
 
         then = body._if(equals.not())._then();
@@ -226,6 +233,44 @@ public class SchemaProcessor implements Processor {
         then._throw(exception);
 
         body.assign(JExpr._this().ref(container), methodContainer);
+    }
+
+    private void addContainerName(Outline outline, Map<String, JFieldVar> namespaceFields) {
+        Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
+        for (Map.Entry<NClass, CClassInfo> entry : set) {
+            ClassOutline classOutline = outline.getClazz(entry.getValue());
+            QName qname = entry.getValue().getTypeName();
+            if (qname == null) {
+                continue;
+            }
+
+            //element name
+            List<QName> qnames = getComplexTypeToElementName(classOutline).get(qname);
+            if (qnames == null || qnames.size() != 1) {
+                System.out.println("Found zero or more than one element names for type '"
+                        + qname + "', " + qnames + ".");
+                continue;
+            }
+            qname = qnames.get(0);
+
+            JDefinedClass definedClass = classOutline.implClass;
+            JMethod getContainerName = definedClass.method(JMod.NONE, QName.class, METHOD_GET_CONTAINER_NAME);
+            JBlock body = getContainerName.body();
+
+            JFieldVar var = namespaceFields.get(qname.getNamespaceURI());
+            JClass clazz = (JClass) outline.getModel().codeModel._ref(QName.class);
+            JInvocation invocation = (JInvocation) JExpr._new(clazz);
+            if (var != null) {
+                JClass schemaClass = (JClass) outline.getModel().codeModel._getClass(StepSchemaConstants.CLASS_NAME);
+                invocation.arg(schemaClass.staticRef(var));
+                invocation.arg(qname.getLocalPart());
+            } else {
+                invocation.arg(qname.getNamespaceURI());
+                invocation.arg(qname.getLocalPart());
+
+            }
+            body._return(invocation);
+        }
     }
 
     private void addComplextType(Outline outline, Map<String, JFieldVar> namespaceFields) {
@@ -244,6 +289,37 @@ public class SchemaProcessor implements Processor {
                 createPSFField(outline, classOutline.implClass, COMPLEX_TYPE_FIELD, qname);
             }
         }
+    }
+
+    private Map<QName, List<QName>> getComplexTypeToElementName(ClassOutline classOutline) {
+        if (complexTypeToElementName != null) {
+            return complexTypeToElementName;
+        } else {
+            complexTypeToElementName = new HashMap<QName, List<QName>>();
+        }
+
+        XSSchemaSet schemaSet = classOutline.target.getSchemaComponent().getRoot();
+        for (XSSchema schema : schemaSet.getSchemas()) {
+            Map<String, XSElementDecl> elemDecls = schema.getElementDecls();
+            for (Entry<String, XSElementDecl> entry : elemDecls.entrySet()) {
+                XSElementDecl decl = entry.getValue();
+                XSType xsType = decl.getType();
+
+                if (xsType.getName() == null) {
+                    continue;
+                }
+                QName type = new QName(xsType.getTargetNamespace(), xsType.getName());
+
+                List<QName> qnames = complexTypeToElementName.get(type);
+                if (qnames == null) {
+                    qnames = new ArrayList<QName>();
+                    complexTypeToElementName.put(type, qnames);
+                }
+                qnames.add(new QName(decl.getTargetNamespace(), decl.getName()));
+            }
+        }
+
+        return complexTypeToElementName;
     }
 
     private JFieldVar createQNameDefinition(Outline outline, JDefinedClass definedClass, String fieldName,
