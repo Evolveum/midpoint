@@ -44,12 +44,13 @@ import javax.xml.namespace.QName;
  * @author Radovan Semancik
  * 
  */
-public class ObjectReferenceDefinition extends PrismPropertyDefinition {
+public class PrismObjectReferenceDefinition extends PrismPropertyDefinition {
 
 	private static final long serialVersionUID = 2427488779612517600L;
-	private Set<QName> targetTypeNames;
+	private QName targetTypeName;
+	private QName compositeObjectElementName;
 
-	ObjectReferenceDefinition(QName name, QName defaultName, QName typeName, PrismContext prismContext) {
+	PrismObjectReferenceDefinition(QName name, QName defaultName, QName typeName, PrismContext prismContext) {
 		super(name, defaultName, typeName, prismContext);
 	}
 
@@ -62,14 +63,21 @@ public class ObjectReferenceDefinition extends PrismPropertyDefinition {
 	 * 
 	 * @return set of target type names
 	 */
-	public Set<QName> getTargetTypeNames() {
-		if (targetTypeNames == null) {
-			targetTypeNames = new HashSet<QName>();
-		}
-		return targetTypeNames;
+	public QName getTargetTypeName() {
+		return targetTypeName;
 	}
 
-	void setTargetTypeNames(Set<QName> targetTypeNames) {
-		this.targetTypeNames = targetTypeNames;
+	void setTargetTypeName(QName targetTypeName) {
+		this.targetTypeName = targetTypeName;
 	}
+
+	public QName getCompositeObjectElementName() {
+		return compositeObjectElementName;
+	}
+
+	public void setCompositeObjectElementName(QName compositeObjectElementName) {
+		this.compositeObjectElementName = compositeObjectElementName;
+	}
+	
+	
 }

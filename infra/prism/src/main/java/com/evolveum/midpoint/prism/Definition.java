@@ -112,6 +112,10 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 		return typeName;
 	}
 	
+	public void setTypeName(QName typeName) {
+		this.typeName = typeName;
+	}
+
 	public boolean isIgnored() {
 		return ignored;
 	}

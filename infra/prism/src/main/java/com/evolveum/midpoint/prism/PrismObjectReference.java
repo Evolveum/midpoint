@@ -37,9 +37,9 @@ import com.evolveum.midpoint.util.DebugUtil;
  * @author semancik
  * 
  */
-public class ObjectReference extends PrismProperty {
+public class PrismObjectReference extends PrismProperty {
 
-	public ObjectReference(QName name, PrismPropertyDefinition definition, PrismContext prismContext) {
+	public PrismObjectReference(QName name, PrismPropertyDefinition definition, PrismContext prismContext) {
 		super(name, definition, prismContext);
 	}
 
@@ -49,8 +49,8 @@ public class ObjectReference extends PrismProperty {
 	/**
 	 * {@inheritDoc}
 	 */
-	public ObjectReferenceDefinition getDefinition() {
-		return (ObjectReferenceDefinition) super.getDefinition();
+	public PrismObjectReferenceDefinition getDefinition() {
+		return (PrismObjectReferenceDefinition) super.getDefinition();
 	}
 
 	/**
@@ -75,6 +75,11 @@ public class ObjectReference extends PrismProperty {
 	 */
 	public QName getTargetTypeName() {
 		return targetTypeName;
+	}
+	
+	@Override
+	public PrismPropertyValue<Object> getValue() {
+		return new PrismPropertyValue<Object>(oid);
 	}
 	
 	@Override

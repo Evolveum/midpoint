@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.prism;
 
+import static com.evolveum.midpoint.prism.PrismTestUtil.*;
+
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
@@ -43,23 +45,9 @@ import com.evolveum.midpoint.util.DebugUtil;
  */
 public class TestPrismConstruction {
 	
-	private static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
-	private static final String NS_BAR = "http://www.example.com/bar";
 	private static final String USER_OID = "1234567890";
 	
-	private static final QName USER_QNAME = new QName(NS_FOO,"user");
 	
-	private static final QName USER_FULLNAME_QNAME = new QName(NS_FOO,"fullName");
-	
-	private static final QName USER_ACTIVATION_QNAME = new QName(NS_FOO,"activation");
-	private static final QName USER_ENABLED_QNAME = new QName(NS_FOO,"enabled");
-	private static final PropertyPath USER_ENABLED_PATH = new PropertyPath(USER_ACTIVATION_QNAME, USER_ENABLED_QNAME);
-	private static final QName ACTIVATION_TYPE_QNAME = new QName(NS_FOO,"ActivationType");
-	
-	private static final QName USER_ASSIGNMENT_QNAME = new QName(NS_FOO,"assignment");
-	private static final QName USER_DESCRIPTION_QNAME = new QName(NS_FOO,"description");
-	private static final PropertyPath USER_ASSIGNMENT_DESCRIPTION_PATH = new PropertyPath(USER_ASSIGNMENT_QNAME, USER_DESCRIPTION_QNAME);
-	private static final QName ASSIGNMENT_TYPE_QNAME = new QName(NS_FOO,"AssignmentType");
 	
 	@BeforeSuite
 	public void setupDebug() {
@@ -241,15 +229,6 @@ public class TestPrismConstruction {
 		assertEquals("Wrong red assignment description", "Assignment created out of the red", assRedDescriptionProperty.getValue().getValue());
 		
 	}
-
-
-	private void assertDefinition(Item item, QName type, int minOccurs, int maxOccurs) {
-		ItemDefinition definition = item.getDefinition();
-		assertNotNull("No definition in "+item.getName(), definition);
-		assertEquals("Wrong definition type in "+item.getName(), type, definition.getTypeName());
-		assertEquals("Wrong definition minOccurs in "+item.getName(), minOccurs, definition.getMinOccurs());
-		assertEquals("Wrong definition maxOccurs in "+item.getName(), maxOccurs, definition.getMaxOccurs());
-	}	
 	
 	private PrismContext constructPrismContext() throws SchemaException, SAXException, IOException {
 		SchemaRegistry schemaRegistry = new SchemaRegistry();

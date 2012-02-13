@@ -70,6 +70,10 @@ public class ComplexTypeDefinition extends Definition {
 	public void setExtensionForType(QName extensionForType) {
 		this.extensionForType = extensionForType;
 	}
+	
+	public void add(ItemDefinition definition) {
+		itemDefinitions.add(definition);
+	}
 		
 	public PrismPropertyDefinition createPropertyDefinifion(QName name, QName typeName) {
 		PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, name, typeName, prismContext);
@@ -96,6 +100,26 @@ public class ComplexTypeDefinition extends Definition {
 		QName name = new QName(getSchemaNamespace(),localName);
 		QName typeName = new QName(getSchemaNamespace(),localTypeName);
 		return createPropertyDefinifion(name,typeName);
+	}
+	
+	public <T extends ItemDefinition> T findItemDefinition(QName name, Class<T> clazz) {
+        if (clazz == null) {
+            throw new IllegalArgumentException("type not specified while searching for " + name + " in " + this);
+        }
+        if (name == null) {
+            throw new IllegalArgumentException("name not specified while searching in " + this);
+        }
+
+        for (ItemDefinition def : getDefinitions()) {
+            if (isItemValid(def, name, clazz)) {
+                return (T) def;
+            }
+        }
+        return null;
+    }
+	
+	private <T extends ItemDefinition> boolean isItemValid(ItemDefinition def, QName name, Class<T> clazz) {
+        return clazz.isAssignableFrom(def.getClass()) && name.equals(def.getName());
 	}
 
 	@Override

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2012 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2012 [name of copyright owner]
+  -->
+
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/types-1.xsd"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/types-1.xsd"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+            xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
+            elementFormDefault="qualified"
+            jaxb:extensionBindingPrefixes="xjc"
+            jaxb:version="2.0">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Testing schema for Prism framework
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:import namespace="http://www.w3.org/2001/XMLSchema" schemaLocation="../standard/XMLSchema.xsd">
+        <xsd:annotation>
+            <xsd:documentation>
+                Importing the schema of XSD schema definition explicitly. This causes that we can use "strict" matching
+                for the xsd:schema elements used in runtime.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+
+    <xsd:import namespace="http://www.w3.org/2001/04/xmlenc#" schemaLocation="../standard/xenc-schema.xsd">
+        <xsd:annotation>
+            <xsd:documentation>
+                The XML Encryption schema. Used for "protected" data types (property encryption).
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+
+
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+                schemaLocation="annotation-1.xsd">
+        <xsd:annotation>
+            <xsd:documentation>
+                Common prism annotations used in various XSD schemas.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+    
+    <xsd:complexType name="extension">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:propertyContainer/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
+            </xsd:any>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ObjectReferenceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Reference to an object. It contains OID of the object that it refers to.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:objectReference/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:attribute name="oid" type="xsd:string" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>
+                    Target of the reference.
+
+                    Optional only during imports. The objects stored in the repository must have the OID
+                    value filled in.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="type" type="xsd:QName" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>
+                    XSD type of the reference target object.
+
+                    It should be provided if the type is known (e.g. when
+                    reading object from the repository).
+
+                    The primary reason for this is to have some kind of
+                    type safety but especially to be able to use
+                    this in the XPaths that specify what references to resolve.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+
+</xsd:schema>
+

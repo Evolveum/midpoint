@@ -25,6 +25,7 @@
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+            xmlns:t="http://midpoint.evolveum.com/xml/ns/public/common/types-1.xsd"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
             xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
@@ -66,7 +67,16 @@
                 schemaLocation="../public/common/annotation-1.xsd">
         <xsd:annotation>
             <xsd:documentation>
-                Common midPoint annotations used in various XSD schemas.
+                Common prism annotations used in various XSD schemas.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+    
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/types-1.xsd"
+                schemaLocation="../public/common/types-1.xsd">
+        <xsd:annotation>
+            <xsd:documentation>
+                Common prism data types used in various XSD schemas.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:import>
@@ -121,11 +131,35 @@
                     <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded"/>
                     <!-- Single-valued container -->
                     <xsd:element name="activation" type="tns:ActivationType" minOccurs="0"/>
+                    <xsd:element name="accountRef" type="t:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                    	<xsd:annotation>
+                    		<xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:AccountType</a:objectReferenceTargetType>
+                    		</xsd:appinfo>
+                    	</xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="account" type="tns:AccountType" minOccurs="0" maxOccurs="unbounded">
+                    	<xsd:annotation>
+                    		<xsd:appinfo>
+                    			<a:objectReference>tns:accountRef</a:objectReference>
+                    		</xsd:appinfo>
+                    	</xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="user" type="tns:UserType"/>
+    
+    <xsd:complexType name="AccountType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ObjectType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="account" type="tns:AccountType"/>
 
     <xsd:complexType name="AssignmentType">
     	<xsd:annotation>

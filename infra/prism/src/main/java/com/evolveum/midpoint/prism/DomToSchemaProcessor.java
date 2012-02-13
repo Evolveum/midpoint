@@ -281,8 +281,13 @@ class DomToSchemaProcessor {
 				QName elementName = new QName(elementDecl.getTargetNamespace(), elementDecl.getName());
 				
 				XSType xsType = elementDecl.getType();
+			
+				if (isObjectReference(xsType, annotation)) {
 				
-				if (isObjectDefinition(xsType)) {					
+					PrismObjectReferenceDefinition propDef = processObjectReferenceDefinition(xsType, elementName, annotation, ctd);					
+					setMultiplicity(propDef, p);
+				
+				} else if (isObjectDefinition(xsType)) {					
 					// This is object reference. It also has its *Ref equivalent which will get parsed.
 					// therefore it is safe to ignore
 					
@@ -324,15 +329,55 @@ class DomToSchemaProcessor {
 
 					PrismPropertyDefinition propDef = createPropertyDefinition(xsType, elementName, typeName, annotation);
 					
-					propDef.setMinOccurs(p.getMinOccurs());
-					propDef.setMaxOccurs(p.getMaxOccurs());
+					setMultiplicity(propDef, p);
 					
-					ctd.getDefinitions().add(propDef);
+					ctd.add(propDef);
 				}
 			}
 		}
 	}
 	
+	private PrismObjectReferenceDefinition processObjectReferenceDefinition(XSType xsType, QName elementName,
+			XSAnnotation annotation, ComplexTypeDefinition ctd) {
+		// Create a property definition (even if this is a XSD complex type)
+		QName typeName = new QName(xsType.getTargetNamespace(), xsType.getName());
+		QName primaryElementName = elementName;
+		Element objRefAnnotationElement = getAnnotationElement(annotation, A_OBJECT_REFERENCE);
+		boolean hasExplicitPrimaryElementName = (objRefAnnotationElement != null && !StringUtils.isEmpty(objRefAnnotationElement.getTextContent()));
+		if (hasExplicitPrimaryElementName) {
+			primaryElementName = DOMUtil.getQNameValue(objRefAnnotationElement);
+		}
+		PrismObjectReferenceDefinition definition = ctd.findItemDefinition(primaryElementName, PrismObjectReferenceDefinition.class);
+		if (definition == null) {
+			definition = new PrismObjectReferenceDefinition(primaryElementName, primaryElementName, typeName, prismContext);
+			ctd.add(definition);
+		}
+		if (hasExplicitPrimaryElementName) {
+			// The elements that have explicit type name determine the target type name (if not yet set)
+			if (definition.getTargetTypeName() == null) {
+				definition.setTargetTypeName(typeName);
+			}
+			if (definition.getCompositeObjectElementName() == null) {
+				definition.setCompositeObjectElementName(elementName);
+			}
+		} else {
+			// The elements that use default element names override type definition
+			// as there can be only one such definition, therefore the behavior is deterministic
+			definition.setTypeName(typeName);
+		}
+		Element targetTypeAnnotationElement = getAnnotationElement(annotation, A_OBJECT_REFERENCE_TARGET_TYPE);
+		if (targetTypeAnnotationElement != null && !StringUtils.isEmpty(targetTypeAnnotationElement.getTextContent())) {
+			// Explicit definition of target type overrides previous logic
+			QName targetType = DOMUtil.getQNameValue(targetTypeAnnotationElement);
+			definition.setTargetTypeName(targetType);
+		}
+		return definition;
+	}
+
+	private void setMultiplicity(PrismPropertyDefinition propDef, XSParticle p) {
+		propDef.setMinOccurs(p.getMinOccurs());
+		propDef.setMaxOccurs(p.getMaxOccurs());
+	}
 
 	/**
 	 * Create PropertyContainer (and possibly also Property) definition from the top-level elements in XSD.
@@ -409,22 +454,37 @@ class DomToSchemaProcessor {
 		return false;
 	}
 	
+	private boolean isObjectReference(XSType xsType, XSAnnotation annotation) {
+		if (isObjectReference(annotation)) {
+			return true;
+		}
+		return isObjectReference(xsType);
+	}
+
+	private boolean isObjectReference(XSAnnotation annotation) {
+		Element objRefAnnotationElement = getAnnotationElement(annotation, A_OBJECT_REFERENCE);
+		return (objRefAnnotationElement != null);
+	}
+
+	private boolean isObjectReference(XSType xsType) {
+		return hasAnnotation(xsType, A_OBJECT_REFERENCE);
+	}
+
 	/**
 	 * Returns true if provides XSD type is an object definition. It looks for a ObjectType supertype.
 	 */
 	private boolean isObjectDefinition(XSType xsType) {
+		return hasAnnotation(xsType, A_OBJECT);
+	}
+	
+	private boolean hasAnnotation(XSType xsType, QName annotationElementName) {
 		if (xsType.getName() == null) {
 			return false;
 		}
-		Element annotationElement = getAnnotationElement(xsType.getAnnotation(), A_OBJECT);
+		Element annotationElement = getAnnotationElement(xsType.getAnnotation(), annotationElementName);
 		if (annotationElement != null) {
 			return true;
 		}
-//		QName typeName = new QName(xsType.getTargetNamespace(),xsType.getName());
-//		if (typeName.equals(SchemaConstants.C_OBJECT_TYPE)) {
-//			return true;
-//		}
-		// TODO: detect "object" type annotation
 		if (xsType.getBaseType() != null && !xsType.getBaseType().equals(xsType)) {
 			return isObjectDefinition(xsType.getBaseType());
 		}

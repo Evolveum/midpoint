@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.prism;
 
+import static com.evolveum.midpoint.prism.PrismTestUtil.*;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -54,31 +56,6 @@ public class TestPrismParsing {
 	@BeforeSuite
 	public void setupDebug() {
 		DebugUtil.setDefaultNamespacePrefix("http://midpoint.evolveum.com/xml/ns");
-	}
-
-	@Test
-	public void testPrismContextConstruction() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testPrismParseDom ]===");
-		
-		// WHEN
-		PrismContext prismContext = constructPrismContext();
-		
-		// THEN
-		assertNotNull("No prism context", prismContext);
-		
-		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
-		assertNotNull("No schema registry in context", schemaRegistry);
-		
-		System.out.println("Schema registry:");
-		System.out.println(schemaRegistry.dump());
-
-		Schema objectSchema = schemaRegistry.getObjectSchema();
-		System.out.println("Object schema:");
-		System.out.println(objectSchema.dump());
-		
-		PrismObjectDefinition<UserType> userDefinition = objectSchema.findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
-		assertNotNull("No user definition", userDefinition);
-
 	}
 	
 	@Test
@@ -191,18 +168,5 @@ public class TestPrismParsing {
 //		
 //	}
 
-	private PrismContext constructPrismContext() throws SchemaException, SAXException, IOException {
-		
-		SchemaRegistry schemaRegistry = new SchemaRegistry();
-		DynamicNamespacePrefixMapper prefixMapper = new GlobalDynamicNamespacePrefixMapper();
-		// Set default namespace?
-		schemaRegistry.setNamespacePrefixMapper(prefixMapper);
-		schemaRegistry.registerPrismSchemaResource("xml/ns/test/foo-1.xsd", "foo", ObjectFactory.class.getPackage());
-		schemaRegistry.setObjectSchemaNamespace(NS_FOO);
-		schemaRegistry.initialize();
-		
-		PrismContext context = PrismContext.create(schemaRegistry);
-		return context;
-	}
 	
 }

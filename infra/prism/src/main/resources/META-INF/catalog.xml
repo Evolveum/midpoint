@@ -28,6 +28,9 @@
 	<public publicId="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd" uri="../xml/ns/public/common/annotation-1.xsd" />
 	<system systemId="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd" uri="../xml/ns/public/common/annotation-1.xsd" />
 
+	<public publicId="http://midpoint.evolveum.com/xml/ns/public/common/types-1.xsd" uri="../xml/ns/public/common/types-1.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/types-1.xsd" uri="../xml/ns/public/common/types-1.xsd" />
+
     <public publicId="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd" uri="../xml/ns/test/foo-1.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd" uri="../xml/ns/test/foo-1.xsd" />
 
