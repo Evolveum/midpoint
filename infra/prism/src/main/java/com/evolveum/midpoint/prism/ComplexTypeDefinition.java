@@ -183,5 +183,11 @@ public class ComplexTypeDefinition extends Definition {
 		return sb.toString();
 	}
 
-
+	/**
+     * Return a human readable name of this class suitable for logs.
+     */
+    @Override
+    protected String getDebugDumpClassName() {
+        return "CTD";
+    }
 }

@@ -276,6 +276,13 @@ public class PrismContainer extends Item {
     	return findItem(propertyQName, PrismProperty.class);
     }
 
+    public PrismReference findReference(PropertyPath path) {
+        return findItem(path, PrismReference.class);
+    }
+    
+    public PrismReference findReference(QName referenceQName) {
+    	return findItem(referenceQName, PrismReference.class);
+    }
     
     public PrismContainer findOrCreateContainer(PropertyPath containerPath) {
         return findCreateItem(containerPath, PrismContainer.class, true);
@@ -292,7 +299,15 @@ public class PrismContainer extends Item {
     public PrismProperty findOrCreateProperty(QName propertyName) {
         return findCreateItem(propertyName, PrismProperty.class, true);
     }
- 
+
+    public PrismReference findOrCreateReference(PropertyPath propertyPath) {
+        return findCreateItem(propertyPath, PrismReference.class, true);
+    }
+    
+    public PrismReference findOrCreateReference(QName propertyName) {
+        return findCreateItem(propertyName, PrismReference.class, true);
+    }
+
     // Expects that the "self" path segment is NOT included in the basePath
     void addPropertyPathsToList(PropertyPath basePath, Collection<PropertyPath> list) {
     	boolean addIds = true;

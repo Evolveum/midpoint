@@ -26,6 +26,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -46,7 +47,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 public class TestPrismConstruction {
 	
 	private static final String USER_OID = "1234567890";
-	
+	private static final String ACCOUNT1_OID = "11100000111";
+	private static final String ACCOUNT2_OID = "11100000222";
 	
 	
 	@BeforeSuite
@@ -171,23 +173,38 @@ public class TestPrismConstruction {
 		PrismContainer assignmentContainerAgain = user.findOrCreateContainer(USER_ASSIGNMENT_QNAME);
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
 		assertTrue("Property not the same", assignmentContainer == assignmentContainerAgain);
+		assertEquals("Wrong number of assignment values (empty)", 0, assignmentContainer.getValues().size());
 		
 		// assignment values: construct assignment value as a new container "out of the blue" and then add it.
 		PrismContainer assBlueContainer = new PrismContainer(USER_ASSIGNMENT_QNAME);
 		PrismProperty assBlueDescriptionProperty = assBlueContainer.findOrCreateProperty(USER_DESCRIPTION_QNAME);
 		assBlueDescriptionProperty.addValue(new PrismPropertyValue<Object>("Assignment created out of the blue"));
 		assignmentContainer.mergeValues(assBlueContainer);
+		assertEquals("Wrong number of assignment values (after blue)", 1, assignmentContainer.getValues().size());
 		
 		// assignment values: construct assignment value as a new container value "out of the blue" and then add it.
 		PrismContainerValue assCyanContainerValue = new PrismContainerValue();
 		PrismProperty assCyanDescriptionProperty = assCyanContainerValue.findOrCreateProperty(USER_DESCRIPTION_QNAME);
 		assCyanDescriptionProperty.addValue(new PrismPropertyValue<Object>("Assignment created out of the cyan"));
 		assignmentContainer.mergeValue(assCyanContainerValue);
+		assertEquals("Wrong number of assignment values (after cyan)", 2, assignmentContainer.getValues().size());
 		
 		// assignment values: construct assignment value from existing container
 		PrismContainerValue assRedContainerValue = assignmentContainer.createNewValue();
 		PrismProperty assRedDescriptionProperty = assRedContainerValue.findOrCreateProperty(USER_DESCRIPTION_QNAME);
 		assRedDescriptionProperty.addValue(new PrismPropertyValue<Object>("Assignment created out of the red"));
+		assertEquals("Wrong number of assignment values (after red)", 3, assignmentContainer.getValues().size());
+		
+		// accountRef
+		PrismReference accountRef = user.findOrCreateReference(USER_ACCOUNTREF_QNAME);
+		assertEquals(USER_ACCOUNTREF_QNAME, accountRef.getName());
+		if (assertDefinitions) assertDefinition(accountRef, OBJECT_REFERENCE_TYPE_QNAME, 0, -1);
+		accountRef.addValue(new PrismReferenceValue(ACCOUNT1_OID));
+		accountRef.addValue(new PrismReferenceValue(ACCOUNT2_OID));
+		PrismReference accountRefAgain = user.findOrCreateReference(USER_ACCOUNTREF_QNAME);
+		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
+		assertTrue("Property not the same", accountRef == accountRefAgain);
+		assertEquals("accountRef size", 2, accountRef.getValues().size());
 	}
 	
 	private void assertUserDrake(PrismObject<UserType> user, boolean assertDefinitions) {
@@ -227,19 +244,12 @@ public class TestPrismConstruction {
 		PrismProperty assRedDescriptionProperty = assRedValue.findProperty(USER_DESCRIPTION_QNAME);
 		if (assertDefinitions) assertDefinition(assRedDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
 		assertEquals("Wrong red assignment description", "Assignment created out of the red", assRedDescriptionProperty.getValue().getValue());
-		
+		// accountRef
+		PrismReference accountRef = user.findReference(USER_ACCOUNTREF_QNAME);
+		if (assertDefinitions) assertDefinition(accountRef, OBJECT_REFERENCE_TYPE_QNAME, 0, -1);
+		assertReferenceValue(accountRef, ACCOUNT1_OID);
+		assertReferenceValue(accountRef, ACCOUNT2_OID);
+		assertEquals("accountRef size", 2, accountRef.getValues().size());
 	}
 	
-	private PrismContext constructPrismContext() throws SchemaException, SAXException, IOException {
-		SchemaRegistry schemaRegistry = new SchemaRegistry();
-		DynamicNamespacePrefixMapper prefixMapper = new GlobalDynamicNamespacePrefixMapper();
-		// Set default namespace?
-		schemaRegistry.setNamespacePrefixMapper(prefixMapper);
-		schemaRegistry.registerPrismSchemaResource("xml/ns/test/foo-1.xsd", "foo", ObjectFactory.class.getPackage());
-		schemaRegistry.setObjectSchemaNamespace(NS_FOO);
-		schemaRegistry.initialize();
-		
-		PrismContext context = PrismContext.create(schemaRegistry);
-		return context;
-	}
 }

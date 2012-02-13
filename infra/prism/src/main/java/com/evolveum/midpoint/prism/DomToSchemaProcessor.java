@@ -284,7 +284,7 @@ class DomToSchemaProcessor {
 			
 				if (isObjectReference(xsType, annotation)) {
 				
-					PrismObjectReferenceDefinition propDef = processObjectReferenceDefinition(xsType, elementName, annotation, ctd);					
+					PrismReferenceDefinition propDef = processObjectReferenceDefinition(xsType, elementName, annotation, ctd);					
 					setMultiplicity(propDef, p);
 				
 				} else if (isObjectDefinition(xsType)) {					
@@ -337,7 +337,7 @@ class DomToSchemaProcessor {
 		}
 	}
 	
-	private PrismObjectReferenceDefinition processObjectReferenceDefinition(XSType xsType, QName elementName,
+	private PrismReferenceDefinition processObjectReferenceDefinition(XSType xsType, QName elementName,
 			XSAnnotation annotation, ComplexTypeDefinition ctd) {
 		// Create a property definition (even if this is a XSD complex type)
 		QName typeName = new QName(xsType.getTargetNamespace(), xsType.getName());
@@ -347,9 +347,9 @@ class DomToSchemaProcessor {
 		if (hasExplicitPrimaryElementName) {
 			primaryElementName = DOMUtil.getQNameValue(objRefAnnotationElement);
 		}
-		PrismObjectReferenceDefinition definition = ctd.findItemDefinition(primaryElementName, PrismObjectReferenceDefinition.class);
+		PrismReferenceDefinition definition = ctd.findItemDefinition(primaryElementName, PrismReferenceDefinition.class);
 		if (definition == null) {
-			definition = new PrismObjectReferenceDefinition(primaryElementName, primaryElementName, typeName, prismContext);
+			definition = new PrismReferenceDefinition(primaryElementName, primaryElementName, typeName, prismContext);
 			ctd.add(definition);
 		}
 		if (hasExplicitPrimaryElementName) {
@@ -374,7 +374,7 @@ class DomToSchemaProcessor {
 		return definition;
 	}
 
-	private void setMultiplicity(PrismPropertyDefinition propDef, XSParticle p) {
+	private void setMultiplicity(ItemDefinition propDef, XSParticle p) {
 		propDef.setMinOccurs(p.getMinOccurs());
 		propDef.setMaxOccurs(p.getMaxOccurs());
 	}

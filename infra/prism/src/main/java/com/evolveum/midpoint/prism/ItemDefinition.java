@@ -191,7 +191,21 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	 */
 	abstract public Item instantiate(QName name);
 	
-	abstract <T extends ItemDefinition> T findItemDefinition(PropertyPath path, Class<T> clazz);
+    <T extends ItemDefinition> T findItemDefinition(PropertyPath path, Class<T> clazz) {
+        if (path.isEmpty() && clazz.isAssignableFrom(this.getClass())) {
+            return (T) this;
+        } else {
+            throw new IllegalArgumentException("No definition for path " + path + " in " + this);
+        }
+    }
+	
+	@Override
+	void revive(PrismContext prismContext) {
+		if (this.prismContext != null) {
+			return;
+		}
+		this.prismContext = prismContext;
+	}
 	
 	protected void copyDefinitionData(ItemDefinition clone) {
 		super.copyDefinitionData(clone);
@@ -231,7 +245,7 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + ":" + DebugUtil.prettyPrint(getName()) + " ("+DebugUtil.prettyPrint(getTypeName())+")";
+		return getDebugDumpClassName() + ":" + DebugUtil.prettyPrint(getName()) + " ("+DebugUtil.prettyPrint(getTypeName())+")";
 	}
 	
 }

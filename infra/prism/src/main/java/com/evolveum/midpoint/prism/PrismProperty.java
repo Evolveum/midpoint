@@ -146,7 +146,12 @@ public class PrismProperty extends Item {
      */
     @SuppressWarnings("unchecked")
     public <T> PrismPropertyValue<T> getValue(Class<T> T) {
-        // TODO: check schema definition if available
+    	if (getDefinition() != null) {
+    		if (getDefinition().isMultiValue()) {
+    			throw new IllegalStateException("Attempt to get single value from property " + name
+                        + " with multiple values");
+    		}
+    	}
         if (values.size() > 1) {
             throw new IllegalStateException("Attempt to get single value from property " + name
                     + " with multiple values");
@@ -155,9 +160,6 @@ public class PrismProperty extends Item {
             return null;
         }
         PrismPropertyValue<Object> o = values.iterator().next();
-        if (o == null) {
-            return null;
-        }
         return (PrismPropertyValue<T>) o;
     }
 
@@ -253,6 +255,14 @@ public class PrismProperty extends Item {
     public boolean isEmpty() {
         return (values == null || values.isEmpty());
     }
+    
+	void applyDefinition(ItemDefinition definition) {
+		if (!(definition instanceof PrismPropertyDefinition)) {
+			throw new IllegalArgumentException("Cannot apply "+definition+" to property");
+		}
+		super.applyDefinition(definition);
+	}
+
 
 //    @Override
 //    public void serializeToDom(Node parentNode) throws SchemaException {
@@ -365,14 +375,6 @@ public class PrismProperty extends Item {
         }
         return elements;
     }
-    
-    @Override
-	void applyDefinition(ItemDefinition definition) {
-		if (!(definition instanceof PrismPropertyDefinition)) {
-			throw new IllegalArgumentException("Cannot apply "+definition+" to property");
-		}
-		this.definition = definition;
-	}
 
 	@Override
     public PrismProperty clone() {
@@ -384,9 +386,9 @@ public class PrismProperty extends Item {
     protected void copyValues(PrismProperty clone) {
         super.copyValues(clone);
         clone.values = new HashSet<PrismPropertyValue<Object>>();
-//        for (PropertyValue<Object> value : values) {
-//            clone.values.add(value.clone());
-//        }
+        for (PrismPropertyValue<Object> value : values) {
+            clone.values.add(value.clone());
+        }
         clone.values.addAll(values);
     }
 

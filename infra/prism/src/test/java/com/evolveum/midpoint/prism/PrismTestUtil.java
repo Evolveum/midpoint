@@ -23,9 +23,11 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.IOException;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import org.testng.AssertJUnit;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.foo.ObjectFactory;
@@ -84,6 +86,15 @@ public class PrismTestUtil {
 		assertEquals("Wrong definition type for "+itemName, type, definition.getTypeName());
 		assertEquals("Wrong definition minOccurs for "+itemName, minOccurs, definition.getMinOccurs());
 		assertEquals("Wrong definition maxOccurs for "+itemName, maxOccurs, definition.getMaxOccurs());
+	}
+	
+	public static void assertReferenceValue(PrismReference ref, String oid) {
+		for (PrismReferenceValue val: ref.getValues()) {
+			if (oid.equals(val.getOid())) {
+				return;
+			}
+		}
+		AssertJUnit.fail("Oid "+oid+" not found in reference "+ref);
 	}
 
 	

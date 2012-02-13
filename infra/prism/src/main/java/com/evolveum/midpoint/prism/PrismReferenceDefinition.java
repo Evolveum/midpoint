@@ -44,13 +44,13 @@ import javax.xml.namespace.QName;
  * @author Radovan Semancik
  * 
  */
-public class PrismObjectReferenceDefinition extends PrismPropertyDefinition {
+public class PrismReferenceDefinition extends ItemDefinition {
 
 	private static final long serialVersionUID = 2427488779612517600L;
 	private QName targetTypeName;
 	private QName compositeObjectElementName;
 
-	PrismObjectReferenceDefinition(QName name, QName defaultName, QName typeName, PrismContext prismContext) {
+	PrismReferenceDefinition(QName name, QName defaultName, QName typeName, PrismContext prismContext) {
 		super(name, defaultName, typeName, prismContext);
 	}
 
@@ -79,5 +79,21 @@ public class PrismObjectReferenceDefinition extends PrismPropertyDefinition {
 		this.compositeObjectElementName = compositeObjectElementName;
 	}
 	
-	
+    @Override
+    public PrismReference instantiate() {
+        return instantiate(getNameOrDefaultName());
+    }
+
+    @Override
+    public PrismReference instantiate(QName name) {
+        return new PrismReference(name, this, prismContext);
+    }
+    
+    /**
+     * Return a human readable name of this class suitable for logs.
+     */
+    @Override
+    protected String getDebugDumpClassName() {
+        return "PRD";
+    }
 }

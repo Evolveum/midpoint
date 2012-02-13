@@ -205,7 +205,7 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + " ("+getTypeName()+")";
+		return getDebugDumpClassName() + " ("+getTypeName()+")";
 	}
 	
 	@Override
@@ -228,4 +228,9 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 		sb.append("\n");
 		return sb.toString();
 	}
+	
+	/**
+     * Return a human readable name of this class suitable for logs.
+     */
+    protected abstract String getDebugDumpClassName();
 }

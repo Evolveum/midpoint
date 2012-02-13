@@ -171,7 +171,9 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
      */
 //    abstract public void serializeToDom(Node parentNode) throws SchemaException;
     
-    abstract void applyDefinition(ItemDefinition definition);
+	void applyDefinition(ItemDefinition definition) {
+		this.definition = definition;
+	}
     
     public void revive(PrismContext prismContext) {
     	if (this.prismContext != null) {

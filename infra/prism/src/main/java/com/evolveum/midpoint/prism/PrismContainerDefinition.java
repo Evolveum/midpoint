@@ -407,5 +407,13 @@ public class PrismContainerDefinition extends ItemDefinition {
     public boolean isEmpty() {
         return complexTypeDefinition.isEmpty();
     }
+    
+    /**
+     * Return a human readable name of this class suitable for logs.
+     */
+    @Override
+    protected String getDebugDumpClassName() {
+        return "PCD";
+    }
 
 }

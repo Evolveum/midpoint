@@ -392,8 +392,46 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
     }
     
     @Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		// container is missing from the computation to avoid loops
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((items == null) ? 0 : items.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PrismContainerValue other = (PrismContainerValue) obj;
+		if (container == null) {
+			if (other.container != null)
+				return false;
+		// Following != is there by purpose to avoid loops. This check is sufficient here.
+		} else if (container != other.container)
+			return false;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		if (items == null) {
+			if (other.items != null)
+				return false;
+		} else if (!items.equals(other.items))
+			return false;
+		return true;
+	}
+
+	@Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + getId() + "):"
+        return "PCV[" + getId() + "]:"
                 + getItems();
     }
 
@@ -413,7 +451,7 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);
         }
-        sb.append("V").append(": ").append(DebugUtil.prettyPrint(getId()));
+        sb.append("PCV").append(": ").append(DebugUtil.prettyPrint(getId()));
         Iterator<Item> i = getItems().iterator();
         if (i.hasNext()) {
             sb.append("\n");

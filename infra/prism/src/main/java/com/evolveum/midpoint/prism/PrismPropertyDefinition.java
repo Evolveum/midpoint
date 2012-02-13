@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import org.w3c.dom.Element;
 
@@ -155,17 +156,10 @@ public class PrismPropertyDefinition extends ItemDefinition {
     }
 
     @Override
-	void revive(PrismContext prismContext) {
-		if (this.prismContext != null) {
-			return;
-		}
-		this.prismContext = prismContext;
-	}
-
-    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName()).append(":").append(getName()).append(" (").append(getTypeName()).append(")");
+        sb.append(getDebugDumpClassName()).append(":").append(DebugUtil.prettyPrint(getName()));
+        sb.append(" (").append(DebugUtil.prettyPrint(getTypeName())).append(")");
         if (isMultiValue()) {
             sb.append(" multi");
         }
@@ -173,15 +167,6 @@ public class PrismPropertyDefinition extends ItemDefinition {
             sb.append(" opt");
         }
         return sb.toString();
-    }
-
-    @Override
-    <T extends ItemDefinition> T findItemDefinition(PropertyPath path, Class<T> clazz) {
-        if (path.isEmpty() && clazz.isAssignableFrom(this.getClass())) {
-            return (T) this;
-        } else {
-            throw new IllegalArgumentException("No definition for path " + path + " in " + this);
-        }
     }
 
     @Override
@@ -219,6 +204,14 @@ public class PrismPropertyDefinition extends ItemDefinition {
         } else if (!valueType.equals(other.valueType))
             return false;
         return true;
+    }
+    
+    /**
+     * Return a human readable name of this class suitable for logs.
+     */
+    @Override
+    protected String getDebugDumpClassName() {
+        return "PPD";
     }
 
 

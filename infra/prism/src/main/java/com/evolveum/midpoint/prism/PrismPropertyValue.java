@@ -59,7 +59,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("PropertyValue[");
+        builder.append("PPV[");
         if (getValue() != null) {
             builder.append(getValue().toString());
         } else {
@@ -75,23 +75,31 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
     }
 
     @Override
-    public int hashCode() {
-        int hash = 11;
-        if (getValue() != null) {
-            hash += getValue().hashCode();
-        }
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((value == null) ? 0 : value.hashCode());
+		return result;
+	}
 
-        if (getSource() != null) {
-            hash = hash * 13 + getSource().hashCode();
-        }
-        if (getType() != null) {
-            hash = hash * 17 + getType().hashCode();
-        }
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PrismPropertyValue other = (PrismPropertyValue) obj;
+		if (value == null) {
+			if (other.value != null)
+				return false;
+		} else if (!value.equals(other.value))
+			return false;
+		return true;
+	}
 
-        return hash;
-    }
-
-    public boolean equalsRealValue(PrismPropertyValue<T> pValueToCompare) {
+	public boolean equalsRealValue(PrismPropertyValue<T> pValueToCompare) {
         if (pValueToCompare == null) {
             return false;
         }
@@ -115,22 +123,6 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 //        }
         
         return getValue().equals(pValueToCompare.getValue());
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof PrismPropertyValue)) {
-            return false;
-        }
-        PrismPropertyValue other = (PrismPropertyValue) o;
-
-        return equals(getValue(), other.getValue())
-                && equals(getSource(), other.getSource())
-                && equals(getType(), other.getType());
-    }
-
-    private boolean equals(Object o1, Object o2) {
-        return o1 != null ? o1.equals(o2) : o2 == null;
     }
 
     @Override
