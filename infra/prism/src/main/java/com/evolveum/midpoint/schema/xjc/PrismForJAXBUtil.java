@@ -21,10 +21,7 @@
 
 package com.evolveum.midpoint.schema.xjc;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
@@ -43,24 +40,8 @@ public final class PrismForJAXBUtil {
         Validate.notNull(name, "QName must not be null.");
         Validate.notNull(clazz, "Class type must not be null.");
 
-        //PrismProperty property = container.findOrCreateProperty(name, clazz);
         PrismProperty property = container.findOrCreateProperty(name);
         return new PropertyArrayList<T>(property);
-
-//        List<T> values = new ArrayList<T>();
-//        PrismProperty property = container.findProperty(name);
-//        if (property == null) {
-//            return values;
-//        }
-//
-//        Set<PropertyValue<T>> set = property.getValues(clazz);
-//        if (set != null) {
-//            for (PropertyValue<T> value : set) {
-//                values.add(value.getValue());
-//            }
-//        }
-//
-//        return values;
     }
 
     public static <T> T getPropertyValue(PrismContainerValue container, QName name, Class<T> clazz) {
@@ -108,5 +89,34 @@ public final class PrismForJAXBUtil {
 
         PrismProperty property = container.findOrCreateProperty(name);
         property.setValue(new PrismPropertyValue(value));
+    }
+
+    public static PrismContainerValue getContainerValue(PrismContainer parent, QName name) {
+        return getContainerValue(parent.getValue(), name);
+    }
+
+    public static PrismContainerValue getContainerValue(PrismContainerValue parent, QName name) {
+        //todo implement, experimental, used for xjc stuff with jaxb
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    public static <T extends PrismContainer> T getContainer(PrismContainer parent, QName name, Class<T> clazz) {
+        //todo implement, experimental, used for xjc stuff with jaxb
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+    
+    public static boolean setContainerValue(PrismContainerValue parent, QName name, PrismContainerValue value) {
+        //todo implement, experimental, used for xjc stuff with jaxb
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    public static boolean setContainerValue(PrismContainer parent, QName name, PrismContainer value) {
+        //todo implement, experimental, used for xjc stuff with jaxb
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    public static boolean setContainerValue(PrismContainer parent, QName name, PrismContainerValue value) {
+        //todo implement, experimental, used for xjc stuff with jaxb
+        throw new UnsupportedOperationException("not implemented yet");
     }
 }

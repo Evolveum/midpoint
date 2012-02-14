@@ -457,7 +457,9 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
         return sb.toString();
     }
 
+    @Deprecated
     public boolean equivalent(PrismContainerValue containerValue) {
+        //todo implement, experimental, used for xjc stuff with jaxb
         throw new UnsupportedOperationException("not implemented yet.");
     }
 }

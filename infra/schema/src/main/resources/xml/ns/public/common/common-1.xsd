@@ -425,7 +425,7 @@
     </xsd:element>
 
 
-    <xsd:complexType name="ExtensibleObjectType">
+    <xsd:complexType name="ExtensibleObjectType" abstract="true">
         <xsd:annotation>
             <xsd:documentation>
                 Object with generic extensibility mechanism. It contains a
@@ -531,6 +531,7 @@
         </xsd:attribute>
     </xsd:complexType>
 
+    <xsd:element name="extensibleObject" type="tns:ExtensibleObjectType" />
     <xsd:element name="object" type="tns:ObjectType"/>
     <xsd:element name="genericObject" type="tns:GenericObjectType" substitutionGroup="tns:object"/>
     <xsd:element name="objectRef" type="tns:ObjectReferenceType"/>
