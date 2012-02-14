@@ -43,12 +43,12 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
     private List<Item> items = new ArrayList<Item>();
     private String id;
     
-    PrismContainerValue() {
+    public PrismContainerValue() {
     	super();
     	// Nothing to do
     }
     
-    PrismContainerValue(SourceType type, Objectable source, PrismContainer container, String id) {
+    public PrismContainerValue(SourceType type, Objectable source, PrismContainer container, String id) {
 		super(type, source, container);
 		this.id = id;
 	}
@@ -457,4 +457,7 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
         return sb.toString();
     }
 
+    public boolean equivalent(PrismContainerValue containerValue) {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
 }

@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.schema.xjc.schema;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
@@ -144,29 +145,37 @@ public class SchemaProcessor implements Processor {
         body.assign(reference, value);
 
         //update for oid methods
+        updateObjectReferenceOid(definedClass, getReference);
+        //update for type methods
+        updateObjectReferenceType(definedClass, getReference);
+    }
+    
+    private void updateObjectReferenceType(JDefinedClass definedClass, JMethod getReference ) {
+        JFieldVar typeField = definedClass.fields().get("type");
+        JMethod getType = recreateMethod(findMethod(definedClass, "getType"), definedClass);
+        copyAnnotations(getType, typeField);
+        JBlock body = getType.body();
+        body._return(JExpr.invoke(JExpr.invoke(getReference), "getTargetType"));
+
+        definedClass.removeField(typeField);
+        JMethod setType = recreateMethod(findMethod(definedClass, "setType"), definedClass);
+        body = setType.body();
+        JInvocation invocation = body.invoke(JExpr.invoke(getReference), "setTargetType");
+        invocation.arg(setType.listParams()[0]);
+    }
+    
+    private void updateObjectReferenceOid(JDefinedClass definedClass, JMethod getReference) {
         JFieldVar oidField = definedClass.fields().get("oid");
         JMethod getOid = recreateMethod(findMethod(definedClass, "getOid"), definedClass);
         copyAnnotations(getOid, oidField);
         definedClass.removeField(oidField);
-        body = getOid.body();
+        JBlock body = getOid.body();
         body._return(JExpr.invoke(JExpr.invoke(getReference), getOid.name()));
 
         JMethod setOid = recreateMethod(findMethod(definedClass, "setOid"), definedClass);
         body = setOid.body();
         JInvocation invocation = body.invoke(JExpr.invoke(getReference), setOid.name());
         invocation.arg(setOid.listParams()[0]);
-        //update for type methods
-        JFieldVar typeField = definedClass.fields().get("type");
-        JMethod getType = recreateMethod(findMethod(definedClass, "getType"), definedClass);
-        copyAnnotations(getType, typeField);
-        body = getType.body();
-        body._return(JExpr.invoke(JExpr.invoke(getReference), "getTargetType"));
-
-        definedClass.removeField(typeField);
-        JMethod setType = recreateMethod(findMethod(definedClass, "setType"), definedClass);
-        body = setType.body();
-        invocation = body.invoke(JExpr.invoke(getReference), "setTargetType");
-        invocation.arg(setType.listParams()[0]);
     }
 
     private JMethod findMethod(JDefinedClass definedClass, String methodName) {
@@ -181,28 +190,17 @@ public class SchemaProcessor implements Processor {
     }
 
     private Set<JDefinedClass> updatePropertyContainer(Outline outline) {
-        return updateContainer(outline, PROPERTY_CONTAINER, PrismContainer.class);
-    }
-
-    private Set<JDefinedClass> updateMidPointContainer(Outline outline) {
-        return updateContainer(outline, MIDPOINT_CONTAINER, PrismObject.class);
-    }
-
-    private Set<JDefinedClass> updateContainer(Outline outline, QName annotation,
-            Class<? extends PrismContainer> containerClass) {
-
         Set<JDefinedClass> containers = new HashSet<JDefinedClass>();
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
             QName qname = getCClassInfoQName(entry.getValue());
-            if (qname == null || !hasAnnotation(classOutline, annotation)) {
+            if (qname == null || !hasAnnotation(classOutline, PROPERTY_CONTAINER)) {
                 continue;
             }
 
             //todo remove, only till propertyContainer annotation is on ObjectType
-            if (hasAnnotation(classOutline, MIDPOINT_CONTAINER) && hasAnnotation(classOutline, PROPERTY_CONTAINER)
-                    && annotation.equals(PROPERTY_CONTAINER)) {
+            if (hasAnnotation(classOutline, MIDPOINT_CONTAINER) && hasAnnotation(classOutline, PROPERTY_CONTAINER)) {
                 continue;
             }
 
@@ -210,14 +208,47 @@ public class SchemaProcessor implements Processor {
             containers.add(definedClass);
 
             //inserting MidPointObject field into ObjectType class
-            JVar container = definedClass.field(JMod.PRIVATE, containerClass, CONTAINER_FIELD_NAME);
+            JVar container = definedClass.field(JMod.PRIVATE, PrismContainerValue.class, CONTAINER_FIELD_NAME);
             //adding XmlTransient annotation
             container.annotate((JClass) outline.getModel().codeModel._ref(XmlTransient.class));
 
             //create getContainer
-            createGetContainerMethod(classOutline, container, containerClass);
+            createGetContainerValueMethod(classOutline, container);
             //create setContainer
-            createSetContainerMethod(definedClass, container, containerClass, outline);
+            createSetContainerValueMethod(definedClass, container, outline);
+
+            System.out.println("Creating toString, equals, hashCode methods.");
+            //create toString, equals, hashCode
+            createToStringMethod(definedClass, outline);
+            createEqualsMethod(definedClass, outline);
+            createHashCodeMethod(definedClass, outline);
+        }
+
+        return containers;
+    }
+
+    private Set<JDefinedClass> updateMidPointContainer(Outline outline) {
+        Set<JDefinedClass> containers = new HashSet<JDefinedClass>();
+        Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
+        for (Map.Entry<NClass, CClassInfo> entry : set) {
+            ClassOutline classOutline = outline.getClazz(entry.getValue());
+            QName qname = getCClassInfoQName(entry.getValue());
+            if (qname == null || !hasAnnotation(classOutline, MIDPOINT_CONTAINER)) {
+                continue;
+            }
+
+            JDefinedClass definedClass = classOutline.implClass;
+            containers.add(definedClass);
+
+            //inserting MidPointObject field into ObjectType class
+            JVar container = definedClass.field(JMod.PRIVATE, PrismObject.class, CONTAINER_FIELD_NAME);
+            //adding XmlTransient annotation
+            container.annotate((JClass) outline.getModel().codeModel._ref(XmlTransient.class));
+
+            //create getContainer
+            createGetContainerMethod(classOutline, container);
+            //create setContainer
+            createSetContainerMethod(definedClass, container, outline);
 
             System.out.println("Creating toString, equals, hashCode methods.");
             //create toString, equals, hashCode
@@ -266,10 +297,47 @@ public class SchemaProcessor implements Processor {
         body._return(invocation);
     }
 
-    private void createGetContainerMethod(ClassOutline classOutline, JVar container,
-            Class<? extends PrismContainer> containerClass) {
+    private void createGetContainerValueMethod(ClassOutline classOutline, JVar container) {
         JDefinedClass definedClass = classOutline.implClass;
-        JClass clazz = (JClass) classOutline.parent().getModel().codeModel._ref(containerClass);
+        JClass clazz = (JClass) classOutline.parent().getModel().codeModel._ref(PrismContainerValue.class);
+        JMethod getContainer = definedClass.method(JMod.PUBLIC, clazz, METHOD_GET_CONTAINER);
+
+        //create method body
+        JBlock body = getContainer.body();
+        JBlock then = body._if(container.eq(JExpr._null()))._then();
+        then.assign(container, JExpr._new(clazz));
+
+        body._return(container);
+    }
+
+    private void createSetContainerValueMethod(JDefinedClass definedClass, JVar container, Outline outline) {
+        JMethod setContainer = definedClass.method(JMod.PUBLIC, void.class, METHOD_SET_CONTAINER);
+        JVar methodContainer = setContainer.param(PrismContainerValue.class, "container");
+        //create method body
+        JBlock body = setContainer.body();
+        JBlock then = body._if(methodContainer.eq(JExpr._null()))._then();
+        then.assign(JExpr._this().ref(container), JExpr._null());
+        then._return();
+
+//        JInvocation equals = JExpr.invoke(JExpr.invoke(METHOD_GET_CONTAINER_NAME), "equals");
+//        equals.arg(methodContainer.invoke("getName"));
+//
+//        then = body._if(equals.not())._then();
+//        JClass illegalArgumentClass = (JClass) outline.getModel().codeModel._ref(IllegalArgumentException.class);
+//        JInvocation exception = JExpr._new(illegalArgumentClass);
+//
+//        JExpression message = JExpr.lit("Container qname '").plus(JExpr.invoke(methodContainer, "getName"))
+//                .plus(JExpr.lit("' doesn't equals to '")).plus(JExpr.invoke(METHOD_GET_CONTAINER_NAME))
+//                .plus(JExpr.lit("'."));
+//        exception.arg(message);
+//        then._throw(exception);
+
+        body.assign(JExpr._this().ref(container), methodContainer);
+    }
+
+    private void createGetContainerMethod(ClassOutline classOutline, JVar container) {
+        JDefinedClass definedClass = classOutline.implClass;
+        JClass clazz = (JClass) classOutline.parent().getModel().codeModel._ref(PrismObject.class);
         JMethod getContainer = definedClass.method(JMod.PUBLIC, clazz, METHOD_GET_CONTAINER);
 
         //create method body
@@ -283,11 +351,9 @@ public class SchemaProcessor implements Processor {
         body._return(container);
     }
 
-    private void createSetContainerMethod(JDefinedClass definedClass, JVar container,
-            Class<? extends PrismContainer> containerClass, Outline outline) {
-
+    private void createSetContainerMethod(JDefinedClass definedClass, JVar container, Outline outline) {
         JMethod setContainer = definedClass.method(JMod.PUBLIC, void.class, METHOD_SET_CONTAINER);
-        JVar methodContainer = setContainer.param(containerClass, "container");
+        JVar methodContainer = setContainer.param(PrismObject.class, "container");
         //create method body
         JBlock body = setContainer.body();
         JBlock then = body._if(methodContainer.eq(JExpr._null()))._then();
@@ -608,14 +674,6 @@ public class SchemaProcessor implements Processor {
         return true;
     }
 
-    //    PrismContainer container = getContainer().findContainer(F_EXTENSION);
-//    if (container != null) {
-//        getContainer().removeContainer(container);
-//    }
-//
-//    if (value != null) {
-//        getContainer().addContainer(value.getContainer());
-//    }
     private boolean updateContainerFieldType(JFieldVar field, ClassOutline classOutline) {
         //getter method update
         JDefinedClass definedClass = classOutline.implClass;
