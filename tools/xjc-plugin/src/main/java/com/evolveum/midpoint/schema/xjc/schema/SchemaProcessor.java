@@ -302,41 +302,47 @@ public class SchemaProcessor implements Processor {
         JInvocation exception = JExpr._new(illegalArgumentClass);
 
         JExpression message = JExpr.lit("Container qname '").plus(JExpr.invoke(methodContainer, "getName"))
-                .plus(JExpr.lit("' doesn't equals to '")).plus(JExpr.ref(COMPLEX_TYPE_FIELD))
+                .plus(JExpr.lit("' doesn't equals to '")).plus(JExpr.invoke(METHOD_GET_CONTAINER_NAME))
                 .plus(JExpr.lit("'."));
         exception.arg(message);
         then._throw(exception);
 
         body.assign(JExpr._this().ref(container), methodContainer);
     }
-    
+
     private QName getCClassInfoQName(CClassInfo info) {
         QName qname = info.getTypeName();
         if (qname == null) {
             qname = info.getElementName();
         }
-        
+
         return qname;
     }
 
     private void addContainerName(Outline outline, Map<String, JFieldVar> namespaceFields) {
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
-            ClassOutline classOutline = outline.getClazz(entry.getValue());
-            QName qname = getCClassInfoQName(entry.getValue());
+            CClassInfo classInfo = entry.getValue();
+            ClassOutline classOutline = outline.getClazz(classInfo);
+            QName qname = getCClassInfoQName(classInfo);
             if (qname == null || (!hasAnnotation(classOutline, PROPERTY_CONTAINER)
                     && !hasAnnotation(classOutline, MIDPOINT_CONTAINER))) {
                 continue;
             }
 
             //element name
-            List<QName> qnames = getComplexTypeToElementName(classOutline).get(qname);
-            if (qnames == null || qnames.size() != 1) {
-                System.out.println("Found zero or more than one element names for type '"
-                        + qname + "', " + qnames + ".");
-                continue;
+            if (classInfo.getTypeName() != null) {
+                List<QName> qnames = getComplexTypeToElementName(classOutline).get(qname);
+                if (qnames == null || qnames.size() != 1) {
+                    System.out.println("Found zero or more than one element names for type '"
+                            + qname + "', " + qnames + ".");
+                    continue;
+                }
+                qname = qnames.get(0);
+            } else {
+                //annonymous complex types -> mapped to element name
+                qname = classInfo.getElementName();
             }
-            qname = qnames.get(0);
 
             JDefinedClass definedClass = classOutline.implClass;
             JMethod getContainerName = definedClass.method(JMod.NONE, QName.class, METHOD_GET_CONTAINER_NAME);
@@ -394,8 +400,8 @@ public class SchemaProcessor implements Processor {
                     continue;
                 }
                 QName type = new QName(xsType.getTargetNamespace(), xsType.getName());
-
                 List<QName> qnames = complexTypeToElementName.get(type);
+
                 if (qnames == null) {
                     qnames = new ArrayList<QName>();
                     complexTypeToElementName.put(type, qnames);
@@ -602,7 +608,7 @@ public class SchemaProcessor implements Processor {
         return true;
     }
 
-//    PrismContainer container = getContainer().findContainer(F_EXTENSION);
+    //    PrismContainer container = getContainer().findContainer(F_EXTENSION);
 //    if (container != null) {
 //        getContainer().removeContainer(container);
 //    }
@@ -636,7 +642,7 @@ public class SchemaProcessor implements Processor {
         method = recreateMethod(method, definedClass);
         JVar param = method.listParams()[0];
         body = method.body();
-        
+
         invocation = JExpr.invoke(JExpr.invoke(METHOD_GET_CONTAINER), "findContainer");
         invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
         container = body.decl(clazz, CONTAINER_FIELD_NAME, invocation);
