@@ -195,11 +195,7 @@ public class SchemaProcessor implements Processor {
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
-
-            QName qname = entry.getValue().getTypeName();
-            if (qname == null) {
-                qname = entry.getValue().getElementName();
-            }
+            QName qname = getCClassInfoQName(entry.getValue());
             if (qname == null || !hasAnnotation(classOutline, annotation)) {
                 continue;
             }
@@ -313,12 +309,21 @@ public class SchemaProcessor implements Processor {
 
         body.assign(JExpr._this().ref(container), methodContainer);
     }
+    
+    private QName getCClassInfoQName(CClassInfo info) {
+        QName qname = info.getTypeName();
+        if (qname == null) {
+            qname = info.getElementName();
+        }
+        
+        return qname;
+    }
 
     private void addContainerName(Outline outline, Map<String, JFieldVar> namespaceFields) {
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
-            QName qname = entry.getValue().getTypeName();
+            QName qname = getCClassInfoQName(entry.getValue());
             if (qname == null || (!hasAnnotation(classOutline, PROPERTY_CONTAINER)
                     && !hasAnnotation(classOutline, MIDPOINT_CONTAINER))) {
                 continue;
@@ -597,6 +602,14 @@ public class SchemaProcessor implements Processor {
         return true;
     }
 
+//    PrismContainer container = getContainer().findContainer(F_EXTENSION);
+//    if (container != null) {
+//        getContainer().removeContainer(container);
+//    }
+//
+//    if (value != null) {
+//        getContainer().addContainer(value.getContainer());
+//    }
     private boolean updateContainerFieldType(JFieldVar field, ClassOutline classOutline) {
         //getter method update
         JDefinedClass definedClass = classOutline.implClass;
@@ -621,17 +634,19 @@ public class SchemaProcessor implements Processor {
         methodName = getSetterMethod(classOutline, field);
         method = definedClass.getMethod(methodName, new JType[]{field.type()});
         method = recreateMethod(method, definedClass);
-
-        body = method.body();
         JVar param = method.listParams()[0];
-        body.assign(JExpr._this().ref(field), param);
+        body = method.body();
+        
+        invocation = JExpr.invoke(JExpr.invoke(METHOD_GET_CONTAINER), "findContainer");
+        invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
+        container = body.decl(clazz, CONTAINER_FIELD_NAME, invocation);
+        then = body._if(container.eq(JExpr._null()).not())._then();
+        invocation = then.invoke(JExpr.invoke(METHOD_GET_CONTAINER), "removeContainer");
+        invocation.arg(container);
 
-        JConditional condition = body._if(param.eq(JExpr._null()));
-        JBlock thenBlock = condition._then();
-        thenBlock.directStatement("//todo how do we remove property container from parent container???");
-        JBlock elseBlock = condition._else();
-        JInvocation addReplace = elseBlock.invoke(JExpr.invoke(METHOD_GET_CONTAINER), METHOD_ADD_REPLACE_EXISTING);
-        addReplace.arg(JExpr.invoke(param, METHOD_GET_CONTAINER));
+        then = body._if(param.eq(JExpr._null()).not())._then();
+        invocation = then.invoke(JExpr.invoke(METHOD_GET_CONTAINER), "addContainer");
+        invocation.arg(param.invoke(METHOD_GET_CONTAINER));
 
         return true;
     }

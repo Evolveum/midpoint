@@ -307,6 +307,15 @@ public class PrismContainer extends Item {
     public PrismReference findOrCreateReference(QName propertyName) {
         return findCreateItem(propertyName, PrismReference.class, true);
     }
+    
+    public boolean removeContainer(PrismContainer container) {
+        //todo remove container
+        return false;
+    }
+    
+    public void addContainer(PrismContainer container) {
+        //todo add container
+    }
 
     // Expects that the "self" path segment is NOT included in the basePath
     void addPropertyPathsToList(PropertyPath basePath, Collection<PropertyPath> list) {
