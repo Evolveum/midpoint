@@ -40,71 +40,71 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationTy
  */
 public class ObjectTypeUtilTest {
 
-	@Test
-	public void testGetPropertyNewValue() throws JAXBException, SchemaException {
-		// GIVEN
-		
-		ObjectChangeModificationType objectChange = ((JAXBElement<ObjectChangeModificationType>) JAXBUtil
-				.unmarshal(new File("src/test/resources/util/object-change-modify-password.xml")))
-				.getValue();
-		
-		// WHEN
-		
-		ObjectModificationType objectModification = objectChange.getObjectModification();
-		PasswordType newPasswordStructure = ObjectTypeUtil.getPropertyNewValue(objectModification,"credentials","password",PasswordType.class);
-		
-		// THEN
-		
-		assertNotNull("No Password structure",newPasswordStructure);
-		assertNotNull("No protectedString in Password structure",newPasswordStructure.getProtectedString());
-		assertNotNull("No value in protectedString in Password structure",newPasswordStructure.getProtectedString().getClearValue());
-	}
-
-	/**
-	 * Test for a wrong way how to represent property changes.
-	 *  
-	 * THIS IS ALL WRONG! This is a wrong way how to change password. the <clearValue> is not a property
-     * and therefore it cannot be changed by itself. But current problems with the diff algorithm cause
-     * that modifications like this appear in the system.
-	 * @throws SchemaException 
-	 */
-	@Test
-	public void testGetPropertyNewValueHack() throws JAXBException, SchemaException {
-		// GIVEN
-		
-		ObjectChangeModificationType objectChange = ((JAXBElement<ObjectChangeModificationType>) JAXBUtil
-				.unmarshal(new File("src/test/resources/util/object-change-modify-password-hack.xml")))
-				.getValue();
-		
-		// WHEN
-		
-		ObjectModificationType objectModification = objectChange.getObjectModification();
-		PasswordType newPasswordStructure = ObjectTypeUtil.getPropertyNewValue(objectModification,"credentials","password",PasswordType.class);
-		
-		// THEN
-		
-		assertNotNull("No Password structure",newPasswordStructure);
-		assertNotNull("No protectedString in Password structure",newPasswordStructure.getProtectedString());
-		assertNotNull("No value in protectedString in Password structure",newPasswordStructure.getProtectedString().getClearValue());		
-	}
-	
-	@Test
-	public void testGetPropertyNewValue2() throws JAXBException, SchemaException {
-		// GIVEN
-		
-		ObjectChangeModificationType objectChange = ((JAXBElement<ObjectChangeModificationType>) JAXBUtil
-				.unmarshal(new File("src/test/resources/util/object-change-modify-activation.xml")))
-				.getValue();
-		
-		// WHEN
-		
-		ObjectModificationType objectModification = objectChange.getObjectModification();
-		Boolean enabled = ObjectTypeUtil.getPropertyNewValue(objectModification,"activation","enabled",Boolean.class);
-		
-		// THEN
-		
-		assertNotNull("returned null", enabled);
-		assertTrue("Expected true for enabled",enabled);
-	}
+//	@Test
+//	public void testGetPropertyNewValue() throws JAXBException, SchemaException {
+//		// GIVEN
+//		
+//		ObjectChangeModificationType objectChange = ((JAXBElement<ObjectChangeModificationType>) JAXBUtil
+//				.unmarshal(new File("src/test/resources/util/object-change-modify-password.xml")))
+//				.getValue();
+//		
+//		// WHEN
+//		
+//		ObjectModificationType objectModification = objectChange.getObjectModification();
+//		PasswordType newPasswordStructure = ObjectTypeUtil.getPropertyNewValue(objectModification,"credentials","password",PasswordType.class);
+//		
+//		// THEN
+//		
+//		assertNotNull("No Password structure",newPasswordStructure);
+//		assertNotNull("No protectedString in Password structure",newPasswordStructure.getProtectedString());
+//		assertNotNull("No value in protectedString in Password structure",newPasswordStructure.getProtectedString().getClearValue());
+//	}
+//
+//	/**
+//	 * Test for a wrong way how to represent property changes.
+//	 *  
+//	 * THIS IS ALL WRONG! This is a wrong way how to change password. the <clearValue> is not a property
+//     * and therefore it cannot be changed by itself. But current problems with the diff algorithm cause
+//     * that modifications like this appear in the system.
+//	 * @throws SchemaException 
+//	 */
+//	@Test
+//	public void testGetPropertyNewValueHack() throws JAXBException, SchemaException {
+//		// GIVEN
+//		
+//		ObjectChangeModificationType objectChange = ((JAXBElement<ObjectChangeModificationType>) JAXBUtil
+//				.unmarshal(new File("src/test/resources/util/object-change-modify-password-hack.xml")))
+//				.getValue();
+//		
+//		// WHEN
+//		
+//		ObjectModificationType objectModification = objectChange.getObjectModification();
+//		PasswordType newPasswordStructure = ObjectTypeUtil.getPropertyNewValue(objectModification,"credentials","password",PasswordType.class);
+//		
+//		// THEN
+//		
+//		assertNotNull("No Password structure",newPasswordStructure);
+//		assertNotNull("No protectedString in Password structure",newPasswordStructure.getProtectedString());
+//		assertNotNull("No value in protectedString in Password structure",newPasswordStructure.getProtectedString().getClearValue());		
+//	}
+//	
+//	@Test
+//	public void testGetPropertyNewValue2() throws JAXBException, SchemaException {
+//		// GIVEN
+//		
+//		ObjectChangeModificationType objectChange = ((JAXBElement<ObjectChangeModificationType>) JAXBUtil
+//				.unmarshal(new File("src/test/resources/util/object-change-modify-activation.xml")))
+//				.getValue();
+//		
+//		// WHEN
+//		
+//		ObjectModificationType objectModification = objectChange.getObjectModification();
+//		Boolean enabled = ObjectTypeUtil.getPropertyNewValue(objectModification,"activation","enabled",Boolean.class);
+//		
+//		// THEN
+//		
+//		assertNotNull("returned null", enabled);
+//		assertTrue("Expected true for enabled",enabled);
+//	}
 
 }

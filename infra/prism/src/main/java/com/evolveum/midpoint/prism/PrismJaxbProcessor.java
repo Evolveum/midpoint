@@ -52,7 +52,7 @@ import com.evolveum.midpoint.util.JAXBUtil;
  * @author semancik
  *
  */
-class PrismJaxbProcessor {
+public class PrismJaxbProcessor {
 	
 	private SchemaRegistry schemaRegistry;
 	private JAXBContext context;

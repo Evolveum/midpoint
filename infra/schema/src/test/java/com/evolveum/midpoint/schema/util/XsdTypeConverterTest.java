@@ -23,6 +23,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.prism.XmlTypeConverter;
+import com.evolveum.midpoint.prism.XsdTypeMapper;
+import com.evolveum.midpoint.schema.JaxbTestUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -46,7 +48,7 @@ public class XsdTypeConverterTest {
 	@Test
 	public void testXsdMappingInitialization() {
 		assertTrue(XmlTypeConverter.canConvert(ProtectedStringType.class));
-		QName xsdType = XmlTypeConverter.toXsdType(ProtectedStringType.class);
+		QName xsdType = XsdTypeMapper.toXsdType(ProtectedStringType.class);
 		System.out.println("ProtectedStringType QName: "+xsdType);
 	}
 	
@@ -90,7 +92,7 @@ public class XsdTypeConverterTest {
 	@Test
 	public void testAccountMarshall() throws JAXBException, SchemaException {
 		System.out.println("\ntestJaxbDom\n\n");
-		JAXBElement jaxbElement = (JAXBElement)JAXBUtil.unmarshal(new File("src/test/resources/converter/account-jack.xml"));
+		JAXBElement jaxbElement = (JAXBElement)JaxbTestUtil.unmarshalElement(new File("src/test/resources/converter/account-jack.xml"));
 		System.out.println("Object: "+jaxbElement.getValue());
 		AccountShadowType shadow = (AccountShadowType)jaxbElement.getValue();
 		
@@ -103,7 +105,7 @@ public class XsdTypeConverterTest {
 		
 		Document doc = DOMUtil.getDocument();
 		JAXBElement<AccountShadowType> accountElement = new JAXBElement<AccountShadowType>(ObjectTypes.ACCOUNT.getQName(),AccountShadowType.class,shadow);
-		JAXBUtil.marshal(accountElement, doc);
+		JaxbTestUtil.marshalElementToDom(accountElement, doc);
 		
 		System.out.println("marshalled shadow: "+DOMUtil.serializeDOMToString(doc));
 		Element rootElement = DOMUtil.getFirstChildElement(doc);

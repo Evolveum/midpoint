@@ -23,6 +23,7 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 import com.evolveum.midpoint.prism.GlobalDynamicNamespacePrefixMapper;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -35,9 +36,15 @@ import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
  * @author semancik
  *
  */
-public class SchemaRegistryFactory {
+public class MidPointPrismContextFactory {
 	
-	public SchemaRegistry createSchemaRegistry() throws SchemaException {
+	public PrismContext createPrismContext() throws SchemaException {
+		SchemaRegistry schemaRegistry = createSchemaRegistry();
+		PrismContext context = PrismContext.create(schemaRegistry);
+		return context;
+	}
+	
+	private SchemaRegistry createSchemaRegistry() throws SchemaException {
 		SchemaRegistry schemaRegistry = new SchemaRegistry();
 		registerBuiltinSchemas(schemaRegistry);
 		schemaRegistry.setObjectSchemaNamespace(SchemaConstants.NS_COMMON);

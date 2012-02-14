@@ -28,6 +28,7 @@ import javax.xml.bind.JAXBException;
 
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.schema.JaxbTestUtil;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -42,8 +43,7 @@ public class JAXBUtilTest {
 	public void testUnmarshallerUtf() throws JAXBException, SchemaException {
 		// GIVEN
 		
-		UserType user = ((JAXBElement<UserType>) JAXBUtil
-				.unmarshal(new File("src/test/resources/util/user-utf8.xml")))
+		UserType user = (UserType) ((JAXBElement) JaxbTestUtil.unmarshalElement(new File("src/test/resources/util/user-utf8.xml")))
 				.getValue();
 		
 		// WHEN
@@ -59,8 +59,7 @@ public class JAXBUtilTest {
 	public void testUnmarshallerIso88592() throws JAXBException, SchemaException {
 		// GIVEN
 		
-		UserType user = ((JAXBElement<UserType>) JAXBUtil
-				.unmarshal(new File("src/test/resources/util/user-8859-2.xml")))
+		UserType user = (UserType) ((JAXBElement) JaxbTestUtil.unmarshalElement(new File("src/test/resources/util/user-8859-2.xml")))
 				.getValue();
 		
 		// WHEN
@@ -82,7 +81,7 @@ public class JAXBUtilTest {
 				"	<fullName>Jožko Nováčik</fullName>" +
 				"</user>";
 
-		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(s)).getValue();
+		UserType user = (UserType) ((JAXBElement) JaxbTestUtil.unmarshalElement(s)).getValue();
 		
 		// WHEN
 
@@ -103,7 +102,7 @@ public class JAXBUtilTest {
 				"	<fullName>Jožko Nováčik</fullName>" +
 				"</user>";
 
-		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(s)).getValue();
+		UserType user = (UserType) ((JAXBElement) JaxbTestUtil.unmarshalElement(s)).getValue();
 		
 		// WHEN
 

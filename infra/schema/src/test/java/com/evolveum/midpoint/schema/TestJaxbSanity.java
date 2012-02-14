@@ -51,11 +51,11 @@ public class TestJaxbSanity {
 		System.out.println("\n\n ===[testUnmarshallAndEqualsUser]===\n");
 		
 		// GIVEN
-		JAXBElement<UserType> userEl1 = JAXBUtil.unmarshal(new File(USER_BARBOSSA_FILENAME),UserType.class);
+		JAXBElement<UserType> userEl1 = JaxbTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),UserType.class);
 		UserType user1 = userEl1.getValue();
 		assertNotNull(user1);
 		
-		JAXBElement<UserType> userEl2 = JAXBUtil.unmarshal(new File(USER_BARBOSSA_FILENAME),UserType.class);
+		JAXBElement<UserType> userEl2 = JaxbTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),UserType.class);
 		UserType user2 = userEl2.getValue();
 		assertNotNull(user2);
 		
@@ -70,11 +70,11 @@ public class TestJaxbSanity {
 		System.out.println("\n\n ===[testUnmarshallAndEqualsResource]===\n");
 		
 		// GIVEN
-		JAXBElement<ResourceType> resourceEl1 = JAXBUtil.unmarshal(new File(RESOURCE_OPENDJ_FILENAME),ResourceType.class);
+		JAXBElement<ResourceType> resourceEl1 = JaxbTestUtil.unmarshalElement(new File(RESOURCE_OPENDJ_FILENAME),ResourceType.class);
 		ResourceType resource1 = resourceEl1.getValue();
 		assertNotNull(resource1);
 		
-		JAXBElement<ResourceType> resourceEl2 = JAXBUtil.unmarshal(new File(RESOURCE_OPENDJ_FILENAME),ResourceType.class);
+		JAXBElement<ResourceType> resourceEl2 = JaxbTestUtil.unmarshalElement(new File(RESOURCE_OPENDJ_FILENAME),ResourceType.class);
 		ResourceType resource2 = resourceEl2.getValue();
 		assertNotNull(resource2);
 		
@@ -94,7 +94,7 @@ public class TestJaxbSanity {
 		System.out.println("\n\n ===[testAssnignmentEquals]===\n");
 		
 		// GIVEN
-		JAXBElement<UserType> userEl1 = JAXBUtil.unmarshal(new File(USER_BARBOSSA_FILENAME),UserType.class);
+		JAXBElement<UserType> userEl1 = JaxbTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),UserType.class);
 		UserType user = userEl1.getValue();
 		assertNotNull(user);
 		
@@ -102,9 +102,9 @@ public class TestJaxbSanity {
 		assertNotNull(userAssignmentType);
 
 		System.out.println("\n*** user assignment");
-		System.out.println(JAXBUtil.marshalWrap(userAssignmentType));
+		System.out.println(JaxbTestUtil.marshalWrap(userAssignmentType));
 
-		JAXBElement<ObjectModificationType> modEl = JAXBUtil.unmarshal(new File(TEST_DIR, "user-barbossa-modify-delete-assignment-account-opendj-attr.xml"),ObjectModificationType.class);
+		JAXBElement<ObjectModificationType> modEl = JaxbTestUtil.unmarshalElement(new File(TEST_DIR, "user-barbossa-modify-delete-assignment-account-opendj-attr.xml"),ObjectModificationType.class);
 		ObjectModificationType mod = modEl.getValue();
 		assertNotNull(mod);
 		
@@ -113,7 +113,7 @@ public class TestJaxbSanity {
 		assertNotNull(assignmentType);
 		
 		System.out.println("\n*** assignment");
-		System.out.println(JAXBUtil.marshalWrap(assignmentType));
+		System.out.println(JaxbTestUtil.marshalWrap(assignmentType));
 		
 		// WHEN, THEN
 		
