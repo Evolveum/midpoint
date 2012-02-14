@@ -38,6 +38,10 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 
     private String oid;
     private QName targetType;
+    
+    public PrismReferenceValue() {
+        this(null,null,null);
+    }
 
     public PrismReferenceValue(String oid) {
         this(oid, null, null);
