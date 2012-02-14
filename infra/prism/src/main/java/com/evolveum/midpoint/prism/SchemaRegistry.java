@@ -121,7 +121,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	public void registerSchemaResource(String resourcePath, String usualPrefix) throws SchemaException {
 		SchemaDescription desc = SchemaDescription.parseResource(resourcePath);
 		desc.setUsualPrefix(usualPrefix);
-		schemaDescriptions.add(desc);
+		registerSchemaDescription(desc);
 	}
 	
 	/**
@@ -131,7 +131,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		SchemaDescription desc = SchemaDescription.parseResource(resourcePath);
 		desc.setUsualPrefix(usualPrefix);
 		desc.setPrismSchema(true);
-		schemaDescriptions.add(desc);
+		registerSchemaDescription(desc);
 	}
 
 	/**
@@ -142,7 +142,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		desc.setUsualPrefix(usualPrefix);
 		desc.setPrismSchema(true);
 		desc.setCompileTimeClassesPackage(compileTimeClassesPackage);
-		schemaDescriptions.add(desc);
+		registerSchemaDescription(desc);
 	}
 
 	/**
@@ -151,7 +151,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	 */
 	public void registerSchema(Node node, String sourceDescription) throws SchemaException {
 		SchemaDescription desc = SchemaDescription.parseNode(node, sourceDescription);
-		schemaDescriptions.add(desc);
+		registerSchemaDescription(desc);
 	}
 
 	/**
@@ -161,12 +161,19 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	public void registerSchema(Node node, String sourceDescription, String usualPrefix) throws SchemaException {
 		SchemaDescription desc = SchemaDescription.parseNode(node, sourceDescription);
 		desc.setUsualPrefix(usualPrefix);
-		schemaDescriptions.add(desc);
+		registerSchemaDescription(desc);
 	}
 	
 	public void registerMidPointSchemaFile(File file) throws FileNotFoundException, SchemaException {
 		SchemaDescription desc = SchemaDescription.parseFile(file);
 		desc.setPrismSchema(true);
+		registerSchemaDescription(desc);
+	}
+	
+	private void registerSchemaDescription(SchemaDescription desc) {
+		if (desc.getUsualPrefix() != null) {
+			namespacePrefixMapper.registerPrefix(desc.getNamespace(), desc.getUsualPrefix());
+		}
 		schemaDescriptions.add(desc);
 	}
 	

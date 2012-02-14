@@ -23,6 +23,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
@@ -43,43 +44,10 @@ import java.util.Set;
  *
  * @author Radovan Semancik
  */
-public class ResourceObjectAttribute extends PrismProperty {
+public class ResourceAttribute extends PrismProperty {
 
-//    /**
-//     * Default constructor.
-//     * The constructors should be used only occasionally (if used at all).
-//     * Use the factory methods in the ResourceObjectDefintion instead.
-//     */
-//    public ResourceObjectAttribute() {
-//        super();
-//    }
-//
-//    /**
-//     * The constructors should be used only occasionally (if used at all).
-//     * Use the factory methods in the ResourceObjectDefintion instead.
-//     *
-//     * @param name       attribute name (element name)
-//     * @param definition attribute definition (schema)
-//     * @param values     initial attribute values
-//     */
-//    public ResourceObjectAttribute(QName name, PropertyDefinition definition,
-//                                   Set<PropertyValue<Object>> values) {
-//        super(name, definition, values);
-//    }
-//
-//    /**
-//     * The constructors should be used only occasionally (if used at all).
-//     * Use the factory methods in the ResourceObjectDefintion instead.
-//     *
-//     * @param name       attribute name (element name)
-//     * @param definition attribute definition (schema)
-//     */
-//    public ResourceObjectAttribute(QName name, PropertyDefinition definition) {
-//        super(name, definition);
-//    }
-
-    public ResourceObjectAttribute(QName name, PrismPropertyDefinition definition, Object element, PropertyPath parentPath) {
-        super(name, definition, element, parentPath);
+    public ResourceAttribute(QName name, PrismPropertyDefinition definition, PrismContext prismContext) {
+        super(name, definition, prismContext);
     }
 
 //    /**
@@ -92,8 +60,8 @@ public class ResourceObjectAttribute extends PrismProperty {
 //        super(name);
 //    }
 
-    public ResourceObjectAttributeDefinition getDefinition() {
-        return (ResourceObjectAttributeDefinition) super.getDefinition();
+    public ResourceAttributeDefinition getDefinition() {
+        return (ResourceAttributeDefinition) super.getDefinition();
     }
 
     /**

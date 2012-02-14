@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.Schema;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -56,21 +57,21 @@ import com.evolveum.midpoint.util.DebugDumpable;
  * @author Radovan Semancik
  * 
  */
-public class ResourceObjectDefinition extends PrismContainerDefinition {
+public class ResourceAttributeContainerDefinition extends PrismContainerDefinition {
 
 	private static final long serialVersionUID = 3943909626639924429L;
-	private Set<ResourceObjectAttributeDefinition> idenitifiers;
-	private Set<ResourceObjectAttributeDefinition> secondaryIdenitifiers;
-	private ResourceObjectAttributeDefinition descriptionAttribute;
-	private ResourceObjectAttributeDefinition displayNameAttribute;
-	private ResourceObjectAttributeDefinition namingAttribute;
+	private Set<ResourceAttributeDefinition> idenitifiers;
+	private Set<ResourceAttributeDefinition> secondaryIdenitifiers;
+	private ResourceAttributeDefinition descriptionAttribute;
+	private ResourceAttributeDefinition displayNameAttribute;
+	private ResourceAttributeDefinition namingAttribute;
 	private boolean defaultAccountType = false;
 	private boolean accountType = false;
 	private String accountTypeName;
 	private String nativeObjectClass;
 
-	public ResourceObjectDefinition(Schema schema, QName name, ComplexTypeDefinition complexTypeDefinition) {
-		super(schema, name, complexTypeDefinition);
+	public ResourceAttributeContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition,  PrismContext prismContext) {
+		super(name, complexTypeDefinition, prismContext);
 	}
 
 	/**
@@ -87,9 +88,9 @@ public class ResourceObjectDefinition extends PrismContainerDefinition {
 	 * @throws IllegalStateException
 	 *             if there is no definition for the referenced attributed
 	 */
-	public Collection<ResourceObjectAttributeDefinition> getIdentifiers() {
+	public Collection<ResourceAttributeDefinition> getIdentifiers() {
 		if (idenitifiers == null) {
-			idenitifiers = new HashSet<ResourceObjectAttributeDefinition>();
+			idenitifiers = new HashSet<ResourceAttributeDefinition>();
 		}
 		return idenitifiers;
 	}
@@ -109,9 +110,9 @@ public class ResourceObjectDefinition extends PrismContainerDefinition {
 	 * @throws IllegalStateException
 	 *             if there is no definition for the referenced attributed
 	 */
-	public Set<ResourceObjectAttributeDefinition> getSecondaryIdentifiers() {
+	public Set<ResourceAttributeDefinition> getSecondaryIdentifiers() {
 		if (secondaryIdenitifiers == null) {
-			secondaryIdenitifiers = new HashSet<ResourceObjectAttributeDefinition>();
+			secondaryIdenitifiers = new HashSet<ResourceAttributeDefinition>();
 		}
 		return secondaryIdenitifiers;
 	}
@@ -132,11 +133,11 @@ public class ResourceObjectDefinition extends PrismContainerDefinition {
 	 * @throws IllegalStateException
 	 *             if there is no definition for the referenced attributed
 	 */
-	public ResourceObjectAttributeDefinition getDescriptionAttribute() {
+	public ResourceAttributeDefinition getDescriptionAttribute() {
 		return descriptionAttribute;
 	}
 
-	public void setDescriptionAttribute(ResourceObjectAttributeDefinition descriptionAttribute) {
+	public void setDescriptionAttribute(ResourceAttributeDefinition descriptionAttribute) {
 		this.descriptionAttribute = descriptionAttribute;
 	}
 	
@@ -154,11 +155,11 @@ public class ResourceObjectDefinition extends PrismContainerDefinition {
 	 * @return resource attribute definition that should be used as a "technical" name
 	 * 					for the account.
 	 */
-	public ResourceObjectAttributeDefinition getNamingAttribute() {
+	public ResourceAttributeDefinition getNamingAttribute() {
 		return namingAttribute;
 	}
 
-	public void setNamingAttribute(ResourceObjectAttributeDefinition namingAttribute) {
+	public void setNamingAttribute(ResourceAttributeDefinition namingAttribute) {
 		this.namingAttribute = namingAttribute;
 	}
 
@@ -248,23 +249,23 @@ public class ResourceObjectDefinition extends PrismContainerDefinition {
 			throw new IllegalStateException(
 					"Can't be default account type, flat account type (boolean) not set.");
 		}
-		if (defaultAccountType) {
-			Collection<Definition> definitions = schema.getDefinitions();
-			for (Definition definition : definitions) {
-				if (this == definition) {
-					continue;
-				}
-				if (!(definition instanceof ResourceObjectDefinition)) {
-					continue;
-				}
-				ResourceObjectDefinition resourceDef = (ResourceObjectDefinition) definition;
-				if (resourceDef.isAccountType() && resourceDef.isDefaultAccountType()) {
-					throw new IllegalStateException("Can't have two default account types "
-							+ "(ResourceObjectDefinition) in schema (" + this.getName() + ", "
-							+ resourceDef.getName() + ").");
-				}
-			}
-		}
+//		if (defaultAccountType) {
+//			Collection<Definition> definitions = schema.getDefinitions();
+//			for (Definition definition : definitions) {
+//				if (this == definition) {
+//					continue;
+//				}
+//				if (!(definition instanceof ResourceAttributeContainerDefinition)) {
+//					continue;
+//				}
+//				ResourceAttributeContainerDefinition resourceDef = (ResourceAttributeContainerDefinition) definition;
+//				if (resourceDef.isAccountType() && resourceDef.isDefaultAccountType()) {
+//					throw new IllegalStateException("Can't have two default account types "
+//							+ "(ResourceObjectDefinition) in schema (" + this.getName() + ", "
+//							+ resourceDef.getName() + ").");
+//				}
+//			}
+//		}
 	}
 	
 	public String getAccountTypeName() {
@@ -295,11 +296,11 @@ public class ResourceObjectDefinition extends PrismContainerDefinition {
 	 *             if there is more than one display name attribute or the
 	 *             definition of the referenced attribute does not exist.
 	 */
-	public ResourceObjectAttributeDefinition getDisplayNameAttribute() {
+	public ResourceAttributeDefinition getDisplayNameAttribute() {
 		return displayNameAttribute;
 	}
 
-	public void setDisplayNameAttribute(ResourceObjectAttributeDefinition displayName) {
+	public void setDisplayNameAttribute(ResourceAttributeDefinition displayName) {
 		this.displayNameAttribute = displayName;
 	}
 
@@ -314,41 +315,21 @@ public class ResourceObjectDefinition extends PrismContainerDefinition {
 		setDisplayNameAttribute(findAttributeDefinition(displayName));
 	}
 
-	public ResourceObject instantiate() {
-		return new ResourceObject(getNameOrDefaultName(), this, null, null);
+	public ResourceAttributeContainer instantiate() {
+		return instantiate(getNameOrDefaultName());
 	}
 	
-	public PrismContainer instantiate(QName name) {
-		return new ResourceObject(name, this, null, null);
+	public ResourceAttributeContainer instantiate(QName name) {
+		return new ResourceAttributeContainer(name, this, prismContext);
 	}
 	
-	public PrismContainer instantiate(QName name, Object element) {
-		return new ResourceObject(name, this, element, null);
-	}
-
-	@Override
-	public ResourceObject instantiate(PropertyPath parentPath) {
-		return new ResourceObject(getNameOrDefaultName(), this, null, parentPath);
-	}
-	
-	@Override
-	public PrismContainer instantiate(QName name, PropertyPath parentPath) {
-		return new ResourceObject(name, this, null, parentPath);
-	}
-	
-	@Override
-	public PrismContainer instantiate(QName name, Object element, PropertyPath parentPath) {
-		return new ResourceObject(name, this, element, parentPath);
-	}
-
-	
-	public ResourceObjectDefinition clone() {
-		ResourceObjectDefinition clone = new ResourceObjectDefinition(schema, defaultName, complexTypeDefinition);
+	public ResourceAttributeContainerDefinition clone() {
+		ResourceAttributeContainerDefinition clone = new ResourceAttributeContainerDefinition(name, complexTypeDefinition, prismContext);
 		copyDefinitionData(clone);
 		return clone;
 	}
 	
-	protected void copyDefinitionData(ResourceObjectDefinition clone) {
+	protected void copyDefinitionData(ResourceAttributeContainerDefinition clone) {
 		super.copyDefinitionData(clone);
 		clone.accountType = this.accountType;
 		clone.accountTypeName = this.accountTypeName;
@@ -361,56 +342,56 @@ public class ResourceObjectDefinition extends PrismContainerDefinition {
 		clone.secondaryIdenitifiers = this.secondaryIdenitifiers;
 	}
 
-	public Set<ResourceObjectAttribute> parseAttributes(List<Object> elements, PropertyPath parentPath) throws SchemaException {
-		return (Set) parseItems(elements, parentPath);
-	}
-	
-	// Resource objects are usualy constructed as top-level objects, so this comes handy
-	public Set<ResourceObjectAttribute> parseAttributes(List<Object> elements) throws SchemaException {
-		return (Set) parseItems(elements, null);
-	}
+//	public Set<ResourceAttribute> parseAttributes(List<Object> elements, PropertyPath parentPath) throws SchemaException {
+//		return (Set) parseItems(elements, parentPath);
+//	}
+//	
+//	// Resource objects are usualy constructed as top-level objects, so this comes handy
+//	public Set<ResourceAttribute> parseAttributes(List<Object> elements) throws SchemaException {
+//		return (Set) parseItems(elements, null);
+//	}
+//
+//	public Collection<? extends ResourceAttribute> parseIdentifiers(List<Object> elements, PropertyPath parentPath) throws SchemaException {
+//		return (Collection) parseItems(elements, parentPath, getIdentifiers());
+//	}
+//	
+//	// Resource objects are usualy constructed as top-level objects, so this comes handy
+//	public Collection<? extends ResourceAttribute> parseIdentifiers(List<Object> elements) throws SchemaException {
+//		return (Collection) parseItems(elements, null, getIdentifiers());
+//	}
 
-	public Collection<? extends ResourceObjectAttribute> parseIdentifiers(List<Object> elements, PropertyPath parentPath) throws SchemaException {
-		return (Collection) parseItems(elements, parentPath, getIdentifiers());
+	public ResourceAttributeDefinition findAttributeDefinition(QName elementQName) {
+		return findItemDefinition(elementQName,ResourceAttributeDefinition.class);
 	}
 	
-	// Resource objects are usualy constructed as top-level objects, so this comes handy
-	public Collection<? extends ResourceObjectAttribute> parseIdentifiers(List<Object> elements) throws SchemaException {
-		return (Collection) parseItems(elements, null, getIdentifiers());
-	}
-
-	public ResourceObjectAttributeDefinition findAttributeDefinition(QName elementQName) {
-		return findItemDefinition(elementQName,ResourceObjectAttributeDefinition.class);
-	}
-	
-	public ResourceObjectAttributeDefinition findAttributeDefinition(String elementLocalname) {
-		QName elementQName = new QName(schema.getNamespace(),elementLocalname);
+	public ResourceAttributeDefinition findAttributeDefinition(String elementLocalname) {
+		QName elementQName = new QName(getNameOrDefaultName().getNamespaceURI(),elementLocalname);
 		return findAttributeDefinition(elementQName);
 	}
 	
-	public ResourceObjectAttributeDefinition createAttributeDefinition(QName name, QName typeName) {
-		ResourceObjectAttributeDefinition propDef = new ResourceObjectAttributeDefinition(name, typeName);
+	public ResourceAttributeDefinition createAttributeDefinition(QName name, QName typeName) {
+		ResourceAttributeDefinition propDef = new ResourceAttributeDefinition(name, name, typeName, prismContext);
 		getDefinitions().add(propDef);
 		return propDef;
 	}
 	
-	public ResourceObjectAttributeDefinition createAttributeDefinition(String localName, QName typeName) {
+	public ResourceAttributeDefinition createAttributeDefinition(String localName, QName typeName) {
 		QName name = new QName(getSchemaNamespace(),localName);
 		return createAttributeDefinition(name,typeName);
 	}
 
 	
-	public ResourceObjectAttributeDefinition createAttributeDefinition(String localName, String localTypeName) {
+	public ResourceAttributeDefinition createAttributeDefinition(String localName, String localTypeName) {
 		QName name = new QName(getSchemaNamespace(),localName);
 		QName typeName = new QName(getSchemaNamespace(),localTypeName);
 		return createAttributeDefinition(name,typeName);
 	}
 
-	public Collection<? extends ResourceObjectAttributeDefinition> getAttributeDefinitions() {
-		Set<ResourceObjectAttributeDefinition> attrs = new HashSet<ResourceObjectAttributeDefinition>();
+	public Collection<? extends ResourceAttributeDefinition> getAttributeDefinitions() {
+		Set<ResourceAttributeDefinition> attrs = new HashSet<ResourceAttributeDefinition>();
 		for (ItemDefinition def: complexTypeDefinition.getDefinitions()) {
-			if (def instanceof ResourceObjectAttributeDefinition) {
-				attrs.add((ResourceObjectAttributeDefinition)def);
+			if (def instanceof ResourceAttributeDefinition) {
+				attrs.add((ResourceAttributeDefinition)def);
 			}
 		}
 		return attrs;
@@ -425,8 +406,8 @@ public class ResourceObjectDefinition extends PrismContainerDefinition {
 		sb.append(toString());
 		sb.append("\n");
 		for (Definition def : getDefinitions()) {
-			if (def instanceof ResourceObjectAttributeDefinition) {
-				ResourceObjectAttributeDefinition attrDef = (ResourceObjectAttributeDefinition)def;
+			if (def instanceof ResourceAttributeDefinition) {
+				ResourceAttributeDefinition attrDef = (ResourceAttributeDefinition)def;
 				sb.append(attrDef.debugDump(indent+1));
 				if (attrDef.isIdentifier(this)) {
 					sb.deleteCharAt(sb.length()-1);

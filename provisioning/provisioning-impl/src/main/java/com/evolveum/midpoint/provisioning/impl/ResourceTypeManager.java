@@ -35,9 +35,9 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
-import com.evolveum.midpoint.schema.processor.ResourceObject;
-import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -335,8 +335,8 @@ public class ResourceTypeManager {
 				// same attribute both from
 				// activation/enable and from the attribute using its native
 				// name.
-				ResourceObjectDefinition accountDefinition = resourceSchema.findAccountDefinition();
-				ResourceObjectAttributeDefinition attributeDefinition = accountDefinition
+				ResourceAttributeContainerDefinition accountDefinition = resourceSchema.findAccountDefinition();
+				ResourceAttributeDefinition attributeDefinition = accountDefinition
 						.findAttributeDefinition(attributeName);
 				if (attributeDefinition != null) {
 					attributeDefinition.setIgnored(true);
@@ -411,7 +411,7 @@ public class ResourceTypeManager {
 			throw new IllegalArgumentException("Can't get resource schema.");
 		}
 
-		ResourceObjectDefinition resourceDef = (ResourceObjectDefinition) schema
+		ResourceAttributeContainerDefinition resourceDef = (ResourceAttributeContainerDefinition) schema
 				.findContainerDefinitionByType(objectClass);
 
 		if (resourceDef == null) {
@@ -427,7 +427,7 @@ public class ResourceTypeManager {
 		ResultHandler resultHandler = new ResultHandler() {
 
 			@Override
-			public boolean handle(ResourceObject object) {
+			public boolean handle(ResourceAttributeContainer object) {
 
 				ResourceObjectShadowType shadow;
 				if (readFromRepository) {
@@ -499,7 +499,7 @@ public class ResourceTypeManager {
 			throw new IllegalArgumentException("Can't get resource schema.");
 		}
 
-		ResourceObjectDefinition resourceDef = (ResourceObjectDefinition) schema
+		ResourceAttributeContainerDefinition resourceDef = (ResourceAttributeContainerDefinition) schema
 				.findContainerDefinitionByType(objectClass);
 
 		if (resourceDef == null) {
@@ -513,7 +513,7 @@ public class ResourceTypeManager {
 		ResultHandler resultHandler = new ResultHandler() {
 
 			@Override
-			public boolean handle(ResourceObject object) {
+			public boolean handle(ResourceAttributeContainer object) {
 				ResourceObjectShadowType shadow;
 				LOGGER.trace("Found resource object {}", SchemaDebugUtil.prettyPrint(object));
 				try {
@@ -606,7 +606,7 @@ public class ResourceTypeManager {
 	 * @throws SchemaProcessorException
 	 * @throws SchemaException
 	 */
-	private ResourceObjectShadowType lookupShadow(ResourceObject resourceObject, ResourceType resource,
+	private ResourceObjectShadowType lookupShadow(ResourceAttributeContainer resourceObject, ResourceType resource,
 			OperationResult parentResult) throws SchemaException {
 
 		QueryType query = ShadowCacheUtil.createSearchShadowQuery(resourceObject, resource, parentResult);
@@ -645,7 +645,7 @@ public class ResourceTypeManager {
 	 * @return
 	 * @throws SchemaException
 	 */
-	public ResourceObjectShadowType assembleShadow(ResourceObject resourceObject,
+	public ResourceObjectShadowType assembleShadow(ResourceAttributeContainer resourceObject,
 			ResourceObjectShadowType repositoryShadow, OperationResult parentResult) throws SchemaException {
 		ResourceObjectShadowType resultShadow;
 		Document doc;
@@ -686,17 +686,17 @@ public class ResourceTypeManager {
 		for (Definition def : schema.getDefinitions()) {
 			if (def instanceof ComplexTypeDefinition) {
 				// This is OK
-			} else if (def instanceof ResourceObjectDefinition) {
-				checkResourceObjectDefinition((ResourceObjectDefinition) def);
+			} else if (def instanceof ResourceAttributeContainerDefinition) {
+				checkResourceObjectDefinition((ResourceAttributeContainerDefinition) def);
 			} else {
 				throw new SchemaException("Unexpected definition in resource schema: " + def);
 			}
 		}
 	}
 
-	private void checkResourceObjectDefinition(ResourceObjectDefinition rod) throws SchemaException {
+	private void checkResourceObjectDefinition(ResourceAttributeContainerDefinition rod) throws SchemaException {
 		for (ItemDefinition def : rod.getDefinitions()) {
-			if (!(def instanceof ResourceObjectAttributeDefinition)) {
+			if (!(def instanceof ResourceAttributeDefinition)) {
 				throw new SchemaException("Unexpected definition in resource schema object " + rod + ": "
 						+ def);
 			}

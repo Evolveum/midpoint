@@ -40,8 +40,8 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.Schema;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -64,17 +64,17 @@ public class TestJaxbWithDynamicSchema {
 		Schema schema = new Schema(SCHEMA_NS);
 		
 		// Property container
-		ResourceObjectDefinition containerDefinition = schema.createResourceObjectDefinition("AccountObjectClass");
+		ResourceAttributeContainerDefinition containerDefinition = schema.createResourceObjectDefinition("AccountObjectClass");
 		containerDefinition.setAccountType(true);
 		containerDefinition.setDefaultAccountType(true);
 		containerDefinition.setNativeObjectClass("ACCOUNT");
 		// ... in it ordinary attribute - an identifier
-		ResourceObjectAttributeDefinition xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
+		ResourceAttributeDefinition xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
 		containerDefinition.getIdentifiers().add(xloginDef);
 		xloginDef.setNativeAttributeName("LOGIN");
 		containerDefinition.setDisplayNameAttribute(xloginDef.getName());
 		// ... and local property with a type from another schema
-		ResourceObjectAttributeDefinition xpasswdDef = containerDefinition.createAttributeDefinition("password", SchemaConstants.R_PROTECTED_STRING_TYPE);
+		ResourceAttributeDefinition xpasswdDef = containerDefinition.createAttributeDefinition("password", SchemaConstants.R_PROTECTED_STRING_TYPE);
 		xpasswdDef.setNativeAttributeName("PASSWORD");
 		// ... property reference
 		containerDefinition.createAttributeDefinition(SchemaConstants.I_CREDENTIALS, SchemaConstants.I_CREDENTIALS_TYPE);
@@ -116,8 +116,8 @@ public class TestJaxbWithDynamicSchema {
 		
 		PrismContainerDefinition newContainerDef = unSchema.findContainerDefinitionByType(new QName(SCHEMA_NS,"AccountObjectClass"));
 		assertEquals(new QName(SCHEMA_NS,"AccountObjectClass"),newContainerDef.getTypeName());
-		assertTrue(newContainerDef instanceof ResourceObjectDefinition);
-		ResourceObjectDefinition rod = (ResourceObjectDefinition) newContainerDef;
+		assertTrue(newContainerDef instanceof ResourceAttributeContainerDefinition);
+		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) newContainerDef;
 		assertTrue(rod.isAccountType());
 		assertTrue(rod.isDefaultAccountType());
 		

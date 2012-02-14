@@ -92,8 +92,8 @@ public class SchemaProcessorBasicTest {
 
         PrismContainerDefinition accDef = schema.findContainerDefinitionByType(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"));
         assertEquals(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"), accDef.getTypeName());
-        assertTrue("Expected ResourceObjectDefinition but got " + accDef.getClass().getName(), accDef instanceof ResourceObjectDefinition);
-        assertTrue("Not a default account", ((ResourceObjectDefinition) accDef).isDefaultAccountType());
+        assertTrue("Expected ResourceObjectDefinition but got " + accDef.getClass().getName(), accDef instanceof ResourceAttributeContainerDefinition);
+        assertTrue("Not a default account", ((ResourceAttributeContainerDefinition) accDef).isDefaultAccountType());
         
         PrismPropertyDefinition loginDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "login"));
         assertEquals(new QName(SCHEMA_NAMESPACE, "login"), loginDef.getName());
@@ -132,13 +132,13 @@ public class SchemaProcessorBasicTest {
         assertNotNull(accInst);
         assertNotNull(accInst.getDefinition());
         // as the definition is ResourceObjectDefinition, the instance should be of ResoureceObject type
-        assertTrue(accInst instanceof ResourceObject);
+        assertTrue(accInst instanceof ResourceAttributeContainer);
 
         // Instantiate Property (XSD element)
         PrismProperty loginInst = loginDef.instantiate(accInst.getPath());
         assertNotNull(loginInst);
         assertNotNull(loginInst.getDefinition());
-        assertTrue(loginInst instanceof ResourceObjectAttribute);
+        assertTrue(loginInst instanceof ResourceAttribute);
         assertEquals("Wrong parent path", new PropertyPath(FIRST_QNAME), loginInst.getParentPath());
         assertEquals("Wrong path", new PropertyPath(FIRST_QNAME, loginDef.getName()), loginInst.getPath());
 
@@ -190,7 +190,7 @@ public class SchemaProcessorBasicTest {
         assertEquals(3, container.getItems().size());
 
         for (Item item : container.getItems()) {
-            ResourceObjectAttribute prop = (ResourceObjectAttribute) item;
+            ResourceAttribute prop = (ResourceAttribute) item;
             if (prop.getName().getLocalPart().equals("login")) {
                 AssertJUnit.assertEquals("barbar", prop.getValue(String.class).getValue());
             }

@@ -444,9 +444,9 @@ public class TestSanity extends AbstractIntegrationTest {
      */
     private void checkOpenDjSchema(ResourceType resource, String source) throws SchemaException {
         Schema schema = RefinedResourceSchema.getResourceSchema(resource);
-        ResourceObjectDefinition accountDefinition = schema.findAccountDefinition();
+        ResourceAttributeContainerDefinition accountDefinition = schema.findAccountDefinition();
         assertNotNull("Schema does not define any account (resource from " + source + ")", accountDefinition);
-        Collection<ResourceObjectAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
+        Collection<ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
         assertFalse("No account identifiers (resource from " + source + ")", identifiers == null || identifiers.isEmpty());
         // TODO: check for naming attributes and display names, etc
 
@@ -454,7 +454,7 @@ public class TestSanity extends AbstractIntegrationTest {
         if (capActivation != null && capActivation.getEnableDisable() != null && capActivation.getEnableDisable().getAttribute() != null) {
             // There is simulated activation capability, check if the attribute is in schema.
             QName enableAttrName = capActivation.getEnableDisable().getAttribute();
-            ResourceObjectAttributeDefinition enableAttrDef = accountDefinition.findAttributeDefinition(enableAttrName);
+            ResourceAttributeDefinition enableAttrDef = accountDefinition.findAttributeDefinition(enableAttrName);
             display("Simulated activation attribute definition", enableAttrDef);
             assertNotNull("No definition for enable attribute " + enableAttrName + " in account (resource from " + source + ")", enableAttrDef);
             assertTrue("Enable attribute " + enableAttrName + " is not ignored (resource from " + source + ")", enableAttrDef.isIgnored());

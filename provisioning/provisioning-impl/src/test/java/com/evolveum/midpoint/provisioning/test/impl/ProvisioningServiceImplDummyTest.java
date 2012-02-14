@@ -51,8 +51,8 @@ import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
-import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -293,14 +293,14 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		// object instance is returned
 		assertTrue(returnedSchema == enh.getParsedSchema());
 
-		ResourceObjectDefinition accountDef = returnedSchema.findAccountDefinition();
+		ResourceAttributeContainerDefinition accountDef = returnedSchema.findAccountDefinition();
 		assertNotNull("Account definition is missing", accountDef);
 		assertNotNull("Null identifiers in account", accountDef.getIdentifiers());
 		assertFalse("Empty identifiers in account", accountDef.getIdentifiers().isEmpty());
 		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
 		assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
 
-		ResourceObjectAttributeDefinition uidDef = accountDef
+		ResourceAttributeDefinition uidDef = accountDef
 				.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
 		assertEquals(1, uidDef.getMaxOccurs());
 		assertEquals(1, uidDef.getMinOccurs());
@@ -309,7 +309,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertFalse(uidDef.canUpdate());
 		assertTrue(uidDef.canRead());
 
-		ResourceObjectAttributeDefinition nameDef = accountDef
+		ResourceAttributeDefinition nameDef = accountDef
 				.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
 		assertEquals(1, nameDef.getMaxOccurs());
 		assertEquals(1, nameDef.getMinOccurs());
@@ -318,7 +318,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertTrue(nameDef.canUpdate());
 		assertTrue(nameDef.canRead());
 
-		ResourceObjectAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
+		ResourceAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
 		assertEquals(1, fullnameDef.getMaxOccurs());
 		assertEquals(1, fullnameDef.getMinOccurs());
 		assertTrue(fullnameDef.canCreate());

@@ -38,7 +38,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.Schema;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -211,11 +211,11 @@ public class ResourceListController extends SortableListController<ResourceListI
 			}
 			Collection<Definition> definitions = schema.getDefinitions();
 			for (Definition definition : definitions) {
-				if (!(definition instanceof ResourceObjectDefinition)) {
+				if (!(definition instanceof ResourceAttributeContainerDefinition)) {
 					continue;
 				}
 
-				ResourceObjectDefinition objectDefinition = (ResourceObjectDefinition) definition;
+				ResourceAttributeContainerDefinition objectDefinition = (ResourceAttributeContainerDefinition) definition;
 				item.getObjectTypes().add(new ResourceObjectType(objectDefinition));
 			}
 		} catch (SchemaException ex) {

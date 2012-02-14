@@ -48,9 +48,9 @@ public class SchemaProcessorTest {
 		
 		final String defaultNS = "http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
 		final String icfNS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd";
-		ResourceObjectDefinition objectDef = (ResourceObjectDefinition) schema.findContainerDefinitionByType(new QName(defaultNS, "AccountObjectClass"));
+		ResourceAttributeContainerDefinition objectDef = (ResourceAttributeContainerDefinition) schema.findContainerDefinitionByType(new QName(defaultNS, "AccountObjectClass"));
 		
-		ResourceObjectAttributeDefinition attrDef = objectDef.findAttributeDefinition(new QName(icfNS, "uid"));
+		ResourceAttributeDefinition attrDef = objectDef.findAttributeDefinition(new QName(icfNS, "uid"));
 		AssertJUnit.assertTrue(attrDef.canRead());
 		AssertJUnit.assertFalse(attrDef.canUpdate());
 		AssertJUnit.assertFalse(attrDef.canCreate());
@@ -146,22 +146,22 @@ public class SchemaProcessorTest {
 		Schema schema = new Schema(SCHEMA_NS);
 		
 		// Property container
-		ResourceObjectDefinition containerDefinition = schema.createResourceObjectDefinition("AccountObjectClass");
+		ResourceAttributeContainerDefinition containerDefinition = schema.createResourceObjectDefinition("AccountObjectClass");
 		containerDefinition.setAccountType(true);
 		containerDefinition.setDefaultAccountType(true);
 		containerDefinition.setNativeObjectClass("ACCOUNT");
 		// ... in it ordinary attribute - an identifier
-		ResourceObjectAttributeDefinition xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
+		ResourceAttributeDefinition xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
 		containerDefinition.getIdentifiers().add(xloginDef);
 		xloginDef.setNativeAttributeName("LOGIN");
 		containerDefinition.setDisplayNameAttribute(xloginDef.getName());
 		// ... and local property with a type from another schema
-		ResourceObjectAttributeDefinition xpasswdDef = containerDefinition.createAttributeDefinition("password", SchemaConstants.R_PROTECTED_STRING_TYPE);
+		ResourceAttributeDefinition xpasswdDef = containerDefinition.createAttributeDefinition("password", SchemaConstants.R_PROTECTED_STRING_TYPE);
 		xpasswdDef.setNativeAttributeName("PASSWORD");
 		// ... property reference
 		containerDefinition.createAttributeDefinition(SchemaConstants.I_CREDENTIALS, SchemaConstants.I_CREDENTIALS_TYPE);
 		// ... ignored attribute
-		ResourceObjectAttributeDefinition xSepDef = containerDefinition.createAttributeDefinition("sep", DOMUtil.XSD_STRING);
+		ResourceAttributeDefinition xSepDef = containerDefinition.createAttributeDefinition("sep", DOMUtil.XSD_STRING);
 		xSepDef.setIgnored(true);
 
 		System.out.println("Resource schema before serializing to XSD: ");
@@ -190,8 +190,8 @@ public class SchemaProcessorTest {
 			
 		PrismContainerDefinition newContainerDef = newSchema.findContainerDefinitionByType(new QName(SCHEMA_NS,"AccountObjectClass"));
 		assertEquals(new QName(SCHEMA_NS,"AccountObjectClass"),newContainerDef.getTypeName());
-		assertTrue(newContainerDef instanceof ResourceObjectDefinition);
-		ResourceObjectDefinition rod = (ResourceObjectDefinition) newContainerDef;
+		assertTrue(newContainerDef instanceof ResourceAttributeContainerDefinition);
+		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) newContainerDef;
 		assertTrue(rod.isAccountType());
 		assertTrue(rod.isDefaultAccountType());
 		

@@ -90,20 +90,6 @@ public class ResourceTypeUtil {
 		return null;
 	}
 
-	public static boolean compareConfiguration(ResourceConfigurationType a, ResourceConfigurationType b) {
-		if (a == b) {
-			// Short-cut. If they are the same instance they must be the same
-			return true;
-		}
-		if (a == null && b == null) {
-			return true;
-		}
-		if (a == null || b == null) {
-			return false;
-		}
-		return JAXBUtil.compareAny(a.getAny(), b.getAny());
-	}
-
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T> T getCapability(Collection<Object> capabilities, Class<T> capabilityClass) {
 		for (Object cap : capabilities) {

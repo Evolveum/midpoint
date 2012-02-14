@@ -26,7 +26,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 
 /**
  * 
@@ -41,7 +41,7 @@ public class ResourceObjectType implements Serializable {
 	private String help;
 	private QName type;
 
-	public ResourceObjectType(ResourceObjectDefinition definition) {
+	public ResourceObjectType(ResourceAttributeContainerDefinition definition) {
 		Validate.notNull(definition, "Resource object definition can't be null.");
 
 		displayName = definition.getDisplayName();

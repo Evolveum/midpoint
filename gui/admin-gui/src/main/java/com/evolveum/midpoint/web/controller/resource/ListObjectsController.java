@@ -43,8 +43,8 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.Schema;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -255,8 +255,8 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 		}
 
 		PrismContainerDefinition container = schema.findContainerDefinitionByType(objectClass);
-		if (container instanceof ResourceObjectDefinition) {
-			ResourceObjectDefinition definition = (ResourceObjectDefinition) container;
+		if (container instanceof ResourceAttributeContainerDefinition) {
+			ResourceAttributeContainerDefinition definition = (ResourceAttributeContainerDefinition) container;
 
 			for (PrismPropertyDefinition attribute : definition.getPropertyDefinitions()) {
 				LOGGER.debug("Adding {} as header (property).", new Object[] { attribute.getName() });

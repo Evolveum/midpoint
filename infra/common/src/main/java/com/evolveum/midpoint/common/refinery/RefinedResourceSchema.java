@@ -36,7 +36,7 @@ import com.evolveum.midpoint.prism.Schema;
 import com.evolveum.midpoint.prism.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -198,7 +198,7 @@ public class RefinedResourceSchema extends Schema implements Dumpable, DebugDump
 			SchemaRegistry schemaRegistry, String contextDescription) throws SchemaException {
 
 		RefinedAccountDefinition rAccountDefDefault = null;
-		for(ResourceObjectDefinition accountDef: rSchema.getOriginalResourceSchema().getAccountDefinitions()) {
+		for(ResourceAttributeContainerDefinition accountDef: rSchema.getOriginalResourceSchema().getAccountDefinitions()) {
 			QName objectClassname = accountDef.getTypeName();
 			RefinedAccountDefinition rAccountDef = RefinedAccountDefinition.parse(accountDef, resourceType, rSchema, schemaRegistry, 
 					"object class "+objectClassname+" (interpreted as account type definition), in "+contextDescription);

@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.prism;
 
+import org.w3c.dom.Element;
+
 /**
  * @author semancik
  *
@@ -27,6 +29,8 @@ public abstract class PrismValue {
 	
 	private SourceType type;
     private Objectable source;
+    private Item item;
+    protected Element domElement = null;
     
     PrismValue() {
 		super();
@@ -36,6 +40,13 @@ public abstract class PrismValue {
 		super();
 		this.type = type;
 		this.source = source;
+	}
+    
+    PrismValue(SourceType type, Objectable source, Item item) {
+		super();
+		this.type = type;
+		this.source = source;
+		this.item = item;
 	}
 
 	public void setSource(Objectable source) {
@@ -53,6 +64,24 @@ public abstract class PrismValue {
     public Objectable getSource() {
         return source;
     }
+    
+	public Item getItem() {
+		return item;
+	}
+
+	public void setItem(Item item) {
+		this.item = item;
+	}
+	
+	public Element asDomElement() {
+		if (domElement == null) {
+			domElement = createDomElement();
+		}
+		return domElement;
+	}
+
+	//protected abstract Element createDomElement();
+	protected Element createDomElement() {return null;};
 
 	@Override
 	public int hashCode() {
@@ -72,6 +101,12 @@ public abstract class PrismValue {
 		if (getClass() != obj.getClass())
 			return false;
 		PrismValue other = (PrismValue) obj;
+		if (item == null) {
+			if (other.item != null)
+				return false;
+		// Following != is there by purpose to avoid loops. This check is sufficient here.
+		} else if (item != other.item)
+			return false;
 		if (source == null) {
 			if (other.source != null)
 				return false;
@@ -81,4 +116,6 @@ public abstract class PrismValue {
 			return false;
 		return true;
 	}
+
+	
 }

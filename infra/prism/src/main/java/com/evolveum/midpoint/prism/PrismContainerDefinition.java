@@ -66,7 +66,7 @@ public class PrismContainerDefinition extends ItemDefinition {
      * The constructors should be used only occasionally (if used at all).
      * Use the factory methods in the ResourceObjectDefintion instead.
      */
-    PrismContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext) {
+    protected PrismContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext) {
         super(name, determineDefaultName(complexTypeDefinition), determineTypeName(complexTypeDefinition), prismContext);
         this.complexTypeDefinition = complexTypeDefinition;
         if (complexTypeDefinition == null) {

@@ -28,6 +28,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -46,58 +47,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
  * @author Radovan Semancik
  * 
  */
-public final class ResourceObject extends PrismContainer {
+public final class ResourceAttributeContainer extends PrismContainer {
 	
-	protected ActivationType activation;
-	protected CredentialsType credentials;
-
-//	/**
-//	 * Default constructor.
-//	 * The constructors should be used only occasionally (if used at all).
-//	 * Use the factory methods in the ResourceObjectDefintion instead.
-//	 */
-//	public ResourceObject() {
-//		activation = null;
-//		credentials = null;
-//	}
-//
-//	/**
-// 	 * The constructors should be used only occasionally (if used at all).
-//	 * Use the factory methods in the ResourceObjectDefintion instead.
-//	 * @param name resource object name (element name)
-//	 */
-//	public ResourceObject(QName name) {
-//		super(name);
-//		activation = null;
-//		credentials = null;
-//	}
-//
-//	/**
-//	 * The constructors should be used only occasionally (if used at all).
-//	 * Use the factory methods in the ResourceObjectDefintion instead.
-//	 * @param name resource object name (element name)
-//	 * @param definition resource object definition (schema)
-//	 */
-//	public ResourceObject(QName name, ResourceObjectDefinition definition) {
-//		super(name, definition);
-//		activation = null;
-//		credentials = null;
-//	}
-
 	/**
 	 * The constructors should be used only occasionally (if used at all).
 	 * Use the factory methods in the ResourceObjectDefintion instead.
 	 */
-	public ResourceObject(QName name, ResourceObjectDefinition definition, Object element, PropertyPath parentPath) {
-		// Resource object has no parent
-		super(name, definition, element, parentPath);
-		activation = null;
-		credentials = null;
+	protected ResourceAttributeContainer(QName name, ResourceAttributeContainerDefinition definition, PrismContext prismContext) {
+		super(name, definition, prismContext);
 	}
 
 	@Override
-	public ResourceObjectDefinition getDefinition() {
-		return (ResourceObjectDefinition) super.getDefinition();
+	public ResourceAttributeContainerDefinition getDefinition() {
+		return (ResourceAttributeContainerDefinition) super.getDefinition();
 	}
 
 	/**
@@ -110,9 +72,9 @@ public final class ResourceObject extends PrismContainer {
 	 * @return set of resource object attributes.
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public Set<ResourceObjectAttribute> getAttributes() {
+	public Set<ResourceAttribute> getAttributes() {
 		// TODO: Iterate over the list to assert correct types
-		return (Set) getProperties();
+		return (Set) getValue().getProperties();
 	}
 
 	/**
@@ -134,7 +96,7 @@ public final class ResourceObject extends PrismContainer {
 	 *             if resource object has multiple identifiers
 	 */
 	public PrismProperty getIdentifier() {
-		Set<ResourceObjectAttribute> attrDefs = getIdentifiers();
+		Set<ResourceAttribute> attrDefs = getIdentifiers();
 		if (attrDefs.size() > 1){
 			throw new IllegalStateException("Resource object has more than one identifier.");
 		}
@@ -163,11 +125,11 @@ public final class ResourceObject extends PrismContainer {
 	 * 
 	 * @return set of identifier properties
 	 */
-	public Set<ResourceObjectAttribute> getIdentifiers() {
-		Set<ResourceObjectAttribute> identifiers = new HashSet<ResourceObjectAttribute>();
-		Collection<ResourceObjectAttributeDefinition> attrDefs = getDefinition().getIdentifiers();
-		for (ResourceObjectAttributeDefinition attrDef : attrDefs) {		
-			for (ResourceObjectAttribute property : getAttributes()){
+	public Set<ResourceAttribute> getIdentifiers() {
+		Set<ResourceAttribute> identifiers = new HashSet<ResourceAttribute>();
+		Collection<ResourceAttributeDefinition> attrDefs = getDefinition().getIdentifiers();
+		for (ResourceAttributeDefinition attrDef : attrDefs) {		
+			for (ResourceAttribute property : getAttributes()){
 				if (attrDef.getName().equals(property.getName())){
 					property.setDefinition(attrDef);
 					identifiers.add(property);
@@ -231,7 +193,7 @@ public final class ResourceObject extends PrismContainer {
 	 * @throws IllegalStateException
 	 *             if there is no definition for the referenced attributed
 	 */
-	public ResourceObjectAttribute getDescriptionAttribute() {
+	public ResourceAttribute getDescriptionAttribute() {
 		if (getDefinition() == null) {
 			return null;
 		}
@@ -252,7 +214,7 @@ public final class ResourceObject extends PrismContainer {
 	 * @return attribute that should be used as a "technical" name
 	 * 				for the account.
 	 */
-	public ResourceObjectAttribute getNamingAttribute() {
+	public ResourceAttribute getNamingAttribute() {
 		if (getDefinition() == null) {
 			return null;
 		}
@@ -276,7 +238,7 @@ public final class ResourceObject extends PrismContainer {
 	 * @throws IllegalStateException
 	 *             if there is no definition for the referenced attributed
 	 */
-	public ResourceObjectAttribute getDisplayNameAttribute() {
+	public ResourceAttribute getDisplayNameAttribute() {
 		if (getDefinition() == null) {
 			return null;
 		}
@@ -321,7 +283,7 @@ public final class ResourceObject extends PrismContainer {
 	 * @return true if the definition should be used as account type.
 	 */
 	public boolean isAccountType() {
-		ResourceObjectDefinition definition = getDefinition();
+		ResourceAttributeContainerDefinition definition = getDefinition();
 		return (definition != null ? definition.isAccountType() : null);
 	}
 
@@ -347,7 +309,7 @@ public final class ResourceObject extends PrismContainer {
 	 *             if more than one default account is suggested in the schema.
 	 */
 	public boolean isDefaultAccountType() {
-		ResourceObjectDefinition definition = getDefinition();
+		ResourceAttributeContainerDefinition definition = getDefinition();
 		return (definition != null ? definition.isDefaultAccountType() : null);
 	}
 
@@ -360,8 +322,8 @@ public final class ResourceObject extends PrismContainer {
 	 *            attribute name to find.
 	 * @return found attribute or null
 	 */
-	public ResourceObjectAttribute findAttribute(QName attributeQName) {
-		return (ResourceObjectAttribute) super.findProperty(attributeQName);
+	public ResourceAttribute findAttribute(QName attributeQName) {
+		return (ResourceAttribute) super.findProperty(attributeQName);
 	}
 
 	/**
@@ -373,45 +335,15 @@ public final class ResourceObject extends PrismContainer {
 	 *            attribute definition to find.
 	 * @return found attribute or null
 	 */
-	private ResourceObjectAttribute findAttribute(ResourceObjectAttributeDefinition attributeDefinition) {
-		return (ResourceObjectAttribute) super.findProperty(attributeDefinition);
+	private ResourceAttribute findAttribute(ResourceAttributeDefinition attributeDefinition) {
+		return (ResourceAttribute) getValue().findProperty(attributeDefinition);
 	}
 	
-	public ActivationType getActivation() {
-		return activation;
-	}
-	
-	public ActivationType createOrGetActivation() {
-		if (activation == null) {
-			activation = new ActivationType();
-		}
-		return activation;
-	}
-
-	public void setActivation(ActivationType activation) {
-		this.activation = activation;
-	}
-
-	public CredentialsType getCredentials() {
-		return credentials;
-	}
-	
-	public CredentialsType createOrGetCredentials() {
-		if (credentials == null) {
-			credentials = new CredentialsType();
-		}
-		return credentials;
-	}
-
-	public void setCredentials(CredentialsType credentials) {
-		this.credentials = credentials;
-	}
-
 	/**
 	 * Return a human readable name of this class suitable for logs.
 	 */
 	protected String getDebugDumpClassName() {
-		return "ReO";
+		return "RAC";
 	}
 
 }

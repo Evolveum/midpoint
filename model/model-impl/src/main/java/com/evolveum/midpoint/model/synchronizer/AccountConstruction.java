@@ -40,8 +40,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -211,7 +211,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		return attributeConstruction;
 	}
 
-	private ResourceObjectAttributeDefinition findAttributeDefinition(QName attributeName) {
+	private ResourceAttributeDefinition findAttributeDefinition(QName attributeName) {
 		return refinedAccountDefinition.getObjectClassDefinition().findAttributeDefinition(attributeName);
 	}
 	

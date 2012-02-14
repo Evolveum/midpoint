@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 
 import java.beans.PropertyDescriptor;
@@ -950,41 +951,8 @@ public class SchemaDebugUtil implements ObjectFormatter {
 		return ("ERROR:noResource");
 	}
 
-	public static String toReadableString(ResourceObjectShadowType shadow) {
-		QName qname = SchemaConstants.I_RESOURCE_OBJECT_SHADOW;
-		if (shadow instanceof AccountShadowType) {
-			qname = SchemaConstants.I_ACCOUNT;
-		}
-		Element element;
-		try {
-			element = JAXBUtil.jaxbToDom(shadow, qname, null);
-		} catch (JAXBException ex) {
-			return ("Error marshalling the object: " + ex.getLinkedException().getMessage());
-		}
-		NodeList resourceElements = element.getElementsByTagNameNS(
-				SchemaConstants.I_RESOURCE.getNamespaceURI(), SchemaConstants.I_RESOURCE.getLocalPart());
-		for (int i = 0; i < resourceElements.getLength(); i++) {
-			Node el = (Element) resourceElements.item(i);
-			el.setTextContent("[...]");
-		}
-		return DOMUtil.serializeDOMToString(element);
-	}
-
-	public static String toReadableString(UserType user) {
-		QName qname = SchemaConstants.I_USER;
-		try {
-			return JAXBUtil.marshalWrap(user, qname);
-		} catch (JAXBException ex) {
-			return ("Error marshalling the object: " + ex.getLinkedException().getMessage());
-		}
-	}
-
 	public static String prettyPrint(JAXBElement<?> element) {
-		try {
-			return prettyPrint(JAXBUtil.toDomElement(element));
-		} catch (JAXBException ex) {
-			return ("Error marshalling the object: " + ex.getMessage());
-		}
+		return "JAXBElement("+DebugUtil.prettyPrint(element.getName())+"): "+element.getValue();
 	}
 	
 	public static String prettyPrint(UnknownJavaObjectType xml) {

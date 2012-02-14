@@ -41,7 +41,7 @@ import java.util.*;
 /**
  * @author semancik
  */
-public class RefinedAccountDefinition extends ResourceObjectDefinition implements Dumpable, DebugDumpable {
+public class RefinedAccountDefinition extends ResourceAttributeContainerDefinition implements Dumpable, DebugDumpable {
 
     private static final String DEFAULT_ACCOUNT_NAME = "user";
 
@@ -49,7 +49,7 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
     private String displayName;
     private String description;
     private boolean isDefault;
-    private ResourceObjectDefinition objectClassDefinition;
+    private ResourceAttributeContainerDefinition objectClassDefinition;
     private ResourceType resourceType;
     private SchemaRegistry schemaRegistry;
     /**
@@ -67,7 +67,7 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
     }
 
     private RefinedAccountDefinition(Schema rSchema, SchemaRegistry schemaRegistry, ResourceType resourceType,
-            ResourceObjectDefinition objectClassDefinition) {
+            ResourceAttributeContainerDefinition objectClassDefinition) {
         super(rSchema, SchemaConstants.I_ATTRIBUTES, null);
         attributeDefinitions = new HashSet<RefinedAttributeDefinition>();
         this.resourceType = resourceType;
@@ -76,27 +76,27 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
     }
 
     @Override
-    public Collection<ResourceObjectAttributeDefinition> getIdentifiers() {
+    public Collection<ResourceAttributeDefinition> getIdentifiers() {
         return objectClassDefinition.getIdentifiers();
     }
 
     @Override
-    public Set<ResourceObjectAttributeDefinition> getSecondaryIdentifiers() {
+    public Set<ResourceAttributeDefinition> getSecondaryIdentifiers() {
         return objectClassDefinition.getSecondaryIdentifiers();
     }
 
     @Override
-    public ResourceObjectAttributeDefinition getDescriptionAttribute() {
+    public ResourceAttributeDefinition getDescriptionAttribute() {
         return objectClassDefinition.getDescriptionAttribute();
     }
 
     @Override
-    public void setDescriptionAttribute(ResourceObjectAttributeDefinition descriptionAttribute) {
+    public void setDescriptionAttribute(ResourceAttributeDefinition descriptionAttribute) {
         throw new UnsupportedOperationException("Parts of refined account are immutable");
     }
 
     @Override
-    public ResourceObjectAttributeDefinition getNamingAttribute() {
+    public ResourceAttributeDefinition getNamingAttribute() {
         return objectClassDefinition.getNamingAttribute();
     }
 
@@ -131,7 +131,7 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
     }
 
     @Override
-    public ResourceObjectAttributeDefinition getDisplayNameAttribute() {
+    public ResourceAttributeDefinition getDisplayNameAttribute() {
         return objectClassDefinition.getDisplayNameAttribute();
     }
 
@@ -141,18 +141,18 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
     }
 
     @Override
-    public ResourceObject instantiate(PropertyPath parentPath) {
-        return new ResourceObject(getNameOrDefaultName(), this, null, parentPath);
+    public ResourceAttributeContainer instantiate(PropertyPath parentPath) {
+        return new ResourceAttributeContainer(getNameOrDefaultName(), this, null, parentPath);
     }
 
     @Override
-    public ResourceObject instantiate(QName name, PropertyPath parentPath) {
-        return new ResourceObject(name, this, null, parentPath);
+    public ResourceAttributeContainer instantiate(QName name, PropertyPath parentPath) {
+        return new ResourceAttributeContainer(name, this, null, parentPath);
     }
 
     @Override
-    public ResourceObject instantiate(QName name, Object element, PropertyPath parentPath) {
-        return new ResourceObject(name, this, element, parentPath);
+    public ResourceAttributeContainer instantiate(QName name, Object element, PropertyPath parentPath) {
+        return new ResourceAttributeContainer(name, this, element, parentPath);
     }
 
     @Override
@@ -198,17 +198,17 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
     }
 
     @Override
-    public ResourceObjectAttributeDefinition createAttributeDefinition(QName name, QName typeName) {
+    public ResourceAttributeDefinition createAttributeDefinition(QName name, QName typeName) {
         throw new UnsupportedOperationException("Parts of refined account are immutable");
     }
 
     @Override
-    public ResourceObjectAttributeDefinition createAttributeDefinition(String localName, QName typeName) {
+    public ResourceAttributeDefinition createAttributeDefinition(String localName, QName typeName) {
         throw new UnsupportedOperationException("Parts of refined account are immutable");
     }
 
     @Override
-    public ResourceObjectAttributeDefinition createAttributeDefinition(String localName, String localTypeName) {
+    public ResourceAttributeDefinition createAttributeDefinition(String localName, String localTypeName) {
         throw new UnsupportedOperationException("Parts of refined account are immutable");
     }
 
@@ -244,11 +244,11 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
         this.isDefault = isDefault;
     }
 
-    public ResourceObjectDefinition getObjectClassDefinition() {
+    public ResourceAttributeContainerDefinition getObjectClassDefinition() {
         return objectClassDefinition;
     }
 
-    public void setObjectClassDefinition(ResourceObjectDefinition objectClassDefinition) {
+    public void setObjectClassDefinition(ResourceAttributeContainerDefinition objectClassDefinition) {
         this.objectClassDefinition = objectClassDefinition;
     }
 
@@ -330,7 +330,7 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
             throw new SchemaException("Account type definition does not have a name, in " + contextDescription);
         }
 
-        ResourceObjectDefinition objectClassDef = null;
+        ResourceAttributeContainerDefinition objectClassDef = null;
         if (accountTypeDefType.getObjectClass() != null) {
             QName objectClass = accountTypeDefType.getObjectClass();
             objectClassDef = rSchema.getOriginalResourceSchema().findResourceObjectDefinitionByType(objectClass);
@@ -360,7 +360,7 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
             rAccountDef.setDefault(objectClassDef.isDefaultAccountType());
         }
 
-        for (ResourceObjectAttributeDefinition road : objectClassDef.getAttributeDefinitions()) {
+        for (ResourceAttributeDefinition road : objectClassDef.getAttributeDefinitions()) {
 //            if (road.isIgnored()) {
 //                continue;
 //            }
@@ -389,7 +389,7 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
         return rAccountDef;
     }
 
-    static RefinedAccountDefinition parse(ResourceObjectDefinition objectClassDef, ResourceType resourceType,
+    static RefinedAccountDefinition parse(ResourceAttributeContainerDefinition objectClassDef, ResourceType resourceType,
             RefinedResourceSchema rSchema,
             SchemaRegistry schemaRegistry, String contextDescription) throws SchemaException {
 
@@ -414,7 +414,7 @@ public class RefinedAccountDefinition extends ResourceObjectDefinition implement
 
         rAccountDef.setDefault(objectClassDef.isDefaultAccountType());
 
-        for (ResourceObjectAttributeDefinition road : objectClassDef.getAttributeDefinitions()) {
+        for (ResourceAttributeDefinition road : objectClassDef.getAttributeDefinitions()) {
             if (road.isIgnored()) {
                 continue;
             }

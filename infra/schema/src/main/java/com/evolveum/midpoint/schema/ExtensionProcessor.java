@@ -22,6 +22,7 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -42,61 +43,61 @@ public class ExtensionProcessor {
 
     public static final QName DEFAULT_TYPE = DOMUtil.XSD_STRING;
 
-    public static PrismContainer parseExtension(Extension xmlExtension) throws SchemaException {
-        // Extension is optional, so don't die on null
-        if (xmlExtension == null) {
-            // Return empty set
-            return createEmptyExtensionContainer();
-        }
-        return parseExtension(xmlExtension.getAny());
-    }
+//    public static PrismContainer parseExtension(Extension xmlExtension) throws SchemaException {
+//        // Extension is optional, so don't die on null
+//        if (xmlExtension == null) {
+//            // Return empty set
+//            return createEmptyExtensionContainer();
+//        }
+//        return parseExtension(xmlExtension.getAny());
+//    }
 
 
-	public static PrismContainer parseExtension(List<Object> xmlExtension) throws SchemaException {
-        PrismContainer container = createEmptyExtensionContainer();
+//	public static PrismContainer parseExtension(List<Object> xmlExtension, PrismContext prismContext) throws SchemaException {
+//        PrismContainer container = createEmptyExtensionContainer();
+//
+//        // Extension is optional, so don't die on null
+//        if (xmlExtension == null) {
+//            return container;
+//        }
+//
+//        // There is no extension schema at the moment. Therefore assume that all properties are strings unless there is an
+//        // explicit xsi:type specification
+//        for (Object element : xmlExtension) {
+//            TypedValue tval = XmlTypeConverter.toTypedJavaValueWithDefaultType(element, DEFAULT_TYPE);
+//            Object value = tval.getValue();
+//            QName propName = tval.getElementName();
+//            QName xsdType = tval.getXsdType();
+//
+//            PrismProperty property = container.getValue().createProperty(propName);
+//            property.setValue(new PrismPropertyValue(value));
+//
+//            // create appropriate definition for the property - not to lose type information in serializations
+//            PrismPropertyDefinition def = new PrismPropertyDefinition(propName, propName, xsdType, prismContext);
+//            property.setDefinition(def);
+//        }
+//        return container;
+//    }
 
-        // Extension is optional, so don't die on null
-        if (xmlExtension == null) {
-            return container;
-        }
-
-        // There is no extension schema at the moment. Therefore assume that all properties are strings unless there is an
-        // explicit xsi:type specification
-        for (Object element : xmlExtension) {
-            TypedValue tval = XmlTypeConverter.toTypedJavaValueWithDefaultType(element, DEFAULT_TYPE);
-            Object value = tval.getValue();
-            QName propName = tval.getElementName();
-            QName xsdType = tval.getXsdType();
-
-            PrismProperty property = container.createProperty(propName, value.getClass());
-            property.setValue(new PrismPropertyValue(value));
-
-            // create appropriate definition for the property - not to lose type information in serializations
-            PrismPropertyDefinition def = new PrismPropertyDefinition(propName, xsdType);
-            property.setDefinition(def);
-        }
-        return container;
-    }
-
-    public static Extension createExtension(PrismContainer extension) {
-        Extension xmlExtension = new Extension();
-        List<Object> elements;
-        try {
-            elements = extension.serializePropertiesToJaxb(DOMUtil.getDocument());
-        } catch (SchemaException e) {
-            // There is no extension schema, so getting this exception means probably a bug
-            // Change to a runtime exception instead
-            throw new IllegalStateException("Strange. Got schema error where no schema should appear.", e);
-        }
-        xmlExtension.getAny().addAll(elements);
-        return xmlExtension;
-    }
-
-	public static PrismContainer createEmptyExtensionContainer() {
-		PrismContainerDefinition pcd = new PrismContainerDefinition(SchemaConstants.C_EXTENSION, null);
-		pcd.setRuntimeSchema(true);
-		return new PrismContainer(SchemaConstants.C_EXTENSION, pcd, null, null);
-	}
+//    public static Extension createExtension(PrismContainer extension) {
+//        Extension xmlExtension = new Extension();
+//        List<Object> elements;
+//        try {
+//            elements = extension.serializePropertiesToJaxb(DOMUtil.getDocument());
+//        } catch (SchemaException e) {
+//            // There is no extension schema, so getting this exception means probably a bug
+//            // Change to a runtime exception instead
+//            throw new IllegalStateException("Strange. Got schema error where no schema should appear.", e);
+//        }
+//        xmlExtension.getAny().addAll(elements);
+//        return xmlExtension;
+//    }
+//
+//	public static PrismContainer createEmptyExtensionContainer() {
+//		PrismContainerDefinition pcd = new PrismContainerDefinition(SchemaConstants.C_EXTENSION, null);
+//		pcd.setRuntimeSchema(true);
+//		return new PrismContainer(SchemaConstants.C_EXTENSION, pcd, null, null);
+//	}
 
 
 }

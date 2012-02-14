@@ -53,27 +53,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModification
  */
 public class DeltaConvertor {
 	
-    /**
-     * Creates new delta from the ObjectModificationType (XML). Object type and schema are used to locate definitions
-     * needed to convert properties from XML.
-     */
-    public static <T extends Objectable> ObjectDelta<T> createObjectDelta(ObjectModificationType objectModification,
-            Schema schema, Class<T> type) throws SchemaException {
-        return createObjectDelta(objectModification, schema.findObjectDefinition(type));
-    }
-
-    public static <T extends Objectable> ObjectDelta<T> createObjectDelta(ObjectModificationType objectModification,
-            PrismObjectDefinition<T> objDef) throws SchemaException {
-        ObjectDelta<T> objectDelta = new ObjectDelta<T>(objDef.getJaxbClass(), ChangeType.MODIFY);
-        objectDelta.setOid(objectModification.getOid());
-
-        for (PropertyModificationType propMod : objectModification.getPropertyModification()) {
-            PropertyDelta propDelta = createPropertyDelta(propMod, objDef);
-            objectDelta.addModification(propDelta);
-        }
-
-        return objectDelta;
-    }
+//    /**
+//     * Creates new delta from the ObjectModificationType (XML). Object type and schema are used to locate definitions
+//     * needed to convert properties from XML.
+//     */
+//    public static <T extends Objectable> ObjectDelta<T> createObjectDelta(ObjectModificationType objectModification,
+//            Schema schema, Class<T> type) throws SchemaException {
+//        return createObjectDelta(objectModification, schema.findObjectDefinitionByClass(type));
+//    }
+//
+//    public static <T extends Objectable> ObjectDelta<T> createObjectDelta(ObjectModificationType objectModification,
+//            PrismObjectDefinition<T> objDef) throws SchemaException {
+//        ObjectDelta<T> objectDelta = new ObjectDelta<T>(objDef.getJaxbClass(), ChangeType.MODIFY);
+//        objectDelta.setOid(objectModification.getOid());
+//
+//        for (PropertyModificationType propMod : objectModification.getPropertyModification()) {
+//            PropertyDelta propDelta = createPropertyDelta(propMod, objDef);
+//            objectDelta.addModification(propDelta);
+//        }
+//
+//        return objectDelta;
+//    }
     
     /**
      * Converts this delta to ObjectModificationType (XML).
@@ -97,50 +97,50 @@ public class DeltaConvertor {
         return modType;
     }
     
-    /**
-     * Creates delta from PropertyModificationType (XML). The values inside the PropertyModificationType are converted to java.
-     * That's the reason this method needs schema and objectType (to locate the appropriate definitions).
-     */
-    public static PropertyDelta createPropertyDelta(PropertyModificationType propMod, Schema schema,
-            Class<? extends Objectable> objectType) throws SchemaException {
-        PrismObjectDefinition<? extends Objectable> objectDefinition = schema.findObjectDefinition(objectType);
-        return createPropertyDelta(propMod, objectDefinition);
-    }
+//    /**
+//     * Creates delta from PropertyModificationType (XML). The values inside the PropertyModificationType are converted to java.
+//     * That's the reason this method needs schema and objectType (to locate the appropriate definitions).
+//     */
+//    public static PropertyDelta createPropertyDelta(PropertyModificationType propMod, Schema schema,
+//            Class<? extends Objectable> objectType) throws SchemaException {
+//        PrismObjectDefinition<? extends Objectable> objectDefinition = schema.findObjectDefinitionByClass(objectType);
+//        return createPropertyDelta(propMod, objectDefinition);
+//    }
 
-    public static PropertyDelta createPropertyDelta(PropertyModificationType propMod, PrismContainerDefinition pcDef) throws
-            SchemaException {
-        if (propMod.getValue() == null) {
-            throw new IllegalArgumentException("No value in property modificiation (path " + propMod.getPath() + ") while creating a property delta");
-        }
-        XPathHolder xpath = new XPathHolder(propMod.getPath());
-        PropertyPath parentPath = xpath.toPropertyPath();
-        PrismContainerDefinition containingPcd = pcDef.findContainerDefinition(parentPath);
-        if (containingPcd == null) {
-            throw new SchemaException("No container definition for " + parentPath + " (while creating delta for " + pcDef + ")");
-        }
-        Collection<? extends Item> items = containingPcd.parseItems(propMod.getValue().getAny(), parentPath);
-        if (items.size() > 1) {
-            throw new SchemaException("Expected presence of a single property (path " + propMod.getPath() + ") in a object modification, but found " + items.size() + " instead");
-        }
-        if (items.size() < 1) {
-            throw new SchemaException("Expected presence of a property value (path " + propMod.getPath() + ") in a object modification, but found nothing");
-        }
-        Item item = items.iterator().next();
-        if (!(item instanceof PrismProperty)) {
-            throw new SchemaException("Expected presence of a property (" + item.getName() + ",path " + propMod.getPath() + ") in a object modification, but found " + item.getClass().getSimpleName() + " instead", item.getName());
-        }
-        PrismProperty prop = (PrismProperty) item;
-        PropertyDelta propDelta = new PropertyDelta(parentPath, prop.getName());
-        if (propMod.getModificationType() == PropertyModificationTypeType.add) {
-            propDelta.addValuesToAdd(prop.getValues());
-        } else if (propMod.getModificationType() == PropertyModificationTypeType.delete) {
-            propDelta.addValuesToDelete(prop.getValues());
-        } else if (propMod.getModificationType() == PropertyModificationTypeType.replace) {
-            propDelta.setValuesToReplace(prop.getValues());
-        }
-
-        return propDelta;
-    }
+//    public static PropertyDelta createPropertyDelta(PropertyModificationType propMod, PrismContainerDefinition pcDef) throws
+//            SchemaException {
+//        if (propMod.getValue() == null) {
+//            throw new IllegalArgumentException("No value in property modificiation (path " + propMod.getPath() + ") while creating a property delta");
+//        }
+//        XPathHolder xpath = new XPathHolder(propMod.getPath());
+//        PropertyPath parentPath = xpath.toPropertyPath();
+//        PrismContainerDefinition containingPcd = pcDef.findContainerDefinition(parentPath);
+//        if (containingPcd == null) {
+//            throw new SchemaException("No container definition for " + parentPath + " (while creating delta for " + pcDef + ")");
+//        }
+//        Collection<? extends Item> items = containingPcd.parseItems(propMod.getValue().getAny(), parentPath);
+//        if (items.size() > 1) {
+//            throw new SchemaException("Expected presence of a single property (path " + propMod.getPath() + ") in a object modification, but found " + items.size() + " instead");
+//        }
+//        if (items.size() < 1) {
+//            throw new SchemaException("Expected presence of a property value (path " + propMod.getPath() + ") in a object modification, but found nothing");
+//        }
+//        Item item = items.iterator().next();
+//        if (!(item instanceof PrismProperty)) {
+//            throw new SchemaException("Expected presence of a property (" + item.getName() + ",path " + propMod.getPath() + ") in a object modification, but found " + item.getClass().getSimpleName() + " instead", item.getName());
+//        }
+//        PrismProperty prop = (PrismProperty) item;
+//        PropertyDelta propDelta = new PropertyDelta(parentPath, prop.getName());
+//        if (propMod.getModificationType() == PropertyModificationTypeType.add) {
+//            propDelta.addValuesToAdd(prop.getValues());
+//        } else if (propMod.getModificationType() == PropertyModificationTypeType.delete) {
+//            propDelta.addValuesToDelete(prop.getValues());
+//        } else if (propMod.getModificationType() == PropertyModificationTypeType.replace) {
+//            propDelta.setValuesToReplace(prop.getValues());
+//        }
+//
+//        return propDelta;
+//    }
 
     /**
      * Converts this delta to PropertyModificationType (XML).

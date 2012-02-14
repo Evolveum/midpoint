@@ -35,6 +35,8 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.foo.ObjectFactory;
@@ -65,6 +67,16 @@ public class TestPrismParsing {
 		// GIVEN
 		Document document = DOMUtil.parseFile(new File(TEST_DIRECTORY, "user-jack.xml"));
 		Element userElement = DOMUtil.getFirstChildElement(document);
+		
+		// FOOOOOOOOOOO
+		System.out.println("FOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+		NodeList childNodes = userElement.getChildNodes();
+		System.out.println("childNodes");
+		System.out.println(childNodes);
+		for (int i=0; i<childNodes.getLength(); i++) {
+			Node item = childNodes.item(i);
+			System.out.println("> "+item.getClass()+": "+item);
+		}
 		
 		PrismContext prismContext = constructPrismContext();
 		

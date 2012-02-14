@@ -402,7 +402,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// object class.
 			// The important thing here is the last "type" parameter
 			// (objectClassXsdName). The rest is more-or-less cosmetics.
-			ResourceObjectDefinition roDefinition = resourceSchema
+			ResourceAttributeContainerDefinition roDefinition = resourceSchema
 					.createResourceObjectDefinition(objectClassXsdName);
 
 			// The __ACCOUNT__ objectclass in ICF is a default account
@@ -413,7 +413,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 
 			// Every object has UID in ICF, therefore add it right now
-			ResourceObjectAttributeDefinition uidDefinition = roDefinition.createAttributeDefinition(
+			ResourceAttributeDefinition uidDefinition = roDefinition.createAttributeDefinition(
 					ConnectorFactoryIcfImpl.ICFS_UID, DOMUtil.XSD_STRING);
 			// Make it mandatory
 			uidDefinition.setMinOccurs(1);
@@ -448,7 +448,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 				// Create ResourceObjectAttributeDefinition, which is midPoint
 				// way how to express attribute schema.
-				ResourceObjectAttributeDefinition roaDefinition = roDefinition.createAttributeDefinition(
+				ResourceAttributeDefinition roaDefinition = roDefinition.createAttributeDefinition(
 						attrXsdName, attrXsdType);
 
 				// Set a better display name for __NAME__. The "name" is s very
@@ -582,9 +582,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public ResourceObject fetchObject(ResourceObjectDefinition resourceObjectDefinition,
-			Collection<? extends ResourceObjectAttribute> identifiers, boolean returnDefaultAttributes,
-			Collection<? extends ResourceObjectAttributeDefinition> attributesToReturn,
+	public ResourceAttributeContainer fetchObject(ResourceAttributeContainerDefinition resourceObjectDefinition,
+			Collection<? extends ResourceAttribute> identifiers, boolean returnDefaultAttributes,
+			Collection<? extends ResourceAttributeDefinition> attributesToReturn,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException, SchemaException {
 
@@ -648,7 +648,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					+ ObjectTypeUtil.toShortString(connectorType));
 		}
 
-		ResourceObject ro = convertToResourceObject(co, resourceObjectDefinition, true);
+		ResourceAttributeContainer ro = convertToResourceObject(co, resourceObjectDefinition, true);
 
 		result.recordSuccess();
 		return ro;
@@ -660,7 +660,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 */
 	private ConnectorObject fetchConnectorObject(ObjectClass icfObjectClass, Uid uid,
 			boolean returnDefaultAttributes,
-			Collection<? extends ResourceObjectAttributeDefinition> attributesToReturn,
+			Collection<? extends ResourceAttributeDefinition> attributesToReturn,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException {
 
@@ -695,7 +695,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public Set<ResourceObjectAttribute> addObject(ResourceObject object, Set<Operation> additionalOperations,
+	public Set<ResourceAttribute> addObject(ResourceAttributeContainer object, Set<Operation> additionalOperations,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			SchemaException, ObjectAlreadyExistsException {
 
@@ -788,7 +788,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw new GenericFrameworkException("ICF did not returned UID after create");
 		}
 
-		ResourceObjectAttribute attribute = setUidAttribute(uid);
+		ResourceAttribute attribute = setUidAttribute(uid);
 		object.addReplaceExisting(attribute);
 		icfResult.recordSuccess();
 
@@ -797,8 +797,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public Set<AttributeModificationOperation> modifyObject(ResourceObjectDefinition objectClass,
-			Collection<? extends ResourceObjectAttribute> identifiers, Set<Operation> changes,
+	public Set<AttributeModificationOperation> modifyObject(ResourceAttributeContainerDefinition objectClass,
+			Collection<? extends ResourceAttribute> identifiers, Set<Operation> changes,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException, SchemaException {
 
@@ -812,9 +812,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		Uid uid = getUid(identifiers);
 		String originalUid = uid.getUidValue();
 
-		Set<ResourceObjectAttribute> addValues = new HashSet<ResourceObjectAttribute>();
-		Set<ResourceObjectAttribute> updateValues = new HashSet<ResourceObjectAttribute>();
-		Set<ResourceObjectAttribute> valuesToRemove = new HashSet<ResourceObjectAttribute>();
+		Set<ResourceAttribute> addValues = new HashSet<ResourceAttribute>();
+		Set<ResourceAttribute> updateValues = new HashSet<ResourceAttribute>();
+		Set<ResourceAttribute> valuesToRemove = new HashSet<ResourceAttribute>();
 
 		Set<Operation> additionalOperations = new HashSet<Operation>();
 		ActivationChangeOperation activationChangeOperation = null;
@@ -825,7 +825,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				AttributeModificationOperation change = (AttributeModificationOperation) operation;
 				if (change.getChangeType().equals(PropertyModificationTypeType.add)) {
 					PrismProperty property = change.getNewAttribute();
-					ResourceObjectAttribute addAttribute = new ResourceObjectAttribute(property.getName(),
+					ResourceAttribute addAttribute = new ResourceAttribute(property.getName(),
 							property.getDefinition(), null, null);
 					addAttribute.addValues(property.getValues());
 					addValues.add(addAttribute);
@@ -833,14 +833,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				}
 				if (change.getChangeType().equals(PropertyModificationTypeType.delete)) {
 					PrismProperty property = change.getNewAttribute();
-					ResourceObjectAttribute deleteAttribute = new ResourceObjectAttribute(property.getName(),
+					ResourceAttribute deleteAttribute = new ResourceAttribute(property.getName(),
 							property.getDefinition(), null, null);
 					deleteAttribute.addValues(property.getValues());
 					valuesToRemove.add(deleteAttribute);
 				}
 				if (change.getChangeType().equals(PropertyModificationTypeType.replace)) {
 					PrismProperty property = change.getNewAttribute();
-					ResourceObjectAttribute updateAttribute = new ResourceObjectAttribute(property.getName(),
+					ResourceAttribute updateAttribute = new ResourceAttribute(property.getName(),
 							property.getDefinition(), null, null);
 					updateAttribute.addValues(property.getValues());
 					updateValues.add(updateAttribute);
@@ -1041,7 +1041,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// rename
 			AttributeModificationOperation uidMod = new AttributeModificationOperation();
 			uidMod.setChangeType(PropertyModificationTypeType.replace);
-			ResourceObjectAttribute uidAttr = getUidDefinition(identifiers).instantiate(null);
+			ResourceAttribute uidAttr = getUidDefinition(identifiers).instantiate(null);
 			uidAttr.setValue(new PrismPropertyValue(uid.getUidValue()));
 			sideEffectChanges.add(uidMod);
 		}
@@ -1065,8 +1065,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public void deleteObject(ResourceObjectDefinition objectClass, Set<Operation> additionalOperations,
-			Collection<? extends ResourceObjectAttribute> identifiers, OperationResult parentResult)
+	public void deleteObject(ResourceAttributeContainerDefinition objectClass, Set<Operation> additionalOperations,
+			Collection<? extends ResourceAttribute> identifiers, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
@@ -1120,7 +1120,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public PrismProperty fetchCurrentToken(ResourceObjectDefinition objectClass, OperationResult parentResult)
+	public PrismProperty fetchCurrentToken(ResourceAttributeContainerDefinition objectClass, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
@@ -1142,7 +1142,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public List<Change> fetchChanges(ResourceObjectDefinition objectClass, PrismProperty lastToken,
+	public List<Change> fetchChanges(ResourceAttributeContainerDefinition objectClass, PrismProperty lastToken,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			SchemaException {
 
@@ -1237,7 +1237,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public void search(final ResourceObjectDefinition objectClass, final ResultHandler handler,
+	public void search(final ResourceAttributeContainerDefinition objectClass, final ResultHandler handler,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			SchemaException {
 
@@ -1267,7 +1267,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			public boolean handle(ConnectorObject connectorObject) {
 				// Convert ICF-specific connector object to a generic
 				// ResourceObject
-				ResourceObject resourceObject;
+				ResourceAttributeContainer resourceObject;
 				try {
 					resourceObject = convertToResourceObject(connectorObject, objectClass, true);
 				} catch (SchemaException e) {
@@ -1382,7 +1382,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * <p/>
 	 * TODO: mind the special characters in the ICF objectclass names.
 	 */
-	private ObjectClass objectClassToIcf(ResourceObjectDefinition objectClass) {
+	private ObjectClass objectClassToIcf(ResourceAttributeContainerDefinition objectClass) {
 		QName qnameObjectClass = objectClass.getTypeName();
 		if (!getSchemaNamespace().equals(qnameObjectClass.getNamespaceURI())) {
 			throw new IllegalArgumentException("ObjectClass QName " + qnameObjectClass
@@ -1414,8 +1414,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 *            midPoint resource object identifiers
 	 * @return ICF UID or null
 	 */
-	private Uid getUid(Collection<? extends ResourceObjectAttribute> identifiers) {
-		for (ResourceObjectAttribute attr : identifiers) {
+	private Uid getUid(Collection<? extends ResourceAttribute> identifiers) {
+		for (ResourceAttribute attr : identifiers) {
 			if (attr.getName().equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
 				return new Uid(attr.getValue(String.class).getValue());
 			}
@@ -1423,9 +1423,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return null;
 	}
 
-	private ResourceObjectAttributeDefinition getUidDefinition(
-			Collection<? extends ResourceObjectAttribute> identifiers) {
-		for (ResourceObjectAttribute attr : identifiers) {
+	private ResourceAttributeDefinition getUidDefinition(
+			Collection<? extends ResourceAttribute> identifiers) {
+		for (ResourceAttribute attr : identifiers) {
 			if (attr.getName().equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
 				return attr.getDefinition();
 			}
@@ -1433,8 +1433,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return null;
 	}
 
-	private ResourceObjectAttribute setUidAttribute(Uid uid) {
-		ResourceObjectAttribute uidRoa = new ResourceObjectAttribute(ConnectorFactoryIcfImpl.ICFS_UID, null, null, null);
+	private ResourceAttribute setUidAttribute(Uid uid) {
+		ResourceAttribute uidRoa = new ResourceAttribute(ConnectorFactoryIcfImpl.ICFS_UID, null, null, null);
 		uidRoa.setValue(new PrismPropertyValue(uid.getUidValue()));
 		return uidRoa;
 	}
@@ -1462,16 +1462,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * @return new mapped ResourceObject instance.
 	 * @throws SchemaException
 	 */
-	private ResourceObject convertToResourceObject(ConnectorObject co, ResourceObjectDefinition def,
+	private ResourceAttributeContainer convertToResourceObject(ConnectorObject co, ResourceAttributeContainerDefinition def,
 			boolean full) throws SchemaException {
 
-		ResourceObject ro = null;
+		ResourceAttributeContainer ro = null;
 		if (def != null) {
 			ro = def.instantiate();
 		} else {
 			// We don't know the name here. ObjectClass is a type, not name.
 			// Therefore it will not help here even if we would have it.
-			ro = new ResourceObject(null, null, null, null);
+			ro = new ResourceAttributeContainer(null, null, null, null);
 		}
 
 		// Uid is always there
@@ -1480,7 +1480,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// PropertyDefinition(SchemaConstants.ICFS_NAME,
 		// SchemaConstants.XSD_STRING);
 		// Property p = propDef.instantiate();
-		ResourceObjectAttribute uidRoa = setUidAttribute(uid);
+		ResourceAttribute uidRoa = setUidAttribute(uid);
 		// p = setUidAttribute(uid);
 		ro.add(uidRoa);
 		// ro.getProperties().add(p);
@@ -1503,7 +1503,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 			QName qname = convertAttributeNameToQName(icfAttr.getName());
 
-			ResourceObjectAttribute roa = new ResourceObjectAttribute(qname, null, null, null);
+			ResourceAttribute roa = new ResourceAttribute(qname, null, null, null);
 
 			// if true, we need to convert whole connector object to the
 			// resource object also with the null-values attributes
@@ -1562,7 +1562,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	}
 
-	private Set<Attribute> convertFromResourceObject(Set<ResourceObjectAttribute> resourceAttributes,
+	private Set<Attribute> convertFromResourceObject(Set<ResourceAttribute> resourceAttributes,
 			OperationResult parentResult) throws SchemaException {
 
 		Set<Attribute> attributes = new HashSet<Attribute>();
@@ -1571,7 +1571,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			return attributes;
 		}
 
-		for (ResourceObjectAttribute attribute : resourceAttributes) {
+		for (ResourceAttribute attribute : resourceAttributes) {
 
 			String attrName = convertAttributeNameToIcf(attribute.getName(), parentResult);
 
@@ -1642,8 +1642,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (SyncDeltaType.DELETE.equals(delta.getDeltaType())) {
 				ObjectDelta<ResourceObjectShadowType> objectDelta = new ObjectDelta<ResourceObjectShadowType>(
 						ResourceObjectShadowType.class, ChangeType.DELETE);
-				ResourceObjectAttribute uidAttribute = setUidAttribute(delta.getUid());
-				Set<ResourceObjectAttribute> identifiers = new HashSet<ResourceObjectAttribute>();
+				ResourceAttribute uidAttribute = setUidAttribute(delta.getUid());
+				Set<ResourceAttribute> identifiers = new HashSet<ResourceAttribute>();
 				identifiers.add(uidAttribute);
 				Change change = new Change(identifiers, objectDelta, getToken(delta.getToken()));
 				changeList.add(change);
@@ -1652,9 +1652,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 				ObjectClass objClass = delta.getObject().getObjectClass();
 				QName objectClass = objectClassToQname(objClass.getObjectClassValue());
-				ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
+				ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) schema
 						.findContainerDefinitionByType(objectClass);
-				ResourceObject resourceObject = convertToResourceObject(delta.getObject(), rod, false);
+				ResourceAttributeContainer resourceObject = convertToResourceObject(delta.getObject(), rod, false);
 
 				ResourceObjectShadowType currentShadow = ShadowCacheUtil.createShadow(resourceObject, null, null);
 

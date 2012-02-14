@@ -22,8 +22,8 @@ package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * @author semancik
  */
-public class RefinedAttributeDefinition extends ResourceObjectAttributeDefinition implements Dumpable, DebugDumpable {
+public class RefinedAttributeDefinition extends ResourceAttributeDefinition implements Dumpable, DebugDumpable {
 
     private String displayName;
     private String description;
@@ -46,11 +46,11 @@ public class RefinedAttributeDefinition extends ResourceObjectAttributeDefinitio
     private boolean create = true;
     private boolean read = true;
     private boolean update = true;
-    private ResourceObjectAttributeDefinition attributeDefinition;
+    private ResourceAttributeDefinition attributeDefinition;
     private ValueConstructionType outboundValueConstructionType;
     private List<ValueAssignmentType> inboundAssignmentTypes;
 
-    private RefinedAttributeDefinition(ResourceObjectAttributeDefinition attrDef) {
+    private RefinedAttributeDefinition(ResourceAttributeDefinition attrDef) {
         super(attrDef.getName(), attrDef.getDefaultName(), attrDef.getTypeName());
         this.attributeDefinition = attrDef;
     }
@@ -164,11 +164,11 @@ public class RefinedAttributeDefinition extends ResourceObjectAttributeDefinitio
         this.description = description;
     }
 
-    public ResourceObjectAttributeDefinition getAttributeDefinition() {
+    public ResourceAttributeDefinition getAttributeDefinition() {
         return attributeDefinition;
     }
 
-    public void setAttributeDefinition(ResourceObjectAttributeDefinition attributeDefinition) {
+    public void setAttributeDefinition(ResourceAttributeDefinition attributeDefinition) {
         this.attributeDefinition = attributeDefinition;
     }
 
@@ -232,8 +232,8 @@ public class RefinedAttributeDefinition extends ResourceObjectAttributeDefinitio
         return attributeDefinition.getHelp();
     }
 
-    static RefinedAttributeDefinition parse(ResourceObjectAttributeDefinition attrDef, ResourceAttributeDefinitionType attrDefType,
-                                            ResourceObjectDefinition objectClassDef, String contextDescription) throws SchemaException {
+    static RefinedAttributeDefinition parse(ResourceAttributeDefinition attrDef, ResourceAttributeDefinitionType attrDefType,
+                                            ResourceAttributeContainerDefinition objectClassDef, String contextDescription) throws SchemaException {
 
         RefinedAttributeDefinition rAttrDef = new RefinedAttributeDefinition(attrDef);
 

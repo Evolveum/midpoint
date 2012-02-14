@@ -64,7 +64,7 @@ public class PrismContainer extends Item {
         values = new ArrayList<PrismContainerValue>();
     }
     
-    PrismContainer(QName name, PrismContainerDefinition definition, PrismContext prismContext) {
+    protected PrismContainer(QName name, PrismContainerDefinition definition, PrismContext prismContext) {
         super(name, definition, prismContext);
         values = new ArrayList<PrismContainerValue>();
     }

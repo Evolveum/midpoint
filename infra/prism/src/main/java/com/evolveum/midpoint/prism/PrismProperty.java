@@ -71,7 +71,7 @@ public class PrismProperty extends Item {
         super(name);
     }
 
-    PrismProperty(QName name, PrismPropertyDefinition definition, PrismContext prismContext) {
+    protected PrismProperty(QName name, PrismPropertyDefinition definition, PrismContext prismContext) {
         super(name, definition, prismContext);
     }
 

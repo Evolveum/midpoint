@@ -30,12 +30,12 @@ public class PropertyPathSegment {
 	private QName name;
 	private String id;
 	
-	PropertyPathSegment(QName name) {
+	public PropertyPathSegment(QName name) {
 		this.name = name;
 		this.id = null;
 	}
 
-	PropertyPathSegment(QName name, String id) {
+	public PropertyPathSegment(QName name, String id) {
 		this.name = name;
 		this.id = id;
 	}

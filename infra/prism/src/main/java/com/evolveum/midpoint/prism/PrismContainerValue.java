@@ -41,7 +41,6 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
 	// This is list. We need to maintain the order internally to provide consistent
     // output in DOM and other ordering-sensitive representations
     private List<Item> items = new ArrayList<Item>();
-    private PrismContainer container;
     private String id;
     
     PrismContainerValue() {
@@ -50,8 +49,7 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
     }
     
     PrismContainerValue(SourceType type, Objectable source, PrismContainer container, String id) {
-		super(type, source);
-		this.container = container;
+		super(type, source, container);
 		this.id = id;
 	}
 
@@ -98,11 +96,11 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
 	}
 	
 	PrismContainer getContainer() {
-		return container;
+		return (PrismContainer)getItem();
 	}
 
 	void setContainer(PrismContainer container) {
-		this.container = container;
+		setItem(container);
 	}
 
 	public Collection<QName> getPropertyNames() {
@@ -287,8 +285,8 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
     private <T extends Item> T createSubItem(QName name, Class<T> type) {
     	// the item with specified name does not exist, create it now
 		Item newItem = null;
-		if (container.getDefinition() != null) {
-			ItemDefinition itemDefinition = container.getDefinition().findItemDefinition(name);
+		if (getContainer().getDefinition() != null) {
+			ItemDefinition itemDefinition = getContainer().getDefinition().findItemDefinition(name);
 			newItem = itemDefinition.instantiate(name);
 		} else {
 			newItem = Item.createNewDefinitionlessItem(name, type);
@@ -328,12 +326,12 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
 //    }
 
     public PrismContainer createContainer(QName containerName) {
-        if (container.getDefinition() == null) {
+        if (getContainer().getDefinition() == null) {
             throw new IllegalStateException("No definition of container "+containerName);
         }
-        PrismContainerDefinition containerDefinition = container.getDefinition().findContainerDefinition(containerName);
+        PrismContainerDefinition containerDefinition = getContainer().getDefinition().findContainerDefinition(containerName);
         if (containerDefinition == null) {
-            throw new IllegalArgumentException("No definition of container '" + containerName + "' in " + container.getDefinition());
+            throw new IllegalArgumentException("No definition of container '" + containerName + "' in " + getContainer().getDefinition());
         }
         PrismContainer container = containerDefinition.instantiate();
         add(container);
@@ -342,16 +340,16 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
 
     public PrismProperty createProperty(QName propertyName) {
         PrismPropertyDefinition propertyDefinition = null;
-        if (container != null && container.getDefinition() != null) {
-        	propertyDefinition = container.getDefinition().findPropertyDefinition(propertyName);
+        if (getContainer() != null && getContainer().getDefinition() != null) {
+        	propertyDefinition = getContainer().getDefinition().findPropertyDefinition(propertyName);
         	if (propertyDefinition == null) {
         		// container has definition, but there is no property definition. This is either runtime schema
         		// or an error
-        		if (container.getDefinition().isRuntimeSchema) {
+        		if (getContainer().getDefinition().isRuntimeSchema) {
         			// TODO: create opportunistic runtime definition
             		//propertyDefinition = new PrismPropertyDefinition(propertyName, propertyName, typeName, container.prismContext);
         		} else {
-        			throw new IllegalArgumentException("No definition for property "+propertyName+" in "+container);
+        			throw new IllegalArgumentException("No definition for property "+propertyName+" in "+getContainer());
         		}
         	}
         }
@@ -384,7 +382,7 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
     }
     
     public PrismContainerValue clone() {
-        PrismContainerValue clone = new PrismContainerValue(getType(), getSource(), container, getId());
+        PrismContainerValue clone = new PrismContainerValue(getType(), getSource(), getContainer(), getId());
         for (Item item: this.items) {
         	clone.items.add(item.clone());
         }
@@ -395,7 +393,6 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		// container is missing from the computation to avoid loops
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		result = prime * result + ((items == null) ? 0 : items.hashCode());
 		return result;
@@ -410,12 +407,6 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
 		if (getClass() != obj.getClass())
 			return false;
 		PrismContainerValue other = (PrismContainerValue) obj;
-		if (container == null) {
-			if (other.container != null)
-				return false;
-		// Following != is there by purpose to avoid loops. This check is sufficient here.
-		} else if (container != other.container)
-			return false;
 		if (id == null) {
 			if (other.id != null)
 				return false;

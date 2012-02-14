@@ -163,6 +163,11 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 	public <T extends Objectable> PrismObjectDefinition<T> findObjectDefinitionByType(QName typeName, Class<T> type) {
 		return findContainerDefinitionByType(typeName,PrismObjectDefinition.class);
 	}
+	
+	public <T extends Objectable> PrismObjectDefinition<T> findObjectDefinitionByClass(Class<T> type) {
+		// TODO
+		throw new UnsupportedOperationException();
+	}
 
 	private <T extends PrismContainerDefinition> T findContainerDefinitionByType(QName typeName, Class<T> type) {
 		if (typeName == null) {

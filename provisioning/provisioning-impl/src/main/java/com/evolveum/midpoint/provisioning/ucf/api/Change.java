@@ -21,7 +21,7 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 
@@ -35,20 +35,20 @@ import java.util.Set;
  */
 public final class Change {
 	
-    private Set<ResourceObjectAttribute> identifiers;
+    private Set<ResourceAttribute> identifiers;
     private ObjectDelta<? extends ResourceObjectShadowType> objectDelta;
     private PrismProperty token;
     private ResourceObjectShadowType oldShadow;
     private ResourceObjectShadowType currentShadow;
 
-    public Change(Set<ResourceObjectAttribute> identifiers, ObjectDelta<? extends ResourceObjectShadowType> change, PrismProperty token) {
+    public Change(Set<ResourceAttribute> identifiers, ObjectDelta<? extends ResourceObjectShadowType> change, PrismProperty token) {
         this.identifiers = identifiers;
         this.objectDelta = change;
         this.currentShadow = null;
         this.token = token;
     }
 
-    public Change(Set<ResourceObjectAttribute> identifiers, ResourceObjectShadowType currentShadow, PrismProperty token) {
+    public Change(Set<ResourceAttribute> identifiers, ResourceObjectShadowType currentShadow, PrismProperty token) {
         this.identifiers = identifiers;
         this.objectDelta = null;
         this.currentShadow = currentShadow;
@@ -68,11 +68,11 @@ public final class Change {
         this.objectDelta = change;
     }
 
-    public Set<ResourceObjectAttribute> getIdentifiers() {
+    public Set<ResourceAttribute> getIdentifiers() {
         return identifiers;
     }
 
-    public void setIdentifiers(Set<ResourceObjectAttribute> identifiers) {
+    public void setIdentifiers(Set<ResourceAttribute> identifiers) {
         this.identifiers = identifiers;
     }
 

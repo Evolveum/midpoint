@@ -24,6 +24,7 @@ package com.evolveum.midpoint.schema.processor;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Definition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
 
@@ -45,30 +46,21 @@ import com.evolveum.midpoint.prism.PropertyPath;
  * @author Radovan Semancik
  * 
  */
-public class ResourceObjectAttributeDefinition extends PrismPropertyDefinition {
+public class ResourceAttributeDefinition extends PrismPropertyDefinition {
 
 	private static final long serialVersionUID = 7092192397127114804L;
 	private String nativeAttributeName;
-	private String attributeDisplayName;
 
-	public ResourceObjectAttributeDefinition(QName name, QName typeName) {
-		super(name, null, typeName);
-	}
-	
-	public ResourceObjectAttributeDefinition(QName name, QName defaultName, QName typeName) {
-		super(name, defaultName, typeName);
+	public ResourceAttributeDefinition(QName name, QName defaultName, QName typeName, PrismContext prismContext) {
+		super(name, defaultName, typeName, prismContext);
 	}
 
-	public ResourceObjectAttribute instantiate(PropertyPath parentPath) {
-		return instantiate(getNameOrDefaultName(), parentPath);
+	public ResourceAttribute instantiate() {
+		return instantiate(getNameOrDefaultName());
 	}
 
-	public ResourceObjectAttribute instantiate(QName name, PropertyPath parentPath) {
-		return new ResourceObjectAttribute(name, this, null, parentPath);
-	}
-
-	public ResourceObjectAttribute instantiate(QName name, Object element, PropertyPath parentPath) {
-		return new ResourceObjectAttribute(name, this, element, parentPath);
+	public ResourceAttribute instantiate(QName name) {
+		return new ResourceAttribute(name, this, prismContext);
 	}
 
 	/**
@@ -78,8 +70,8 @@ public class ResourceObjectAttributeDefinition extends PrismPropertyDefinition {
 	 * 
 	 * @return true if the attribute is a (primary) identifier.
 	 */
-	public boolean isIdentifier(ResourceObjectDefinition objectDefinition) {
-		for (ResourceObjectAttributeDefinition identifier : objectDefinition.getIdentifiers()) {
+	public boolean isIdentifier(ResourceAttributeContainerDefinition objectDefinition) {
+		for (ResourceAttributeDefinition identifier : objectDefinition.getIdentifiers()) {
 			if (this == identifier) {
 				return true;
 			}
@@ -113,30 +105,24 @@ public class ResourceObjectAttributeDefinition extends PrismPropertyDefinition {
 	public void setNativeAttributeName(String nativeAttributeName) {
 		this.nativeAttributeName = nativeAttributeName;
 	}
-
-	/**
-	 * @return the attributeDisplayName
-	 */
-	public String getAttributeDisplayName() {
-		return attributeDisplayName;
-	}
-
-	/**
-	 * @param attributeDisplayName the attributeDisplayName to set
-	 */
-	public void setAttributeDisplayName(String attributeDisplayName) {
-		this.attributeDisplayName = attributeDisplayName;
-	}
 	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(getClass().getSimpleName()).append(":").append(getName()).append(" (").append(getTypeName()).append(")");
+		sb.append(super.toString());
 		if (getNativeAttributeName()!=null) {
 			sb.append(" native=");
 			sb.append(getNativeAttributeName());
 		}
 		return sb.toString();
 	}
+	
+	/**
+     * Return a human readable name of this class suitable for logs.
+     */
+    @Override
+    protected String getDebugDumpClassName() {
+        return "RAD";
+    }
 
 }

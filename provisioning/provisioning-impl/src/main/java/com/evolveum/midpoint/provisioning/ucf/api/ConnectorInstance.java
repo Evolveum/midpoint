@@ -24,10 +24,10 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.Schema;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.ResourceObject;
-import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfigurationType;
 
@@ -149,9 +149,9 @@ public interface ConnectorInstance {
 	 *				- nothing was fetched.
 	 * @throws SchemaException error converting object from native (connector) format
 	 */
-	public ResourceObject fetchObject(ResourceObjectDefinition objectClass,
-			Collection<? extends ResourceObjectAttribute> identifiers, boolean returnDefaultAttributes,
-			Collection<? extends ResourceObjectAttributeDefinition> attributesToReturn, OperationResult parentResult)
+	public ResourceAttributeContainer fetchObject(ResourceAttributeContainerDefinition objectClass,
+			Collection<? extends ResourceAttribute> identifiers, boolean returnDefaultAttributes,
+			Collection<? extends ResourceAttributeDefinition> attributesToReturn, OperationResult parentResult)
 		throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
 	
 	/**
@@ -186,7 +186,7 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException 
 	 * @throws SchemaException error converting object from the native (connector) format
 	 */
-	public void search(ResourceObjectDefinition objectClass, ResultHandler handler, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException;
+	public void search(ResourceAttributeContainerDefinition objectClass, ResultHandler handler, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException;
 
 	/**
 	 * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not
@@ -212,7 +212,7 @@ public interface ConnectorInstance {
 	 * @return created object attributes. May be null.
 	 * @throws ObjectAlreadyExistsException object already exists on the resource
 	 */
-	public Set<ResourceObjectAttribute> addObject(ResourceObject object, Set<Operation> additionalOperations, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException;
+	public Set<ResourceAttribute> addObject(ResourceAttributeContainer object, Set<Operation> additionalOperations, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException;
 	
 	/**
 	 * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not
@@ -231,9 +231,9 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException
 	 * @throws SchemaException 
 	 */
-	public Set<AttributeModificationOperation> modifyObject(ResourceObjectDefinition objectClass, Collection<? extends ResourceObjectAttribute> identifiers, Set<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
+	public Set<AttributeModificationOperation> modifyObject(ResourceAttributeContainerDefinition objectClass, Collection<? extends ResourceAttribute> identifiers, Set<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
 	
-	public void deleteObject(ResourceObjectDefinition objectClass, Set<Operation> additionalOperations, Collection<? extends ResourceObjectAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
+	public void deleteObject(ResourceAttributeContainerDefinition objectClass, Set<Operation> additionalOperations, Collection<? extends ResourceAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Creates a live Java object from a token previously serialized to string.
@@ -256,7 +256,7 @@ public interface ConnectorInstance {
 	 * @return
 	 * @throws CommunicationException
 	 */
-	public PrismProperty fetchCurrentToken(ResourceObjectDefinition objectClass, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	public PrismProperty fetchCurrentToken(ResourceAttributeContainerDefinition objectClass, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Token may be null. That means "from the beginning of history".
@@ -264,7 +264,7 @@ public interface ConnectorInstance {
 	 * @param lastToken
 	 * @return
 	 */
-	public List<Change> fetchChanges(ResourceObjectDefinition objectClass, PrismProperty lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException;
+	public List<Change> fetchChanges(ResourceAttributeContainerDefinition objectClass, PrismProperty lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException;
 	
 	//public ValidationResult validateConfiguration(ResourceConfiguration newConfiguration);
 	

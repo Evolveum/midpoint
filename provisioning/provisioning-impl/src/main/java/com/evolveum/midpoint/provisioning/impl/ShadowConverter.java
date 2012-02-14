@@ -89,7 +89,7 @@ public class ShadowConverter {
 		Schema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
 
 		QName objectClass = shadow.getObjectClass();
-		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
+		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) schema
 				.findContainerDefinitionByType(objectClass);
 
 		if (rod == null) {
@@ -103,7 +103,7 @@ public class ShadowConverter {
 		}
 
 		// Let's get all the identifiers from the Shadow <attributes> part
-		Collection<? extends ResourceObjectAttribute> identifiers = rod.parseIdentifiers(shadow
+		Collection<? extends ResourceAttribute> identifiers = rod.parseIdentifiers(shadow
 				.getAttributes().getAny());
 
 		if (identifiers == null || identifiers.isEmpty()) {
@@ -117,7 +117,7 @@ public class ShadowConverter {
 			throw ex;
 		}
 
-		ResourceObject ro = fetchResourceObject(rod, identifiers, connector, resource, parentResult);
+		ResourceAttributeContainer ro = fetchResourceObject(rod, identifiers, connector, resource, parentResult);
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Shadow from repository:\n{}", ObjectTypeUtil.dump(shadow));
@@ -162,9 +162,9 @@ public class ShadowConverter {
 		Schema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
 
 		// convert xml attributes to ResourceObject
-		ResourceObject resourceObject = convertResourceObjectFromXml(shadow, schema, parentResult);
+		ResourceAttributeContainer resourceObject = convertResourceObjectFromXml(shadow, schema, parentResult);
 
-		Set<ResourceObjectAttribute> resourceAttributesAfterAdd = null;
+		Set<ResourceAttribute> resourceAttributesAfterAdd = null;
 		// add object using connector, setting new properties to the
 		// resourceObject
 		try {
@@ -213,11 +213,11 @@ public class ShadowConverter {
 
 		Schema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
 
-		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema.findContainerDefinitionByType(shadow
+		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) schema.findContainerDefinitionByType(shadow
 				.getObjectClass());
 
 		LOGGER.trace("Getting object identifiers");
-		Collection<? extends ResourceObjectAttribute> identifiers = rod.parseIdentifiers(shadow
+		Collection<? extends ResourceAttribute> identifiers = rod.parseIdentifiers(shadow
 				.getAttributes().getAny());
 
 		try {
@@ -258,9 +258,9 @@ public class ShadowConverter {
 
 		Schema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
 
-		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema.findContainerDefinitionByType(shadow
+		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) schema.findContainerDefinitionByType(shadow
 				.getObjectClass());
-		Collection<? extends ResourceObjectAttribute> identifiers = rod.parseIdentifiers(shadow
+		Collection<? extends ResourceAttribute> identifiers = rod.parseIdentifiers(shadow
 				.getAttributes().getAny());
 
 		Set<Operation> attributeChanges = getAttributeChanges(objectChanges, changes, rod);
@@ -310,7 +310,7 @@ public class ShadowConverter {
 		LOGGER.trace("Getting last token");
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
 		Schema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType);
-		ResourceObjectDefinition objectClass = resourceSchema.findAccountDefinition();
+		ResourceAttributeContainerDefinition objectClass = resourceSchema.findAccountDefinition();
 		PrismProperty lastToken = null;
 		try {
 			lastToken = connector.fetchCurrentToken(objectClass, parentResult);
@@ -340,7 +340,7 @@ public class ShadowConverter {
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
 		Schema resourceSchema = RefinedResourceSchema.getResourceSchema(resource);
-		ResourceObjectDefinition objectClass = resourceSchema.findAccountDefinition();
+		ResourceAttributeContainerDefinition objectClass = resourceSchema.findAccountDefinition();
 
 		// get changes from the connector
 		List<Change> changes = null;
@@ -366,12 +366,12 @@ public class ShadowConverter {
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
 			CommunicationException, GenericFrameworkException {
 
-		ResourceObject resourceObject = null;
+		ResourceAttributeContainer resourceObject = null;
 
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
 		Schema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
-		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
+		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) schema
 				.findContainerDefinitionByType(new QName(resource.getNamespace(), "AccountObjectClass"));
 
 		try {
@@ -401,8 +401,8 @@ public class ShadowConverter {
 		return shadow;
 	}
 
-	private ResourceObject fetchResourceObject(ResourceObjectDefinition rod,
-			Collection<? extends ResourceObjectAttribute> identifiers, ConnectorInstance connector,
+	private ResourceAttributeContainer fetchResourceObject(ResourceAttributeContainerDefinition rod,
+			Collection<? extends ResourceAttribute> identifiers, ConnectorInstance connector,
 			ResourceType resource, OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException {
 
@@ -416,7 +416,7 @@ public class ShadowConverter {
 		// }
 
 		try {
-			ResourceObject resourceObject = connector.fetchObject(rod, identifiers, true, null, parentResult);
+			ResourceAttributeContainer resourceObject = connector.fetchObject(rod, identifiers, true, null, parentResult);
 			return resourceObject;
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException e) {
 			parentResult.recordFatalError(
@@ -465,7 +465,7 @@ public class ShadowConverter {
 	 * @throws SchemaException
 	 *             Object class definition was not found
 	 */
-	private ResourceObject convertResourceObjectFromXml(ResourceObjectShadowType resourceObjectShadow,
+	private ResourceAttributeContainer convertResourceObjectFromXml(ResourceObjectShadowType resourceObjectShadow,
 			Schema schema, OperationResult parentResult) throws SchemaException {
 		QName objectClass = resourceObjectShadow.getObjectClass();
 
@@ -476,7 +476,7 @@ public class ShadowConverter {
 			LOGGER.trace("Shadow before conversion:\n{}", ObjectTypeUtil.dump(resourceObjectShadow));
 		}
 
-		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
+		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) schema
 				.findContainerDefinitionByType(objectClass);
 
 		if (LOGGER.isTraceEnabled()) {
@@ -488,7 +488,7 @@ public class ShadowConverter {
 					+ " was not found");
 			throw new SchemaException("Schema definition for object class " + objectClass + " was not found");
 		}
-		ResourceObject resourceObject = rod.instantiate();
+		ResourceAttributeContainer resourceObject = rod.instantiate();
 
 		List<Object> attributes = resourceObjectShadow.getAttributes().getAny();
 
@@ -496,7 +496,7 @@ public class ShadowConverter {
 			throw new IllegalArgumentException("Attributes for the account was not defined.");
 		}
 
-		Set<ResourceObjectAttribute> resAttr = rod.parseAttributes(attributes);
+		Set<ResourceAttribute> resAttr = rod.parseAttributes(attributes);
 		resourceObject.addAll(resAttr);
 
 		if (LOGGER.isTraceEnabled()) {
@@ -507,7 +507,7 @@ public class ShadowConverter {
 	}
 
 	private Set<Operation> getAttributeChanges(ObjectModificationType objectChange, Set<Operation> changes,
-			ResourceObjectDefinition rod) throws SchemaException {
+			ResourceAttributeContainerDefinition rod) throws SchemaException {
 		if (changes == null) {
 			changes = new HashSet<Operation>();
 		}
@@ -519,7 +519,7 @@ public class ShadowConverter {
 
 			if (modification.getPath().getTextContent().contains(SchemaConstants.I_ATTRIBUTES.getLocalPart())) {
 
-				Set<ResourceObjectAttribute> changedProperties = rod.parseAttributes(modification.getValue()
+				Set<ResourceAttribute> changedProperties = rod.parseAttributes(modification.getValue()
 						.getAny());
 				for (PrismProperty p : changedProperties) {
 

@@ -29,8 +29,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
-import com.evolveum.midpoint.schema.processor.ResourceObject;
-import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -63,7 +63,7 @@ public class ShadowCacheUtil {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCacheUtil.class);
 
-    public static ResourceObjectShadowType createShadow(ResourceObject resourceObject, ResourceType resource,
+    public static ResourceObjectShadowType createShadow(ResourceAttributeContainer resourceObject, ResourceType resource,
                                                         ResourceObjectShadowType shadow) throws SchemaException {
 
         if (shadow == null) {
@@ -93,7 +93,7 @@ public class ShadowCacheUtil {
 
         // Add all attributes to the shadow
         shadow.getAttributes().getAny().clear();
-        for (ResourceObjectAttribute attr : resourceObject.getAttributes()) {
+        for (ResourceAttribute attr : resourceObject.getAttributes()) {
             try {
                 List<Object> eList = attr.serializeToJaxb(doc);
                 shadow.getAttributes().getAny().addAll(eList);
@@ -123,7 +123,7 @@ public class ShadowCacheUtil {
 	 * 
 	 * TODO: The placement of this method is not correct. It should go back to ShadowConverter
 	 */
-	public static ActivationType determineActivation(ResourceType resource, ResourceObject ro,
+	public static ActivationType determineActivation(ResourceType resource, ResourceAttributeContainer ro,
 			OperationResult parentResult) {
 
 		// HACK to avoid NPE when called from the ICF layer
@@ -141,7 +141,7 @@ public class ShadowCacheUtil {
 		}
 	}
 
-	private static ActivationType convertFromSimulatedActivationAttributes(ResourceType resource, ResourceObject ro,
+	private static ActivationType convertFromSimulatedActivationAttributes(ResourceType resource, ResourceAttributeContainer ro,
 			OperationResult parentResult) {
 //		LOGGER.trace("Start converting activation type from simulated activation atribute");
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
@@ -289,10 +289,10 @@ public class ShadowCacheUtil {
 		 return false;
 	}
 
-	private static String determineShadowName(ResourceObject resourceObject) throws SchemaException {
+	private static String determineShadowName(ResourceAttributeContainer resourceObject) throws SchemaException {
         if (resourceObject.getNamingAttribute() == null) {
             // No naming attribute defined. Try to fall back to identifiers.
-            Set<ResourceObjectAttribute> identifiers = resourceObject.getIdentifiers();
+            Set<ResourceAttribute> identifiers = resourceObject.getIdentifiers();
             // We can use only single identifiers (not composite)
             if (identifiers.size() == 1) {
                 PrismProperty identifier = identifiers.iterator().next();
@@ -314,7 +314,7 @@ public class ShadowCacheUtil {
         return resourceObject.getNamingAttribute().getValue(String.class).getValue();
     }
 
-    public static ResourceObjectShadowType createRepositoryShadow(ResourceObject resourceObject,
+    public static ResourceObjectShadowType createRepositoryShadow(ResourceAttributeContainer resourceObject,
                                                                   ResourceType resource, ResourceObjectShadowType shadow) throws SchemaException {
 
         shadow = createShadow(resourceObject, resource, shadow);
@@ -322,7 +322,7 @@ public class ShadowCacheUtil {
 
         // Add all attributes to the shadow
         shadow.getAttributes().getAny().clear();
-        Set<ResourceObjectAttribute> identifiers = resourceObject.getIdentifiers();
+        Set<ResourceAttribute> identifiers = resourceObject.getIdentifiers();
         for (PrismProperty p : identifiers) {
             try {
                 List<Object> eList = p.serializeToJaxb(doc);
@@ -341,7 +341,7 @@ public class ShadowCacheUtil {
 
     }
 
-    public static QueryType createSearchShadowQuery(Set<ResourceObjectAttribute> identifiers, OperationResult parentResult) throws SchemaException {
+    public static QueryType createSearchShadowQuery(Set<ResourceAttribute> identifiers, OperationResult parentResult) throws SchemaException {
         XPathHolder xpath = createXpathHolder();
         Document doc = DOMUtil.getDocument();
         List<Object> values = new ArrayList<Object>();
@@ -362,7 +362,7 @@ public class ShadowCacheUtil {
         return query;
     }
 
-    public static QueryType createSearchShadowQuery(ResourceObject resourceObject, ResourceType resource, OperationResult parentResult) throws SchemaException {
+    public static QueryType createSearchShadowQuery(ResourceAttributeContainer resourceObject, ResourceType resource, OperationResult parentResult) throws SchemaException {
         XPathHolder xpath = createXpathHolder();
         PrismProperty identifier = resourceObject.getIdentifier();
 
