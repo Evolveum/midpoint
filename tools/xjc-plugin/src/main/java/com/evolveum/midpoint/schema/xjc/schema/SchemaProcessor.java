@@ -113,57 +113,60 @@ public class SchemaProcessor implements Processor {
     }
 
     private void updateObjectReferenceType(Outline outline) {
-        Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
-        for (Map.Entry<NClass, CClassInfo> entry : set) {
-            ClassOutline classOutline = outline.getClazz(entry.getValue());
-
+        ClassOutline objectReferenceOutline = null;
+        for (Map.Entry<NClass, CClassInfo> entry : outline.getModel().beans().entrySet()) {
             QName qname = entry.getValue().getTypeName();
             if (qname == null || !OBJECT_REFERENCE_TYPE.equals(qname)) {
                 continue;
             }
-
-            JDefinedClass definedClass = classOutline.implClass;
-            //add prism reference and get/set method for it
-            JVar reference = definedClass.field(JMod.PRIVATE, PrismReferenceValue.class, REFERENCE_FIELD_NAME);
-            JMethod getReference = definedClass.method(JMod.PUBLIC, PrismReferenceValue.class, METHOD_GET_REFERENCE);
-            JBlock body = getReference.body();
-            JBlock then = body._if(reference.eq(JExpr._null()))._then();
-            JClass clazz = (JClass) classOutline.parent().getModel().codeModel._ref(PrismReferenceValue.class);
-            JInvocation newReference = (JInvocation) JExpr._new(clazz);
-            then.assign(reference, newReference);
-            body._return(reference);
-
-            JMethod setReference = definedClass.method(JMod.PUBLIC, void.class, METHOD_SET_REFERENCE);
-            JVar value = setReference.param(PrismReferenceValue.class, "value");
-            body.assign(reference, value);
-            
-            //update for oid methods
-            JFieldVar oidField = definedClass.fields().get("oid");
-            JMethod getOid = recreateMethod(findMethod(definedClass, "getOid"), definedClass);
-            copyAnnotations(getOid, oidField);
-            definedClass.removeField(oidField);
-            body = getOid.body();
-            body._return(JExpr.invoke(JExpr.invoke(getReference), getOid.name()));
-            
-            JMethod setOid = recreateMethod(findMethod(definedClass, "setOid"), definedClass);
-            body = setOid.body();
-            JInvocation invocation = body.invoke(JExpr.invoke(getReference), setOid.name());
-            invocation.arg(setOid.listParams()[0]);
-            //update for type methods
-            JFieldVar typeField = definedClass.fields().get("type");
-            JMethod getType = recreateMethod(findMethod(definedClass, "getType"), definedClass);
-            copyAnnotations(getType, typeField);
-            body = getType.body();
-            body._return(JExpr.invoke(JExpr.invoke(getReference), "getTargetType"));
-            
-            definedClass.removeField(typeField);
-            JMethod setType = recreateMethod(findMethod(definedClass, "setType"), definedClass);
-            body = setType.body();
-            invocation = body.invoke(JExpr.invoke(getReference), "setTargetType");
-            invocation.arg(setType.listParams()[0]);
-
+            objectReferenceOutline = outline.getClazz(entry.getValue());
             break;
         }
+
+        if (objectReferenceOutline == null) {
+            //object reference type class not found
+            return;
+        }
+
+        JDefinedClass definedClass = objectReferenceOutline.implClass;
+        //add prism reference and get/set method for it
+        JVar reference = definedClass.field(JMod.PRIVATE, PrismReferenceValue.class, REFERENCE_FIELD_NAME);
+        JMethod getReference = definedClass.method(JMod.PUBLIC, PrismReferenceValue.class, METHOD_GET_REFERENCE);
+        JBlock body = getReference.body();
+        JBlock then = body._if(reference.eq(JExpr._null()))._then();
+        JClass clazz = (JClass) objectReferenceOutline.parent().getModel().codeModel._ref(PrismReferenceValue.class);
+        JInvocation newReference = (JInvocation) JExpr._new(clazz);
+        then.assign(reference, newReference);
+        body._return(reference);
+
+        JMethod setReference = definedClass.method(JMod.PUBLIC, void.class, METHOD_SET_REFERENCE);
+        JVar value = setReference.param(PrismReferenceValue.class, "value");
+        body.assign(reference, value);
+
+        //update for oid methods
+        JFieldVar oidField = definedClass.fields().get("oid");
+        JMethod getOid = recreateMethod(findMethod(definedClass, "getOid"), definedClass);
+        copyAnnotations(getOid, oidField);
+        definedClass.removeField(oidField);
+        body = getOid.body();
+        body._return(JExpr.invoke(JExpr.invoke(getReference), getOid.name()));
+
+        JMethod setOid = recreateMethod(findMethod(definedClass, "setOid"), definedClass);
+        body = setOid.body();
+        JInvocation invocation = body.invoke(JExpr.invoke(getReference), setOid.name());
+        invocation.arg(setOid.listParams()[0]);
+        //update for type methods
+        JFieldVar typeField = definedClass.fields().get("type");
+        JMethod getType = recreateMethod(findMethod(definedClass, "getType"), definedClass);
+        copyAnnotations(getType, typeField);
+        body = getType.body();
+        body._return(JExpr.invoke(JExpr.invoke(getReference), "getTargetType"));
+
+        definedClass.removeField(typeField);
+        JMethod setType = recreateMethod(findMethod(definedClass, "setType"), definedClass);
+        body = setType.body();
+        invocation = body.invoke(JExpr.invoke(getReference), "setTargetType");
+        invocation.arg(setType.listParams()[0]);
     }
 
     private JMethod findMethod(JDefinedClass definedClass, String methodName) {
@@ -194,6 +197,9 @@ public class SchemaProcessor implements Processor {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
 
             QName qname = entry.getValue().getTypeName();
+            if (qname == null) {
+                qname = entry.getValue().getElementName();
+            }
             if (qname == null || !hasAnnotation(classOutline, annotation)) {
                 continue;
             }
@@ -314,7 +320,7 @@ public class SchemaProcessor implements Processor {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
             QName qname = entry.getValue().getTypeName();
             if (qname == null || (!hasAnnotation(classOutline, PROPERTY_CONTAINER)
-                && !hasAnnotation(classOutline, MIDPOINT_CONTAINER))) {
+                    && !hasAnnotation(classOutline, MIDPOINT_CONTAINER))) {
                 continue;
             }
 
@@ -592,13 +598,31 @@ public class SchemaProcessor implements Processor {
     }
 
     private boolean updateContainerFieldType(JFieldVar field, ClassOutline classOutline) {
-        //only setter method must be updated
-        String methodName = getSetterMethod(classOutline, field);
+        //getter method update
         JDefinedClass definedClass = classOutline.implClass;
-        JMethod method = definedClass.getMethod(methodName, new JType[]{field.type()});
+        String methodName = getGetterMethod(classOutline, field);
+        JMethod method = definedClass.getMethod(methodName, new JType[]{});
+        JMethod getMethod = recreateMethod(method, definedClass);
+        copyAnnotations(getMethod, field);
+
+        JBlock body = getMethod.body();
+        JClass clazz = (JClass) classOutline.parent().getModel().codeModel._ref(PrismContainer.class);
+        JInvocation invocation = JExpr.invoke(JExpr.invoke(METHOD_GET_CONTAINER), "findContainer");
+        invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
+        JVar container = body.decl(clazz, CONTAINER_FIELD_NAME, invocation);
+        JBlock then = body._if(container.eq(JExpr._null()))._then();
+        then._return(JExpr._null());
+        JVar wrapper = body.decl(field.type(), field.name(), JExpr._new(field.type()));
+        invocation = body.invoke(wrapper, METHOD_SET_CONTAINER);
+        invocation.arg(container);
+        body._return(wrapper);
+
+        //setter method update
+        methodName = getSetterMethod(classOutline, field);
+        method = definedClass.getMethod(methodName, new JType[]{field.type()});
         method = recreateMethod(method, definedClass);
 
-        JBlock body = method.body();
+        body = method.body();
         JVar param = method.listParams()[0];
         body.assign(JExpr._this().ref(field), param);
 
@@ -609,7 +633,7 @@ public class SchemaProcessor implements Processor {
         JInvocation addReplace = elseBlock.invoke(JExpr.invoke(METHOD_GET_CONTAINER), METHOD_ADD_REPLACE_EXISTING);
         addReplace.arg(JExpr.invoke(param, METHOD_GET_CONTAINER));
 
-        return false;
+        return true;
     }
 
     private boolean updateField(JFieldVar field, ClassOutline classOutline) {
