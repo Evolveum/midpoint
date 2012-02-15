@@ -217,36 +217,11 @@ public class XmlTypeConverter {
 //            element.setPrefix(MidPointNamespacePrefixMapper.getPreferredPrefix(elementName.getNamespaceURI()));
             if (type.equals(Element.class)) {
                 return val;
-            } else if (type.equals(String.class)) {
-                element.setTextContent((String) val);
-            } else if (type.equals(char.class) || type.equals(Character.class)) {
-                element.setTextContent(((Character) val).toString());
-            } else if (type.equals(File.class)) {
-                element.setTextContent(((File) val).getPath());
-            } else if (type.equals(int.class) || type.equals(Integer.class)) {
-                element.setTextContent(((Integer) val).toString());
-            } else if (type.equals(long.class) || type.equals(Long.class)) {
-                element.setTextContent(((Long) val).toString());
-            } else if (type.equals(byte[].class)) {
-                byte[] binaryData = (byte[]) val;
-                element.setTextContent(Base64.encodeBase64String(binaryData));
-            } else if (type.equals(Boolean.class)) {
-                Boolean bool = (Boolean) val;
-                if (bool.booleanValue()) {
-                    element.setTextContent(XsdTypeMapper.BOOLEAN_XML_VALUE_TRUE);
-                } else {
-                    element.setTextContent(XsdTypeMapper.BOOLEAN_XML_VALUE_FALSE);
-                }
-            } else if (type.equals(GregorianCalendar.class)) {
-                XMLGregorianCalendar xmlCal = toXMLGregorianCalendar((GregorianCalendar) val);
-                element.setTextContent(xmlCal.toXMLFormat());
-            } else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
-            	element.setTextContent(((XMLGregorianCalendar) val).toXMLFormat());
             } else if (type.equals(QName.class)) {
                 QName qname = (QName) val;
                 DOMUtil.setQNameValue(element, qname);
             } else {
-                throw new IllegalArgumentException("Unknown type for conversion: " + type + "(element " + elementName + ")");
+                element.setTextContent(toXmlTextContent(val, elementName));
             }
             if (recordType) {
                 QName xsdType = XsdTypeMapper.toXsdType(val.getClass());
@@ -254,6 +229,45 @@ public class XmlTypeConverter {
             }
             return element;
 //        }
+    }
+    
+    public static String toXmlTextContent(Object val, QName elementName) {
+        if (val == null) {
+            // if no value is specified, do not create element
+            return null;
+        }
+        Class type = XsdTypeMapper.getTypeFromClass(val.getClass());
+        if (type == null) {
+            throw new IllegalArgumentException("No type mapping for conversion: " + val.getClass() + "(element " + elementName + ")");
+        }
+        if (type.equals(String.class)) {
+            return (String) val;
+        } else if (type.equals(char.class) || type.equals(Character.class)) {
+            return ((Character) val).toString();
+        } else if (type.equals(File.class)) {
+            return ((File) val).getPath();
+        } else if (type.equals(int.class) || type.equals(Integer.class)) {
+            return ((Integer) val).toString();
+        } else if (type.equals(long.class) || type.equals(Long.class)) {
+            return ((Long) val).toString();
+        } else if (type.equals(byte[].class)) {
+            byte[] binaryData = (byte[]) val;
+            return Base64.encodeBase64String(binaryData);
+        } else if (type.equals(Boolean.class)) {
+            Boolean bool = (Boolean) val;
+            if (bool.booleanValue()) {
+                return XsdTypeMapper.BOOLEAN_XML_VALUE_TRUE;
+            } else {
+                return XsdTypeMapper.BOOLEAN_XML_VALUE_FALSE;
+            }
+        } else if (type.equals(GregorianCalendar.class)) {
+            XMLGregorianCalendar xmlCal = toXMLGregorianCalendar((GregorianCalendar) val);
+            return xmlCal.toXMLFormat();
+        } else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
+        	return ((XMLGregorianCalendar) val).toXMLFormat();
+        } else {
+            throw new IllegalArgumentException("Unknown type for conversion: " + type + "(element " + elementName + ")");
+        }
     }
 
     public static boolean canConvert(Class<?> clazz) {

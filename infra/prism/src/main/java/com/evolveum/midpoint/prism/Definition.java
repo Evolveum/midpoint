@@ -165,6 +165,10 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 		this.help = help;
 	}
 	
+	public Class getTypeClass() {
+		return XsdTypeMapper.toJavaType(getTypeName());
+	}
+	
 	abstract void revive(PrismContext prismContext);
 	
 	protected void copyDefinitionData(Definition clone) {

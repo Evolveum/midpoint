@@ -27,6 +27,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -35,6 +36,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -77,6 +79,14 @@ public class TestPrismParsing {
 			Node item = childNodes.item(i);
 			System.out.println("> "+item.getClass()+": "+item);
 		}
+		NamedNodeMap attributes = userElement.getAttributes();
+		System.out.println("attributes");
+		System.out.println(attributes);
+		for (int i=0; i<attributes.getLength(); i++) {
+			Node item = attributes.item(i);
+			System.out.println("> "+item.getClass()+": "+item);
+		}
+
 		
 		PrismContext prismContext = constructPrismContext();
 		
@@ -98,7 +108,7 @@ public class TestPrismParsing {
 		PrismContainer extension = user.getExtension();
 		assertPropertyValue(extension, new QName(NS_BAR, "bar"), "BAR");
 		assertPropertyValue(extension, new QName(NS_BAR, "num"), 42);
-		Set<PrismPropertyValue<Object>> multiPVals = extension.findProperty(new QName(NS_BAR, "multi")).getValues();
+		Collection<PrismPropertyValue<Object>> multiPVals = extension.findProperty(new QName(NS_BAR, "multi")).getValues();
 		assertEquals("Multi",3,multiPVals.size());
 		
 		PropertyPath barPath = new PropertyPath(new QName(NS_FOO,"extension"), new QName(NS_BAR,"bar"));
@@ -156,7 +166,7 @@ public class TestPrismParsing {
 	}
 	
 	private void assertPropertyValue(PrismProperty property, Object propValue) {
-		Set<PrismPropertyValue<Object>> pvals = property.getValues();
+		Collection<PrismPropertyValue<Object>> pvals = property.getValues();
 		QName propQName = property.getName();
 		assertFalse("Empty property "+propQName, pvals == null || pvals.isEmpty());
 		assertEquals("Numver of values of property "+propQName, 1, pvals.size());

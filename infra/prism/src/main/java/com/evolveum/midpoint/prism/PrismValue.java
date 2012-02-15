@@ -29,7 +29,7 @@ public abstract class PrismValue {
 	
 	private SourceType type;
     private Objectable source;
-    private Item item;
+    private Item parent;
     protected Element domElement = null;
     
     PrismValue() {
@@ -42,11 +42,11 @@ public abstract class PrismValue {
 		this.source = source;
 	}
     
-    PrismValue(SourceType type, Objectable source, Item item) {
+    PrismValue(SourceType type, Objectable source, Item parent) {
 		super();
 		this.type = type;
 		this.source = source;
-		this.item = item;
+		this.parent = parent;
 	}
 
 	public void setSource(Objectable source) {
@@ -65,12 +65,12 @@ public abstract class PrismValue {
         return source;
     }
     
-	public Item getItem() {
-		return item;
+	public Item getParent() {
+		return parent;
 	}
 
-	public void setItem(Item item) {
-		this.item = item;
+	public void setParent(Item parent) {
+		this.parent = parent;
 	}
 	
 	public Element asDomElement() {
@@ -101,11 +101,11 @@ public abstract class PrismValue {
 		if (getClass() != obj.getClass())
 			return false;
 		PrismValue other = (PrismValue) obj;
-		if (item == null) {
-			if (other.item != null)
+		if (parent == null) {
+			if (other.parent != null)
 				return false;
 		// Following != is there by purpose to avoid loops. This check is sufficient here.
-		} else if (item != other.item)
+		} else if (parent != other.parent)
 			return false;
 		if (source == null) {
 			if (other.source != null)

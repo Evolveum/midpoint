@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.prism;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -42,8 +43,6 @@ import com.evolveum.midpoint.util.DebugUtil;
  */
 public class PrismReference extends Item {
 	private static final long serialVersionUID = 1872343401395762657L;
-	
-	private Set<PrismReferenceValue> values = new HashSet<PrismReferenceValue>();
 	
 	public PrismReference(QName name) {
         super(name);
@@ -71,8 +70,9 @@ public class PrismReference extends Item {
      *
      * @return property values
      */
-    public Set<PrismReferenceValue> getValues() {
-        return values;
+	@Override
+    public List<PrismReferenceValue> getValues() {
+        return (List<PrismReferenceValue>) super.getValues();
     }
 
     public PrismReferenceValue getValue() {
@@ -82,18 +82,19 @@ public class PrismReference extends Item {
                         + " with multiple values");
     		}
     	}
-        if (values.size() > 1) {
+        if (getValues().size() > 1) {
             throw new IllegalStateException("Attempt to get single value from property " + name
                     + " with multiple values");
         }
-        if (values.isEmpty()) {
+        if (getValues().isEmpty()) {
             return null;
         }
-        return values.iterator().next();
+        return getValues().iterator().next();
     }
     
     public void addValue(PrismReferenceValue value) {
-    	values.add(value);
+    	value.setParent(this);
+    	getValues().add(value);
     }
     
     public String getOid() {
@@ -116,11 +117,9 @@ public class PrismReference extends Item {
 
     protected void copyValues(PrismReference clone) {
         super.copyValues(clone);
-        clone.values = new HashSet<PrismReferenceValue>();
-        for (PrismReferenceValue value : values) {
-            clone.values.add(value.clone());
+        for (PrismReferenceValue value : getValues()) {
+            clone.addValue(value.clone());
         }
-        clone.values.addAll(values);
     }
 			
 	@Override

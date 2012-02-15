@@ -31,6 +31,8 @@ import org.w3c.dom.Node;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -49,7 +51,10 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
 	// usual case when it is constructed "out of the blue", e.g. as a new JAXB object
 	// It may not work perfectly, but basic things should work
     protected QName name;
+    protected PrismValue parent;
     protected ItemDefinition definition;
+    private List<PrismValue> values = new ArrayList<PrismValue>();
+    
     transient protected PrismContext prismContext;
 
     /**
@@ -152,8 +157,24 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
     public String getHelp() {
         return getDefinition() == null ? null : getDefinition().getHelp();
     }
+    
+    public PrismContext getPrismContext() {
+    	return prismContext;
+    }
+    
+    public PrismValue getParent() {
+    	return parent;
+    }
+    
+    public void setParent(PrismValue parentValue) {
+    	this.parent = parentValue;
+    }
+    
+    public List<? extends PrismValue> getValues() {
+		return values;
+	}
 
-    /**
+	/**
      * Serializes property to DOM or JAXB element(s).
      * <p/>
      * The property name will be used as an element QName.
@@ -203,45 +224,55 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
 		}
     	return item;
     }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((definition == null) ? 0 : definition.hashCode());
-        result = prime * result + ((name == null) ? 0 : name.hashCode());
-        result = prime * result + ((prismContext == null) ? 0 : prismContext.hashCode());
-        return result;
+    
+    public boolean isEmpty() {
+        return (getValues() == null || getValues().isEmpty());
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        Item other = (Item) obj;
-        if (definition == null) {
-            if (other.definition != null)
-                return false;
-        } else if (!definition.equals(other.definition))
-            return false;
-        if (prismContext == null) {
-            if (other.prismContext != null)
-                return false;
-        } else if (!prismContext.equals(other.prismContext))
-            return false;
-        if (name == null) {
-            if (other.name != null)
-                return false;
-        } else if (!name.equals(other.name))
-            return false;
-        return true;
-    }
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((definition == null) ? 0 : definition.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((values == null) ? 0 : values.hashCode());
+		return result;
+	}
 
-    @Override
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Item other = (Item) obj;
+		if (definition == null) {
+			if (other.definition != null)
+				return false;
+		} else if (!definition.equals(other.definition))
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		if (parent == null) {
+			if (other.parent != null)
+				return false;
+		// The != is there by purpose (to avoid loops)
+		} else if (parent != other.parent)
+			return false;
+		if (values == null) {
+			if (other.values != null)
+				return false;
+		} else if (!values.equals(other.values))
+			return false;
+		return true;
+	}
+
+	@Override
     public String toString() {
         return getClass().getSimpleName() + "(" + getName() + ")";
     }

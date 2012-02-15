@@ -96,11 +96,11 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
 	}
 	
 	PrismContainer getContainer() {
-		return (PrismContainer)getItem();
+		return (PrismContainer)getParent();
 	}
 
 	void setContainer(PrismContainer container) {
-		setItem(container);
+		setParent(container);
 	}
 
 	public Collection<QName> getPropertyNames() {
@@ -121,6 +121,7 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
         if (findItem(item.getName(), Item.class) != null) {
             throw new IllegalArgumentException("Item " + item.getName() + " is already present in " + this.getClass().getSimpleName());
         }
+        item.setParent(this);
         items.add(item);
     }
 
@@ -133,8 +134,9 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
         Item existingItem = findItem(item.getName(), Item.class);
         if (existingItem != null) {
             items.remove(existingItem);
+            existingItem.setParent(null);
         }
-        items.add(item);
+        add(item);
     }
 
     /**
@@ -144,13 +146,9 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
      * @throws IllegalArgumentException an attempt to add value that already exists
      */
     public void addAll(Collection<? extends Item> itemsToAdd) {
-        // Check for conflicts
         for (Item item : itemsToAdd) {
-            if (findItem(item.getName(), Item.class) != null) {
-                throw new IllegalArgumentException("Item " + item.getName() + " is already present in " + this.getClass().getSimpleName());
-            }
+        	add(item);
         }
-        items.addAll(itemsToAdd);
     }
 
     /**
@@ -293,7 +291,7 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
 		}
 		
 		if (type.isAssignableFrom(newItem.getClass())) {
-			items.add(newItem);
+			add(newItem);
 			return (T)newItem;
     	} else {
 			throw new IllegalStateException("The " + type.getSimpleName() + " cannot be created because the item should be of type "

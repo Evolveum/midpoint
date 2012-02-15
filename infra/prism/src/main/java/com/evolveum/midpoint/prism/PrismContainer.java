@@ -57,27 +57,24 @@ import java.util.*;
 public class PrismContainer extends Item {
     private static final long serialVersionUID = 5206821250098051028L;
 
-    List<PrismContainerValue> values;
-
     public PrismContainer(QName name) {
         super(name);
-        values = new ArrayList<PrismContainerValue>();
     }
     
     protected PrismContainer(QName name, PrismContainerDefinition definition, PrismContext prismContext) {
         super(name, definition, prismContext);
-        values = new ArrayList<PrismContainerValue>();
     }
 
+    @Override
     public List<PrismContainerValue> getValues() {
-    	return values;
+    	return (List<PrismContainerValue>) super.getValues();
     }
    
     public PrismContainerValue getValue() {
-    	if (values.size() == 1) {
-    		return values.get(0);
+    	if (getValues().size() == 1) {
+    		return getValues().get(0);
 		}
-    	if (values.size() > 1) {
+    	if (getValues().size() > 1) {
     		throw new IllegalStateException("Attempt to get single value from a multivalued container "+getName());
     	}
     	if (getDefinition() != null) {
@@ -85,7 +82,7 @@ public class PrismContainer extends Item {
 				// Insert first empty value. This simulates empty single-valued container. It the container exists
 		        // it is clear that it has at least one value (and that value is empty).
 		        PrismContainerValue pValue = new PrismContainerValue(null, null, this, null);
-		        values.add(pValue);
+		        add(pValue);
 		        return pValue;
 			} else {
 				throw new IllegalStateException("Attempt to get single value from a multivalued container "+getName());
@@ -94,7 +91,7 @@ public class PrismContainer extends Item {
 			// Insert first empty value. This simulates empty single-valued container. It the container exists
 	        // it is clear that it has at least one value (and that value is empty).
 	        PrismContainerValue pValue = new PrismContainerValue(null, null, this, null);
-	        values.add(pValue);
+	        add(pValue);
 	        return pValue;
 		}
     }
@@ -103,7 +100,7 @@ public class PrismContainer extends Item {
 		if (getDefinition() != null) {
 			return getDefinition().isSingleValue();
 		} else {
-			if (values.size() <= 1) {
+			if (getValues().size() <= 1) {
 				return true;
 			} else {
 				return false;
@@ -112,7 +109,7 @@ public class PrismContainer extends Item {
 	}
     
     public PrismContainerValue getValue(String id) {
-    	for (PrismContainerValue pval: values) {
+    	for (PrismContainerValue pval: getValues()) {
     		if ((id == null && pval.getId() == null) ||
     				id.equals(pval.getId())) {
     			return pval;
@@ -123,13 +120,12 @@ public class PrismContainer extends Item {
     
     public void add(PrismContainerValue pValue) {
     	pValue.setContainer(this);
-    	values.add(pValue);
+    	getValues().add(pValue);
     }
     
     public PrismContainerValue createNewValue() {
     	PrismContainerValue pValue = new PrismContainerValue();
-    	pValue.setContainer(this);
-    	values.add(pValue);
+    	add(pValue);
     	return pValue;
     }
     
@@ -144,7 +140,7 @@ public class PrismContainer extends Item {
     }
     
 	public void mergeValue(PrismContainerValue otherValue) {
-		Iterator<PrismContainerValue> iterator = values.iterator();
+		Iterator<PrismContainerValue> iterator = getValues().iterator();
 		while (iterator.hasNext()) {
 			PrismContainerValue thisValue = iterator.next();
 			if (thisValue.equals(otherValue)) {
@@ -160,14 +156,14 @@ public class PrismContainer extends Item {
 		if (getDefinition() != null) {
 			otherValue.applyDefinition(getDefinition());
 		}
-		values.add(otherValue);
+		add(otherValue);
 	}
 
 	/**
      * Remove all empty values
      */
     public void trim() {
-    	Iterator<PrismContainerValue> iterator = values.iterator();
+    	Iterator<PrismContainerValue> iterator = getValues().iterator();
     	while (iterator.hasNext()) {
     		PrismContainerValue pval = iterator.next();
     		if (pval.isEmpty()) {
@@ -203,7 +199,7 @@ public class PrismContainer extends Item {
     		throw new IllegalArgumentException("Cannot apply "+definition+" to container");
     	}
     	this.definition = definition;
-		for (PrismContainerValue pval: values) {
+		for (PrismContainerValue pval: getValues()) {
 			pval.applyDefinition((PrismContainerDefinition)definition);
 		}
 	}
@@ -251,7 +247,7 @@ public class PrismContainer extends Item {
     			throw new IllegalArgumentException("Attempt to get segment "+first+" without an ID from a multi-valued container "+getName());
     		}
     	} else {
-	        for (PrismContainerValue pval : values) {
+	        for (PrismContainerValue pval : getValues()) {
 	        	if (first.getId().equals(pval.getId())) {
 	        		return pval.findCreateItem(rest, type, create);
 	        	}
@@ -316,7 +312,7 @@ public class PrismContainer extends Item {
     			addIds = false;
     		}
     	}
-    	for (PrismContainerValue pval: values) {
+    	for (PrismContainerValue pval: getValues()) {
     		PropertyPathSegment segment = null;
     		if (addIds) {
     			segment = new PropertyPathSegment(getName(), pval.getId());
@@ -333,7 +329,7 @@ public class PrismContainer extends Item {
 			return;
 		}
 		super.revive(prismContext);
-		for (PrismContainerValue pval: values) {
+		for (PrismContainerValue pval: getValues()) {
 			pval.revive(prismContext);
 		}
 	}
@@ -352,7 +348,7 @@ public class PrismContainer extends Item {
 
 
     public boolean isEmpty() {
-        for(PrismContainerValue pval : values) {
+        for(PrismContainerValue pval : getValues()) {
         	if (!pval.isEmpty()) {
         		return false;
         	}
@@ -369,8 +365,8 @@ public class PrismContainer extends Item {
 
     protected void copyValues(PrismContainer clone) {
         super.copyValues(clone);
-        for (PrismContainerValue pval : values) {
-            clone.values.add(pval.clone());
+        for (PrismContainerValue pval : getValues()) {
+            clone.add(pval.clone());
         }
     }
 
@@ -378,7 +374,6 @@ public class PrismContainer extends Item {
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + ((values == null) ? 0 : values.hashCode());
 		return result;
 	}
 
@@ -391,11 +386,6 @@ public class PrismContainer extends Item {
 		if (getClass() != obj.getClass())
 			return false;
 		PrismContainer other = (PrismContainer) obj;
-		if (values == null) {
-			if (other.values != null)
-				return false;
-		} else if (!values.equals(other.values))
-			return false;
 		return true;
 	}
 
