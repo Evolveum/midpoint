@@ -254,6 +254,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:propertyContainer/>
+                <a:object/>
                 <!-- todo remove later -->
                 <a:midPointContainer/>
             </xsd:appinfo>
@@ -492,6 +493,9 @@
                 Reference to an object. It contains OID of the object that it
                 refers to.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:objectReference/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
@@ -1488,6 +1492,9 @@
                                 or a system used that is used to execute the task. The owner will be used to
                                 determine access rights of the task, will be used for auditing, etc.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                    		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="executionStatus" type="tns:TaskExecutionStatusType">
@@ -2227,6 +2234,9 @@
                                 the accountRef attribute for the same account
                                 OID must not be present.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReference>tns:accountRef</a:objectReference>
+                    		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -2245,6 +2255,9 @@
                                 object, the account attribute for the same account
                                 OID must not be present.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:AccountShadowType</a:objectReferenceTargetType>
+                    		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <!-- /xsd:choice -->
@@ -2368,6 +2381,9 @@
                         <xsd:documentation>
                             TODO: target
                         </xsd:documentation>
+                        <xsd:appinfo>
+                    		<a:objectReference>tns:targetRef</a:objectReference>
+                    	</xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
 
@@ -2482,6 +2498,9 @@
                             <xsd:documentation>
                                 "Composite" version of the ConnectorType reference. See below for more details.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReference>tns:connectorRef</a:objectReference>
+                    		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="connectorRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
@@ -2494,6 +2513,9 @@
                                 reasons), exactly one of the connecotor or
                                 connectorRef MUST be present in the resource object.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:ConnectorType</a:objectReferenceTargetType>
+                    		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="namespace" type="xsd:anyURI">
@@ -3914,6 +3936,9 @@
                             <xsd:documentation>
                                 Connector host that hosts this connector.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReference>tns:connectorHostRef</a:objectReference>
+                    		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="connectorHostRef" type="c:ObjectReferenceType" minOccurs="0">
@@ -3921,6 +3946,9 @@
                             <xsd:documentation>
                                 Reference to the connector host that hosts this connector.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:ConnectorHostType</a:objectReferenceTargetType>
+                    		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -4034,6 +4062,9 @@
                             <xsd:documentation>
                                 Reference to a resource that this resource object shadow belongs to.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
+                    		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="resource" type="tns:ResourceType" minOccurs="0">
@@ -4041,6 +4072,9 @@
                             <xsd:documentation>
                                 Resource that this resource object shadow belongs to.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReference>tns:resourceRef</a:objectReference>
+                    		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="result" type="tns:OperationResultType"  minOccurs="0">
@@ -4577,6 +4611,9 @@
                         <xsd:documentation>
                             Reference to a resource that should host the implied account.
                         </xsd:documentation>
+                        <xsd:appinfo>
+                    		<a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
+                    	</xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="resource" type="tns:ResourceType" minOccurs="0">
@@ -4584,6 +4621,9 @@
                         <xsd:documentation>
                             Resource that should host the implied account.
                         </xsd:documentation>
+                        <xsd:appinfo>
+                    		<a:objectReference>tns:resourceRef</a:objectReference>
+                    	</xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
             </xsd:choice>
@@ -5068,6 +5108,9 @@
 
                                 TODO: better documentation
                             </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReference>tns:defaultUserTemplateRef</a:objectReference>
+                    		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="defaultUserTemplateRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
@@ -5079,6 +5122,9 @@
 
                                 TODO: better documentation
                             </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:UserTemplateType</a:objectReferenceTargetType>
+                    		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
