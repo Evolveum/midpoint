@@ -33,6 +33,7 @@ import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIDeclaration;
 import com.sun.tools.xjc.reader.xmlschema.bindinfo.BindInfo;
 import com.sun.xml.xsom.XSAnnotation;
 import com.sun.xml.xsom.XSComponent;
+import com.sun.xml.xsom.XSParticle;
 
 import javax.xml.namespace.QName;
 import java.lang.reflect.Field;
@@ -207,6 +208,45 @@ public final class ProcessorUtils {
 
         return null;
     }
+    
+    private static BIDeclaration hasAnnotation(XSAnnotation annotation, QName qname) {
+        if (annotation == null) {
+            return null;
+        }
+
+        Object object = annotation.getAnnotation();
+        if (!(object instanceof BindInfo)) {
+            return null;
+        }
+
+        BindInfo info = (BindInfo) object;
+        BIDeclaration[] declarations = info.getDecls();
+        if (declarations == null) {
+            return null;
+        }
+
+        for (BIDeclaration declaration : declarations) {
+            if (qname.equals(declaration.getName())) {
+                return declaration;
+            }
+        }
+
+        return null;
+    }
+    
+    public static BIDeclaration hasAnnotation(ClassOutline classOutline, JFieldVar field, QName qname) {
+        CPropertyInfo propertyInfo = classOutline.target.getProperty(field.name());
+        if (propertyInfo == null || !(propertyInfo.getSchemaComponent() instanceof XSParticle)) {
+            return null;
+        }
+        XSParticle particle = (XSParticle)propertyInfo.getSchemaComponent();
+        if (particle.getTerm() == null) {
+            return null;
+        }
+        XSAnnotation annotation = particle.getTerm().getAnnotation(false);
+        
+        return hasAnnotation(annotation, qname);
+    }
 
     public static boolean hasAnnotation(ClassOutline classOutline, QName qname) {
         XSComponent xsComponent = classOutline.target.getSchemaComponent();
@@ -214,28 +254,7 @@ public final class ProcessorUtils {
         if (xsComponent == null) {
             return false;
         }
-        XSAnnotation annotation = xsComponent.getAnnotation(false);
-        if (annotation == null) {
-            return false;
-        }
 
-        Object object = annotation.getAnnotation();
-        if (!(object instanceof BindInfo)) {
-            return false;
-        }
-
-        BindInfo info = (BindInfo) object;
-        BIDeclaration[] declarations = info.getDecls();
-        if (declarations == null) {
-            return false;
-        }
-
-        for (BIDeclaration declaration : declarations) {
-            if (qname.equals(declaration.getName())) {
-                return true;
-            }
-        }
-
-        return false;
+        return hasAnnotation(xsComponent.getAnnotation(false), qname) != null;
     }
 }

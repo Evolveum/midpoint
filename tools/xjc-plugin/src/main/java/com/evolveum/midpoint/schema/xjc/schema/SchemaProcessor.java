@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.schema.xjc.schema;
 
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -31,14 +30,17 @@ import com.evolveum.midpoint.schema.xjc.Processor;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.model.CClassInfo;
+import com.sun.tools.xjc.model.CPropertyInfo;
+import com.sun.tools.xjc.model.CTypeInfo;
 import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
+import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIDeclaration;
+import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIXPluginCustomization;
 import com.sun.xml.xsom.XSElementDecl;
 import com.sun.xml.xsom.XSSchema;
 import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSType;
-import org.eclipse.core.internal.registry.Handle;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
@@ -58,6 +60,7 @@ public class SchemaProcessor implements Processor {
 
     //qname for object reference type
     private static final QName OBJECT_REFERENCE_TYPE = new QName(PrefixMapper.C.getNamespace(), "ObjectReferenceType");
+    private static final QName A_OBJECT_REFERENCE = new QName(PrefixMapper.A.getNamespace(), "objectReference");
     private static final String REFERENCE_FIELD_NAME = "reference";
     private static final String METHOD_GET_REFERENCE = "getReference";
     private static final String METHOD_SET_REFERENCE = "setReference";
@@ -77,6 +80,8 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_PRISM_GET_CONTAINER = "getContainer";
     private static final String METHOD_PRISM_GET_CONTAINER_VALUE = "getContainerValue";
     private static final String METHOD_PRISM_SET_CONTAINER_VALUE = "setContainerValue";
+    private static final String METHOD_PRISM_GET_REFERENCE_VALUE = "getReferenceValue";
+    private static final String METHOD_PRISM_SET_REFERENCE_VALUE = "setReferenceValue";
     //equals, toString, hashCode methods
     private static final String METHOD_TO_STRING = "toString";
     private static final String METHOD_DEBUG_DUMP = "debugDump";
@@ -100,7 +105,7 @@ public class SchemaProcessor implements Processor {
             updatePropertyContainer(outline);
             updateFields(outline);
 
-//            updateObjectReferenceType(outline);
+            updateObjectReferenceType(outline);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException("Couldn't process MidPoint JAXB customisation, reason: "
@@ -139,6 +144,7 @@ public class SchemaProcessor implements Processor {
 
         JMethod setReference = definedClass.method(JMod.PUBLIC, void.class, METHOD_SET_REFERENCE);
         JVar value = setReference.param(PrismReferenceValue.class, "value");
+        body = setReference.body();
         body.assign(reference, value);
 
         //update for oid methods
@@ -555,6 +561,12 @@ public class SchemaProcessor implements Processor {
                 if ("oid".equals(field)) {
                     System.out.println("Updating oid field: " + fieldVar.name());
                     remove = updateOidField(fieldVar, classOutline);
+                } else if (isFieldReference(fieldVar, classOutline)) {
+                    System.out.println("Updating field (reference): " + fieldVar.name());
+                    remove = updateFieldReference(fieldVar, classOutline);
+                } else if (isFieldReferenceUse(fieldVar, classOutline)) {
+                    System.out.println("Updating field (reference usage): " + fieldVar.name());
+                    remove = updateFieldReferenceUse(fieldVar, classOutline);
                 } else if (isFieldTypeContainer(fieldVar, classOutline)) {
                     System.out.println("Updating container field: " + fieldVar.name());
                     remove = updateContainerFieldType(fieldVar, classOutline);
@@ -574,30 +586,85 @@ public class SchemaProcessor implements Processor {
         }
     }
 
-    /**
-     * adding Deprecation annotation and small comment to method
-     */
-    @Deprecated
-    private void addDeprecation(Outline outline, JMethod method) {
-        method.annotate((JClass) outline.getModel().codeModel._ref(Deprecated.class));
-        JDocComment comment = method.javadoc();
-        comment.append("DO NOT USE! For testing purposes only.");
+    //todo fix List<ObjectReferenceType> ....
+    private boolean updateFieldReference(JFieldVar field, ClassOutline classOutline) {
+        JDefinedClass definedClass = classOutline.implClass;
+        String methodName = getGetterMethod(classOutline, field);
+        JMethod method = definedClass.getMethod(methodName, new JType[]{});
+        JMethod getMethod = recreateMethod(method, definedClass);
+        copyAnnotations(getMethod, field);
+
+        JClass reference = (JClass) classOutline.parent().getModel().codeModel._ref(PrismReferenceValue.class);
+        JClass util = (JClass) classOutline.parent().getModel().codeModel._ref(PrismForJAXBUtil.class);
+
+        JBlock body = getMethod.body();
+        JInvocation invocation = util.staticInvoke(METHOD_PRISM_GET_REFERENCE_VALUE);
+        invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
+        invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
+
+        JVar container = body.decl(reference, REFERENCE_FIELD_NAME, invocation);
+
+        JBlock then = body._if(container.eq(JExpr._null()))._then();
+        then._return(JExpr._null());
+        JVar wrapper = body.decl(field.type(), field.name(), JExpr._new(field.type()));
+        invocation = body.invoke(wrapper, METHOD_SET_REFERENCE);
+        invocation.arg(container);
+        body._return(wrapper);
+
+        //setter method update
+        if (isList(field.type(), classOutline)) {
+            return true;
+        }
+        methodName = getSetterMethod(classOutline, field);
+        method = definedClass.getMethod(methodName, new JType[]{field.type()});
+        method = recreateMethod(method, definedClass);
+        JVar param = method.listParams()[0];
+        body = method.body();
+
+        JVar cont = body.decl(reference, REFERENCE_FIELD_NAME, JOp.cond(param.ne(JExpr._null()),
+                JExpr.invoke(param, METHOD_GET_REFERENCE), JExpr._null()));
+        invocation = body.staticInvoke(util, METHOD_PRISM_SET_REFERENCE_VALUE);
+        invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
+        invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
+        invocation.arg(cont);
+
+        return true;
     }
 
-    @Deprecated
-    private void notYetImplementedException(Outline outline, JMethod method) {
-        //adding deprecation
-        addDeprecation(outline, method);
+    private boolean updateFieldReferenceUse(JFieldVar field, ClassOutline classOutline) {
+        //todo implement...
+        return true;
+    }
 
-        //comment and not yet implemented exception
-        JBlock body = method.body();
-        body.directStatement("//todo implement in xjc processing with using XmlUtil");
+    private boolean isFieldReference(JFieldVar field, ClassOutline classOutline) {
+        CPropertyInfo propertyInfo = classOutline.target.getProperty(field.name());
+        Collection<? extends CTypeInfo> collection = propertyInfo.ref();
+        if (collection == null || collection.isEmpty()) {
+            return false;
+        }
+        CTypeInfo info = collection.iterator().next();
+        if (info instanceof CClassInfo) {
+            CClassInfo classInfo = (CClassInfo) info;
+            if (OBJECT_REFERENCE_TYPE.equals(classInfo.getTypeName())) {
+                return true;
+            }
+        }
 
-        JClass illegalAccess = (JClass) outline.getModel().codeModel._ref(UnsupportedOperationException.class);
-        JInvocation exception = JExpr._new(illegalAccess);
-        exception.arg(JExpr.lit("Not yet implemented."));
+        return false;
+    }
 
-        body._throw(exception);
+    private boolean isFieldReferenceUse(JFieldVar field, ClassOutline classOutline) {
+        BIDeclaration declaration = hasAnnotation(classOutline, field, A_OBJECT_REFERENCE);
+        if (!(declaration instanceof BIXPluginCustomization)) {
+            return false;
+        }
+
+        BIXPluginCustomization customization = (BIXPluginCustomization) declaration;
+        if (customization.element != null) {
+            return true;
+        }
+
+        return false;
     }
 
     private ClassOutline findClassOutline(JDefinedClass definedClass, Outline outline) {
@@ -731,13 +798,23 @@ public class SchemaProcessor implements Processor {
         if (!(type instanceof JDefinedClass)) {
             return false;
         }
-        
-        ClassOutline classOutline = findClassOutline((JDefinedClass)type, outline);
+
+        ClassOutline classOutline = findClassOutline((JDefinedClass) type, outline);
         if (classOutline == null) {
             return false;
         }
 
         return hasParentAnnotation(classOutline, MIDPOINT_CONTAINER);
+    }
+
+    private boolean isList(JType type, ClassOutline classOutline) {
+        JClass list = (JClass) classOutline.parent().getModel().codeModel._ref(List.class);
+        boolean isList = false;
+        if (type instanceof JClass) {
+            isList = list.equals(((JClass) type).erasure());
+        }
+
+        return isList;
     }
 
     private boolean updateField(JFieldVar field, ClassOutline classOutline) {
@@ -748,12 +825,7 @@ public class SchemaProcessor implements Processor {
         JMethod method = recreateMethod(oldMethod, definedClass);
         copyAnnotations(method, field, oldMethod);
 
-        JClass list = (JClass) classOutline.parent().getModel().codeModel._ref(List.class);
-        JType type = field.type();
-        boolean isList = false;
-        if (type instanceof JClass) {
-            isList = list.equals(((JClass) type).erasure());
-        }
+        boolean isList = isList(field.type(), classOutline);
         createFieldGetterBody(method, field, classOutline, isList);
 
         //update setter

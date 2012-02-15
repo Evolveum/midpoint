@@ -35,11 +35,6 @@ public final class PrismForJAXBUtil {
     private PrismForJAXBUtil() {
     }
 
-    public static <T> List<T> getPropertyValues(PrismContainerValue container, QName name, Class<T> clazz) {
-         //todo implement
-        throw new UnsupportedOperationException("not implemented yet");
-    }
-
     public static <T> List<T> getPropertyValues(PrismContainer container, QName name, Class<T> clazz) {
         Validate.notNull(container, "Container must not be null.");
         Validate.notNull(name, "QName must not be null.");
@@ -96,6 +91,13 @@ public final class PrismForJAXBUtil {
         property.setValue(new PrismPropertyValue(value));
     }
 
+    //todo check usages before implementing
+
+    public static <T> List<T> getPropertyValues(PrismContainerValue container, QName name, Class<T> clazz) {
+        //todo implement
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
     public static PrismContainerValue getContainerValue(PrismContainer parent, QName name) {
         return getContainerValue(parent.getValue(), name);
     }
@@ -121,6 +123,20 @@ public final class PrismForJAXBUtil {
     }
 
     public static boolean setContainerValue(PrismContainer parent, QName name, PrismContainerValue value) {
+        //todo implement, experimental, used for xjc stuff with jaxb
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    public static PrismReferenceValue getReferenceValue(PrismContainer parent, QName name) {
+        PrismReference reference = parent.findReference(name);
+        if (reference == null) {
+            return null;
+        }
+
+        return reference.getValue();
+    }
+
+    public static PrismReferenceValue setReferenceValue(PrismContainer parent, QName name, PrismReferenceValue value) {
         //todo implement, experimental, used for xjc stuff with jaxb
         throw new UnsupportedOperationException("not implemented yet");
     }
