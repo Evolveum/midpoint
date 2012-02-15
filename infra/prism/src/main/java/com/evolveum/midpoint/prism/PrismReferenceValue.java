@@ -29,15 +29,14 @@ import java.io.Serializable;
 
 import javax.xml.namespace.QName;
 
-import org.w3c.dom.Element;
-
 /**
  * @author Radovan Semancik
  */
 public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDumpable, Serializable {
 
-    private String oid;
-    private QName targetType;
+    private String oid = null;
+    private Objectable object = null;
+    private QName targetType = null;
     
     public PrismReferenceValue() {
         this(null,null,null);
@@ -61,11 +60,25 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 	 * @return the target oid
 	 */
     public String getOid() {
-		return oid;
+		if (oid != null) {
+			return oid;
+		}
+		if (object != null) {
+			return object.getOid();
+		}
+		return null;
 	}
 
 	public void setOid(String oid) {
 		this.oid = oid;
+	}
+	
+	public Objectable getObject() {
+		return object;
+	}
+
+	public void setObject(Objectable object) {
+		this.object = object;
 	}
 
 	/**
