@@ -35,6 +35,11 @@ public final class PrismForJAXBUtil {
     private PrismForJAXBUtil() {
     }
 
+    public static <T> List<T> getPropertyValues(PrismContainerValue container, QName name, Class<T> clazz) {
+         //todo implement
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
     public static <T> List<T> getPropertyValues(PrismContainer container, QName name, Class<T> clazz) {
         Validate.notNull(container, "Container must not be null.");
         Validate.notNull(name, "QName must not be null.");
