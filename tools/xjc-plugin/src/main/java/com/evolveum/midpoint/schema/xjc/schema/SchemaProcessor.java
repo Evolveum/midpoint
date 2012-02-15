@@ -23,9 +23,11 @@ package com.evolveum.midpoint.schema.xjc.schema;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
 import com.evolveum.midpoint.schema.xjc.PrismForJAXBUtil;
+import com.evolveum.midpoint.schema.xjc.PrismReferenceArrayList;
 import com.evolveum.midpoint.schema.xjc.Processor;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
@@ -595,11 +597,13 @@ public class SchemaProcessor implements Processor {
         JMethod method = definedClass.getMethod(methodName, new JType[]{});
         JMethod getMethod = recreateMethod(method, definedClass);
         copyAnnotations(getMethod, field);
-        createFieldReferenceGetterBody(field, classOutline, getMethod.body());
+
+        boolean isList = isList(field.type(), classOutline);
+        createFieldReferenceGetterBody(field, classOutline, getMethod.body(), isList);
 
         //setter method update
-        if (isList(field.type(), classOutline)) {
-            return true;
+        if (isList) {
+            return false;
         }
         methodName = getSetterMethod(classOutline, field);
         method = definedClass.getMethod(methodName, new JType[]{field.type()});
@@ -622,22 +626,77 @@ public class SchemaProcessor implements Processor {
         invocation.arg(cont);
     }
 
-    private void createFieldReferenceGetterBody(JFieldVar field, ClassOutline classOutline, JBlock body) {
-        JClass reference = (JClass) classOutline.parent().getModel().codeModel._ref(PrismReferenceValue.class);
+    // todo reimplement, now we're using inner classes
+    // JDefinedClass annonymous = outline.getCodeModel().anonymousClass(clazz);
+    // annonymous.hide();
+    private JDefinedClass createFieldReferenceGetterListBody(JFieldVar field, ClassOutline classOutline) {
+        JClass reference = (JClass) classOutline.parent().getModel().codeModel._ref(PrismReference.class);
+        JClass value = (JClass) classOutline.parent().getModel().codeModel._ref(PrismReferenceValue.class);
+        JClass list = (JClass) classOutline.parent().getModel().codeModel._ref(PrismReferenceArrayList.class);
+
+        Outline outline = classOutline.parent();
+
+        //add generics type to list field.type.getTypeParameters()...
+        JClass type = ((JClass) field.type()).getTypeParameters().get(0);
+        JClass clazz = list.narrow(type);
+
+        JDefinedClass annonymous;
+        try {
+            annonymous = classOutline.implClass._class(JMod.PRIVATE | JMod.STATIC, "A" + field.name());
+        } catch (JClassAlreadyExistsException ex) {
+            throw new RuntimeException(ex.getMessage(), ex);
+        }
+
+        annonymous._extends(clazz);
+        JMethod constructor = annonymous.constructor(JMod.PUBLIC);
+        constructor.param(reference, REFERENCE_FIELD_NAME);
+        JBlock constructorBody = constructor.body();
+        JInvocation invocation = constructorBody.invoke("super");
+        invocation.arg(constructor.listParams()[0]);
+
+        JMethod createItem = annonymous.method(JMod.PUBLIC, type, "createItem");
+        createItem.annotate((JClass) outline.getModel().codeModel._ref(Override.class));
+        JVar param = createItem.param(value, "value");
+        JBlock createItemBody = createItem.body();
+        JVar decl = createItemBody.decl(type, field.name(), JExpr._new(type));
+        JInvocation createItemInvocation = decl.invoke(METHOD_SET_REFERENCE);
+        createItemInvocation.arg(param);
+        createItemBody._return(decl);
+
+        return annonymous;
+    }
+
+    private void createFieldReferenceGetterBody(JFieldVar field, ClassOutline classOutline, JBlock body,
+            boolean isList) {
+        JClass reference = (JClass) classOutline.parent().getModel().codeModel._ref(PrismReference.class);
+        JClass value = (JClass) classOutline.parent().getModel().codeModel._ref(PrismReferenceValue.class);
         JClass util = (JClass) classOutline.parent().getModel().codeModel._ref(PrismForJAXBUtil.class);
 
-        JInvocation invocation = util.staticInvoke(METHOD_PRISM_GET_REFERENCE_VALUE);
-        invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
-        invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
+        JFieldRef qnameRef = JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name()));
+        if (isList) {
+            //if it's List<ObjectReferenceType> ...
+            JInvocation invoke = JExpr.invoke(JExpr.invoke(METHOD_GET_CONTAINER), "findOrCreateReference");
+            invoke.arg(qnameRef);
+            JVar ref = body.decl(reference, REFERENCE_FIELD_NAME, invoke);
 
-        JVar container = body.decl(reference, REFERENCE_FIELD_NAME, invocation);
+            JInvocation newList = JExpr._new(createFieldReferenceGetterListBody(field, classOutline));
+            newList.arg(ref);
+            body._return(newList);
+        } else {
+            //if it's ObjectReferenceType
+            JInvocation invocation = util.staticInvoke(METHOD_PRISM_GET_REFERENCE_VALUE);
+            invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
+            invocation.arg(qnameRef);
 
-        JBlock then = body._if(container.eq(JExpr._null()))._then();
-        then._return(JExpr._null());
-        JVar wrapper = body.decl(field.type(), field.name(), JExpr._new(field.type()));
-        invocation = body.invoke(wrapper, METHOD_SET_REFERENCE);
-        invocation.arg(container);
-        body._return(wrapper);
+            JVar container = body.decl(value, REFERENCE_FIELD_NAME, invocation);
+
+            JBlock then = body._if(container.eq(JExpr._null()))._then();
+            then._return(JExpr._null());
+            JVar wrapper = body.decl(field.type(), field.name(), JExpr._new(field.type()));
+            invocation = body.invoke(wrapper, METHOD_SET_REFERENCE);
+            invocation.arg(container);
+            body._return(wrapper);
+        }
     }
 
     private JFieldVar getReferencedField(JFieldVar field, ClassOutline classOutline) {

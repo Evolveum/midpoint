@@ -111,7 +111,7 @@ public final class PrismForJAXBUtil {
         //todo implement, experimental, used for xjc stuff with jaxb
         throw new UnsupportedOperationException("not implemented yet");
     }
-    
+
     public static boolean setContainerValue(PrismContainerValue parent, QName name, PrismContainerValue value) {
         //todo implement, experimental, used for xjc stuff with jaxb
         throw new UnsupportedOperationException("not implemented yet");
@@ -128,12 +128,16 @@ public final class PrismForJAXBUtil {
     }
 
     public static PrismReferenceValue getReferenceValue(PrismContainer parent, QName name) {
-        PrismReference reference = parent.findReference(name);
+        PrismReference reference = getReference(parent, name);
         if (reference == null) {
             return null;
         }
 
         return reference.getValue();
+    }
+
+    public static PrismReference getReference(PrismContainer parent, QName name) {
+        return parent.findReference(name);
     }
 
     public static PrismReferenceValue setReferenceValue(PrismContainer parent, QName name, PrismReferenceValue value) {
