@@ -595,11 +595,37 @@ public class SchemaProcessor implements Processor {
         JMethod method = definedClass.getMethod(methodName, new JType[]{});
         JMethod getMethod = recreateMethod(method, definedClass);
         copyAnnotations(getMethod, field);
+        createFieldReferenceGetterBody(field, classOutline, getMethod.body());
 
+        //setter method update
+        if (isList(field.type(), classOutline)) {
+            return true;
+        }
+        methodName = getSetterMethod(classOutline, field);
+        method = definedClass.getMethod(methodName, new JType[]{field.type()});
+        method = recreateMethod(method, definedClass);
+        JVar param = method.listParams()[0];
+        createFieldReferenceSetterBody(field, classOutline, param, method.body());
+
+        return true;
+    }
+
+    private void createFieldReferenceSetterBody(JFieldVar field, ClassOutline classOutline, JVar param, JBlock body) {
         JClass reference = (JClass) classOutline.parent().getModel().codeModel._ref(PrismReferenceValue.class);
         JClass util = (JClass) classOutline.parent().getModel().codeModel._ref(PrismForJAXBUtil.class);
 
-        JBlock body = getMethod.body();
+        JVar cont = body.decl(reference, REFERENCE_FIELD_NAME, JOp.cond(param.ne(JExpr._null()),
+                JExpr.invoke(param, METHOD_GET_REFERENCE), JExpr._null()));
+        JInvocation invocation = body.staticInvoke(util, METHOD_PRISM_SET_REFERENCE_VALUE);
+        invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
+        invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
+        invocation.arg(cont);
+    }
+
+    private void createFieldReferenceGetterBody(JFieldVar field, ClassOutline classOutline, JBlock body) {
+        JClass reference = (JClass) classOutline.parent().getModel().codeModel._ref(PrismReferenceValue.class);
+        JClass util = (JClass) classOutline.parent().getModel().codeModel._ref(PrismForJAXBUtil.class);
+
         JInvocation invocation = util.staticInvoke(METHOD_PRISM_GET_REFERENCE_VALUE);
         invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
         invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
@@ -612,27 +638,8 @@ public class SchemaProcessor implements Processor {
         invocation = body.invoke(wrapper, METHOD_SET_REFERENCE);
         invocation.arg(container);
         body._return(wrapper);
-
-        //setter method update
-        if (isList(field.type(), classOutline)) {
-            return true;
-        }
-        methodName = getSetterMethod(classOutline, field);
-        method = definedClass.getMethod(methodName, new JType[]{field.type()});
-        method = recreateMethod(method, definedClass);
-        JVar param = method.listParams()[0];
-        body = method.body();
-
-        JVar cont = body.decl(reference, REFERENCE_FIELD_NAME, JOp.cond(param.ne(JExpr._null()),
-                JExpr.invoke(param, METHOD_GET_REFERENCE), JExpr._null()));
-        invocation = body.staticInvoke(util, METHOD_PRISM_SET_REFERENCE_VALUE);
-        invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
-        invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
-        invocation.arg(cont);
-
-        return true;
     }
-    
+
     private JFieldVar getReferencedField(JFieldVar field, ClassOutline classOutline) {
         QName qname = getFieldReferenceUseAnnotationQName(field, classOutline);
         CPropertyInfo propertyInfo = classOutline.target.getProperty(qname.getLocalPart());
@@ -641,16 +648,46 @@ public class SchemaProcessor implements Processor {
 
     private boolean updateFieldReferenceUse(JFieldVar field, ClassOutline classOutline) {
         JDefinedClass definedClass = classOutline.implClass;
+
+        //getter method update
         String methodName = getGetterMethod(classOutline, field);
         JMethod method = definedClass.getMethod(methodName, new JType[]{});
         JMethod getMethod = recreateMethod(method, definedClass);
         copyAnnotations(getMethod, field);
+        createFieldReferenceUseGetterBody(field, classOutline, getMethod.body());
 
+        //setter method update
+        if (isList(field.type(), classOutline)) {
+            return true;
+        }
+        methodName = getSetterMethod(classOutline, field);
+        method = definedClass.getMethod(methodName, new JType[]{field.type()});
+        method = recreateMethod(method, definedClass);
+        createFieldReferenceUseSetterBody(field, classOutline, method.listParams()[0], method.body());
+
+        return true;
+    }
+
+    private void createFieldReferenceUseSetterBody(JFieldVar field, ClassOutline classOutline, JVar param,
+            JBlock body) {
+        JClass object = (JClass) classOutline.parent().getModel().codeModel._ref(PrismObject.class);
+        JClass util = (JClass) classOutline.parent().getModel().codeModel._ref(PrismForJAXBUtil.class);
+
+        JVar cont = body.decl(object, CONTAINER_FIELD_NAME, JOp.cond(param.ne(JExpr._null()),
+                JExpr.invoke(param, METHOD_GET_CONTAINER), JExpr._null()));
+        JInvocation invocation = body.staticInvoke(util, METHOD_PRISM_SET_REFERENCE_OBJECT);
+        invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
+
+        JFieldVar referencedField = getReferencedField(field, classOutline);
+        invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(referencedField.name())));
+        invocation.arg(cont);
+    }
+
+    private void createFieldReferenceUseGetterBody(JFieldVar field, ClassOutline classOutline, JBlock body) {
         JClass reference = (JClass) classOutline.parent().getModel().codeModel._ref(PrismReferenceValue.class);
         JClass object = (JClass) classOutline.parent().getModel().codeModel._ref(PrismObject.class);
         JClass util = (JClass) classOutline.parent().getModel().codeModel._ref(PrismForJAXBUtil.class);
 
-        JBlock body = getMethod.body();
         JInvocation invocation = util.staticInvoke(METHOD_PRISM_GET_REFERENCE_VALUE);
         invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
         JFieldVar referencedField = getReferencedField(field, classOutline);
@@ -664,25 +701,6 @@ public class SchemaProcessor implements Processor {
         invocation = body.invoke(wrapper, METHOD_SET_CONTAINER);
         invocation.arg(JExpr.cast(object, JExpr.invoke(container, "getObject")));
         body._return(wrapper);
-
-        //setter method update
-        if (isList(field.type(), classOutline)) {
-            return true;
-        }
-        methodName = getSetterMethod(classOutline, field);
-        method = definedClass.getMethod(methodName, new JType[]{field.type()});
-        method = recreateMethod(method, definedClass);
-        JVar param = method.listParams()[0];
-        body = method.body();
-
-        JVar cont = body.decl(object, CONTAINER_FIELD_NAME, JOp.cond(param.ne(JExpr._null()),
-                JExpr.invoke(param, METHOD_GET_CONTAINER), JExpr._null()));
-        invocation = body.staticInvoke(util, METHOD_PRISM_SET_REFERENCE_OBJECT);
-        invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
-        invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(referencedField.name())));
-        invocation.arg(cont);
-
-        return true;
     }
 
     private boolean isFieldReference(JFieldVar field, ClassOutline classOutline) {
@@ -803,14 +821,48 @@ public class SchemaProcessor implements Processor {
         JMethod method = definedClass.getMethod(methodName, new JType[]{});
         JMethod getMethod = recreateMethod(method, definedClass);
         copyAnnotations(getMethod, field);
+        createContainerFieldGetterBody(field, classOutline, getMethod);
 
+        //setter method update
+        methodName = getSetterMethod(classOutline, field);
+        method = definedClass.getMethod(methodName, new JType[]{field.type()});
+        method = recreateMethod(method, definedClass);
+        createContainerFieldSetterBody(field, classOutline, method);
+
+        return true;
+    }
+
+    private void createContainerFieldSetterBody(JFieldVar field, ClassOutline classOutline, JMethod method) {
         JClass clazz = (JClass) classOutline.parent().getModel().codeModel._ref(PrismObject.class);
         JClass value = (JClass) classOutline.parent().getModel().codeModel._ref(PrismContainerValue.class);
         JClass util = (JClass) classOutline.parent().getModel().codeModel._ref(PrismForJAXBUtil.class);
 
-        JBlock body = getMethod.body();
+        JVar param = method.listParams()[0];
+        JBlock body = method.body();
+
+        JVar cont;
+        if (isPrismContainer(param.type(), classOutline.parent())) {
+            cont = body.decl(clazz, "container", JOp.cond(param.ne(JExpr._null()),
+                    JExpr.invoke(param, METHOD_GET_CONTAINER), JExpr._null()));
+        } else {
+            cont = body.decl(value, "container", JOp.cond(param.ne(JExpr._null()),
+                    JExpr.invoke(param, METHOD_GET_CONTAINER), JExpr._null()));
+        }
+        JInvocation invocation = body.staticInvoke(util, METHOD_PRISM_SET_CONTAINER_VALUE);
+        invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
+        invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
+        invocation.arg(cont);
+    }
+
+    private void createContainerFieldGetterBody(JFieldVar field, ClassOutline classOutline, JMethod method) {
+        JClass clazz = (JClass) classOutline.parent().getModel().codeModel._ref(PrismObject.class);
+        JClass value = (JClass) classOutline.parent().getModel().codeModel._ref(PrismContainerValue.class);
+        JClass util = (JClass) classOutline.parent().getModel().codeModel._ref(PrismForJAXBUtil.class);
+
+        JBlock body = method.body();
+
         JVar container;
-        if (isPrismContainer(getMethod.type(), classOutline.parent())) {
+        if (isPrismContainer(method.type(), classOutline.parent())) {
             //handle PrismObject
             JInvocation invocation = util.staticInvoke(METHOD_PRISM_GET_CONTAINER);
             invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
@@ -832,28 +884,6 @@ public class SchemaProcessor implements Processor {
         JInvocation invocation = body.invoke(wrapper, METHOD_SET_CONTAINER);
         invocation.arg(container);
         body._return(wrapper);
-
-        //setter method update
-        methodName = getSetterMethod(classOutline, field);
-        method = definedClass.getMethod(methodName, new JType[]{field.type()});
-        method = recreateMethod(method, definedClass);
-        JVar param = method.listParams()[0];
-        body = method.body();
-
-        JVar cont;
-        if (isPrismContainer(param.type(), classOutline.parent())) {
-            cont = body.decl(clazz, "container", JOp.cond(param.ne(JExpr._null()),
-                    JExpr.invoke(param, METHOD_GET_CONTAINER), JExpr._null()));
-        } else {
-            cont = body.decl(value, "container", JOp.cond(param.ne(JExpr._null()),
-                    JExpr.invoke(param, METHOD_GET_CONTAINER), JExpr._null()));
-        }
-        invocation = body.staticInvoke(util, METHOD_PRISM_SET_CONTAINER_VALUE);
-        invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
-        invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
-        invocation.arg(cont);
-
-        return true;
     }
 
     private boolean isPrismContainer(JType type, Outline outline) {
