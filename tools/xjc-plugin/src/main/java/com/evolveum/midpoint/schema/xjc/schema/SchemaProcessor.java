@@ -38,6 +38,7 @@ import com.sun.xml.xsom.XSElementDecl;
 import com.sun.xml.xsom.XSSchema;
 import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSType;
+import org.eclipse.core.internal.registry.Handle;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
@@ -82,7 +83,7 @@ public class SchemaProcessor implements Processor {
     private static final int METHOD_DEBUG_DUMP_INDENT = 3;
     private static final String METHOD_EQUALS = "equals";
     private static final String METHOD_EQUIVALENT = "equivalent";
-    private static final String METHOD_HASH_CODE = "hashCode";    
+    private static final String METHOD_HASH_CODE = "hashCode";
 
     @Override
     public boolean run(Outline outline, Options options, ErrorHandler errorHandler) throws SAXException {
@@ -97,7 +98,7 @@ public class SchemaProcessor implements Processor {
 
             updateMidPointContainer(outline);
             updatePropertyContainer(outline);
-//            updateFields(outline);
+            updateFields(outline);
 
 //            updateObjectReferenceType(outline);
         } catch (Exception ex) {
@@ -145,8 +146,8 @@ public class SchemaProcessor implements Processor {
         //update for type methods
         updateObjectReferenceType(definedClass, getReference);
     }
-    
-    private void updateObjectReferenceType(JDefinedClass definedClass, JMethod getReference ) {
+
+    private void updateObjectReferenceType(JDefinedClass definedClass, JMethod getReference) {
         JFieldVar typeField = definedClass.fields().get("type");
         JMethod getType = recreateMethod(findMethod(definedClass, "getType"), definedClass);
         copyAnnotations(getType, typeField);
@@ -159,7 +160,7 @@ public class SchemaProcessor implements Processor {
         JInvocation invocation = body.invoke(JExpr.invoke(getReference), "setTargetType");
         invocation.arg(setType.listParams()[0]);
     }
-    
+
     private void updateObjectReferenceOid(JDefinedClass definedClass, JMethod getReference) {
         JFieldVar oidField = definedClass.fields().get("oid");
         JMethod getOid = recreateMethod(findMethod(definedClass, "getOid"), definedClass);
@@ -370,7 +371,7 @@ public class SchemaProcessor implements Processor {
 
     private void addContainerName(Outline outline, Map<String, JFieldVar> namespaceFields) {
         Map<QName, List<QName>> complexTypeToElementName = null;
-        
+
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             CClassInfo classInfo = entry.getValue();
@@ -412,7 +413,7 @@ public class SchemaProcessor implements Processor {
             body._return(invocation);
         }
     }
-    
+
     private boolean hasParentAnnotation(ClassOutline classOutline, QName annotation) {
         if (classOutline.getSuperClass() == null) {
             return hasAnnotation(classOutline, annotation);
@@ -528,7 +529,7 @@ public class SchemaProcessor implements Processor {
             JDefinedClass implClass = classOutline.implClass;
             Map<String, JFieldVar> fields = implClass.fields();
 
-            if (fields == null || !isPropertyContainer(classOutline.implClass, outline)) {
+            if (fields == null || !isContainer(classOutline.implClass, outline)) {
                 //it's PropertyContainer, MidPointObject class or doesn't have fields
                 continue;
             }
@@ -599,9 +600,9 @@ public class SchemaProcessor implements Processor {
         body._throw(exception);
     }
 
-    private boolean isPropertyContainer(JDefinedClass definedClass, Outline outline) {
+    private ClassOutline findClassOutline(JDefinedClass definedClass, Outline outline) {
         if (definedClass == null) {
-            return false;
+            return null;
         }
 
         ClassOutline classOutline = null;
@@ -612,6 +613,11 @@ public class SchemaProcessor implements Processor {
             }
         }
 
+        return classOutline;
+    }
+
+    private boolean isContainer(JDefinedClass definedClass, Outline outline) {
+        ClassOutline classOutline = findClassOutline(definedClass, outline);
         if (classOutline == null) {
             return false;
         }
@@ -627,7 +633,7 @@ public class SchemaProcessor implements Processor {
             return false;
         }
 
-        return isPropertyContainer((JDefinedClass) definedClass._extends(), outline);
+        return isContainer((JDefinedClass) definedClass._extends(), outline);
     }
 
     private boolean isFieldTypeContainer(JFieldVar field, ClassOutline classOutline) {
@@ -635,7 +641,7 @@ public class SchemaProcessor implements Processor {
 
         JType type = field.type();
         if (type instanceof JDefinedClass) {
-            return isPropertyContainer((JDefinedClass) type, outline);
+            return isContainer((JDefinedClass) type, outline);
         }
 
         return false;
@@ -669,18 +675,33 @@ public class SchemaProcessor implements Processor {
         JMethod getMethod = recreateMethod(method, definedClass);
         copyAnnotations(getMethod, field);
 
-        JClass clazz = (JClass) classOutline.parent().getModel().codeModel._ref(PrismContainer.class);
-        
+        JClass clazz = (JClass) classOutline.parent().getModel().codeModel._ref(PrismObject.class);
+        JClass value = (JClass) classOutline.parent().getModel().codeModel._ref(PrismContainerValue.class);
+        JClass util = (JClass) classOutline.parent().getModel().codeModel._ref(PrismForJAXBUtil.class);
+
         JBlock body = getMethod.body();
-        JInvocation invocation = JExpr.invoke(JExpr.invoke(METHOD_GET_CONTAINER), "findItem");
-        invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
-        invocation.arg(JExpr.dotclass(clazz));
-        JVar container = body.decl(clazz, CONTAINER_FIELD_NAME, invocation);
+        JVar container;
+        if (isPrismContainer(getMethod.type(), classOutline.parent())) {
+            //handle PrismObject
+            JInvocation invocation = util.staticInvoke(METHOD_PRISM_GET_CONTAINER);
+            invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
+            invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
+            invocation.arg(JExpr.dotclass(clazz));
+
+            container = body.decl(clazz, CONTAINER_FIELD_NAME, invocation);
+        } else {
+            //handle PrismContainerValue
+            JInvocation invocation = util.staticInvoke(METHOD_PRISM_GET_CONTAINER_VALUE);
+            invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
+            invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
+
+            container = body.decl(value, CONTAINER_FIELD_NAME, invocation);
+        }
         JBlock then = body._if(container.eq(JExpr._null()))._then();
         then._return(JExpr._null());
         JVar wrapper = body.decl(field.type(), field.name(), JExpr._new(field.type()));
-        invocation = body.invoke(wrapper, METHOD_SET_CONTAINER);
-        invocation.arg(JExpr.invoke(container, "getValue"));
+        JInvocation invocation = body.invoke(wrapper, METHOD_SET_CONTAINER);
+        invocation.arg(container);
         body._return(wrapper);
 
         //setter method update
@@ -690,19 +711,33 @@ public class SchemaProcessor implements Processor {
         JVar param = method.listParams()[0];
         body = method.body();
 
-        invocation = JExpr.invoke(JExpr.invoke(METHOD_GET_CONTAINER), "findItem");
+        JVar cont;
+        if (isPrismContainer(param.type(), classOutline.parent())) {
+            cont = body.decl(clazz, "container", JOp.cond(param.ne(JExpr._null()),
+                    JExpr.invoke(param, METHOD_GET_CONTAINER), JExpr._null()));
+        } else {
+            cont = body.decl(value, "container", JOp.cond(param.ne(JExpr._null()),
+                    JExpr.invoke(param, METHOD_GET_CONTAINER), JExpr._null()));
+        }
+        invocation = body.staticInvoke(util, METHOD_PRISM_SET_CONTAINER_VALUE);
+        invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
         invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
-        invocation.arg(JExpr.dotclass(clazz));
-        container = body.decl(clazz, CONTAINER_FIELD_NAME, invocation);
-        then = body._if(container.eq(JExpr._null()).not())._then();
-        invocation = then.invoke(JExpr.invoke(METHOD_GET_CONTAINER), "removeContainerValue");
-        invocation.arg(JExpr.invoke(container, "getValue"));
-
-        then = body._if(param.eq(JExpr._null()).not())._then();
-        invocation = then.invoke(JExpr.invoke(METHOD_GET_CONTAINER), "addContainerValue");
-        invocation.arg(param.invoke(METHOD_GET_CONTAINER));
+        invocation.arg(cont);
 
         return true;
+    }
+
+    private boolean isPrismContainer(JType type, Outline outline) {
+        if (!(type instanceof JDefinedClass)) {
+            return false;
+        }
+        
+        ClassOutline classOutline = findClassOutline((JDefinedClass)type, outline);
+        if (classOutline == null) {
+            return false;
+        }
+
+        return hasParentAnnotation(classOutline, MIDPOINT_CONTAINER);
     }
 
     private boolean updateField(JFieldVar field, ClassOutline classOutline) {
