@@ -140,4 +140,9 @@ public final class PrismForJAXBUtil {
         //todo implement, experimental, used for xjc stuff with jaxb
         throw new UnsupportedOperationException("not implemented yet");
     }
+
+    public static PrismReferenceValue setReferenceObject(PrismContainer parent, QName name, PrismObject value) {
+        //todo implement, experimental, used for xjc stuff with jaxb
+        throw new UnsupportedOperationException("not implemented yet");
+    }
 }

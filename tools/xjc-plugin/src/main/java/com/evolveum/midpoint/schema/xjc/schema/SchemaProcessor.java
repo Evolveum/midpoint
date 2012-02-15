@@ -41,6 +41,7 @@ import com.sun.xml.xsom.XSElementDecl;
 import com.sun.xml.xsom.XSSchema;
 import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSType;
+import org.w3c.dom.Element;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
@@ -82,6 +83,7 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_PRISM_SET_CONTAINER_VALUE = "setContainerValue";
     private static final String METHOD_PRISM_GET_REFERENCE_VALUE = "getReferenceValue";
     private static final String METHOD_PRISM_SET_REFERENCE_VALUE = "setReferenceValue";
+    private static final String METHOD_PRISM_SET_REFERENCE_OBJECT = "setReferenceObject";
     //equals, toString, hashCode methods
     private static final String METHOD_TO_STRING = "toString";
     private static final String METHOD_DEBUG_DUMP = "debugDump";
@@ -630,9 +632,56 @@ public class SchemaProcessor implements Processor {
 
         return true;
     }
+    
+    private JFieldVar getReferencedField(JFieldVar field, ClassOutline classOutline) {
+        QName qname = getFieldReferenceUseAnnotationQName(field, classOutline);
+        CPropertyInfo propertyInfo = classOutline.target.getProperty(qname.getLocalPart());
+        return classOutline.implClass.fields().get(propertyInfo.getName(false));
+    }
 
     private boolean updateFieldReferenceUse(JFieldVar field, ClassOutline classOutline) {
-        //todo implement...
+        JDefinedClass definedClass = classOutline.implClass;
+        String methodName = getGetterMethod(classOutline, field);
+        JMethod method = definedClass.getMethod(methodName, new JType[]{});
+        JMethod getMethod = recreateMethod(method, definedClass);
+        copyAnnotations(getMethod, field);
+
+        JClass reference = (JClass) classOutline.parent().getModel().codeModel._ref(PrismReferenceValue.class);
+        JClass object = (JClass) classOutline.parent().getModel().codeModel._ref(PrismObject.class);
+        JClass util = (JClass) classOutline.parent().getModel().codeModel._ref(PrismForJAXBUtil.class);
+
+        JBlock body = getMethod.body();
+        JInvocation invocation = util.staticInvoke(METHOD_PRISM_GET_REFERENCE_VALUE);
+        invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
+        JFieldVar referencedField = getReferencedField(field, classOutline);
+        invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(referencedField.name())));
+
+        JVar container = body.decl(reference, REFERENCE_FIELD_NAME, invocation);
+
+        JBlock then = body._if(container.eq(JExpr._null()))._then();
+        then._return(JExpr._null());
+        JVar wrapper = body.decl(field.type(), field.name(), JExpr._new(field.type()));
+        invocation = body.invoke(wrapper, METHOD_SET_CONTAINER);
+        invocation.arg(JExpr.cast(object, JExpr.invoke(container, "getObject")));
+        body._return(wrapper);
+
+        //setter method update
+        if (isList(field.type(), classOutline)) {
+            return true;
+        }
+        methodName = getSetterMethod(classOutline, field);
+        method = definedClass.getMethod(methodName, new JType[]{field.type()});
+        method = recreateMethod(method, definedClass);
+        JVar param = method.listParams()[0];
+        body = method.body();
+
+        JVar cont = body.decl(object, CONTAINER_FIELD_NAME, JOp.cond(param.ne(JExpr._null()),
+                JExpr.invoke(param, METHOD_GET_CONTAINER), JExpr._null()));
+        invocation = body.staticInvoke(util, METHOD_PRISM_SET_REFERENCE_OBJECT);
+        invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
+        invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(referencedField.name())));
+        invocation.arg(cont);
+
         return true;
     }
 
@@ -653,18 +702,31 @@ public class SchemaProcessor implements Processor {
         return false;
     }
 
-    private boolean isFieldReferenceUse(JFieldVar field, ClassOutline classOutline) {
+    private QName getFieldReferenceUseAnnotationQName(JFieldVar field, ClassOutline classOutline) {
         BIDeclaration declaration = hasAnnotation(classOutline, field, A_OBJECT_REFERENCE);
         if (!(declaration instanceof BIXPluginCustomization)) {
-            return false;
+            return null;
         }
 
         BIXPluginCustomization customization = (BIXPluginCustomization) declaration;
-        if (customization.element != null) {
-            return true;
+        if (customization.element == null) {
+            return null;
         }
 
-        return false;
+        Element element = customization.element;
+        String strQName = element.getTextContent();
+        String[] array = strQName.split(":");
+        if (array.length == 2) {
+            return new QName(PrefixMapper.C.getNamespace(), array[1]);
+        } else if (array.length == 1) {
+            return new QName(PrefixMapper.C.getNamespace(), array[0]);
+        }
+
+        return null;
+    }
+
+    private boolean isFieldReferenceUse(JFieldVar field, ClassOutline classOutline) {
+        return getFieldReferenceUseAnnotationQName(field, classOutline) != null;
     }
 
     private ClassOutline findClassOutline(JDefinedClass definedClass, Outline outline) {
