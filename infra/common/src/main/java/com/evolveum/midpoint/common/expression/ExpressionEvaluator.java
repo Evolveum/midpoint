@@ -21,11 +21,12 @@
 package com.evolveum.midpoint.common.expression;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;

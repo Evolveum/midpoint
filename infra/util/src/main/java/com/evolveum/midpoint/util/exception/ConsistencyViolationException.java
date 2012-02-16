@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.evolveum.midpoint.schema.exception;
+package com.evolveum.midpoint.util.exception;
 
 /**
  * <p>Consistency constraint violation prohibits completion of an operation.</p>

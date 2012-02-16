@@ -15,37 +15,49 @@
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
- * Portions Copyrighted 2011 [name of copyright owner]
+ * "Portions Copyrighted 2011 [name of copyright owner]"
+ * 
  */
-package com.evolveum.midpoint.schema.exception;
+package com.evolveum.midpoint.util.exception;
 
 /**
- * Error during evaluation of expression. The expressions are defined by system administrator.
+ * Object with specified criteria (OID) has not been found in the repository.
  * 
  * @author Radovan Semancik
- *
+ * 
  */
-public class ExpressionEvaluationException extends CommonException {
-	private static final long serialVersionUID = 5615419722362251191L;
+public class ObjectNotFoundException extends CommonException {
+	private static final long serialVersionUID = -9003686713018111855L;
 
-	public ExpressionEvaluationException() {
+	private String oid = null;;
+	
+	public ObjectNotFoundException() {
+		super();
 	}
 
-	public ExpressionEvaluationException(String message) {
+	public ObjectNotFoundException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	public ObjectNotFoundException(String message, Throwable cause, String oid) {
+		super(message, cause);
+		this.oid = oid;
+	}
+	
+	public ObjectNotFoundException(String message) {
 		super(message);
 	}
 
-	public ExpressionEvaluationException(Throwable cause) {
+	public ObjectNotFoundException(Throwable cause) {
 		super(cause);
 	}
 
-	public ExpressionEvaluationException(String message, Throwable cause) {
-		super(message, cause);
+	public String getOid() {
+		return oid;
 	}
 
 	@Override
 	public String getOperationResultMessage() {
-		return "Expression error";
+		return "Object not found";
 	}
-
 }

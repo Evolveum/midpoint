@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (c) 2011 Evolveum
  *
  * The contents of this file are subject to the terms
@@ -17,36 +17,35 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.schema.exception;
+package com.evolveum.midpoint.util.exception;
 
 /**
- * Superclass for all common midPoint exceptions.
- * 
+ * Error during evaluation of expression. The expressions are defined by system administrator.
  * 
  * @author Radovan Semancik
+ *
  */
-public abstract class CommonException extends Exception {
+public class ExpressionEvaluationException extends CommonException {
+	private static final long serialVersionUID = 5615419722362251191L;
 
-	public CommonException() {
+	public ExpressionEvaluationException() {
 	}
 
-	public CommonException(String message) {
+	public ExpressionEvaluationException(String message) {
 		super(message);
 	}
 
-	public CommonException(Throwable cause) {
+	public ExpressionEvaluationException(Throwable cause) {
 		super(cause);
 	}
 
-	public CommonException(String message, Throwable cause) {
+	public ExpressionEvaluationException(String message, Throwable cause) {
 		super(message, cause);
 	}
-	
-	/**
-	 * 
-	 * TOTO: switch return value to a localized message
-	 * @return
-	 */
-	public abstract String getOperationResultMessage();
+
+	@Override
+	public String getOperationResultMessage() {
+		return "Expression error";
+	}
 
 }

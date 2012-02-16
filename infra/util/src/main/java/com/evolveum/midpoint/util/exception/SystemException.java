@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.schema.exception;
+package com.evolveum.midpoint.util.exception;
 
 public class SystemException extends RuntimeException {
 

@@ -18,46 +18,53 @@
  * "Portions Copyrighted 2011 [name of copyright owner]"
  * 
  */
-package com.evolveum.midpoint.schema.exception;
+package com.evolveum.midpoint.util.exception;
+
+import javax.xml.namespace.QName;
 
 /**
- * Object with specified criteria (OID) has not been found in the repository.
+ * Error regarding schema.
+ * 
+ * E.g. Object class violation, missing object class, inconsistent schema, etc. 
  * 
  * @author Radovan Semancik
- * 
+ *
  */
-public class ObjectNotFoundException extends CommonException {
-	private static final long serialVersionUID = -9003686713018111855L;
-
-	private String oid = null;;
+public class SchemaException extends CommonException {
+	private static final long serialVersionUID = -6016220825724355014L;
 	
-	public ObjectNotFoundException() {
+	private QName propertyName;
+
+	public SchemaException() {
 		super();
 	}
 
-	public ObjectNotFoundException(String message, Throwable cause) {
+	public SchemaException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
-	public ObjectNotFoundException(String message, Throwable cause, String oid) {
+	public SchemaException(String message, Throwable cause, QName propertyName) {
 		super(message, cause);
-		this.oid = oid;
+		this.propertyName = propertyName;
 	}
+
 	
-	public ObjectNotFoundException(String message) {
+	public SchemaException(String message) {
 		super(message);
 	}
 
-	public ObjectNotFoundException(Throwable cause) {
-		super(cause);
+	public SchemaException(String message, QName propertyName) {
+		super(message);
+		this.propertyName = propertyName;
 	}
-
-	public String getOid() {
-		return oid;
-	}
-
+		
 	@Override
 	public String getOperationResultMessage() {
-		return "Object not found";
+		return "Schema problem";
 	}
+	
+	public QName getPropertyName() {
+		return propertyName;
+	}
+
 }

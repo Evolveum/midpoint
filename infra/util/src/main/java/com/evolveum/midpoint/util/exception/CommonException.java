@@ -17,39 +17,36 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.schema.exception;
+package com.evolveum.midpoint.util.exception;
 
 /**
- * Generic communication exception.
+ * Superclass for all common midPoint exceptions.
  * 
- * May happen in case of various network communication errors, including
- * (but not limited to) connection refused and timeouts.
- * 
- * TODO
  * 
  * @author Radovan Semancik
- *
  */
-public class CommunicationException extends CommonException {
+public abstract class CommonException extends Exception {
 
-	public CommunicationException() {
+	public CommonException() {
 	}
 
-	public CommunicationException(String message) {
+	public CommonException(String message) {
 		super(message);
 	}
 
-	public CommunicationException(Throwable cause) {
+	public CommonException(Throwable cause) {
 		super(cause);
 	}
 
-	public CommunicationException(String message, Throwable cause) {
+	public CommonException(String message, Throwable cause) {
 		super(message, cause);
 	}
-
-	@Override
-	public String getOperationResultMessage() {
-		return "Communication error";
-	}
+	
+	/**
+	 * 
+	 * TOTO: switch return value to a localized message
+	 * @return
+	 */
+	public abstract String getOperationResultMessage();
 
 }

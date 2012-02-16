@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2011 Evolveum
  *
  * The contents of this file are subject to the terms
@@ -17,33 +17,39 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.schema.exception;
+package com.evolveum.midpoint.util.exception;
 
 /**
- * Exception used for tunneling checked exceptions through places where checked exceptipons are not allowed (e.g. callbacks).
+ * Generic communication exception.
  * 
- * This exception must not appear to the "outside", it must be caught and transformed back to the original form.
+ * May happen in case of various network communication errors, including
+ * (but not limited to) connection refused and timeouts.
+ * 
+ * TODO
  * 
  * @author Radovan Semancik
  *
  */
-public class TunnelException extends RuntimeException {
-	private static final long serialVersionUID = -3745473492409029661L;
+public class CommunicationException extends CommonException {
 
-	public TunnelException() {
-		super();
+	public CommunicationException() {
 	}
 
-	public TunnelException(String message, Throwable cause) {
-		super(message, cause);
-	}
-
-	public TunnelException(String message) {
+	public CommunicationException(String message) {
 		super(message);
 	}
 
-	public TunnelException(Throwable cause) {
+	public CommunicationException(Throwable cause) {
 		super(cause);
 	}
-	
+
+	public CommunicationException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	@Override
+	public String getOperationResultMessage() {
+		return "Communication error";
+	}
+
 }

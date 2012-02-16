@@ -20,7 +20,7 @@ package com.evolveum.midpoint.init;
 
 import java.io.File;
 
-import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 

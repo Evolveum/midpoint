@@ -33,9 +33,9 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class SchemaDescription implements Dumpable {
 	private String path;

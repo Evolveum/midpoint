@@ -21,8 +21,9 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.w3c.dom.Node;
 
 import javax.xml.bind.JAXBElement;

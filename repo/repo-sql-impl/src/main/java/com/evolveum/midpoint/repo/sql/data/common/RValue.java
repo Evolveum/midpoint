@@ -23,7 +23,8 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.Identifiable;
-import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.hibernate.annotations.Columns;
 import org.w3c.dom.Element;
 

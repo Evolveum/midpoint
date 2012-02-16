@@ -20,10 +20,10 @@
  */
 package com.evolveum.midpoint.prism.xml;
 
-import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.codec.binary.Base64;

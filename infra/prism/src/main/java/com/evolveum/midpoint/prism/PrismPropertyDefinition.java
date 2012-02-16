@@ -21,9 +21,10 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;

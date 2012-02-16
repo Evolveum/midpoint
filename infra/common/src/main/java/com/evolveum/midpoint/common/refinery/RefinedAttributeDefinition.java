@@ -21,12 +21,12 @@
 package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueAssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;

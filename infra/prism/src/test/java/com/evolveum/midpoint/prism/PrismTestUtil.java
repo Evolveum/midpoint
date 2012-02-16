@@ -35,7 +35,7 @@ import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
-import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik

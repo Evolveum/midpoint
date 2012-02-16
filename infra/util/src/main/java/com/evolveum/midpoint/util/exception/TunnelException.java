@@ -17,34 +17,33 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.schema.util;
-
-import com.evolveum.midpoint.util.exception.TunnelException;
+package com.evolveum.midpoint.util.exception;
 
 /**
+ * Exception used for tunneling checked exceptions through places where checked exceptipons are not allowed (e.g. callbacks).
+ * 
+ * This exception must not appear to the "outside", it must be caught and transformed back to the original form.
+ * 
  * @author Radovan Semancik
  *
  */
-public class ExceptionUtil {
-	
-	public static Throwable lookForTunneledException(Throwable ex) {
-		if (ex instanceof TunnelException) {
-			return ex.getCause();
-		}
-		if (ex.getCause() != null) {
-			return lookForTunneledException(ex.getCause());
-		}
-		return null;
+public class TunnelException extends RuntimeException {
+	private static final long serialVersionUID = -3745473492409029661L;
+
+	public TunnelException() {
+		super();
 	}
 
-	public static String lookForMessage(Throwable e) {
-		if (e.getMessage() != null) {
-			return e.getMessage();
-		}
-		if (e.getCause() != null) {
-			return lookForMessage(e.getCause());
-		}
-		return null;
+	public TunnelException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	public TunnelException(String message) {
+		super(message);
+	}
+
+	public TunnelException(Throwable cause) {
+		super(cause);
 	}
 	
 }

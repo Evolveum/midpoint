@@ -34,7 +34,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.common.crypto.AESProtector;
 import com.evolveum.midpoint.common.crypto.Protector;
-import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;

@@ -22,7 +22,7 @@ package com.evolveum.midpoint.web.repo;
 
 import java.util.List;
 
-import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
