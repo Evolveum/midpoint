@@ -117,6 +117,10 @@ public class PrismSchema implements Dumpable, DebugDumpable, Serializable {
 		return defs;
 	}
 	
+	protected PrismContext getPrismContext() {
+		return prismContext;
+	}
+	
 	public static PrismSchema parse(Element element, PrismContext prismContext) throws SchemaException {
 		return parse(element, null, prismContext);
 	}

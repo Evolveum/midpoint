@@ -36,9 +36,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.evolveum.midpoint.common.XmlUtil;
 import com.evolveum.midpoint.common.xpath.XPathUtil;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.test.util.XmlUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.TraceManager;

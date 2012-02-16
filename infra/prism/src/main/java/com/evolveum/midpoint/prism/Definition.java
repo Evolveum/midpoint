@@ -30,6 +30,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -164,6 +165,14 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	
 	public void setHelp(String help) {
 		this.help = help;
+	}
+	
+	protected PrismContext getPrismContext() {
+		return prismContext;
+	}
+	
+	protected SchemaRegistry getSchemaRegistry() {
+		return prismContext.getSchemaRegistry();
 	}
 	
 	public Class getTypeClass() {

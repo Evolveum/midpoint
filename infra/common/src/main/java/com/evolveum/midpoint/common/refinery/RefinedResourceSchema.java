@@ -30,6 +30,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -53,13 +54,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
  */
 public class RefinedResourceSchema extends PrismSchema implements Dumpable, DebugDumpable {
 	
-	private SchemaRegistry schemaRegistry;
 	private PrismSchema originalResourceSchema;
 	
-	private RefinedResourceSchema(ResourceType resourceType, PrismSchema originalResourceSchema, SchemaRegistry schemaRegistry) {
-		super(resourceType.getNamespace());
+	private RefinedResourceSchema(ResourceType resourceType, PrismSchema originalResourceSchema, PrismContext prismContext) {
+		super(resourceType.getNamespace(), prismContext);
 		this.originalResourceSchema = originalResourceSchema;
-		this.schemaRegistry = schemaRegistry;
 	}
 	
 	public Collection<RefinedAccountDefinition> getAccountDefinitions() {
@@ -111,22 +110,22 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	/**
 	 * If already refined, return the version created before
 	 */
-	public static RefinedResourceSchema getRefinedSchema(ResourceType resourceType, SchemaRegistry schemaRegistry) throws SchemaException {
+	public static RefinedResourceSchema getRefinedSchema(ResourceType resourceType, PrismContext prismContext) throws SchemaException {
 		if (resourceType instanceof EnhancedResourceType) {
 			EnhancedResourceType enh = (EnhancedResourceType) resourceType;
 			if (enh.getRefinedSchema() != null) {
 				return enh.getRefinedSchema();
 			} else {
-				RefinedResourceSchema refinedSchema = parse(resourceType, schemaRegistry);
+				RefinedResourceSchema refinedSchema = parse(resourceType, prismContext);
 				enh.setRefinedSchema(refinedSchema);
 				return refinedSchema;
 			}
 		}
-		RefinedResourceSchema refinedSchema = parse(resourceType, schemaRegistry);
+		RefinedResourceSchema refinedSchema = parse(resourceType, prismContext);
 		return refinedSchema;
 	}
 	
-	public static PrismSchema getResourceSchema(ResourceType resource) throws SchemaException {
+	public static PrismSchema getResourceSchema(ResourceType resource, PrismContext prismContext) throws SchemaException {
 		Element resourceXsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
 		if (resourceXsdSchema == null) {
 			return null;
@@ -136,38 +135,38 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 			if (enh.getParsedSchema() != null) {
 				return enh.getParsedSchema();
 			} else {
-				PrismSchema parsedSchema = PrismSchema.parse(resourceXsdSchema);
+				PrismSchema parsedSchema = PrismSchema.parse(resourceXsdSchema, prismContext);
 				enh.setParsedSchema(parsedSchema);
 				return parsedSchema;
 			}
 		}
-		PrismSchema parsedSchema = PrismSchema.parse(resourceXsdSchema);
+		PrismSchema parsedSchema = PrismSchema.parse(resourceXsdSchema, prismContext);
 		return parsedSchema;
 	}
 
 
-	public static RefinedResourceSchema parse(ResourceType resourceType, SchemaRegistry schemaRegistry) throws SchemaException {
+	public static RefinedResourceSchema parse(ResourceType resourceType, PrismContext prismContext) throws SchemaException {
 		
-		PrismSchema originalResourceSchema = getResourceSchema(resourceType);
+		PrismSchema originalResourceSchema = getResourceSchema(resourceType, prismContext);
 		
 		SchemaHandlingType schemaHandling = resourceType.getSchemaHandling();
 		
-		RefinedResourceSchema rSchema = new RefinedResourceSchema(resourceType, originalResourceSchema, schemaRegistry);
+		RefinedResourceSchema rSchema = new RefinedResourceSchema(resourceType, originalResourceSchema, prismContext);
 		
 		if (schemaHandling != null) {
 		
 			if (schemaHandling.getAccountType() != null && !schemaHandling.getAccountType().isEmpty()) {
 		
-				parseAccountTypesFromSchemaHandling(rSchema, resourceType, schemaHandling, schemaRegistry, 
+				parseAccountTypesFromSchemaHandling(rSchema, resourceType, schemaHandling, prismContext, 
 						"definition of "+ObjectTypeUtil.toShortString(resourceType));
 				
 			} else {
-				parseAccountTypesFromSchema(rSchema, resourceType, schemaRegistry, 
+				parseAccountTypesFromSchema(rSchema, resourceType, prismContext, 
 						"definition of "+ObjectTypeUtil.toShortString(resourceType));
 			}
 			
 		} else {
-			parseAccountTypesFromSchema(rSchema, resourceType, schemaRegistry, 
+			parseAccountTypesFromSchema(rSchema, resourceType, prismContext, 
 					"definition of "+ObjectTypeUtil.toShortString(resourceType));
 		}
 		
@@ -175,12 +174,12 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	}
 
 	private static void parseAccountTypesFromSchemaHandling(RefinedResourceSchema rSchema, ResourceType resourceType,
-			SchemaHandlingType schemaHandling, SchemaRegistry schemaRegistry, String contextDescription) throws SchemaException {
+			SchemaHandlingType schemaHandling, PrismContext prismContext, String contextDescription) throws SchemaException {
 		
 		RefinedAccountDefinition rAccountDefDefault = null;
 		for (ResourceAccountTypeDefinitionType accountTypeDefType: schemaHandling.getAccountType()) {
 			String accountTypeName = accountTypeDefType.getName();
-			RefinedAccountDefinition rAccountDef = RefinedAccountDefinition.parse(accountTypeDefType, resourceType, rSchema, schemaRegistry, "account type '"+accountTypeName+"', in "+contextDescription);
+			RefinedAccountDefinition rAccountDef = RefinedAccountDefinition.parse(accountTypeDefType, resourceType, rSchema, prismContext, "account type '"+accountTypeName+"', in "+contextDescription);
 			
 			if (rAccountDef.isDefault()) {
 				if (rAccountDefDefault == null) {
@@ -195,12 +194,12 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	}
 
 	private static void parseAccountTypesFromSchema(RefinedResourceSchema rSchema, ResourceType resourceType,
-			SchemaRegistry schemaRegistry, String contextDescription) throws SchemaException {
+			PrismContext prismContext, String contextDescription) throws SchemaException {
 
 		RefinedAccountDefinition rAccountDefDefault = null;
-		for(ResourceAttributeContainerDefinition accountDef: rSchema.getOriginalResourceSchema().getAccountDefinitions()) {
+		for(ResourceAttributeContainerDefinition accountDef: rSchema.getOriginalResourceSchema().getDefinitions(ResourceAttributeContainerDefinition.class)) {
 			QName objectClassname = accountDef.getTypeName();
-			RefinedAccountDefinition rAccountDef = RefinedAccountDefinition.parse(accountDef, resourceType, rSchema, schemaRegistry, 
+			RefinedAccountDefinition rAccountDef = RefinedAccountDefinition.parse(accountDef, resourceType, rSchema, prismContext, 
 					"object class "+objectClassname+" (interpreted as account type definition), in "+contextDescription);
 			
 			if (rAccountDef.isDefault()) {
@@ -216,28 +215,28 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		
 	}
 	
-	@Override
-	public <T extends ObjectType> PrismObject<T> parseObjectType(T objectType) throws SchemaException {
-		if (objectType instanceof AccountShadowType) {
-			AccountShadowType accountShadowType = (AccountShadowType)objectType;
-			String accountType = accountShadowType.getAccountType();
-			RefinedAccountDefinition accountDefinition = null;
-			if (accountType == null) {
-				accountDefinition = getDefaultAccountDefinition();
-				if (accountDefinition == null) {
-					throw new IllegalArgumentException("Definition for default account type was not found in "+this+", the type was specified in "+ObjectTypeUtil.toShortString(accountShadowType));
-				}
-			} else {
-				accountDefinition = getAccountDefinition(accountType);
-				if (accountDefinition == null) {
-					throw new IllegalArgumentException("Definition for account type "+accountType+" was not found in "+this+", the type was specified in "+ObjectTypeUtil.toShortString(accountShadowType));
-				}
-			}
-			return (PrismObject<T>) accountDefinition.getObjectDefinition().parseObjectType(accountShadowType);
-		} else {
-			throw new IllegalArgumentException("Refined resource schema can only parse instances of AccountShadowType");
-		}
-	}
+//	@Override
+//	public <T extends ObjectType> PrismObject<T> parseObjectType(T objectType) throws SchemaException {
+//		if (objectType instanceof AccountShadowType) {
+//			AccountShadowType accountShadowType = (AccountShadowType)objectType;
+//			String accountType = accountShadowType.getAccountType();
+//			RefinedAccountDefinition accountDefinition = null;
+//			if (accountType == null) {
+//				accountDefinition = getDefaultAccountDefinition();
+//				if (accountDefinition == null) {
+//					throw new IllegalArgumentException("Definition for default account type was not found in "+this+", the type was specified in "+ObjectTypeUtil.toShortString(accountShadowType));
+//				}
+//			} else {
+//				accountDefinition = getAccountDefinition(accountType);
+//				if (accountDefinition == null) {
+//					throw new IllegalArgumentException("Definition for account type "+accountType+" was not found in "+this+", the type was specified in "+ObjectTypeUtil.toShortString(accountShadowType));
+//				}
+//			}
+//			return (PrismObject<T>) accountDefinition.getObjectDefinition().parseObjectType(accountShadowType);
+//		} else {
+//			throw new IllegalArgumentException("Refined resource schema can only parse instances of AccountShadowType");
+//		}
+//	}
 
 	@Override
 	public String toString() {

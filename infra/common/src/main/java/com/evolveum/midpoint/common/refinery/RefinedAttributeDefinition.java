@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.common.refinery;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
@@ -50,23 +51,13 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     private ValueConstructionType outboundValueConstructionType;
     private List<ValueAssignmentType> inboundAssignmentTypes;
 
-    private RefinedAttributeDefinition(ResourceAttributeDefinition attrDef) {
-        super(attrDef.getName(), attrDef.getDefaultName(), attrDef.getTypeName());
+    private RefinedAttributeDefinition(ResourceAttributeDefinition attrDef, PrismContext prismContext) {
+        super(attrDef.getName(), attrDef.getDefaultName(), attrDef.getTypeName(), prismContext);
         this.attributeDefinition = attrDef;
     }
 
     @Override
     public void setNativeAttributeName(String nativeAttributeName) {
-        throw new UnsupportedOperationException("Parts of refined attribute are immutable");
-    }
-
-    @Override
-    public String getAttributeDisplayName() {
-        return attributeDefinition.getAttributeDisplayName();
-    }
-
-    @Override
-    public void setAttributeDisplayName(String attributeDisplayName) {
         throw new UnsupportedOperationException("Parts of refined attribute are immutable");
     }
 
@@ -233,9 +224,10 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     }
 
     static RefinedAttributeDefinition parse(ResourceAttributeDefinition attrDef, ResourceAttributeDefinitionType attrDefType,
-                                            ResourceAttributeContainerDefinition objectClassDef, String contextDescription) throws SchemaException {
+                                            ResourceAttributeContainerDefinition objectClassDef, PrismContext prismContext, 
+                                            String contextDescription) throws SchemaException {
 
-        RefinedAttributeDefinition rAttrDef = new RefinedAttributeDefinition(attrDef);
+        RefinedAttributeDefinition rAttrDef = new RefinedAttributeDefinition(attrDef, prismContext);
 
         if (attrDefType != null && attrDefType.getDisplayName() != null) {
             rAttrDef.setDisplayName(attrDefType.getDisplayName());

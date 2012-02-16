@@ -22,6 +22,7 @@ package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -51,7 +52,6 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     private boolean isDefault;
     private ResourceAttributeContainerDefinition objectClassDefinition;
     private ResourceType resourceType;
-    private SchemaRegistry schemaRegistry;
     /**
      * Refined object definition. The "any" parts are replaced with appropriate schema (e.g. resource schema)
      */
@@ -59,20 +59,18 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 
     private Collection<RefinedAttributeDefinition> attributeDefinitions;
 
-    private RefinedAccountDefinition(PrismSchema rSchema, SchemaRegistry schemaRegistry, ResourceType resourceType) {
-        super(rSchema, SchemaConstants.I_ATTRIBUTES, null);
+    private RefinedAccountDefinition(PrismContext prismContext, ResourceType resourceType) {
+        super(SchemaConstants.I_ATTRIBUTES, null, prismContext);
         attributeDefinitions = new HashSet<RefinedAttributeDefinition>();
         this.resourceType = resourceType;
-        this.schemaRegistry = schemaRegistry;
     }
 
-    private RefinedAccountDefinition(PrismSchema rSchema, SchemaRegistry schemaRegistry, ResourceType resourceType,
+    private RefinedAccountDefinition(PrismContext prismContext, ResourceType resourceType,
             ResourceAttributeContainerDefinition objectClassDefinition) {
-        super(rSchema, SchemaConstants.I_ATTRIBUTES, null);
+        super(SchemaConstants.I_ATTRIBUTES, null, prismContext);
         attributeDefinitions = new HashSet<RefinedAttributeDefinition>();
         this.resourceType = resourceType;
         this.objectClassDefinition = objectClassDefinition;
-        this.schemaRegistry = schemaRegistry;
     }
 
     @Override
@@ -141,23 +139,18 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     }
 
     @Override
-    public ResourceAttributeContainer instantiate(PropertyPath parentPath) {
-        return new ResourceAttributeContainer(getNameOrDefaultName(), this, null, parentPath);
+    public ResourceAttributeContainer instantiate() {
+        return new ResourceAttributeContainer(getNameOrDefaultName(), this, getPrismContext());
     }
 
     @Override
-    public ResourceAttributeContainer instantiate(QName name, PropertyPath parentPath) {
-        return new ResourceAttributeContainer(name, this, null, parentPath);
-    }
-
-    @Override
-    public ResourceAttributeContainer instantiate(QName name, Object element, PropertyPath parentPath) {
-        return new ResourceAttributeContainer(name, this, element, parentPath);
+    public ResourceAttributeContainer instantiate(QName name) {
+        return new ResourceAttributeContainer(name, this, getPrismContext());
     }
 
     @Override
     public RefinedAccountDefinition clone() {
-        RefinedAccountDefinition clone = new RefinedAccountDefinition(schema, schemaRegistry, resourceType, objectClassDefinition);
+        RefinedAccountDefinition clone = new RefinedAccountDefinition(getPrismContext(), resourceType, objectClassDefinition);
         copyDefinitionData(clone);
         return clone;
     }
@@ -172,19 +165,18 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         clone.objectClassDefinition = this.objectClassDefinition;
         clone.objectDefinition = this.objectDefinition;
         clone.resourceType = this.resourceType;
-        clone.schemaRegistry = this.schemaRegistry;
     }
 
-    @Override
-    public Set<ResourceObjectAttribute> parseAttributes(List<Object> elements, PropertyPath parentPath) throws SchemaException {
-        return objectClassDefinition.parseAttributes(elements, parentPath);
-    }
-
-    @Override
-    public Collection<? extends ResourceObjectAttribute> parseIdentifiers(List<Object> elements, PropertyPath parentPath)
-            throws SchemaException {
-        return objectClassDefinition.parseIdentifiers(elements, parentPath);
-    }
+//    @Override
+//    public Set<ResourceObjectAttribute> parseAttributes(List<Object> elements, PropertyPath parentPath) throws SchemaException {
+//        return objectClassDefinition.parseAttributes(elements, parentPath);
+//    }
+//
+//    @Override
+//    public Collection<? extends ResourceObjectAttribute> parseIdentifiers(List<Object> elements, PropertyPath parentPath)
+//            throws SchemaException {
+//        return objectClassDefinition.parseIdentifiers(elements, parentPath);
+//    }
 
     @Override
     public RefinedAttributeDefinition findAttributeDefinition(QName elementQName) {
@@ -193,7 +185,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 
     @Override
     public RefinedAttributeDefinition findAttributeDefinition(String elementLocalname) {
-        QName elementQName = new QName(schema.getNamespace(), elementLocalname);
+        QName elementQName = new QName(getNamespace(), elementLocalname);
         return findAttributeDefinition(elementQName);
     }
 
@@ -280,7 +272,8 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 
     private void constructObjectDefinition() {
         // Almost-shallow clone of object definition and complex type
-        PrismObjectDefinition<AccountShadowType> originalObjectDefinition = schemaRegistry.getObjectSchema().findObjectDefinition(AccountShadowType.class);
+        PrismObjectDefinition<AccountShadowType> originalObjectDefinition = 
+        	getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
         PrismObjectDefinition<AccountShadowType> refinedObjectDef = originalObjectDefinition.clone();
         ComplexTypeDefinition originalComplexTypeDefinition = refinedObjectDef.getComplexTypeDefinition();
         ComplexTypeDefinition refinedComplexTypeDefinition = originalComplexTypeDefinition.clone();
@@ -318,11 +311,11 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     }
 
     static RefinedAccountDefinition parse(ResourceAccountTypeDefinitionType accountTypeDefType,
-            ResourceType resourceType,
-            RefinedResourceSchema rSchema, SchemaRegistry schemaRegistry, String contextDescription) throws
+            ResourceType resourceType, RefinedResourceSchema rSchema,
+            PrismContext prismContext, String contextDescription) throws
             SchemaException {
 
-        RefinedAccountDefinition rAccountDef = new RefinedAccountDefinition(rSchema, schemaRegistry, resourceType);
+        RefinedAccountDefinition rAccountDef = new RefinedAccountDefinition(prismContext, resourceType);
 
         if (accountTypeDefType.getName() != null) {
             rAccountDef.setAccountTypeName(accountTypeDefType.getName());
@@ -333,7 +326,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         ResourceAttributeContainerDefinition objectClassDef = null;
         if (accountTypeDefType.getObjectClass() != null) {
             QName objectClass = accountTypeDefType.getObjectClass();
-            objectClassDef = rSchema.getOriginalResourceSchema().findResourceObjectDefinitionByType(objectClass);
+            objectClassDef = rSchema.getOriginalResourceSchema().findItemDefinitionByType(objectClass, ResourceAttributeContainerDefinition.class);
             if (objectClassDef == null) {
                 throw new SchemaException("Object class " + objectClass + " as specified in account type " + accountTypeDefType.getName() + " was not found in the resource schema of " + contextDescription);
             }
@@ -365,15 +358,18 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 //                continue;
 //            }
             String attrContextDescription = road.getName() + ", in " + contextDescription;
-            ResourceAttributeDefinitionType attrDefType = findAttributeDefinitionType(road.getName(), accountTypeDefType, attrContextDescription);
+            ResourceAttributeDefinitionType attrDefType = findAttributeDefinitionType(road.getName(), accountTypeDefType,
+            		attrContextDescription);
             if (attrDefType != null && RefinedAttributeDefinition.isIgnored(attrDefType)) {
                 continue;
             }
 
-            RefinedAttributeDefinition rAttrDef = RefinedAttributeDefinition.parse(road, attrDefType, objectClassDef, "in account type " + accountTypeDefType.getName() + ", in " + contextDescription);
+            RefinedAttributeDefinition rAttrDef = RefinedAttributeDefinition.parse(road, attrDefType, objectClassDef, 
+            		prismContext, "in account type " + accountTypeDefType.getName() + ", in " + contextDescription);
 
             if (rAccountDef.containsAttributeDefinition(rAttrDef.getName())) {
-                throw new SchemaException("Duplicate definition of attribute " + rAttrDef.getName() + " in account type " + accountTypeDefType.getName() + ", in " + contextDescription);
+                throw new SchemaException("Duplicate definition of attribute " + rAttrDef.getName() + " in account type " +
+                		accountTypeDefType.getName() + ", in " + contextDescription);
             }
             rAccountDef.add(rAttrDef);
 
@@ -391,9 +387,9 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 
     static RefinedAccountDefinition parse(ResourceAttributeContainerDefinition objectClassDef, ResourceType resourceType,
             RefinedResourceSchema rSchema,
-            SchemaRegistry schemaRegistry, String contextDescription) throws SchemaException {
+            PrismContext prismContext, String contextDescription) throws SchemaException {
 
-        RefinedAccountDefinition rAccountDef = new RefinedAccountDefinition(rSchema, schemaRegistry, resourceType, objectClassDef);
+        RefinedAccountDefinition rAccountDef = new RefinedAccountDefinition(prismContext, resourceType, objectClassDef);
 
         String accountTypeName = null;
         if (objectClassDef.getAccountTypeName() != null) {
@@ -420,7 +416,8 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
             }
             String attrContextDescription = accountTypeName + ", in " + contextDescription;
 
-            RefinedAttributeDefinition rAttrDef = RefinedAttributeDefinition.parse(road, null, objectClassDef, attrContextDescription);
+            RefinedAttributeDefinition rAttrDef = RefinedAttributeDefinition.parse(road, null, objectClassDef, prismContext, 
+            		attrContextDescription);
 
             if (rAccountDef.containsAttributeDefinition(rAttrDef.getName())) {
                 throw new SchemaException("Duplicate definition of attribute " + rAttrDef.getName() + " in " + attrContextDescription);

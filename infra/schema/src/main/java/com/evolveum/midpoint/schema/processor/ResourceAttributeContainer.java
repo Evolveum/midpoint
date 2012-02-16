@@ -53,7 +53,7 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	 * The constructors should be used only occasionally (if used at all).
 	 * Use the factory methods in the ResourceObjectDefintion instead.
 	 */
-	protected ResourceAttributeContainer(QName name, ResourceAttributeContainerDefinition definition, PrismContext prismContext) {
+	public ResourceAttributeContainer(QName name, ResourceAttributeContainerDefinition definition, PrismContext prismContext) {
 		super(name, definition, prismContext);
 	}
 

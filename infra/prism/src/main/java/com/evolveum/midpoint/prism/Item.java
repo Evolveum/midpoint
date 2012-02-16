@@ -174,7 +174,7 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
     public List<? extends PrismValue> getValues() {
 		return values;
 	}
-
+    
 	/**
      * Serializes property to DOM or JAXB element(s).
      * <p/>

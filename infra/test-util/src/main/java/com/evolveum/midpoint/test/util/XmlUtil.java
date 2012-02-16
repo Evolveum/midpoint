@@ -17,9 +17,8 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.common;
+package com.evolveum.midpoint.test.util;
 
-import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.test.diff.MidPointDifferenceListener;
@@ -100,8 +99,8 @@ public class XmlUtil {
 	}
 
 	private static boolean oidEquals(Node node, Node value) {
-		String oid = Utils.getNodeOid(node);
-		String newOid = Utils.getNodeOid(value);
+		String oid = TestUtil.getNodeOid(node);
+		String newOid = TestUtil.getNodeOid(value);
 		if ((null == oid) && (null == newOid)) {
 			// if there is no oid in both nodes, then we do not know if they are
 			// equal

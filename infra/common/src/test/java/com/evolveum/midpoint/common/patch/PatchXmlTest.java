@@ -25,7 +25,7 @@ import java.io.File;
 
 import javax.xml.bind.JAXBElement;
 
-import com.evolveum.midpoint.common.test.XmlAsserts;
+import com.evolveum.midpoint.test.util.XmlAsserts;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 

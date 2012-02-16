@@ -50,6 +50,7 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -84,8 +85,8 @@ public class Validator {
 	private EventHandler handler;
 	private DOMConverter domConverter = new DOMConverter();
 	private Unmarshaller unmarshaller = null;
-	private SchemaRegistry schemaRegistry;
-	private Schema midPointXsdSchema;
+	private PrismContext prismContext;
+	private Schema midPointJavaxSchema;
 	private javax.xml.validation.Validator xsdValidator;
 	long progress = 0;
 	long errors = 0;
@@ -102,18 +103,9 @@ public class Validator {
 	}
 
 	private void initialize() {
-		schemaRegistry = new SchemaRegistry();
-		try {
-			schemaRegistry.initialize();
-		} catch (SAXException e) {
-			throw new IllegalStateException("Error in system schemas: " + e.getMessage(), e);
-		} catch (IOException e) {
-			throw new IllegalStateException("Error reading schemas: " + e.getMessage(), e);
-		} catch (SchemaException e) {
-			throw new IllegalStateException("Error processing schemas: " + e.getMessage(), e);
-		}
-		midPointXsdSchema = schemaRegistry.getJavaxSchema();
-		xsdValidator = midPointXsdSchema.newValidator();
+		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
+		midPointJavaxSchema = schemaRegistry.getJavaxSchema();
+		xsdValidator = midPointJavaxSchema.newValidator();
 		xsdValidator.setResourceResolver(schemaRegistry);
 	}
 
@@ -170,7 +162,7 @@ public class Validator {
 			return unmarshaller;
 		}
 		try {
-			JAXBContext jc = JAXBUtil.getContext();
+			JAXBContext jc = prismContext.getPrismJaxbProcessor().getContext();
 			unmarshaller = jc.createUnmarshaller();
 		} catch (JAXBException ex) {
 			validatorResult.recordFatalError("Error initializing JAXB: " + ex.getMessage(), ex);

@@ -112,6 +112,10 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		return defaultName;
 	}
 	
+    public String getNamespace() {
+    	return getNameOrDefaultName().getNamespaceURI();
+    }
+	
     /**
      * Return the number of minimal value occurrences.
      *

@@ -29,6 +29,7 @@ import java.io.File;
 
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.test.diff.CalculateXmlDiff;
+import com.evolveum.midpoint.test.util.XmlAsserts;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 
 /**

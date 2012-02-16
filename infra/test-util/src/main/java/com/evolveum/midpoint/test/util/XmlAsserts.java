@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.common.test;
+package com.evolveum.midpoint.test.util;
 
 import com.evolveum.midpoint.test.diff.MidPointDifferenceListener;
 import com.evolveum.midpoint.test.diff.OidQualifier;
