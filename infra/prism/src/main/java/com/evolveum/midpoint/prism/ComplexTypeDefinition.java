@@ -39,7 +39,7 @@ public class ComplexTypeDefinition extends Definition {
 	private Set<ItemDefinition> itemDefinitions;
 	private QName extensionForType;
 
-	ComplexTypeDefinition(QName defaultName, QName typeName, PrismContext prismContext) {
+	public ComplexTypeDefinition(QName defaultName, QName typeName, PrismContext prismContext) {
 		super(defaultName, typeName, prismContext);
 		itemDefinitions = new HashSet<ItemDefinition>();
 	}

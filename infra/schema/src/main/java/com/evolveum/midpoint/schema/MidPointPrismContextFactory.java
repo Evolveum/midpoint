@@ -22,9 +22,9 @@ package com.evolveum.midpoint.schema;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
-import com.evolveum.midpoint.prism.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.SchemaRegistry;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;

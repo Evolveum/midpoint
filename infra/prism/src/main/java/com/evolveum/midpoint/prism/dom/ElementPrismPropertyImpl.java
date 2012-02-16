@@ -12,7 +12,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 public class ElementPrismPropertyImpl extends ElementPrismAbstractImpl {
 	

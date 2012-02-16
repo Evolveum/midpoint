@@ -20,7 +20,7 @@
  */
 package com.evolveum.midpoint.common.refinery;
 
-import com.evolveum.midpoint.prism.Schema;
+import com.evolveum.midpoint.prism.schema.Schema;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 /**

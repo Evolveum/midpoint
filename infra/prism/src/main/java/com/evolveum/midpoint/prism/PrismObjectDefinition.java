@@ -47,7 +47,7 @@ public class PrismObjectDefinition<T extends Objectable> extends PrismContainerD
 	
 	protected Class<T> jaxbClass;
 
-	PrismObjectDefinition(QName name, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, Class<T> jaxbClass) {
+	public PrismObjectDefinition(QName name, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, Class<T> jaxbClass) {
 		// Object definition can only be top-level, hence null parent
 		super(name, complexTypeDefinition, prismContext);
 		if (name != null) {

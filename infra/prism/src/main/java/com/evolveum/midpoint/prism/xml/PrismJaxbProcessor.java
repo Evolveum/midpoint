@@ -17,7 +17,7 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.prism;
+package com.evolveum.midpoint.prism.xml;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,6 +43,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -57,7 +59,7 @@ public class PrismJaxbProcessor {
 	private SchemaRegistry schemaRegistry;
 	private JAXBContext context;
 
-	PrismJaxbProcessor(SchemaRegistry schemaRegistry) {
+	public PrismJaxbProcessor(SchemaRegistry schemaRegistry) {
 		this.schemaRegistry = schemaRegistry;
 	}
 	

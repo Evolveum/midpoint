@@ -27,7 +27,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.Schema;
+import com.evolveum.midpoint.prism.schema.Schema;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 
 /**

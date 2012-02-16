@@ -21,6 +21,9 @@ package com.evolveum.midpoint.prism;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 
 /**

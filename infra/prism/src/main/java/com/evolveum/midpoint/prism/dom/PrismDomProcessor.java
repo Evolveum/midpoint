@@ -17,7 +17,7 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.prism;
+package com.evolveum.midpoint.prism.dom;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,6 +28,21 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -36,14 +51,14 @@ import com.evolveum.midpoint.util.JAXBUtil;
  * @author semancik
  *
  */
-class PrismDomProcessor {
+public class PrismDomProcessor {
 	
 	private static final QName DEFAULT_XSD_TYPE = DOMUtil.XSD_STRING;
 	
 	private SchemaRegistry schemaRegistry;
 	private PrismContext prismContext;
 	
-	PrismDomProcessor(SchemaRegistry schemaRegistry) {
+	public PrismDomProcessor(SchemaRegistry schemaRegistry) {
 		this.schemaRegistry = schemaRegistry;
 	}
 	

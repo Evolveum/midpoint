@@ -19,7 +19,7 @@
  * Portions Copyrighted 2011 Igor Farinic
  */
 
-package com.evolveum.midpoint.prism;
+package com.evolveum.midpoint.prism.xml;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +29,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.prism.DynamicNamespacePrefixMapper;
+import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 
 /**

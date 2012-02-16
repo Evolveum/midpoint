@@ -18,7 +18,7 @@
  * "Portions Copyrighted 2011 [name of copyright owner]"
  * 
  */
-package com.evolveum.midpoint.prism;
+package com.evolveum.midpoint.prism.xml;
 
 import javax.xml.namespace.QName;
 

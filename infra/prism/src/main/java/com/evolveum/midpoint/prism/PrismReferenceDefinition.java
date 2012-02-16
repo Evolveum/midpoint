@@ -50,7 +50,7 @@ public class PrismReferenceDefinition extends ItemDefinition {
 	private QName targetTypeName;
 	private QName compositeObjectElementName;
 
-	PrismReferenceDefinition(QName name, QName defaultName, QName typeName, PrismContext prismContext) {
+	public PrismReferenceDefinition(QName name, QName defaultName, QName typeName, PrismContext prismContext) {
 		super(name, defaultName, typeName, prismContext);
 	}
 
@@ -67,7 +67,7 @@ public class PrismReferenceDefinition extends ItemDefinition {
 		return targetTypeName;
 	}
 
-	void setTargetTypeName(QName targetTypeName) {
+	public void setTargetTypeName(QName targetTypeName) {
 		this.targetTypeName = targetTypeName;
 	}
 

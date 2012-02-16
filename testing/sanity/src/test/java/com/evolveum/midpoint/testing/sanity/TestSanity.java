@@ -27,8 +27,8 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.Schema;
-import com.evolveum.midpoint.prism.SchemaRegistry;
+import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
@@ -65,7 +65,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsC
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
-import org.opends.server.types.ModificationType;
 import org.opends.server.util.ChangeRecordEntry;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ModifyChangeRecordEntry;

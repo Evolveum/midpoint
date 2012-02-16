@@ -29,8 +29,8 @@ import javax.xml.namespace.QName;
 
 import org.apache.cxf.common.util.StringUtils;
 
-import com.evolveum.midpoint.prism.DynamicNamespacePrefixMapper;
-import com.evolveum.midpoint.prism.SchemaDescription;
+import com.evolveum.midpoint.prism.schema.SchemaDescription;
+import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI;
