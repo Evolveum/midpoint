@@ -49,6 +49,10 @@ public class TestSchemaRegistry {
 	private static final String FOO_NAMESPACE = "http://example.com/xml/ns/foo";
 	private static final String USER_EXT_NAMESPACE = "http://example.com/xml/ns/user-extension";
 
+	/**
+	 * Test whether the midpoint prism context was constructed OK and if it can validate
+	 * ordinary user object.
+	 */
 	@Test
 	public void testBasic() throws SAXException, IOException, SchemaException {
 		
@@ -67,24 +71,6 @@ public class TestSchemaRegistry {
 //		System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
 	}
 	
-	@Test
-	public void testExtraSchema() throws SAXException, IOException, SchemaException {
-		Document extraSchemaDoc = DOMUtil.parseFile("src/test/resources/schema-registry/extra-schema.xsd");
-		Document dataDoc = DOMUtil.parseFile("src/test/resources/schema-registry/data.xml");
-
-		MidPointPrismContextFactory factory = getContextFactory();
-		PrismContext context = factory.createPrismContext();
-		SchemaRegistry reg = context.getSchemaRegistry();
-		reg.initialize();
-		Schema javaxSchema = reg.getJavaxSchema();
-		assertNotNull(javaxSchema);
-		
-		Validator validator = javaxSchema.newValidator();
-		DOMResult validationResult = new DOMResult();
-		validator.validate(new DOMSource(dataDoc),validationResult);
-//		System.out.println("Validation result:");
-//		System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
-	}
 
 //	@Test
 //	public void testCommonSchemaUserType() throws SchemaException, SAXException, IOException {

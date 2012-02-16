@@ -1,23 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema 
 	xmlns="http://www.w3.org/2001/XMLSchema" 
-	targetNamespace="http://example.com/xml/ns/foo"
-	xmlns:tns="http://example.com/xml/ns/foo"
-	xmlns:ext="http://example.com/xml/ns/user-extension"
+	targetNamespace="http://example.com/xml/ns/test/root.xsd"
+	xmlns:tns="http://example.com/xml/ns/test/root.xsd"
 	xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
 	elementFormDefault="qualified">
 	
-	<import namespace="http://example.com/xml/ns/user-extension" />
 	<import namespace="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd" />
-	
-	<complexType name="FooType">
-		<sequence>
-			<element name="foo" type="string"/>
-			<element name="bar" type="integer" minOccurs="0"/>
-		</sequence>
-	</complexType>
-	
-	<element name="extension" type="ext:UserExtensionType"/>
 	
 	<complexType name="RootType">
 		<annotation>
@@ -27,7 +16,7 @@
 			</appinfo>
 		</annotation>
 		<sequence>
-			<element ref="tns:extension"/>
+			<element name="name" type="string"/>
 			<element name="foo" type="tns:FooType"/>
 		</sequence>
 		<attribute name="oid" type="string"/>
@@ -35,4 +24,12 @@
 	</complexType>
 	
 	<element name="root" type="tns:RootType"/>
+	
+	<complexType name="FooType">
+		<sequence>
+			<element name="foo" type="string"/>
+			<element name="bar" type="integer" minOccurs="0"/>
+			<element name="barbar" type="string" minOccurs="0" maxOccurs="unbounded"/>
+		</sequence>
+	</complexType>
 </schema>
