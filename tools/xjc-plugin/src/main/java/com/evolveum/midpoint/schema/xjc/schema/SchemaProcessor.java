@@ -142,7 +142,7 @@ public class SchemaProcessor implements Processor {
         JBlock body = getReference.body();
         JBlock then = body._if(reference.eq(JExpr._null()))._then();
         JClass clazz = (JClass) objectReferenceOutline.parent().getModel().codeModel._ref(PrismReferenceValue.class);
-        JInvocation newReference = (JInvocation) JExpr._new(clazz);
+        JInvocation newReference = JExpr._new(clazz);
         then.assign(reference, newReference);
         body._return(reference);
 
@@ -222,7 +222,7 @@ public class SchemaProcessor implements Processor {
             //create getContainer
             createGetContainerValueMethod(classOutline, container);
             //create setContainer
-            createSetContainerValueMethod(definedClass, container, outline);
+            createSetContainerValueMethod(definedClass, container);
 
             System.out.println("Creating toString, equals, hashCode methods.");
             //create toString, equals, hashCode
@@ -317,7 +317,7 @@ public class SchemaProcessor implements Processor {
         body._return(container);
     }
 
-    private void createSetContainerValueMethod(JDefinedClass definedClass, JVar container, Outline outline) {
+    private void createSetContainerValueMethod(JDefinedClass definedClass, JVar container) {
         JMethod setContainer = definedClass.method(JMod.PUBLIC, void.class, METHOD_SET_CONTAINER);
         JVar methodContainer = setContainer.param(PrismContainerValue.class, "container");
         //create method body
@@ -338,7 +338,7 @@ public class SchemaProcessor implements Processor {
         JBlock body = getContainer.body();
         JBlock then = body._if(container.eq(JExpr._null()))._then();
 
-        JInvocation newContainer = (JInvocation) JExpr._new(clazz);
+        JInvocation newContainer = JExpr._new(clazz);
         newContainer.arg(JExpr.invoke(METHOD_GET_CONTAINER_NAME));
         then.assign(container, newContainer);
 
@@ -410,9 +410,9 @@ public class SchemaProcessor implements Processor {
 
             JFieldVar var = namespaceFields.get(qname.getNamespaceURI());
             JClass clazz = (JClass) outline.getModel().codeModel._ref(QName.class);
-            JInvocation invocation = (JInvocation) JExpr._new(clazz);
+            JInvocation invocation = JExpr._new(clazz);
             if (var != null) {
-                JClass schemaClass = (JClass) outline.getModel().codeModel._getClass(StepSchemaConstants.CLASS_NAME);
+                JClass schemaClass = outline.getModel().codeModel._getClass(StepSchemaConstants.CLASS_NAME);
                 invocation.arg(schemaClass.staticRef(var));
                 invocation.arg(qname.getLocalPart());
             } else {
@@ -480,9 +480,9 @@ public class SchemaProcessor implements Processor {
     private JFieldVar createQNameDefinition(Outline outline, JDefinedClass definedClass, String fieldName,
             JFieldVar namespaceField, QName reference) {
         JClass clazz = (JClass) outline.getModel().codeModel._ref(QName.class);
-        JClass schemaClass = (JClass) outline.getModel().codeModel._getClass(StepSchemaConstants.CLASS_NAME);
+        JClass schemaClass = outline.getModel().codeModel._getClass(StepSchemaConstants.CLASS_NAME);
 
-        JInvocation invocation = (JInvocation) JExpr._new(clazz);
+        JInvocation invocation = JExpr._new(clazz);
         invocation.arg(schemaClass.staticRef(namespaceField));
         invocation.arg(reference.getLocalPart());
 
@@ -513,7 +513,7 @@ public class SchemaProcessor implements Processor {
                 }
 
                 String fieldName = fieldFPrefixUnderscoredUpperCase(field);
-                boxes.add(new FieldBox(fieldName, new QName(qname.getNamespaceURI(), field)));
+                boxes.add(new FieldBox<QName>(fieldName, new QName(qname.getNamespaceURI(), field)));
             }
 
             for (FieldBox<QName> box : boxes) {
@@ -590,7 +590,6 @@ public class SchemaProcessor implements Processor {
         }
     }
 
-    //todo fix List<ObjectReferenceType> ....
     private boolean updateFieldReference(JFieldVar field, ClassOutline classOutline) {
         JDefinedClass definedClass = classOutline.implClass;
         String methodName = getGetterMethod(classOutline, field);

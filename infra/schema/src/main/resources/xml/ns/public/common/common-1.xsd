@@ -2363,6 +2363,9 @@
                 TODO: constraints
 
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:propertyContainer/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
         
