@@ -33,9 +33,9 @@ import org.testng.Assert;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.patch.PatchXml;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
