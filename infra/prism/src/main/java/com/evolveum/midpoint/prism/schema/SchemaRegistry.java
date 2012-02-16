@@ -62,6 +62,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -560,8 +561,19 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	}
 
 	public Class determineCompileTimeClass(QName elementName, ComplexTypeDefinition complexTypeDefinition) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException();
+		if (elementName.getNamespaceURI() == null) {
+			throw new IllegalArgumentException("Element "+elementName+" has no namespace, cannot determine schema");
+		}
+		SchemaDescription desc = findSchemaDescriptionByNamespace(elementName.getNamespaceURI());
+		if (desc == null) {
+			return null;
+		}
+		Package pkg = desc.getCompileTimeClassesPackage();
+		if (pkg == null) {
+			return null;
+		}
+		Class compileTimeClass = JAXBUtil.findClassForType(complexTypeDefinition.getTypeName(), pkg);
+		return compileTimeClass;
 	}
 
 	public PrismSchema findSchemaByCompileTimeClass(Class<? extends Objectable> compileTimeClass) {
@@ -579,9 +591,17 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		if (namespaceURI.equals(objectSchemaNamespace)) {
 			return getObjectSchema();
 		}
+		SchemaDescription desc = findSchemaDescriptionByNamespace(namespaceURI);
+		if (desc == null) {
+			return null;
+		}
+		return desc.getSchema();
+	}
+		
+	public SchemaDescription findSchemaDescriptionByNamespace(String namespaceURI) {
 		for (SchemaDescription desc: schemaDescriptions) {
-			if (namespaceURI.equals(desc.getSchema().getNamespace())) {
-				return desc.getSchema();
+			if (namespaceURI.equals(desc.getNamespace())) {
+				return desc;
 			}
 		}
 		return null;

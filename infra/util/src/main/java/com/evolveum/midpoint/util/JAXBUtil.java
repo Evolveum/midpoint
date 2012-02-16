@@ -225,4 +225,23 @@ public final class JAXBUtil {
 		return null;
 	}
 
+	public static Class findClassForType(QName typeName, Package pkg) {
+		XmlSchema xmlSchemaAnnotation = pkg.getAnnotation(XmlSchema.class);
+		String namespace = xmlSchemaAnnotation.namespace();
+		if (namespace == null) {
+			throw new IllegalArgumentException("No namespace annotation in "+pkg);
+		}
+		if (!namespace.equals(typeName.getNamespaceURI())) {
+			throw new IllegalArgumentException("Looking for type in namespace " + typeName.getNamespaceURI() +
+					", but the package annotation indicates namespace " + namespace);
+		}
+		for (Class clazz: ClassPathUtil.listClasses(pkg)) {
+			QName foundTypeQName = getTypeQName(clazz);
+			if (typeName.equals(foundTypeQName)) {
+				return clazz;
+			}
+		}
+		return null;
+	}
+
 }

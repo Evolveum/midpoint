@@ -101,7 +101,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     public void setObjectToAdd(PrismObject<T> objectToAdd) {
         this.objectToAdd = objectToAdd;
         if (objectToAdd != null) {
-            this.objectTypeClass = objectToAdd.getJaxbClass();
+            this.objectTypeClass = objectToAdd.getCompileTimeClass();
         }
     }
 

@@ -45,24 +45,25 @@ import com.evolveum.midpoint.util.exception.SystemException;
 public class PrismObjectDefinition<T extends Objectable> extends PrismContainerDefinition {
 	private static final long serialVersionUID = -8298581031956931008L;
 	
-	protected Class<T> jaxbClass;
+	protected Class<T> compileTimeClass;
 
-	public PrismObjectDefinition(QName name, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, Class<T> jaxbClass) {
+	public PrismObjectDefinition(QName name, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, 
+			Class<T> compileTimeClass) {
 		// Object definition can only be top-level, hence null parent
 		super(name, complexTypeDefinition, prismContext);
 		if (name != null) {
 			// Override default name for objects. In this case name is usually the element name
 			defaultName = name;
 		}
-		this.jaxbClass = jaxbClass;
+		this.compileTimeClass = compileTimeClass;
 	}
 	
-	public Class<T> getJaxbClass() {
-		return jaxbClass;
+	public Class<T> getCompileTimeClass() {
+		return compileTimeClass;
 	}
 
-	public void setJaxbClass(Class<T> jaxbClass) {
-		this.jaxbClass = jaxbClass;
+	public void setCompileTimeClass(Class<T> compileTimeClass) {
+		this.compileTimeClass = compileTimeClass;
 	}
 
 	public PrismObject<T> parseObjectType(T objectType) throws SchemaException {
@@ -89,7 +90,7 @@ public class PrismObjectDefinition<T extends Objectable> extends PrismContainerD
 	}
 	
 	public PrismObjectDefinition<T> clone() {
-		PrismObjectDefinition<T> clone = new PrismObjectDefinition<T>(name, complexTypeDefinition, prismContext, jaxbClass);
+		PrismObjectDefinition<T> clone = new PrismObjectDefinition<T>(name, complexTypeDefinition, prismContext, compileTimeClass);
 		copyDefinitionData(clone);
 		return clone;
 	}

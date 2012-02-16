@@ -41,7 +41,7 @@ public class DiffUtil {
 			if (newObject == null) {
 				return null;
 			}
-			ObjectDelta<T> objectDelta = new ObjectDelta<T>(newObject.getJaxbClass(), ChangeType.ADD);
+			ObjectDelta<T> objectDelta = new ObjectDelta<T>(newObject.getCompileTimeClass(), ChangeType.ADD);
 			objectDelta.setOid(newObject.getOid());
 			objectDelta.setObjectToAdd(newObject);
 			return objectDelta;

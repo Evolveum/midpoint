@@ -92,7 +92,7 @@ public class TestPrismConstruction {
 		// No context needed
 		
 		// WHEN
-		PrismObject<UserType> user = new PrismObject<UserType>(USER_QNAME);
+		PrismObject<UserType> user = new PrismObject<UserType>(USER_QNAME, UserType.class);
 		// Fill-in object values, no schema checking
 		fillInUserDrake(user, false);
 		
@@ -114,7 +114,7 @@ public class TestPrismConstruction {
 		// GIVEN
 		// No context needed (yet)
 		
-		PrismObject<UserType> user = new PrismObject<UserType>(USER_QNAME);
+		PrismObject<UserType> user = new PrismObject<UserType>(USER_QNAME, UserType.class);
 		// Fill-in object values, no schema checking
 		fillInUserDrake(user, false);
 		// Make sure the object is OK
@@ -234,6 +234,7 @@ public class TestPrismConstruction {
 
 	private void assertUserDrake(PrismObject<UserType> user, boolean assertDefinitions) {
 		assertEquals("Wrong OID", USER_OID, user.getOid());
+		assertEquals("Wrong compileTimeClass", UserType.class, user.getCompileTimeClass());
 		// fullName
 		PrismProperty fullNameProperty = user.findProperty(USER_FULLNAME_QNAME);
 		if (assertDefinitions) assertDefinition(fullNameProperty, DOMUtil.XSD_STRING, 1, 1);

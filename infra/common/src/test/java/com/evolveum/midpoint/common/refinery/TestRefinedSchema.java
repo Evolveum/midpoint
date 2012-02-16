@@ -153,7 +153,7 @@ public class TestRefinedSchema {
         assertProperty(attributes, new QName(resourceType.getNamespace(), "sn"), "Sparrow");
         assertProperty(attributes, new QName(resourceType.getNamespace(), "uid"), "jack");
 
-        assertEquals("JAXB class name doesn't match (1)", AccountShadowType.class, accObject.getJaxbClass());
+        assertEquals("JAXB class name doesn't match (1)", AccountShadowType.class, accObject.getCompileTimeClass());
 
         // WHEN
         AccountShadowType storedObjectType = accObject.getOrParseObjectType();
@@ -163,17 +163,17 @@ public class TestRefinedSchema {
         System.out.println(JAXBUtil.marshalWrap(storedObjectType));
         //assertTrue(accType.equals(storedObjectType));
         assertTrue(accType == storedObjectType);
-        assertEquals("JAXB class name doesn't match (2)", AccountShadowType.class, accObject.getJaxbClass());
+        assertEquals("JAXB class name doesn't match (2)", AccountShadowType.class, accObject.getCompileTimeClass());
 
         // GIVEN
         accObject.setObjectType(null);
-        assertEquals("JAXB class name doesn't match (3)", AccountShadowType.class, accObject.getJaxbClass());
+        assertEquals("JAXB class name doesn't match (3)", AccountShadowType.class, accObject.getCompileTimeClass());
 
         // WHEN
         AccountShadowType convertedObjectType = accObject.getOrParseObjectType();
 
         // THEN
-        assertEquals("JAXB class name doesn't match (4)", AccountShadowType.class, accObject.getJaxbClass());
+        assertEquals("JAXB class name doesn't match (4)", AccountShadowType.class, accObject.getCompileTimeClass());
         System.out.println("convertedObjectType:");
         System.out.println(JAXBUtil.marshalWrap(convertedObjectType));
         assertFalse(accType == convertedObjectType);

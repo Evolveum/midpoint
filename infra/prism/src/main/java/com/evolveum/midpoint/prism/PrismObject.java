@@ -57,9 +57,11 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 
 	protected String oid;
 	protected String version;
+	protected Class<T> compileTimeClass;
 		
-	public PrismObject(QName name) {
+	public PrismObject(QName name, Class<T> compileTimeClass) {
 		super(name);
+		this.compileTimeClass = compileTimeClass;
 	}
 	
 	public PrismObject(QName name, PrismObjectDefinition definition, PrismContext prismContext) {
@@ -94,8 +96,14 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 		return (PrismObjectDefinition<T>) super.getDefinition();
 	}
 	
-	public Class<T> getJaxbClass() {
-		return ((PrismObjectDefinition)getDefinition()).getJaxbClass();
+	public Class<T> getCompileTimeClass() {
+		if (this.compileTimeClass != null) {
+			return compileTimeClass;
+		}
+		if (getDefinition() != null) {
+			return getDefinition().getCompileTimeClass();
+		}
+		return null;
 	}
 
 	public T getObjectable() {
@@ -156,12 +164,12 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 	
 	public ObjectDelta<T> compareTo(PrismObject<T> other) {
 		if (other == null) {
-			ObjectDelta<T> objectDelta = new ObjectDelta<T>(getJaxbClass(), ChangeType.DELETE);
+			ObjectDelta<T> objectDelta = new ObjectDelta<T>(getCompileTimeClass(), ChangeType.DELETE);
 			objectDelta.setOid(getOid());
 			return objectDelta;
 		}
 		// This must be a modify
-		ObjectDelta<T> objectDelta = new ObjectDelta<T>(getJaxbClass(), ChangeType.MODIFY);
+		ObjectDelta<T> objectDelta = new ObjectDelta<T>(getCompileTimeClass(), ChangeType.MODIFY);
 		objectDelta.setOid(getOid());
 
 		Collection<PropertyPath> thisPropertyPaths = listPropertyPaths();

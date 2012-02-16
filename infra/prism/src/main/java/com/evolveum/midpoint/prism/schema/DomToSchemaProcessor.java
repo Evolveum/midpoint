@@ -84,7 +84,6 @@ class DomToSchemaProcessor {
 	private PrismSchema schema;
 	private EntityResolver entityResolver;
 	private PrismContext prismContext;
-	private SchemaRegistry schemaRegistry;
 	
 	public EntityResolver getEntityResolver() {
 		return entityResolver;
@@ -103,11 +102,7 @@ class DomToSchemaProcessor {
 	}
 	
 	public SchemaRegistry getSchemaRegistry() {
-		return schemaRegistry;
-	}
-
-	public void setSchemaRegistry(SchemaRegistry schemaRegistry) {
-		this.schemaRegistry = schemaRegistry;
+		return this.prismContext.getSchemaRegistry();
 	}
 
 	private SchemaDefinitionFactory getDefinitionFactory() {
@@ -607,8 +602,8 @@ class DomToSchemaProcessor {
 		
 		if (isObjectDefinition(xsType)) {
 			Class compileTimeClass = null;
-			if (schemaRegistry != null) {
-				compileTimeClass = schemaRegistry.determineCompileTimeClass(elementName, complexTypeDefinition);
+			if (getSchemaRegistry() != null) {
+				compileTimeClass = getSchemaRegistry().determineCompileTimeClass(elementName, complexTypeDefinition);
 			}
 			pcd = definitionFactory.createObjectDefinition(elementName, complexTypeDefinition, prismContext, 
 					compileTimeClass, annotation, elementParticle);

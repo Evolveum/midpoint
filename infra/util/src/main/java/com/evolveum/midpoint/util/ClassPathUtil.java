@@ -30,11 +30,10 @@ public class ClassPathUtil {
 
 	public static Trace LOGGER = TraceManager.getTrace(ClassPathUtil.class);
 
-	/**
-	 * 
-	 * @param packageName
-	 * @return
-	 */
+	public static Set<Class> listClasses(Package pkg) {
+		return listClasses(pkg.getName());
+	}
+	
 	public static Set<Class> listClasses(String packageName) {
 
 		Set<Class> classes = new HashSet<Class>();
