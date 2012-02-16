@@ -20,10 +20,11 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.common.diff;
+package com.evolveum.midpoint.test.diff;
 
-import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.test.util.TestUtil;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -286,7 +287,7 @@ public class MidPointXpathNodeTracker extends XpathNodeTracker {
             }
             currentValue = value;
 
-            oid = Utils.getNodeOid(visited);
+            oid = TestUtil.getNodeOid(visited);
 
             clearTrackedAttribute();
         }

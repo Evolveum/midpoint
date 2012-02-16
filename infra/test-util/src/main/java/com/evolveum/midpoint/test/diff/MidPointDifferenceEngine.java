@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.common.diff;
+package com.evolveum.midpoint.test.diff;
 
 import java.lang.reflect.Field;
 import org.custommonkey.xmlunit.ComparisonController;

@@ -73,6 +73,11 @@ public class JaxbTestUtil {
     public static String marshalElementToString(JAXBElement<?> jaxbElement) throws JAXBException {
         return prismContext.getPrismJaxbProcessor().marshalElementToString(jaxbElement);
     }
+    
+    // Works both on JAXB and DOM elements
+    public static String marshalElementToString(Object element) throws JAXBException {
+        return prismContext.getPrismJaxbProcessor().marshalElementToString(element);
+    }
 
     // Compatibility
     public static String marshalWrap(Object jaxbObject) throws JAXBException {

@@ -20,10 +20,10 @@
 package com.evolveum.midpoint.common;
 
 import com.evolveum.midpoint.common.Utils;
-import com.evolveum.midpoint.common.diff.MidPointDifferenceListener;
-import com.evolveum.midpoint.common.diff.OidQualifier;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
+import com.evolveum.midpoint.test.diff.MidPointDifferenceListener;
+import com.evolveum.midpoint.test.diff.OidQualifier;
 import com.evolveum.midpoint.util.DOMUtil;
 import java.io.IOException;
 import java.io.StringWriter;

@@ -21,11 +21,11 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.test.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.testng.AssertJUnit;

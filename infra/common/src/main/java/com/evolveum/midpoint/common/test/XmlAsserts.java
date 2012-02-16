@@ -20,8 +20,9 @@
  */
 package com.evolveum.midpoint.common.test;
 
-import com.evolveum.midpoint.common.diff.MidPointDifferenceListener;
-import com.evolveum.midpoint.common.diff.OidQualifier;
+import com.evolveum.midpoint.test.diff.MidPointDifferenceListener;
+import com.evolveum.midpoint.test.diff.OidQualifier;
+
 import org.apache.commons.lang.StringUtils;
 import org.custommonkey.xmlunit.*;
 import org.w3c.dom.Node;

@@ -21,12 +21,12 @@
 
 package com.evolveum.midpoint.web.controller.server;
 
-import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
-import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.test.diff.CalculateXmlDiff;
+import com.evolveum.midpoint.test.diff.DiffException;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;

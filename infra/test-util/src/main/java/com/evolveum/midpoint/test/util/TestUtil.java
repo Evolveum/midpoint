@@ -22,11 +22,15 @@
 package com.evolveum.midpoint.test.util;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.Node;
 
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -60,4 +64,16 @@ public class TestUtil {
             assertEquals(expectedSet, actualSet);
         }
     }
+    
+    public static String getNodeOid(Node node) {
+		Node oidNode = null;
+		if ((null == node.getAttributes())
+				|| (null == (oidNode = node.getAttributes().getNamedItem(
+						SchemaConstants.C_OID_ATTRIBUTE.getLocalPart())))
+				|| (StringUtils.isEmpty(oidNode.getNodeValue()))) {
+			return null;
+		}
+		String oid = oidNode.getNodeValue();
+		return oid;
+	}
 }

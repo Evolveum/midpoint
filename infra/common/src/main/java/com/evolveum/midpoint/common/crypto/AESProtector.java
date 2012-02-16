@@ -48,6 +48,8 @@ import org.w3._2001._04.xmlenc.EncryptedDataType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -83,6 +85,8 @@ public class AESProtector implements Protector {
 
 	private static final KeyStore keyStore;
 
+	private PrismContext prismContext;
+	
 	static {
 		Init.init();
 		try {
@@ -271,7 +275,7 @@ public class AESProtector implements Protector {
 			xmlCipher.init(XMLCipher.DECRYPT_MODE, secret);
 
 			document = DOMUtil.getDocument();
-			Element element = JAXBUtil.jaxbToDom(encrypted, QNAME_ENCRYPTED_DATA, document);
+			Element element = getJaxbProcessor().marshalObjectToDom(encrypted, QNAME_ENCRYPTED_DATA, document);
 			document.appendChild(element);
 			document = null;
 
@@ -461,6 +465,11 @@ public class AESProtector implements Protector {
 	public List<TrustManager> getTrustManagers() {
 		return trustManagers;
 	}
+	
+	private PrismJaxbProcessor getJaxbProcessor() {
+		return prismContext.getPrismJaxbProcessor();
+	}
+
 	
 	
 }

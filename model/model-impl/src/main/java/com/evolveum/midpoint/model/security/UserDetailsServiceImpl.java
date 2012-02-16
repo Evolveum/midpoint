@@ -21,14 +21,14 @@
 
 package com.evolveum.midpoint.model.security;
 
-import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
-import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.model.security.api.Credentials;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.diff.CalculateXmlDiff;
+import com.evolveum.midpoint.test.diff.DiffException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;

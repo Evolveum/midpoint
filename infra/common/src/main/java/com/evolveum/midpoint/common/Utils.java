@@ -192,18 +192,6 @@ public class Utils {
 		return resolveListType;
 	}
 
-	public static String getNodeOid(Node node) {
-		Node oidNode = null;
-		if ((null == node.getAttributes())
-				|| (null == (oidNode = node.getAttributes().getNamedItem(
-						SchemaConstants.C_OID_ATTRIBUTE.getLocalPart())))
-				|| (StringUtils.isEmpty(oidNode.getNodeValue()))) {
-			return null;
-		}
-		String oid = oidNode.getNodeValue();
-		return oid;
-	}
-
 	/**
 	 * Removing non-printable UTF characters from the string.
 	 * 
