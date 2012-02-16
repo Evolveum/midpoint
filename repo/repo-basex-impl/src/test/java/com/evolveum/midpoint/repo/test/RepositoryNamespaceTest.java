@@ -33,7 +33,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -90,7 +90,7 @@ public class RepositoryNamespaceTest extends AbstractTestNGSpringContextTests {
 			try {
 				LOGGER.debug("Deserializing file {}", file.getName());
 				ObjectInputStream in = new ObjectInputStream(new FileInputStream(file));
-				Schema schema = (Schema) in.readObject();
+				PrismSchema schema = (PrismSchema) in.readObject();
 				in.close();
 
 				LOGGER.debug("Parsing schema to dom (dom in trace).");
@@ -116,13 +116,13 @@ public class RepositoryNamespaceTest extends AbstractTestNGSpringContextTests {
 						result);
 				xmlSchema = connector.getSchema();
 				LOGGER.debug("Parsing dom schema to object");
-				schema = Schema.parse(xmlSchema.getAny().get(0));
+				schema = PrismSchema.parse(xmlSchema.getAny().get(0));
 				LOGGER.debug("Schema parsed {}", schema);
 				document = schema.serializeToXsd();
 				xml = DOMUtil.printDom(document).toString();
 				LOGGER.trace("Schema parsed to dom:\n{}", xml);
 				document = DOMUtil.parseDocument(xml);
-				schema = Schema.parse(document.getDocumentElement());
+				schema = PrismSchema.parse(document.getDocumentElement());
 			} catch (Exception ex) {
 				Assert.fail(ex.getMessage(), ex);
 			} finally {

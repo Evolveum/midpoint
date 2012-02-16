@@ -31,7 +31,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -212,7 +212,7 @@ public class UserSynchronizer {
 
         UserType userType = cacheRepositoryService.getObject(UserType.class, userOid, null, result);
         context.setUserTypeOld(userType);
-        Schema commonSchema = schemaRegistry.getObjectSchema();
+        PrismSchema commonSchema = schemaRegistry.getObjectSchema();
         PrismObject<UserType> user = commonSchema.parseObjectType(userType);
         context.setUserOld(user);
     }

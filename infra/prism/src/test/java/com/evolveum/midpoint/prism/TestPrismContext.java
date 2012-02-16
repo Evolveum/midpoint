@@ -36,7 +36,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.foo.UserType;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -60,7 +60,7 @@ public class TestPrismContext {
 		System.out.println("===[ testPrismContextConstruction ]===");
 		
 		// WHEN
-		PrismContext prismContext = constructPrismContext();
+		PrismContext prismContext = constructInitializedPrismContext();
 		
 		// THEN
 		assertNotNull("No prism context", prismContext);
@@ -71,7 +71,7 @@ public class TestPrismContext {
 		System.out.println("Schema registry:");
 		System.out.println(schemaRegistry.dump());
 
-		Schema objectSchema = schemaRegistry.getObjectSchema();
+		PrismSchema objectSchema = schemaRegistry.getObjectSchema();
 		System.out.println("Object schema:");
 		System.out.println(objectSchema.dump());
 		

@@ -41,7 +41,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
@@ -156,7 +156,7 @@ public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
 	public void testConnectorSchema() throws ObjectNotFoundException {
 		ConnectorInstance cc = manager.createConnectorInstance(connectorType, resource.getNamespace());
 		assertNotNull("Failed to instantiate connector", cc);
-		Schema connectorSchema = cc.generateConnectorSchema();
+		PrismSchema connectorSchema = cc.generateConnectorSchema();
 		assertNotNull("No connector schema", connectorSchema);
 		display("Generated connector schema", connectorSchema);
 		assertFalse("Empty schema returned", connectorSchema.isEmpty());

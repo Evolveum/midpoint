@@ -37,7 +37,7 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -237,7 +237,7 @@ public class ConnectorTypeManager {
 				ConnectorInstance connectorInstance = null;
 				try {
 					connectorInstance = connectorFactory.createConnectorInstance(foundConnector, null);
-					Schema connectorSchema = connectorInstance.generateConnectorSchema();
+					PrismSchema connectorSchema = connectorInstance.generateConnectorSchema();
 					if (connectorSchema == null) {
 						LOGGER.warn("Connector {} haven't provided configuration schema",
 								ObjectTypeUtil.toShortString(foundConnector));

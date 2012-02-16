@@ -31,6 +31,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -40,7 +41,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -72,7 +73,7 @@ public class PrismDomProcessor {
 
 	public <T extends Objectable> PrismObject<T> parseObject(Element objectElement) throws SchemaException {
 		QName elementName = DOMUtil.getQName(objectElement);
-		Schema schema = schemaRegistry.findSchemaByNamespace(elementName.getNamespaceURI());
+		PrismSchema schema = schemaRegistry.findSchemaByNamespace(elementName.getNamespaceURI());
 		if (schema == null) {
 			throw new SchemaException("No schema for namespace "+elementName.getNamespaceURI());
 		}
@@ -81,9 +82,9 @@ public class PrismDomProcessor {
 			throw new SchemaException("No object definition for element "+elementName+" in schema "+schema);
 		}
 		PrismObject<T> object = parsePrismContainer(objectElement, objectDefinition);
-		String oid = objectElement.getAttribute("oid");
+		String oid = objectElement.getAttribute(PrismConstants.ATTRIBUTE_OID_LOCAL_NAME);
 		object.setOid(oid);
-		String version = objectElement.getAttribute("version");
+		String version = objectElement.getAttribute(PrismConstants.ATTRIBUTE_VERSION_LOCAL_NAME);
 		object.setVersion(version);
 		return object;
 	}
@@ -91,7 +92,7 @@ public class PrismDomProcessor {
 	public PrismContainer parsePrismContainer(Element domElement) throws SchemaException {
 		// locate appropriate definition based on the element name
 		QName elementName = DOMUtil.getQName(domElement);
-		Schema schema = schemaRegistry.findSchemaByNamespace(elementName.getNamespaceURI());
+		PrismSchema schema = schemaRegistry.findSchemaByNamespace(elementName.getNamespaceURI());
 		PrismContainerDefinition propertyContainerDefinition = schema.findItemDefinition(elementName,
 				PrismContainerDefinition.class);
 		if (propertyContainerDefinition == null) {
@@ -110,7 +111,7 @@ public class PrismDomProcessor {
 		QName elementQName = DOMUtil.getQName(valueElements.get(0));
         T container = (T) containerDefinition.instantiate(elementQName);
         for (Element element: valueElements) {
-        	String id = element.getAttributeNS(DOMUtil.XML_ID_ATTRIBUTE.getNamespaceURI(), DOMUtil.XML_ID_ATTRIBUTE.getLocalPart());
+        	String id = getContainerId(element);
         	PrismContainerValue pval = new PrismContainerValue(null, null, container, id);
             List<Element> childElements = DOMUtil.listChildElements(element);
             pval.addAll(parsePrismContainerItems(childElements, containerDefinition));
@@ -119,6 +120,19 @@ public class PrismDomProcessor {
         return container;
 	}
 	
+	private String getContainerId(Element element) {
+		String id = element.getAttribute(PrismConstants.ATTRIBUTE_ID_LOCAL_NAME);
+		if (id != null) {
+			return id;
+		}
+		id = element.getAttributeNS(element.getNamespaceURI(), PrismConstants.ATTRIBUTE_ID_LOCAL_NAME);
+		if (id != null) {
+			return id;
+		}
+		id = element.getAttributeNS(DOMUtil.XML_ID_ATTRIBUTE.getNamespaceURI(), DOMUtil.XML_ID_ATTRIBUTE.getLocalPart());
+		return id;
+	}
+
 	private Collection<? extends Item> parsePrismContainerItems(List<Element> childElements, PrismContainerDefinition containerDefinition) throws SchemaException {
 		return parsePrismContainerItems(childElements, containerDefinition, null);
 	}

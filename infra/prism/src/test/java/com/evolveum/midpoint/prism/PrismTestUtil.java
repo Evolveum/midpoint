@@ -22,6 +22,7 @@ package com.evolveum.midpoint.prism;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 
@@ -46,10 +47,22 @@ public class PrismTestUtil {
 	private static final String NS_TYPE = "http://midpoint.evolveum.com/xml/ns/public/common/types-1.xsd";
 	public static final QName OBJECT_REFERENCE_TYPE_QNAME = new QName(NS_TYPE, "ObjectReferenceType");
 	
-	public static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
-	public static final String NS_BAR = "http://www.example.com/bar";
+	// Files
+	public static String OBJECT_DIR_PATH = "src/test/resources/parsing";
 	
+	public static File USER_JACK_FILE = new File(OBJECT_DIR_PATH, "user-jack.xml");
+	public static String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+	
+	public static File EXTRA_SCHEMA_DIR = new File("src/test/resources/schema");
+	
+	// Namespaces
+	public static final String DEFAULT_NAMESPACE_PREFIX = "http://midpoint.evolveum.com/xml/ns";
+	public static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
+	public static final String NS_USER_EXT = "http://example.com/xml/ns/user-extension";
+	
+	// FOO
 	public static final QName USER_QNAME = new QName(NS_FOO,"user");
+	public static final QName USER_TYPE_QNAME = new QName(NS_FOO,"UserType");
 	public static final QName USER_EXTENSION_QNAME = new QName(NS_FOO,"extension");
 	
 	public static final QName USER_NAME_QNAME = new QName(NS_FOO,"name");
@@ -101,8 +114,13 @@ public class PrismTestUtil {
 	}
 
 	
-	public static PrismContext constructPrismContext() throws SchemaException, SAXException, IOException {
+	public static PrismContext constructInitializedPrismContext() throws SchemaException, SAXException, IOException {
+		PrismContext context = constructPrismContext();
+		context.initialize();
+		return context;
+	}
 		
+	public static PrismContext constructPrismContext() throws SchemaException {
 		SchemaRegistry schemaRegistry = new SchemaRegistry();
 		DynamicNamespacePrefixMapper prefixMapper = new GlobalDynamicNamespacePrefixMapper();
 		// Set default namespace?
@@ -110,7 +128,6 @@ public class PrismTestUtil {
 		schemaRegistry.registerPrismSchemaResource("xml/ns/test/foo-1.xsd", "foo", ObjectFactory.class.getPackage());
 		schemaRegistry.setObjectSchemaNamespace(NS_FOO);
 		PrismContext context = PrismContext.create(schemaRegistry);
-		context.initialize();
 		return context;
 	}
 

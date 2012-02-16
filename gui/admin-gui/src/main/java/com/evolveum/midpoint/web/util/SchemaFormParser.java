@@ -36,7 +36,7 @@ import org.w3c.dom.Text;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
@@ -72,7 +72,7 @@ public class SchemaFormParser {
 		// list of object as config values. They will be inserted into form
 		Map<List<QName>, List<Object>> valueMap = createConfigValueMap(configuration);
 
-		Schema schema = Schema.parse(connector.getXmlObject().getSchema().getAny().get(0));
+		PrismSchema schema = PrismSchema.parse(connector.getXmlObject().getSchema().getAny().get(0));
 		for (Definition definition : schema.getDefinitions()) {
 			if (!(definition instanceof ResourceAttributeContainerDefinition)) {
 				continue;
@@ -220,7 +220,7 @@ public class SchemaFormParser {
 		}
 
 		ResourceDto resource = account.getResource();
-		Schema schema = RefinedResourceSchema.getResourceSchema(resource.getXmlObject());
+		PrismSchema schema = RefinedResourceSchema.getResourceSchema(resource.getXmlObject());
 		// schema.updateSchemaAccess(resource.getXmlObject().getSchemaHandling());
 		ResourceAttributeContainerDefinition definition = (ResourceAttributeContainerDefinition) schema
 				.findContainerDefinitionByType(accountType);
@@ -266,7 +266,7 @@ public class SchemaFormParser {
 			}
 		}
 
-		Schema schema = RefinedResourceSchema.getResourceSchema(resourceDto.getXmlObject());
+		PrismSchema schema = RefinedResourceSchema.getResourceSchema(resourceDto.getXmlObject());
 		for (Definition definition : schema.getDefinitions()) {
 			if (!(definition instanceof ResourceAttributeContainerDefinition)) {
 				continue;

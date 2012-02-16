@@ -60,7 +60,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -309,7 +309,7 @@ public class ModelController implements ModelService {
 				LOGGER.trace(JAXBUtil.silentMarshalWrap(object));
 			}
 
-			Schema commonSchema = schemaRegistry.getObjectSchema();
+			PrismSchema commonSchema = schemaRegistry.getObjectSchema();
 
 			if (object instanceof UserType) {
 				UserType userType = (UserType) object;
@@ -465,7 +465,7 @@ public class ModelController implements ModelService {
 		return executePostChange(deltas, task, result);
 	}
 
-	private SyncContext userTypeAddToContext(UserType userType, Schema objectSchema, OperationResult result)
+	private SyncContext userTypeAddToContext(UserType userType, PrismSchema objectSchema, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, CommunicationException {
 
 		SyncContext syncContext = new SyncContext();
@@ -666,7 +666,7 @@ public class ModelController implements ModelService {
 		try {
 			
 			auditRecord.setTarget(objectType);
-			Schema commonSchema = schemaRegistry.getObjectSchema();			
+			PrismSchema commonSchema = schemaRegistry.getObjectSchema();			
 
 			ObjectDelta<T> objectDelta = null;
 
@@ -766,7 +766,7 @@ public class ModelController implements ModelService {
 		}
 	}
 
-	private SyncContext userTypeModifyToContext(ObjectModificationType change, Schema commonSchema,
+	private SyncContext userTypeModifyToContext(ObjectModificationType change, PrismSchema commonSchema,
 			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException {
 		SyncContext syncContext = new SyncContext();
 
@@ -815,7 +815,7 @@ public class ModelController implements ModelService {
 	}
 
 	private void addAccountToContext(SyncContext syncContext, AccountShadowType accountType,
-			ChangeType changeType, Schema commonSchema, OperationResult result) throws SchemaException,
+			ChangeType changeType, PrismSchema commonSchema, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException {
 
 		String resourceOid = ResourceObjectShadowUtil.getResourceOid(accountType);

@@ -81,7 +81,7 @@ class DomToSchemaProcessor {
 
 	private static final Trace LOGGER = TraceManager.getTrace(DomToSchemaProcessor.class);
 	
-	private Schema schema;
+	private PrismSchema schema;
 	private EntityResolver entityResolver;
 	private PrismContext prismContext;
 	private SchemaRegistry schemaRegistry;
@@ -123,7 +123,7 @@ class DomToSchemaProcessor {
 	 * @return parsed midPoint schema
 	 * @throws SchemaException in case of any error
 	 */
-	Schema parseDom(Element xsdSchema) throws SchemaException {
+	PrismSchema parseDom(Element xsdSchema) throws SchemaException {
 		Validate.notNull(xsdSchema, "XSD schema element must not be null.");
 		
 		schema = initSchema(xsdSchema);
@@ -143,7 +143,7 @@ class DomToSchemaProcessor {
 		return schema;
 	}
 
-	private Schema initSchema(Element xsdSchema) throws SchemaException {
+	private PrismSchema initSchema(Element xsdSchema) throws SchemaException {
 		String targetNamespace = xsdSchema.getAttributeNS(DOMUtil.XSD_ATTR_TARGET_NAMESPACE.getNamespaceURI(),
 				DOMUtil.XSD_ATTR_TARGET_NAMESPACE.getLocalPart());
 		if (StringUtils.isEmpty(targetNamespace)) {
@@ -153,7 +153,7 @@ class DomToSchemaProcessor {
 		if (StringUtils.isEmpty(targetNamespace)) {
 			throw new SchemaException("Schema does not have targetNamespace specification");
 		}
-		return new Schema(targetNamespace, prismContext);
+		return new PrismSchema(targetNamespace, prismContext);
 	}
 	
 	private XSSchemaSet parseSchema(Element schema) throws SchemaException {

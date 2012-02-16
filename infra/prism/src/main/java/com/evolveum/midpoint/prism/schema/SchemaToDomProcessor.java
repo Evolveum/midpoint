@@ -74,7 +74,7 @@ class SchemaToDomProcessor {
 	private static final String MAX_OCCURS_UNBOUNDED = "unbounded";
 	private boolean attributeQualified = false;
 	private DynamicNamespacePrefixMapper namespacePrefixMapper;
-	private Schema schema;
+	private PrismSchema schema;
 	private Element rootXsdElement;
 	private Set<String> importNamespaces;
 	private Document document;
@@ -102,7 +102,7 @@ class SchemaToDomProcessor {
 	 * @return XSD schema in DOM form
 	 * @throws SchemaException error parsing the midPoint schema or converting values
 	 */
-	Document parseSchema(Schema schema) throws SchemaException {
+	Document parseSchema(PrismSchema schema) throws SchemaException {
 		if (schema == null) {
 			throw new IllegalArgumentException("Schema can't be null.");
 		}

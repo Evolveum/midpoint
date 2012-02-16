@@ -22,6 +22,10 @@ package com.evolveum.midpoint.schema;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
+import java.io.IOException;
+
+import org.xml.sax.SAXException;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
@@ -44,11 +48,17 @@ public class MidPointPrismContextFactory {
 		return context;
 	}
 	
+	public PrismContext createAndInitializePrismContext() throws SchemaException, SAXException, IOException {
+		PrismContext context = createPrismContext();
+		context.initialize();
+		return context;
+	}
+	
 	private SchemaRegistry createSchemaRegistry() throws SchemaException {
 		SchemaRegistry schemaRegistry = new SchemaRegistry();
-		registerBuiltinSchemas(schemaRegistry);
 		schemaRegistry.setObjectSchemaNamespace(SchemaConstants.NS_COMMON);
 		schemaRegistry.setNamespacePrefixMapper(new GlobalDynamicNamespacePrefixMapper());
+		registerBuiltinSchemas(schemaRegistry);
 		return schemaRegistry;
 	}
 	

@@ -82,7 +82,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	private List<SchemaDescription> schemaDescriptions;
 	private Map<String,SchemaDescription> parsedSchemas;
 	private Map<QName,ComplexTypeDefinition> extensionSchemas;
-	private Schema objectSchema = null;
+	private PrismSchema objectSchema = null;
 	private boolean initialized = false;
 	private String objectSchemaNamespace;
 	private DynamicNamespacePrefixMapper namespacePrefixMapper;
@@ -206,6 +206,9 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		if (prismContext == null) {
 			throw new IllegalStateException("Prism context not set");
 		}
+		if (namespacePrefixMapper == null) {
+			throw new IllegalStateException("Namespace prefix mapper not set");
+		}
 		try {
 			initResolver();
 			preParseSchemas();
@@ -249,7 +252,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 			
 			if (schemaDescription.isPrismSchema()) {
 				Element domElement = schemaDescription.getDomElement();
-				Schema schema = Schema.parse(domElement, this, getPrismContext());
+				PrismSchema schema = PrismSchema.parse(domElement, this, getPrismContext());
 				//Schema schema = Schema.parse(domElement);
 				if (namespace == null) {
 					namespace = schema.getNamespace();
@@ -261,7 +264,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		}
 	}
 	
-	private void detectExtensionSchema(Schema schema) throws SchemaException {
+	private void detectExtensionSchema(PrismSchema schema) throws SchemaException {
 		for (ComplexTypeDefinition def: schema.getDefinitions(ComplexTypeDefinition.class)) {
 			QName extType = def.getExtensionForType();
 			if (extType != null) {
@@ -296,7 +299,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		return javaxSchema;
 	}
 	
-	public Schema getSchema(String namespace) {
+	public PrismSchema getSchema(String namespace) {
 		return parsedSchemas.get(namespace).getSchema();
 	}
 	
@@ -308,7 +311,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	 * The returned schema is considered to be immutable. Any attempt to change it
 	 * may lead to unexpected results. 
 	 */
-	public Schema getObjectSchema() {
+	public PrismSchema getObjectSchema() {
 		if (!initialized) {
 			throw new IllegalStateException("Attempt to get common schema from uninitialized Schema Registry");
 		}
@@ -322,9 +325,9 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		if (objectSchemaNamespace == null) {
 			throw new IllegalArgumentException("Object schema namespace is not set");
 		}
-		Schema commonSchema = parsedSchemas.get(objectSchemaNamespace).getSchema();
+		PrismSchema commonSchema = parsedSchemas.get(objectSchemaNamespace).getSchema();
 		// FIXME
-		objectSchema = new Schema(objectSchemaNamespace, prismContext);
+		objectSchema = new PrismSchema(objectSchemaNamespace, prismContext);
 		for (Definition def: commonSchema.getDefinitions()) {
 			if (def instanceof PrismObjectDefinition<?>) {
 				QName typeName = def.getTypeName();
@@ -561,7 +564,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		throw new UnsupportedOperationException();
 	}
 
-	public Schema findSchemaByCompileTimeClass(Class<? extends Objectable> compileTimeClass) {
+	public PrismSchema findSchemaByCompileTimeClass(Class<? extends Objectable> compileTimeClass) {
 		Package compileTimePackage = compileTimeClass.getPackage();
 		for (SchemaDescription desc: schemaDescriptions) {
 			if (compileTimePackage.equals(desc.getCompileTimeClassesPackage())) {
@@ -571,7 +574,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		return null;
 	}
 
-	public Schema findSchemaByNamespace(String namespaceURI) {
+	public PrismSchema findSchemaByNamespace(String namespaceURI) {
 		// Prefer object schema
 		if (namespaceURI.equals(objectSchemaNamespace)) {
 			return getObjectSchema();

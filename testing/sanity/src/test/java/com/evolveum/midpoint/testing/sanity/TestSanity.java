@@ -27,7 +27,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
@@ -442,7 +442,7 @@ public class TestSanity extends AbstractIntegrationTest {
      * @throws SchemaException
      */
     private void checkOpenDjSchema(ResourceType resource, String source) throws SchemaException {
-        Schema schema = RefinedResourceSchema.getResourceSchema(resource);
+        PrismSchema schema = RefinedResourceSchema.getResourceSchema(resource);
         ResourceAttributeContainerDefinition accountDefinition = schema.findAccountDefinition();
         assertNotNull("Schema does not define any account (resource from " + source + ")", accountDefinition);
         Collection<ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();

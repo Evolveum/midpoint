@@ -28,7 +28,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
@@ -99,7 +99,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	String schemaNamespace;
 	Protector protector;
 
-	private Schema resourceSchema = null;
+	private PrismSchema resourceSchema = null;
 	Set<Object> capabilities = null;
 
 	public ConnectorInstanceIcfImpl(ConnectorInfo connectorInfo, ConnectorType connectorType,
@@ -185,7 +185,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * @param cinfo
 	 * @param connectorType
 	 */
-	public Schema generateConnectorSchema() {
+	public PrismSchema generateConnectorSchema() {
 
 		LOGGER.trace("Generating configuration schema for {}", this);
 		APIConfiguration defaultAPIConfiguration = cinfo.createDefaultAPIConfiguration();
@@ -198,7 +198,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			return null;
 		}
 
-		Schema mpSchema = new Schema(connectorType.getNamespace());
+		PrismSchema mpSchema = new PrismSchema(connectorType.getNamespace());
 
 		// Create configuration type - the type used by the "configuration"
 		// element
@@ -357,7 +357,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public Schema getResourceSchema(OperationResult parentResult) throws CommunicationException,
+	public PrismSchema getResourceSchema(OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException {
 
 		// Result type for this operation
@@ -389,7 +389,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		boolean capEnable = false;
 
 		// New instance of midPoint schema object
-		resourceSchema = new Schema(getSchemaNamespace());
+		resourceSchema = new PrismSchema(getSchemaNamespace());
 
 		// Let's convert every objectclass in the ICF schema ...
 		Set<ObjectClassInfo> objectClassInfoSet = icfSchema.getObjectClassInfo();
@@ -1204,7 +1204,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// convert changes from icf to midpoint Change
 		List<Change> changeList = null;
 		try {
-			Schema schema = getResourceSchema(subresult);
+			PrismSchema schema = getResourceSchema(subresult);
 			changeList = getChangesFromSyncDelta(result, schema, subresult);
 		} catch (SchemaException ex) {
 			subresult.recordFatalError(ex.getMessage(), ex);
@@ -1633,7 +1633,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	}
 
-	private List<Change> getChangesFromSyncDelta(Set<SyncDelta> result, Schema schema,
+	private List<Change> getChangesFromSyncDelta(Set<SyncDelta> result, PrismSchema schema,
 			OperationResult parentResult) throws SchemaException, GenericFrameworkException {
 		List<Change> changeList = new ArrayList<Change>();
 

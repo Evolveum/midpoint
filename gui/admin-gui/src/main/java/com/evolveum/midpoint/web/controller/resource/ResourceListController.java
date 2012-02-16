@@ -36,7 +36,7 @@ import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -204,7 +204,7 @@ public class ResourceListController extends SortableListController<ResourceListI
 
 		ResourceListItem item = new ResourceListItem(resource.getOid(), resource.getName(), type, version);
 		try {
-			Schema schema = RefinedResourceSchema.getResourceSchema(resource);
+			PrismSchema schema = RefinedResourceSchema.getResourceSchema(resource);
 			if (schema == null) {
 				LOGGER.debug("Schema for resource {} was null.", new Object[] { resource.getName() });
 				return item;

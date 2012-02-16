@@ -24,7 +24,7 @@ import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -59,14 +59,14 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 
     private Collection<RefinedAttributeDefinition> attributeDefinitions;
 
-    private RefinedAccountDefinition(Schema rSchema, SchemaRegistry schemaRegistry, ResourceType resourceType) {
+    private RefinedAccountDefinition(PrismSchema rSchema, SchemaRegistry schemaRegistry, ResourceType resourceType) {
         super(rSchema, SchemaConstants.I_ATTRIBUTES, null);
         attributeDefinitions = new HashSet<RefinedAttributeDefinition>();
         this.resourceType = resourceType;
         this.schemaRegistry = schemaRegistry;
     }
 
-    private RefinedAccountDefinition(Schema rSchema, SchemaRegistry schemaRegistry, ResourceType resourceType,
+    private RefinedAccountDefinition(PrismSchema rSchema, SchemaRegistry schemaRegistry, ResourceType resourceType,
             ResourceAttributeContainerDefinition objectClassDefinition) {
         super(rSchema, SchemaConstants.I_ATTRIBUTES, null);
         attributeDefinitions = new HashSet<RefinedAttributeDefinition>();

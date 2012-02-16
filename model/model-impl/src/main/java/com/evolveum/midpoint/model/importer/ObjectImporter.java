@@ -321,7 +321,7 @@ public class ObjectImporter {
         }
 
         try {
-            com.evolveum.midpoint.prism.schema.Schema.parse(xsdElement);
+            com.evolveum.midpoint.prism.schema.PrismSchema.parse(xsdElement);
         } catch (SchemaException e) {
             result.recordFatalError("Error during " + schemaName + " schema integrity check: " + e.getMessage(), e);
             return;
@@ -348,9 +348,9 @@ public class ObjectImporter {
         	return null;
         }
 
-        com.evolveum.midpoint.prism.schema.Schema schema = null;
+        com.evolveum.midpoint.prism.schema.PrismSchema schema = null;
         try {
-            schema = com.evolveum.midpoint.prism.schema.Schema.parse(xsdElement);
+            schema = com.evolveum.midpoint.prism.schema.PrismSchema.parse(xsdElement);
         } catch (SchemaException e) {
             result.recordFatalError("Error during " + schemaName + " schema parsing: " + e.getMessage(), e);
             LOGGER.trace("Validation error: {}" + e.getMessage());

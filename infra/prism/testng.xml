@@ -30,6 +30,7 @@
         	<class name="com.evolveum.midpoint.prism.TestPrismContext"/>
 			<class name="com.evolveum.midpoint.prism.TestPrismParsing"/>
 			<class name="com.evolveum.midpoint.prism.TestPrismConstruction"/>
+			<class name="com.evolveum.midpoint.prism.TestExtraSchema"/>
         </classes>
     </test>
 </suite>

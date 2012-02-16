@@ -52,7 +52,7 @@ import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultArrayList;
@@ -385,7 +385,7 @@ public class XmlRepositoryService implements RepositoryService {
 		String serializedObject = null;
 		try {
             //todo uncomment this, if you want to modify object with object deltas
-            Schema schema = schemaRegistry.getObjectSchema();
+            PrismSchema schema = schemaRegistry.getObjectSchema();
             ObjectDelta<T> delta = ObjectDelta.createDelta(objectChange, schema, type);
 
             T objectType = this.getObject(type, delta.getOid(), null, result);

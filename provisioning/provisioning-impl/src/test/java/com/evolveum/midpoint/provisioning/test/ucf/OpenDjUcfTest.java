@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
@@ -94,7 +94,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
     ConnectorType connectorType;
     private ConnectorFactory factory;
     private ConnectorInstance cc;
-    Schema schema;
+    PrismSchema schema;
 
     private static Trace LOGGER = TraceManager.getTrace(OpenDjUcfTest.class);
 
@@ -469,7 +469,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 
         System.out.println(schema.dump());
 
-        Document xsdSchema = Schema.serializeToXsd(schema);
+        Document xsdSchema = PrismSchema.serializeToXsd(schema);
 
         System.out
                 .println("-------------------------------------------------------------------------------------");

@@ -34,7 +34,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -177,7 +177,7 @@ public class ModifyUserAction extends BaseAction {
     }
 
     private SyncContext createSyncContext(UserType user, ResourceType resource) throws SchemaException {
-        Schema schema = getSchemaRegistry().getObjectSchema();
+        PrismSchema schema = getSchemaRegistry().getObjectSchema();
         LOGGER.debug("Creating sync context.");
 
         PrismObjectDefinition<UserType> userDefinition = schema.findObjectDefinitionByType(

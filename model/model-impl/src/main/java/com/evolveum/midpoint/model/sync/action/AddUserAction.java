@@ -32,7 +32,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -85,7 +85,7 @@ public class AddUserAction extends BaseAction {
                 }
 
                 //create empty user
-                Schema schema = getSchemaRegistry().getObjectSchema();
+                PrismSchema schema = getSchemaRegistry().getObjectSchema();
                 PrismObjectDefinition<UserType> userDefinition = schema.findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
                 PrismObject<UserType> oldUser = userDefinition.instantiate(SchemaConstants.I_USER_TYPE);
 //                context.setUserOld(oldUser);

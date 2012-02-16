@@ -62,17 +62,17 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author Radovan Semancik
  * 
  */
-public class Schema implements Dumpable, DebugDumpable, Serializable {
+public class PrismSchema implements Dumpable, DebugDumpable, Serializable {
 
 	private static final long serialVersionUID = 5068618465625931984L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(Schema.class);
+	private static final Trace LOGGER = TraceManager.getTrace(PrismSchema.class);
 	
 	protected String namespace;
 	protected Set<Definition> definitions;
 	protected PrismContext prismContext;
 
-	public Schema(String namespace, PrismContext prismContext) {
+	public PrismSchema(String namespace, PrismContext prismContext) {
 		if (StringUtils.isEmpty(namespace)) {
 			throw new IllegalArgumentException("Namespace can't be null or empty.");
 		}
@@ -117,11 +117,11 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 		return defs;
 	}
 	
-	public static Schema parse(Element element, PrismContext prismContext) throws SchemaException {
+	public static PrismSchema parse(Element element, PrismContext prismContext) throws SchemaException {
 		return parse(element, null, prismContext);
 	}
 	
-	public static Schema parse(Element element, EntityResolver resolver, PrismContext prismContext) throws SchemaException {
+	public static PrismSchema parse(Element element, EntityResolver resolver, PrismContext prismContext) throws SchemaException {
 		if (element == null) {
 			throw new IllegalArgumentException("Schema DOM element must not be null.");
 		}
@@ -136,7 +136,7 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 		return serializeToXsd(this);
 	}
 
-	public static Document serializeToXsd(Schema schema) throws SchemaException {
+	public static Document serializeToXsd(PrismSchema schema) throws SchemaException {
 		if (schema == null) {
 			throw new IllegalArgumentException("Schema can't be null.");
 		}

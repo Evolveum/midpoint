@@ -35,7 +35,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -393,7 +393,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
 
 
     private ObjectDelta<UserType> addModification(SyncContext context, String filename) throws JAXBException, SchemaException {
-        Schema commonSchema = schemaRegistry.getObjectSchema();
+        PrismSchema commonSchema = schemaRegistry.getObjectSchema();
         JAXBElement<ObjectModificationType> modElement = (JAXBElement<ObjectModificationType>) JAXBUtil.unmarshal(new File(filename));
         ObjectDelta<UserType> userDelta = ObjectDelta.createDelta(modElement.getValue(), commonSchema, UserType.class);
         context.addPrimaryUserDelta(userDelta);
@@ -434,7 +434,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
 
         UserType userType = repositoryService.getObject(UserType.class, userOid, null, result);
 
-        Schema commonSchema = schemaRegistry.getObjectSchema();
+        PrismSchema commonSchema = schemaRegistry.getObjectSchema();
         PrismObjectDefinition<UserType> userDefinition = commonSchema.findObjectDefinition(UserType.class);
         PrismObject<UserType> user = userDefinition.parseObjectType(userType);
         context.setUserOld(user);
@@ -446,7 +446,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
 
         AccountShadowType accountType = repositoryService.getObject(AccountShadowType.class, accountOid, null, result);
 
-        Schema commonSchema = schemaRegistry.getObjectSchema();
+        PrismSchema commonSchema = schemaRegistry.getObjectSchema();
         PrismObjectDefinition<AccountShadowType> accountDefinition = commonSchema.findObjectDefinition(AccountShadowType.class);
 //        MidPointObject<AccountShadowType> account = accountDefinition.parseObjectType(accountType);
         ResourceAccountType rat = new ResourceAccountType(accountType.getResourceRef().getOid(), accountType.getAccountType());

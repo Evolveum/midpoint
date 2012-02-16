@@ -55,7 +55,7 @@ import java.util.Set;
 
 import com.evolveum.midpoint.common.refinery.EnhancedResourceType;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
@@ -242,7 +242,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			assertNotNull("xmlSchemaType is null",xmlSchemaType);
 			assertFalse("Empty schema",xmlSchemaType.getAny().isEmpty());
 			// Try to parse the schema
-			Schema schema = Schema.parse(xmlSchemaType.getAny().get(0));
+			PrismSchema schema = PrismSchema.parse(xmlSchemaType.getAny().get(0));
 			assertNotNull("Cannot parse schema",schema);
 			assertFalse("Empty schema",schema.isEmpty());
 			display("Parsed connector schema",schema);
@@ -292,7 +292,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		assertNotNull("No serialNumber",cachingMetadata.getSerialNumber());
 		
 		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-		Schema parsedSchema = Schema.parse(xsdElement);
+		PrismSchema parsedSchema = PrismSchema.parse(xsdElement);
 		assertNotNull("No schema after parsing",parsedSchema);
 		
 		ResourceAttributeContainerDefinition accountDefinition = parsedSchema.findAccountDefinition();

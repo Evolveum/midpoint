@@ -23,7 +23,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.RResourceObjectShadowType;
@@ -366,7 +366,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         try {
             T object = getObject(delta.getObjectTypeClass(), delta.getOid(), null, subResult);
 
-            Schema schema = schemaRegistry.getObjectSchema();
+            PrismSchema schema = schemaRegistry.getObjectSchema();
             PrismObjectDefinition<T> objectDef = schema.findObjectDefinition(delta.getObjectTypeClass());
 
             MidPointObject<T> midPointObject = objectDef.parseObjectType(object);
@@ -409,7 +409,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         Validate.notNull(objectChange, "Object change must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
-        Schema schema = schemaRegistry.getObjectSchema();
+        PrismSchema schema = schemaRegistry.getObjectSchema();
         ObjectDelta<T> delta = ObjectDelta.createDelta(objectChange, schema, type);
         modifyObject(delta, result);
     }

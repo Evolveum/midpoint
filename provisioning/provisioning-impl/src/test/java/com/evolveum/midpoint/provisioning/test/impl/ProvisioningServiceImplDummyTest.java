@@ -37,7 +37,7 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.EnhancedResourceType;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
@@ -186,7 +186,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 			assertNotNull("xmlSchemaType is null", xmlSchemaType);
 			assertFalse("Empty schema", xmlSchemaType.getAny().isEmpty());
 			// Try to parse the schema
-			Schema schema = Schema.parse(xmlSchemaType.getAny().get(0));
+			PrismSchema schema = PrismSchema.parse(xmlSchemaType.getAny().get(0));
 			assertNotNull("Cannot parse schema", schema);
 			assertFalse("Empty schema", schema.isEmpty());
 			display("Parsed connector schema", schema);
@@ -263,7 +263,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertNotNull("No serialNumber", cachingMetadata.getSerialNumber());
 
 		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-		Schema parsedSchema = Schema.parse(xsdElement);
+		PrismSchema parsedSchema = PrismSchema.parse(xsdElement);
 		assertNotNull("No schema after parsing", parsedSchema);
 
 		// schema will be checked in next test
@@ -287,7 +287,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertNotNull(enh.getParsedSchema());
 
 		// Also test if the utility method returns the same thing
-		Schema returnedSchema = RefinedResourceSchema.getResourceSchema(resource);
+		PrismSchema returnedSchema = RefinedResourceSchema.getResourceSchema(resource);
 
 		// Not equals() but == ... we want to really know if exactly the same
 		// object instance is returned

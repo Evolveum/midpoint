@@ -44,7 +44,9 @@
             </jaxb:globalBindings>
         </xsd:appinfo>
     </xsd:annotation>
-
+    
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    
     <xsd:import namespace="http://www.w3.org/2001/XMLSchema" schemaLocation="../standard/XMLSchema.xsd">
         <xsd:annotation>
             <xsd:documentation>
@@ -170,6 +172,7 @@
         <xsd:sequence>
         	<xsd:element name="description" type="xsd:string" minOccurs="0"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:string" use="optional"/>
     </xsd:complexType>
 
 	<xsd:complexType name="ActivationType">

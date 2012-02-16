@@ -27,7 +27,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 
 /**
@@ -50,7 +50,7 @@ public class DiffUtil {
 		}
 	}
 
-	public static <T extends Objectable> ObjectDelta<T> diff(T oldObjectType, T newObjectType, Class<T> type, Schema objectSchema) throws SchemaException {
+	public static <T extends Objectable> ObjectDelta<T> diff(T oldObjectType, T newObjectType, Class<T> type, PrismSchema objectSchema) throws SchemaException {
 		PrismObjectDefinition<T> objectDefinition = objectSchema.findObjectDefinitionByClass(type);
 		PrismObject<T> oldObject = null;
 		if (oldObjectType != null) {

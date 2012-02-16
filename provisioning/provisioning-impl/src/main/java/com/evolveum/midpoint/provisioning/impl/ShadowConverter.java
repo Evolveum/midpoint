@@ -23,7 +23,7 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
@@ -86,7 +86,7 @@ public class ShadowConverter {
 
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
-		Schema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
+		PrismSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
 
 		QName objectClass = shadow.getObjectClass();
 		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) schema
@@ -159,7 +159,7 @@ public class ShadowConverter {
 			ObjectAlreadyExistsException {
 
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
-		Schema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
+		PrismSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
 
 		// convert xml attributes to ResourceObject
 		ResourceAttributeContainer resourceObject = convertResourceObjectFromXml(shadow, schema, parentResult);
@@ -211,7 +211,7 @@ public class ShadowConverter {
 			throws ObjectNotFoundException, SchemaException, CommunicationException {
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
-		Schema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
+		PrismSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
 
 		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) schema.findContainerDefinitionByType(shadow
 				.getObjectClass());
@@ -256,7 +256,7 @@ public class ShadowConverter {
 			CommunicationException {
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
-		Schema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
+		PrismSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
 
 		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) schema.findContainerDefinitionByType(shadow
 				.getObjectClass());
@@ -309,7 +309,7 @@ public class ShadowConverter {
 
 		LOGGER.trace("Getting last token");
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
-		Schema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType);
+		PrismSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType);
 		ResourceAttributeContainerDefinition objectClass = resourceSchema.findAccountDefinition();
 		PrismProperty lastToken = null;
 		try {
@@ -339,7 +339,7 @@ public class ShadowConverter {
 		LOGGER.trace("Shadow cache, fetch changes");
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
-		Schema resourceSchema = RefinedResourceSchema.getResourceSchema(resource);
+		PrismSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource);
 		ResourceAttributeContainerDefinition objectClass = resourceSchema.findAccountDefinition();
 
 		// get changes from the connector
@@ -370,7 +370,7 @@ public class ShadowConverter {
 
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
-		Schema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
+		PrismSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
 		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) schema
 				.findContainerDefinitionByType(new QName(resource.getNamespace(), "AccountObjectClass"));
 
@@ -466,7 +466,7 @@ public class ShadowConverter {
 	 *             Object class definition was not found
 	 */
 	private ResourceAttributeContainer convertResourceObjectFromXml(ResourceObjectShadowType resourceObjectShadow,
-			Schema schema, OperationResult parentResult) throws SchemaException {
+			PrismSchema schema, OperationResult parentResult) throws SchemaException {
 		QName objectClass = resourceObjectShadow.getObjectClass();
 
 		Validate.notNull(objectClass, "Object class must not be null.");

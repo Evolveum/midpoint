@@ -22,14 +22,14 @@
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
-		xmlns:bar="http://www.example.com/bar">
+		xmlns:ext="http://example.com/xml/ns/user-extension">
     <name>jack</name>
     <extension>
-		<bar:bar xsi:type="xsd:string">BAR</bar:bar>
-		<bar:num xsi:type="xsd:integer">42</bar:num>
-		<bar:multi xsi:type="xsd:string">raz</bar:multi>
-		<bar:multi xsi:type="xsd:string">dva</bar:multi>
-		<bar:multi xsi:type="xsd:string">tri</bar:multi>
+		<ext:bar xsi:type="xsd:string">BAR</ext:bar>
+		<ext:num xsi:type="xsd:integer">42</ext:num>
+		<ext:multi xsi:type="xsd:string">raz</ext:multi>
+		<ext:multi xsi:type="xsd:string">dva</ext:multi>
+		<ext:multi xsi:type="xsd:string">tri</ext:multi>
 	<!--	<foo:password xsi:type="ProtectedStringType">
 			<clearValue>openS3zam3</clearValue>
 		</foo:password>  -->
@@ -38,11 +38,11 @@
     <givenName>Jack</givenName>
     <familyName>Sparrow</familyName>
 
-	<assignment xml:id="1111">
+	<assignment id="i1111">
 		<description>Assignment 1</description>
 	</assignment>
 
-	<assignment xml:id="1112">
+	<assignment id="i1112">
 		<description>Assignment 2</description>
 	</assignment>
 

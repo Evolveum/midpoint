@@ -49,12 +49,16 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author semancik
  *
  */
 public class PrismJaxbProcessor {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(PrismJaxbProcessor.class);
 	
 	private SchemaRegistry schemaRegistry;
 	private JAXBContext context;
@@ -73,11 +77,15 @@ public class PrismJaxbProcessor {
 				sb.append(":");
 			}
 		}
-
-		try {
-			context = JAXBContext.newInstance(sb.toString());
-		} catch (JAXBException ex) {
-			throw new SystemException("Couldn't create JAXBContext for: " + sb.toString(), ex);
+		String jaxbPaths = sb.toString();
+		if (jaxbPaths.isEmpty()) {
+			LOGGER.warn("No JAXB paths, skipping creation of JAXB context");
+		} else {
+			try {
+				context = JAXBContext.newInstance(jaxbPaths);
+			} catch (JAXBException ex) {
+				throw new SystemException("Couldn't create JAXBContext for: " + jaxbPaths, ex);
+			}
 		}
 	}
 

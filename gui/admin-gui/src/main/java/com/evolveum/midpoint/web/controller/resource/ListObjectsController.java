@@ -40,7 +40,7 @@ import org.springframework.stereotype.Controller;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -238,7 +238,7 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 			return qnames;
 		}
 
-		Schema schema = null;
+		PrismSchema schema = null;
 		try {
 			schema = RefinedResourceSchema.getResourceSchema(resource);
 		} catch (SchemaException ex) {

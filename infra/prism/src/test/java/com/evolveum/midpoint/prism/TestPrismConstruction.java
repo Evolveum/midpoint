@@ -53,7 +53,7 @@ public class TestPrismConstruction {
 	
 	@BeforeSuite
 	public void setupDebug() {
-		DebugUtil.setDefaultNamespacePrefix("http://midpoint.evolveum.com/xml/ns");
+		DebugUtil.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
 	}
 
 	/**
@@ -65,7 +65,7 @@ public class TestPrismConstruction {
 		System.out.println("===[ testConstructionWithSchema ]===");
 		
 		// GIVEN
-		PrismContext ctx = constructPrismContext();
+		PrismContext ctx = constructInitializedPrismContext();
 		PrismObjectDefinition<UserType> userDefinition = ctx.getSchemaRegistry().getObjectSchema().findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
 		
 		// WHEN
@@ -120,7 +120,7 @@ public class TestPrismConstruction {
 		// Make sure the object is OK
 		assertUserDrake(user, false);
 		
-		PrismContext ctx = constructPrismContext();
+		PrismContext ctx = constructInitializedPrismContext();
 		PrismObjectDefinition<UserType> userDefinition =
 			ctx.getSchemaRegistry().getObjectSchema().findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
 		

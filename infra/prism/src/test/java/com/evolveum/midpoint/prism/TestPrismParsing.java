@@ -52,11 +52,7 @@ import com.evolveum.midpoint.util.DebugUtil;
  *
  */
 public class TestPrismParsing {
-	
-	private static final String TEST_DIRECTORY = "src/test/resources/parsing";
-	private static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
-	private static final String NS_BAR = "http://www.example.com/bar";
-	
+		
 	@BeforeSuite
 	public void setupDebug() {
 		DebugUtil.setDefaultNamespacePrefix("http://midpoint.evolveum.com/xml/ns");
@@ -67,7 +63,7 @@ public class TestPrismParsing {
 		System.out.println("===[ testPrismParseDom ]===");
 		
 		// GIVEN
-		Document document = DOMUtil.parseFile(new File(TEST_DIRECTORY, "user-jack.xml"));
+		Document document = DOMUtil.parseFile(USER_JACK_FILE);
 		Element userElement = DOMUtil.getFirstChildElement(document);
 		
 		// FOOOOOOOOOOO
@@ -88,7 +84,7 @@ public class TestPrismParsing {
 		}
 
 		
-		PrismContext prismContext = constructPrismContext();
+		PrismContext prismContext = constructInitializedPrismContext();
 		
 		// WHEN
 		PrismObject<UserType> user = prismContext.parseObject(userElement);
@@ -98,7 +94,7 @@ public class TestPrismParsing {
 		System.out.println(user.dump());
 		assertNotNull(user);
 		
-		assertEquals("Wrong oid", "c0c010c0-d34d-b33f-f00d-111111111111", user.getOid());
+		assertEquals("Wrong oid", USER_JACK_OID, user.getOid());
 		assertEquals("Wrong version", "42", user.getVersion());
 		assertPropertyValue(user, "fullName", "cpt. Jack Sparrow");
 		assertPropertyValue(user, "givenName", "Jack");
@@ -106,12 +102,12 @@ public class TestPrismParsing {
 		assertPropertyValue(user, "name", "jack");
 		
 		PrismContainer extension = user.getExtension();
-		assertPropertyValue(extension, new QName(NS_BAR, "bar"), "BAR");
-		assertPropertyValue(extension, new QName(NS_BAR, "num"), 42);
-		Collection<PrismPropertyValue<Object>> multiPVals = extension.findProperty(new QName(NS_BAR, "multi")).getValues();
+		assertPropertyValue(extension, new QName(NS_USER_EXT, "bar"), "BAR");
+		assertPropertyValue(extension, new QName(NS_USER_EXT, "num"), 42);
+		Collection<PrismPropertyValue<Object>> multiPVals = extension.findProperty(new QName(NS_USER_EXT, "multi")).getValues();
 		assertEquals("Multi",3,multiPVals.size());
 		
-		PropertyPath barPath = new PropertyPath(new QName(NS_FOO,"extension"), new QName(NS_BAR,"bar"));
+		PropertyPath barPath = new PropertyPath(new QName(NS_FOO,"extension"), new QName(NS_USER_EXT,"bar"));
 		PrismProperty barProperty = user.findProperty(barPath);
 		assertNotNull("Property "+barPath+" not found", barProperty);
 		assertPropertyValue(barProperty, "BAR");
@@ -143,10 +139,10 @@ public class TestPrismParsing {
 		QName descriptionName = new QName(NS_FOO,"description");
 		PrismContainer assContainer = user.findContainer(assName);
 		assertEquals("Wrong assignement values", 2, assContainer.getValues().size());
-		PrismProperty a2DescProperty = assContainer.getValue("1112").findProperty(descriptionName);
+		PrismProperty a2DescProperty = assContainer.getValue("i1112").findProperty(descriptionName);
 		assertEquals("Wrong assigment 2 description", "Assignment 2", a2DescProperty.getValue().getValue());
 		
-		PropertyPath a1Path = new PropertyPath(new PropertyPathSegment(assName, "1111"),
+		PropertyPath a1Path = new PropertyPath(new PropertyPathSegment(assName, "i1111"),
 				new PropertyPathSegment(descriptionName));
 		PrismProperty a1Property = user.findProperty(a1Path);
 		assertNotNull("Property "+a1Path+" not found", a1Property);

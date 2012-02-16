@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -126,7 +126,7 @@ public class ResourceTypeManager {
 	 * @throws CommunicationException
 	 *             cannot fetch resource schema
 	 */
-	public ResourceType completeResource(ResourceType resource, Schema resourceSchema, OperationResult result)
+	public ResourceType completeResource(ResourceType resource, PrismSchema resourceSchema, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException {
 
 		// Check presence of a schema
@@ -269,7 +269,7 @@ public class ResourceTypeManager {
 		OperationResult schemaResult = parentResult.createSubresult(ConnectorTestOperation.CONNECTOR_SCHEMA
 				.getOperation());
 
-		Schema schema = null;
+		PrismSchema schema = null;
 		try {
 			// Try to fetch schema from the connector. The UCF will convert it
 			// to Schema Processor
@@ -320,7 +320,7 @@ public class ResourceTypeManager {
 	 * Adjust scheme with respect to capabilities. E.g. disable attributes that
 	 * are used for special purpose (such as account activation simulation).
 	 */
-	private void adjustSchemaForCapabilities(ResourceType resource, Schema resourceSchema) {
+	private void adjustSchemaForCapabilities(ResourceType resource, PrismSchema resourceSchema) {
 		if (resource.getCapabilities() == null) {
 			return;
 		}
@@ -363,10 +363,10 @@ public class ResourceTypeManager {
 		}
 	}
 
-	public Schema getResourceSchema(ResourceType resource, ConnectorInstance connector,
+	public PrismSchema getResourceSchema(ResourceType resource, ConnectorInstance connector,
 			OperationResult parentResult) throws SchemaException, CommunicationException {
 
-		Schema schema = null;
+		PrismSchema schema = null;
 		try {
 
 			// Make sure that the schema is retrieved from the resource
@@ -404,7 +404,7 @@ public class ResourceTypeManager {
 
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
-		Schema schema = getResourceSchema(resource, connector, parentResult);
+		PrismSchema schema = getResourceSchema(resource, connector, parentResult);
 
 		if (schema == null) {
 			parentResult.recordFatalError("Can't get resource schema.");
@@ -492,7 +492,7 @@ public class ResourceTypeManager {
 
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
 
-		final Schema schema = getResourceSchema(resourceType, connector, parentResult);
+		final PrismSchema schema = getResourceSchema(resourceType, connector, parentResult);
 
 		if (schema == null) {
 			parentResult.recordFatalError("Can't get resource schema.");
@@ -680,7 +680,7 @@ public class ResourceTypeManager {
 		return resultShadow;
 	}
 
-	private void checkSchema(Schema schema) throws SchemaException {
+	private void checkSchema(PrismSchema schema) throws SchemaException {
 		// This is resource schema, it should contain only
 		// ResourceObjectDefintions
 		for (Definition def : schema.getDefinitions()) {

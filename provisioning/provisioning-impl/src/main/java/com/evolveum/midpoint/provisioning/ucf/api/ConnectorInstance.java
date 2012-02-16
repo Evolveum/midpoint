@@ -21,7 +21,7 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -73,7 +73,7 @@ public interface ConnectorInstance {
 	public void configure(ResourceConfigurationType configuration, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException;
 
 	
-	public Schema generateConnectorSchema();
+	public PrismSchema generateConnectorSchema();
 	
 	/**
 	 * Get necessary information from the remote system.
@@ -117,13 +117,13 @@ public interface ConnectorInstance {
 	 * The schema is retrieved from the connector instance and therefore it may be out-of-date.
 	 * This must be called after a call to initialize() method.
 	 * 
-	 * @see Schema
+	 * @see PrismSchema
 	 * 
 	 * @return Up-to-date resource schema.
 	 * @throws CommunicationException error in communication to the resource 
 	 *				- nothing was fetched.
 	 */
-	public Schema getResourceSchema(OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	public PrismSchema getResourceSchema(OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Retrieves a specific object from the resource.

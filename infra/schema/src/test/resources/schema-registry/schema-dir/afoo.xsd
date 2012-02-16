@@ -23,12 +23,15 @@
 		<annotation>
 			<appinfo>
 				<a:propertyContainer/>
+				<a:object/>
 			</appinfo>
 		</annotation>
 		<sequence>
 			<element ref="tns:extension"/>
 			<element name="foo" type="tns:FooType"/>
 		</sequence>
+		<attribute name="oid" type="string"/>
+		<attribute name="version" type="string" use="optional"/>
 	</complexType>
 	
 	<element name="root" type="tns:RootType"/>

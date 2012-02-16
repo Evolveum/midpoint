@@ -2411,6 +2411,7 @@
             <xsd:element name="activation" type="tns:ActivationType" minOccurs="0"/>
 
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:string" use="optional"/>
     </xsd:complexType>
 
     <xsd:element name="assignment" type="tns:AssignmentType"/>

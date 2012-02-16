@@ -32,7 +32,7 @@ import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.schema.Schema;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -51,12 +51,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
  * @author semancik
  *
  */
-public class RefinedResourceSchema extends Schema implements Dumpable, DebugDumpable {
+public class RefinedResourceSchema extends PrismSchema implements Dumpable, DebugDumpable {
 	
 	private SchemaRegistry schemaRegistry;
-	private Schema originalResourceSchema;
+	private PrismSchema originalResourceSchema;
 	
-	private RefinedResourceSchema(ResourceType resourceType, Schema originalResourceSchema, SchemaRegistry schemaRegistry) {
+	private RefinedResourceSchema(ResourceType resourceType, PrismSchema originalResourceSchema, SchemaRegistry schemaRegistry) {
 		super(resourceType.getNamespace());
 		this.originalResourceSchema = originalResourceSchema;
 		this.schemaRegistry = schemaRegistry;
@@ -73,7 +73,7 @@ public class RefinedResourceSchema extends Schema implements Dumpable, DebugDump
 		return accounts;
 	}
 	
-	public Schema getOriginalResourceSchema() {
+	public PrismSchema getOriginalResourceSchema() {
 		return originalResourceSchema;
 	}
 
@@ -126,7 +126,7 @@ public class RefinedResourceSchema extends Schema implements Dumpable, DebugDump
 		return refinedSchema;
 	}
 	
-	public static Schema getResourceSchema(ResourceType resource) throws SchemaException {
+	public static PrismSchema getResourceSchema(ResourceType resource) throws SchemaException {
 		Element resourceXsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
 		if (resourceXsdSchema == null) {
 			return null;
@@ -136,19 +136,19 @@ public class RefinedResourceSchema extends Schema implements Dumpable, DebugDump
 			if (enh.getParsedSchema() != null) {
 				return enh.getParsedSchema();
 			} else {
-				Schema parsedSchema = Schema.parse(resourceXsdSchema);
+				PrismSchema parsedSchema = PrismSchema.parse(resourceXsdSchema);
 				enh.setParsedSchema(parsedSchema);
 				return parsedSchema;
 			}
 		}
-		Schema parsedSchema = Schema.parse(resourceXsdSchema);
+		PrismSchema parsedSchema = PrismSchema.parse(resourceXsdSchema);
 		return parsedSchema;
 	}
 
 
 	public static RefinedResourceSchema parse(ResourceType resourceType, SchemaRegistry schemaRegistry) throws SchemaException {
 		
-		Schema originalResourceSchema = getResourceSchema(resourceType);
+		PrismSchema originalResourceSchema = getResourceSchema(resourceType);
 		
 		SchemaHandlingType schemaHandling = resourceType.getSchemaHandling();
 		

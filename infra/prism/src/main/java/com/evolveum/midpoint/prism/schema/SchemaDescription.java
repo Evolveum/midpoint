@@ -45,7 +45,7 @@ public class SchemaDescription implements Dumpable {
 	private InputStreamable streamable; 
 	private Node node;
 	private boolean isPrismSchema = false;
-	private Schema schema;
+	private PrismSchema schema;
 	private Package compileTimeClassesPackage;
 
 	private SchemaDescription(String sourceDescription) {
@@ -96,11 +96,11 @@ public class SchemaDescription implements Dumpable {
 		this.isPrismSchema = isMidPointSchema;
 	}
 	
-	public Schema getSchema() {
+	public PrismSchema getSchema() {
 		return schema;
 	}
 
-	public void setSchema(Schema schema) {
+	public void setSchema(PrismSchema schema) {
 		this.schema = schema;
 	}
 
