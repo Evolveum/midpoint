@@ -31,6 +31,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
+import org.apache.commons.lang.Validate;
 
 /**
  * @author semancik
@@ -137,6 +138,25 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
             existingItem.setParent(null);
         }
         add(item);
+    }
+    
+    public void remove(Item item) {
+        Validate.notNull(item, "Item must not be null.");
+
+        Item existingItem = findItem(item.getName(),  Item.class);
+        if (item != null) {
+            items.remove(existingItem);
+            existingItem.setParent(null);
+        }
+    }
+    
+    public void removeAll() {
+        Iterator<Item> iterator = items.iterator();
+        while (iterator.hasNext()) {
+            Item item = iterator.next();
+            item.setParent(null);
+            iterator.remove();
+        }
     }
 
     /**

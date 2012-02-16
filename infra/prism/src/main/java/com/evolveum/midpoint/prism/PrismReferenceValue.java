@@ -46,7 +46,6 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
         this(oid, null, null);
     }
 
-    //todo: rado source should be probable type of PrismObject ....?????
     public PrismReferenceValue(String oid, SourceType type, Objectable source) {
     	super(type,source);
         this.oid = oid;

@@ -91,8 +91,6 @@ public final class PrismForJAXBUtil {
         property.setValue(new PrismPropertyValue(value));
     }
 
-    //todo check usages before implementing
-
     public static <T> List<T> getPropertyValues(PrismContainerValue container, QName name, Class<T> clazz) {
         Validate.notNull(container, "Container must not be null.");
         Validate.notNull(name, "QName must not be null.");
@@ -103,69 +101,104 @@ public final class PrismForJAXBUtil {
     }
 
     public static PrismContainerValue getContainerValue(PrismContainer parent, QName name) {
+        Validate.notNull(parent, "Container must not be null.");
+        Validate.notNull(name, "QName must not be null.");
+
         return getContainerValue(parent.getValue(), name);
     }
 
     public static PrismContainerValue getContainerValue(PrismContainerValue parent, QName name) {
-        //todo implement, experimental, used for xjc stuff with jaxb
-        throw new UnsupportedOperationException("not implemented yet");
+        Validate.notNull(parent, "Container must not be null.");
+        Validate.notNull(name, "QName must not be null.");
+
+        PrismContainer container = parent.findItem(name, PrismContainer.class);
+        return container != null ? container.getValue() : null;
     }
 
     public static <T extends PrismContainer> T getContainer(PrismContainer parent, QName name, Class<T> clazz) {
-        //todo implement, experimental, used for xjc stuff with jaxb
-        throw new UnsupportedOperationException("not implemented yet");
+        Validate.notNull(parent, "Container must not be null.");
+        Validate.notNull(name, "QName must not be null.");
+        Validate.notNull(clazz, "Class type must not be null.");
+
+        return parent.findItem(name, clazz);
     }
 
     public static boolean setContainerValue(PrismContainerValue parent, QName name, PrismContainerValue value) {
-        //todo implement, experimental, used for xjc stuff with jaxb
-        throw new UnsupportedOperationException("not implemented yet");
-    }
+        Validate.notNull(parent, "Prism container value must not be null.");
+        Validate.notNull(name, "QName must not be null.");
 
-    public static boolean setContainerValue(PrismContainer parent, QName name, PrismContainer value) {
-        //todo implement, experimental, used for xjc stuff with jaxb
-        throw new UnsupportedOperationException("not implemented yet");
+        PrismContainer container = parent.findItem(name, PrismContainer.class);
+        if (value == null) {
+            if (container != null) {
+                container.getValue().removeAll();
+            }
+        } else {
+            PrismContainer newValue = new PrismContainer(name);
+            container.add(value);
+            container.getValue().addReplaceExisting(newValue);
+        }
+
+        return true;
     }
 
     public static boolean setContainerValue(PrismContainer parent, QName name, PrismContainerValue value) {
-        //todo implement, experimental, used for xjc stuff with jaxb
-        throw new UnsupportedOperationException("not implemented yet");
+        return setContainerValue(parent.getValue(), name, value);
     }
 
     public static PrismReferenceValue getReferenceValue(PrismContainerValue parent, QName name) {
-        //todo implement, experimental, used for xjc stuff with jaxb
-        throw new UnsupportedOperationException("not implemented yet");
+        Validate.notNull(parent, "Prism container value must not be null.");
+        Validate.notNull(name, "QName must not be null.");
+
+        PrismReference reference = parent.findItem(name, PrismReference.class);
+        return reference != null ? reference.getValue() : null;
     }
 
     public static PrismReferenceValue getReferenceValue(PrismContainer parent, QName name) {
-        PrismReference reference = getReference(parent, name);
-        if (reference == null) {
-            return null;
-        }
+        Validate.notNull(parent, "Prism container must not be null.");
+        Validate.notNull(name, "QName must not be null.");
 
-        return reference.getValue();
+        PrismReference reference = getReference(parent, name);
+        return reference != null ? reference.getValue() : null;
     }
 
     public static PrismReference getReference(PrismContainer parent, QName name) {
+        Validate.notNull(parent, "Prism container must not be null.");
+        Validate.notNull(name, "QName must not be null.");
+
         return parent.findReference(name);
     }
 
-    public static PrismReferenceValue setReferenceValue(PrismContainerValue parent, QName name, PrismReferenceValue value) {
-        //todo implement, experimental, used for xjc stuff with jaxb
-        throw new UnsupportedOperationException("not implemented yet");
+    public static void setReferenceValue(PrismContainerValue parent, QName name,
+            PrismReferenceValue value) {
+        Validate.notNull(parent, "Prism container value must not be null.");
+        Validate.notNull(name, "QName must not be null.");
+
+        PrismReference reference = parent.findItem(name, PrismReference.class);
+        if (reference == null) {
+            if (value == null) {
+                reference.getValue().setObject(null);
+            }
+        } else {            
+            reference.getValue().setObject(value.getObject());
+        }
     }
 
-    public static PrismReferenceValue setReferenceValue(PrismContainer parent, QName name, PrismReferenceValue value) {
-        //todo implement, experimental, used for xjc stuff with jaxb
-        throw new UnsupportedOperationException("not implemented yet");
+    public static void setReferenceValue(PrismContainer parent, QName name, PrismReferenceValue value) {
+        setReferenceValue(parent.getValue(), name, value);
     }
 
-    public static PrismReferenceValue setReferenceObject(PrismContainerValue parent, QName name, PrismObject value) {
-        //todo implement, experimental, used for xjc stuff with jaxb
-        throw new UnsupportedOperationException("not implemented yet");
+    public static void setReferenceObject(PrismContainerValue parent, QName name, PrismObject value) {
+        Validate.notNull(parent, "Prism container value must not be null.");
+        Validate.notNull(name, "QName must not be null.");
+
+        if (value != null) {
+            parent.addReplaceExisting(value);
+        } else {
+            parent.remove(value);
+        }
     }
 
-    public static PrismReferenceValue setReferenceObject(PrismContainer parent, QName name, PrismObject value) {
-        //todo implement, experimental, used for xjc stuff with jaxb
-        throw new UnsupportedOperationException("not implemented yet");
+    public static void setReferenceObject(PrismContainer parent, QName name, PrismObject value) {
+        setReferenceObject(parent.getValue(), name, value);
     }
 }
