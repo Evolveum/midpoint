@@ -38,7 +38,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public interface ValueConstructor {
 
-	PrismProperty construct(JAXBElement<?> constructorElement, PrismPropertyDefinition outputDefinition, PropertyPath propertyParentPath,
+	PrismProperty construct(JAXBElement<?> constructorElement, PrismPropertyDefinition outputDefinition,
 			PrismProperty input, Map<QName, Object> variables, String contextDescription, OperationResult result) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException;
 

@@ -53,7 +53,7 @@ public class ExpressionValueConstructor implements ValueConstructor {
       * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property)
       */
     @Override
-    public PrismProperty construct(JAXBElement<?> constructorElement, PrismPropertyDefinition outputDefinition, PropertyPath propertyParentPath,
+    public PrismProperty construct(JAXBElement<?> constructorElement, PrismPropertyDefinition outputDefinition,
             PrismProperty input, Map<QName, Object> variables, String contextDescription, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 

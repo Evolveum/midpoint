@@ -304,6 +304,14 @@ public class PrismJaxbProcessor {
 		return jaxbElement;
 	}
 	
+	public <T> T unmarshalToObject(Node node) throws JAXBException {
+		JAXBElement<T> element = unmarshalElement(node);
+		if (element == null) {
+			return null;
+		}
+		return element.getValue();
+	}
+	
 	public <T> JAXBElement<T> unmarshalElement(Node node) throws JAXBException {
 		Object object = createUnmarshaller().unmarshal(node);
 		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;

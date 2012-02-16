@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
@@ -46,7 +47,7 @@ public class LiteralValueConstructor implements ValueConstructor {
 	 * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property)
 	 */
 	@Override
-	public PrismProperty construct(JAXBElement<?> constructorElement, PrismPropertyDefinition outputDefinition, PropertyPath propertyParentPath,
+	public PrismProperty construct(JAXBElement<?> constructorElement, PrismPropertyDefinition outputDefinition,
 			PrismProperty input, Map<QName, Object> variables, String contextDescription, OperationResult result) 
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
@@ -58,8 +59,12 @@ public class LiteralValueConstructor implements ValueConstructor {
 			throw new IllegalArgumentException("Literal value constructor can only handle DOM elements, but got "+constructorTypeObject.getClass().getName());
 		}
 		
+		PrismContext prismContext = outputDefinition.getPrismContext();
+		if (prismContext == null) {
+			throw new IllegalStateException("No prism context in "+outputDefinition);
+		}
 		// FIXME: better handling of parentPath
-		PrismProperty output = outputDefinition.parseFromValueElement((Element)constructorTypeObject, propertyParentPath);
+		PrismProperty output = prismContext.getPrismDomProcessor().parsePropertyFromValueElement((Element)constructorTypeObject, outputDefinition);
 		
 		return output;
 	}

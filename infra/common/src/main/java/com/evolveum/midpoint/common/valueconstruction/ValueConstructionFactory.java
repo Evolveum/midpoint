@@ -100,11 +100,11 @@ public class ValueConstructionFactory {
 	}
 
 	public ValueConstruction createValueConstruction(ValueConstructionType valueConstructionType, PrismPropertyDefinition outputDefinition,
-			PropertyPath outputPropertyParentPath, String shortDesc) {
+			String shortDesc) {
 		if (constructors == null) {
 			initialize();
 		}
-		ValueConstruction construction = new ValueConstruction(valueConstructionType, outputDefinition, outputPropertyParentPath, shortDesc, constructors);
+		ValueConstruction construction = new ValueConstruction(valueConstructionType, outputDefinition, shortDesc, constructors);
 		return construction;
 	}
 	

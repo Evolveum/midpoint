@@ -167,7 +167,7 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 		this.help = help;
 	}
 	
-	protected PrismContext getPrismContext() {
+	public PrismContext getPrismContext() {
 		return prismContext;
 	}
 	

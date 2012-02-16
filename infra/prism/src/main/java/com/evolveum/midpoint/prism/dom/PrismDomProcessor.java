@@ -277,6 +277,19 @@ public class PrismDomProcessor {
         }
         return prop;
     }
+    
+    public PrismProperty parsePropertyFromValueElement(Element valueElement, PrismPropertyDefinition propertyDefinition) throws SchemaException {
+    	PrismProperty prop = propertyDefinition.instantiate();
+        if (propertyDefinition.isSingleValue()) {
+            prop.addValue(new PrismPropertyValue(XmlTypeConverter.convertValueElementAsScalar(valueElement, propertyDefinition.getTypeName())));
+        } else {
+            List list = XmlTypeConverter.convertValueElementAsList(valueElement, propertyDefinition.getTypeName());
+            for (Object object : list) {
+                prop.getValues().add(new PrismPropertyValue(object));
+            }
+        }
+        return prop;
+    }
 
     /**
      * This gets definition of an unspecified type. It has to find the right method to call.

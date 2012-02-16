@@ -62,7 +62,7 @@ public class GenerateValueConstructor implements ValueConstructor {
 	 * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(javax.xml.bind.JAXBElement, com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property, java.util.Map, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public PrismProperty construct(JAXBElement<?> constructorElement, PrismPropertyDefinition outputDefinition, PropertyPath propertyParentPath,
+	public PrismProperty construct(JAXBElement<?> constructorElement, PrismPropertyDefinition outputDefinition,
 			PrismProperty input, Map<QName, Object> variables, String contextDescription, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
@@ -93,7 +93,7 @@ public class GenerateValueConstructor implements ValueConstructor {
 			}
         }
         
-		PrismProperty output = outputDefinition.instantiate(propertyParentPath);
+		PrismProperty output = outputDefinition.instantiate();
 		PrismPropertyValue<Object> pValue = new PrismPropertyValue<Object>(value);
 		output.setValue(pValue);
 		

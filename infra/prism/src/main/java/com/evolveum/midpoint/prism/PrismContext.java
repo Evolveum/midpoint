@@ -81,6 +81,14 @@ public class PrismContext {
 		this.prismJaxbProcessor = prismJaxbProcessor;
 	}
 	
+	public PrismDomProcessor getPrismDomProcessor() {
+		return prismDomProcessor;
+	}
+
+	public void setPrismDomProcessor(PrismDomProcessor prismDomProcessor) {
+		this.prismDomProcessor = prismDomProcessor;
+	}
+
 	public SchemaDefinitionFactory getDefinitionFactory() {
 		if (definitionFactory == null) {
 			definitionFactory = new SchemaDefinitionFactory();
