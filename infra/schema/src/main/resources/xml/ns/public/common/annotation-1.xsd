@@ -34,7 +34,7 @@
         </xsd:documentation>
     </xsd:annotation>
 
-    <xsd:element name="propertyContainer">
+    <xsd:element name="container">
         <xsd:annotation>
             <xsd:documentation>
                 This is XSD annotation. It marks XSD type that is a property
@@ -47,7 +47,7 @@
     </xsd:element>
 
     <!-- REFACTOR THIS, TAKE PROPERTY CONTAINER ANNOTATION INTO ACCOUNT -->
-    <xsd:element name="midPointContainer">
+    <xsd:element name="object">
         <xsd:annotation>
             <xsd:documentation>
                 This is XSD annotation. It marks XSD type that is a midpoint object

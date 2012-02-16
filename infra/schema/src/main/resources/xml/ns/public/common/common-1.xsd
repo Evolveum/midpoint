@@ -253,10 +253,8 @@
 
             </xsd:documentation>
             <xsd:appinfo>
-                <a:propertyContainer/>
+                <a:container/>
                 <a:object/>
-                <!-- todo remove later -->
-                <a:midPointContainer/>
             </xsd:appinfo>
         </xsd:annotation>
 
@@ -414,7 +412,7 @@
                 It must NOT contain standard elements.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:propertyContainer/>
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexType>
@@ -2289,7 +2287,7 @@
                 TODO: support for "old password", e.g. some resource need it to change password.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:propertyContainer/>
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2315,7 +2313,7 @@
     <xsd:complexType name="PasswordType">
         <xsd:annotation>
             <xsd:appinfo>
-                <a:propertyContainer/>
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2367,7 +2365,7 @@
 
             </xsd:documentation>
             <xsd:appinfo>
-                <a:propertyContainer/>
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2433,7 +2431,7 @@
                 taken into account when computing the accounts.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:propertyContainer/>
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -4171,7 +4169,7 @@
                                 on this object.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:propertyContainer/>
+                                <a:container/>
                             </xsd:appinfo>
                         </xsd:annotation>
                         <xsd:complexType>
@@ -4257,7 +4255,7 @@
     <xsd:complexType name="ResourceObjectType">
         <xsd:annotation>
             <xsd:appinfo>
-                <a:propertyContainer/>
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -4275,7 +4273,7 @@
     <xsd:complexType name="ResourceObjectIdentificationType">
         <xsd:annotation>
             <xsd:appinfo>
-                <a:propertyContainer/>
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -4301,7 +4299,7 @@
                     examples.
                 </xsd:documentation>
                 <xsd:appinfo>
-                    <a:propertyContainer/>
+                    <a:container/>
                 </xsd:appinfo>
             </xsd:annotation>
             <xsd:sequence>

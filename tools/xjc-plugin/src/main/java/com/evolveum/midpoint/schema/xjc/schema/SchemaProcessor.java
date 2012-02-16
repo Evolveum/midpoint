@@ -21,10 +21,7 @@
 
 package com.evolveum.midpoint.schema.xjc.schema;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
 import com.evolveum.midpoint.schema.xjc.PrismForJAXBUtil;
 import com.evolveum.midpoint.schema.xjc.PrismReferenceArrayList;
@@ -69,8 +66,8 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_GET_REFERENCE = "getReference";
     private static final String METHOD_SET_REFERENCE = "setReference";
     //annotations for schema processor
-    private static final QName PROPERTY_CONTAINER = new QName(PrefixMapper.A.getNamespace(), "propertyContainer");  //todo change to prismObject
-    private static final QName MIDPOINT_CONTAINER = new QName(PrefixMapper.A.getNamespace(), "midPointContainer");  //todo change to prismContainer
+    private static final QName PROPERTY_CONTAINER = new QName(PrefixMapper.A.getNamespace(), "container");
+    private static final QName MIDPOINT_CONTAINER = new QName(PrefixMapper.A.getNamespace(), "object");
     //fields and methods for prism containers/prism objects
     private static final String COMPLEX_TYPE_FIELD = "COMPLEX_TYPE";
     private static final String CONTAINER_FIELD_NAME = "container";
@@ -111,7 +108,7 @@ public class SchemaProcessor implements Processor {
             createClassMap(CLASS_MAP, outline, PrismReferenceValue.class, PrismReference.class, PrismObject.class,
                     String.class, Object.class, XmlTransient.class, Override.class, IllegalArgumentException.class,
                     QName.class, PrismForJAXBUtil.class, PrismReferenceArrayList.class, PrismContainerValue.class,
-                    List.class);
+                    List.class, Objectable.class, StringBuilder.class);
 
             StepSchemaConstants stepSchemaConstants = new StepSchemaConstants();
             stepSchemaConstants.run(outline, options, errorHandler);
@@ -247,9 +244,9 @@ public class SchemaProcessor implements Processor {
 
             System.out.println("Creating toString, equals, hashCode methods.");
             //create toString, equals, hashCode
-            createToStringMethod(definedClass, outline);
-            createEqualsMethod(definedClass, outline);
-            createHashCodeMethod(definedClass, outline);
+            createToStringMethod(definedClass);
+            createEqualsMethod(definedClass);
+            createHashCodeMethod(definedClass);
         }
 
         return containers;
@@ -266,6 +263,7 @@ public class SchemaProcessor implements Processor {
             }
 
             JDefinedClass definedClass = classOutline.implClass;
+            definedClass._implements(CLASS_MAP.get(Objectable.class));
             containers.add(definedClass);
 
             //inserting PrismObject field into ObjectType class
@@ -276,26 +274,51 @@ public class SchemaProcessor implements Processor {
             //create getContainer
             createGetContainerMethod(classOutline, container);
             //create setContainer
-            createSetContainerMethod(definedClass, container, outline);
+            createSetContainerMethod(definedClass, container);
 
             System.out.println("Creating toString, equals, hashCode methods.");
             //create toString, equals, hashCode
-            createToStringMethod(definedClass, outline);
-            createEqualsMethod(definedClass, outline);
-            createHashCodeMethod(definedClass, outline);
+            createToStringMethod(definedClass);
+            createEqualsMethod(definedClass);
+            createHashCodeMethod(definedClass);
+            //create toDebugName, toDebugType
+            createToDebugName(definedClass);
+            createToDebugType(definedClass);
         }
 
         return containers;
     }
+    
+    private void createToDebugName(JDefinedClass definedClass) {
+        JMethod method = definedClass.method(JMod.PUBLIC, String.class, "toDebugName");
+        method.annotate(CLASS_MAP.get(Override.class));
+        JBlock body = method.body();
+        JVar builder = body.decl(CLASS_MAP.get(StringBuilder.class), "builder",
+                JExpr._new(CLASS_MAP.get(StringBuilder.class)));
 
-    private void createHashCodeMethod(JDefinedClass definedClass, Outline outline) {
+        
+        body._return(JExpr.invoke(builder, "toString"));
+    }
+    
+    private void createToDebugType(JDefinedClass definedClass) {
+        JMethod method = definedClass.method(JMod.PUBLIC, String.class, "toDebugType");
+        method.annotate(CLASS_MAP.get(Override.class));
+        JBlock body = method.body();
+        JVar builder = body.decl(CLASS_MAP.get(StringBuilder.class), "builder",
+                JExpr._new(CLASS_MAP.get(StringBuilder.class)));
+
+
+        body._return(JExpr.invoke(builder, "toString"));
+    }
+
+    private void createHashCodeMethod(JDefinedClass definedClass) {
         JMethod hashCode = definedClass.method(JMod.PUBLIC, int.class, METHOD_HASH_CODE);
         hashCode.annotate(CLASS_MAP.get(Override.class));
         JBlock body = hashCode.body();
         body._return(JExpr.invoke(METHOD_GET_CONTAINER).invoke(METHOD_HASH_CODE));
     }
 
-    private void createEqualsMethod(JDefinedClass definedClass, Outline outline) {
+    private void createEqualsMethod(JDefinedClass definedClass) {
         JMethod equals = definedClass.method(JMod.PUBLIC, boolean.class, METHOD_EQUALS);
         JVar obj = equals.param(CLASS_MAP.get(Object.class), "obj");
         equals.annotate(CLASS_MAP.get(Override.class));
@@ -311,7 +334,7 @@ public class SchemaProcessor implements Processor {
         body._return(invocation);
     }
 
-    private void createToStringMethod(JDefinedClass definedClass, Outline outline) {
+    private void createToStringMethod(JDefinedClass definedClass) {
         JMethod toString = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(String.class), METHOD_TO_STRING);
         toString.annotate(CLASS_MAP.get(Override.class));
 
@@ -357,12 +380,13 @@ public class SchemaProcessor implements Processor {
 
         JInvocation newContainer = JExpr._new(CLASS_MAP.get(PrismObject.class));
         newContainer.arg(JExpr.invoke(METHOD_GET_CONTAINER_NAME));
+        newContainer.arg(JExpr.dotclass(definedClass));
         then.assign(container, newContainer);
 
         body._return(container);
     }
 
-    private void createSetContainerMethod(JDefinedClass definedClass, JVar container, Outline outline) {
+    private void createSetContainerMethod(JDefinedClass definedClass, JVar container) {
         JMethod setContainer = definedClass.method(JMod.PUBLIC, void.class, METHOD_SET_CONTAINER);
         JVar methodContainer = setContainer.param(PrismObject.class, "container");
         //create method body
@@ -640,7 +664,7 @@ public class SchemaProcessor implements Processor {
     private boolean updateFieldReference(JFieldVar field, ClassOutline classOutline) {
         JMethod method = recreateGetter(field, classOutline);
 
-        boolean isList = isList(field.type(), classOutline);
+        boolean isList = isList(field.type());
         createFieldReferenceGetterBody(field, classOutline, method.body(), isList);
 
         //setter method update
@@ -650,12 +674,12 @@ public class SchemaProcessor implements Processor {
 
         method = recreateSetter(field, classOutline);
         JVar param = method.listParams()[0];
-        createFieldReferenceSetterBody(field, classOutline, param, method.body());
+        createFieldReferenceSetterBody(field, param, method.body());
 
         return true;
     }
 
-    private void createFieldReferenceSetterBody(JFieldVar field, ClassOutline classOutline, JVar param, JBlock body) {
+    private void createFieldReferenceSetterBody(JFieldVar field, JVar param, JBlock body) {
         JVar cont = body.decl(CLASS_MAP.get(PrismReferenceValue.class), REFERENCE_FIELD_NAME,
                 JOp.cond(param.ne(JExpr._null()), JExpr.invoke(param, METHOD_GET_REFERENCE), JExpr._null()));
         JInvocation invocation = body.staticInvoke(CLASS_MAP.get(PrismForJAXBUtil.class),
@@ -747,7 +771,7 @@ public class SchemaProcessor implements Processor {
     private boolean updateFieldReferenceUse(JFieldVar field, ClassOutline classOutline) {
         //getter method update
         JMethod method = recreateGetter(field, classOutline);
-        boolean isList = isList(field.type(), classOutline);
+        boolean isList = isList(field.type());
         createFieldReferenceUseGetterBody(field, classOutline, method.body(), isList);
 
         //setter method update
@@ -773,7 +797,7 @@ public class SchemaProcessor implements Processor {
         invocation.arg(cont);
     }
 
-    private void createFieldReferenceUseCreateItemBody(JFieldVar field, ClassOutline classOutline, JMethod method) {
+    private void createFieldReferenceUseCreateItemBody(JFieldVar field, JMethod method) {
         JClass type = ((JClass) field.type()).getTypeParameters().get(0);
 
         JBlock body = method.body();
@@ -793,7 +817,7 @@ public class SchemaProcessor implements Processor {
             JVar ref = body.decl(CLASS_MAP.get(PrismReference.class), REFERENCE_FIELD_NAME, invoke);
 
             JDefinedClass anonymous = createFieldReferenceGetterListAnon(field, classOutline);
-            createFieldReferenceUseCreateItemBody(field, classOutline, findMethod(anonymous, "createItem"));
+            createFieldReferenceUseCreateItemBody(field, findMethod(anonymous, "createItem"));
 
             JInvocation newList = JExpr._new(anonymous);
             newList.arg(ref);
@@ -990,7 +1014,7 @@ public class SchemaProcessor implements Processor {
         return hasParentAnnotation(classOutline, MIDPOINT_CONTAINER);
     }
 
-    private boolean isList(JType type, ClassOutline classOutline) {
+    private boolean isList(JType type) {
         boolean isList = false;
         if (type instanceof JClass) {
             isList = CLASS_MAP.get(List.class).equals(((JClass) type).erasure());
@@ -1002,8 +1026,8 @@ public class SchemaProcessor implements Processor {
     private boolean updateField(JFieldVar field, ClassOutline classOutline) {
         //update getter
         JMethod method = recreateGetter(field, classOutline);
-        boolean isList = isList(field.type(), classOutline);
-        createFieldGetterBody(method, field, classOutline, isList);
+        boolean isList = isList(field.type());
+        createFieldGetterBody(method, field, isList);
 
         //update setter
         if (isList) {
@@ -1012,12 +1036,12 @@ public class SchemaProcessor implements Processor {
         }
 
         method = recreateSetter(field, classOutline);
-        createFieldSetterBody(method, field, classOutline);
+        createFieldSetterBody(method, field);
 
         return true;
     }
 
-    private void createFieldSetterBody(JMethod method, JFieldVar field, ClassOutline classOutline) {
+    private void createFieldSetterBody(JMethod method, JFieldVar field) {
         JBlock body = method.body();
         JInvocation invocation = body.staticInvoke(CLASS_MAP.get(PrismForJAXBUtil.class),
                 METHOD_PRISM_SET_PROPERTY_VALUE);
@@ -1027,7 +1051,7 @@ public class SchemaProcessor implements Processor {
         invocation.arg(method.listParams()[0]);
     }
 
-    private void createFieldGetterBody(JMethod method, JFieldVar field, ClassOutline classOutline, boolean isList) {
+    private void createFieldGetterBody(JMethod method, JFieldVar field, boolean isList) {
         JBlock body = method.body();
         JInvocation invocation;
         if (isList) {
