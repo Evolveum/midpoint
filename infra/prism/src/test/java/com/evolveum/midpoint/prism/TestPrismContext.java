@@ -79,6 +79,9 @@ public class TestPrismContext {
 		assertNotNull("No user definition", userDefinition);
 		System.out.println("User definition:");
 		System.out.println(userDefinition.dump());
+		
+		PrismObjectDefinition<UserType> userDefinitionByClass = schemaRegistry.findObjectDefinitionByCompileTimeClass(UserType.class);
+		assertTrue("Different user def", userDefinition == userDefinitionByClass);
 
 		assertEquals("Wrong compile-time class in user definition", UserType.class, userDefinition.getCompileTimeClass());
 		assertPropertyDefinition(userDefinition, USER_NAME_QNAME, DOMUtil.XSD_STRING, 0, 1);

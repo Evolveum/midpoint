@@ -51,7 +51,7 @@ public class DiffUtil {
 	}
 
 	public static <T extends Objectable> ObjectDelta<T> diff(T oldObjectType, T newObjectType, Class<T> type, PrismSchema objectSchema) throws SchemaException {
-		PrismObjectDefinition<T> objectDefinition = objectSchema.findObjectDefinitionByClass(type);
+		PrismObjectDefinition<T> objectDefinition = objectSchema.findObjectDefinitionByCompileTimeClass(type);
 		PrismObject<T> oldObject = null;
 		if (oldObjectType != null) {
 			oldObject = objectDefinition.parseObjectType(oldObjectType);

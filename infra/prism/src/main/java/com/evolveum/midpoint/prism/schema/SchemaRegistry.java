@@ -585,6 +585,14 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		}
 		return null;
 	}
+	
+	public <T extends Objectable> PrismObjectDefinition<T> findObjectDefinitionByCompileTimeClass(Class<T> compileTimeClass) {
+		PrismSchema schema = findSchemaByCompileTimeClass(compileTimeClass);
+		if (schema == null) {
+			return null;
+		}
+		return schema.findObjectDefinitionByCompileTimeClass(compileTimeClass);
+	}
 
 	public PrismSchema findSchemaByNamespace(String namespaceURI) {
 		// Prefer object schema
