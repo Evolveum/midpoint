@@ -27,6 +27,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.SystemException;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -39,40 +40,40 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 /**
  * Common supertype for all identity objects. Defines basic properties that each
  * object must have to live in our system (identifier, name).
- * 
+ *
  * Objects consists of identifier and name (see definition below) and a set of
  * properties represented as XML elements in the object's body. The attributes
  * are represented as first-level XML elements (tags) of the object XML
  * representation and may be also contained in other tags (e.g. extension,
  * attributes). The QName (namespace and local name) of the element holding the
  * property is considered to be a property name.
- * 
+ *
  * This class is named MidPointObject instead of Object to avoid confusion with
  * java.lang.Object.
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 public class PrismObject<T extends Objectable> extends PrismContainer {
 
 	protected String oid;
 	protected String version;
 	protected Class<T> compileTimeClass;
-		
+
 	public PrismObject(QName name, Class<T> compileTimeClass) {
 		super(name);
 		this.compileTimeClass = compileTimeClass;
 	}
-	
+
 	public PrismObject(QName name, PrismObjectDefinition definition, PrismContext prismContext) {
 		super(name, definition, prismContext);
 	}
 
 	/**
 	 * Returns Object ID (OID).
-	 * 
+	 *
 	 * May return null if the object does not have an OID.
-	 * 
+	 *
 	 * @return Object ID (OID)
 	 */
 	public String getOid() {
@@ -95,7 +96,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 	public PrismObjectDefinition<T> getDefinition() {
 		return (PrismObjectDefinition<T>) super.getDefinition();
 	}
-	
+
 	public Class<T> getCompileTimeClass() {
 		if (this.compileTimeClass != null) {
 			return compileTimeClass;
@@ -107,14 +108,26 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 	}
 
 	public T getObjectable() {
-		// TODO
-		throw new UnsupportedOperationException();
+        try {
+            Class<T> clazz = getCompileTimeClass();
+            if (clazz == null) {
+                throw new SystemException("Unknown compile time class of this prism object '" + getName() + "'.");
+            }
+            T object = clazz.newInstance();
+            object.setContainer(this);
+
+            return (T) object;
+        } catch (SystemException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new SystemException("Couldn't create jaxb object instance of '" + getCompileTimeClass() + "'.");
+        }
 	}
-	
+
 	public PrismContainer getExtension() {
 		return getValue().findItem(new QName(getName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME), PrismContainer.class);
 	}
-	
+
 	@Override
 	public void applyDefinition(ItemDefinition definition) {
     	if (!(definition instanceof PrismObjectDefinition)) {
@@ -122,12 +135,12 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
     	}
     	super.applyDefinition(definition);
 	}
-	
+
 	@Override
 	public <T extends Item> T findItem(PropertyPath path, Class<T> type) {
 		return findCreateItem(path, type, false);
 	}
-		
+
 	@Override
 	<T extends Item> T findCreateItem(PropertyPath path, Class<T> type, boolean create) {
 		// Objects are only a single-valued containers. The path of the object itself is "empty".
@@ -144,12 +157,12 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 		} else {
 			if (create) {
 				throw new IllegalStateException("The " + type.getSimpleName() + " cannot be created because "
-						+ subitem.getClass().getSimpleName() + " with the same name exists"); 
+						+ subitem.getClass().getSimpleName() + " with the same name exists");
 			}
 			return null;
 		}
 	}
-	
+
 	@Override
 	public PrismObject<T> clone() {
 		PrismObject<T> clone = new PrismObject<T>(getName(), getDefinition(), prismContext);
@@ -161,7 +174,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 		super.copyValues(clone);
 		clone.oid = this.oid;
 	}
-	
+
 	public ObjectDelta<T> compareTo(PrismObject<T> other) {
 		if (other == null) {
 			ObjectDelta<T> objectDelta = new ObjectDelta<T>(getCompileTimeClass(), ChangeType.DELETE);
@@ -175,12 +188,12 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 		Collection<PropertyPath> thisPropertyPaths = listPropertyPaths();
 		Collection<PropertyPath> otherPropertyPaths = other.listPropertyPaths();
 		Collection<PropertyPath> allPropertyPaths = MiscUtil.union(thisPropertyPaths,otherPropertyPaths);
-		
+
 		for (PropertyPath path: allPropertyPaths) {
 			PrismProperty thisProperty = findProperty(path);
 			PrismProperty otherProperty = other.findProperty(path);
 			PropertyDelta propertyDelta = null;
-			
+
 			if (thisProperty == null) {
 				// this must be an add
 				propertyDelta = new PropertyDelta(path);
@@ -194,10 +207,10 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 				objectDelta.addModification(propertyDelta);
 			}
 		}
-		
+
 		return objectDelta;
 	}
-	
+
 	private Collection<PropertyPath> listPropertyPaths() {
 		List<PropertyPath> list = new ArrayList<PropertyPath>();
 		addPropertyPathsToList(new PropertyPath(), list);
@@ -207,7 +220,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 	/**
 	 * Note: hashcode and equals compare the objects in the "java way". That means the objects must be
 	 * almost preciselly equal to match (e.g. including source demarcation in values and other "annotations").
-	 * For a method that compares the "meaningful" parts of the objects see equivalent(). 
+	 * For a method that compares the "meaningful" parts of the objects see equivalent().
 	 */
 	@Override
 	public int hashCode() {
@@ -220,7 +233,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 	/**
 	 * Note: hashcode and equals compare the objects in the "java way". That means the objects must be
 	 * almost preciselly equal to match (e.g. including source demarcation in values and other "annotations").
-	 * For a method that compares the "meaningful" parts of the objects see equivalent(). 
+	 * For a method that compares the "meaningful" parts of the objects see equivalent().
 	 */
 	@Override
 	public boolean equals(Object obj) {
@@ -241,7 +254,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 
 	/**
 	 * this method ignores some part of the object during comparison (e.g. source demarkation in values)
-	 * These methods compare the "meaningful" parts of the objects. 
+	 * These methods compare the "meaningful" parts of the objects.
 	 */
 	public boolean equivalent(Object obj) {
 		// Alibistic implementation for now. But shoudl work well.
@@ -258,7 +271,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 		ObjectDelta<T> delta = compareTo(other);
 		return delta.isEmpty();
 	}
-	
+
 	/**
 	 * Return a human readable name of this class suitable for logs.
 	 */
@@ -266,7 +279,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 	protected String getDebugDumpClassName() {
 		return "PO";
 	}
-	
+
 	@Override
 	protected String additionalDumpDescription() {
 		return ", "+getOid();
@@ -277,5 +290,5 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 //		serializeToDom(doc);
 //		return doc;
 //	}
-	
+
 }

@@ -840,12 +840,18 @@ public class SchemaProcessor implements Processor {
 
             JVar reference = body.decl(CLASS_MAP.get(PrismReferenceValue.class), REFERENCE_FIELD_NAME, invocation);            
 
-            JBlock then = body._if(reference.eq(JExpr._null()).cor(JExpr.invoke(reference, "getObject").eq(JExpr._null())))._then();
+            JBlock then = body._if(reference.eq(JExpr._null()).cor(JExpr.invoke(reference, "getObject")
+                    .eq(JExpr._null())))._then();
             then._return(JExpr._null());
-            JVar wrapper = body.decl(field.type(), field.name(), JExpr._new(field.type()));
-            invocation = body.invoke(wrapper, METHOD_SET_CONTAINER);
-            invocation.arg(JExpr.cast(CLASS_MAP.get(PrismObject.class), JExpr.invoke(reference, "getObject")));
-            body._return(wrapper);
+
+//            return (ObjectType) reference.getObject().getObjectable();
+            
+            body._return(JExpr.cast((JClass)field.type(), JExpr.invoke(reference, "getObject").invoke("getObjectable")));
+            
+//            JVar wrapper = body.decl(field.type(), field.name(), JExpr._new(field.type()));
+//            invocation = body.invoke(wrapper, METHOD_SET_CONTAINER);
+//            invocation.arg(JExpr.cast(CLASS_MAP.get(PrismObject.class), JExpr.invoke(reference, "getObject")));
+//            body._return(wrapper);
         }
     }
 

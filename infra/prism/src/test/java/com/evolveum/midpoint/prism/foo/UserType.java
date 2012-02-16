@@ -8,6 +8,8 @@
 
 package com.evolveum.midpoint.prism.foo;
 
+import com.evolveum.midpoint.prism.PrismObject;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -220,4 +222,14 @@ public class UserType
         this.activation = value;
     }
 
+
+    @Override
+    public PrismObject getContainer() {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    @Override
+    public void setContainer(PrismObject object) {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
 }

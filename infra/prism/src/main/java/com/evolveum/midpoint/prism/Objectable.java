@@ -58,4 +58,8 @@ public interface Objectable {
 	 */
 	public String toDebugType();
 
+    
+    public PrismObject getContainer();
+    
+    public void setContainer(PrismObject object);
 }

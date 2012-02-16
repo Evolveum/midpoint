@@ -35,7 +35,7 @@ import javax.xml.namespace.QName;
 public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDumpable, Serializable {
 
     private String oid = null;
-    private Objectable object = null;
+    private PrismObject object = null;
     private QName targetType = null;
     
     public PrismReferenceValue() {
@@ -46,6 +46,7 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
         this(oid, null, null);
     }
 
+    //todo: rado source should be probable type of PrismObject ....?????
     public PrismReferenceValue(String oid, SourceType type, Objectable source) {
     	super(type,source);
         this.oid = oid;
@@ -73,11 +74,11 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 		this.oid = oid;
 	}
 	
-	public Objectable getObject() {
+	public PrismObject getObject() {
 		return object;
 	}
 
-	public void setObject(Objectable object) {
+	public void setObject(PrismObject object) {
 		this.object = object;
 	}
 
