@@ -422,6 +422,7 @@
                 <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
                 </xsd:any>
             </xsd:sequence>
+            <xsd:attribute name="id" type="xsd:string" use="optional"/>
         </xsd:complexType>
     </xsd:element>
 
@@ -2308,6 +2309,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:string" use="optional"/>
     </xsd:complexType>
 
     <xsd:complexType name="PasswordType">
@@ -2338,6 +2340,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:string" use="optional"/>
     </xsd:complexType>
 
     <xsd:complexType name="AssignmentType">
@@ -2477,6 +2480,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:string" use="optional"/>
     </xsd:complexType>
 
     <xsd:complexType name="ResourceType">
@@ -4175,6 +4179,7 @@
                                 <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
                                 </xsd:any>
                             </xsd:sequence>
+                            <xsd:attribute name="id" type="xsd:string" use="optional"/>
                         </xsd:complexType>
                     </xsd:element>
                 </xsd:sequence>
@@ -4264,6 +4269,7 @@
                 </xsd:annotation>
             </xsd:any>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:string" use="optional"/>
     </xsd:complexType>
 
     <xsd:complexType name="ResourceObjectIdentificationType">
@@ -4281,6 +4287,7 @@
                 </xsd:annotation>
             </xsd:any>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:string" use="optional"/>
     </xsd:complexType>
 
     <!-- CONVENIENCE ELEMENTS Following definitions are there to use in examples, 
@@ -4300,6 +4307,7 @@
             <xsd:sequence>
                 <xsd:element ref="c:object" minOccurs="0" maxOccurs="unbounded"/>
             </xsd:sequence>
+            <xsd:attribute name="id" type="xsd:string" use="optional"/>
         </xsd:complexType>
     </xsd:element>
 

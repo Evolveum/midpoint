@@ -565,6 +565,9 @@ public class SchemaProcessor implements Processor {
                 if ("oid".equals(field)) {
                     System.out.println("Updating oid field: " + fieldVar.name());
                     remove = updateOidField(fieldVar, classOutline);
+                } else if ("id".equals(field)) {
+                    System.out.println("Updating container id field: " + fieldVar.name());
+                    remove = updateIdField(fieldVar, classOutline);
                 } else if (isFieldReference(fieldVar, classOutline)) {
                     System.out.println("Updating field (reference): " + fieldVar.name());
                     remove = updateFieldReference(fieldVar, classOutline);
@@ -590,23 +593,48 @@ public class SchemaProcessor implements Processor {
         }
     }
 
-    private boolean updateFieldReference(JFieldVar field, ClassOutline classOutline) {
+    private boolean updateIdField(JFieldVar field, ClassOutline classOutline) {
+        JMethod method = recreateGetter(field, classOutline);
+        JBlock body = method.body();
+        body._return(JExpr.invoke(JExpr.invoke(METHOD_GET_CONTAINER), "getId"));
+
+        method = recreateSetter(field, classOutline);
+        body = method.body();
+        JInvocation invocation = body.invoke(JExpr.invoke(METHOD_GET_CONTAINER), "setId");
+        invocation.arg(method.listParams()[0]);
+
+        return true;
+    }
+
+    private JMethod recreateSetter(JFieldVar field, ClassOutline classOutline) {
+        JDefinedClass definedClass = classOutline.implClass;
+        String methodName = getSetterMethod(classOutline, field);
+        JMethod method = definedClass.getMethod(methodName, new JType[]{field.type()});
+        return recreateMethod(method, definedClass);
+    }
+
+    private JMethod recreateGetter(JFieldVar field, ClassOutline classOutline) {
         JDefinedClass definedClass = classOutline.implClass;
         String methodName = getGetterMethod(classOutline, field);
         JMethod method = definedClass.getMethod(methodName, new JType[]{});
         JMethod getMethod = recreateMethod(method, definedClass);
         copyAnnotations(getMethod, field);
 
+        return getMethod;
+    }
+
+    private boolean updateFieldReference(JFieldVar field, ClassOutline classOutline) {
+        JMethod method = recreateGetter(field, classOutline);
+
         boolean isList = isList(field.type(), classOutline);
-        createFieldReferenceGetterBody(field, classOutline, getMethod.body(), isList);
+        createFieldReferenceGetterBody(field, classOutline, method.body(), isList);
 
         //setter method update
         if (isList) {
             return false;
         }
-        methodName = getSetterMethod(classOutline, field);
-        method = definedClass.getMethod(methodName, new JType[]{field.type()});
-        method = recreateMethod(method, definedClass);
+
+        method = recreateSetter(field, classOutline);
         JVar param = method.listParams()[0];
         createFieldReferenceSetterBody(field, classOutline, param, method.body());
 
@@ -662,10 +690,10 @@ public class SchemaProcessor implements Processor {
 
         return anonymous;
     }
-    
+
     private void createFieldReferenceCreateItemBody(JFieldVar field, JMethod method) {
         JClass type = ((JClass) field.type()).getTypeParameters().get(0);
-        
+
         JBlock body = method.body();
         JVar decl = body.decl(type, field.name(), JExpr._new(type));
         JInvocation invocation = body.invoke(decl, METHOD_SET_REFERENCE);
@@ -715,23 +743,16 @@ public class SchemaProcessor implements Processor {
     }
 
     private boolean updateFieldReferenceUse(JFieldVar field, ClassOutline classOutline) {
-        JDefinedClass definedClass = classOutline.implClass;
-
         //getter method update
-        String methodName = getGetterMethod(classOutline, field);
-        JMethod method = definedClass.getMethod(methodName, new JType[]{});
-        JMethod getMethod = recreateMethod(method, definedClass);
-        copyAnnotations(getMethod, field);
+        JMethod method = recreateGetter(field, classOutline);
         boolean isList = isList(field.type(), classOutline);
-        createFieldReferenceUseGetterBody(field, classOutline, getMethod.body(), isList);
+        createFieldReferenceUseGetterBody(field, classOutline, method.body(), isList);
 
         //setter method update
         if (isList) {
             return true;
         }
-        methodName = getSetterMethod(classOutline, field);
-        method = definedClass.getMethod(methodName, new JType[]{field.type()});
-        method = recreateMethod(method, definedClass);
+        method = recreateSetter(field, classOutline);
         createFieldReferenceUseSetterBody(field, classOutline, method.listParams()[0], method.body());
 
         return true;
@@ -912,16 +933,13 @@ public class SchemaProcessor implements Processor {
 
     private boolean updateContainerFieldType(JFieldVar field, ClassOutline classOutline) {
         //getter method update
-        JDefinedClass definedClass = classOutline.implClass;
-        String methodName = getGetterMethod(classOutline, field);
-        JMethod method = definedClass.getMethod(methodName, new JType[]{});
-        JMethod getMethod = recreateMethod(method, definedClass);
-        copyAnnotations(getMethod, field);
+        JMethod getMethod = recreateGetter(field, classOutline);
         createContainerFieldGetterBody(field, classOutline, getMethod);
 
         //setter method update
-        methodName = getSetterMethod(classOutline, field);
-        method = definedClass.getMethod(methodName, new JType[]{field.type()});
+        JDefinedClass definedClass = classOutline.implClass;
+        String methodName = getSetterMethod(classOutline, field);
+        JMethod method = definedClass.getMethod(methodName, new JType[]{field.type()});
         method = recreateMethod(method, definedClass);
         createContainerFieldSetterBody(field, classOutline, method);
 
@@ -1006,13 +1024,8 @@ public class SchemaProcessor implements Processor {
     }
 
     private boolean updateField(JFieldVar field, ClassOutline classOutline) {
-        JDefinedClass definedClass = classOutline.implClass;
         //update getter
-        String methodName = getGetterMethod(classOutline, field);
-        JMethod oldMethod = definedClass.getMethod(methodName, new JType[]{});
-        JMethod method = recreateMethod(oldMethod, definedClass);
-        copyAnnotations(method, field, oldMethod);
-
+        JMethod method = recreateGetter(field, classOutline);
         boolean isList = isList(field.type(), classOutline);
         createFieldGetterBody(method, field, classOutline, isList);
 
@@ -1022,7 +1035,8 @@ public class SchemaProcessor implements Processor {
             return true;
         }
 
-        methodName = getSetterMethod(classOutline, field);
+        JDefinedClass definedClass = classOutline.implClass;
+        String methodName = getSetterMethod(classOutline, field);
         method = definedClass.getMethod(methodName, new JType[]{field.type()});
         method = recreateMethod(method, definedClass);
         createFieldSetterBody(method, field, classOutline);
