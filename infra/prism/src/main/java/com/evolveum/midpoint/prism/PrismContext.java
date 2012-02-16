@@ -19,9 +19,13 @@
  */
 package com.evolveum.midpoint.prism;
 
+import java.io.IOException;
+
 import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -35,6 +39,7 @@ public class PrismContext {
 	private SchemaRegistry schemaRegistry;
 	private PrismJaxbProcessor prismJaxbProcessor;
 	private PrismDomProcessor prismDomProcessor;
+	private SchemaDefinitionFactory definitionFactory;
 	
 	private PrismContext() {
 		// empty
@@ -55,6 +60,10 @@ public class PrismContext {
 		
 		return prismContext;
 	}
+	
+	public void initialize() throws SchemaException, SAXException, IOException {
+		schemaRegistry.initialize();
+	}
 
 	public SchemaRegistry getSchemaRegistry() {
 		return schemaRegistry;
@@ -70,6 +79,17 @@ public class PrismContext {
 
 	public void setPrismJaxbProcessor(PrismJaxbProcessor prismJaxbProcessor) {
 		this.prismJaxbProcessor = prismJaxbProcessor;
+	}
+	
+	public SchemaDefinitionFactory getDefinitionFactory() {
+		if (definitionFactory == null) {
+			definitionFactory = new SchemaDefinitionFactory();
+		}
+		return definitionFactory;
+	}
+
+	public void setDefinitionFactory(SchemaDefinitionFactory definitionFactory) {
+		this.definitionFactory = definitionFactory;
 	}
 
 	/**

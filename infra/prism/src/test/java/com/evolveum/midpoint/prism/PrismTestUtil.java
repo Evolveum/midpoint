@@ -109,9 +109,8 @@ public class PrismTestUtil {
 		schemaRegistry.setNamespacePrefixMapper(prefixMapper);
 		schemaRegistry.registerPrismSchemaResource("xml/ns/test/foo-1.xsd", "foo", ObjectFactory.class.getPackage());
 		schemaRegistry.setObjectSchemaNamespace(NS_FOO);
-		schemaRegistry.initialize();
-		
 		PrismContext context = PrismContext.create(schemaRegistry);
+		context.initialize();
 		return context;
 	}
 

@@ -117,17 +117,18 @@ public class Schema implements Dumpable, DebugDumpable, Serializable {
 		return defs;
 	}
 	
-	public static Schema parse(Element element) throws SchemaException {
-		return parse(element,null);
+	public static Schema parse(Element element, PrismContext prismContext) throws SchemaException {
+		return parse(element, null, prismContext);
 	}
 	
-	public static Schema parse(Element element, EntityResolver resolver) throws SchemaException {
+	public static Schema parse(Element element, EntityResolver resolver, PrismContext prismContext) throws SchemaException {
 		if (element == null) {
 			throw new IllegalArgumentException("Schema DOM element must not be null.");
 		}
 
 		DomToSchemaProcessor processor = new DomToSchemaProcessor();
 		processor.setEntityResolver(resolver);
+		processor.setPrismContext(prismContext);
 		return processor.parseDom(element);
 	}
 

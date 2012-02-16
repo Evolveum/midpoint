@@ -203,8 +203,10 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	}
 	
 	public void initialize() throws SAXException, IOException, SchemaException {
+		if (prismContext == null) {
+			throw new IllegalStateException("Prism context not set");
+		}
 		try {
-			
 			initResolver();
 			preParseSchemas();
 			parseMidPointSchema();
@@ -247,7 +249,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 			
 			if (schemaDescription.isPrismSchema()) {
 				Element domElement = schemaDescription.getDomElement();
-				Schema schema = Schema.parse(domElement, this);
+				Schema schema = Schema.parse(domElement, this, getPrismContext());
 				//Schema schema = Schema.parse(domElement);
 				if (namespace == null) {
 					namespace = schema.getNamespace();
