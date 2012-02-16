@@ -629,7 +629,7 @@ public class SchemaProcessor implements Processor {
     // todo reimplement, now we're using inner classes
     // JDefinedClass annonymous = outline.getCodeModel().anonymousClass(clazz);
     // annonymous.hide();
-    private JDefinedClass createFieldReferenceGetterListBody(JFieldVar field, ClassOutline classOutline) {
+    private JDefinedClass createFieldReferenceGetterListAnon(JFieldVar field, ClassOutline classOutline) {
         JClass reference = (JClass) classOutline.parent().getModel().codeModel._ref(PrismReference.class);
         JClass value = (JClass) classOutline.parent().getModel().codeModel._ref(PrismReferenceValue.class);
         JClass list = (JClass) classOutline.parent().getModel().codeModel._ref(PrismReferenceArrayList.class);
@@ -640,33 +640,38 @@ public class SchemaProcessor implements Processor {
         JClass type = ((JClass) field.type()).getTypeParameters().get(0);
         JClass clazz = list.narrow(type);
 
-        JDefinedClass annonymous;
+        JDefinedClass anonymous;
         try {
             CPropertyInfo propertyInfo = classOutline.target.getProperty(field.name());
-            annonymous = classOutline.implClass._class(JMod.PRIVATE | JMod.STATIC, "Annon" + propertyInfo.getName(true));
-            JDocComment comment = annonymous.javadoc();
-            comment.append("todo can't be annonymous because of NPE bug in CodeModel generator, will be fixed later.");
+            anonymous = classOutline.implClass._class(JMod.PRIVATE | JMod.STATIC, "Anon" + propertyInfo.getName(true));
+            JDocComment comment = anonymous.javadoc();
+            comment.append("todo can't be anonymous because of NPE bug in CodeModel generator, will be fixed later.");
         } catch (JClassAlreadyExistsException ex) {
             throw new RuntimeException(ex.getMessage(), ex);
         }
 
-        annonymous._extends(clazz);
-        JMethod constructor = annonymous.constructor(JMod.PUBLIC);
+        anonymous._extends(clazz);
+        JMethod constructor = anonymous.constructor(JMod.PUBLIC);
         constructor.param(reference, REFERENCE_FIELD_NAME);
         JBlock constructorBody = constructor.body();
         JInvocation invocation = constructorBody.invoke("super");
         invocation.arg(constructor.listParams()[0]);
 
-        JMethod createItem = annonymous.method(JMod.PUBLIC, type, "createItem");
+        JMethod createItem = anonymous.method(JMod.PUBLIC, type, "createItem");
         createItem.annotate((JClass) outline.getModel().codeModel._ref(Override.class));
-        JVar param = createItem.param(value, "value");
-        JBlock createItemBody = createItem.body();
-        JVar decl = createItemBody.decl(type, field.name(), JExpr._new(type));
-        JInvocation createItemInvocation = decl.invoke(METHOD_SET_REFERENCE);
-        createItemInvocation.arg(param);
-        createItemBody._return(decl);
+        createItem.param(value, "value");
 
-        return annonymous;
+        return anonymous;
+    }
+    
+    private void createFieldReferenceCreateItemBody(JFieldVar field, JMethod method) {
+        JClass type = ((JClass) field.type()).getTypeParameters().get(0);
+        
+        JBlock body = method.body();
+        JVar decl = body.decl(type, field.name(), JExpr._new(type));
+        JInvocation invocation = body.invoke(decl, METHOD_SET_REFERENCE);
+        invocation.arg(method.listParams()[0]);
+        body._return(decl);
     }
 
     private void createFieldReferenceGetterBody(JFieldVar field, ClassOutline classOutline, JBlock body,
@@ -682,7 +687,9 @@ public class SchemaProcessor implements Processor {
             invoke.arg(qnameRef);
             JVar ref = body.decl(reference, REFERENCE_FIELD_NAME, invoke);
 
-            JInvocation newList = JExpr._new(createFieldReferenceGetterListBody(field, classOutline));
+            JDefinedClass anonymous = createFieldReferenceGetterListAnon(field, classOutline);
+            createFieldReferenceCreateItemBody(field, findMethod(anonymous, "createItem"));
+            JInvocation newList = JExpr._new(anonymous);
             newList.arg(ref);
             body._return(newList);
         } else {
@@ -746,22 +753,43 @@ public class SchemaProcessor implements Processor {
         invocation.arg(cont);
     }
 
+    private void createFieldReferenceUseCreateItemBody(JFieldVar field, ClassOutline classOutline, JMethod method) {
+        JClass type = ((JClass) field.type()).getTypeParameters().get(0);
+        JClass object = (JClass) classOutline.parent().getModel().codeModel._ref(PrismObject.class);
+
+        JBlock body = method.body();
+        JVar decl = body.decl(type, field.name(), JExpr._new(type));
+        JInvocation invocation = body.invoke(decl, METHOD_SET_CONTAINER);
+        invocation.arg(JExpr.cast(object, JExpr.invoke(method.listParams()[0], "getObject")));
+        body._return(decl);
+    }
+
     private void createFieldReferenceUseGetterBody(JFieldVar field, ClassOutline classOutline, JBlock body,
             boolean isList) {
-        JClass reference = (JClass) classOutline.parent().getModel().codeModel._ref(PrismReferenceValue.class);
+        JClass reference = (JClass) classOutline.parent().getModel().codeModel._ref(PrismReference.class);
+        JClass value = (JClass) classOutline.parent().getModel().codeModel._ref(PrismReferenceValue.class);
         JClass object = (JClass) classOutline.parent().getModel().codeModel._ref(PrismObject.class);
         JClass util = (JClass) classOutline.parent().getModel().codeModel._ref(PrismForJAXBUtil.class);
 
+        JFieldRef qnameRef = JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name()));
+
         if (isList) {
-            //todo handle List<...> if ObjectReferenceType is used...
-            //use existing annonymous class method...
+            JInvocation invoke = JExpr.invoke(JExpr.invoke(METHOD_GET_CONTAINER), "findOrCreateReference");
+            invoke.arg(qnameRef);
+            JVar ref = body.decl(reference, REFERENCE_FIELD_NAME, invoke);
+
+            JDefinedClass anonymous = createFieldReferenceGetterListAnon(field, classOutline);
+            createFieldReferenceUseCreateItemBody(field, classOutline, findMethod(anonymous, "createItem"));
+
+            JInvocation newList = JExpr._new(anonymous);
+            newList.arg(ref);
+            body._return(newList);
         } else {
             JInvocation invocation = util.staticInvoke(METHOD_PRISM_GET_REFERENCE_VALUE);
             invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
-            JFieldVar referencedField = getReferencedField(field, classOutline);
-            invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(referencedField.name())));
+            invocation.arg(qnameRef);
 
-            JVar container = body.decl(reference, REFERENCE_FIELD_NAME, invocation);
+            JVar container = body.decl(value, REFERENCE_FIELD_NAME, invocation);
 
             JBlock then = body._if(container.eq(JExpr._null()))._then();
             then._return(JExpr._null());
