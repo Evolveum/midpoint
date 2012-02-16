@@ -21,23 +21,25 @@
 <!--                                                         -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="unit" parallel="false" verbose="1">
-  <listeners>
-    <listener class-name="com.evolveum.midpoint.tools.testng.TestMethodLoggerListener"/>
-  </listeners>
-  <test name="Schema" preserve-order="false" verbose="1">
-    <classes>
-      <class name="com.evolveum.midpoint.schema.test.ExpressionCodeHolderTest"/>
-      <class name="com.evolveum.midpoint.schema.test.XPathTest"/>
-      <class name="com.evolveum.midpoint.schema.processor.SchemaProcessorBasicTest"/>
-      <class name="com.evolveum.midpoint.schema.processor.SchemaProcessorTest"/>
-      <class name="com.evolveum.midpoint.schema.util.XsdTypeConverterTest"/>
-      <class name="com.evolveum.midpoint.schema.util.ObjectTypeUtilTest"/>
-      <class name="com.evolveum.midpoint.schema.util.JAXBUtilTest"/>
-      <class name="com.evolveum.midpoint.schema.processor.SerializedDomToSchemaProcessorTest"/>
-      <class name="com.evolveum.midpoint.schema.TestSchemaRegistry"/>
-      <class name="com.evolveum.midpoint.schema.TestSchemaProcessorWithRegistry"/>
-      <class name="com.evolveum.midpoint.schema.TestJaxbWithDynamicSchema"/>
-      <class name="com.evolveum.midpoint.schema.TestParseDiffPatch"/>
-    </classes>
-  </test>
+    <listeners>
+        <listener class-name="com.evolveum.midpoint.tools.testng.TestMethodLoggerListener"/>
+    </listeners>
+    <test name="Schema" preserve-order="false" verbose="1">
+        <classes>
+            <class name="com.evolveum.midpoint.schema.SimpleJaxbMarshalTest"/>
+            <class name="com.evolveum.midpoint.schema.test.ExpressionCodeHolderTest"/>
+            <class name="com.evolveum.midpoint.schema.test.XPathTest"/>
+            <class name="com.evolveum.midpoint.schema.processor.SchemaProcessorBasicTest"/>
+            <class name="com.evolveum.midpoint.schema.processor.SchemaProcessorTest"/>
+            <class name="com.evolveum.midpoint.schema.util.XsdTypeConverterTest"/>
+            <class name="com.evolveum.midpoint.schema.util.ObjectTypeUtilTest"/>
+            <class name="com.evolveum.midpoint.schema.util.JAXBUtilTest"/>
+            <class name="com.evolveum.midpoint.schema.TestSchemaRegistry"/>
+            <class name="com.evolveum.midpoint.schema.TestSchemaProcessorWithRegistry"/>
+            <class name="com.evolveum.midpoint.schema.TestJaxbSanity"/>
+            <class name="com.evolveum.midpoint.schema.TestJaxbWithDynamicSchema"/>
+            <class name="com.evolveum.midpoint.schema.TestParseDiffPatch"/>
+            <class name="com.evolveum.midpoint.schema.JaxbTestUtil"/>
+        </classes>
+    </test>
 </suite>
