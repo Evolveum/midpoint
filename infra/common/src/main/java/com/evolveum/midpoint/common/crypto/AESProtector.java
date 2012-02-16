@@ -285,7 +285,7 @@ public class AESProtector implements Protector {
 		} catch (Exception ex) {
 			LOGGER.error("Exception during decryption: {}",ex.getMessage(),ex);
 			try {
-				LOGGER.trace("The input was {}:\n{}",protectedString,JAXBUtil.serializeElementToString(protectedString,SchemaConstants.R_PROTECTED_STRING));
+				LOGGER.trace("The input was {}:\n{}",protectedString,getJaxbProcessor().marshalObjectToDom(protectedString,SchemaConstants.R_PROTECTED_STRING, DOMUtil.getDocument()));
 			} catch (JAXBException e) {
 				LOGGER.trace("Error marshalling the input {}: {}",protectedString,e.getMessage());
 			}
@@ -356,8 +356,7 @@ public class AESProtector implements Protector {
 			xmlCipher.getEncryptedData().setKeyInfo(keyInfo);
 
 			document = xmlCipher.doFinal(document, plain);
-			EncryptedDataType data = (EncryptedDataType) JAXBUtil.unmarshal(document.getDocumentElement())
-					.getValue();
+			EncryptedDataType data = (EncryptedDataType) getJaxbProcessor().unmarshalToObject(document.getDocumentElement());
 			protectedString.setEncryptedData(data);
 		} catch (EncryptionException ex) {
 			throw ex;
