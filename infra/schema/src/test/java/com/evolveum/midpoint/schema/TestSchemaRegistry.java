@@ -38,6 +38,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -72,62 +73,71 @@ public class TestSchemaRegistry {
 	}
 	
 
-//	@Test
-//	public void testCommonSchemaUserType() throws SchemaException, SAXException, IOException {
-//
-//		SchemaRegistry reg = new SchemaRegistry();
-//		reg.initialize();
-//		
-//		com.evolveum.midpoint.prism.Schema commonSchema = reg.getObjectSchema();
-//		assertNotNull("No parsed common schema", commonSchema);
-//		System.out.println("Parsed common schema:");
-//		System.out.println(commonSchema.dump());
-//		
-//		PrismContainerDefinition userContainer = commonSchema.findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
-//		assertNotNull("No user container", userContainer);
-//		
-//		System.out.println("testCommonSchemaUserType:");
-//		System.out.println(userContainer.dump());
-//		
-//		assertFalse(userContainer.isWildcard());
-//		
-//		PrismPropertyDefinition nameDef = userContainer.findPropertyDefinition(SchemaConstants.C_NAME);
-//		assertNotNull("No name definition", nameDef);
-//
-//		PrismContainerDefinition extensionDef = userContainer.findContainerDefinition(SchemaConstants.C_EXTENSION);
-//		assertNotNull("No 'extension' definition", extensionDef);
-//		assertTrue(extensionDef.isWildcard());
-//		
-//		PrismPropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C,"givenName"));
-//		assertNotNull("No givenName definition", givenNameDef);
-//	}
-//	
-//	@Test
-//	public void testCommonSchemaAccountType() throws SchemaException, SAXException, IOException {
-//
-//		SchemaRegistry reg = new SchemaRegistry();
-//		reg.initialize();
-//		
-//		com.evolveum.midpoint.prism.Schema commonSchema = reg.getObjectSchema();
-//		assertNotNull("No parsed common schema", commonSchema);
-//		
-//		PrismObjectDefinition<AccountShadowType> accountDef = commonSchema.findObjectDefinition(ObjectTypes.ACCOUNT, AccountShadowType.class);
-//		assertNotNull("No account definition", accountDef);
-//
-//		System.out.println("testCommonSchemaAccountType:");
-//		System.out.println(accountDef.dump());
-//		
-//		PrismPropertyDefinition nameDef = accountDef.findPropertyDefinition(SchemaConstants.C_NAME);
-//		assertNotNull("No name definition", nameDef);
-//		
-//		PrismContainerDefinition extensionDef = accountDef.findContainerDefinition(SchemaConstants.C_EXTENSION);
-//		assertNotNull("No 'extension' definition", extensionDef);
-//		assertTrue(extensionDef.isWildcard());
-//		
-//		PrismContainerDefinition attributesDef = accountDef.findContainerDefinition(SchemaConstants.I_ATTRIBUTES);
-//		assertNotNull("No 'attributes' definition", attributesDef);
-//		assertTrue(attributesDef.isWildcard());
-//	}
+	@Test
+	public void testCommonSchema() throws SchemaException, SAXException, IOException {
+
+		MidPointPrismContextFactory factory = getContextFactory();
+		PrismContext context = factory.createAndInitializePrismContext();
+		SchemaRegistry schemaRegistry = context.getSchemaRegistry();
+		
+		PrismSchema commonSchema = schemaRegistry.getObjectSchema();
+		assertNotNull("No parsed common schema", commonSchema);
+		System.out.println("Parsed common schema:");
+		System.out.println(commonSchema.dump());
+		
+		// TODO
+	}
+	
+	@Test
+	public void testUserType() throws SchemaException, SAXException, IOException {
+		
+		MidPointPrismContextFactory factory = getContextFactory();
+		PrismContext context = factory.createAndInitializePrismContext();
+		SchemaRegistry schemaRegistry = context.getSchemaRegistry();
+		
+		PrismObjectDefinition<UserType> userContainer = schemaRegistry.findObjectDefinitionByCompileTimeClass(UserType.class);
+		assertNotNull("No user container", userContainer);
+		
+		System.out.println("testCommonSchemaUserType:");
+		System.out.println(userContainer.dump());
+		
+		assertFalse(userContainer.isWildcard());
+		
+		PrismPropertyDefinition nameDef = userContainer.findPropertyDefinition(ObjectType.F_NAME);
+		assertNotNull("No name definition", nameDef);
+
+		PrismContainerDefinition extensionDef = userContainer.findContainerDefinition(SchemaConstants.C_EXTENSION);
+		assertNotNull("No 'extension' definition", extensionDef);
+		assertTrue(extensionDef.isWildcard());
+		
+		PrismPropertyDefinition givenNameDef = userContainer.findPropertyDefinition(UserType.F_GIVEN_NAME);
+		assertNotNull("No givenName definition", givenNameDef);
+	}
+	
+	@Test
+	public void testCommonSchemaAccountType() throws SchemaException, SAXException, IOException {
+
+		MidPointPrismContextFactory factory = getContextFactory();
+		PrismContext context = factory.createAndInitializePrismContext();
+		SchemaRegistry schemaRegistry = context.getSchemaRegistry();
+				
+		PrismObjectDefinition<AccountShadowType> accountDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
+		assertNotNull("No account definition", accountDef);
+
+		System.out.println("testCommonSchemaAccountType:");
+		System.out.println(accountDef.dump());
+		
+		PrismPropertyDefinition nameDef = accountDef.findPropertyDefinition(SchemaConstants.C_NAME);
+		assertNotNull("No name definition", nameDef);
+		
+		PrismContainerDefinition extensionDef = accountDef.findContainerDefinition(SchemaConstants.C_EXTENSION);
+		assertNotNull("No 'extension' definition", extensionDef);
+		assertTrue(extensionDef.isWildcard());
+		
+		PrismContainerDefinition attributesDef = accountDef.findContainerDefinition(SchemaConstants.I_ATTRIBUTES);
+		assertNotNull("No 'attributes' definition", attributesDef);
+		assertTrue(attributesDef.isWildcard());
+	}
 	
 	private MidPointPrismContextFactory getContextFactory() {
 		return new MidPointPrismContextFactory();

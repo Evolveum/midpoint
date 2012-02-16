@@ -51,7 +51,7 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
 		File file = new File( directory, oidToFilename(ref.getOid()));
 		if (file.exists()) {
 			try {
-				JAXBElement<ObjectType> jaxbElement = (JAXBElement<ObjectType>) JAXBUtil.unmarshal(file);
+				JAXBElement<ObjectType> jaxbElement = (JAXBElement) JaxbTestUtil.unmarshalElement(file);
 				return jaxbElement.getValue();
 			} catch (JAXBException e) {
 				throw new SchemaException(e.getMessage(),e);

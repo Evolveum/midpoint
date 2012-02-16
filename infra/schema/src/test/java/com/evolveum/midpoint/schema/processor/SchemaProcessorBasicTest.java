@@ -238,10 +238,5 @@ public class SchemaProcessorBasicTest {
 //
 //    }
 
-    @Test
-    public void testParseAndSerializeUser() {
-
-
-    }
 
 }
