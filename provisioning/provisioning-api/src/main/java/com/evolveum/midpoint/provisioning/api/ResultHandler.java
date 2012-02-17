@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.provisioning.api;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
@@ -37,6 +38,6 @@ public interface ResultHandler {
      * @param object Resource object to process.
      * @return true if the operation should proceed, false if it should stop
      */
-    public boolean handle(ObjectType object, OperationResult parentResult);
+    public boolean handle(PrismObject<ObjectType> object, OperationResult parentResult);
     
 }

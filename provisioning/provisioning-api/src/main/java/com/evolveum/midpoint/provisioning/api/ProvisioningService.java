@@ -23,6 +23,8 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -132,7 +134,7 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public <T extends ObjectType> T getObject(Class<T> type, String oid, PropertyReferenceListType resolve, OperationResult parentResult)
+	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, PropertyReferenceListType resolve, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException;
 	
 	/**
@@ -176,7 +178,7 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public <T extends ObjectType> String addObject(T object, ScriptsType scripts, OperationResult parentResult)
+	public <T extends ObjectType> String addObject(PrismObject<T> object, ScriptsType scripts, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException;
 
 	/**
@@ -226,7 +228,7 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public <T extends ObjectType> ResultList<T> listObjects(Class<T> objectType, PagingType paging,
+	public <T extends ObjectType> ResultList<PrismObject<T>> listObjects(Class<T> objectType, PagingType paging,
 			OperationResult parentResult);
 
 	/**
@@ -255,7 +257,7 @@ public interface ProvisioningService {
 	 * @throws SchemaException
 	 *             unknown property used in search query
 	 */
-	public <T extends ObjectType> ResultList<T> searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult parentResult)
+	public <T extends ObjectType> ResultList<PrismObject<T>> searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException;
 	
 	/**
@@ -319,7 +321,7 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType objectChange, ScriptsType scripts,
+	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectDelta<T> objectDelta, ScriptsType scripts,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException;
 
 	/**
@@ -436,7 +438,7 @@ public interface ProvisioningService {
 	 * @throws SchemaException error handling resource schema
 	 * @throws CommunicationException error communicating with the resource
 	 */
-	public ResultList<? extends ResourceObjectShadowType> listResourceObjects(String resourceOid, QName objectClass, PagingType paging,
+	public ResultList<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid, QName objectClass, PagingType paging,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException;
 	
 	/**
