@@ -22,15 +22,12 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Embeddable;
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
 import java.util.HashMap;
 import java.util.Map;
@@ -68,10 +65,10 @@ public class RCredentialsType {
         try {
             jaxb.setAllowedIdmAdminGuiAccess(repo.isAllowedIdmAdminGuiAccess());
 
-            if (StringUtils.isNotEmpty(repo.getPassword())) {
-                JAXBElement<PasswordType> password = (JAXBElement<PasswordType>) JAXBUtil.unmarshal(repo.getPassword());
-                jaxb.setPassword(password.getValue());
-            }
+//            if (StringUtils.isNotEmpty(repo.getPassword())) {
+//                JAXBElement<PasswordType> password = (JAXBElement<PasswordType>) JAXBUtil.unmarshal(repo.getPassword());
+//                jaxb.setPassword(password.getValue());
+//            }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
@@ -93,7 +90,7 @@ public class RCredentialsType {
                 Map<String, Object> properties = new HashMap<String, Object>();
                 properties.put(Marshaller.JAXB_FORMATTED_OUTPUT, false);
 
-                repo.setPassword(JAXBUtil.marshalWrap(password, properties));
+//                repo.setPassword(JAXBUtil.marshalWrap(password, properties));
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

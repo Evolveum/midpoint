@@ -29,18 +29,18 @@ import javax.xml.bind.annotation.XmlTransient;
 /**
  * @author lazyman
  */
-public class XAssignmentType extends AssignmentType implements Identifiable {
+public class XAssignmentType extends AssignmentType {//implements Identifiable {
 
-    @XmlTransient
-    private long id;
-
-    @Override
-    public long getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(long id) {
-        this.id = id;
-    }
+//    @XmlTransient
+//    private long id;
+//
+//    @Override
+//    public long getId() {
+//        return id;
+//    }
+//
+//    @Override
+//    public void setId(long id) {
+//        this.id = id;
+//    }
 }

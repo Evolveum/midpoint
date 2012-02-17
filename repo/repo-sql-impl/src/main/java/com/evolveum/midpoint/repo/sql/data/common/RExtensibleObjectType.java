@@ -26,14 +26,16 @@ import com.evolveum.midpoint.repo.sql.jaxb.XExtension;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
 import org.hibernate.annotations.Cascade;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 /**
  * @author lazyman
  */
 @Entity
 @Table(name = "extensible_object")
-public class RExtensibleObjectType extends RObjectType {
+public abstract class RExtensibleObjectType extends RObjectType {
 
     private RExtension extension;
 
@@ -71,12 +73,5 @@ public class RExtensibleObjectType extends RObjectType {
 
             RExtension.copyFromJAXB(jaxb.getExtension(), extension);
         }
-    }
-
-    @Override
-    public ExtensibleObjectType toJAXB() throws DtoTranslationException {
-        ExtensibleObjectType object = new ExtensibleObjectType();
-        RExtensibleObjectType.copyToJAXB(this, object);
-        return object;
     }
 }

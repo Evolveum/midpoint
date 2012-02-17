@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.repo.api.query;
 
 import org.apache.commons.lang.Validate;
+import org.w3c.dom.Element;
 
 /**
  * @author lazyman
@@ -41,5 +42,10 @@ public class NotLogicalFilter extends LogicalFilter {
     public void setFilter(QueryFilter filter) {
         Validate.notNull(filter, "Filter must not be null.");
         this.filter = filter;
+    }
+
+    @Override
+    public void toDOM(Element parent) {
+        //todo implement
     }
 }

@@ -22,10 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.schema.XsdTypeConverter;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
@@ -40,17 +37,18 @@ public abstract class RSimpleValue<T> extends RValue {
 
     @Override
     public Object toObject() throws DtoTranslationException {
-        try {
-            return XmlTypeConverter.toXsdElement(getValue(), getType(), getName(), DOMUtil.getDocument(), true);
-        } catch (SchemaException ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
+//        try {
+//            return XmlTypeConverter.toXsdElement(getValue(), getType(), getName(), DOMUtil.getDocument(), true);
+        return null;
+//        } catch (SchemaException ex) {
+//            throw new DtoTranslationException(ex.getMessage(), ex);
+//        }
     }
 
     @Override
     public void insertValueFromElement(Element element) throws SchemaException {
         Validate.notNull(element, "Element must not be null.");
 
-        setValue((T) XmlTypeConverter.toJavaValue(element));
+//        setValue((T) XmlTypeConverter.toJavaValue(element));
     }
 }

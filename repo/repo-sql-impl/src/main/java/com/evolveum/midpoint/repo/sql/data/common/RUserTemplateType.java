@@ -22,15 +22,12 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
-import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.xml.bind.JAXBElement;
 
 /**
  * @author lazyman
@@ -66,17 +63,17 @@ public class RUserTemplateType extends RExtensibleObjectType {
         RExtensibleObjectType.copyToJAXB(repo, jaxb);
 
         try {
-            if (StringUtils.isNotEmpty(repo.getAccountConstruction())) {
-                JAXBElement<UserTemplateType> element = (JAXBElement<UserTemplateType>)
-                        JAXBUtil.unmarshal(repo.getAccountConstruction());
-                jaxb.getAccountConstruction().addAll(element.getValue().getAccountConstruction());
-            }
-
-            if (StringUtils.isNotEmpty(repo.getPropertyConstruction())) {
-                JAXBElement<UserTemplateType> element = (JAXBElement<UserTemplateType>)
-                        JAXBUtil.unmarshal(repo.getPropertyConstruction());
-                jaxb.getPropertyConstruction().addAll(element.getValue().getPropertyConstruction());
-            }
+//            if (StringUtils.isNotEmpty(repo.getAccountConstruction())) {
+//                JAXBElement<UserTemplateType> element = (JAXBElement<UserTemplateType>)
+//                        JAXBUtil.unmarshal(repo.getAccountConstruction());
+//                jaxb.getAccountConstruction().addAll(element.getValue().getAccountConstruction());
+//            }
+//
+//            if (StringUtils.isNotEmpty(repo.getPropertyConstruction())) {
+//                JAXBElement<UserTemplateType> element = (JAXBElement<UserTemplateType>)
+//                        JAXBUtil.unmarshal(repo.getPropertyConstruction());
+//                jaxb.getPropertyConstruction().addAll(element.getValue().getPropertyConstruction());
+//            }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

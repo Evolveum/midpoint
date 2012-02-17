@@ -99,10 +99,10 @@ public class RAssignmentType implements Identifiable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        if (jaxb instanceof XAssignmentType) {
-            XAssignmentType xAssignment = (XAssignmentType) jaxb;
-            xAssignment.setId(repo.getId());
-        }
+//        if (jaxb instanceof XAssignmentType) {
+//            XAssignmentType xAssignment = (XAssignmentType) jaxb;
+//            xAssignment.setId(repo.getId());
+//        }
 
         try {
             jaxb.setAccountConstruction(RUtil.toJAXB(repo.getAccountConstruction(), AccountConstructionType.class));

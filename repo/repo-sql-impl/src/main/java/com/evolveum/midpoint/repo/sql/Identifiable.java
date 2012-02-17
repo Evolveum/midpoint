@@ -21,14 +21,11 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import javax.xml.bind.annotation.XmlTransient;
-
 /**
  * @author lazyman
  */
 public interface Identifiable {
 
-    @XmlTransient
     long getId();
     
     void setId(long id);

@@ -22,7 +22,6 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LocalizedMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
@@ -168,11 +167,11 @@ public class ROperationResultType {
             jaxb.setLocalizedMessage(RUtil.toJAXB(repo.getLocalizedMessage(), LocalizedMessageType.class));
             jaxb.setParams(RUtil.toJAXB(repo.getParams(), ParamsType.class));
 
-            if (StringUtils.isNotEmpty(repo.getPartialResults())) {
-                JAXBElement<OperationResultType> result = (JAXBElement<OperationResultType>)
-                        JAXBUtil.unmarshal(repo.getPartialResults());
-                jaxb.getPartialResults().addAll(result.getValue().getPartialResults());
-            }
+//            if (StringUtils.isNotEmpty(repo.getPartialResults())) {
+//                JAXBElement<OperationResultType> result = (JAXBElement<OperationResultType>)
+//                        JAXBUtil.unmarshal(repo.getPartialResults());
+//                jaxb.getPartialResults().addAll(result.getValue().getPartialResults());
+//            }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

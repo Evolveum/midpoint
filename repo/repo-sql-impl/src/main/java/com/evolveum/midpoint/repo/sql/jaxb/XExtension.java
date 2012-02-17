@@ -29,18 +29,18 @@ import javax.xml.bind.annotation.XmlTransient;
 /**
  * @author lazyman
  */
-public class XExtension extends Extension implements Identifiable {
+public class XExtension extends Extension { //implements Identifiable {
 
     @XmlTransient
     private long id;
 
-    @Override
-    public long getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(long id) {
-        this.id = id;
-    }
+//    @Override
+//    public long getId() {
+//        return id;
+//    }
+//
+//    @Override
+//    public void setId(long id) {
+//        this.id = id;
+//    }
 }

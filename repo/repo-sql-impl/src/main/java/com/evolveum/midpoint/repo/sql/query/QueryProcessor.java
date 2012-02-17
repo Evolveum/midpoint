@@ -22,10 +22,8 @@
 package com.evolveum.midpoint.repo.sql.query;
 
 import com.evolveum.midpoint.repo.sql.data.common.RUserType;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
-import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.w3c.dom.Element;
 

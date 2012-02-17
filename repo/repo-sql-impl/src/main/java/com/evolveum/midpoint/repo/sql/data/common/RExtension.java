@@ -70,10 +70,10 @@ public class RExtension implements Identifiable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        if (jaxb instanceof XExtension) {
-            XExtension ext = (XExtension) jaxb;
-            ext.setId(repo.getId());
-        }
+//        if (jaxb instanceof XExtension) {
+//            XExtension ext = (XExtension) jaxb;
+//            ext.setId(repo.getId());
+//        }
 
         if (repo.getObjects() == null) {
             return;
@@ -94,10 +94,10 @@ public class RExtension implements Identifiable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        if (jaxb instanceof XExtension) {
-            XExtension ext = (XExtension) jaxb;
-            repo.setId(ext.getId());
-        }
+//        if (jaxb instanceof XExtension) {
+//            XExtension ext = (XExtension) jaxb;
+//            repo.setId(ext.getId());
+//        }
 
         try {
             if (!jaxb.getAny().isEmpty()) {

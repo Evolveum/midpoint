@@ -22,8 +22,6 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.schema.XsdTypeConverter;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
@@ -31,7 +29,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
@@ -46,10 +43,10 @@ public final class RUtil {
     }
 
     public static <T> T toJAXB(String value, Class<T> clazz) throws JAXBException {
-        if (StringUtils.isNotEmpty(value)) {
-            JAXBElement<T> element = (JAXBElement<T>) JAXBUtil.unmarshal(value);
-            return element.getValue();
-        }
+//        if (StringUtils.isNotEmpty(value)) {
+//            JAXBElement<T> element = (JAXBElement<T>) JAXBUtil.unmarshal(value);
+//            return element.getValue();
+//        }
         return null;
     }
 
@@ -58,7 +55,7 @@ public final class RUtil {
             Map<String, Object> properties = new HashMap<String, Object>();
             properties.put(Marshaller.JAXB_FORMATTED_OUTPUT, false);
 
-            return JAXBUtil.marshalWrap(value, properties);
+//            return JAXBUtil.marshalWrap(value, properties);
         }
 
         return null;
@@ -112,9 +109,9 @@ public final class RUtil {
         Validate.notNull(object, "Object must not be null.");
 
         RValue value;
-        if ((object instanceof Element) || XmlTypeConverter.canConvert(object.getClass())) {
+        if ((object instanceof Element)){// || XmlTypeConverter.canConvert(object.getClass())) {
             try {
-                Object javaValue = XmlTypeConverter.toJavaValue(object);
+                Object javaValue = null;//XmlTypeConverter.toJavaValue(object);
                 System.out.println(javaValue.getClass());
                 if (javaValue == null) {
                     throw new DtoTranslationException("Value converted from '" + object.toString() + "' is null.");
