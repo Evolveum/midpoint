@@ -21,9 +21,11 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.RResourceObjectShadowType;
@@ -32,10 +34,9 @@ import com.evolveum.midpoint.repo.sql.data.common.RUserType;
 import com.evolveum.midpoint.repo.sql.query.QueryProcessor;
 import com.evolveum.midpoint.schema.ResultArrayList;
 import com.evolveum.midpoint.schema.ResultList;
-import com.evolveum.midpoint.schema.SchemaRegistry;
-import com.evolveum.midpoint.schema.processor.MidPointObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
@@ -58,14 +59,14 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
 
-//    @Autowired(required = true)
+    @Autowired(required = true)
     private SchemaRegistry schemaRegistry;
 
     @Autowired(required = true)
     SessionFactory sessionFactory;
 
     @Override
-    public <T extends ObjectType> T getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
+    public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
             OperationResult result) throws ObjectNotFoundException, SchemaException {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notEmpty(oid, "Oid must not be null or empty.");
@@ -112,16 +113,16 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             cleanupSessionAndResult(session, subResult);
         }
 
-        return (T) objectType;
+        return objectType.getContainer();
     }
 
     @Override
-    public <T extends ObjectType> ResultList<T> listObjects(Class<T> type, PagingType paging,
+    public <T extends ObjectType> ResultList<PrismObject<T>> listObjects(Class<T> type, PagingType paging,
             OperationResult result) {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
-        ResultList<T> results = new ResultArrayList<T>();
+        ResultList<PrismObject<T>> results = new ResultArrayList<PrismObject<T>>();
         OperationResult subResult = result.createSubresult(LIST_OBJECTS);
         Session session = null;
         try {
@@ -142,7 +143,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                 for (RObjectType object : objects) {
                     ObjectType objectType = object.toJAXB();
                     validateObjectType(objectType, type);
-                    results.add((T) objectType);
+                    results.add(objectType.getContainer());
                 }
             }
             session.getTransaction().commit();
@@ -160,7 +161,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     }
 
     @Override
-    public UserType listAccountShadowOwner(String accountOid, OperationResult result)
+    public PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult result)
             throws ObjectNotFoundException {
         Validate.notEmpty(accountOid, "Oid must not be null or empty.");
         Validate.notNull(result, "Operation result must not be null.");
@@ -206,12 +207,13 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             cleanupSessionAndResult(session, subResult);
         }
 
-        return userType;
+        return userType.getContainer();
     }
 
     @Override
-    public <T extends ObjectType> String addObject(T object, OperationResult result)
-            throws ObjectAlreadyExistsException, SchemaException {
+    public <T extends ObjectType> String addObject(PrismObject<T> object, OperationResult result) throws
+            ObjectAlreadyExistsException, SchemaException {
+
         Validate.notNull(object, "Object must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
         LOGGER.debug("Adding object type '{}'", new Object[]{object.getClass().getSimpleName()});
@@ -221,7 +223,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         Session session = null;
         try {
             LOGGER.debug("Translating JAXB to data type.");
-            RObjectType rObject = createDataObjectFromJAXB(object);
+            RObjectType rObject = createDataObjectFromJAXB(object.getObjectable());
 
             LOGGER.debug("Saving object.");
             session = beginTransaction();
@@ -240,13 +242,6 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         }
 
         return oid;
-    }
-
-    //todo probably remove from interface
-    @Override
-    public <T extends ObjectType> PropertyAvailableValuesListType getPropertyAvailableValues(Class<T> type, String oid,
-            PropertyReferenceListType properties, OperationResult result) throws ObjectNotFoundException {
-        throw new UnsupportedOperationException("Not implemented yet.");
     }
 
     @Override
@@ -300,8 +295,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     }
 
     @Override
-    public <T extends ObjectType> ResultList<T> searchObjects(Class<T> type, QueryType query, PagingType paging,
-            OperationResult result) throws SchemaException {
+    public <T extends ObjectType> ResultList<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
+            PagingType paging, OperationResult result) throws SchemaException {
+
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(query, "Query must not be null.");
         Validate.notNull(query.getFilter(), "Query filter must not be null.");
@@ -309,7 +305,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
         OperationResult subResult = result.createSubresult(SEARCH_OBJECTS);
 
-        ResultList<T> list = new ResultArrayList<T>();
+        ResultList<PrismObject<T>> list = new ResultArrayList<PrismObject<T>>();
         Session session = null;
         try {
             session = beginTransaction();
@@ -333,7 +329,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             for (RObjectType object : objects) {
                 ObjectType objectType = object.toJAXB();
                 validateObjectType(objectType, type);
-                list.add((T) objectType);
+                list.add(objectType.getContainer());
             }
 
             session.getTransaction().commit();
@@ -350,7 +346,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         return list;
     }
 
-    public <T extends ObjectType> void modifyObject(ObjectDelta<T> delta, OperationResult result)
+    @Override
+    public <T extends ObjectType> void modifyObject(Class<T> type, ObjectDelta<T> delta, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         Validate.notNull(delta, "Object delta must not be null.");
         Validate.notNull(delta.getObjectTypeClass(), "Object class in delta must not be null.");
@@ -363,26 +360,23 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         OperationResult subResult = result.createSubresult(MODIFY_OBJECT);
         Session session = null;
         try {
-            T object = getObject(delta.getObjectTypeClass(), delta.getOid(), null, subResult);
+            PrismObject<T> prismObject = getObject(delta.getObjectTypeClass(), delta.getOid(), null, subResult);
 
             PrismSchema schema = schemaRegistry.getObjectSchema();
-            PrismObjectDefinition<T> objectDef = schema.findObjectDefinition(delta.getObjectTypeClass());
+            PrismObjectDefinition<T> objectDef = schema.findObjectDefinitionByCompileTimeClass(
+                    delta.getObjectTypeClass());
 
-            MidPointObject<T> midPointObject = objectDef.parseObjectType(object);
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("OBJECT before:\n{}DELTA:\n{}", new Object[]{midPointObject.dump(), delta.dump()});
+                LOGGER.trace("OBJECT before:\n{}DELTA:\n{}", new Object[]{prismObject.dump(), delta.dump()});
             }
-            delta.applyTo(midPointObject);
+            delta.applyTo(prismObject);
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("OBJECT after:\n{}", midPointObject.dump());
+                LOGGER.trace("OBJECT after:\n{}", prismObject.dump());
             }
-
-            midPointObject.setObjectType(null);
-            T updatedObject = midPointObject.getOrParseObjectType();
 
             //todo problem because long id identifiers are lost, or maybe not...
             LOGGER.debug("Translating JAXB to data type.");
-            RObjectType rObject = createDataObjectFromJAXB(object);
+            RObjectType rObject = createDataObjectFromJAXB(prismObject.getObjectable());
 
             session = beginTransaction();
             session.update(rObject);
@@ -402,19 +396,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     }
 
     @Override
-    public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType objectChange,
-            OperationResult result) throws ObjectNotFoundException, SchemaException {
-        Validate.notNull(type, "Object type must not be null.");
-        Validate.notNull(objectChange, "Object change must not be null.");
-        Validate.notNull(result, "Operation result must not be null.");
-
-        PrismSchema schema = schemaRegistry.getObjectSchema();
-        ObjectDelta<T> delta = ObjectDelta.createDelta(objectChange, schema, type);
-        modifyObject(delta, result);
-    }
-
-    @Override
-    public <T extends ResourceObjectShadowType> ResultList<T> listResourceObjectShadows(String resourceOid,
+    public <T extends ResourceObjectShadowType> ResultList<PrismObject<T>> listResourceObjectShadows(String resourceOid,
             Class<T> resourceObjectShadowType, OperationResult result) throws ObjectNotFoundException {
         Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
         Validate.notNull(resourceObjectShadowType, "Resource object shadow type must not be null.");
@@ -424,7 +406,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                 new Object[]{resourceObjectShadowType.getSimpleName(), resourceOid});
         OperationResult subResult = result.createSubresult(LIST_RESOURCE_OBJECT_SHADOWS);
 
-        ResultList<T> list = new ResultArrayList<T>();
+        ResultList<PrismObject<T>> list = new ResultArrayList<PrismObject<T>>();
         Session session = null;
         try {
             session = beginTransaction();
@@ -442,7 +424,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                     ResourceObjectShadowType jaxb = shadow.toJAXB();
                     validateObjectType(jaxb, resourceObjectShadowType);
 
-                    list.add((T) shadow.toJAXB());
+                    list.add(shadow.toJAXB().getContainer());
                 }
             }
             session.getTransaction().commit();
