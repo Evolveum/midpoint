@@ -23,6 +23,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -59,14 +60,14 @@ public class AuditEventRecord {
 	private String hostIdentifier;
 	
 	// initiator (subject, event "owner"): store OID, type(implicit?), name
-	private UserType initiator;
+	private PrismObject<UserType> initiator;
 	
 	// (primary) target (object, the thing acted on): store OID, type, name
 	// OPTIONAL
-	private ObjectType target;
+	private PrismObject<ObjectType> target;
 	
 	// user that the target "belongs to"????
-	private UserType targetOwner;
+	private PrismObject<UserType> targetOwner;
 		
 	// event type
 	private AuditEventType eventType;
@@ -155,27 +156,27 @@ public class AuditEventRecord {
 		this.hostIdentifier = hostIdentifier;
 	}
 
-	public UserType getInitiator() {
+	public PrismObject<UserType> getInitiator() {
 		return initiator;
 	}
 
-	public void setInitiator(UserType initiator) {
+	public void setInitiator(PrismObject<UserType> initiator) {
 		this.initiator = initiator;
 	}
 
-	public ObjectType getTarget() {
+	public PrismObject<ObjectType> getTarget() {
 		return target;
 	}
 
-	public void setTarget(ObjectType target) {
+	public void setTarget(PrismObject<ObjectType> target) {
 		this.target = target;
 	}
 
-	public UserType getTargetOwner() {
+	public PrismObject<UserType> getTargetOwner() {
 		return targetOwner;
 	}
 
-	public void setTargetOwner(UserType targetOwner) {
+	public void setTargetOwner(PrismObject<UserType> targetOwner) {
 		this.targetOwner = targetOwner;
 	}
 
@@ -247,11 +248,11 @@ public class AuditEventRecord {
 		return TIMESTAMP_FORMAT.format(new java.util.Date(timestamp));
 	}
 	
-	private static String formatObject(ObjectType object) {
+	private static String formatObject(PrismObject<? extends ObjectType> object) {
 		if (object == null) {
 			return "null";
 		}
-		return ObjectTypeUtil.toShortString(object);
+		return object.toString();
 	}
 		
 }

@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
@@ -169,11 +170,11 @@ public class AuditServiceImpl implements AuditService {
 		return TIMESTAMP_FORMAT.format(new java.util.Date(timestamp));
 	}
 	
-	private static String formatObject(ObjectType object) {
+	private static String formatObject(PrismObject<? extends ObjectType> object) {
 		if (object == null) {
 			return "null";
 		}
-		return ObjectTypeUtil.getShortTypeName(object)+":"+object.getOid()+"("+object.getName()+")";
+		return object.getObjectable().toDebugType()+":"+object.getOid()+"("+object.getName()+")";
 	}
 
 	private static String formatUser(UserType user) {
