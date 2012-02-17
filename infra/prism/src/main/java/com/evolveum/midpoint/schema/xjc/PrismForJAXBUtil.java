@@ -127,7 +127,7 @@ public final class PrismForJAXBUtil {
         Validate.notNull(parent, "Prism container value must not be null.");
         Validate.notNull(name, "QName must not be null.");
 
-        PrismContainer container = parent.findItem(name, PrismContainer.class);
+        PrismContainer container = parent.findOrCreateContainer(name);
         if (value == null) {
             if (container != null) {
                 container.getValue().removeAll();
