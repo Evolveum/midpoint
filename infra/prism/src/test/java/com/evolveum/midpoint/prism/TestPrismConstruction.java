@@ -19,7 +19,7 @@
  */
 package com.evolveum.midpoint.prism;
 
-import static com.evolveum.midpoint.prism.PrismTestUtil.*;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;

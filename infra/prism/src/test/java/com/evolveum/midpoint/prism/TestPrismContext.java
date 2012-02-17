@@ -22,7 +22,7 @@ package com.evolveum.midpoint.prism;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
-import static com.evolveum.midpoint.prism.PrismTestUtil.*;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 
 import static org.testng.AssertJUnit.assertNotNull;
 

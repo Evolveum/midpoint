@@ -41,7 +41,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
-public class PrismTestUtil {
+public class PrismInternalTestUtil {
 
 	// TODO: Globalize
 	private static final String NS_TYPE = "http://midpoint.evolveum.com/xml/ns/public/common/types-1.xsd";

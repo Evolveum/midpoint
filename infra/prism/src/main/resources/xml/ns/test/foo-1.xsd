@@ -89,7 +89,7 @@
     <xsd:element name="extension">
         <xsd:annotation>
             <xsd:appinfo>
-                <a:propertyContainer/>
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexType>
@@ -105,7 +105,7 @@
     <xsd:complexType name="ObjectType" abstract="true">
         <xsd:annotation>
             <xsd:appinfo>
-                <a:propertyContainer/>
+                <a:container/>
                 <a:object/>
             </xsd:appinfo>
         </xsd:annotation>
@@ -166,7 +166,7 @@
     <xsd:complexType name="AssignmentType">
     	<xsd:annotation>
             <xsd:appinfo>
-                <a:propertyContainer/>
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -178,7 +178,7 @@
 	<xsd:complexType name="ActivationType">
     	<xsd:annotation>
             <xsd:appinfo>
-                <a:propertyContainer/>
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
