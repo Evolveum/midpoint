@@ -22,6 +22,8 @@ package com.evolveum.midpoint.repo.cache;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -51,7 +53,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  */
 public class RepositoryCache implements RepositoryService {
 
-	private static ThreadLocal<Map<String,ObjectType>> cacheInstance = new ThreadLocal<Map<String,ObjectType>>();
+	private static ThreadLocal<Map<String,PrismObject<ObjectType>>> cacheInstance =
+		new ThreadLocal<Map<String,PrismObject<ObjectType>>>();
 	private static ThreadLocal<Integer> cacheCount = new ThreadLocal<Integer>();
 	
 	private RepositoryService repository;
@@ -63,7 +66,7 @@ public class RepositoryCache implements RepositoryService {
 		this.repository = repository;
 	}
 	
-	private static Map<String,ObjectType> getCache() {
+	private static Map<String,PrismObject<ObjectType>> getCache() {
 		// Don't instantiate unless the count in non-zero.
 		// Otherwise side-effects may happen (e.g. exit() never
 		// called will mean that the cache is not destroyed)
@@ -71,10 +74,10 @@ public class RepositoryCache implements RepositoryService {
 		if (count == null || count == 0) {
 			return null;
 		}
-		Map<String,ObjectType> inst = cacheInstance.get();
+		Map<String,PrismObject<ObjectType>> inst = cacheInstance.get();
 		if (inst == null) {
 			LOGGER.trace("Cache: creating for thread {}",Thread.currentThread().getName());
-			inst = new HashMap<String, ObjectType>();
+			inst = new HashMap<String, PrismObject<ObjectType>>();
 			cacheInstance.set(inst);
 		}
 		return inst;
@@ -88,7 +91,7 @@ public class RepositoryCache implements RepositoryService {
 	}
 	
 	public static void destroy() {
-		Map<String,ObjectType> inst = cacheInstance.get();
+		Map<String,PrismObject<ObjectType>> inst = cacheInstance.get();
 		if (inst != null) {
 			LOGGER.trace("Cache: DESTROY for thread {}",Thread.currentThread().getName());
 			cacheInstance.set(null);
@@ -96,11 +99,11 @@ public class RepositoryCache implements RepositoryService {
 	}
 	
 	public static void enter() {
-		Map<String,ObjectType> inst = cacheInstance.get();
+		Map<String,PrismObject<ObjectType>> inst = cacheInstance.get();
 		Integer count = cacheCount.get();
 		LOGGER.trace("Cache: ENTER for thread {}, {}",Thread.currentThread().getName(), count);
 		if (inst == null) {
-			inst = new HashMap<String, ObjectType>();
+			inst = new HashMap<String, PrismObject<ObjectType>>();
 			cacheInstance.set(inst);
 		}
 		if (count == null) {
@@ -146,26 +149,26 @@ public class RepositoryCache implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ObjectType> T getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
+	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		if (!isCacheable(type)) {
 			LOGGER.trace("Cache: PASS {} ({})", oid, type.getSimpleName());
 			return repository.getObject(type, oid, resolve, parentResult);
 		}
-		Map<String, ObjectType> cache = getCache();
+		Map<String, PrismObject<ObjectType>> cache = getCache();
 		if (cache == null) {
 			LOGGER.trace("Cache: NULL {} ({})", oid, type.getSimpleName());
 		} else {
 			if (cache.containsKey(oid)) {
 				// TODO: result?
 				LOGGER.trace("Cache: HIT {} ({})", oid, type.getSimpleName());
-				return (T) cache.get(oid);
+				return (PrismObject<T>) cache.get(oid);
 			}
 			LOGGER.trace("Cache: MISS {} ({})", oid, type.getSimpleName());
 		}
-		T object = repository.getObject(type, oid, resolve, parentResult);
+		PrismObject<T> object = repository.getObject(type, oid, resolve, parentResult);
 		if (cache != null) {
-			cache.put(oid, object);
+			cache.put(oid, (PrismObject<ObjectType>) object);
 		}
 		return object;
 	}
@@ -181,7 +184,7 @@ public class RepositoryCache implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ObjectType> String addObject(T object, OperationResult parentResult)
+	public <T extends ObjectType> String addObject(PrismObject<T> object, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException {
 		String oid = repository.addObject(object, parentResult);
 		// DON't cache it here. The object may not have proper "JAXB" form, e.g. some pieces may be
@@ -192,40 +195,40 @@ public class RepositoryCache implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ObjectType> ResultList<T> listObjects(Class<T> type, PagingType paging,
+	public <T extends ObjectType> ResultList<PrismObject<T>> listObjects(Class<T> type, PagingType paging,
 			OperationResult parentResult) {
 		// Cannot satisfy from cache, pass down to repository
-		ResultList<T> objects = repository.listObjects(type, paging, parentResult);
-		Map<String, ObjectType> cache = getCache();
+		ResultList<PrismObject<T>> objects = repository.listObjects(type, paging, parentResult);
+		Map<String, PrismObject<ObjectType>> cache = getCache();
 		if (cache != null) {
-			for (ObjectType object : objects) {
-				cache.put(object.getOid(), object);
+			for (PrismObject<T> object : objects) {
+				cache.put(object.getOid(), (PrismObject<ObjectType>) object);
 			}
 		}
 		return objects;
 	}
 
 	@Override
-	public <T extends ObjectType> ResultList<T> searchObjects(Class<T> type, QueryType query,
+	public <T extends ObjectType> ResultList<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
 			PagingType paging, OperationResult parentResult) throws SchemaException {
 		// Cannot satisfy from cache, pass down to repository
-		ResultList<T> objects = repository.searchObjects(type, query, paging, parentResult);
-		Map<String, ObjectType> cache = getCache();
+		ResultList<PrismObject<T>> objects = repository.searchObjects(type, query, paging, parentResult);
+		Map<String, PrismObject<ObjectType>> cache = getCache();
 		if (cache != null) {
-			for (ObjectType object : objects) {
-				cache.put(object.getOid(), object);
+			for (PrismObject<T> object : objects) {
+				cache.put(object.getOid(), (PrismObject<ObjectType>) object);
 			}
 		}
 		return objects;
 	}
 
 	@Override
-	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType objectChange,
+	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectDelta<T> objectChange,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		repository.modifyObject(type, objectChange, parentResult);
 		// this changes the object. We are too lazy to apply changes ourselves, so just invalidate
 		// the object in cache
-		Map<String, ObjectType> cache = getCache();
+		Map<String, PrismObject<ObjectType>> cache = getCache();
 		if (cache != null) {
 			cache.remove(objectChange.getOid());
 		}
@@ -235,27 +238,20 @@ public class RepositoryCache implements RepositoryService {
 	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult)
 			throws ObjectNotFoundException {
 		repository.deleteObject(type, oid, parentResult);
-		Map<String, ObjectType> cache = getCache();
+		Map<String, PrismObject<ObjectType>> cache = getCache();
 		if (cache != null) {
 			cache.remove(oid);
 		}
 	}
 
 	@Override
-	public <T extends ObjectType> PropertyAvailableValuesListType getPropertyAvailableValues(Class<T> type,
-			String oid, PropertyReferenceListType properties, OperationResult parentResult)
-			throws ObjectNotFoundException {
-		return repository.getPropertyAvailableValues(type, oid, properties, parentResult);
-	}
-
-	@Override
-	public UserType listAccountShadowOwner(String accountOid, OperationResult parentResult)
+	public PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult parentResult)
 			throws ObjectNotFoundException {
 		return repository.listAccountShadowOwner(accountOid, parentResult);
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> ResultList<T> listResourceObjectShadows(String resourceOid,
+	public <T extends ResourceObjectShadowType> ResultList<PrismObject<T>> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException {
 		return repository.listResourceObjectShadows(resourceOid, resourceObjectShadowType, parentResult);
 	}
@@ -264,7 +260,7 @@ public class RepositoryCache implements RepositoryService {
 	public void claimTask(String oid, OperationResult parentResult) throws ObjectNotFoundException,
 			ConcurrencyException, SchemaException {
 		repository.claimTask(oid, parentResult);
-		Map<String, ObjectType> cache = getCache();
+		Map<String, PrismObject<ObjectType>> cache = getCache();
 		if (cache != null) {
 			cache.remove(oid);
 		}
@@ -274,7 +270,7 @@ public class RepositoryCache implements RepositoryService {
 	public void releaseTask(String oid, OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException {
 		repository.releaseTask(oid, parentResult);
-		Map<String, ObjectType> cache = getCache();
+		Map<String, PrismObject<ObjectType>> cache = getCache();
 		if (cache != null) {
 			cache.remove(oid);
 		}
