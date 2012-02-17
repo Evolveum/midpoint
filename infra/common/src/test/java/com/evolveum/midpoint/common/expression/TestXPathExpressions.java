@@ -26,7 +26,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.test.util.DirectoryFileObjectResolver;
-import com.evolveum.midpoint.test.util.PrismContextTestUtil;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -66,7 +66,7 @@ public class TestXPathExpressions {
     @Test
     public void testExpressionSimple() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ExpressionType> expressionTypeElement = (JAXBElement) PrismContextTestUtil.unmarshalElement(
+        JAXBElement<ExpressionType> expressionTypeElement = (JAXBElement) PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "expression-simple.xml"));
         ExpressionType expressionType = expressionTypeElement.getValue();
 
@@ -83,7 +83,7 @@ public class TestXPathExpressions {
     @Test
     public void testExpressionStringVariables() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ExpressionType> expressionTypeElement = (JAXBElement) PrismContextTestUtil.unmarshalElement(
+        JAXBElement<ExpressionType> expressionTypeElement = (JAXBElement) PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "expression-string-variables.xml"));
         ExpressionType expressionType = expressionTypeElement.getValue();
 
@@ -101,7 +101,7 @@ public class TestXPathExpressions {
     @Test
     public void testExpressionObjectRefVariables() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ExpressionType> expressionTypeElement = (JAXBElement) PrismContextTestUtil.unmarshalElement(
+        JAXBElement<ExpressionType> expressionTypeElement = (JAXBElement) PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "expression-objectref-variables.xml"));
         ExpressionType expressionType = expressionTypeElement.getValue();
 
@@ -119,7 +119,7 @@ public class TestXPathExpressions {
     @Test
     public void testSystemVariables() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ExpressionType> expressionTypeElement = (JAXBElement) PrismContextTestUtil.unmarshalElement(
+        JAXBElement<ExpressionType> expressionTypeElement = (JAXBElement) PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "expression-system-variables.xml"));
         ExpressionType expressionType = expressionTypeElement.getValue();
 
@@ -142,7 +142,7 @@ public class TestXPathExpressions {
     @Test
     public void testRootNode() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ExpressionType> expressionTypeElement = (JAXBElement) PrismContextTestUtil.unmarshalElement(
+        JAXBElement<ExpressionType> expressionTypeElement = (JAXBElement) PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "expression-root-node.xml"));
         ExpressionType expressionType = expressionTypeElement.getValue();
 
@@ -165,7 +165,7 @@ public class TestXPathExpressions {
     @Test
     public void testExpressionList() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ExpressionType> expressionTypeElement = (JAXBElement) PrismContextTestUtil.unmarshalElement(
+        JAXBElement<ExpressionType> expressionTypeElement = (JAXBElement) PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "expression-list.xml"));
         ExpressionType expressionType = expressionTypeElement.getValue();
 

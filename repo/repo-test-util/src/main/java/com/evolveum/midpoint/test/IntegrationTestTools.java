@@ -47,7 +47,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.PrismContextTestUtil;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -253,7 +253,7 @@ public class IntegrationTestTools {
 
 	public static void displayJaxb(String title, Object o, QName qname) throws JAXBException {
 		Document doc = DOMUtil.getDocument();
-		Element element = PrismContextTestUtil.marshalObjectToDom(o, qname, doc);
+		Element element = PrismTestUtil.marshalObjectToDom(o, qname, doc);
 		String serialized = DOMUtil.serializeDOMToString(element);
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
 		System.out.println(serialized);

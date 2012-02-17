@@ -46,7 +46,7 @@ import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.PrismAsserts;
-import com.evolveum.midpoint.test.util.PrismContextTestUtil;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.test.util.XmlAsserts;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -105,7 +105,7 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 		final String resourceOid = "aae7be60-df56-11df-8608-0002a5d5c51b";
 		try {
 			// add resource
-			PrismObject<ResourceType> resource = PrismContextTestUtil.parseObject(new File(
+			PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(
 					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"));
 			repositoryService.addObject(resource, new OperationResult("test"));
 			PrismObject<ResourceType> retrievedResource = repositoryService.getObject(ResourceType.class, resourceOid,
@@ -113,7 +113,7 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 			assertEquals(resource.getOid(), retrievedResource.getOid());
 
 			// add account
-			PrismObject<AccountShadowType> accountShadow = PrismContextTestUtil.parseObject(new File(
+			PrismObject<AccountShadowType> accountShadow = PrismTestUtil.parseObject(new File(
 					"src/test/resources/account.xml"));
 			repositoryService.addObject(accountShadow, new OperationResult("test"));
 
@@ -161,15 +161,15 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 		String accountRefOid = "8254880d-6584-425a-af2e-58f8ca394bbb";
 		String resourceOid = "aae7be60-df56-11df-8608-0002a5d5c51b";
 		try {
-			PrismObject<ResourceType> resource = PrismContextTestUtil.parseObject(new File(
+			PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(
 					"src/test/resources/resource-modified-removed-tags.xml"));
 			repositoryService.addObject(resource, new OperationResult("test"));
 
-			PrismObject<AccountShadowType> account = PrismContextTestUtil.parseObject(new File(
+			PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(
 					"src/test/resources/account-delete-account-ref.xml"));
 			repositoryService.addObject(account, new OperationResult("test"));
 
-			PrismObject<UserType> user = PrismContextTestUtil.parseObject(new File(
+			PrismObject<UserType> user = PrismTestUtil.parseObject(new File(
 					"src/test/resources/user-account-ref.xml"));
 			assertEquals(1, user.getObjectable().getAccountRef().size());
 			repositoryService.addObject(user, new OperationResult("test"));
@@ -208,15 +208,15 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 		String accountRefOid = "8254880d-6584-425a-af2e-58f8ca394bbb";
 		String resourceOid = "aae7be60-df56-11df-8608-0002a5d5c51b";
 		try {
-			PrismObject<ResourceType> resource = PrismContextTestUtil.parseObject(new File(
+			PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(
 					"src/test/resources/resource-modified-removed-tags.xml"));
 			repositoryService.addObject(resource, new OperationResult("test"));
 
-			PrismObject<AccountShadowType> account = PrismContextTestUtil.parseObject(new File(
+			PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(
 					"src/test/resources/account-delete-account-ref.xml"));
 			repositoryService.addObject(account, new OperationResult("test"));
 
-			PrismObject<UserType> user = PrismContextTestUtil.parseObject(new File(
+			PrismObject<UserType> user = PrismTestUtil.parseObject(new File(
 					"src/test/resources/user-account-ref.xml"));
 			assertEquals(1, user.getObjectable().getAccountRef().size());
 			repositoryService.addObject(user, new OperationResult("test"));

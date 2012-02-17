@@ -27,7 +27,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.test.util.PrismContextTestUtil;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -60,9 +60,9 @@ public class TestRefinedSchema {
     public void testParseFromResource() throws JAXBException, SchemaException, SAXException, IOException {
 
         // GIVEN
-    	PrismContext prismContext = PrismContextTestUtil.createInitializedPrismContext();
+    	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
 
-        JAXBElement<ResourceType> jaxbElement = PrismContextTestUtil.unmarshalElement(new File(TEST_DIR_NAME, "resource.xml"), ResourceType.class);
+        JAXBElement<ResourceType> jaxbElement = PrismTestUtil.unmarshalElement(new File(TEST_DIR_NAME, "resource.xml"), ResourceType.class);
         ResourceType resourceType = jaxbElement.getValue();
 
         // WHEN
@@ -114,15 +114,15 @@ public class TestRefinedSchema {
     public void testParseAccount() throws JAXBException, SchemaException, SAXException, IOException {
 
         // GIVEN
-    	PrismContext prismContext = PrismContextTestUtil.createInitializedPrismContext();
+    	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
 
-        JAXBElement<ResourceType> resJaxbElement = PrismContextTestUtil.unmarshalElement(new File(TEST_DIR_NAME, "resource.xml"), ResourceType.class);
+        JAXBElement<ResourceType> resJaxbElement = PrismTestUtil.unmarshalElement(new File(TEST_DIR_NAME, "resource.xml"), ResourceType.class);
         ResourceType resourceType = resJaxbElement.getValue();
 
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
         RefinedAccountDefinition defaultAccountDefinition = rSchema.getDefaultAccountDefinition();
 
-        JAXBElement<AccountShadowType> accJaxbElement = PrismContextTestUtil.unmarshalElement(new File(TEST_DIR_NAME, "account-jack.xml"), AccountShadowType.class);
+        JAXBElement<AccountShadowType> accJaxbElement = PrismTestUtil.unmarshalElement(new File(TEST_DIR_NAME, "account-jack.xml"), AccountShadowType.class);
         AccountShadowType accType = accJaxbElement.getValue();
 
         // WHEN
@@ -161,7 +161,7 @@ public class TestRefinedSchema {
 
         // THEN
         System.out.println("storedObjectType:");
-        System.out.println(PrismContextTestUtil.marshalWrap(storedObjectType));
+        System.out.println(PrismTestUtil.marshalWrap(storedObjectType));
         //assertTrue(accType.equals(storedObjectType));
         assertTrue(accType == storedObjectType);
         assertEquals("JAXB class name doesn't match (2)", AccountShadowType.class, accObject.getCompileTimeClass());
@@ -178,7 +178,7 @@ public class TestRefinedSchema {
         // THEN
         assertEquals("JAXB class name doesn't match (4)", AccountShadowType.class, accObject.getCompileTimeClass());
         System.out.println("convertedObjectType:");
-        System.out.println(PrismContextTestUtil.marshalWrap(convertedObjectType));
+        System.out.println(PrismTestUtil.marshalWrap(convertedObjectType));
         assertFalse(accType == convertedObjectType);
 //		assertTrue(accType.equals(convertedObjectType));
 

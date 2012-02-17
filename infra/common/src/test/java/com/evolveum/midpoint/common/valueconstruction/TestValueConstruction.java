@@ -42,7 +42,7 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.test.util.DirectoryFileObjectResolver;
-import com.evolveum.midpoint.test.util.PrismContextTestUtil;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -80,7 +80,7 @@ public class TestValueConstruction {
 
     @BeforeClass
     public void setupFactory() throws SAXException, IOException, SchemaException {
-    	prismContext = PrismContextTestUtil.createInitializedPrismContext();
+    	prismContext = PrismTestUtil.createInitializedPrismContext();
     	
         ExpressionFactory expressionFactory = new ExpressionFactory();
         XPathExpressionEvaluator xpathEvaluator = new XPathExpressionEvaluator();
@@ -102,7 +102,7 @@ public class TestValueConstruction {
     @Test
     public void testConstructionValue() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-value.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
@@ -123,7 +123,7 @@ public class TestValueConstruction {
     @Test
     public void testConstructionValueMulti() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-value-multi.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
@@ -148,7 +148,7 @@ public class TestValueConstruction {
     @Test
     public void testConstructionAsIs() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-asis.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
@@ -173,7 +173,7 @@ public class TestValueConstruction {
     @Test
     public void testConstructionExpressionSimple() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-simple.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
@@ -193,7 +193,7 @@ public class TestValueConstruction {
     @Test
     public void testConstructionExpressionVariables() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-variables.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
@@ -214,7 +214,7 @@ public class TestValueConstruction {
     @Test
     public void testConstructionExpressionSystemVariablesRef() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-system-variables.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
@@ -241,11 +241,11 @@ public class TestValueConstruction {
     @Test
     public void testConstructionExpressionSystemVariablesValueJaxb() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-system-variables.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        JAXBElement<UserType> userTypeElement = PrismContextTestUtil.unmarshalElement(
+        JAXBElement<UserType> userTypeElement = PrismTestUtil.unmarshalElement(
                 new File(OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111111.xml"), UserType.class);
         UserType userType = userTypeElement.getValue();
 
@@ -269,11 +269,11 @@ public class TestValueConstruction {
     @Test
     public void testConstructionExpressionSystemVariablesValueMidPointObject() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-system-variables.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        JAXBElement<UserType> userTypeElement = PrismContextTestUtil.unmarshalElement(
+        JAXBElement<UserType> userTypeElement = PrismTestUtil.unmarshalElement(
                 new File(OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111111.xml"), UserType.class);
         UserType userType = userTypeElement.getValue();
 
@@ -297,7 +297,7 @@ public class TestValueConstruction {
     @Test
     public void testConstructionRootNode() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-root-node.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
@@ -327,7 +327,7 @@ public class TestValueConstruction {
     @Test
     public void testConstructionExpressionList() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-list.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
@@ -357,7 +357,7 @@ public class TestValueConstruction {
     @Test(enabled = false)
     public void testConstructionExpressionScalarList() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-scalar-list.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
@@ -381,7 +381,7 @@ public class TestValueConstruction {
     @Test
     public void testConstructionGenerate() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-generate.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
@@ -419,7 +419,7 @@ public class TestValueConstruction {
     @Test
     public void testConstructionGenerateProtectedString() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-generate.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 

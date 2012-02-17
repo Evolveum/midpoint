@@ -44,7 +44,7 @@ import java.io.IOException;
  *
  * @author semancik
  */
-public class PrismContextTestUtil {
+public class PrismTestUtil {
 
     private static final QName DEFAULT_ELEMENT_NAME = new QName("http://midpoint.evolveum.com/xml/ns/test/whatever-1.xsd", "whatever");
 

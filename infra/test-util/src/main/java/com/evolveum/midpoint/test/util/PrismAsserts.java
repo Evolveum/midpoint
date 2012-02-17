@@ -119,11 +119,11 @@ public class PrismAsserts {
 	}
 
 	private static PrismDomProcessor getDomProcessor() {
-		return PrismContextTestUtil.getPrismContext().getPrismDomProcessor();
+		return PrismTestUtil.getPrismContext().getPrismDomProcessor();
 	}
 
 	private static PrismJaxbProcessor getJaxbProcessor() {
-		return PrismContextTestUtil.getPrismContext().getPrismJaxbProcessor();
+		return PrismTestUtil.getPrismContext().getPrismJaxbProcessor();
 	}
 
 }
