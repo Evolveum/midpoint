@@ -45,8 +45,9 @@ import org.w3c.dom.Element;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
-import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -108,7 +109,8 @@ public class SchemaProcessor implements Processor {
             createClassMap(CLASS_MAP, outline, PrismReferenceValue.class, PrismReference.class, PrismObject.class,
                     String.class, Object.class, XmlTransient.class, Override.class, IllegalArgumentException.class,
                     QName.class, PrismForJAXBUtil.class, PrismReferenceArrayList.class, PrismContainerValue.class,
-                    List.class, Objectable.class, StringBuilder.class);
+                    List.class, Objectable.class, StringBuilder.class, XmlAccessorType.class, XmlElement.class,
+                    XmlAttribute.class, XmlAnyAttribute.class, XmlAnyElement.class);
 
             StepSchemaConstants stepSchemaConstants = new StepSchemaConstants();
             stepSchemaConstants.run(outline, options, errorHandler);
@@ -224,7 +226,6 @@ public class SchemaProcessor implements Processor {
                 continue;
             }
 
-            //todo remove, only till propertyContainer annotation is on ObjectType
             if (hasAnnotation(classOutline, MIDPOINT_CONTAINER) && hasAnnotation(classOutline, PROPERTY_CONTAINER)) {
                 continue;
             }
@@ -234,9 +235,6 @@ public class SchemaProcessor implements Processor {
 
             //inserting MidPointObject field into ObjectType class
             JVar container = definedClass.field(JMod.PRIVATE, PrismContainerValue.class, CONTAINER_FIELD_NAME);
-            //adding XmlTransient annotation
-            container.annotate(CLASS_MAP.get(XmlTransient.class));
-
             //create getContainer
             createGetContainerValueMethod(classOutline, container);
             //create setContainer
@@ -268,8 +266,6 @@ public class SchemaProcessor implements Processor {
 
             //inserting PrismObject field into ObjectType class
             JVar container = definedClass.field(JMod.PRIVATE, PrismObject.class, CONTAINER_FIELD_NAME);
-            //adding XmlTransient annotation
-            container.annotate(CLASS_MAP.get(XmlTransient.class));
 
             //create getContainer
             createGetContainerMethod(classOutline, container);
@@ -287,6 +283,46 @@ public class SchemaProcessor implements Processor {
         }
 
         return containers;
+    }
+
+    private void updateClassAnnotation(ClassOutline classOutline) {
+        try {
+            JDefinedClass definedClass = classOutline.implClass;
+            List<JAnnotationUse> existingAnnotations = (List<JAnnotationUse>) getAnnotations(definedClass);
+            for (JAnnotationUse annotation : existingAnnotations) {
+                if (!isAnnotationTypeOf(annotation, XmlAccessorType.class)) {
+                    continue;
+                }
+
+                Field field = getField(JAnnotationUse.class, "memberValues");
+                field.setAccessible(true);
+                Map<String, Object> map = (Map<String, Object>) field.get(annotation);
+                field.setAccessible(false);
+
+                map.clear();
+                annotation.param("value", XmlAccessType.PROPERTY);
+                break;
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex.getMessage(), ex);
+        }
+    }
+
+    private boolean isAnnotationTypeOf(JAnnotationUse annotation, Class clazz) {
+        try {
+            Field field = getField(JAnnotationUse.class, "clazz");
+            field.setAccessible(true);
+            JClass jClass = (JClass) field.get(annotation);
+            field.setAccessible(false);
+
+            if (CLASS_MAP.get(clazz).equals(jClass)) {
+                return true;
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex.getMessage(), ex);
+        }
+
+        return false;
     }
 
     private void createToDebugName(JDefinedClass definedClass) {
@@ -359,6 +395,7 @@ public class SchemaProcessor implements Processor {
         JDefinedClass definedClass = classOutline.implClass;
         JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismContainerValue.class),
                 METHOD_GET_CONTAINER);
+        getContainer.annotate(CLASS_MAP.get(XmlTransient.class));
 
         //create method body
         JBlock body = getContainer.body();
@@ -384,6 +421,8 @@ public class SchemaProcessor implements Processor {
         JDefinedClass definedClass = classOutline.implClass;
         JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismObject.class),
                 METHOD_GET_CONTAINER);
+        //adding XmlTransient annotation
+        getContainer.annotate(CLASS_MAP.get(XmlTransient.class));
 
         //create method body
         JBlock body = getContainer.body();
@@ -457,6 +496,7 @@ public class SchemaProcessor implements Processor {
 
             JDefinedClass definedClass = classOutline.implClass;
             JMethod getContainerName = definedClass.method(JMod.NONE, QName.class, METHOD_GET_CONTAINER_NAME);
+            getContainerName.annotate(CLASS_MAP.get(XmlTransient.class));
             JBlock body = getContainerName.body();
 
             JFieldVar var = namespaceFields.get(qname.getNamespaceURI());
@@ -543,7 +583,7 @@ public class SchemaProcessor implements Processor {
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
-            QName qname = entry.getValue().getTypeName();
+            QName qname = getCClassInfoQName(entry.getValue());
             if (qname == null) {
                 continue;
             }
@@ -557,7 +597,8 @@ public class SchemaProcessor implements Processor {
 
             List<FieldBox<QName>> boxes = new ArrayList<FieldBox<QName>>();
             for (String field : fields.keySet()) {
-                if ("serialVersionUID".equals(field) || "oid".equals(field) || COMPLEX_TYPE_FIELD.equals(field)) {
+                if ("serialVersionUID".equals(field) || "oid".equals(field)
+                        || "id".equals(field) || COMPLEX_TYPE_FIELD.equals(field)) {
                     continue;
                 }
 
@@ -580,18 +621,24 @@ public class SchemaProcessor implements Processor {
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
-            QName qname = entry.getValue().getTypeName();
-            if (qname == null) {
-                continue;
+            if (classOutline.implClass.name().equals("Extension")) {
+                System.out.println("");
             }
+
+//            QName qname = entry.getValue().getTypeName();
+//            if (qname == null) {
+//                continue;
+//            }
 
             JDefinedClass implClass = classOutline.implClass;
             Map<String, JFieldVar> fields = implClass.fields();
 
             if (fields == null || !isContainer(classOutline.implClass, outline)) {
-                //it's PropertyContainer, MidPointObject class or doesn't have fields
+                //it's PropertyContainer, MidPointObject class or doesn't have fields                
                 continue;
             }
+
+            updateClassAnnotation(classOutline);
 
             System.out.println("Updating fields and get/set methods: " + classOutline.implClass.fullName());
 
@@ -838,20 +885,13 @@ public class SchemaProcessor implements Processor {
             invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
             invocation.arg(qnameRef);
 
-            JVar reference = body.decl(CLASS_MAP.get(PrismReferenceValue.class), REFERENCE_FIELD_NAME, invocation);            
+            JVar reference = body.decl(CLASS_MAP.get(PrismReferenceValue.class), REFERENCE_FIELD_NAME, invocation);
 
             JBlock then = body._if(reference.eq(JExpr._null()).cor(JExpr.invoke(reference, "getObject")
                     .eq(JExpr._null())))._then();
             then._return(JExpr._null());
 
-//            return (ObjectType) reference.getObject().getObjectable();
-            
-            body._return(JExpr.cast((JClass)field.type(), JExpr.invoke(reference, "getObject").invoke("getObjectable")));
-            
-//            JVar wrapper = body.decl(field.type(), field.name(), JExpr._new(field.type()));
-//            invocation = body.invoke(wrapper, METHOD_SET_CONTAINER);
-//            invocation.arg(JExpr.cast(CLASS_MAP.get(PrismObject.class), JExpr.invoke(reference, "getObject")));
-//            body._return(wrapper);
+            body._return(JExpr.cast((JClass) field.type(), JExpr.invoke(reference, "getObject").invoke("getObjectable")));
         }
     }
 
@@ -1040,9 +1080,36 @@ public class SchemaProcessor implements Processor {
         return isList;
     }
 
+    //todo use this mehtod for all getters for our fields....>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    //todo don't generate xml element annotation when xmlattribute exists
+    private void annotateMethodWithXmlElement(JMethod method, JFieldVar field) {
+        List<JAnnotationUse> existingAnnotations = (List<JAnnotationUse>) getAnnotations(method);
+        for (JAnnotationUse annotation : existingAnnotations) {
+            if (isAnnotationTypeOf(annotation, XmlAttribute.class) ||
+                    isAnnotationTypeOf(annotation, XmlAnyElement.class) ||
+                    isAnnotationTypeOf(annotation, XmlAnyAttribute.class)) {
+                return;
+            }
+        }
+
+        JAnnotationUse xmlElement = null;
+        for (JAnnotationUse annotation : existingAnnotations) {
+            if (!isAnnotationTypeOf(annotation, XmlElement.class)) {
+                continue;
+            }
+            xmlElement = annotation;
+            break;
+        }
+        if (xmlElement == null) {
+            xmlElement = method.annotate(CLASS_MAP.get(XmlElement.class));
+        }
+        xmlElement.param("name", field.name());
+    }
+
     private boolean updateField(JFieldVar field, ClassOutline classOutline) {
         //update getter
         JMethod method = recreateGetter(field, classOutline);
+        annotateMethodWithXmlElement(method, field);
         boolean isList = isList(field.type());
         createFieldGetterBody(method, field, isList);
 

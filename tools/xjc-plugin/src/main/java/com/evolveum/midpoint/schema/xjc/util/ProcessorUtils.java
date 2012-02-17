@@ -168,7 +168,7 @@ public final class ProcessorUtils {
         }
     }
 
-    private static List<JAnnotationUse> getAnnotations(JAnnotatable from) {
+    public static List<JAnnotationUse> getAnnotations(JAnnotatable from) {
         List<JAnnotationUse> annotations = new ArrayList<JAnnotationUse>();
 
         try {
@@ -192,7 +192,7 @@ public final class ProcessorUtils {
         return annotations;
     }
 
-    private static Field getField(Class clazz, String name) {
+    public static Field getField(Class clazz, String name) {
         Field[] fields = clazz.getDeclaredFields();
         if (fields != null) {
             for (Field field : fields) {
