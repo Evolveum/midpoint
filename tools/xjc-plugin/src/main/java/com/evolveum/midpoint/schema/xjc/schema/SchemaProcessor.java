@@ -156,10 +156,13 @@ public class SchemaProcessor implements Processor {
             return;
         }
 
+        updateClassAnnotation(objectReferenceOutline);
+
         JDefinedClass definedClass = objectReferenceOutline.implClass;
         //add prism reference and get/set method for it
         JVar reference = definedClass.field(JMod.PRIVATE, PrismReferenceValue.class, REFERENCE_FIELD_NAME);
         JMethod getReference = definedClass.method(JMod.PUBLIC, PrismReferenceValue.class, METHOD_GET_REFERENCE);
+        getReference.annotate(CLASS_MAP.get(XmlTransient.class));
         JBlock body = getReference.body();
         JBlock then = body._if(reference.eq(JExpr._null()))._then();
         JInvocation newReference = JExpr._new(CLASS_MAP.get(PrismReferenceValue.class));
@@ -175,6 +178,10 @@ public class SchemaProcessor implements Processor {
         updateObjectReferenceOid(definedClass, getReference);
         //update for type methods
         updateObjectReferenceType(definedClass, getReference);
+
+        //add xml element annotation to description getter
+        annotateMethodWithXmlElement(findMethod(definedClass, "getDescription"),
+                definedClass.fields().get("description"));
     }
 
     private void updateObjectReferenceType(JDefinedClass definedClass, JMethod getReference) {
@@ -621,14 +628,6 @@ public class SchemaProcessor implements Processor {
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
-            if (classOutline.implClass.name().equals("Extension")) {
-                System.out.println("");
-            }
-
-//            QName qname = entry.getValue().getTypeName();
-//            if (qname == null) {
-//                continue;
-//            }
 
             JDefinedClass implClass = classOutline.implClass;
             Map<String, JFieldVar> fields = implClass.fields();
@@ -721,7 +720,7 @@ public class SchemaProcessor implements Processor {
 
     private boolean updateFieldReference(JFieldVar field, ClassOutline classOutline) {
         JMethod method = recreateGetter(field, classOutline);
-
+        annotateMethodWithXmlElement(method, field);
         boolean isList = isList(field.type());
         createFieldReferenceGetterBody(field, classOutline, method.body(), isList);
 
@@ -829,6 +828,7 @@ public class SchemaProcessor implements Processor {
     private boolean updateFieldReferenceUse(JFieldVar field, ClassOutline classOutline) {
         //getter method update
         JMethod method = recreateGetter(field, classOutline);
+        annotateMethodWithXmlElement(method, field);
         boolean isList = isList(field.type());
         createFieldReferenceUseGetterBody(field, classOutline, method.body(), isList);
 
@@ -1003,6 +1003,7 @@ public class SchemaProcessor implements Processor {
     private boolean updateContainerFieldType(JFieldVar field, ClassOutline classOutline) {
         //getter method update
         JMethod method = recreateGetter(field, classOutline);
+        annotateMethodWithXmlElement(method, field);
         createContainerFieldGetterBody(field, classOutline, method);
 
         //setter method update
@@ -1080,10 +1081,8 @@ public class SchemaProcessor implements Processor {
         return isList;
     }
 
-    //todo use this mehtod for all getters for our fields....>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    //todo don't generate xml element annotation when xmlattribute exists
     private void annotateMethodWithXmlElement(JMethod method, JFieldVar field) {
-        List<JAnnotationUse> existingAnnotations = (List<JAnnotationUse>) getAnnotations(method);
+        List<JAnnotationUse> existingAnnotations = getAnnotations(method);
         for (JAnnotationUse annotation : existingAnnotations) {
             if (isAnnotationTypeOf(annotation, XmlAttribute.class) ||
                     isAnnotationTypeOf(annotation, XmlAnyElement.class) ||
