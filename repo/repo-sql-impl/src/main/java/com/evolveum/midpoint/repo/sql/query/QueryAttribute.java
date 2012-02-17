@@ -19,28 +19,22 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.repo.sql.jaxb;
+package com.evolveum.midpoint.repo.sql.query;
 
-import com.evolveum.midpoint.repo.sql.Identifiable;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
-
-import javax.xml.bind.annotation.XmlTransient;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
+ * This annotation is used for mapping attribute from JAXB classes to Hibernate classes in sql-impl repository
+ *
  * @author lazyman
  */
-public class XExtension extends Extension { //implements Identifiable {
+@Target({ElementType.FIELD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface QueryAttribute {
 
-    @XmlTransient
-    private long id;
-
-//    @Override
-//    public long getId() {
-//        return id;
-//    }
-//
-//    @Override
-//    public void setId(long id) {
-//        this.id = id;
-//    }
+    String name();
+    String namespace() default "";
 }

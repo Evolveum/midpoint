@@ -22,7 +22,6 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.Identifiable;
-import com.evolveum.midpoint.repo.sql.jaxb.XObjectReferenceType;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import org.apache.commons.lang.StringUtils;
@@ -109,10 +108,7 @@ public class RObjectReferenceType implements Identifiable {
         jaxb.setOid(repo.getOid());
         jaxb.setDescription(repo.getDescription());
 
-        if (jaxb instanceof XObjectReferenceType) {
-            XObjectReferenceType xRef = (XObjectReferenceType) jaxb;
-            xRef.setId(repo.getId());
-        }
+//        jaxb.setOid(repo.getId());
     }
 
     public static void copyFromJAXB(ObjectReferenceType jaxb, RObjectReferenceType repo) {
@@ -127,14 +123,11 @@ public class RObjectReferenceType implements Identifiable {
             repo.setFilter(DOMUtil.printDom(jaxb.getFilter()).toString());
         }
 
-        if (jaxb instanceof XObjectReferenceType) {
-            XObjectReferenceType xRef = (XObjectReferenceType) jaxb;
-            repo.setId(xRef.getId());
-        }
+//        repo.setId(jaxb.getOid());
     }
 
     public ObjectReferenceType toJAXB() {
-        ObjectReferenceType ref = new XObjectReferenceType();
+        ObjectReferenceType ref = new ObjectReferenceType();
         copyToJAXB(this, ref);
 
         return ref;

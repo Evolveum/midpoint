@@ -23,7 +23,6 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.Identifiable;
-import com.evolveum.midpoint.repo.sql.jaxb.XExtension;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
@@ -70,10 +69,7 @@ public class RExtension implements Identifiable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-//        if (jaxb instanceof XExtension) {
-//            XExtension ext = (XExtension) jaxb;
-//            ext.setId(repo.getId());
-//        }
+//        jaxb.setId(repo.getId());
 
         if (repo.getObjects() == null) {
             return;
@@ -94,10 +90,7 @@ public class RExtension implements Identifiable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-//        if (jaxb instanceof XExtension) {
-//            XExtension ext = (XExtension) jaxb;
-//            repo.setId(ext.getId());
-//        }
+//        repo.setId(jaxb.getId());
 
         try {
             if (!jaxb.getAny().isEmpty()) {
@@ -115,7 +108,7 @@ public class RExtension implements Identifiable {
     }
 
     public Extension toJAXB() throws DtoTranslationException {
-        XExtension extension = new XExtension();
+        Extension extension = new Extension();
         RExtension.copyToJAXB(this, extension);
 
         return extension;

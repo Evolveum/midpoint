@@ -22,8 +22,8 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.jaxb.XExtension;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.Entity;
@@ -56,7 +56,7 @@ public abstract class RExtensibleObjectType extends RObjectType {
         RObjectType.copyToJAXB(repo, jaxb);
 
         if (repo.getExtension() != null) {
-            XExtension extension = new XExtension();
+            Extension extension = new Extension();
             jaxb.setExtension(extension);
 
             RExtension.copyToJAXB(repo.getExtension(), extension);
