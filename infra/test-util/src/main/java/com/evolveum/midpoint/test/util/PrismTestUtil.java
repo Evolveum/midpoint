@@ -92,6 +92,10 @@ public class PrismTestUtil {
     public static <T> JAXBElement<T> unmarshalElement(String xmlString, Class<T> type) throws JAXBException {
         return prismContext.getPrismJaxbProcessor().unmarshalElement(xmlString);
     }
+    
+    public static <T> T unmarshalObject(File file) throws JAXBException {
+    	return prismContext.getPrismJaxbProcessor().unmarshalObject(file);
+    }
 
     public static <T> JAXBElement<T> unmarshalElement(File xmlFile) throws JAXBException {
         return prismContext.getPrismJaxbProcessor().unmarshalElement(xmlFile);

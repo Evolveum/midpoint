@@ -38,9 +38,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.util.PrismAsserts;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
@@ -93,16 +96,15 @@ public class RepositoryUserTemplateTest extends AbstractTestNGSpringContextTests
     	String userTemplateOid = "c0c010c0-d34d-b33f-f00d-777111111111";
         try {
         	//add object
-            UserTemplateType userTemplate = ((JAXBElement<UserTemplateType>) JAXBUtil.unmarshal(new File("src/test/resources/user-template.xml"))).getValue();
+            PrismObject<UserTemplateType> userTemplate = PrismTestUtil.parseObject(new File("src/test/resources/user-template.xml"));
             repositoryService.addObject(userTemplate, new OperationResult("test"));
             
             //get object
-            ObjectType retrievedObject = repositoryService.getObject(ObjectType.class, userTemplateOid, new PropertyReferenceListType(), new OperationResult("test"));
-            assertEquals(userTemplate.getPropertyConstruction().get(0).getProperty().getTextContent(), ((UserTemplateType) retrievedObject).getPropertyConstruction().get(0).getProperty().getTextContent());
-            assertEquals(userTemplate.getAccountConstruction().get(0).getResourceRef().getOid(), ((UserTemplateType) retrievedObject).getAccountConstruction().get(0).getResourceRef().getOid());
+            PrismObject<UserTemplateType> retrievedObject = repositoryService.getObject(UserTemplateType.class, userTemplateOid, new PropertyReferenceListType(), new OperationResult("test"));
+            PrismAsserts.assertEquals(userTemplate, retrievedObject);
             
             //list object
-            List<UserTemplateType> objects = repositoryService.listObjects(UserTemplateType.class, new PagingType(), new OperationResult("test"));
+            List<PrismObject<UserTemplateType>> objects = repositoryService.listObjects(UserTemplateType.class, new PagingType(), new OperationResult("test"));
             assertEquals(1, objects.size());
             assertEquals(userTemplateOid, objects.get(0).getOid());
             

@@ -39,9 +39,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.DiffUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.diff.CalculateXmlDiff;
+import com.evolveum.midpoint.test.util.PrismAsserts;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.test.util.XmlAsserts;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -92,55 +97,27 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 	public void tearDown() {
 	}
 
-	private void compareObjects(ResourceType object, ResourceType retrievedObject) throws Exception {
-		assertEquals(object.getOid(), retrievedObject.getOid());
-		assertEquals(object.getName(), retrievedObject.getName());
-
-		if (object.getExtension() != null && retrievedObject.getExtension() != null) {
-			assertEquals(object.getExtension().getAny().size(), retrievedObject.getExtension().getAny()
-					.size());
-			List<Object> extensionElements = object.getExtension().getAny();
-			int i = 0;
-			for (Object element : extensionElements) {
-				XmlAsserts.assertPatch(JAXBUtil.serializeElementToString(element),
-						JAXBUtil.serializeElementToString(retrievedObject.getExtension().getAny().get(i)));
-				i++;
-			}
-		} else if ((object.getExtension() != null && retrievedObject.getExtension() == null)
-				|| (object.getExtension() == null && retrievedObject.getExtension() != null)) {
-			Assert.fail("Extension section is null for one object but not null for other object");
-		}
-	}
-
-	//FIXME: temporary solution till proper compare of JAXB objects without equals methods is implemented 
-	private void compareNullObjects(ResourceType object, ResourceType retrievedObject) throws Exception {
-		assertEquals(object.getSchemaHandling(), retrievedObject.getSchemaHandling());
-		assertEquals(object.getConfiguration(), retrievedObject.getConfiguration());
-		assertEquals(object.getSchema(), retrievedObject.getSchema());
-		assertEquals(object.getScripts(), retrievedObject.getScripts());
-	}
-
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testResource() throws Exception {
 		final String resourceOid = "aae7be60-df56-11df-8608-0002a5d5c51b";
 		try {
 			// add resource
-			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
-					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"))).getValue();
+			PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(
+					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"));
 			repositoryService.addObject(resource, new OperationResult("test"));
 
 			// get resource
-			ObjectType retrievedObject = repositoryService.getObject(ObjectType.class, resourceOid,
+			PrismObject<ResourceType> retrievedObject = repositoryService.getObject(ResourceType.class, resourceOid,
 					new PropertyReferenceListType(), new OperationResult("test"));
-			compareObjects(resource, (ResourceType) retrievedObject);
+			PrismAsserts.assertEquals(resource, retrievedObject);
 
 			// list objects
-			List<ResourceType> objects = repositoryService.listObjects(
+			List<PrismObject<ResourceType>> objects = repositoryService.listObjects(
 					ResourceType.class, new PagingType(), new OperationResult("test"));
 			assertNotNull(objects);
 			assertEquals(1, objects.size());
-			compareObjects(resource, (ResourceType) objects.get(0));
+			PrismAsserts.assertEquals(resource, objects.get(0));
 
 			// delete resource
 			repositoryService.deleteObject(ResourceType.class, resourceOid, new OperationResult("test"));
@@ -166,33 +143,28 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 		final String resourceOid = "aae7be60-df56-11df-8608-0002a5d5c51b";
 		try {
 			// add object
-			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
-					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"))).getValue();
+			PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(
+					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"));
 			repositoryService.addObject(resource, new OperationResult("test"));
 
 			// get object
-			ObjectType retrievedObject = repositoryService.getObject(ObjectType.class, resourceOid,
+			PrismObject<ResourceType> retrievedObject = repositoryService.getObject(ResourceType.class, resourceOid,
 					new PropertyReferenceListType(), new OperationResult("test"));
-			compareObjects(resource, (ResourceType) retrievedObject);
+			PrismAsserts.assertEquals(resource, retrievedObject);
 
 			// modify object
-			ResourceType modifiedResource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
-					"src/test/resources/resource-modified-removed-tags.xml"))).getValue();
-			ObjectModificationType objectModificationType = CalculateXmlDiff.calculateChanges(new File(
-					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"), new File(
+			PrismObject<ResourceType> modifiedResource = PrismTestUtil.parseObject(new File(
 					"src/test/resources/resource-modified-removed-tags.xml"));
-			LOGGER.trace("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM");
-			LOGGER.trace(JAXBUtil.marshalWrap(objectModificationType));
+			ObjectDelta<ResourceType> objectModificationType = DiffUtil.diff(new File(
+					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"), new File(
+					"src/test/resources/resource-modified-removed-tags.xml"), 
+					ResourceType.class, PrismTestUtil.getPrismContext());
 			
 			repositoryService.modifyObject(ResourceType.class, objectModificationType, new OperationResult("test"));
-			retrievedObject = repositoryService.getObject(ObjectType.class, resourceOid,
+			retrievedObject = repositoryService.getObject(ResourceType.class, resourceOid,
 					new PropertyReferenceListType(), new OperationResult("test"));
 			
-			LOGGER.trace("RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR");
-			LOGGER.trace(JAXBUtil.marshalWrap(retrievedObject));
-			
-			compareObjects(modifiedResource, (ResourceType) retrievedObject);
-			compareNullObjects(modifiedResource, (ResourceType) retrievedObject);
+			PrismAsserts.assertEquals(modifiedResource, retrievedObject);
 
 		} finally {
 			// to be sure try to delete the object as part of cleanup

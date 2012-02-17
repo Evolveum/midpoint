@@ -51,6 +51,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -306,18 +307,21 @@ public class Validator {
 
 			JAXBElement<?> jaxbElement = (JAXBElement<?>) createUnmarshaller(validatorResult).unmarshal(objectDoc);
 			Object jaxbValue = jaxbElement.getValue();
-			ObjectType object = null;
+			ObjectType objectType = null;
 
 			if (jaxbValue instanceof ObjectType) {
-				object = (ObjectType) jaxbElement.getValue();
+				objectType = (ObjectType) jaxbElement.getValue();
 
 				if (verbose) {
-					LOGGER.debug("Processing OID " + object.getOid());
+					LOGGER.debug("Processing OID " + objectType.getOid());
 				}
 
-				objectResult.addContext(OperationResult.CONTEXT_OBJECT, object);
+				objectResult.addContext(OperationResult.CONTEXT_OBJECT, objectType);
 
-				validateObject(object, objectResult);
+				validateObject(objectType, objectResult);
+				
+				PrismObject object = objectType.getContainer();
+				object.revive(prismContext);
 
 				if (handler != null) {
 					EventResult cont = handler.postMarshall(object, objectElement, objectResult);

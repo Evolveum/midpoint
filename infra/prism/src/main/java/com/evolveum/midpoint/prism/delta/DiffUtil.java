@@ -64,30 +64,28 @@ public class DiffUtil {
 	}
 
 	
-//	public static <T extends Objectable> ObjectDelta<T> diff(String oldXml, String newXml, Class<T> type, PrismContext prismContext) throws SchemaException {
-//		ObjectTypeUtil.assertConcreteType(type);
-//		PrismObject<T> oldObject = null;
-//		if (oldXml != null) {
-//			oldObject = prismContext.parseObject(oldXml);
-//		}
-//		PrismObject<T> newObject = null;
-//		if (newXml != null) {
-//			newObject = prismContext.parseObject(newXml);
-//		}
-//		return diff(oldObject, newObject);
-//	}
-//
-//	public static <T extends Objectable> ObjectDelta<T> diff(File oldXmlFile, File newXmlFile, Class<T> type, PrismContext prismContext) throws SchemaException {
-//		ObjectTypeUtil.assertConcreteType(type);
-//		PrismObject<T> oldObject = null;
-//		if (oldXmlFile != null) {
-//			oldObject = prismContext.parseObject(oldXmlFile);
-//		}
-//		PrismObject<T> newObject = null;
-//		if (newXmlFile != null) {
-//			newObject = prismContext.parseObject(newXmlFile);
-//		}
-//		return diff(oldObject, newObject);
-//	}
+	public static <T extends Objectable> ObjectDelta<T> diff(String oldXml, String newXml, Class<T> type, PrismContext prismContext) throws SchemaException {
+		PrismObject<T> oldObject = null;
+		if (oldXml != null) {
+			oldObject = prismContext.getPrismDomProcessor().parseObject(oldXml);
+		}
+		PrismObject<T> newObject = null;
+		if (newXml != null) {
+			newObject = prismContext.getPrismDomProcessor().parseObject(newXml);
+		}
+		return diff(oldObject, newObject);
+	}
+
+	public static <T extends Objectable> ObjectDelta<T> diff(File oldXmlFile, File newXmlFile, Class<T> type, PrismContext prismContext) throws SchemaException {
+		PrismObject<T> oldObject = null;
+		if (oldXmlFile != null) {
+			oldObject = prismContext.getPrismDomProcessor().parseObject(oldXmlFile);
+		}
+		PrismObject<T> newObject = null;
+		if (newXmlFile != null) {
+			newObject = prismContext.getPrismDomProcessor().parseObject(newXmlFile);
+		}
+		return diff(oldObject, newObject);
+	}
 
 }

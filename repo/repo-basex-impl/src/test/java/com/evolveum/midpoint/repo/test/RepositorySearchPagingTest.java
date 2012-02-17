@@ -46,6 +46,7 @@ import org.w3c.dom.Node;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -138,12 +139,12 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 		// WHEN
 		OperationResult parentResult = new OperationResult(RepositorySearchPagingTest.class.getName()
 				+ ".pagingTest");
-		List<UserType> users = repositoryService.searchObjects(UserType.class, query, paging, parentResult);
+		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, paging, parentResult);
 
 		// THEN
 		assertEquals(2, users.size());
-		assertEquals("testuser0005", users.get(0).getName());
-		assertEquals("testuser0004", users.get(1).getName());
+		assertEquals("testuser0005", users.get(0).getObjectable().getName());
+		assertEquals("testuser0004", users.get(1).getObjectable().getName());
 
 		
 	}
@@ -165,7 +166,7 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 		// WHEN
 		OperationResult parentResult = new OperationResult(RepositorySearchPagingTest.class.getName()
 				+ ".pagingTest");
-		List<UserType> users = repositoryService.searchObjects(UserType.class, query, paging, parentResult);
+		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, paging, parentResult);
 
 		// THEN
 		assertEquals(2, users.size());
@@ -194,7 +195,7 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 		// WHEN
 		OperationResult parentResult = new OperationResult(RepositorySearchPagingTest.class.getName()
 				+ ".pagingTest");
-		List<UserType> users = repositoryService.searchObjects(UserType.class, query, paging, parentResult);
+		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, paging, parentResult);
 
 		// THEN
 		assertEquals(0, users.size());
@@ -221,7 +222,7 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 		// WHEN
 		OperationResult parentResult = new OperationResult(RepositorySearchPagingTest.class.getName()
 				+ ".pagingTest");
-		List<UserType> users = repositoryService.searchObjects(UserType.class, query, paging, parentResult);
+		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, paging, parentResult);
 
 		// THEN
 		assertEquals(5, users.size());
@@ -274,8 +275,8 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 		}
 
 		@Override
-		public EventResult postMarshall(ObjectType object, Element objectElement, OperationResult objectResult) {
-			System.out.println("Handler processing " + ObjectTypeUtil.toShortString(object) + ", result:");
+		public EventResult postMarshall(PrismObject<ObjectType> object, Element objectElement, OperationResult objectResult) {
+			System.out.println("Handler processing " + object + ", result:");
 			try {
 				repositoryService.addObject(object, objectResult);
 			} catch (ObjectAlreadyExistsException e) {

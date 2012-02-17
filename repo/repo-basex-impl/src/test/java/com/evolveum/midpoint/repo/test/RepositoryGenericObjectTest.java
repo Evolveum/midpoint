@@ -39,8 +39,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.util.PrismAsserts;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.test.util.XmlAsserts;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -88,27 +91,6 @@ public class RepositoryGenericObjectTest extends AbstractTestNGSpringContextTest
 	public void tearDown() {
 	}
 
-	private void compareObjects(GenericObjectType object, GenericObjectType retrievedObject)
-			throws Exception {
-		assertEquals(object.getOid(), retrievedObject.getOid());
-		assertEquals(object.getName(), retrievedObject.getName());
-		assertEquals(object.getObjectType(), retrievedObject.getObjectType());
-		if (object.getExtension() != null && retrievedObject.getExtension() != null) {
-			assertEquals(object.getExtension().getAny().size(), retrievedObject.getExtension()
-					.getAny().size());
-			List<Object> extensionElements = object.getExtension().getAny();
-			int i = 0;
-			for (Object element : extensionElements) {
-				XmlAsserts.assertPatch(JAXBUtil.serializeElementToString(element),
-						JAXBUtil.serializeElementToString(retrievedObject.getExtension().getAny().get(i)));
-				i++;
-			}
-		} else if ((object.getExtension() != null && retrievedObject.getExtension() == null)
-				|| (object.getExtension() == null && retrievedObject.getExtension() != null)) {
-			Assert.fail("Extension section is null for one object but not null for other object");
-		}
-	}
-
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testGenericObject() throws Exception {
@@ -116,21 +98,21 @@ public class RepositoryGenericObjectTest extends AbstractTestNGSpringContextTest
 		try {
 
 			// create object
-			GenericObjectType genericObject = ((JAXBElement<GenericObjectType>) JAXBUtil.unmarshal(new File(
-					"src/test/resources/generic-object.xml"))).getValue();
+			PrismObject<GenericObjectType> genericObject = PrismTestUtil.parseObject(new File(
+					"src/test/resources/generic-object.xml"));
 			repositoryService.addObject(genericObject, new OperationResult("test"));
 
 			// get object
-			ObjectType retrievedObject = repositoryService.getObject(ObjectType.class, genericObjectOid,
+			PrismObject<GenericObjectType> retrievedObject = repositoryService.getObject(GenericObjectType.class, genericObjectOid,
 					new PropertyReferenceListType(), new OperationResult("test"));
-			compareObjects(genericObject, (GenericObjectType) retrievedObject);
+			PrismAsserts.assertEquals(genericObject, retrievedObject);
 
 			// list objects of type
-			List<GenericObjectType> objects = repositoryService.listObjects(
+			List<PrismObject<GenericObjectType>> objects = repositoryService.listObjects(
 					GenericObjectType.class, new PagingType(), new OperationResult("test"));
 			assertNotNull(objects);
 			assertEquals(1, objects.size());
-			compareObjects(genericObject, (GenericObjectType) objects.get(0));
+			PrismAsserts.assertEquals(genericObject, objects.get(0));
 
 			// delete object
 			repositoryService.deleteObject(GenericObjectType.class, genericObjectOid, new OperationResult("test"));

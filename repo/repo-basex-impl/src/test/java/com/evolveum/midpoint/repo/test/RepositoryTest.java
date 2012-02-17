@@ -41,8 +41,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -95,13 +98,13 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111111";
 		try {
 			// store user
-			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
-					"src/test/resources/user.xml"))).getValue();
+			PrismObject<UserType> user = PrismTestUtil.parseObject(new File(
+					"src/test/resources/user.xml"));
 			repositoryService.addObject(user, new OperationResult("test"));
 			
 			//try to store object with the same oid again, but different name
-			UserType user2 = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
-			"src/test/resources/user.xml"))).getValue();
+			PrismObject<UserType> user2 = PrismTestUtil.parseObject(new File(
+			"src/test/resources/user.xml"));
 			repositoryService.addObject(user2, new OperationResult("test"));
 		} finally {
 			// to be sure try to delete the object as part of cleanup
@@ -120,8 +123,8 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 		String oid = null;
 		try {
 			// store user
-			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
-					"src/test/resources/user-without-oid.xml"))).getValue();
+			PrismObject<UserType> user = PrismTestUtil.parseObject(new File(
+					"src/test/resources/user-without-oid.xml"));
 			repositoryService.addObject(user, new OperationResult("test"));
 			oid = user.getOid();
 			//try to store the same object with no oid again, exception is expected
@@ -148,7 +151,7 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 	
 	@Test
 	public void listObjectsNoObjectsOfThatTypeReturnsEmptyList() throws Exception {
-		List<ResourceType> retrievedList = repositoryService.listObjects(ResourceType.class, null, new OperationResult("test"));
+		List<PrismObject<ResourceType>> retrievedList = repositoryService.listObjects(ResourceType.class, null, new OperationResult("test"));
 		assertNotNull(retrievedList);
 		assertEquals(0, retrievedList.size());
 	}	
@@ -156,17 +159,19 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 	@Test(expectedExceptions = ObjectNotFoundException.class)
 	public void modifyNotExistingObject() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111234";
-		ObjectModificationType objModifications = new ObjectModificationType();
-		objModifications.setOid(oid);
-		PropertyModificationType modification = new PropertyModificationType();
-		Value value = new Value();
-		Element element = DOMUtil.getFirstChildElement(DOMUtil.parseDocument("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"+
-				"<fullName xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'>Foo Bar</fullName>"));
-		value.getAny().add(element);
-		modification.setValue(value);
-		objModifications.getPropertyModification().add(modification);
+		ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(oid, UserType.F_FULL_NAME,
+				"Foo Bar");
+//		ObjectModificationType objModifications = new ObjectModificationType();
+//		objModifications.setOid(oid);
+//		PropertyModificationType modification = new PropertyModificationType();
+//		Value value = new Value();
+//		Element element = DOMUtil.getFirstChildElement(DOMUtil.parseDocument("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"+
+//				"<fullName xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'>Foo Bar</fullName>"));
+//		value.getAny().add(element);
+//		modification.setValue(value);
+//		objModifications.getPropertyModification().add(modification);
 		//try to modify not existing object, exception is expected
-		repositoryService.modifyObject(UserType.class, objModifications, new OperationResult("test"));
+		repositoryService.modifyObject(UserType.class, delta, new OperationResult("test"));
 	}
 	
 	@Test(expectedExceptions = ObjectNotFoundException.class)

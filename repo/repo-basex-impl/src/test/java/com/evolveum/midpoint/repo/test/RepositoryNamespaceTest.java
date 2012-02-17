@@ -33,9 +33,11 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -99,30 +101,33 @@ public class RepositoryNamespaceTest extends AbstractTestNGSpringContextTests {
 				LOGGER.trace("Schema parsed to dom:\n{}", xml);
 
 				// connector object just for testing...
-				ConnectorType connector = new ConnectorType();
+				ConnectorType connectorType = new ConnectorType();
 				XmlSchemaType xmlSchema = new XmlSchemaType();
 
 				document = DOMUtil.parseDocument(xml);
 				xmlSchema.getAny().add(document.getDocumentElement());
 
-				connector.setSchema(xmlSchema);
-				connector.setName(file.getName());
-				connector.setNamespace("http://" + file.getName());
+				connectorType.setSchema(xmlSchema);
+				connectorType.setName(file.getName());
+				connectorType.setNamespace("http://" + file.getName());
+				PrismObject<ConnectorType> connector = connectorType.getContainer();
+				connector.revive(PrismTestUtil.getPrismContext());
 
 				LOGGER.debug("Adding connector to repository");
 				String oid = repository.addObject(connector, result);
 
 				connector = repository.getObject(ConnectorType.class, oid, new PropertyReferenceListType(),
 						result);
-				xmlSchema = connector.getSchema();
+				connectorType = connector.getObjectable();
+				xmlSchema = connectorType.getSchema();
 				LOGGER.debug("Parsing dom schema to object");
-				schema = PrismSchema.parse(xmlSchema.getAny().get(0));
+				schema = PrismSchema.parse(xmlSchema.getAny().get(0), PrismTestUtil.getPrismContext());
 				LOGGER.debug("Schema parsed {}", schema);
 				document = schema.serializeToXsd();
 				xml = DOMUtil.printDom(document).toString();
 				LOGGER.trace("Schema parsed to dom:\n{}", xml);
 				document = DOMUtil.parseDocument(xml);
-				schema = PrismSchema.parse(document.getDocumentElement());
+				schema = PrismSchema.parse(document.getDocumentElement(), PrismTestUtil.getPrismContext());
 			} catch (Exception ex) {
 				Assert.fail(ex.getMessage(), ex);
 			} finally {

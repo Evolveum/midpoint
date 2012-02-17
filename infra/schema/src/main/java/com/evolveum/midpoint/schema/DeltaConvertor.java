@@ -29,6 +29,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PropertyPath;
@@ -52,6 +53,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModification
  *
  */
 public class DeltaConvertor {
+	
+	public static <T extends Objectable> ObjectDelta<T> createObjectDelta(ObjectModificationType objectModification,
+			Class<T> type, PrismContext prismContext) {
+		// TODO
+		throw new UnsupportedOperationException();
+	}
 	
 //    /**
 //     * Creates new delta from the ObjectModificationType (XML). Object type and schema are used to locate definitions
