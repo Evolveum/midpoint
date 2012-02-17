@@ -179,9 +179,13 @@ public class SchemaProcessor implements Processor {
         //update for type methods
         updateObjectReferenceType(definedClass, getReference);
 
-        //add xml element annotation to description getter
+        //add xml element annotation to description getter, these methods will be fixed later
         annotateMethodWithXmlElement(findMethod(definedClass, "getDescription"),
                 definedClass.fields().get("description"));
+        JFieldVar filter = definedClass.fields().get("filter");
+        copyAnnotations(findMethod(definedClass, "getFilter"), filter);
+        List<JAnnotationUse> existingAnnotations = getAnnotations(filter, false);
+        existingAnnotations.clear();
     }
 
     private void updateObjectReferenceType(JDefinedClass definedClass, JMethod getReference) {

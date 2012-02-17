@@ -239,7 +239,7 @@ public class RUserType extends RExtensibleObjectType {
 
         //sets
         repo.setAdditionalNames(RUtil.listToSet(jaxb.getAdditionalNames()));
-        repo.setEMailAddress(RUtil.listToSet(jaxb.getEMailAddress()));
+        repo.setEMailAddress(RUtil.listToSet(jaxb.getEmailAddress()));
         repo.setEmployeeType(RUtil.listToSet(jaxb.getEmployeeType()));
         repo.setOrganizationalUnit(RUtil.listToSet(jaxb.getOrganizationalUnit()));
         repo.setTelephoneNumber(RUtil.listToSet(jaxb.getTelephoneNumber()));
@@ -283,7 +283,7 @@ public class RUserType extends RExtensibleObjectType {
         }
 
         jaxb.getAdditionalNames().addAll(RUtil.safeSetToList(repo.getAdditionalNames()));
-        jaxb.getEMailAddress().addAll(RUtil.safeSetToList(repo.getEMailAddress()));
+        jaxb.getEmailAddress().addAll(RUtil.safeSetToList(repo.getEMailAddress()));
         jaxb.getEmployeeType().addAll(RUtil.safeSetToList(repo.getEmployeeType()));
         jaxb.getTelephoneNumber().addAll(RUtil.safeSetToList(repo.getTelephoneNumber()));
         jaxb.getOrganizationalUnit().addAll(RUtil.safeSetToList(repo.getOrganizationalUnit()));

@@ -169,6 +169,10 @@ public final class ProcessorUtils {
     }
 
     public static List<JAnnotationUse> getAnnotations(JAnnotatable from) {
+        return getAnnotations(from, true);
+    }
+
+    public static List<JAnnotationUse> getAnnotations(JAnnotatable from, boolean returnNewList) {
         List<JAnnotationUse> annotations = new ArrayList<JAnnotationUse>();
 
         try {
@@ -181,6 +185,10 @@ public final class ProcessorUtils {
             annotationsField.setAccessible(true);
             List<JAnnotationUse> list = (List<JAnnotationUse>) annotationsField.get(from);
             annotationsField.setAccessible(false);
+            if (!returnNewList) {
+                return list;
+            }
+
             if (list != null) {
                 annotations.addAll(list);
             }
