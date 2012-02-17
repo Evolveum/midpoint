@@ -21,16 +21,19 @@ package com.evolveum.midpoint.test.util;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Class that statically instantiates the contexts for JAXB parsing.
@@ -38,11 +41,29 @@ import java.io.File;
  *
  * @author semancik
  */
-public class JaxbTestUtil {
+public class PrismContextTestUtil {
 
     private static final QName DEFAULT_ELEMENT_NAME = new QName("http://midpoint.evolveum.com/xml/ns/test/whatever-1.xsd", "whatever");
 
     private static PrismContext prismContext;
+    
+    public static PrismContext createPrismContext() throws SchemaException {
+    	MidPointPrismContextFactory factory = new MidPointPrismContextFactory();
+        return factory.createPrismContext();
+    }
+
+    public static PrismContext createInitializedPrismContext() throws SchemaException, SAXException, IOException {
+    	MidPointPrismContextFactory factory = new MidPointPrismContextFactory();
+        return factory.createInitializedPrismContext();
+    }
+    
+    public static PrismContext getPrismContext() {
+    	return prismContext;
+    }
+    
+    public static SchemaRegistry getSchemaRegistry() {
+    	return prismContext.getSchemaRegistry();
+    }
 
     public static void marshalElementToDom(JAXBElement<?> jaxbElement, Node parentNode) throws JAXBException {
         prismContext.getPrismJaxbProcessor().marshalElementToDom(jaxbElement, parentNode);
@@ -84,17 +105,13 @@ public class JaxbTestUtil {
         JAXBElement<Object> jaxbElement = new JAXBElement<Object>(DEFAULT_ELEMENT_NAME, (Class) jaxbObject.getClass(), jaxbObject);
         return marshalElementToString(jaxbElement);
     }
-
-    public static void initialize() {
-        MidPointPrismContextFactory factory = new MidPointPrismContextFactory();
-        try {
-            prismContext = factory.createPrismContext();
-        } catch (SchemaException e) {
-            throw new SystemException(e);
-        }
-    }
+    
 
     static {
-        initialize();
+        try {
+            prismContext = createInitializedPrismContext();
+        } catch (Exception e) {
+            throw new SystemException(e);
+        }
     }
 }

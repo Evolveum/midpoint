@@ -23,11 +23,14 @@ package com.evolveum.midpoint.common.valueconstruction;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertFalse;
 
+import static com.evolveum.midpoint.test.util.PrismAsserts.*;
+
 import com.evolveum.midpoint.common.crypto.AESProtector;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.common.expression.xpath.XPathExpressionEvaluator;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -39,6 +42,7 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.test.util.DirectoryFileObjectResolver;
+import com.evolveum.midpoint.test.util.PrismContextTestUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -56,6 +60,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -71,10 +76,12 @@ public class TestValueConstruction {
     private static File OBJECTS_DIR = new File("src/test/resources/objects");
 
     private ValueConstructionFactory factory;
-    SchemaRegistry schemaRegistry;
+    private PrismContext prismContext;
 
     @BeforeClass
     public void setupFactory() throws SAXException, IOException, SchemaException {
+    	prismContext = PrismContextTestUtil.createInitializedPrismContext();
+    	
         ExpressionFactory expressionFactory = new ExpressionFactory();
         XPathExpressionEvaluator xpathEvaluator = new XPathExpressionEvaluator();
         expressionFactory.registerEvaluator(XPathExpressionEvaluator.XPATH_LANGUAGE_URL, xpathEvaluator);
@@ -87,27 +94,25 @@ public class TestValueConstruction {
         AESProtector protector = new AESProtector();
         protector.setKeyStorePath(KEYSTORE_PATH);
         protector.setKeyStorePassword("changeit");
+        protector.setPrismContext(prismContext);
         protector.init();
         factory.setProtector(protector);
-
-        schemaRegistry = new SchemaRegistry();
-        schemaRegistry.initialize();
     }
 
     @Test
     public void testConstructionValue() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = JAXBUtil.unmarshal(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-value.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismContainerDefinition userContainer = prismContext.getSchemaRegistry().getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PrismPropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         OperationResult opResult = new OperationResult("testConstructionValue");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "literal construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "literal construction");
         construction.evaluate(opResult);
         PrismProperty result = construction.getOutput();
 
@@ -118,17 +123,17 @@ public class TestValueConstruction {
     @Test
     public void testConstructionValueMulti() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = JAXBUtil.unmarshal(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-value-multi.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismContainerDefinition userContainer = prismContext.getSchemaRegistry().getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PrismPropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "telephoneNumber"));
 
         OperationResult opResult = new OperationResult("testConstructionValueMulti");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "literal multi construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "literal multi construction");
         construction.evaluate(opResult);
         PrismProperty result = construction.getOutput();
 
@@ -137,17 +142,17 @@ public class TestValueConstruction {
         expected.add("12345");
         expected.add("67890");
 //		assertEquals(expected,result.getValues());
-        assertPropertyValueList(expected, result.getValues());
+        assertPropertyValues(expected, result.getValues());
     }
 
     @Test
     public void testConstructionAsIs() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = JAXBUtil.unmarshal(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-asis.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismContainerDefinition userContainer = prismContext.getSchemaRegistry().getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PrismPropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         PrismProperty givenName = givenNameDef.instantiate(null);
@@ -156,7 +161,7 @@ public class TestValueConstruction {
         OperationResult opResult = new OperationResult("testConstructionAsIs");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "asis construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "asis construction");
         construction.setInput(givenName);
         construction.evaluate(opResult);
         PrismProperty result = construction.getOutput();
@@ -168,17 +173,17 @@ public class TestValueConstruction {
     @Test
     public void testConstructionExpressionSimple() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = JAXBUtil.unmarshal(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-simple.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismContainerDefinition userContainer = prismContext.getSchemaRegistry().getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PrismPropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         OperationResult opResult = new OperationResult("testConstructionExpressionSimple");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "simple expression construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "simple expression construction");
         construction.evaluate(opResult);
         PrismProperty result = construction.getOutput();
         // THEN
@@ -188,17 +193,17 @@ public class TestValueConstruction {
     @Test
     public void testConstructionExpressionVariables() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = JAXBUtil.unmarshal(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-variables.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismContainerDefinition userContainer = prismContext.getSchemaRegistry().getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PrismPropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         OperationResult opResult = new OperationResult("testConstructionExpressionVariables");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "variables expression construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "variables expression construction");
         construction.evaluate(opResult);
         PrismProperty result = construction.getOutput();
 
@@ -209,17 +214,17 @@ public class TestValueConstruction {
     @Test
     public void testConstructionExpressionSystemVariablesRef() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = JAXBUtil.unmarshal(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-system-variables.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismContainerDefinition userContainer = prismContext.getSchemaRegistry().getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PrismPropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         OperationResult opResult = new OperationResult("testConstructionExpressionSystemVariables");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "system variables expression construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "system variables expression construction");
 
         ObjectReferenceType ref = new ObjectReferenceType();
         ref.setOid("c0c010c0-d34d-b33f-f00d-111111111111");
@@ -236,21 +241,21 @@ public class TestValueConstruction {
     @Test
     public void testConstructionExpressionSystemVariablesValueJaxb() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = JAXBUtil.unmarshal(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-system-variables.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        JAXBElement<UserType> userTypeElement = JAXBUtil.unmarshal(
+        JAXBElement<UserType> userTypeElement = PrismContextTestUtil.unmarshalElement(
                 new File(OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111111.xml"), UserType.class);
         UserType userType = userTypeElement.getValue();
 
-        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismContainerDefinition userContainer = prismContext.getSchemaRegistry().getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PrismPropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         OperationResult opResult = new OperationResult("testConstructionExpressionSystemVariables");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "system variables expression construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "system variables expression construction");
 
         construction.addVariableDefinition(ExpressionConstants.VAR_USER, userType);
 
@@ -264,21 +269,21 @@ public class TestValueConstruction {
     @Test
     public void testConstructionExpressionSystemVariablesValueMidPointObject() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = JAXBUtil.unmarshal(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-system-variables.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        JAXBElement<UserType> userTypeElement = JAXBUtil.unmarshal(
+        JAXBElement<UserType> userTypeElement = PrismContextTestUtil.unmarshalElement(
                 new File(OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111111.xml"), UserType.class);
         UserType userType = userTypeElement.getValue();
 
-        PrismObjectDefinition<UserType> userDef = schemaRegistry.getObjectSchema().findObjectDefinition(UserType.class);
+        PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().getObjectSchema().findObjectDefinitionByCompileTimeClass(UserType.class);
         PrismPropertyDefinition givenNameDef = userDef.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         OperationResult opResult = new OperationResult("testConstructionExpressionSystemVariables");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "system variables expression construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "system variables expression construction");
 
         construction.addVariableDefinition(ExpressionConstants.VAR_USER, userDef.parseObjectType(userType));
 
@@ -292,17 +297,17 @@ public class TestValueConstruction {
     @Test
     public void testConstructionRootNode() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = JAXBUtil.unmarshal(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-root-node.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismContainerDefinition userContainer = prismContext.getSchemaRegistry().getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PrismPropertyDefinition localityDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "locality"));
 
         OperationResult opResult = new OperationResult("testConstructionRootNode");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, localityDef, null, "system variables expression construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, localityDef, "system variables expression construction");
 
         ObjectReferenceType ref = new ObjectReferenceType();
         ref.setOid("c0c010c0-d34d-b33f-f00d-111111111111");
@@ -316,23 +321,23 @@ public class TestValueConstruction {
         Set<String> expected = new HashSet<String>();
         expected.add("Black Pearl");
 //		assertEquals(expected,result.getValues());
-        assertPropertyValueList(expected, result.getValues());
+        assertPropertyValues(expected, result.getValues());
     }
 
     @Test
     public void testConstructionExpressionList() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = JAXBUtil.unmarshal(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-list.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismContainerDefinition userContainer = prismContext.getSchemaRegistry().getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PrismPropertyDefinition ouDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "organizationalUnit"));
 
         OperationResult opResult = new OperationResult("testConstructionExpressionList");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, ouDef, null, "list expression construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, ouDef, "list expression construction");
         construction.evaluate(opResult);
         PrismProperty result = construction.getOutput();
 
@@ -341,7 +346,7 @@ public class TestValueConstruction {
         expected.add("Leaders");
         expected.add("Followers");
 //		assertEquals(expected,result.getValues());
-        assertPropertyValueList(expected, result.getValues());
+        assertPropertyValues(expected, result.getValues());
     }
 
     /*
@@ -352,17 +357,17 @@ public class TestValueConstruction {
     @Test(enabled = false)
     public void testConstructionExpressionScalarList() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = JAXBUtil.unmarshal(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-scalar-list.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismContainerDefinition userContainer = prismContext.getSchemaRegistry().getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PrismPropertyDefinition ouDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "organizationalUnit"));
 
         OperationResult opResult = new OperationResult("testConstructionExpressionScalarList");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, ouDef, null, "scalar list expression construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, ouDef, "scalar list expression construction");
         construction.evaluate(opResult);
         PrismProperty result = construction.getOutput();
 
@@ -370,17 +375,17 @@ public class TestValueConstruction {
         Set<String> expected = new HashSet<String>();
         expected.add("Pirates");
 //		assertEquals(expected,result.getValues());
-        assertPropertyValueList(expected, result.getValues());
+        assertPropertyValues(expected, result.getValues());
     }
     
     @Test
     public void testConstructionGenerate() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = JAXBUtil.unmarshal(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-generate.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismContainerDefinition userContainer = prismContext.getSchemaRegistry().getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PrismPropertyDefinition givenNameDef = userContainer.findPropertyDefinition(new QName(SchemaConstants.NS_C, "givenName"));
 
         PrismProperty givenName = givenNameDef.instantiate(null);
@@ -388,7 +393,7 @@ public class TestValueConstruction {
         OperationResult opResult = new OperationResult("testConstructionGenerate");
 
         // WHEN (1)
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, null, "generate construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "generate construction");
         construction.setInput(givenName);
         construction.evaluate(opResult);
         PrismProperty result = construction.getOutput();
@@ -414,11 +419,11 @@ public class TestValueConstruction {
     @Test
     public void testConstructionGenerateProtectedString() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ValueConstructionType> valueConstructionTypeElement = JAXBUtil.unmarshal(
+        JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismContextTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-generate.xml"), ValueConstructionType.class);
         ValueConstructionType valueConstructionType = valueConstructionTypeElement.getValue();
 
-        PrismContainerDefinition userContainer = schemaRegistry.getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
+        PrismContainerDefinition userContainer = prismContext.getSchemaRegistry().getObjectSchema().findContainerDefinitionByType(SchemaConstants.I_USER_TYPE);
         PrismPropertyDefinition propDef = userContainer.findPropertyDefinition(SchemaConstants.PATH_PASSWORD_VALUE);
 
         PrismProperty prop = propDef.instantiate(null);
@@ -426,7 +431,7 @@ public class TestValueConstruction {
         OperationResult opResult = new OperationResult("testConstructionGenerateProtectedString");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, propDef, SchemaConstants.PATH_PASSWORD, "generate protected construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, propDef, "generate protected construction");
         construction.setInput(prop);
         construction.evaluate(opResult);
         PrismProperty result = construction.getOutput();
@@ -436,27 +441,7 @@ public class TestValueConstruction {
         System.out.println("Generated excrypted value: "+value1);
         assertNotNull(value1);
         assertNotNull(value1.getEncryptedData());
-        assertEquals("Bad parent path", SchemaConstants.PATH_PASSWORD, result.getParentPath());
-        assertEquals("Bad path", SchemaConstants.PATH_PASSWORD_VALUE, result.getPath());
     }
 
-
-
-    private void assertPropertyValueList(Set expected, Set<PrismPropertyValue<Object>> results) {
-        assertEquals(expected.size(), results.size());
-
-        Set<Object> values = new HashSet<Object>();
-        for (PrismPropertyValue result : results) {
-            values.add(result.getValue());
-        }
-        assertEquals(expected, values);
-
-//        Object[] array = expected.toArray();
-//        PropertyValue[] array1 = new PropertyValue[results.size()];
-//        results.toArray(array1);
-//
-//        for (int i=0;i<expected.size();i++) {
-//            assertEquals(array[i], array1[i].getValue());
-//        }
-    }
+    
 }

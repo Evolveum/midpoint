@@ -53,7 +53,7 @@ import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.test.util.JaxbTestUtil;
+import com.evolveum.midpoint.test.util.PrismContextTestUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -163,8 +163,8 @@ public class CalculateXmlDiff {
 			JAXBElement<ObjectType> jaxbOld = of.createObject(oldObject);
 			JAXBElement<ObjectType> jaxbNew = of.createObject(newObject);
 
-			String stringOld = JaxbTestUtil.marshalElementToString(jaxbOld);
-			String stringNew = JaxbTestUtil.marshalElementToString(jaxbNew);
+			String stringOld = PrismContextTestUtil.marshalElementToString(jaxbOld);
+			String stringNew = PrismContextTestUtil.marshalElementToString(jaxbNew);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Old Object {}\nNew Object {}", new Object[] { stringOld, stringNew });
 			}
@@ -181,7 +181,7 @@ public class CalculateXmlDiff {
 	public static ObjectModificationType calculateChanges(File oldObjectFile, File newObjectFile)
 			throws DiffException {
 		try {
-			JAXBElement<ObjectType> jaxbObject = (JAXBElement) JaxbTestUtil.unmarshalElement(oldObjectFile);
+			JAXBElement<ObjectType> jaxbObject = (JAXBElement) PrismContextTestUtil.unmarshalElement(oldObjectFile);
 			String objectOid = jaxbObject.getValue().getOid();
 			return calculateChanges(new FileInputStream(oldObjectFile), new FileInputStream(newObjectFile),
 					objectOid);
@@ -376,7 +376,7 @@ public class CalculateXmlDiff {
 					if (null != change.getValue()) {
 						try {
 							LOGGER.trace("Relative change value= {}",
-									JaxbTestUtil.marshalElementToString(change.getValue().getAny().get(0)));
+									PrismContextTestUtil.marshalElementToString(change.getValue().getAny().get(0)));
 						} catch (JAXBException e) {
 							LOGGER.error("Unexpected JAXB exception while serializing "
 									+ change.getValue().getAny().get(0) + ": " + e.getMessage(), e);

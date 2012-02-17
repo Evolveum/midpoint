@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.common;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -64,7 +65,7 @@ public class QueryUtil {
      * @return "equal" filter segment (as DOM)
      * @throws JAXBException
      */
-    public static Element createEqualFilter(Document doc, XPathHolder xpath, List<? extends Object> values) throws
+    public static Element createEqualFilter(Document doc, XPathHolder xpath, List<? extends Object> values, PrismContext prismContext) throws
             SchemaException {
         Validate.notNull(doc);
         Validate.notNull(values);
@@ -75,7 +76,8 @@ public class QueryUtil {
         for (Object val : values) {
             Element domElement;
             try {
-                domElement = JAXBUtil.toDomElement(val);
+            	domElement = prismContext.getPrismJaxbProcessor().toDomElement(val, doc);
+//                domElement = JAXBUtil.toDomElement(val);
             } catch (JAXBException e) {
                 throw new SchemaException("Unexpected JAXB problem while creating search filer for value " + val, e);
             }

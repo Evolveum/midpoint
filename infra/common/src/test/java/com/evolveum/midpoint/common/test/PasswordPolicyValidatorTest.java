@@ -39,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordPolicyType;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.test.util.PrismContextTestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -69,7 +70,7 @@ public class PasswordPolicyValidatorTest {
 		File file = new File(pathname);
 		JAXBElement<PasswordPolicyType> jbe = null;
 		try {
-			jbe = (JAXBElement<PasswordPolicyType>) JAXBUtil.unmarshal(file);
+			jbe = PrismContextTestUtil.unmarshalElement(file);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -93,7 +94,7 @@ public class PasswordPolicyValidatorTest {
 		File file = new File(pathname);
 		JAXBElement<PasswordPolicyType> jbe = null;
 		try {
-			jbe = (JAXBElement<PasswordPolicyType>) JAXBUtil.unmarshal(file);
+			jbe = PrismContextTestUtil.unmarshalElement(file);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -111,7 +112,7 @@ public class PasswordPolicyValidatorTest {
 		File file = new File(pathname);
 		JAXBElement<PasswordPolicyType> jbe = null;
 		try {
-			jbe = (JAXBElement<PasswordPolicyType>) JAXBUtil.unmarshal(file);
+			jbe = PrismContextTestUtil.unmarshalElement(file);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -173,7 +174,7 @@ public class PasswordPolicyValidatorTest {
 		File file = new File(pathname);
 		JAXBElement<PasswordPolicyType> jbe = null;
 		try {
-			jbe = (JAXBElement<PasswordPolicyType>) JAXBUtil.unmarshal(file);
+			jbe = PrismContextTestUtil.unmarshalElement(file);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -203,7 +204,7 @@ public class PasswordPolicyValidatorTest {
 		File file = new File(pathname);
 		JAXBElement<PasswordPolicyType> jbe = null;
 		try {
-			jbe = (JAXBElement<PasswordPolicyType>) JAXBUtil.unmarshal(file);
+			jbe = PrismContextTestUtil.unmarshalElement(file);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -234,7 +235,7 @@ public class PasswordPolicyValidatorTest {
 		File file = new File(pathname);
 		JAXBElement<PasswordPolicyType> jbe = null;
 		try {
-			jbe = (JAXBElement<PasswordPolicyType>) JAXBUtil.unmarshal(file);
+			jbe = PrismContextTestUtil.unmarshalElement(file);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -58,7 +58,7 @@ public class TestSchemaRegistry {
 	public void testBasic() throws SAXException, IOException, SchemaException {
 		
 		MidPointPrismContextFactory factory = getContextFactory();
-		PrismContext context = factory.createAndInitializePrismContext();
+		PrismContext context = factory.createInitializedPrismContext();
 		SchemaRegistry reg = context.getSchemaRegistry();
 		Schema javaxSchema = reg.getJavaxSchema();
 		assertNotNull(javaxSchema);
@@ -77,7 +77,7 @@ public class TestSchemaRegistry {
 	public void testCommonSchema() throws SchemaException, SAXException, IOException {
 
 		MidPointPrismContextFactory factory = getContextFactory();
-		PrismContext context = factory.createAndInitializePrismContext();
+		PrismContext context = factory.createInitializedPrismContext();
 		SchemaRegistry schemaRegistry = context.getSchemaRegistry();
 		
 		PrismSchema commonSchema = schemaRegistry.getObjectSchema();
@@ -92,7 +92,7 @@ public class TestSchemaRegistry {
 	public void testUserType() throws SchemaException, SAXException, IOException {
 		
 		MidPointPrismContextFactory factory = getContextFactory();
-		PrismContext context = factory.createAndInitializePrismContext();
+		PrismContext context = factory.createInitializedPrismContext();
 		SchemaRegistry schemaRegistry = context.getSchemaRegistry();
 		
 		PrismObjectDefinition<UserType> userContainer = schemaRegistry.findObjectDefinitionByCompileTimeClass(UserType.class);
@@ -118,7 +118,7 @@ public class TestSchemaRegistry {
 	public void testCommonSchemaAccountType() throws SchemaException, SAXException, IOException {
 
 		MidPointPrismContextFactory factory = getContextFactory();
-		PrismContext context = factory.createAndInitializePrismContext();
+		PrismContext context = factory.createInitializedPrismContext();
 		SchemaRegistry schemaRegistry = context.getSchemaRegistry();
 				
 		PrismObjectDefinition<AccountShadowType> accountDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(AccountShadowType.class);

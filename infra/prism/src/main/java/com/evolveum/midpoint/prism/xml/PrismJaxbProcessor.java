@@ -211,6 +211,17 @@ public class PrismJaxbProcessor {
 	public void marshalElementToDom(JAXBElement<?> jaxbElement, Node parentNode) throws JAXBException {
 		getMarshaller().marshal(jaxbElement, parentNode);		
 	}
+		
+	public <T> Element marshalElementToDom(JAXBElement<T> jaxbElement, Document doc) throws JAXBException {
+		if (doc == null) {
+			doc = DOMUtil.getDocument();
+		}
+
+		Element element = doc.createElementNS(jaxbElement.getName().getNamespaceURI(), jaxbElement.getName().getLocalPart());
+		marshalElementToDom(jaxbElement, element);
+
+		return (Element) element.getFirstChild();
+	}
 	
 	// Do we need this ??
 	public <T> Element marshalObjectToDom(T jaxbObject, QName elementQName, Document doc) throws JAXBException {
@@ -221,17 +232,6 @@ public class PrismJaxbProcessor {
 		JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
 				jaxbObject);
 		Element element = doc.createElementNS(elementQName.getNamespaceURI(), elementQName.getLocalPart());
-		marshalElementToDom(jaxbElement, element);
-
-		return (Element) element.getFirstChild();
-	}
-	
-	public <T> Element marshalElementToDom(JAXBElement<T> jaxbElement, Document doc) throws JAXBException {
-		if (doc == null) {
-			doc = DOMUtil.getDocument();
-		}
-
-		Element element = doc.createElementNS(jaxbElement.getName().getNamespaceURI(), jaxbElement.getName().getLocalPart());
 		marshalElementToDom(jaxbElement, element);
 
 		return (Element) element.getFirstChild();

@@ -152,6 +152,14 @@ public class AESProtector implements Protector {
 			throw new SystemException(ex.getMessage(), ex);
 		}
 	}
+	
+	public PrismContext getPrismContext() {
+		return prismContext;
+	}
+
+	public void setPrismContext(PrismContext prismContext) {
+		this.prismContext = prismContext;
+	}
 
 	/**
 	 * @return the encryptionKeyAlias

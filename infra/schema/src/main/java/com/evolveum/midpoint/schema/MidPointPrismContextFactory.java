@@ -48,7 +48,7 @@ public class MidPointPrismContextFactory {
 		return context;
 	}
 	
-	public PrismContext createAndInitializePrismContext() throws SchemaException, SAXException, IOException {
+	public PrismContext createInitializedPrismContext() throws SchemaException, SAXException, IOException {
 		PrismContext context = createPrismContext();
 		context.initialize();
 		return context;

@@ -31,6 +31,7 @@ import javax.xml.xpath.XPathVariableResolver;
 
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -72,9 +73,9 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
     @Override
     public Object resolveVariable(QName name) {
     	// Note: null is a legal variable name here. It corresponds to the root node
-        Object retval = variables.get(name);
+        Object variableValue = variables.get(name);
         
-        if (retval == null) {
+        if (variableValue == null) {
         	// TODO: warning ???
         	return null;
         }
@@ -82,8 +83,8 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
         QName type = null;
         
         // Attempt to resolve object reference
-        if (objectResolver != null && retval instanceof ObjectReferenceType) {
-        	ObjectReferenceType ref = (ObjectReferenceType)retval;
+        if (objectResolver != null && variableValue instanceof ObjectReferenceType) {
+        	ObjectReferenceType ref = (ObjectReferenceType)variableValue;
         	if (ref.getOid() == null) {
         		SchemaException newEx = new SchemaException("Null OID in reference in variable "+name+" in "+contextDescription, name);
 				throw new TunnelException(newEx);
@@ -91,7 +92,7 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
         		type = ref.getType();
 		    	try {
 		    		
-					retval = objectResolver.resolve(ref, contextDescription, result);
+					variableValue = objectResolver.resolve(ref, contextDescription, result);
 					
 				} catch (ObjectNotFoundException e) {
 					ObjectNotFoundException newEx = new ObjectNotFoundException("Object not found during variable "+name+" resolution in "+contextDescription+": "+e.getMessage(),e, ref.getOid());
@@ -104,33 +105,36 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
         	}
         }
         
-        if (retval instanceof ObjectType) {
-        	try {
-				retval = JAXBUtil.marshallObjectType((ObjectType)retval);
-			} catch (JAXBException e) {
-				SchemaException newEx = new SchemaException("Schema error during variable "+name+" resolution in "+contextDescription+": "+e.getMessage(), e, name);
-				throw new TunnelException(newEx);
-			} catch (IllegalArgumentException e) {
-				SchemaException newEx = new SchemaException("Schema error during variable "+name+" resolution in "+contextDescription+": "+e.getMessage(), e, name);
-				throw new TunnelException(newEx);
-			}
+        if (variableValue instanceof Objectable) {
+        	variableValue = ((Objectable)variableValue).getContainer();
         }
+//        	try {
+//				variableValue = JAXBUtil.marshallObjectType((ObjectType)variableValue);
+//			} catch (JAXBException e) {
+//				SchemaException newEx = new SchemaException("Schema error during variable "+name+" resolution in "+contextDescription+": "+e.getMessage(), e, name);
+//				throw new TunnelException(newEx);
+//			} catch (IllegalArgumentException e) {
+//				SchemaException newEx = new SchemaException("Schema error during variable "+name+" resolution in "+contextDescription+": "+e.getMessage(), e, name);
+//				throw new TunnelException(newEx);
+//			}
+//        }
         
-        if (retval instanceof PrismObject) {
-        	PrismObject mObject = (PrismObject)retval;
-        	try {
-				Node domNode = mObject.serializeToDom();
-				retval = DOMUtil.getFirstChildElement(domNode);
-			} catch (SchemaException e) {
-				SchemaException newEx = new SchemaException("Schema error during variable "+name+" resolution in "+contextDescription+": "+e.getMessage(), e, name);
-				throw new TunnelException(newEx);
-			} catch (IllegalArgumentException e) {
-				SchemaException newEx = new SchemaException("Schema error during variable "+name+" resolution in "+contextDescription+": "+e.getMessage(), e, name);
-				throw new TunnelException(newEx);
-			}
+        if (variableValue instanceof PrismObject) {
+        	PrismObject mObject = (PrismObject)variableValue;
+        	variableValue = mObject.asDomElement();
+//        	try {
+//				Node domNode = mObject.serializeToDom();
+//				variableValue = DOMUtil.getFirstChildElement(domNode);
+//			} catch (SchemaException e) {
+//				SchemaException newEx = new SchemaException("Schema error during variable "+name+" resolution in "+contextDescription+": "+e.getMessage(), e, name);
+//				throw new TunnelException(newEx);
+//			} catch (IllegalArgumentException e) {
+//				SchemaException newEx = new SchemaException("Schema error during variable "+name+" resolution in "+contextDescription+": "+e.getMessage(), e, name);
+//				throw new TunnelException(newEx);
+//			}
         }
         
 //        System.out.println("VAR "+name+" - "+retval.getClass().getName()+":\n"+DebugUtil.prettyPrint(retval));
-        return retval;
+        return variableValue;
     }
 }

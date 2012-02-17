@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.xml.namespace.QName;
@@ -174,6 +175,11 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
     public List<? extends PrismValue> getValues() {
 		return values;
 	}
+    
+    public Element asDomElement() {
+    	// TODO
+    	throw new UnsupportedOperationException();
+    }
     
 	/**
      * Serializes property to DOM or JAXB element(s).
