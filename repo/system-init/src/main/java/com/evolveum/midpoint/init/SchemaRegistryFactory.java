@@ -75,7 +75,7 @@ public class SchemaRegistryFactory {
 		if (schemaDir != null && schemaDir.isDirectory()) {
 			LOGGER.info("Reading schemas from {}",schemaDir);
 			try {
-				schemaRegistry.registerMidPointSchemasFromDirectory(schemaDir);
+				schemaRegistry.registerPrismSchemasFromDirectory(schemaDir);
 			} catch (FileNotFoundException e) {
 				LOGGER.error("Error reading schemas from {}: file not found: {}", new Object[] {
 						schemaDir, e.getMessage(), e});

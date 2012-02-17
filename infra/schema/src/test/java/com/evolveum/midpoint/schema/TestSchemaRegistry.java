@@ -95,22 +95,22 @@ public class TestSchemaRegistry {
 		PrismContext context = factory.createInitializedPrismContext();
 		SchemaRegistry schemaRegistry = context.getSchemaRegistry();
 		
-		PrismObjectDefinition<UserType> userContainer = schemaRegistry.findObjectDefinitionByCompileTimeClass(UserType.class);
-		assertNotNull("No user container", userContainer);
+		PrismObjectDefinition<UserType> userDefinition = schemaRegistry.findObjectDefinitionByCompileTimeClass(UserType.class);
+		assertNotNull("No user definition", userDefinition);
 		
 		System.out.println("testCommonSchemaUserType:");
-		System.out.println(userContainer.dump());
+		System.out.println(userDefinition.dump());
 		
-		assertFalse(userContainer.isWildcard());
+		assertFalse(userDefinition.isWildcard());
 		
-		PrismPropertyDefinition nameDef = userContainer.findPropertyDefinition(ObjectType.F_NAME);
+		PrismPropertyDefinition nameDef = userDefinition.findPropertyDefinition(ObjectType.F_NAME);
 		assertNotNull("No name definition", nameDef);
 
-		PrismContainerDefinition extensionDef = userContainer.findContainerDefinition(SchemaConstants.C_EXTENSION);
+		PrismContainerDefinition extensionDef = userDefinition.findContainerDefinition(SchemaConstants.C_EXTENSION);
 		assertNotNull("No 'extension' definition", extensionDef);
 		assertTrue(extensionDef.isWildcard());
 		
-		PrismPropertyDefinition givenNameDef = userContainer.findPropertyDefinition(UserType.F_GIVEN_NAME);
+		PrismPropertyDefinition givenNameDef = userDefinition.findPropertyDefinition(UserType.F_GIVEN_NAME);
 		assertNotNull("No givenName definition", givenNameDef);
 	}
 	

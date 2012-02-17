@@ -171,7 +171,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		registerSchemaDescription(desc);
 	}
 	
-	public void registerMidPointSchemaFile(File file) throws FileNotFoundException, SchemaException {
+	public void registerPrismSchemaFile(File file) throws FileNotFoundException, SchemaException {
 		SchemaDescription desc = SchemaDescription.parseFile(file);
 		desc.setPrismSchema(true);
 		registerSchemaDescription(desc);
@@ -184,7 +184,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		schemaDescriptions.add(desc);
 	}
 	
-	public void registerMidPointSchemasFromDirectory(File directory) throws FileNotFoundException, SchemaException {
+	public void registerPrismSchemasFromDirectory(File directory) throws FileNotFoundException, SchemaException {
 		List<File> files = Arrays.asList(directory.listFiles());
 		// Sort the filenames so we have deterministic order of loading
 		// This is useful in tests but may come handy also during customization
@@ -195,10 +195,10 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 				continue;
 			}
 			if (file.isDirectory()) {
-				registerMidPointSchemasFromDirectory(file);
+				registerPrismSchemasFromDirectory(file);
 			}
 			if (file.isFile()) {
-				registerMidPointSchemaFile(file);
+				registerPrismSchemaFile(file);
 			}
 		}
 	}

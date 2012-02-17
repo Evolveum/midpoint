@@ -63,21 +63,24 @@ public class MidPointPrismContextFactory {
 	}
 	
 	private void registerBuiltinSchemas(SchemaRegistry schemaRegistry) throws SchemaException {
-		String prefix;
-		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_COMMON);
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/common-1.xsd","c");
-		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_ANNOTATION);
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/annotation-1.xsd","a");
-		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_RESOURCE);
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/resource-schema-1.xsd","r");
-		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_CAPABILITIES);
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/capabilities-1.xsd","cap");
-		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_ICF_CONFIGURATION);
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/connector-schema-1.xsd","icfc");
-		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_ICF_SCHEMA);
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/resource-schema-1.xsd","icfs");
-		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(W3C_XML_SCHEMA_NS_URI);
-		schemaRegistry.registerSchemaResource("xml/ns/standard/XMLSchema.xsd","xsd");
+		
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/common-1.xsd", "c", 
+				com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory.class.getPackage());
+		
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/annotation-1.xsd", "a");
+		
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/resource-schema-1.xsd", "r");
+		
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/capabilities-1.xsd", "cap",
+				com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ObjectFactory.class.getPackage());
+		
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/connector-schema-1.xsd", "icfc",
+				com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_1.ObjectFactory.class.getPackage());
+		
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/resource-schema-1.xsd", "icfs",
+				com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_1.ObjectFactory.class.getPackage());
+		
+		schemaRegistry.registerSchemaResource("xml/ns/standard/XMLSchema.xsd", "xsd");
 	}
 	
 //	private NamespacePrefixMapper createPrefixMapper() {

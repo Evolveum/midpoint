@@ -61,7 +61,7 @@ public class TestExtraSchema {
 		
 		PrismContext context = constructPrismContext();
 		SchemaRegistry reg = context.getSchemaRegistry();
-		reg.registerMidPointSchemasFromDirectory(EXTRA_SCHEMA_DIR);
+		reg.registerPrismSchemasFromDirectory(EXTRA_SCHEMA_DIR);
 		context.initialize();
 		System.out.println("Initialized registry");
 		System.out.println(reg.dump());
