@@ -27,11 +27,16 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ExtensionProcessor;
-import com.evolveum.midpoint.schema.PropertyModification;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -75,7 +80,7 @@ public class TaskImpl implements Task {
 	private TaskBinding DEFAULT_BINDING_TYPE = TaskBinding.TIGHT;
 	
 	private String taskIdentifier;
-	private UserType owner;
+	private PrismObject<UserType> owner;
 	private TaskExecutionStatus executionStatus;
 	private TaskExclusivityStatus exclusivityStatus;
 	private TaskPersistenceStatus persistenceStatus;
@@ -83,7 +88,7 @@ public class TaskImpl implements Task {
 	private TaskBinding binding;
 	private String handlerUri;
 	private UriStack otherHandlersUriStack;
-	private ObjectType object;
+	private PrismObject<ObjectType> object;
 	private ObjectReferenceType objectRef;
 	private String oid;
 	private String name;
@@ -113,7 +118,7 @@ public class TaskImpl implements Task {
 		persistenceStatus = TaskPersistenceStatus.TRANSIENT;
 		recurrenceStatus = TaskRecurrence.SINGLE;
 		binding = DEFAULT_BINDING_TYPE;
-		extension = ExtensionProcessor.createEmptyExtensionContainer();
+		extension = ExtensionProcessor.createEmptyExtensionContainer(taskManager.getPrismContext());
 		progress = 0;
 		repositoryService = null;
 		object = null;
@@ -135,7 +140,8 @@ public class TaskImpl implements Task {
 		canRun = true;
 	}
 		
-	void initialize(TaskType taskType, OperationResult initResult) throws SchemaException {
+	void initialize(PrismObject<TaskType> taskPrism, OperationResult initResult) throws SchemaException {
+		TaskType taskType = taskPrism.getObjectable();
 		taskIdentifier = taskType.getTaskIdentifier();
 		ObjectReferenceType ownerRef = taskType.getOwnerRef();
 		if (ownerRef == null) {
@@ -180,13 +186,11 @@ public class TaskImpl implements Task {
 		} else {
 			result = null;
 		}
-		schedule = taskType.getSchedule();
-		// Parse the extension
-		LOGGER.trace("Parsing extension {}",ObjectTypeUtil.dump(taskType.getExtension()));
-		extension = ExtensionProcessor.parseExtension(taskType.getExtension());
+		schedule = taskType.getSchedule();	
+		extension = taskPrism.getExtension();
 	}
 	
-	private UserType resolveOwnerRef(ObjectReferenceType ownerRef, OperationResult result) throws SchemaException {
+	private PrismObject<UserType> resolveOwnerRef(ObjectReferenceType ownerRef, OperationResult result) throws SchemaException {
 		try {
 			return repositoryService.getObject(UserType.class, ownerRef.getOid(), null, result);
 		} catch (ObjectNotFoundException e) {
@@ -208,12 +212,12 @@ public class TaskImpl implements Task {
 	}
 	
 	@Override
-	public UserType getOwner() {
+	public PrismObject<UserType> getOwner() {
 		return owner;
 	}
 
 	@Override
-	public void setOwner(UserType owner) {
+	public void setOwner(PrismObject<UserType> owner) {
 		this.owner = owner;
 	}
 
@@ -282,16 +286,16 @@ public class TaskImpl implements Task {
 	 * @see com.evolveum.midpoint.task.api.Task#getObject()
 	 */
 	@Override
-	public <T extends ObjectType> T getObject(Class<T> type, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = parentResult.createSubresult(Task.class.getName()+".getObject");
 		result.addContext(OperationResult.CONTEXT_OID, oid);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskImpl.class);
 		
-		if ( object!=null ) {
+		if ( object != null ) {
 			// There is an embedded object in the task
-			if (type.isAssignableFrom(object.getClass())) {
+			if (object.canRepresent(type)) {
 				result.recordSuccess();
-				return (T) object;
+				return (PrismObject<T>) object;
 			} else {
 				throw new IllegalArgumentException("Requested object type "+type+", but the type of object in the task is "+object.getClass());
 			}
@@ -300,9 +304,9 @@ public class TaskImpl implements Task {
 			// There is object reference. Let's try to resolve it
 			try {
 				// Note: storing this value in field, not local variable. It will be reused.
-				object = repositoryService.getObject(type, objectRef.getOid(), null, result);
+				object = (PrismObject<ObjectType>) repositoryService.getObject(type, objectRef.getOid(), null, result);
 				result.recordSuccess();
-				return (T) object;
+				return (PrismObject<T>) object;
 			} catch (ObjectNotFoundException ex) {
 				result.recordFatalError("Object not found", ex);
 				throw ex;
@@ -385,58 +389,12 @@ public class TaskImpl implements Task {
 	public PrismProperty getExtension(QName propertyName) {
 		return extension.findProperty(propertyName);
 	}
-
-	@Override
-	public void modifyExtension(List<PropertyModification> modifications, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		OperationResult opResult = parentResult.createSubresult(Task.class.getName()+".modifyExtension");
-		opResult.addParam("modifications", modifications);
-		opResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskImpl.class);
-		opResult.addContext(OperationResult.CONTEXT_OID,oid);
-		
-		// Only works for persistent tasks
-		if (persistenceStatus!=TaskPersistenceStatus.PERSISTENT) {
-			// No need to call repository. Just apply the updates to the container
-			extension.applyModifications(modifications);
-			opResult.recordSuccess();
-			return;
-		}
-		
-		ObjectModificationType objectChange = new ObjectModificationType();
-		objectChange.setOid(oid);
-		
-		for (PropertyModification modification : modifications) {
-			// Extension is schema-less now. Therefore we need to also record the types (hence "true" for recordType)
-			PropertyModificationType propertyModificationType = null;
-			try {
-				propertyModificationType = modification.toPropertyModificationType(SchemaConstants.C_EXTENSION,true);
-			} catch (SchemaException e) {
-				// This is unlikely now, almost impossible. But may happen in the future.
-				SchemaException ex = new SchemaException("Error dealing with extension schema, task OID "+oid,e);
-				opResult.recordFatalError("Error dealing with extension schema",e);
-				throw ex;
-			}			
-			objectChange.getPropertyModification().add(propertyModificationType);
-		}
-		
-		try {
-			repositoryService.modifyObject(TaskType.class, objectChange, opResult);
-		} catch (ObjectNotFoundException ex) {
-			opResult.recordFatalError("Object not found", ex);
-			throw ex;
-		} catch (SchemaException ex) {
-			opResult.recordFatalError("Schema error", ex);
-			throw ex;
-		} catch (RuntimeException ex) {
-			opResult.recordFatalError("Internal error", ex);
-			throw ex;
-		}
-		
-		opResult.recordSuccess();
-	}
 	
 	@Override
-	public TaskType getTaskTypeObject() {
-		TaskType taskType = new TaskType();
+	public PrismObject<TaskType> getTaskPrismObject() {
+		PrismObjectDefinition<TaskType> taskObjectDefinition = taskManager.getTaskObjectDefinition();
+		PrismObject<TaskType> taskPrism = taskObjectDefinition.instantiate();
+		TaskType taskType = taskPrism.getObjectable();
 		
 		taskType.setExecutionStatus(executionStatus.toTaskType());
 		taskType.setExclusivityStatus(exclusivityStatus.toTaskType());
@@ -468,19 +426,14 @@ public class TaskImpl implements Task {
 		if (schedule!=null) {
 			taskType.setSchedule(schedule);
 		}
-
-//		if (extension!=null && !extension.isEmpty()) {			if we do not create (empty) extension element, we'll not be able to add properties into it 
-		if (extension!=null) {		
-			Extension xmlExtension;
-			xmlExtension = ExtensionProcessor.createExtension(extension);
-			taskType.setExtension(xmlExtension);
-		}
 		
 		if (owner != null) {
 			taskType.setOwnerRef(ObjectTypeUtil.createObjectRef(owner));
 		}
 		
-		return taskType;
+		taskPrism.addReplaceExisting(extension.clone());
+		
+		return taskPrism;
 	}
 
 	@Override
@@ -519,7 +472,7 @@ public class TaskImpl implements Task {
 		sb.append("\n  otherHandlersUriStack: ");
 		sb.append(otherHandlersUriStack);
 		sb.append("\n  object: ");
-		sb.append(ObjectTypeUtil.toShortString(object));
+		sb.append(object);
 		sb.append("\n  objectRef: ");
 		sb.append(ObjectTypeUtil.toShortString(objectRef));
 		sb.append("\n  lastRunStartTimestamp: ");
@@ -552,11 +505,12 @@ public class TaskImpl implements Task {
 		}
 		GregorianCalendar cal = new GregorianCalendar();
 		cal.setTimeInMillis(lastRunStartTimestamp);
-		ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid, SchemaConstants.C_TASK_LAST_RUN_START_TIMESTAMP, cal);
+		ObjectDelta<TaskType> modification = ObjectDelta.createModificationReplaceProperty(oid,
+				TaskType.F_LAST_RUN_START_TIMESTAMP, cal);
 
 		// FIXME: if nextRunStartTime == 0 we should delete the corresponding element; however, this does not work as for now
 		if (nextRunStartTime > 0)
-			modification.getPropertyModification().add(TaskManagerImpl.createNextRunStartTimeModification(nextRunStartTime));
+			modification.addModification(taskManager.createNextRunStartTimeModification(nextRunStartTime));
 		
 		repositoryService.modifyObject(TaskType.class, modification, parentResult);
 	}
@@ -570,31 +524,32 @@ public class TaskImpl implements Task {
 			return;
 		}
 
-		ObjectModificationType modification = new ObjectModificationType();
+		ObjectDelta<TaskType> modification = new ObjectDelta(TaskType.class, ChangeType.MODIFY);
 		modification.setOid(oid);
 
 		// last run time modification
 		GregorianCalendar calLRFT = new GregorianCalendar();
 		calLRFT.setTimeInMillis(lastRunFinishTimestamp);
-		PropertyModificationType timestampModificationLRFT = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_LAST_RUN_FINISH_TIMESTAMP, calLRFT);
-
-		modification.getPropertyModification().add(timestampModificationLRFT);
+		PropertyDelta timestampModificationLRFT = PropertyDelta.createReplaceDelta(taskManager.getTaskObjectDefinition(), 
+				TaskType.F_LAST_RUN_FINISH_TIMESTAMP, calLRFT);
+		modification.addModification(timestampModificationLRFT);
 		
 		// progress
-		PropertyModificationType progressModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_PROGRESS, progress);
-		modification.getPropertyModification().add(progressModification);
+		PropertyDelta progressModification = PropertyDelta.createReplaceDelta(taskManager.getTaskObjectDefinition(), 
+				TaskType.F_PROGRESS, progress);
+		modification.addModification(progressModification);
 		
 		// result
-		PropertyModificationType resultModification = null;
-		if (runResult.getOperationResult()!=null) {
-			resultModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_RESULT, runResult.getOperationResult().createOperationResultType());
+		PropertyDelta resultModification = null;
+		if (runResult.getOperationResult() != null) {
+			resultModification = PropertyDelta.createReplaceDelta(taskManager.getTaskObjectDefinition(), 
+					TaskType.F_RESULT, runResult.getOperationResult().createOperationResultType());
 		} else {
-			// Make sure we replace any stale result that may be stored there
-			resultModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_RESULT, null);
+			resultModification = PropertyDelta.createReplaceEmptyDelta(taskManager.getTaskObjectDefinition(), TaskType.F_RESULT);
 		}
 //		// temporary - Pavol Mederly - make changes only if the task run result contains some OperationResult
 //		if (runResult.getOperationResult()!=null)
-			modification.getPropertyModification().add(resultModification);
+			modification.addModification(resultModification);
 			
 		// execute the modification
 		repositoryService.modifyObject(TaskType.class, modification, parentResult);
@@ -611,18 +566,20 @@ public class TaskImpl implements Task {
 		if (!isPersistent()) {
 			return;
 		}
-		ObjectModificationType modification = new ObjectModificationType();
+		ObjectDelta<TaskType> modification = new ObjectDelta<TaskType>(TaskType.class, ChangeType.MODIFY);
 		modification.setOid(oid);
-		PropertyModificationType progressModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_PROGRESS, progress);
-		modification.getPropertyModification().add(progressModification);
-		PropertyModificationType resultModification = null;
+		PropertyDelta progressModification = PropertyDelta.createReplaceDelta(taskManager.getTaskObjectDefinition(), 
+				TaskType.F_PROGRESS, progress);
+		modification.addModification(progressModification);
+		PropertyDelta resultModification = null;
 		if (result!=null) {
-			resultModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_RESULT, result.createOperationResultType());
+			resultModification = PropertyDelta.createReplaceDelta(taskManager.getTaskObjectDefinition(), 
+				TaskType.F_RESULT, result.createOperationResultType());
 		} else {
 			// Make sure we replace any stale result that may be stored there
-			resultModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_RESULT, null);
+			resultModification = PropertyDelta.createReplaceEmptyDelta(taskManager.getTaskObjectDefinition(), TaskType.F_RESULT);
 		}
-		modification.getPropertyModification().add(resultModification);
+		modification.addModification(resultModification);
 		repositoryService.modifyObject(TaskType.class, modification, parentResult);		
 		
 	}
@@ -638,9 +595,9 @@ public class TaskImpl implements Task {
 			return;
 		}
 		
-		ObjectType repoObj = null;
+		PrismObject<TaskType> repoObj = null;
 		try {
-			repoObj = repositoryService.getObject(ObjectType.class, getOid(), null, result);
+			repoObj = repositoryService.getObject(TaskType.class, getOid(), null, result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Object not found", ex);
 			throw ex;
@@ -648,8 +605,7 @@ public class TaskImpl implements Task {
 			result.recordFatalError("Schema error", ex);
 			throw ex;			
 		}
-		TaskType taskType = (TaskType)repoObj;
-		initialize(taskType, result);
+		initialize(repoObj, result);
 		result.recordSuccess();
 	}
 	
@@ -667,10 +623,8 @@ public class TaskImpl implements Task {
 		result.addContext(OperationResult.CONTEXT_OID, getOid());
 		
 		// Close the task
-		ObjectModificationType modification = new ObjectModificationType();
-		modification.setOid(oid);
-		PropertyModificationType timestampModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_EXECUTION_STATUS, TaskExecutionStatusType.CLOSED.value());
-		modification.getPropertyModification().add(timestampModification);
+		ObjectDelta<TaskType> modification = ObjectDelta.createModificationReplaceProperty(oid, TaskType.F_EXECUTION_STATUS, 
+				TaskExecutionStatusType.CLOSED.value());
 		try {
 			repositoryService.modifyObject(TaskType.class, modification, result);
 		} catch (ObjectNotFoundException ex) {

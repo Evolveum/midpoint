@@ -21,7 +21,9 @@
 
 package com.evolveum.midpoint.prism.delta;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
@@ -33,6 +35,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Iterator;
 
@@ -59,14 +62,16 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
      * Parent path of the property (path to the property container)
      */
     PropertyPath parentPath;
+    PrismPropertyDefinition propertyDefinition;
 
     Collection<PrismPropertyValue<Object>> valuesToReplace = null;
     Collection<PrismPropertyValue<Object>> valuesToAdd = null;
     Collection<PrismPropertyValue<Object>> valuesToDelete = null;
 
-    public PropertyDelta(QName name) {
+    public PropertyDelta(QName name, PrismPropertyDefinition propertyDefinition) {
         this.name = name;
-        parentPath = new PropertyPath();
+        this.parentPath = new PropertyPath();
+        this.propertyDefinition = propertyDefinition;
     }
 
     public PropertyDelta(PropertyPath parentPath, QName name) {
@@ -144,6 +149,33 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
             throw new IllegalStateException("The delta cannot be both 'replace' and 'add/delete' at the same time");
         }
     }
+    
+	public static <T extends Objectable> PropertyDelta createReplaceDelta(PrismObjectDefinition<T> objectDefinition,
+			QName propertyName, Object... realValues) {
+		PrismPropertyDefinition propertyDefinition = objectDefinition.findPropertyDefinition(propertyName);
+		if (propertyDefinition == null) {
+			throw new IllegalArgumentException("No definition for "+propertyName+" in "+objectDefinition);
+		}
+		PropertyDelta delta = new PropertyDelta(propertyName, propertyDefinition);
+		Collection<PrismPropertyValue<Object>> valuesToReplace = delta.getValuesToReplace();
+		for (Object realVal: realValues) {
+			valuesToReplace.add(new PrismPropertyValue<Object>(realVal));
+		}
+		return delta;
+	}
+
+	/**
+	 * Create delta that deletes all values of the specified property.
+	 */
+	public static <T extends Objectable> PropertyDelta createReplaceEmptyDelta(PrismObjectDefinition<T> objectDefinition,
+			QName propertyName) {
+		PrismPropertyDefinition propertyDefinition = objectDefinition.findPropertyDefinition(propertyName);
+		if (propertyDefinition == null) {
+			throw new IllegalArgumentException("No definition for "+propertyName+" in "+objectDefinition);
+		}
+		PropertyDelta delta = new PropertyDelta(propertyName, propertyDefinition);
+		return delta;
+	}
 
     /**
      * Merge specified delta to this delta. This delta is assumed to be
@@ -242,6 +274,15 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
             valuesToReplace.clear();
         }
         valuesToReplace.addAll(newValues);
+    }
+    
+    public void setValueToReplace(PrismPropertyValue<Object> newValue) {
+        if (valuesToReplace == null) {
+            valuesToReplace = newValueCollection();
+        } else {
+            valuesToReplace.clear();
+        }
+        valuesToReplace.add(newValue);
     }
 
     public boolean isEmpty() {
@@ -389,5 +430,6 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
             }
         }
     }
+
 
 }

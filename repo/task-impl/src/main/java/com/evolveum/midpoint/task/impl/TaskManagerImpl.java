@@ -41,6 +41,15 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -94,6 +103,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	private Set<TaskRunner> runners = new CopyOnWriteArraySet<TaskRunner>();
 	private TaskScanner scannerThread;
 	private HeartbeatThread heartbeatThread;
+	private PrismObjectDefinition<TaskType> taskPrismDefinition;
 	/**
 	 * True if the service threads are running.
 	 * Is is true in a normal case. It is false is the threads were temporarily suspended.
@@ -108,11 +118,18 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	@Autowired(required=true)
 	private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 	
+	@Autowired(required=true)
+	private PrismContext prismContext;
+	
 	private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerImpl.class);
 	private static final String TASK_THREAD_NAME_PREFIX = "midpoint-task-";
 	
 	private static long threadCounter = 0;
 	
+	PrismContext getPrismContext() {
+		return prismContext;
+	}
+
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		 this.beanFactory = beanFactory;
@@ -195,11 +212,11 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	}
 
 	@Override
-	public Task createTaskInstance(TaskType taskType, OperationResult parentResult) throws SchemaException {
+	public Task createTaskInstance(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws SchemaException {
 		//Note: we need to be Spring Bean Factory Aware, because some repo implementations are in scope prototype
 		RepositoryService repoService = (RepositoryService) this.beanFactory.getBean("repositoryService");
 		TaskImpl task = new TaskImpl(this,repoService);
-		task.initialize(taskType, parentResult);
+		task.initialize(taskPrism, parentResult);
 		return task;
 	}
 	
@@ -207,9 +224,9 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	 * @see com.evolveum.midpoint.task.api.TaskManager#createTaskInstance(com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType, java.lang.String)
 	 */
 	@Override
-	public Task createTaskInstance(TaskType taskType, String operationName, OperationResult parentResult) throws SchemaException {
+	public Task createTaskInstance(PrismObject<TaskType> taskPrism, String operationName, OperationResult parentResult) throws SchemaException {
 		RepositoryService repoService = (RepositoryService) this.beanFactory.getBean("repositoryService");
-		TaskImpl taskImpl = (TaskImpl)createTaskInstance(taskType, parentResult);
+		TaskImpl taskImpl = (TaskImpl)createTaskInstance(taskPrism, parentResult);
 		if (taskImpl.getResult()==null) {
 			taskImpl.setResult(new OperationResult(operationName));
 		}
@@ -244,10 +261,10 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 
 	private Task fetchTaskFromRepository(String taskOid, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
-		ObjectType object = repositoryService.getObject(ObjectType.class, taskOid, resolve, result);
-		TaskType taskType = (TaskType) object;
+		PrismObject<TaskType> task = repositoryService.getObject(TaskType.class, taskOid, resolve, result);
+
 		//Note: we need to be Spring Bean Factory Aware, because some repo implementations are in scope prototype
-		return createTaskInstance(taskType, result);
+		return createTaskInstance(task, result);
 	}
 
 	/* (non-Javadoc)
@@ -341,9 +358,9 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		}
 		
 		task.setPersistenceStatus(TaskPersistenceStatus.PERSISTENT);
-		TaskType taskType = task.getTaskTypeObject();
+		PrismObject<TaskType> taskPrism = task.getTaskPrismObject();
 		try {
-			String oid = repositoryService.addObject(taskType, parentResult);
+			String oid = repositoryService.addObject(taskPrism, parentResult);
 			task.setOid(oid);
 		} catch (ObjectAlreadyExistsException ex) {
 			// This should not happen. If it does, it is a bug. It is OK to convert to a runtime exception
@@ -468,8 +485,8 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	 * 
 	 * @param task XML TaskType object 
 	 */
-	public void processRunnableTaskType(TaskType taskType, OperationResult parentResult) throws SchemaException {
-		Task task = createTaskInstance(taskType, parentResult);
+	public void processRunnableTaskType(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws SchemaException {
+		Task task = createTaskInstance(taskPrism, parentResult);
 		processRunnableTask(task);
 	}
 
@@ -564,19 +581,19 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	}
 
 	@Override
-	public String addTask(TaskType taskType, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
+	public String addTask(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
 		// TODO: result
-		String oid = repositoryService.addObject(taskType, parentResult);
+		String oid = repositoryService.addObject(taskPrism, parentResult);
 		// Wake up scanner thread. This may be a new runnable task
 		scannerThread.scan();
 		return oid;
 	}
 
 	@Override
-	public void modifyTask(ObjectModificationType objectChange, OperationResult parentResult) throws ObjectNotFoundException,
+	public void modifyTask(ObjectDelta<TaskType> objectDelta, OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException {
 		// TODO: result
-		repositoryService.modifyObject(TaskType.class, objectChange, parentResult);
+		repositoryService.modifyObject(TaskType.class, objectDelta, parentResult);
 		// Wake up scanner thread. This may be runnable task now
 		scannerThread.scan();
 	}
@@ -620,7 +637,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		OperationResult result = new OperationResult(TaskManagerImpl.class.getName() + ".releaseClaimedTasks");
 		PagingType paging = new PagingType();
 		QueryType query;
-		List<TaskType> tasks = null;
+		List<PrismObject<TaskType>> tasks = null;
 		try {
 			query = createQueryForClaimedTasks();
 			tasks = repositoryService.searchObjects(TaskType.class, query, paging, result);
@@ -631,12 +648,13 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 
 		if (tasks != null && tasks.size() > 0) {
 			LOGGER.info("Task manager found {} task(s) left in CLAIMED state, and is about to release them.", tasks.size());
-			for (TaskType task : tasks) {
-				LOGGER.info("Releasing task " + task.getName() + " (OID: " + task.getOid() + ")");
+			for (PrismObject<TaskType> taskPrism : tasks) {
+				TaskType taskType = taskPrism.getObjectable();
+				LOGGER.info("Releasing task " + taskType.getName() + " (OID: " + taskPrism.getOid() + ")");
 				try {
-					releaseTaskByOid(task.getOid(), result);
+					releaseTaskByOid(taskPrism.getOid(), result);
 				} catch (Exception e) {
-					LOGGER.error("Task manager cannot release a task that was left claimed; OID = " + task.getOid(), e);
+					LOGGER.error("Task manager cannot release a task that was left claimed; OID = " + taskPrism.getOid(), e);
 				}
 			}
 		} else
@@ -693,9 +711,9 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 
 	private void suspendTaskByOid(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		try {
-			ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid,
-				SchemaConstants.C_TASK_EXECUTION_STATUS, TaskExecutionStatusType.SUSPENDED.value());
-			repositoryService.modifyObject(TaskType.class, modification, result);
+			ObjectDelta<TaskType> delta = ObjectDelta.createModificationReplaceProperty(oid, 
+					SchemaConstants.C_TASK_EXECUTION_STATUS, TaskExecutionStatusType.SUSPENDED.value());
+			repositoryService.modifyObject(TaskType.class, delta, result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Cannot suspend task, as it was not found", ex);
 			throw ex;
@@ -718,9 +736,9 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		// TODO: recompute next running time
 		
 		try {
-			ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid,
+			ObjectDelta<TaskType> delta = ObjectDelta.createModificationReplaceProperty(oid, 
 				SchemaConstants.C_TASK_EXECUTION_STATUS, TaskExecutionStatusType.RUNNING.value());
-			repositoryService.modifyObject(TaskType.class, modification, result);
+			repositoryService.modifyObject(TaskType.class, delta, result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Cannot resume task, as it was not found", ex);
 			throw ex;
@@ -731,14 +749,20 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 
 	}
 
-	static PropertyModificationType createNextRunStartTimeModification(long time) {
+	PropertyDelta createNextRunStartTimeModification(long time) {
+		PrismPropertyDefinition nextRunStartTimePropDef = getTaskObjectDefinition().findPropertyDefinition(TaskType.F_NEXT_RUN_START_TIME);
 		if (time != 0) {
 			GregorianCalendar cal = new GregorianCalendar();
 			cal.setTimeInMillis(time);
-			return ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_NEXT_RUN_START_TIME, cal);
+			PropertyDelta delta = new PropertyDelta(TaskType.F_NEXT_RUN_START_TIME, nextRunStartTimePropDef);
+			delta.setValueToReplace(new PrismPropertyValue<Object>(cal));
+			return delta;
+			//return ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_NEXT_RUN_START_TIME, cal);
 		} else {
-			// this would not work due to a problem in PatchXML (probably!)
-			return ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.delete, null, SchemaConstants.C_TASK_NEXT_RUN_START_TIME);
+			PropertyDelta delta = new PropertyDelta(TaskType.F_NEXT_RUN_START_TIME, nextRunStartTimePropDef);
+			// replace delta with no value, this will clear the property
+			return delta;
+			//return ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.delete, null, SchemaConstants.C_TASK_NEXT_RUN_START_TIME);
 		}
 	}
 	
@@ -750,10 +774,10 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 			return;
 		
 		try {
-			ObjectModificationType modification = new ObjectModificationType();
-			modification.setOid(oid);
-			modification.getPropertyModification().add(createNextRunStartTimeModification(time));
-			repositoryService.modifyObject(TaskType.class, modification, result);
+			ObjectDelta<TaskType> delta = new ObjectDelta<TaskType>(TaskType.class, ChangeType.MODIFY);
+			delta.setOid(oid);
+			delta.addModification(createNextRunStartTimeModification(time));
+			repositoryService.modifyObject(TaskType.class, delta, result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Cannot record next run start time, as the task object was not found", ex);
 			throw ex;
@@ -770,6 +794,11 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		return runner != null && runner.thread.isAlive();
 	}
 
-
+	PrismObjectDefinition<TaskType> getTaskObjectDefinition() {
+		if (taskPrismDefinition == null) {
+			taskPrismDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
+		}
+		return taskPrismDefinition;
+	}
 	
 }

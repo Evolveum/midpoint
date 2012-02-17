@@ -23,6 +23,7 @@ package com.evolveum.midpoint.task.api;
 import java.util.Set;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -81,7 +82,7 @@ public interface TaskManager {
 	 * @return new Java representation of the task
 	 * @throws SchemaException The provided taskType is not compliant to schema
 	 */
-	public Task createTaskInstance(TaskType taskType, OperationResult parentResult) throws SchemaException;
+	public Task createTaskInstance(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws SchemaException;
 
 	/**
 	 * Creates new transient, running, claimed task instance.
@@ -111,7 +112,7 @@ public interface TaskManager {
 	 * @return new Java representation of the task
 	 * @throws SchemaException The provided taskType is not compliant to schema
 	 */
-	public Task createTaskInstance(TaskType taskType, String operationName, OperationResult parentResult) throws SchemaException;
+	public Task createTaskInstance(PrismObject<TaskType> taskPrism, String operationName, OperationResult parentResult) throws SchemaException;
 	
 	/**
 	 * Returns a task with specified OID.
@@ -197,7 +198,7 @@ public interface TaskManager {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 */
-	public void modifyTask(ObjectModificationType objectChange, OperationResult parentResult)
+	public void modifyTask(ObjectDelta<TaskType> objectDelta, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
 
 	/**

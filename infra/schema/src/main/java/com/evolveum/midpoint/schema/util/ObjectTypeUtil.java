@@ -22,6 +22,8 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -247,18 +249,22 @@ public class ObjectTypeUtil {
 
     
     public static ObjectReferenceType createObjectRef(ObjectType objectType) {
-        if (objectType == null) {
+        return createObjectRef(objectType.getContainer());
+    }
+
+    public static <T extends ObjectType> ObjectReferenceType createObjectRef(PrismObject<T> object) {
+        if (object == null) {
             return null;
         }
         ObjectReferenceType ref = new ObjectReferenceType();
-        ref.setOid(objectType.getOid());
-        ObjectTypes objectTypeType = ObjectTypes.getObjectType(objectType.getClass());
-        if (objectTypeType != null) {
-            ref.setType(objectTypeType.getTypeQName());
+        ref.setOid(object.getOid());
+        PrismObjectDefinition<T> definition = object.getDefinition();
+        if (definition != null) {
+            ref.setType(definition.getTypeName());
         }
         return ref;
     }
-
+    
     public static ObjectReferenceType createObjectRef(String oid, ObjectTypes type) {
         Validate.notEmpty(oid, "Oid must not be null or empty.");
         Validate.notNull(type, "Object type must not be null.");

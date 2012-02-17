@@ -28,6 +28,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -100,7 +101,7 @@ public class TaskScanner extends Thread {
 				OperationResult loopResult = new OperationResult(TaskScanner.class.getName() + ".run");
 				PagingType paging = new PagingType();
 				QueryType query = createQuery();
-				List<TaskType> tasks = null;
+				List<PrismObject<TaskType>> tasks = null;
 				try {
 					tasks = repositoryService.searchObjects(TaskType.class, query, paging, loopResult);
 				} catch (SchemaException e) {
@@ -110,16 +111,18 @@ public class TaskScanner extends Thread {
 
 				if (tasks != null) {
 					LOGGER.trace("Task scanner found {} runnable tasks", tasks.size());
-					for (TaskType task : tasks) {
-							LOGGER.trace("Task scanner: Start processing task " + task.getName() + " (OID: " + task.getOid() + ", next run time: " + task.getNextRunStartTime() + ")");
+					for (PrismObject<TaskType> task : tasks) {
+						TaskType taskType = task.getObjectable();
+							LOGGER.trace("Task scanner: Start processing task " + taskType.getName() + " (OID: " + 
+									taskType.getOid() + ", next run time: " + taskType.getNextRunStartTime() + ")");
 						if (canHandle(task)) {
 							// should run = has the 'nextRunStartTime' arrived?
-							if (ScheduleEvaluator.shouldRun(task)) {	// TODO in the future we can implement shouldRun as part of the search criteria
-								if (!ScheduleEvaluator.missedScheduledStart(task)) {
+							if (ScheduleEvaluator.shouldRun(taskType)) {	// TODO in the future we can implement shouldRun as part of the search criteria
+								if (!ScheduleEvaluator.missedScheduledStart(taskType)) {
 									boolean claimed = false;
 									try {
 										repositoryService.claimTask(task.getOid(), loopResult);
-										task.setExclusivityStatus(TaskExclusivityStatusType.CLAIMED);
+										taskType.setExclusivityStatus(TaskExclusivityStatusType.CLAIMED);
 										claimed = true;
 									} catch (ConcurrencyException ex) {
 										// Claim failed. This means that the task was claimed by another
@@ -161,8 +164,8 @@ public class TaskScanner extends Thread {
 									} // claimed
 								} else {
 									// we have missed scheduled start => reschedule
-									long nextRunTime = ScheduleEvaluator.determineNextRunStartTime(task);
-									LOGGER.info("Task scanner: missed or non-existing scheduled start (" + task.getNextRunStartTime() + ") for " + SchemaDebugUtil.prettyPrint(task) + ", rescheduling to " + new Date(nextRunTime));
+									long nextRunTime = ScheduleEvaluator.determineNextRunStartTime(taskType);
+									LOGGER.info("Task scanner: missed or non-existing scheduled start (" + taskType.getNextRunStartTime() + ") for " + SchemaDebugUtil.prettyPrint(task) + ", rescheduling to " + new Date(nextRunTime));
 									taskManagerImpl.recordNextRunStartTime(task.getOid(), nextRunTime, loopResult);
 								}
 							} else {
@@ -210,8 +213,8 @@ public class TaskScanner extends Thread {
 		this.interrupt();
 	}
 
-	private boolean canHandle(TaskType task) {
-		if (taskManagerImpl.getHandler(task.getHandlerUri()) != null) {
+	private boolean canHandle(PrismObject<TaskType> task) {
+		if (taskManagerImpl.getHandler(task.getObjectable().getHandlerUri()) != null) {
 			return true;
 		}
 		return false;

@@ -395,6 +395,6 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	 * @param task
 	 */
 	private TaskType handleTaskResult(Task task) {
-		return task.getTaskTypeObject();
+		return task.getTaskPrismObject();
 	}
 }

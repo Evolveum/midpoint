@@ -222,7 +222,7 @@ public class TaskDetailsController implements Serializable {
         OperationResult result = new OperationResult(TaskDetailsController.class.getName() + ".modifyTask");
         try {
 //            task.setObjectRef(getRefFromName(getSelectedResurceRef()));
-            TaskType oldObject = taskManager.getTask(task.getOid(), result).getTaskTypeObject();
+            TaskType oldObject = taskManager.getTask(task.getOid(), result).getTaskPrismObject();
             TaskType newObject = task.toTaskType();
             
             ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldObject,

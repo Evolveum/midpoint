@@ -136,7 +136,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 	public PrismContainer getExtension() {
 		return getValue().findItem(new QName(getName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME), PrismContainer.class);
 	}
-
+	
 	@Override
 	public void applyDefinition(ItemDefinition definition) {
     	if (!(definition instanceof PrismObjectDefinition)) {
@@ -170,6 +170,10 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 			}
 			return null;
 		}
+	}
+	
+	public void addReplaceExisting(Item item) {
+		getValue().addReplaceExisting(item);
 	}
 
 	@Override

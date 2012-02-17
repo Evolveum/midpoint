@@ -25,6 +25,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -152,7 +153,7 @@ public interface Task extends Dumpable {
 	public boolean isAsynchronous();
 	
 	// TODO
-	public TaskType getTaskTypeObject();
+	public PrismObject<TaskType> getTaskPrismObject();
 	
 	/**
 	 * Returns task (lightweight) identifier. This is an unique identification of any task,
@@ -172,9 +173,9 @@ public interface Task extends Dumpable {
      * 
 	 * @return task owner
 	 */
-	public UserType getOwner();
+	public PrismObject<UserType> getOwner();
 	
-	public void setOwner(UserType owner);
+	public void setOwner(PrismObject<UserType> owner);
 	
 	/**
 	 * Returns task OID.
@@ -208,7 +209,7 @@ public interface Task extends Dumpable {
 	 * @throws SchemaException 
 	 * @throws ObjectNotFoundException 
 	 */
-	public <T extends ObjectType> T getObject(Class<T> type, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 	
 	/**
 	 * Returns reference to the object that the task is associated with.
@@ -289,19 +290,7 @@ public interface Task extends Dumpable {
 	public PrismContainer getExtension();
 	
 	public PrismProperty getExtension(QName propertyName);
-	
-	/**
-	 * TODO
-	 * 
-	 * The modification path is relative to the extension, therefore it will
-	 * almost always be "." (or null). 
-	 * 
-	 * @param modification
-	 * @throws SchemaException 
-	 * @throws ObjectNotFoundException 
-	 */
-	public void modifyExtension(List<PropertyDelta> modifications, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
-	
+		
 	/**
 	 * Record finish of the last "run" of the task
 	 * 

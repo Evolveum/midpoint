@@ -92,12 +92,12 @@ public class ExtensionProcessor {
 //        xmlExtension.getAny().addAll(elements);
 //        return xmlExtension;
 //    }
-//
-//	public static PrismContainer createEmptyExtensionContainer() {
-//		PrismContainerDefinition pcd = new PrismContainerDefinition(SchemaConstants.C_EXTENSION, null);
-//		pcd.setRuntimeSchema(true);
-//		return new PrismContainer(SchemaConstants.C_EXTENSION, pcd, null, null);
-//	}
+
+	public static PrismContainer createEmptyExtensionContainer(PrismContext prismContext) {
+		PrismContainerDefinition pcd = new PrismContainerDefinition(SchemaConstants.C_EXTENSION, null, prismContext);
+		pcd.setRuntimeSchema(true);
+		return pcd.instantiate(SchemaConstants.C_EXTENSION);
+	}
 
 
 }
