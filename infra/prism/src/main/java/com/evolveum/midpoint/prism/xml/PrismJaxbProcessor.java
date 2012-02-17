@@ -223,7 +223,6 @@ public class PrismJaxbProcessor {
 		return (Element) element.getFirstChild();
 	}
 	
-	// Do we need this ??
 	public <T> Element marshalObjectToDom(T jaxbObject, QName elementQName, Document doc) throws JAXBException {
 		if (doc == null) {
 			doc = DOMUtil.getDocument();

@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.prism.dom;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -26,6 +27,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Item;
@@ -69,6 +71,40 @@ public class PrismDomProcessor {
 
 	public void setPrismContext(PrismContext prismContext) {
 		this.prismContext = prismContext;
+	}
+
+	public <T extends Objectable> PrismObject<T> parseObject(File file, Class<T> type) throws SchemaException {
+		PrismObject<T> object = parseObject(file);
+		if (!object.canRepresent(type)) {
+			throw new SchemaException("Requested object of type "+type+", but parsed type "+object.getCompileTimeClass());
+		}
+		return object;
+	}
+	
+	public <T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException {
+		Document parsedDocument = DOMUtil.parseFile(file);
+		Element element = DOMUtil.getFirstChildElement(parsedDocument);
+		if (element == null) {
+			return null;
+		}
+		return parseObject(element);
+	}
+	
+	public <T extends Objectable> PrismObject<T> parseObject(String objectString, Class<T> type) throws SchemaException {
+		PrismObject<T> object = parseObject(objectString);
+		if (!object.canRepresent(type)) {
+			throw new SchemaException("Requested object of type "+type+", but parsed type "+object.getCompileTimeClass());
+		}
+		return object;
+	}
+	
+	public <T extends Objectable> PrismObject<T> parseObject(String objectString) throws SchemaException {
+		Document parsedDocument = DOMUtil.parseDocument(objectString);
+		Element element = DOMUtil.getFirstChildElement(parsedDocument);
+		if (element == null) {
+			return null;
+		}
+		return parseObject(element);
 	}
 
 	public <T extends Objectable> PrismObject<T> parseObject(Element objectElement) throws SchemaException {
@@ -320,6 +356,8 @@ public class PrismDomProcessor {
 //        return prop;
 //    }
 
-	
+	public <T extends Objectable> String serializeObjectToString(PrismObject<T> object) {
+		throw new UnsupportedOperationException();
+	}
 
 }

@@ -48,8 +48,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -61,7 +64,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.test.patch.PatchXml;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.EscapeStringBuilder;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -97,7 +99,7 @@ public class XmlRepositoryService implements RepositoryService {
 	private ObjectPool sessions;
 
     @Autowired(required = true)
-    private SchemaRegistry schemaRegistry;
+    private PrismContext prismContext;
 
 	// TODO: inject from Configuration Object
 	private String host;
@@ -137,7 +139,7 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ObjectType> String addObject(T object, OperationResult parentResult)
+	public <T extends ObjectType> String addObject(PrismObject<T> object, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException {
 		String oid = null;
 		ClientQuery cq = null;
@@ -160,14 +162,15 @@ public class XmlRepositoryService implements RepositoryService {
 
 			Map<String, Object> properties = new HashMap<String, Object>();
 			properties.put(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
-			String serializedObject = JAXBUtil.marshalWrap(properties, object, SchemaConstants.C_OBJECT);
+			String serializedObject = prismContext.getPrismDomProcessor().serializeObjectToString(object);
+			// String serializedObject = JAXBUtil.marshalWrap(properties, object, SchemaConstants.C_OBJECT);
 
-			if (object instanceof ResourceObjectShadowType) {
+			if (object.canRepresent(ResourceObjectShadowType.class)) {
 				query.append(DECLARE_NAMESPACE_C).append("let $x := ").eappend(serializedObject).append("\n")
 						.append("return insert node $x into //c:objects");
 			} else {
-				ObjectTypes objType = ObjectTypes.getObjectType(object.getClass());
-				String oType = objType.getValue();
+				// FIXME?
+				String oType = object.getDefinition().getTypeName().toString();
 
 				query.append(DECLARE_NAMESPACE_C).append("if (every $object in //c:objects/c:object[")
 						.append("@xsi:type='").append(oType).append("'] satisfies $object/c:name !='")
@@ -182,11 +185,11 @@ public class XmlRepositoryService implements RepositoryService {
 
 			result.recordSuccess();
 			return oid;
-		} catch (JAXBException ex) {
-			LoggingUtils.logException(LOGGER, "Failed to (un)marshal object", ex);
-			result.recordFatalError("Failed to (un)marshal object", ex);
-			object.setOid(origOid);
-			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
+//		} catch (SchemaException ex) {
+//			LoggingUtils.logException(LOGGER, "Failed to (un)marshal object", ex);
+//			result.recordFatalError("Failed to (un)marshal object", ex);
+//			object.setOid(origOid);
+//			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
 		} catch (RuntimeException ex) {
 			object.setOid(origOid);
 			throw ex;
@@ -212,7 +215,7 @@ public class XmlRepositoryService implements RepositoryService {
 	 * com.evolveum.midpoint.common.result.OperationResult)
 	 */
 	@Override
-	public <T extends ObjectType> T getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
+	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
 		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName() + ".getObject");
@@ -221,7 +224,7 @@ public class XmlRepositoryService implements RepositoryService {
 
 		validateOid(oid);
 
-		T object = null;
+		PrismObject<T> object = null;
 		ClientQuery cq = null;
 
 		EscapeStringBuilder query = new XQueryEscapeStringBuilder();
@@ -245,16 +248,18 @@ public class XmlRepositoryService implements RepositoryService {
 						throw new SystemException("More than one object with oid " + oid + " found");
 					}
 
-					JAXBElement<T> o = (JAXBElement<T>) JAXBUtil.unmarshal(type, c);
-					if (o != null) {
-						object = o.getValue();
-					}
+					object = prismContext.getPrismDomProcessor().parseObject(c, type);
+					
+//					JAXBElement<T> o = (JAXBElement<T>) JAXBUtil.unmarshal(type, c);
+//					if (o != null) {
+//						object = o.getValue();
+//					}
 				}
 			}
-		} catch (JAXBException ex) {
-			LoggingUtils.logException(LOGGER, "Failed to (un)marshal object", ex);
-			result.recordFatalError("Failed to (un)marshal object", ex);
-			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
+		} catch (SchemaException ex) {
+			LoggingUtils.logException(LOGGER, "Schema error", ex);
+			result.recordFatalError("Schema error: "+ex.getMessage(), ex);
+			throw new IllegalArgumentException("Schema error: "+ex.getMessage(), ex);
 		} catch (BaseXException ex) {
 			errorLogRecordAndRethrow("Reported error by XML Database", result, ex);
 		} catch (NoSuchElementException ex) {
@@ -289,7 +294,7 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ObjectType> ResultList<T> listObjects(Class<T> objectType, PagingType paging,
+	public <T extends ObjectType> ResultList<PrismObject<T>> listObjects(Class<T> objectType, PagingType paging,
 			OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName() + ".listObjects");
 		result.addParam("objectType", objectType);
@@ -304,20 +309,20 @@ public class XmlRepositoryService implements RepositoryService {
 		namespaces.put("c", SchemaConstants.NS_C);
 		namespaces.put("idmdn", SchemaConstants.NS_C);
 
-		ResultList<T> objects = searchObjects(objectType, paging, null, namespaces, result);
+		ResultList<PrismObject<T>> objects = searchObjects(objectType, paging, null, namespaces, result);
 		result.recordSuccess();
 		return objects;
 	}
 
 	@Override
-	public <T extends ObjectType> ResultList<T> searchObjects(Class<T> clazz, QueryType query, PagingType paging,
+	public <T extends ObjectType> ResultList<PrismObject<T>> searchObjects(Class<T> clazz, QueryType query, PagingType paging,
 			OperationResult parentResult) throws SchemaException {
 		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName() + ".searchObjects");
 		result.addParam("query", query);
 		result.addParam("paging", paging);
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("midPoint query: {}", JAXBUtil.silentMarshalWrap(query));
+			LOGGER.trace("midPoint query: {}", QueryUtil.dump(query));
 		}
 
 		validateQuery(query);
@@ -375,54 +380,25 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType objectChange,
+	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectDelta<T> objectDelta,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName() + ".modifyObject");
-		result.addParam("objectChange", objectChange);
+		result.addParam("objectChange", objectDelta);
 
-		validateObjectChange(objectChange);
+		validateObjectDelta(objectDelta);
 
-		String serializedObject = null;
-		try {
-            //todo uncomment this, if you want to modify object with object deltas
-            PrismSchema schema = schemaRegistry.getObjectSchema();
-            ObjectDelta<T> delta = ObjectDelta.createDelta(objectChange, schema, type);
+        PrismObject<T> object = this.getObject(type, objectDelta.getOid(), null, result);
 
-            T objectType = this.getObject(type, delta.getOid(), null, result);
-            PrismObjectDefinition<T> objectDef = schema.findObjectDefinition(type);
+        LOGGER.trace("OBJECT before:\n{}",object.dump());
+        LOGGER.trace("DELTA:\n{}",objectDelta.dump());
+        objectDelta.applyTo(object);
+        LOGGER.trace("OBJECT after:\n{}",object.dump());
 
-            PrismObject<T> midPointObject = objectDef.parseObjectType(objectType);
-            LOGGER.trace("OBJECT before:\n{}",midPointObject.dump());
-            LOGGER.trace("DELTA:\n{}",delta.dump());
-            delta.applyTo(midPointObject);
-            LOGGER.trace("OBJECT after:\n{}",midPointObject.dump());
-
-            midPointObject.setObjectType(null);
-            T updatedObject = midPointObject.getOrParseObjectType();
-
-            Map<String, Object> properties = new HashMap<String, Object>();
-            properties.put(Marshaller.JAXB_FRAGMENT, true);
-            serializedObject = JAXBUtil.marshalWrap(updatedObject, properties);
-        } catch (JAXBException ex) {
-            errorLogRecordAndRethrow("Failed to modify object", result, ex);
-        }
-
-//			// get object from repo
-//			// FIXME: possible problems with resolving property reference before
-//			// xml patching
-//			ObjectType objectType = this.getObject(ObjectType.class, objectChange.getOid(),
-//					new PropertyReferenceListType(), result);
-//
-//			// modify the object
-//			PatchXml xmlPatchTool = new PatchXml();
-//			serializedObject = xmlPatchTool.applyDifferences(objectChange, objectType);
-//        } catch (PatchException ex) {
-//            errorLogRecordAndRethrow("Failed to modify object", result, ex);
-//        }
+		String serializedObject = prismContext.getPrismDomProcessor().serializeObjectToString(object);
 
 		// store modified object in repo
 		EscapeStringBuilder query = new XQueryEscapeStringBuilder();
-		query.append(DECLARE_NAMESPACE_C).append("replace node //c:object[@oid=\"").eappend(objectChange.getOid())
+		query.append(DECLARE_NAMESPACE_C).append("replace node //c:object[@oid=\"").eappend(objectDelta.getOid())
 				.append("\"] with ").eappend(serializedObject);
 
         if (LOGGER.isTraceEnabled()) {
@@ -450,7 +426,7 @@ public class XmlRepositoryService implements RepositoryService {
 
 		// TODO: check has to be atomic
 		try {
-			ObjectType retrievedObject = getObject(ObjectType.class, oid, null, result);
+			PrismObject<ObjectType> retrievedObject = getObject(ObjectType.class, oid, null, result);
 		} catch (SchemaException ex) {
 			LoggingUtils.logException(LOGGER,
 					"Schema validation problem occured while checking existence of the object before its deletion", ex);
@@ -480,14 +456,9 @@ public class XmlRepositoryService implements RepositoryService {
 		result.recordSuccess();
 	}
 
-	@Override
-	public <T extends ObjectType> PropertyAvailableValuesListType getPropertyAvailableValues(Class<T> type, String oid,
-			PropertyReferenceListType properties, OperationResult parentResult) throws ObjectNotFoundException {
-		throw new UnsupportedOperationException("Not implemented yet.");
-	}
 
 	@Override
-	public UserType listAccountShadowOwner(String accountOid, OperationResult parentResult)
+	public PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult parentResult)
 			throws ObjectNotFoundException {
 		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName()
 				+ ".listAccountShadowOwner");
@@ -497,7 +468,7 @@ public class XmlRepositoryService implements RepositoryService {
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("c", SchemaConstants.NS_C);
 		filters.put("c:accountRef", accountOid);
-		List<UserType> retrievedObjects = searchObjects(UserType.class, null, filters, namespaces, result);
+		List<PrismObject<UserType>> retrievedObjects = searchObjects(UserType.class, null, filters, namespaces, result);
 
 		if (null == retrievedObjects || retrievedObjects.size() == 0) {
 			result.recordSuccess();
@@ -509,14 +480,14 @@ public class XmlRepositoryService implements RepositoryService {
 			throw new SystemException("Found incorrect number of objects " + retrievedObjects.size());
 		}
 
-		UserType userType = retrievedObjects.get(0);
+		PrismObject<UserType> userType = retrievedObjects.get(0);
 
 		result.recordSuccess();
 		return userType;
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> ResultList<T> listResourceObjectShadows(String resourceOid,
+	public <T extends ResourceObjectShadowType> ResultList<PrismObject<T>> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException {
 		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
 				+ ".listResourceObjectShadows");
@@ -527,7 +498,7 @@ public class XmlRepositoryService implements RepositoryService {
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("c", SchemaConstants.NS_C);
 		filters.put("c:resourceRef", resourceOid);
-		ResultList<T> retrievedObjects = searchObjects(resourceObjectShadowType, null, filters, namespaces, result);
+		ResultList<PrismObject<T>> retrievedObjects = searchObjects(resourceObjectShadowType, null, filters, namespaces, result);
 
 		result.recordSuccess();
 		return retrievedObjects;
@@ -544,22 +515,21 @@ public class XmlRepositoryService implements RepositoryService {
 
 		// Check whether the task is claimed
 
-		ObjectType object = getObject(ObjectType.class, oid, null, result);
-		// TODO: check
-		TaskType task = (TaskType) object;
+		PrismObject<TaskType> task = getObject(TaskType.class, oid, null, result);
+		TaskType taskType = task.getObjectable();
 
-		if (task.getExclusivityStatus() != TaskExclusivityStatusType.RELEASED) {
+		if (taskType.getExclusivityStatus() != TaskExclusivityStatusType.RELEASED) {
 			// TODO: check whether the claim is not expired yet
 			throw new ConcurrencyException("Attempt to claim already claimed task (OID:" + oid + ")");
 		}
 
 		// Modify the status to claim the task.
 		// TODO: mark node identifier and claim expiration (later)
-
-		ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid,
+		
+		ObjectDelta<TaskType> delta = ObjectDelta.createModificationReplaceProperty(oid,
 				SchemaConstants.C_TASK_EXECLUSIVITY_STATUS, TaskExclusivityStatusType.CLAIMED.value());
 
-		modifyObject(TaskType.class, modification, result);
+		modifyObject(TaskType.class, delta, result);
 
 	}
 
@@ -571,14 +541,14 @@ public class XmlRepositoryService implements RepositoryService {
 
 		// Modify the status to claim the task.
 
-		ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid,
+		ObjectDelta<TaskType> delta = ObjectDelta.createModificationReplaceProperty(oid,
 				SchemaConstants.C_TASK_EXECLUSIVITY_STATUS, TaskExclusivityStatusType.RELEASED.value());
 
-		modifyObject(TaskType.class, modification, result);
+		modifyObject(TaskType.class, delta, result);
 
 	}
 
-	private <T extends ObjectType> ResultList<T> searchObjects(Class<T> clazz, PagingType paging,
+	private <T extends ObjectType> ResultList<PrismObject<T>> searchObjects(Class<T> clazz, PagingType paging,
 			Map<String, String> filters, Map<String, String> namespaces, OperationResult result) {
 
 		// convert class object type to String representation
@@ -590,7 +560,7 @@ public class XmlRepositoryService implements RepositoryService {
 			objectType = ObjectTypes.getObjectType(clazz).getValue();
 		}
 
-		ResultList<T> objectList = new ResultArrayList<T>();
+		ResultList<PrismObject<T>> objectList = new ResultArrayList<PrismObject<T>>();
 		// FIXME: objectList.count has to contain all elements that match search
 		// criteria, but not only from paging interval
 		EscapeStringBuilder query = new XQueryEscapeStringBuilder();
@@ -670,9 +640,9 @@ public class XmlRepositoryService implements RepositoryService {
 				while (cq.more()) {
 					String c = cq.next();
 
-					JAXBElement<T> o = JAXBUtil.unmarshal(clazz, c);
-					if (o != null) {
-						objectList.add(o.getValue());
+					PrismObject<T> object = prismContext.getPrismDomProcessor().parseObject(c, clazz);
+					if (object != null) {
+						objectList.add(object);
 					}
 				}
 			}
@@ -793,13 +763,15 @@ public class XmlRepositoryService implements RepositoryService {
 		}
 	}
 
-	private void validateObjectChange(ObjectModificationType objectChange) {
-		if (null == objectChange) {
+	private void validateObjectDelta(ObjectDelta<?> objectDelta) {
+		if (null == objectDelta) {
 			throw new IllegalArgumentException("Provided null object modifications");
 		}
-		validateOid(objectChange.getOid());
-
-		if (null == objectChange.getPropertyModification() || objectChange.getPropertyModification().size() == 0) {
+		validateOid(objectDelta.getOid());
+		if (objectDelta.getChangeType() != ChangeType.MODIFY) {
+			throw new IllegalArgumentException("Expected MODIFY delta but got "+objectDelta.getChangeType());
+		}
+		if (null == objectDelta.getModifications() || objectDelta.getModifications().size() == 0) {
 			throw new IllegalArgumentException("No property modifications provided");
 		}
 	}

@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.repo.api;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
@@ -149,7 +151,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 */
-	public <T extends ObjectType> T getObject(Class<T> type,String oid, PropertyReferenceListType resolve, OperationResult parentResult)
+	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type,String oid, PropertyReferenceListType resolve, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
 
 	/**
@@ -191,7 +193,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 */
-	public <T extends ObjectType> String addObject(T object, OperationResult parentResult)
+	public <T extends ObjectType> String addObject(PrismObject<T> object, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException;
 
 	/**
@@ -216,7 +218,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong object type
 	 */
-	public <T extends ObjectType> ResultList<T> listObjects(Class<T> type, PagingType paging, OperationResult parentResult);
+	public <T extends ObjectType> ResultList<PrismObject<T>> listObjects(Class<T> type, PagingType paging, OperationResult parentResult);
 
 	/**
 	 * <p>Search for objects in the repository.</p>
@@ -246,7 +248,7 @@ public interface RepositoryService {
 	 * @throws SchemaException
 	 *             unknown property used in search query
 	 */
-	public <T extends ObjectType> ResultList<T>  searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult parentResult)
+	public <T extends ObjectType> ResultList<PrismObject<T>>  searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult parentResult)
 			throws SchemaException;
 
 	/**
@@ -267,10 +269,8 @@ public interface RepositoryService {
 	 * 
 	 * TODO: optimistic locking
 	 * 
-	 * @param objectChange
+	 * @param objectDelta
 	 *            specification of object changes
-	 * @param scripts
-	 *            scripts that should be executed before of after operation
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * 
@@ -281,7 +281,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 */
-	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType objectChange, OperationResult parentResult)
+	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectDelta<T> objectDelta, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
 
 	/**
@@ -301,35 +301,6 @@ public interface RepositoryService {
 	 *             wrong OID format, described change is not applicable
 	 */
 	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException;
-
-	/**
-	 * <p>Returns list of available values for specified properties.</p>
-	 * <p>
-	 * The returned values can be used as valid values for properties of the
-	 * specific object. The provided values can be used e.g. for listing them in
-	 * GUI list boxes, for early validation (pre-validation), displaying help
-	 * messages, auto-complete, etc.
-	 * </p><p>
-	 * In case the list of available values is too big or it is not available,
-	 * the empty list should be returned, setting the "closed" flag to false.
-	 * </p>
-	 * 
-	 * @param oid
-	 *            OID of the object for which to determine values
-	 * @param properties
-	 *            list of properties for which to determine values
-	 * @param parentResult
-	 *            parentResult parent OperationResult (in/out)
-	 * @return list of available values
-	 * 
-	 * @throws ObjectNotFoundException
-	 *             specified object does not exist
-	 * @throws IllegalArgumentException
-	 *             wrong OID format
-	 */
-	public <T extends ObjectType> PropertyAvailableValuesListType getPropertyAvailableValues(Class<T> type, String oid,
-			PropertyReferenceListType properties, OperationResult parentResult)
-			throws ObjectNotFoundException;
 
 	/**
 	 * <p>Returns the User object representing owner of specified account (account
@@ -360,7 +331,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format
 	 */
-	public UserType listAccountShadowOwner(String accountOid, OperationResult parentResult)
+	public PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult parentResult)
 			throws ObjectNotFoundException;
 
 	/**
@@ -389,7 +360,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format
 	 */
-	public <T extends ResourceObjectShadowType> ResultList<T> listResourceObjectShadows(String resourceOid,
+	public <T extends ResourceObjectShadowType> ResultList<PrismObject<T>> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException;
 	
 	/**

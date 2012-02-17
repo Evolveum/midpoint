@@ -216,26 +216,9 @@ public class ObjectTypeUtil {
     }
 
 
-//    public static String dump(ObjectType object) {
-//        StringBuilder sb = new StringBuilder();
-//        sb.append(toShortString(object));
-//        sb.append("\n");
-//        if (object == null) {
-//            // in sb is already serialized null object
-//            return sb.toString();
-//        }
-//        Document doc = DOMUtil.getDocument();
-//        ObjectTypes objectTypeType = ObjectTypes.getObjectType(object.getClass());
-//        Element element;
-//        try {
-//            element = JAXBUtil.jaxbToDom(object, objectTypeType.getQName(), doc);
-//            sb.append(DOMUtil.serializeDOMToString(element));
-//        } catch (JAXBException e) {
-//            sb.append("Cannot serialize object to DOM: ");
-//            sb.append(e);
-//        }
-//        return sb.toString();
-//    }
+    public static String dump(ObjectType object) {
+        return object.getContainer().dump();
+    }
 
     public static Object toShortString(ObjectReferenceType objectRef) {
         if (objectRef == null) {

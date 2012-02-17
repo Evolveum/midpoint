@@ -45,6 +45,8 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -92,6 +94,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	@Autowired(required = true)
 	protected Protector protector;
+	
+	@Autowired(required = true)
+	protected PrismContext prismContext;
 
 	// Controllers for embedded OpenDJ and Derby. The abstract test will configure it, but
 	// it will not start
@@ -138,25 +143,25 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	abstract public void initSystem(OperationResult initResult) throws Exception;
 
-	protected ObjectType addObjectFromFile(String filePath, OperationResult result) throws Exception {
+	protected PrismObject<ObjectType> addObjectFromFile(String filePath, OperationResult result) throws Exception {
 		return addObjectFromFile(filePath, ObjectType.class, result);
 	}
 
-	protected <T extends ObjectType> T addObjectFromFile(String filePath, Class<T> type,
+	protected <T extends ObjectType> PrismObject<T> addObjectFromFile(String filePath, Class<T> type,
 			OperationResult result) throws Exception {
 		OperationResult subResult = result.createSubresult(AbstractIntegrationTest.class.getName()
 				+ ".addObjectFromFile");
 		subResult.addParam("filePath", filePath);
 		LOGGER.trace("addObjectFromFile: {}", filePath);
-		T object = unmarshallJaxbFromFile(filePath, type);
+		PrismObject<T> object = prismContext.getPrismDomProcessor().parseObject(new File(filePath), type);
 		System.out.println("obj: " + object.getName());
 		// OperationResult result = new
 		// OperationResult(AbstractIntegrationTest.class.getName() +
 		// ".addObjectFromFile");
-		if (object instanceof TaskType) {
+		if (object.canRepresent(TaskType.class)) {
 			Assert.assertNotNull(taskManager, "Task manager is not initialized");
 			try {
-				taskManager.addTask((TaskType) object, subResult);
+				taskManager.addTask((PrismObject<TaskType>) object, subResult);
 			} catch (ObjectAlreadyExistsException ex) {
 				subResult.recordFatalError(ex.getMessage(), ex);
 				throw ex;
@@ -194,10 +199,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return unmarshallJaxbFromFile(filePath, ObjectType.class);
 	}
 
-	protected ResourceType addResourceFromFile(String filePath, String connectorType, OperationResult result)
+	protected PrismObject<ResourceType> addResourceFromFile(String filePath, String connectorType, OperationResult result)
 			throws FileNotFoundException, JAXBException, SchemaException, ObjectAlreadyExistsException {
 		LOGGER.trace("addObjectFromFile: {}, connector type {}", filePath, connectorType);
-		ResourceType resource = unmarshallJaxbFromFile(filePath, ResourceType.class);
+		PrismObject<ResourceType> resource = prismContext.getPrismDomProcessor().parseObject(new File(filePath), ResourceType.class);
 		fillInConnectorRef(resource, connectorType, result);
 		display("Adding resource ", resource);
 		String oid = repositoryService.addObject(resource, result);
@@ -205,7 +210,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return resource;
 	}
 
-	protected ConnectorType findConnectorByType(String connectorType, OperationResult result)
+	protected PrismObject<ConnectorType> findConnectorByType(String connectorType, OperationResult result)
 			throws SchemaException {
 		Document doc = DOMUtil.getDocument();
 
@@ -220,7 +225,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		QueryType query = new QueryType();
 		query.setFilter(filter);
 
-		List<ConnectorType> connectors = repositoryService.searchObjects(ConnectorType.class, query, null,
+		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, null,
 				result);
 		if (connectors.size() != 1) {
 			throw new IllegalStateException("Cannot find connector type " + connectorType + ", got "
@@ -229,9 +234,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return connectors.get(0);
 	}
 
-	protected void fillInConnectorRef(ResourceType resource, String connectorType, OperationResult result)
+	protected void fillInConnectorRef(PrismObject<ResourceType> resourcePrism, String connectorType, OperationResult result)
 			throws SchemaException {
-		ConnectorType connector = findConnectorByType(connectorType, result);
+		ResourceType resource = resourcePrism.getObjectable();
+		PrismObject<ConnectorType> connectorPrism = findConnectorByType(connectorType, result);
+		ConnectorType connector = connectorPrism.getObjectable();
 		if (resource.getConnectorRef() == null) {
 			resource.setConnectorRef(new ObjectReferenceType());
 		}

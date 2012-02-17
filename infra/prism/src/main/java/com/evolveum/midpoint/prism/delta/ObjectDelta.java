@@ -365,6 +365,16 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     private Collection<PropertyDelta> createEmptyModifications() {
         return new HashSet<PropertyDelta>();
     }
+    
+    /**
+     * Convenience method for quick creation of object deltas that replace a single object property. This is used quite often
+     * to justify a separate method. 
+     */
+    public static <T extends Objectable> ObjectDelta<T> createModificationReplaceProperty(String oid, QName propertyName,
+    		Object... propertyValues) {
+    	// TODO
+    	throw new UnsupportedOperationException();
+    }
 
     @Override
     public String toString() {

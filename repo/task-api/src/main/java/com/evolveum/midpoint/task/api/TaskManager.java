@@ -22,6 +22,7 @@ package com.evolveum.midpoint.task.api;
 
 import java.util.Set;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -162,7 +163,7 @@ public interface TaskManager {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 */
-	public String addTask(TaskType taskType, OperationResult parentResult)
+	public String addTask(PrismObject<TaskType> taskPrism, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException;
 
 	

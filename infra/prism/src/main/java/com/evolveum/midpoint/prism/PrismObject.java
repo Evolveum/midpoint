@@ -106,6 +106,15 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 		}
 		return null;
 	}
+	
+	/**
+	 * Returns true if this object can represent specified compile-time class.
+	 * I.e. this object can be presented in the compile-time form that is an
+	 * instance of a specified class.
+	 */
+	public boolean canRepresent(Class<?> compileTimeClass) {
+		return (compileTimeClass.isAssignableFrom(getCompileTimeClass()));
+	}
 
 	public T getObjectable() {
         try {

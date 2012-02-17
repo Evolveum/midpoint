@@ -26,6 +26,8 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
@@ -85,6 +87,22 @@ public class PrismContextTestUtil {
     // Compatibility
     public static <T> JAXBElement<T> unmarshalElement(File xmlFile, Class<T> type) throws JAXBException {
         return prismContext.getPrismJaxbProcessor().unmarshalElement(xmlFile);
+    }
+    
+    public static <T> Element marshalObjectToDom(T jaxbObject, QName elementQName, Document doc) throws JAXBException {
+    	return prismContext.getPrismJaxbProcessor().marshalObjectToDom(jaxbObject, elementQName, doc);
+    }
+    
+    public static Element toDomElement(Object element) throws JAXBException {
+    	return prismContext.getPrismJaxbProcessor().toDomElement(element);
+    }
+    
+    public static Element toDomElement(Object jaxbElement, Document doc) throws JAXBException {
+    	return prismContext.getPrismJaxbProcessor().toDomElement(jaxbElement, doc);
+    }
+    
+    public static Element toDomElement(Object jaxbElement, Document doc, boolean adopt, boolean clone, boolean deep) throws JAXBException {
+    	return prismContext.getPrismJaxbProcessor().toDomElement(jaxbElement, doc, adopt, clone, deep);
     }
 
     public static String marshalToString(Objectable objectable) throws JAXBException {

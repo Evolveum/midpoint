@@ -26,7 +26,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.schema.PropertyModification;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -300,7 +300,7 @@ public interface Task extends Dumpable {
 	 * @throws SchemaException 
 	 * @throws ObjectNotFoundException 
 	 */
-	public void modifyExtension(List<PropertyModification> modifications, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+	public void modifyExtension(List<PropertyDelta> modifications, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 	
 	/**
 	 * Record finish of the last "run" of the task

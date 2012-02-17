@@ -257,4 +257,11 @@ public class QueryUtil {
         return query;
 	}
 
+	public static String dump(QueryType query) {
+		StringBuilder sb = new StringBuilder("Query(");
+		sb.append(query.getDescription()).append("):\n");
+		sb.append(DOMUtil.serializeDOMToString(query.getFilter()));
+		return sb.toString();
+	}
+
 }
