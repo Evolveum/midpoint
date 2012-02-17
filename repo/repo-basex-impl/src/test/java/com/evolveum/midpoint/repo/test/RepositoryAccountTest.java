@@ -40,10 +40,13 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.util.PrismAsserts;
+import com.evolveum.midpoint.test.util.PrismContextTestUtil;
 import com.evolveum.midpoint.test.util.XmlAsserts;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -95,30 +98,6 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 	public void tearDown() {
 	}
 
-	private void compareObjects(AccountShadowType object, AccountShadowType retrievedObject) throws Exception {
-		assertEquals(object.getOid(), retrievedObject.getOid());
-		assertEquals(object.getName(), retrievedObject.getName());
-		// TODO: fix comparing crypted data...
-		// assertEquals(object.getCredentials().getPassword().getAny().toString(),
-		// object.getCredentials()
-		// .getPassword().getAny().toString());
-
-		if (object.getExtension() != null && retrievedObject.getExtension() != null) {
-			assertEquals(object.getExtension().getAny().size(), retrievedObject.getExtension().getAny()
-					.size());
-			List<Object> extensionElements = object.getExtension().getAny();
-			int i = 0;
-			for (Object element : extensionElements) {
-				XmlAsserts.assertPatch(JAXBUtil.serializeElementToString(element),
-						JAXBUtil.serializeElementToString(retrievedObject.getExtension().getAny().get(i)));
-				i++;
-			}
-		} else if ((object.getExtension() != null && retrievedObject.getExtension() == null)
-				|| (object.getExtension() == null && retrievedObject.getExtension() != null)) {
-			Assert.fail("Extension section is null for one object but not null for other object");
-		}
-	}
-
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testAccount() throws Exception {
@@ -126,30 +105,30 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 		final String resourceOid = "aae7be60-df56-11df-8608-0002a5d5c51b";
 		try {
 			// add resource
-			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
-					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"))).getValue();
+			PrismObject<ResourceType> resource = PrismContextTestUtil.parseObject(new File(
+					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"));
 			repositoryService.addObject(resource, new OperationResult("test"));
-			ObjectType retrievedObject = repositoryService.getObject(ResourceType.class, resourceOid,
+			PrismObject<ResourceType> retrievedResource = repositoryService.getObject(ResourceType.class, resourceOid,
 					new PropertyReferenceListType(), new OperationResult("test"));
-			assertEquals(resource.getOid(), retrievedObject.getOid());
+			assertEquals(resource.getOid(), retrievedResource.getOid());
 
 			// add account
-			AccountShadowType accountShadow = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
-					"src/test/resources/account.xml"))).getValue();
+			PrismObject<AccountShadowType> accountShadow = PrismContextTestUtil.parseObject(new File(
+					"src/test/resources/account.xml"));
 			repositoryService.addObject(accountShadow, new OperationResult("test"));
 
 			// get account object
-			retrievedObject = repositoryService.getObject(AccountShadowType.class, accountOid,
+			PrismObject<AccountShadowType> retrievedAccount = repositoryService.getObject(AccountShadowType.class, accountOid,
 					new PropertyReferenceListType(), new OperationResult("test"));
-			compareObjects(accountShadow, (AccountShadowType) retrievedObject);
+			PrismAsserts.assertEquals(accountShadow, retrievedAccount);
 
 			// list account objects with simple paging
 			PagingType pagingType = PagingTypeFactory
 					.createPaging(0, 5, OrderDirectionType.ASCENDING, "name");
-			List<AccountShadowType> objects = repositoryService.listObjects(AccountShadowType.class,
+			List<PrismObject<AccountShadowType>> objects = repositoryService.listObjects(AccountShadowType.class,
 					pagingType, new OperationResult("test"));
 			assertEquals(1, objects.size());
-			compareObjects(accountShadow, (AccountShadowType) objects.get(0));
+			PrismAsserts.assertEquals(accountShadow, objects.get(0));
 
 			// delete object
 			repositoryService.deleteObject(AccountShadowType.class, accountOid, new OperationResult("test"));
@@ -182,20 +161,20 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 		String accountRefOid = "8254880d-6584-425a-af2e-58f8ca394bbb";
 		String resourceOid = "aae7be60-df56-11df-8608-0002a5d5c51b";
 		try {
-			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
-					"src/test/resources/resource-modified-removed-tags.xml"))).getValue();
+			PrismObject<ResourceType> resource = PrismContextTestUtil.parseObject(new File(
+					"src/test/resources/resource-modified-removed-tags.xml"));
 			repositoryService.addObject(resource, new OperationResult("test"));
 
-			AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
-					"src/test/resources/account-delete-account-ref.xml"))).getValue();
+			PrismObject<AccountShadowType> account = PrismContextTestUtil.parseObject(new File(
+					"src/test/resources/account-delete-account-ref.xml"));
 			repositoryService.addObject(account, new OperationResult("test"));
 
-			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
-					"src/test/resources/user-account-ref.xml"))).getValue();
-			assertEquals(1, user.getAccountRef().size());
+			PrismObject<UserType> user = PrismContextTestUtil.parseObject(new File(
+					"src/test/resources/user-account-ref.xml"));
+			assertEquals(1, user.getObjectable().getAccountRef().size());
 			repositoryService.addObject(user, new OperationResult("test"));
 
-			UserType accountOwner = repositoryService.listAccountShadowOwner(accountRefOid,
+			PrismObject<UserType> accountOwner = repositoryService.listAccountShadowOwner(accountRefOid,
 					new OperationResult("test"));
 			assertNotNull(accountOwner);
 			assertEquals(userOid, accountOwner.getOid());
@@ -229,20 +208,20 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 		String accountRefOid = "8254880d-6584-425a-af2e-58f8ca394bbb";
 		String resourceOid = "aae7be60-df56-11df-8608-0002a5d5c51b";
 		try {
-			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
-					"src/test/resources/resource-modified-removed-tags.xml"))).getValue();
+			PrismObject<ResourceType> resource = PrismContextTestUtil.parseObject(new File(
+					"src/test/resources/resource-modified-removed-tags.xml"));
 			repositoryService.addObject(resource, new OperationResult("test"));
 
-			AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
-					"src/test/resources/account-delete-account-ref.xml"))).getValue();
+			PrismObject<AccountShadowType> account = PrismContextTestUtil.parseObject(new File(
+					"src/test/resources/account-delete-account-ref.xml"));
 			repositoryService.addObject(account, new OperationResult("test"));
 
-			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
-					"src/test/resources/user-account-ref.xml"))).getValue();
-			assertEquals(1, user.getAccountRef().size());
+			PrismObject<UserType> user = PrismContextTestUtil.parseObject(new File(
+					"src/test/resources/user-account-ref.xml"));
+			assertEquals(1, user.getObjectable().getAccountRef().size());
 			repositoryService.addObject(user, new OperationResult("test"));
 
-			List<T> shadows = repositoryService.listResourceObjectShadows(resourceOid,
+			List<PrismObject<T>> shadows = repositoryService.listResourceObjectShadows(resourceOid,
 					(Class<T>) ObjectTypes.ACCOUNT.getClassDefinition(), new OperationResult("test"));
 			assertNotNull(shadows);
 			assertEquals(accountRefOid, shadows.get(0).getOid());

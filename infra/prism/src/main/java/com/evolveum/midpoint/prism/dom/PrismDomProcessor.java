@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.prism.dom;
 
 import java.io.File;
+import java.io.ObjectInputStream.GetField;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -29,6 +30,7 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -107,6 +109,13 @@ public class PrismDomProcessor {
 		return parseObject(element);
 	}
 
+	public <T extends Objectable> PrismObject<T> parseObject(Node domNode) throws SchemaException {
+		if (domNode instanceof Element) {
+			return parseObject((Element)domNode);
+		}
+		return parseObject(DOMUtil.getFirstChildElement(domNode));
+	}
+	
 	public <T extends Objectable> PrismObject<T> parseObject(Element objectElement) throws SchemaException {
 		QName elementName = DOMUtil.getQName(objectElement);
 		PrismSchema schema = schemaRegistry.findSchemaByNamespace(elementName.getNamespaceURI());

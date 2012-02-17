@@ -21,6 +21,7 @@ package com.evolveum.midpoint.test.util;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -66,7 +67,19 @@ public class PrismContextTestUtil {
     public static SchemaRegistry getSchemaRegistry() {
     	return prismContext.getSchemaRegistry();
     }
-
+    
+    // ==========================
+    // == parsing
+    // ==========================
+    
+    public static <T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException {
+    	return getPrismContext().getPrismDomProcessor().parseObject(file);
+    }
+    
+    // ==========================
+    // == JAXB
+    // ==========================
+    
     public static void marshalElementToDom(JAXBElement<?> jaxbElement, Node parentNode) throws JAXBException {
         prismContext.getPrismJaxbProcessor().marshalElementToDom(jaxbElement, parentNode);
     }
@@ -124,6 +137,9 @@ public class PrismContextTestUtil {
         return marshalElementToString(jaxbElement);
     }
     
+    // ==========================
+    // == init
+    // ==========================
 
     static {
         try {
