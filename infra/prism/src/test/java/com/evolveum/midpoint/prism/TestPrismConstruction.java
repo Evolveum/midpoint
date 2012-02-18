@@ -170,7 +170,8 @@ public class TestPrismConstruction {
 		assertTrue("Property not the same", enabledProperty == enabledPropertyAgain);
 		
 		// assignment
-		PrismContainer assignmentContainer = user.findOrCreateContainer(USER_ASSIGNMENT_QNAME);
+		// Try to create this one from the value. It should work the same, but let's test a different code path
+		PrismContainer assignmentContainer = user.getValue().findOrCreateContainer(USER_ASSIGNMENT_QNAME);
 		assertEquals(USER_ASSIGNMENT_QNAME, assignmentContainer.getName());
 		assertParentConsistency(user);
 		if (assertDefinitions) assertDefinition(assignmentContainer, ASSIGNMENT_TYPE_QNAME, 0, -1);

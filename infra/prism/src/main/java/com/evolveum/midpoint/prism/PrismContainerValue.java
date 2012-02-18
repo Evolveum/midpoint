@@ -320,11 +320,7 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
     }
 
     public PrismContainer findOrCreateContainer(QName containerName) {
-        PrismContainer container = findItem(containerName, PrismContainer.class);
-        if (container != null) {
-            return container;
-        }
-        return createContainer(containerName);
+    	return findCreateItem(containerName, PrismContainer.class, true);
     }
 
     public PrismProperty findOrCreateProperty(QName propertyQName) {
