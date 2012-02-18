@@ -24,6 +24,7 @@ package com.evolveum.midpoint.schema;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import javax.xml.bind.JAXBElement;
@@ -42,10 +43,14 @@ public class SimpleJaxbMarshalTest {
     public void unmarshalMarshalUser() throws Exception {
         JAXBElement<UserType> element = JaxbTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),
                 UserType.class);
-        System.out.println(element.getValue().toString());
-        System.out.println(JaxbTestUtil.marshalWrap(element.getValue()));
+        UserType user = element.getValue();
+
+        element = JaxbTestUtil.unmarshalElement(JaxbTestUtil.marshalWrap(element.getValue()));
+        UserType user1 = element.getValue();
+
+        AssertJUnit.assertEquals(user, user1);
     }
-    
+
     @Test
     public void marshalUser() throws Exception {
         UserType user = new UserType();
@@ -54,6 +59,11 @@ public class SimpleJaxbMarshalTest {
         user.setName("lazyman");
         user.setFamilyName("family");
 
-        System.out.println(JaxbTestUtil.marshalWrap(user));
+        JAXBElement<UserType> element = JaxbTestUtil.unmarshalElement(JaxbTestUtil.marshalWrap(user));
+        UserType user1 = element.getValue();
+        AssertJUnit.assertEquals(user.getOid(), user1.getOid());
+        AssertJUnit.assertEquals(user.getGivenName(), user1.getGivenName());
+        AssertJUnit.assertEquals(user.getName(), user1.getName());
+        AssertJUnit.assertEquals(user.getFamilyName(), user1.getFamilyName());
     }
 }
