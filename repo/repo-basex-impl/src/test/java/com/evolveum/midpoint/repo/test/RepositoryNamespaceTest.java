@@ -110,7 +110,7 @@ public class RepositoryNamespaceTest extends AbstractTestNGSpringContextTests {
 				connectorType.setSchema(xmlSchema);
 				connectorType.setName(file.getName());
 				connectorType.setNamespace("http://" + file.getName());
-				PrismObject<ConnectorType> connector = connectorType.getContainer();
+				PrismObject<ConnectorType> connector = connectorType.asPrismObject();
 				connector.revive(PrismTestUtil.getPrismContext());
 
 				LOGGER.debug("Adding connector to repository");

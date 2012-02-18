@@ -134,8 +134,8 @@ public final class PrismForJAXBUtil {
             }
         } else {
             PrismContainer newValue = new PrismContainer(name);
-            container.add(value);
-            container.getValue().addReplaceExisting(newValue);
+            newValue.add(value);
+            parent.getParent().getValue().addReplaceExisting(newValue);
         }
 
         return true;

@@ -22,6 +22,9 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
+import com.evolveum.midpoint.repo.sql.query.QueryContainer;
+import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -34,13 +37,18 @@ import javax.persistence.*;
 /**
  * @author lazyman
  */
+@QueryContainer(namespace = SchemaConstants.NS_COMMON, name = "object")
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public abstract class RObjectType {
 
+    @QueryAttribute(name = "name")
     private String name;
+    @QueryAttribute(name = "description")
     private String description;
+    @QueryAttribute(name = "oid")
     private String oid;
+    @QueryAttribute(name = "version")
     private long version;
 
     @Type(type = "org.hibernate.type.TextType")

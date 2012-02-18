@@ -106,7 +106,7 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
         }
         
         if (variableValue instanceof Objectable) {
-        	variableValue = ((Objectable)variableValue).getContainer();
+        	variableValue = ((Objectable)variableValue).asPrismObject();
         }
 //        	try {
 //				variableValue = JAXBUtil.marshallObjectType((ObjectType)variableValue);

@@ -248,6 +248,8 @@ public class SchemaProcessor implements Processor {
             JVar container = definedClass.field(JMod.PRIVATE, PrismContainerValue.class, CONTAINER_FIELD_NAME);
             //create getContainer
             createGetContainerValueMethod(classOutline, container);
+            //create asPrismContainer
+            createAsPrismContainer(definedClass);
             //create setContainer
             createSetContainerValueMethod(definedClass, container);
 
@@ -259,6 +261,15 @@ public class SchemaProcessor implements Processor {
         }
 
         return containers;
+    }
+
+    private void createAsPrismContainer(JDefinedClass definedClass) {
+        JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismContainerValue.class),
+                "asPrismContainer");
+
+        //create method body
+        JBlock body = getContainer.body();
+        body._return(JExpr.invoke(METHOD_GET_CONTAINER));
     }
 
     private Set<JDefinedClass> updateMidPointContainer(Outline outline) {
@@ -282,6 +293,8 @@ public class SchemaProcessor implements Processor {
             createGetContainerMethod(classOutline, container);
             //create setContainer
             createSetContainerMethod(definedClass, container);
+            //create asPrismObject()
+            createAsPrismObject(definedClass);
 
             System.out.println("Creating toString, equals, hashCode methods.");
             //create toString, equals, hashCode
@@ -294,6 +307,17 @@ public class SchemaProcessor implements Processor {
         }
 
         return containers;
+    }
+    
+    private void createAsPrismObject(JDefinedClass definedClass) {        
+        JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismObject.class),
+                "asPrismObject");
+        //adding XmlTransient annotation
+        getContainer.annotate(CLASS_MAP.get(Override.class));
+
+        //create method body
+        JBlock body = getContainer.body();
+        body._return(JExpr.invoke(METHOD_GET_CONTAINER));
     }
 
     private void updateClassAnnotation(ClassOutline classOutline) {
@@ -404,7 +428,7 @@ public class SchemaProcessor implements Processor {
 
     private void createGetContainerValueMethod(ClassOutline classOutline, JVar container) {
         JDefinedClass definedClass = classOutline.implClass;
-        JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismContainerValue.class),
+        JMethod getContainer = definedClass.method(JMod.PROTECTED, CLASS_MAP.get(PrismContainerValue.class),
                 METHOD_GET_CONTAINER);
         getContainer.annotate(CLASS_MAP.get(XmlTransient.class));
 
@@ -430,7 +454,7 @@ public class SchemaProcessor implements Processor {
 
     private void createGetContainerMethod(ClassOutline classOutline, JVar container) {
         JDefinedClass definedClass = classOutline.implClass;
-        JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismObject.class),
+        JMethod getContainer = definedClass.method(JMod.PROTECTED, CLASS_MAP.get(PrismObject.class),
                 METHOD_GET_CONTAINER);
         //adding XmlTransient annotation
         getContainer.annotate(CLASS_MAP.get(XmlTransient.class));
@@ -895,7 +919,7 @@ public class SchemaProcessor implements Processor {
                     .eq(JExpr._null())))._then();
             then._return(JExpr._null());
 
-            body._return(JExpr.cast((JClass) field.type(), JExpr.invoke(reference, "getObject").invoke("getObjectable")));
+            body._return(JExpr.cast((JClass) field.type(), JExpr.invoke(reference, "getObject").invoke("asObjectable")));
         }
     }
 

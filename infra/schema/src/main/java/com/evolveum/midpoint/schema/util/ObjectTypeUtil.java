@@ -219,7 +219,7 @@ public class ObjectTypeUtil {
 
 
     public static String dump(ObjectType object) {
-        return object.getContainer().dump();
+        return object.asPrismObject().dump();
     }
 
     public static Object toShortString(ObjectReferenceType objectRef) {
@@ -249,7 +249,7 @@ public class ObjectTypeUtil {
 
     
     public static ObjectReferenceType createObjectRef(ObjectType objectType) {
-        return createObjectRef(objectType.getContainer());
+        return createObjectRef(objectType.asPrismObject());
     }
 
     public static <T extends ObjectType> ObjectReferenceType createObjectRef(PrismObject<T> object) {

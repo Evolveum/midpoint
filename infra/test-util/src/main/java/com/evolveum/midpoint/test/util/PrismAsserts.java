@@ -109,7 +109,7 @@ public class PrismAsserts {
 			JAXBElement<?> jaxbElement = (JAXBElement)element;
 			Object value = jaxbElement.getValue();
 			if (value instanceof Objectable) {
-				return ((Objectable)value).getContainer();
+				return ((Objectable)value).asPrismObject();
 			} else {
 				throw new IllegalArgumentException("Unknown JAXB element value "+value);
 			}

@@ -320,7 +320,7 @@ public class Validator {
 
 				validateObject(objectType, objectResult);
 				
-				PrismObject object = objectType.getContainer();
+				PrismObject object = objectType.asPrismObject();
 				object.revive(prismContext);
 
 				if (handler != null) {

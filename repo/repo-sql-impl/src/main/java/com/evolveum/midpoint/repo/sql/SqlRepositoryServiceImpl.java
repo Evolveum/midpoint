@@ -113,7 +113,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             cleanupSessionAndResult(session, subResult);
         }
 
-        return objectType.getContainer();
+        return objectType.asPrismObject();
     }
 
     @Override
@@ -143,7 +143,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                 for (RObjectType object : objects) {
                     ObjectType objectType = object.toJAXB();
                     validateObjectType(objectType, type);
-                    results.add(objectType.getContainer());
+                    results.add(objectType.asPrismObject());
                 }
             }
             session.getTransaction().commit();
@@ -207,7 +207,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             cleanupSessionAndResult(session, subResult);
         }
 
-        return userType.getContainer();
+        return userType.asPrismObject();
     }
 
     @Override
@@ -329,7 +329,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             for (RObjectType object : objects) {
                 ObjectType objectType = object.toJAXB();
                 validateObjectType(objectType, type);
-                list.add(objectType.getContainer());
+                list.add(objectType.asPrismObject());
             }
 
             session.getTransaction().commit();
@@ -424,7 +424,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                     ResourceObjectShadowType jaxb = shadow.toJAXB();
                     validateObjectType(jaxb, resourceObjectShadowType);
 
-                    list.add(shadow.toJAXB().getContainer());
+                    list.add(shadow.toJAXB().asPrismObject());
                 }
             }
             session.getTransaction().commit();

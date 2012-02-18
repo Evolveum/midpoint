@@ -224,7 +224,7 @@ public class UserType
 
 
     @Override
-    public PrismObject getContainer() {
+    public PrismObject asPrismObject() {
         throw new UnsupportedOperationException("not implemented yet");
     }
 

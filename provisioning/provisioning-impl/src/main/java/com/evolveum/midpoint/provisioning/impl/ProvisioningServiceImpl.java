@@ -670,6 +670,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					new PropertyReferenceListType(), parentResult);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("**PROVISIONING: Object from repository to delete:\n{}", object.dump());
+            }
 		} catch (SchemaException e) {
 			result.recordFatalError("Can't get object with oid " + oid + " from repository. Reason:  "
 					+ e.getMessage() + " " + e);
