@@ -118,13 +118,20 @@ public class PropertyArrayList<T> extends AbstractList<T> {
 
     @Override
     public boolean remove(Object o) {
-        Collection<Object> list = new ArrayList<Object>();
-        list.add(o);
-        return removeAll(list);
+        PrismPropertyValue<Object> value = getPropertyValue(i);
+        return property.deleteValue(value);
     }
 
     @Override
     public boolean removeAll(Collection<?> objects) {
-        return super.removeAll(objects); //todo implement
+        boolean changed =false;
+        for (Object object : objects) {
+            if (!changed) {
+                changed = remove(object);
+            } else {
+                remove(object);
+            }
+        }
+        return changed;
     }
 }

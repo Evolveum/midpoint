@@ -901,19 +901,9 @@ public class SchemaProcessor implements Processor {
         JBlock body = method.body();
         JVar decl = body.decl(type, field.name(), JExpr._new(type));
         JInvocation invocation = body.invoke(decl, METHOD_SET_CONTAINER);
-        invocation.arg(JExpr.cast(CLASS_MAP.get(PrismObject.class), JExpr.invoke(method.listParams()[0], "getObject")));
+        invocation.arg(JExpr.invoke(method.listParams()[0], "getObject"));
         body._return(decl);
     }
-
-//    PrismObject object = value.asPrismObject();
-//    PrismReference reference = getReference();
-//    for (PrismReferenceValue refValue : reference.getValues()) {
-//        if (object.equals(refValue.getObject())) {
-//            return refValue;
-//        }
-//    }
-//
-//    return null;
     
     private void createFieldReferenceUseGetValueFrom(JFieldVar field, JMethod method) {
         JBlock body = method.body();

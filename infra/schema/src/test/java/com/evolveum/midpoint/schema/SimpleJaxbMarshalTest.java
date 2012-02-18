@@ -23,6 +23,8 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -44,8 +46,7 @@ public class SimpleJaxbMarshalTest {
         JAXBElement<UserType> element = JaxbTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),
                 UserType.class);
         UserType user = element.getValue();
-
-        element = JaxbTestUtil.unmarshalElement(JaxbTestUtil.marshalWrap(element.getValue()));
+        element = JaxbTestUtil.unmarshalElement(JaxbTestUtil.marshalWrap(user));
         UserType user1 = element.getValue();
 
         AssertJUnit.assertEquals(user, user1);
@@ -58,6 +59,10 @@ public class SimpleJaxbMarshalTest {
         user.setGivenName("vilko");
         user.setName("lazyman");
         user.setFamilyName("family");
+        ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setOid("5678");
+        ref.setType(AccountShadowType.COMPLEX_TYPE);
+        user.getAccountRef().add(ref);
 
         JAXBElement<UserType> element = JaxbTestUtil.unmarshalElement(JaxbTestUtil.marshalWrap(user));
         UserType user1 = element.getValue();
