@@ -120,7 +120,7 @@ public class PrismContainer extends Item {
     }
     
     public void add(PrismContainerValue pValue) {
-    	pValue.setContainer(this);
+    	pValue.setParent(this);
     	getValues().add(pValue);
     }
     
@@ -153,7 +153,7 @@ public class PrismContainer extends Item {
 				iterator.remove();
 			}
 		}
-		otherValue.setContainer(this);
+		otherValue.setParent(this);
 		if (getDefinition() != null) {
 			otherValue.applyDefinition(getDefinition());
 		}

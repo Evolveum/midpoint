@@ -346,7 +346,7 @@ public class ShadowCache {
 
 			LOGGER.trace("Applying change: {}", JAXBUtil.silentMarshalWrap(objectChange));
 
-			Set<AttributeModificationOperation> sideEffectChanges = null;
+			Set<PropertyModificationOperation> sideEffectChanges = null;
 			try {
 				sideEffectChanges = shadowConverter.modifyShadow(resource, shadow, changes, objectChange,
 						parentResult);
@@ -501,7 +501,7 @@ public class ShadowCache {
 		}
 	}
 
-	private AttributeModificationOperation convertToActivationAttribute(ResourceType resource, Boolean enabled)
+	private PropertyModificationOperation convertToActivationAttribute(ResourceType resource, Boolean enabled)
 			throws SchemaException {
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
@@ -519,7 +519,7 @@ public class ShadowCache {
 							+ ObjectTypeUtil.toShortString(resource)
 							+ " does not have attribute specification for simulated activation/enableDisable capability");
 		}
-		AttributeModificationOperation attributeChange = new AttributeModificationOperation();
+		PropertyModificationOperation attributeChange = new PropertyModificationOperation();
 		EnableDisable enableDisable = activationCapability.getEnableDisable();
 		PrismProperty property = new PrismProperty(enableDisable.getAttribute(), null, null, null);
 		List<String> enableValues = enableDisable.getEnableValue();
@@ -557,7 +557,7 @@ public class ShadowCache {
 			if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
 				// if resource cannot do activation, resource should
 				// have specified policies to do that
-				AttributeModificationOperation activationAttribute = convertToActivationAttribute(resource,
+				PropertyModificationOperation activationAttribute = convertToActivationAttribute(resource,
 						enabled);
 				// changes.add(activationAttribute);
 				return activationAttribute;

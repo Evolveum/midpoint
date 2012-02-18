@@ -250,7 +250,7 @@ public class ShadowConverter {
 		}
 	}
 
-	public Set<AttributeModificationOperation> modifyShadow(ResourceType resource,
+	public Set<PropertyModificationOperation> modifyShadow(ResourceType resource,
 			ResourceObjectShadowType shadow, Set<Operation> changes, ObjectModificationType objectChanges,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
 			CommunicationException {
@@ -267,7 +267,7 @@ public class ShadowConverter {
 		if (attributeChanges != null) {
 			changes.addAll(attributeChanges);
 		}
-		Set<AttributeModificationOperation> sideEffectChanges = null;
+		Set<PropertyModificationOperation> sideEffectChanges = null;
 		try {
 
 			if (LOGGER.isDebugEnabled()) {
@@ -523,7 +523,7 @@ public class ShadowConverter {
 						.getAny());
 				for (PrismProperty p : changedProperties) {
 
-					AttributeModificationOperation attributeModification = new AttributeModificationOperation();
+					PropertyModificationOperation attributeModification = new PropertyModificationOperation();
 					attributeModification.setChangeType(modification.getModificationType());
 					attributeModification.setNewAttribute(p);
 					changes.add(attributeModification);

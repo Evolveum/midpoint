@@ -342,8 +342,8 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
         return property;
     }
 
-    private AttributeModificationOperation createReplaceChange(String propertyName, String propertyValue) {
-        AttributeModificationOperation attributeModification = new AttributeModificationOperation();
+    private PropertyModificationOperation createReplaceChange(String propertyName, String propertyValue) {
+        PropertyModificationOperation attributeModification = new PropertyModificationOperation();
         attributeModification.setChangeType(PropertyModificationTypeType.replace);
         PrismProperty property = createProperty(propertyName, propertyValue);
         attributeModification.setNewAttribute(property);
@@ -358,8 +358,8 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
         return attributeModification;
     }
 
-    private AttributeModificationOperation createAddChange(String propertyName, String propertyValue) {
-        AttributeModificationOperation attributeModification = new AttributeModificationOperation();
+    private PropertyModificationOperation createAddChange(String propertyName, String propertyValue) {
+        PropertyModificationOperation attributeModification = new PropertyModificationOperation();
         attributeModification.setChangeType(PropertyModificationTypeType.add);
 
         PrismProperty property = createProperty(propertyName, propertyValue);
@@ -374,8 +374,8 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
         return attributeModification;
     }
 
-    private AttributeModificationOperation createDeleteChange(String propertyName, String propertyValue) {
-        AttributeModificationOperation attributeModification = new AttributeModificationOperation();
+    private PropertyModificationOperation createDeleteChange(String propertyName, String propertyValue) {
+        PropertyModificationOperation attributeModification = new PropertyModificationOperation();
         attributeModification.setChangeType(PropertyModificationTypeType.delete);
 
         PrismProperty property = createProperty(propertyName, propertyValue);

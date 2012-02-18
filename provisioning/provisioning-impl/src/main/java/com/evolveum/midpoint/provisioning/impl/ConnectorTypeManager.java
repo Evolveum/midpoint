@@ -135,7 +135,7 @@ public class ConnectorTypeManager {
 			throw new ObjectNotFoundException(e.getMessage(), e);
 		}
 		try {
-			connector.configure(resource.getConfiguration(), result);
+			connector.configure(resource.getConfiguration().getContainer().getParent(), result);
 		} catch (GenericFrameworkException e) {
 			// Not expected. Transform to system exception
 			result.recordFatalError("Generic provisioning framework error", e);

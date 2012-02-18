@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 
@@ -27,34 +28,29 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModification
  * @author Radovan Semancik
  *
  */
-public final class AttributeModificationOperation extends Operation {
-	private PropertyModificationTypeType changeType;
-	private PrismProperty newAttribute;
-
-	public PrismProperty getNewAttribute() {
-		return newAttribute;
-	}
+public final class PropertyModificationOperation extends Operation {
 	
-	public void setNewAttribute(PrismProperty newAttribute) {
-		this.newAttribute = newAttribute;
+	private PropertyDelta propertyDelta;
+	
+	PropertyModificationOperation(PropertyDelta propertyDelta) {
+		super();
+		this.propertyDelta = propertyDelta;
 	}
 
-	public PropertyModificationTypeType getChangeType() {
-		return changeType;
+	PropertyDelta getPropertyDelta() {
+		return propertyDelta;
 	}
 
-	public void setChangeType(PropertyModificationTypeType changeType) {
-		this.changeType = changeType;
+	void setPropertyDelta(PropertyDelta propertyDelta) {
+		this.propertyDelta = propertyDelta;
 	}
 
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		SchemaDebugUtil.indentDebugDump(sb, indent);
-		sb.append("Attribute modification ");
-		sb.append(changeType);
-		sb.append(": ");
-		sb.append(newAttribute.debugDump(0));
+		sb.append("Property modification operation:\n");
+		sb.append(propertyDelta.debugDump(indent+1));
 		return sb.toString();
 	}
 	

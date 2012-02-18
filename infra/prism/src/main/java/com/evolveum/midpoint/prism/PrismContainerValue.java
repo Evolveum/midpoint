@@ -96,12 +96,12 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
 		this.id = id;
 	}
 	
-	PrismContainer getContainer() {
-		return (PrismContainer)getParent();
+	public PrismContainer getParent() {
+		return (PrismContainer)super.getParent();
 	}
 
-	void setContainer(PrismContainer container) {
-		setParent(container);
+	void setParent(PrismContainer container) {
+		super.setParent(container);
 	}
 
 	public Collection<QName> getPropertyNames() {
@@ -303,8 +303,8 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
     private <T extends Item> T createSubItem(QName name, Class<T> type) {
     	// the item with specified name does not exist, create it now
 		Item newItem = null;
-		if (getContainer().getDefinition() != null) {
-			ItemDefinition itemDefinition = getContainer().getDefinition().findItemDefinition(name);
+		if (getParent().getDefinition() != null) {
+			ItemDefinition itemDefinition = getParent().getDefinition().findItemDefinition(name);
 			newItem = itemDefinition.instantiate(name);
 		} else {
 			newItem = Item.createNewDefinitionlessItem(name, type);
@@ -340,12 +340,12 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
 //    }
 
     public PrismContainer createContainer(QName containerName) {
-        if (getContainer().getDefinition() == null) {
+        if (getParent().getDefinition() == null) {
             throw new IllegalStateException("No definition of container "+containerName);
         }
-        PrismContainerDefinition containerDefinition = getContainer().getDefinition().findContainerDefinition(containerName);
+        PrismContainerDefinition containerDefinition = getParent().getDefinition().findContainerDefinition(containerName);
         if (containerDefinition == null) {
-            throw new IllegalArgumentException("No definition of container '" + containerName + "' in " + getContainer().getDefinition());
+            throw new IllegalArgumentException("No definition of container '" + containerName + "' in " + getParent().getDefinition());
         }
         PrismContainer container = containerDefinition.instantiate();
         add(container);
@@ -354,16 +354,16 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
 
     public PrismProperty createProperty(QName propertyName) {
         PrismPropertyDefinition propertyDefinition = null;
-        if (getContainer() != null && getContainer().getDefinition() != null) {
-        	propertyDefinition = getContainer().getDefinition().findPropertyDefinition(propertyName);
+        if (getParent() != null && getParent().getDefinition() != null) {
+        	propertyDefinition = getParent().getDefinition().findPropertyDefinition(propertyName);
         	if (propertyDefinition == null) {
         		// container has definition, but there is no property definition. This is either runtime schema
         		// or an error
-        		if (getContainer().getDefinition().isRuntimeSchema) {
+        		if (getParent().getDefinition().isRuntimeSchema) {
         			// TODO: create opportunistic runtime definition
             		//propertyDefinition = new PrismPropertyDefinition(propertyName, propertyName, typeName, container.prismContext);
         		} else {
-        			throw new IllegalArgumentException("No definition for property "+propertyName+" in "+getContainer());
+        			throw new IllegalArgumentException("No definition for property "+propertyName+" in "+getParent());
         		}
         	}
         }
@@ -396,7 +396,7 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
     }
     
     public PrismContainerValue clone() {
-        PrismContainerValue clone = new PrismContainerValue(getType(), getSource(), getContainer(), getId());
+        PrismContainerValue clone = new PrismContainerValue(getType(), getSource(), getParent(), getId());
         for (Item item: this.items) {
         	clone.items.add(item.clone());
         }

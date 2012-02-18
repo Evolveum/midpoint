@@ -19,7 +19,9 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -30,6 +32,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 
 import java.util.Collection;
 import java.util.List;
@@ -70,7 +73,7 @@ public interface ConnectorInstance {
 	 * 
 	 * @param configuration
 	 */
-	public void configure(ResourceConfigurationType configuration, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException;
+	public void configure(PrismContainer configuration, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException;
 
 	
 	public PrismSchema generateConnectorSchema();
@@ -212,7 +215,7 @@ public interface ConnectorInstance {
 	 * @return created object attributes. May be null.
 	 * @throws ObjectAlreadyExistsException object already exists on the resource
 	 */
-	public Set<ResourceAttribute> addObject(ResourceAttributeContainer object, Set<Operation> additionalOperations, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException;
+	public Set<ResourceAttribute> addObject(PrismObject<ResourceObjectShadowType> object, Set<Operation> additionalOperations, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException;
 	
 	/**
 	 * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not
@@ -231,7 +234,7 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException
 	 * @throws SchemaException 
 	 */
-	public Set<AttributeModificationOperation> modifyObject(ResourceAttributeContainerDefinition objectClass, Collection<? extends ResourceAttribute> identifiers, Set<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
+	public Set<PropertyModificationOperation> modifyObject(ResourceAttributeContainerDefinition objectClass, Collection<? extends ResourceAttribute> identifiers, Set<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
 	
 	public void deleteObject(ResourceAttributeContainerDefinition objectClass, Set<Operation> additionalOperations, Collection<? extends ResourceAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
 	

@@ -797,7 +797,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public Set<AttributeModificationOperation> modifyObject(ResourceAttributeContainerDefinition objectClass,
+	public Set<PropertyModificationOperation> modifyObject(ResourceAttributeContainerDefinition objectClass,
 			Collection<? extends ResourceAttribute> identifiers, Set<Operation> changes,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException, SchemaException {
@@ -821,8 +821,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		PasswordChangeOperation passwordChangeOperation = null;
 
 		for (Operation operation : changes) {
-			if (operation instanceof AttributeModificationOperation) {
-				AttributeModificationOperation change = (AttributeModificationOperation) operation;
+			if (operation instanceof PropertyModificationOperation) {
+				PropertyModificationOperation change = (PropertyModificationOperation) operation;
 				if (change.getChangeType().equals(PropertyModificationTypeType.add)) {
 					PrismProperty property = change.getNewAttribute();
 					ResourceAttribute addAttribute = new ResourceAttribute(property.getName(),
@@ -1035,11 +1035,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		checkAndExecuteAdditionalOperation(additionalOperations, ScriptOrderType.AFTER);
 		result.recordSuccess();
 
-		Set<AttributeModificationOperation> sideEffectChanges = new HashSet<AttributeModificationOperation>();
+		Set<PropertyModificationOperation> sideEffectChanges = new HashSet<PropertyModificationOperation>();
 		if (!originalUid.equals(uid.getUidValue())) {
 			// UID was changed during the operation, this is most likely a
 			// rename
-			AttributeModificationOperation uidMod = new AttributeModificationOperation();
+			PropertyModificationOperation uidMod = new PropertyModificationOperation();
 			uidMod.setChangeType(PropertyModificationTypeType.replace);
 			ResourceAttribute uidAttr = getUidDefinition(identifiers).instantiate(null);
 			uidAttr.setValue(new PrismPropertyValue(uid.getUidValue()));

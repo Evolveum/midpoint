@@ -2115,7 +2115,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="emailAddress" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="eMailAddress" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 E-Mail address of the user. This is the address
@@ -3178,6 +3178,9 @@
                 element to make the implementation (JAXB
                 marshall/unmarshall) easier.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
