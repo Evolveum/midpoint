@@ -174,7 +174,7 @@ public class AuditServiceImpl implements AuditService {
 		if (object == null) {
 			return "null";
 		}
-		return object.getObjectable().toDebugType()+":"+object.getOid()+"("+object.getName()+")";
+		return object.asObjectable().toDebugType()+":"+object.getOid()+"("+object.getName()+")";
 	}
 
 	private static String formatUser(UserType user) {

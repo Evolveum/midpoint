@@ -223,7 +223,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         Session session = null;
         try {
             LOGGER.debug("Translating JAXB to data type.");
-            RObjectType rObject = createDataObjectFromJAXB(object.getObjectable());
+            RObjectType rObject = createDataObjectFromJAXB(object.asObjectable());
 
             LOGGER.debug("Saving object.");
             session = beginTransaction();
@@ -376,7 +376,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
             //todo problem because long id identifiers are lost, or maybe not...
             LOGGER.debug("Translating JAXB to data type.");
-            RObjectType rObject = createDataObjectFromJAXB(prismObject.getObjectable());
+            RObjectType rObject = createDataObjectFromJAXB(prismObject.asObjectable());
 
             session = beginTransaction();
             session.update(rObject);

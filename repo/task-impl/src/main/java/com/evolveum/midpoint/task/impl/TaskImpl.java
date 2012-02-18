@@ -141,7 +141,7 @@ public class TaskImpl implements Task {
 	}
 		
 	void initialize(PrismObject<TaskType> taskPrism, OperationResult initResult) throws SchemaException {
-		TaskType taskType = taskPrism.getObjectable();
+		TaskType taskType = taskPrism.asObjectable();
 		taskIdentifier = taskType.getTaskIdentifier();
 		ObjectReferenceType ownerRef = taskType.getOwnerRef();
 		if (ownerRef == null) {
@@ -394,7 +394,7 @@ public class TaskImpl implements Task {
 	public PrismObject<TaskType> getTaskPrismObject() {
 		PrismObjectDefinition<TaskType> taskObjectDefinition = taskManager.getTaskObjectDefinition();
 		PrismObject<TaskType> taskPrism = taskObjectDefinition.instantiate();
-		TaskType taskType = taskPrism.getObjectable();
+		TaskType taskType = taskPrism.asObjectable();
 		
 		taskType.setExecutionStatus(executionStatus.toTaskType());
 		taskType.setExclusivityStatus(exclusivityStatus.toTaskType());

@@ -516,7 +516,7 @@ public class XmlRepositoryService implements RepositoryService {
 		// Check whether the task is claimed
 
 		PrismObject<TaskType> task = getObject(TaskType.class, oid, null, result);
-		TaskType taskType = task.getObjectable();
+		TaskType taskType = task.asObjectable();
 
 		if (taskType.getExclusivityStatus() != TaskExclusivityStatusType.RELEASED) {
 			// TODO: check whether the claim is not expired yet

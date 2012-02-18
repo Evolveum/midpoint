@@ -143,8 +143,8 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 
 		// THEN
 		assertEquals(2, users.size());
-		assertEquals("testuser0005", users.get(0).getObjectable().getName());
-		assertEquals("testuser0004", users.get(1).getObjectable().getName());
+		assertEquals("testuser0005", users.get(0).asObjectable().getName());
+		assertEquals("testuser0004", users.get(1).asObjectable().getName());
 
 		
 	}

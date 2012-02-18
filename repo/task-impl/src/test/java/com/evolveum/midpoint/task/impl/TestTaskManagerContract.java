@@ -214,7 +214,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
 
         // But before that check sanity ... a known problem with xsi:type
     	PrismObject<ObjectType> object = addObjectFromFile(TASK_CYCLE_FILENAME);
-        ObjectType objectType = object.getObjectable();
+        ObjectType objectType = object.asObjectable();
         TaskType addedTask = (TaskType) objectType;
         Element ext2 = (Element) addedTask.getExtension().getAny().get(1);
         QName xsiType = DOMUtil.resolveXsiType(ext2, "d");
@@ -226,7 +226,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         OperationResult result = new OperationResult(TestTaskManagerContract.class.getName() + ".test003Cycle");
 
         PrismObject<TaskType> repoTask = repositoryService.getObject(TaskType.class, addedTask.getOid(), null, result);
-        TaskType repoTaskType = repoTask.getObjectable();
+        TaskType repoTaskType = repoTask.asObjectable();
         ext2 = (Element) repoTaskType.getExtension().getAny().get(1);
         xsiType = DOMUtil.resolveXsiType(ext2, "d");
         System.out.println("######################2# " + xsiType);

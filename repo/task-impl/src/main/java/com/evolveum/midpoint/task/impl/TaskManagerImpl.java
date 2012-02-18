@@ -649,7 +649,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		if (tasks != null && tasks.size() > 0) {
 			LOGGER.info("Task manager found {} task(s) left in CLAIMED state, and is about to release them.", tasks.size());
 			for (PrismObject<TaskType> taskPrism : tasks) {
-				TaskType taskType = taskPrism.getObjectable();
+				TaskType taskType = taskPrism.asObjectable();
 				LOGGER.info("Releasing task " + taskType.getName() + " (OID: " + taskPrism.getOid() + ")");
 				try {
 					releaseTaskByOid(taskPrism.getOid(), result);

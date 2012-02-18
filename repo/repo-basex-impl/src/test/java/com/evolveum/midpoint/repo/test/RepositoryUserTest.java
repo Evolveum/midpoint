@@ -246,7 +246,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 
 			PrismObject<UserType> user = PrismTestUtil.parseObject(new File(
 					"src/test/resources/user-account-ref.xml"));
-			assertEquals(1, user.getObjectable().getAccountRef().size());
+			assertEquals(1, user.asObjectable().getAccountRef().size());
 			repositoryService.addObject(user, new OperationResult("test"));
 
 			// modify user - delete it's accountRef
@@ -270,7 +270,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			PrismObject<UserType> retrievedObject = repositoryService.getObject(UserType.class, oid,
 					new PropertyReferenceListType(), new OperationResult("test"));
 			assertEquals(oid, retrievedObject.getOid());
-			assertEquals(0, retrievedObject.getObjectable().getAccountRef().size());
+			assertEquals(0, retrievedObject.asObjectable().getAccountRef().size());
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {

@@ -36,6 +36,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
@@ -92,7 +93,7 @@ public class ConnectorTypeManager {
 			ConfiguredConnectorInstanceEntry configuredConnectorInstanceEntry = connectorInstanceCache.get(resourceOid);
 
 			if (configuredConnectorInstanceEntry.connectorOid.equals(connectorOid)
-					&& ResourceTypeUtil.compareConfiguration(configuredConnectorInstanceEntry.configuration,
+					&& configuredConnectorInstanceEntry.configuration.equals(
 							resource.getConfiguration())) {
 
 				// We found entry that matches
@@ -159,8 +160,8 @@ public class ConnectorTypeManager {
 					+ ObjectTypeUtil.toShortString(resource));
 		}
 		String connOid = resource.getConnectorRef().getOid();
-		ConnectorType connectorType = repositoryService.getObject(ConnectorType.class, connOid, null, result);
-		return connectorType;
+		PrismObject<ConnectorType> connectorPrism = repositoryService.getObject(ConnectorType.class, connOid, null, result);
+		return connectorPrism.asObjectable();
 	}
 
 	public Set<ConnectorType> discoverLocalConnectors(OperationResult parentResult) {

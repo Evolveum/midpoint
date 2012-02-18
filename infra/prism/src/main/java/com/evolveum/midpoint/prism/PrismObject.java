@@ -116,7 +116,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 		return (compileTimeClass.isAssignableFrom(getCompileTimeClass()));
 	}
 
-	public T getObjectable() {
+	public T asObjectable() {
         try {
             Class<T> clazz = getCompileTimeClass();
             if (clazz == null) {

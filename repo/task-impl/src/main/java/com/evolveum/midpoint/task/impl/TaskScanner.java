@@ -112,7 +112,7 @@ public class TaskScanner extends Thread {
 				if (tasks != null) {
 					LOGGER.trace("Task scanner found {} runnable tasks", tasks.size());
 					for (PrismObject<TaskType> task : tasks) {
-						TaskType taskType = task.getObjectable();
+						TaskType taskType = task.asObjectable();
 							LOGGER.trace("Task scanner: Start processing task " + taskType.getName() + " (OID: " + 
 									taskType.getOid() + ", next run time: " + taskType.getNextRunStartTime() + ")");
 						if (canHandle(task)) {
@@ -214,7 +214,7 @@ public class TaskScanner extends Thread {
 	}
 
 	private boolean canHandle(PrismObject<TaskType> task) {
-		if (taskManagerImpl.getHandler(task.getObjectable().getHandlerUri()) != null) {
+		if (taskManagerImpl.getHandler(task.asObjectable().getHandlerUri()) != null) {
 			return true;
 		}
 		return false;

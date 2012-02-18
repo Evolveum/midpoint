@@ -156,7 +156,7 @@ public class TestRefinedSchema {
         assertEquals("JAXB class name doesn't match (1)", AccountShadowType.class, accObject.getCompileTimeClass());
 
         // WHEN
-        AccountShadowType storedObjectType = accObject.getObjectable();
+        AccountShadowType storedObjectType = accObject.asObjectable();
         //AccountShadowType storedObjectType = accObject.getOrParseObjectType();
 
         // THEN
@@ -172,7 +172,7 @@ public class TestRefinedSchema {
 //        assertEquals("JAXB class name doesn't match (3)", AccountShadowType.class, accObject.getCompileTimeClass());
 
         // WHEN
-        AccountShadowType convertedObjectType = accObject.getObjectable();
+        AccountShadowType convertedObjectType = accObject.asObjectable();
         //AccountShadowType convertedObjectType = accObject.getOrParseObjectType();
 
         // THEN

@@ -118,7 +118,7 @@ public class RepositoryNamespaceTest extends AbstractTestNGSpringContextTests {
 
 				connector = repository.getObject(ConnectorType.class, oid, new PropertyReferenceListType(),
 						result);
-				connectorType = connector.getObjectable();
+				connectorType = connector.asObjectable();
 				xmlSchema = connectorType.getSchema();
 				LOGGER.debug("Parsing dom schema to object");
 				schema = PrismSchema.parse(xmlSchema.getAny().get(0), PrismTestUtil.getPrismContext());

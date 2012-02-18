@@ -236,9 +236,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected void fillInConnectorRef(PrismObject<ResourceType> resourcePrism, String connectorType, OperationResult result)
 			throws SchemaException {
-		ResourceType resource = resourcePrism.getObjectable();
+		ResourceType resource = resourcePrism.asObjectable();
 		PrismObject<ConnectorType> connectorPrism = findConnectorByType(connectorType, result);
-		ConnectorType connector = connectorPrism.getObjectable();
+		ConnectorType connector = connectorPrism.asObjectable();
 		if (resource.getConnectorRef() == null) {
 			resource.setConnectorRef(new ObjectReferenceType());
 		}

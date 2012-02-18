@@ -171,7 +171,7 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 
 			PrismObject<UserType> user = PrismTestUtil.parseObject(new File(
 					"src/test/resources/user-account-ref.xml"));
-			assertEquals(1, user.getObjectable().getAccountRef().size());
+			assertEquals(1, user.asObjectable().getAccountRef().size());
 			repositoryService.addObject(user, new OperationResult("test"));
 
 			PrismObject<UserType> accountOwner = repositoryService.listAccountShadowOwner(accountRefOid,
@@ -218,7 +218,7 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 
 			PrismObject<UserType> user = PrismTestUtil.parseObject(new File(
 					"src/test/resources/user-account-ref.xml"));
-			assertEquals(1, user.getObjectable().getAccountRef().size());
+			assertEquals(1, user.asObjectable().getAccountRef().size());
 			repositoryService.addObject(user, new OperationResult("test"));
 
 			List<PrismObject<T>> shadows = repositoryService.listResourceObjectShadows(resourceOid,

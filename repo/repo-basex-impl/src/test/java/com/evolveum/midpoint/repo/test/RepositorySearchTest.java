@@ -113,7 +113,7 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			assertEquals(1, objectList.size());
 
 			PrismObject<UserType> foundUser = objectList.get(0);
-			assertEquals("Cpt. Jack Sparrow", foundUser.getObjectable().getFullName());
+			assertEquals("Cpt. Jack Sparrow", foundUser.asObjectable().getFullName());
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
@@ -139,7 +139,7 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			assertEquals(1, objectList.size());
 
 			PrismObject<UserType> foundUser = (PrismObject) objectList.get(0);
-			assertEquals("Cpt. Jack Sparrow", foundUser.getObjectable().getFullName());
+			assertEquals("Cpt. Jack Sparrow", foundUser.asObjectable().getFullName());
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
@@ -167,7 +167,7 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			assertEquals(1, objectList.size());
 
 			accountShadow = objectList.get(0);
-			AccountShadowType accountShadowType = accountShadow.getObjectable();
+			AccountShadowType accountShadowType = accountShadow.asObjectable();
 			assertNotNull(accountShadowType.getAttributes().getAny());
 			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", ((Element)accountShadowType.getAttributes().getAny()
 					.get(0)).getTextContent());
@@ -200,7 +200,7 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			assertEquals(1, objectList.size());
 
 			accountShadow = objectList.get(0);
-			AccountShadowType accountShadowType = accountShadow.getObjectable();
+			AccountShadowType accountShadowType = accountShadow.asObjectable();
 			assertNotNull(accountShadowType.getAttributes().getAny());
 			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", ((Element)accountShadowType.getAttributes().getAny()
 					.get(0)).getTextContent());
@@ -273,7 +273,7 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			assertEquals(1, objectList.size());
 
 			accountShadow = objectList.get(0);
-			AccountShadowType accountShadowType = accountShadow.getObjectable();
+			AccountShadowType accountShadowType = accountShadow.asObjectable();
 			assertNotNull(accountShadowType.getAttributes().getAny());
 			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", ((Element)accountShadowType.getAttributes().getAny()
 					.get(0)).getTextContent());
