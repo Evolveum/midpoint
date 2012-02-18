@@ -117,6 +117,10 @@ public class PrismSchema implements Dumpable, DebugDumpable, Serializable {
 		return defs;
 	}
 	
+	public void add(Definition def) {
+		definitions.add(def);
+	}
+	
 	protected PrismContext getPrismContext() {
 		return prismContext;
 	}
@@ -371,7 +375,7 @@ public class PrismSchema implements Dumpable, DebugDumpable, Serializable {
 	/**
 	 * Internal method to create a "nice" element name from the type name.
 	 */
-	String toElementName(String localTypeName) {
+	protected String toElementName(String localTypeName) {
 		String elementName = StringUtils.uncapitalize(localTypeName);
 		if (elementName.endsWith("Type")) {
 			return elementName.substring(0, elementName.length() - 4);

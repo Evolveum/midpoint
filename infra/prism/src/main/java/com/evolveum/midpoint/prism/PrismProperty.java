@@ -36,6 +36,8 @@ import org.w3c.dom.Node;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+
+import java.lang.reflect.Array;
 import java.util.*;
 
 
@@ -130,7 +132,19 @@ public class PrismProperty extends Item {
 		}
 		return realValues;
 	}
+	
+	public <T> T getRealValue(Class<T> type) {
+		return (T) getValue().getValue();
+	}
 
+	public <T> T[] getRealValuesArray(Class<T> type) {
+		Object valuesArrary = Array.newInstance(type, getValues().size());
+		for (int j = 0; j < getValues().size(); ++j) {
+			Object avalue = getValues().get(j).getValue();
+			Array.set(valuesArrary, j, avalue);
+		}
+		return (T[]) valuesArrary;
+	}
 
     /**
      * Returns value of a single-valued property.

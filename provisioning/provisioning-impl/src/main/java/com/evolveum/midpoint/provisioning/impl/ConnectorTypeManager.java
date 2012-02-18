@@ -283,7 +283,7 @@ public class ConnectorTypeManager {
 				// Store the connector object
 				String oid;
 				try {
-					oid = repositoryService.addObject(foundConnector, result);
+					oid = repositoryService.addObject(foundConnector.asPrismObject(), result);
 				} catch (ObjectAlreadyExistsException e) {
 					// We don't specify the OID, therefore this should never happen
 					// Convert to runtime exception
@@ -313,20 +313,20 @@ public class ConnectorTypeManager {
 	 * @return
 	 * @throws SchemaException 
 	 */
-	private boolean isInRepo(ConnectorType connector, OperationResult result) throws SchemaException {
+	private boolean isInRepo(ConnectorType connectorType, OperationResult result) throws SchemaException {
 		Document doc = DOMUtil.getDocument();
 		Element filter = QueryUtil
 				.createAndFilter(
 						doc,
 						QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_CONNECTOR_FRAMEWORK,
-								connector.getFramework()),
+								connectorType.getFramework()),
 						QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE,
-								connector.getConnectorType()));
+								connectorType.getConnectorType()));
 
 		QueryType query = new QueryType();
 		query.setFilter(filter);
 
-		List<ConnectorType> foundConnectors;
+		List<PrismObject<ConnectorType>> foundConnectors;
 		try {
 			foundConnectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
 		} catch (SchemaException e) {
@@ -342,15 +342,15 @@ public class ConnectorTypeManager {
 		}
 
 		String foundOid = null;
-		for (ConnectorType foundConnector : foundConnectors) {
-			if (compareConnectors(connector, foundConnector)) {
+		for (PrismObject<ConnectorType> foundConnector : foundConnectors) {
+			if (compareConnectors(connectorType.asPrismObject(), foundConnector)) {
 				if (foundOid != null) {
 					// More than one connector matches. Inconsistent repo state. Log error.
-					result.recordPartialError("Found more than one connector that matches " + connector.getFramework()
-							+ " : " + connector.getConnectorType() + " : " + connector.getVersion() + ". OIDs "
+					result.recordPartialError("Found more than one connector that matches " + connectorType.getFramework()
+							+ " : " + connectorType.getConnectorType() + " : " + connectorType.getVersion() + ". OIDs "
 							+ foundConnector.getOid() + " and " + foundOid + ". Inconsistent database state.");
-					LOGGER.error("Found more than one connector that matches " + connector.getFramework() + " : "
-							+ connector.getConnectorType() + " : " + connector.getVersion() + ". OIDs "
+					LOGGER.error("Found more than one connector that matches " + connectorType.getFramework() + " : "
+							+ connectorType.getConnectorType() + " : " + connectorType.getVersion() + ". OIDs "
 							+ foundConnector.getOid() + " and " + foundOid + ". Inconsistent database state.");
 					// But continue working otherwise. This is probably not critical.
 					return true;
@@ -362,12 +362,9 @@ public class ConnectorTypeManager {
 		return (foundOid != null);
 	}
 
-	/**
-	 * @param icfConnectorFacade
-	 * @param foundConnector
-	 * @return
-	 */
-	private boolean compareConnectors(ConnectorType a, ConnectorType b) {
+	private boolean compareConnectors(PrismObject<ConnectorType> prismA, PrismObject<ConnectorType> prismB) {
+		ConnectorType a = prismA.asObjectable();
+		ConnectorType b = prismB.asObjectable();
 		if (!a.getFramework().equals(b.getFramework())) {
 			return false;
 		}
