@@ -127,15 +127,19 @@ public final class PrismForJAXBUtil {
         Validate.notNull(parent, "Prism container value must not be null.");
         Validate.notNull(name, "QName must not be null.");
 
-        PrismContainer container = parent.findOrCreateContainer(name);
         if (value == null) {
+            PrismContainer container = parent.findOrCreateContainer(name);
             if (container != null) {
                 container.getValue().removeAll();
             }
         } else {
             PrismContainer newValue = new PrismContainer(name);
             newValue.add(value);
-            parent.getParent().getValue().addReplaceExisting(newValue);
+            if (parent.getParent() == null) {
+                parent.getItems().add(newValue);
+            } else {
+                parent.getParent().getValue().addReplaceExisting(newValue);
+            }
         }
 
         return true;
@@ -178,7 +182,7 @@ public final class PrismForJAXBUtil {
             if (value == null) {
                 reference.getValue().setObject(null);
             }
-        } else {            
+        } else {
             reference.getValue().setObject(value.getObject());
         }
     }

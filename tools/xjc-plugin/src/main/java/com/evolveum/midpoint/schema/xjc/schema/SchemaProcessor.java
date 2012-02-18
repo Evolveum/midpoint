@@ -75,6 +75,8 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_GET_CONTAINER = "getContainer";
     private static final String METHOD_SET_CONTAINER = "setContainer";
     private static final String METHOD_GET_CONTAINER_NAME = "getContainerName";
+    private static final String METHOD_AS_PRISM_OBJECT = "asPrismObject";
+    private static final String METHOD_AS_PRISM_CONTAINER = "asPrismContainer";
     //methods in PrismForJAXBUtil
     private static final String METHOD_PRISM_GET_PROPERTY_VALUE = "getPropertyValue";
     private static final String METHOD_PRISM_GET_PROPERTY_VALUES = "getPropertyValues";
@@ -265,7 +267,7 @@ public class SchemaProcessor implements Processor {
 
     private void createAsPrismContainer(JDefinedClass definedClass) {
         JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismContainerValue.class),
-                "asPrismContainer");
+                METHOD_AS_PRISM_CONTAINER);
 
         //create method body
         JBlock body = getContainer.body();
@@ -311,7 +313,7 @@ public class SchemaProcessor implements Processor {
     
     private void createAsPrismObject(JDefinedClass definedClass) {        
         JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismObject.class),
-                "asPrismObject");
+                METHOD_AS_PRISM_OBJECT);
         //adding XmlTransient annotation
         getContainer.annotate(CLASS_MAP.get(Override.class));
 
@@ -803,6 +805,10 @@ public class SchemaProcessor implements Processor {
         createItem.annotate(CLASS_MAP.get(Override.class));
         createItem.param(CLASS_MAP.get(PrismReferenceValue.class), "value");
 
+        JMethod getValueFrom = anonymous.method(JMod.PUBLIC, CLASS_MAP.get(PrismReferenceValue.class), "getValueFrom");
+        getValueFrom.annotate(CLASS_MAP.get(Override.class));
+        getValueFrom.param(type, "value");
+        
         return anonymous;
     }
 
@@ -816,6 +822,11 @@ public class SchemaProcessor implements Processor {
         body._return(decl);
     }
 
+    private void createFieldReferenceGetValueFrom(JFieldVar field, JMethod method) {
+        JBlock body = method.body();
+        body._return(JExpr.invoke(method.listParams()[0],METHOD_GET_REFERENCE));
+    }
+
     private void createFieldReferenceGetterBody(JFieldVar field, ClassOutline classOutline, JBlock body,
             boolean isList) {
         JFieldRef qnameRef = JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name()));
@@ -827,6 +838,7 @@ public class SchemaProcessor implements Processor {
 
             JDefinedClass anonymous = createFieldReferenceGetterListAnon(field, classOutline);
             createFieldReferenceCreateItemBody(field, findMethod(anonymous, "createItem"));
+            createFieldReferenceGetValueFrom(field, findMethod(anonymous, "getValueFrom"));
             JInvocation newList = JExpr._new(anonymous);
             newList.arg(ref);
             body._return(newList);
@@ -893,6 +905,30 @@ public class SchemaProcessor implements Processor {
         body._return(decl);
     }
 
+//    PrismObject object = value.asPrismObject();
+//    PrismReference reference = getReference();
+//    for (PrismReferenceValue refValue : reference.getValues()) {
+//        if (object.equals(refValue.getObject())) {
+//            return refValue;
+//        }
+//    }
+//
+//    return null;
+    
+    private void createFieldReferenceUseGetValueFrom(JFieldVar field, JMethod method) {
+        JBlock body = method.body();
+        JVar object = body.decl(CLASS_MAP.get(PrismObject.class), "object", 
+                JExpr.invoke(method.listParams()[0], METHOD_AS_PRISM_OBJECT));
+        JVar reference = body.decl(CLASS_MAP.get(PrismReference.class), "reference", 
+                JExpr.invoke(METHOD_GET_REFERENCE));
+        JForEach forEach = body.forEach(CLASS_MAP.get(PrismReferenceValue.class), "refValue", 
+                JExpr.invoke(reference, "getValues"));
+        JBlock forBody = forEach.body();
+        JBlock then = forBody._if(object.eq(JExpr.invoke(forEach.var(), "getObject")))._then();
+        then._return(forEach.var());
+        body._return(JExpr._null());
+    }
+
     private void createFieldReferenceUseGetterBody(JFieldVar field, ClassOutline classOutline, JBlock body,
             boolean isList) {
         JFieldRef qnameRef = JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name()));
@@ -904,7 +940,8 @@ public class SchemaProcessor implements Processor {
 
             JDefinedClass anonymous = createFieldReferenceGetterListAnon(field, classOutline);
             createFieldReferenceUseCreateItemBody(field, findMethod(anonymous, "createItem"));
-
+            createFieldReferenceUseGetValueFrom(field, findMethod(anonymous, "getValueFrom"));
+            
             JInvocation newList = JExpr._new(anonymous);
             newList.arg(ref);
             body._return(newList);

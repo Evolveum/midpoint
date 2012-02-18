@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import org.apache.commons.lang.Validate;
 
 import java.util.AbstractList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -38,6 +39,10 @@ public abstract class PrismReferenceArrayList<T> extends AbstractList<T> {
     public PrismReferenceArrayList(PrismReference reference) {
         Validate.notNull(reference, "Prism reference must not be null.");
         this.reference = reference;
+    }
+    
+    protected PrismReference getReference() {
+        return reference;
     }
 
     @Override
@@ -58,5 +63,58 @@ public abstract class PrismReferenceArrayList<T> extends AbstractList<T> {
 
     public abstract T createItem(PrismReferenceValue value);
 
-    //todo implement add/remove methods
+    public abstract PrismReferenceValue getValueFrom(T t);
+
+    @Override
+    public T remove(int i) {
+        PrismReferenceValue value = reference.getValues().get(i);
+        reference.getValues().remove(i);
+
+        return createItem(value);
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> objects) {
+        boolean changed = false;
+        for (Object object : objects) {
+            if (!changed) {
+                changed = remove(object);
+            } else {
+                remove(object);
+            }
+        }
+
+        return changed;
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        T t = (T) o;
+        PrismReferenceValue value = getValueFrom(t);
+        return reference.getValues().remove(value);
+    }
+
+    @Override
+    public boolean add(T t) {
+        PrismReferenceValue value = getValueFrom(t);
+        return reference.getValues().add(value);
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends T> ts) {
+        boolean changed = false;
+        for (T t : ts) {
+            if (!changed) {
+                changed = add(t);
+            } else {
+                add(t);
+            }
+        }
+        return changed;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return size() == 0;
+    }
 }
