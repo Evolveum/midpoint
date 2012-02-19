@@ -30,6 +30,7 @@ import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -103,8 +104,7 @@ public class ShadowConverter {
 		}
 
 		// Let's get all the identifiers from the Shadow <attributes> part
-		Collection<? extends ResourceAttribute> identifiers = rod.parseIdentifiers(shadow
-				.getAttributes().getAny());
+		Collection<? extends ResourceAttribute> identifiers = ResourceObjectShadowUtil.getIdentifiers(shadow);
 
 		if (identifiers == null || identifiers.isEmpty()) {
 			// No identifiers found
@@ -128,7 +128,7 @@ public class ShadowConverter {
 			// convert resource activation attribute to the <activation>
 			// attribute
 			// of shadow
-			ActivationType activationType = ShadowCacheUtil.determineActivation(resource, ro, parentResult);
+			ActivationType activationType = ShadowCacheUtil.completeActivation(resource, ro, parentResult);
 			if (activationType != null) {
 				LOGGER.trace("Determined activation: {}", activationType.isEnabled());
 				((AccountShadowType) shadow).setActivation(activationType);
@@ -161,9 +161,6 @@ public class ShadowConverter {
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 		PrismSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
 
-		// convert xml attributes to ResourceObject
-		ResourceAttributeContainer resourceObject = convertResourceObjectFromXml(shadow, schema, parentResult);
-
 		Set<ResourceAttribute> resourceAttributesAfterAdd = null;
 		// add object using connector, setting new properties to the
 		// resourceObject
@@ -171,11 +168,11 @@ public class ShadowConverter {
 
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Connector for resource {}\n ADD object:\n{}\n additional operations:\n{}",
-						new Object[] { ObjectTypeUtil.toShortString(resource), resourceObject.debugDump(),
+						new Object[] { resource.asPrismObject(), shadow.asPrismObject().debugDump(),
 								SchemaDebugUtil.debugDump(additionalOperations) });
 			}
 
-			resourceAttributesAfterAdd = connector.addObject(resourceObject, additionalOperations,
+			resourceAttributesAfterAdd = connector.addObject(shadow.asPrismObject(), additionalOperations,
 					parentResult);
 
 			if (LOGGER.isDebugEnabled()) {
@@ -184,12 +181,8 @@ public class ShadowConverter {
 				LOGGER.debug("Connector ADD successful, returned attributes:\n{}",
 						SchemaDebugUtil.prettyPrint(resourceAttributesAfterAdd));
 			}
-			// if (LOGGER.isTraceEnabled()) {
-			// LOGGER.trace("Added object: {}",
-			// DebugUtil.prettyPrint(resourceAttributesAfterAdd));
-			// }
 
-			resourceObject.addAllReplaceExisting(resourceAttributesAfterAdd);
+			shadow.addAllReplaceExisting(resourceAttributesAfterAdd);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
 			parentResult.recordFatalError(
 					"Error communitacing with the connector " + connector + ": " + ex.getMessage(), ex);
@@ -200,7 +193,7 @@ public class ShadowConverter {
 			throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
 		}
 
-		shadow = ShadowCacheUtil.createRepositoryShadow(resourceObject, resource, shadow);
+		shadow = ShadowCacheUtil.createRepositoryShadow(shadow, resource);
 
 		parentResult.recordSuccess();
 		return shadow;

@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -149,9 +150,12 @@ public class ShadowCache {
 		// for accessing the object by UCF.
 		// Later, the repository object may have a fully cached object from.
 		if (repositoryShadow == null) {
-			repositoryShadow = getRepositoryService().getObject(ResourceObjectShadowType.class, oid, null,
+			 PrismObject<ResourceObjectShadowType> repositoryPrism = getRepositoryService().getObject(ResourceObjectShadowType.class, oid, null,
 					parentResult);
-			LOGGER.trace("Found shadow object: {}", JAXBUtil.silentMarshalWrap(repositoryShadow));
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Found shadow object:\n{}", repositoryPrism.dump());
+			}
+			repositoryShadow = repositoryPrism.asObjectable();
 		}
 
 		// Sanity check
@@ -196,9 +200,10 @@ public class ShadowCache {
 
 		Validate.notNull(shadow, "Object to add must not be null.");
 
-		LOGGER.trace("Scripts: {}", JAXBUtil.silentMarshalWrap(scripts));
-
-		LOGGER.trace("Start adding shadow object {}.", JAXBUtil.silentMarshalWrap(shadow));
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Start adding shadow object:\n{}", shadow.asPrismObject().dump());
+			LOGGER.trace("Scripts: {}", SchemaDebugUtil.dumpJaxbObject(scripts, "scripts", shadow.asPrismObject().getPrismContext()));
+		}
 
 		if (resource == null) {
 			resource = getResource(ResourceObjectShadowUtil.getResourceOid(shadow), parentResult);
@@ -310,7 +315,7 @@ public class ShadowCache {
 	}
 
 	public void modifyShadow(ObjectType objectType, ResourceType resource,
-			ObjectModificationType objectChange, ScriptsType scripts, OperationResult parentResult)
+			ObjectDelta objectChange, ScriptsType scripts, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
 			SchemaException {
 
@@ -324,8 +329,10 @@ public class ShadowCache {
 
 			}
 
-			LOGGER.trace("Modifying object {} on resource with oid {}", JAXBUtil.silentMarshalWrap(shadow),
-					resource.getOid());
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Modifying resource with oid {}, object:\n{}", resource.getOid(), 
+						shadow.asPrismObject().dump());
+			}
 
 			Set<Operation> changes = new HashSet<Operation>();
 			if (shadow instanceof AccountShadowType) {
@@ -344,7 +351,9 @@ public class ShadowCache {
 
 			addExecuteScriptOperation(changes, OperationTypeType.MODIFY, scripts, parentResult);
 
-			LOGGER.trace("Applying change: {}", JAXBUtil.silentMarshalWrap(objectChange));
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Applying change: {}", objectChange.dump());
+			}
 
 			Set<PropertyModificationOperation> sideEffectChanges = null;
 			try {
@@ -545,7 +554,7 @@ public class ShadowCache {
 		return attributeChange;
 	}
 
-	private Operation determineActivationChange(ObjectModificationType objectChange, ResourceType resource)
+	private Operation determineActivationChange(ObjectDelta objectChange, ResourceType resource)
 			throws SchemaException {
 		Boolean enabled = ObjectTypeUtil.getPropertyNewValue(objectChange, "activation", "enabled",
 				Boolean.class);
@@ -573,7 +582,7 @@ public class ShadowCache {
 		return null;
 	}
 
-	private PasswordChangeOperation determinePasswordChange(ObjectModificationType objectChange,
+	private PasswordChangeOperation determinePasswordChange(ObjectDelta objectChange,
 			ResourceObjectShadowType objectType) throws SchemaException {
 		// Look for password change
 		PasswordType newPasswordStructure = ObjectTypeUtil.getPropertyNewValue(objectChange, "credentials",

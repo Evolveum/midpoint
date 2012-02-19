@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -79,6 +80,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UnknownJavaObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
@@ -90,6 +92,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionTyp
 public class SchemaDebugUtil implements ObjectFormatter {
 
 	private static int SHOW_LIST_MEMBERS = 3;
+	
+	public static String dumpJaxbObject(Object jaxbObject, String elementLocalName, PrismContext prismContext) {
+		QName elementQName = new QName(SchemaConstants.NS_C, elementLocalName);
+		try {
+			return prismContext.getPrismJaxbProcessor().marshalElementToString(jaxbObject, elementQName);
+		} catch (JAXBException e) {
+			throw new IllegalStateException("Error marshalling JAXB object "+jaxbObject+": "+e.getMessage(),e);
+		}
+	}
 	
 	public static String debugDump(Collection<? extends DebugDumpable> dumpables) {
 		return debugDump(dumpables,0);

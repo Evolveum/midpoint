@@ -4133,6 +4133,16 @@
                     </xsd:element>
                     <xsd:element name="attributes" type="tns:ResourceObjectShadowAttributesType" minOccurs="0">
                     </xsd:element>
+                    <xsd:element name="activation" type="tns:ActivationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                TODO
+
+                                For more details see the ActivationType
+                                documentation.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -4210,16 +4220,6 @@
                             <xsd:documentation>
                                 The set of account credentials (such as
                                 passwords).
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="activation" type="tns:ActivationType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-
-                                For more details see the ActivationType
-                                documentation.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

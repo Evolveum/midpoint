@@ -710,8 +710,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			SchemaException, ObjectAlreadyExistsException {
 
-		ResourceAttributeContainer attributesContainer = 
-			(ResourceAttributeContainer) object.asObjectable().getAttributes().asPrismContainer();
+		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(object);
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".addObject");
 		result.addParam("resourceObject", object);
@@ -1395,8 +1394,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		ResourceObjectShadowType shadowType = object.asObjectable();
 		QName qnameObjectClass = shadowType.getObjectClass();
 		if (qnameObjectClass == null) {
-			ResourceAttributeContainerDefinition objectClassDefinition = 
-				(ResourceAttributeContainerDefinition) shadowType.getAttributes().asPrismContainer().getDefinition();
+			ResourceAttributeContainerDefinition objectClassDefinition 
+					= ResourceObjectShadowUtil.getAttributesContainer(shadowType).getDefinition();
 			qnameObjectClass = objectClassDefinition.getTypeName();
 		} 
 		

@@ -197,6 +197,10 @@ public class PrismContainerValue extends PrismValue implements Dumpable, DebugDu
     		}
     	}
     }
+    
+    public void clear() {
+    	items.clear();
+    }
 
     public PrismProperty findProperty(QName propertyQName) {
         return findItem(propertyQName, PrismProperty.class);

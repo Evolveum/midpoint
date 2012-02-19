@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.provisioning.util;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.provisioning.impl.ShadowConverter;
@@ -44,7 +45,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
 
@@ -63,90 +63,71 @@ public class ShadowCacheUtil {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCacheUtil.class);
 
-    public static ResourceObjectShadowType createShadow(ResourceAttributeContainer resourceObject, ResourceType resource,
-                                                        ResourceObjectShadowType shadow) throws SchemaException {
+	/**
+	 * Make sure that the shadow is complete, e.g. that all the mandatory fields are filled (e.g name, resourceRef, ...)
+	 * Also transforms the shadow with respect to simulated capabilities.
+	 */
+    public static ResourceObjectShadowType completeShadow(ResourceObjectShadowType shadow, ResourceType resource, 
+    		OperationResult parentResult) throws SchemaException {
 
-        if (shadow == null) {
-            // Determine correct type for the shadow
-            if (resourceObject.isAccountType()) {
-                shadow = new AccountShadowType();
-            } else {
-                shadow = new ResourceObjectShadowType();
-            }
-        }
-
+    	ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
+    	
         if (shadow.getObjectClass() == null) {
-            shadow.setObjectClass(resourceObject.getDefinition().getTypeName());
+            shadow.setObjectClass(attributesContainer.getDefinition().getTypeName());
         }
         if (shadow.getName() == null) {
-            shadow.setName(determineShadowName(resourceObject));
+            shadow.setName(determineShadowName(shadow));
         }
         if (shadow.getResource() == null) {
             shadow.setResourceRef(ObjectTypeUtil.createObjectRef(resource));
         }
-        if (shadow.getAttributes() == null) {
-            Attributes attributes = new Attributes();
-            shadow.setAttributes(attributes);
-        }
+//        if (shadow.getAttributes() == null) {
+//            Attributes attributes = new Attributes();
+//            shadow.setAttributes(attributes);
+//        }
 
         Document doc = DOMUtil.getDocument();
-
-        // Add all attributes to the shadow
-        shadow.getAttributes().getAny().clear();
-        for (ResourceAttribute attr : resourceObject.getAttributes()) {
-            try {
-                List<Object> eList = attr.serializeToJaxb(doc);
-                shadow.getAttributes().getAny().addAll(eList);
-            } catch (SchemaException e) {
-                throw new SchemaException("An error occured while serializing attribute " + attr
-                        + " to DOM: " + e.getMessage(), e);
-            }
-        }
         
         if (shadow instanceof AccountShadowType) {
         	if (((AccountShadowType) shadow).getActivation() == null) {
-	        	ActivationType activationType = determineActivation(resource, resourceObject, null);
-	        	if (resource != null) {
-	        	}
+	        	ActivationType activationType = completeActivation(shadow, resource, parentResult);
 		        ((AccountShadowType)shadow).setActivation(activationType);
         	}
-	        if (resourceObject.getCredentials() != null) {
-	        	((AccountShadowType)shadow).setCredentials(resourceObject.getCredentials());
-	        }
         }
         
         return shadow;
     }
     
 	/**
-	 * Get account activation state from the resource object.
+	 * Completes activation state by determinig simulated activation if necessary.
 	 * 
 	 * TODO: The placement of this method is not correct. It should go back to ShadowConverter
 	 */
-	public static ActivationType determineActivation(ResourceType resource, ResourceAttributeContainer ro,
+	public static ActivationType completeActivation(ResourceObjectShadowType shadow, ResourceType resource,
 			OperationResult parentResult) {
 
 		// HACK to avoid NPE when called from the ICF layer
 		if (resource == null) {
-			return ro.getActivation();
+			return shadow.getActivation();
 		}
 		
 		if (ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
-			return ro.getActivation();
+			return shadow.getActivation();
 		} else if (ResourceTypeUtil.hasActivationCapability(resource)) {
-			return convertFromSimulatedActivationAttributes(resource, ro, parentResult);
+			return convertFromSimulatedActivationAttributes(shadow, resource, parentResult);
 		} else {
 			// No activation capability, nothing to do
 			return null;
 		}
 	}
 
-	private static ActivationType convertFromSimulatedActivationAttributes(ResourceType resource, ResourceAttributeContainer ro,
+	private static ActivationType convertFromSimulatedActivationAttributes(ResourceObjectShadowType shadow, ResourceType resource,
 			OperationResult parentResult) {
 //		LOGGER.trace("Start converting activation type from simulated activation atribute");
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
-		PrismProperty activationProperty = ro.findProperty(activationCapability.getEnableDisable().getAttribute());
+		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
+		PrismProperty activationProperty = attributesContainer.findProperty(activationCapability.getEnableDisable().getAttribute());
 //		if (activationProperty == null) {
 //			LOGGER.debug("No simulated activation attribute was defined for the account.");
 //			return null;
@@ -165,24 +146,6 @@ public class ShadowCacheUtil {
 	}
 
 	
-	/**
-	 * Get account activation state from the resource object.
-	 * 
-	 * TODO: The placement of this method is not correct. It should go back to ShadowConverter
-	 * HACK: FIXME: this is just a copy&paste code to hack around bad UCF API design (MID-581)
-	 */
-	public static ActivationType determineActivation(ResourceType resource, AccountShadowType shadow,
-			OperationResult parentResult) {
-		if (ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
-			return shadow.getActivation();
-		} else if (ResourceTypeUtil.hasActivationCapability(resource)) {
-			return convertFromSimulatedActivationAttributes(resource, shadow, parentResult);
-		} else {
-			// No activation capability, nothing to do
-			return null;
-		}
-	}
-
 	private static ActivationType convertFromSimulatedActivationAttributes(ResourceType resource, AccountShadowType shadow,
 			OperationResult parentResult) {
 //		LOGGER.trace("Start converting activation type from simulated activation atribute");
@@ -289,17 +252,18 @@ public class ShadowCacheUtil {
 		 return false;
 	}
 
-	private static String determineShadowName(ResourceAttributeContainer resourceObject) throws SchemaException {
-        if (resourceObject.getNamingAttribute() == null) {
+	private static String determineShadowName(ResourceObjectShadowType shadow) throws SchemaException {
+		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
+        if (attributesContainer.getNamingAttribute() == null) {
             // No naming attribute defined. Try to fall back to identifiers.
-            Set<ResourceAttribute> identifiers = resourceObject.getIdentifiers();
+            Set<ResourceAttribute> identifiers = attributesContainer.getIdentifiers();
             // We can use only single identifiers (not composite)
             if (identifiers.size() == 1) {
                 PrismProperty identifier = identifiers.iterator().next();
                 // Only single-valued identifiers
-                Set<PrismPropertyValue<Object>> values = identifier.getValues();
+                Collection<PrismPropertyValue<Object>> values = identifier.getValues();
                 if (values.size() == 1) {
-                    PrismPropertyValue<Object> value = values.iterator().next();
+                    PrismPropertyValue<?> value = values.iterator().next();
                     // and only strings
                     if (value.getValue() instanceof String) {
                         return (String) value.getValue();
@@ -311,34 +275,34 @@ public class ShadowCacheUtil {
             throw new SchemaException("No naming attribute defined (and identifier not usable)");
         }
         // TODO: Error handling
-        return resourceObject.getNamingAttribute().getValue(String.class).getValue();
+        return attributesContainer.getNamingAttribute().getValue(String.class).getValue();
     }
 
-    public static ResourceObjectShadowType createRepositoryShadow(ResourceAttributeContainer resourceObject,
-                                                                  ResourceType resource, ResourceObjectShadowType shadow) throws SchemaException {
+	/**
+	 * Create a copy of a shadow that is suitable for repository storage.
+	 */
+    public static ResourceObjectShadowType createRepositoryShadow(ResourceObjectShadowType shadowType,
+                                                                  ResourceType resource) throws SchemaException {
 
-        shadow = createShadow(resourceObject, resource, shadow);
-        Document doc = DOMUtil.getDocument();
-
-        // Add all attributes to the shadow
-        shadow.getAttributes().getAny().clear();
-        Set<ResourceAttribute> identifiers = resourceObject.getIdentifiers();
+    	PrismObject<ResourceObjectShadowType> shadow = shadowType.asPrismObject();
+    	ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
+    	PrismObject<ResourceObjectShadowType> repoShadow = shadow.clone();
+    	ResourceAttributeContainer repoAttributesContainer = ResourceObjectShadowUtil.getAttributesContainer(repoShadow);
+    
+    	// Clean all repoShadow attributes and add only those that should be there
+    	repoAttributesContainer.getValue().clear();
+        Set<ResourceAttribute> identifiers = attributesContainer.getIdentifiers();
         for (PrismProperty p : identifiers) {
-            try {
-                List<Object> eList = p.serializeToJaxb(doc);
-                shadow.getAttributes().getAny().addAll(eList);
-            } catch (SchemaException e) {
-                throw new SchemaException("An error occured while serializing property " + p + " to DOM: "
-                        + e.getMessage(), e);
-            }
+        	repoAttributesContainer.getValue().add(p);
         }
 
-        if (shadow instanceof AccountShadowType) {
-            ((AccountShadowType) shadow).setCredentials(null);
+        // We don't want to store credentials in the repo
+        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
+        if (repoShadowType instanceof AccountShadowType) {
+            ((AccountShadowType) repoShadowType).setCredentials(null);
         }
 
-        return shadow;
-
+        return repoShadowType;
     }
 
     public static QueryType createSearchShadowQuery(Set<ResourceAttribute> identifiers, OperationResult parentResult) throws SchemaException {
@@ -366,7 +330,7 @@ public class ShadowCacheUtil {
         XPathHolder xpath = createXpathHolder();
         PrismProperty identifier = resourceObject.getIdentifier();
 
-        Set<PrismPropertyValue<Object>> idValues = identifier.getValues();
+        Collection<PrismPropertyValue<Object>> idValues = identifier.getValues();
         // Only one value is supported for an identifier
         if (idValues.size() > 1) {
 //			LOGGER.error("More than one identifier value is not supported");

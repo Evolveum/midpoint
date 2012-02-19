@@ -541,7 +541,7 @@ public class ResourceTypeManager {
 							ResourceObjectShadowType repoShadow = ShadowCacheUtil.createRepositoryShadow(object, resourceType, shadow);
 							String oid = getRepositoryService().addObject(repoShadow, parentResult);
 							
-							shadow = ShadowCacheUtil.createShadow(object, resourceType, repoShadow);
+							shadow = ShadowCacheUtil.completeShadow(object, resourceType, repoShadow);
 							shadow.setOid(oid);
 						} catch (ObjectAlreadyExistsException e) {
 							// This should not happen. We haven't supplied an
@@ -630,7 +630,7 @@ public class ResourceTypeManager {
 		}
 
 		ResourceObjectShadowType repoShadow = results.get(0);
-		return ShadowCacheUtil.createShadow(resourceObject, resource, repoShadow);
+		return ShadowCacheUtil.completeShadow(resourceObject, resource, repoShadow);
 	}
 
 	/**

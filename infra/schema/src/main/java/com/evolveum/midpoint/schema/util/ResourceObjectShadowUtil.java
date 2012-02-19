@@ -44,11 +44,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
  */
 public class ResourceObjectShadowUtil {
 	
+	public static Set<ResourceAttribute> getIdentifiers(ResourceObjectShadowType shadowType) {
+		return getIdentifiers(shadowType.asPrismObject());
+	}
+	
 	public static Set<ResourceAttribute> getIdentifiers(PrismObject<? extends ResourceObjectShadowType> shadow) {
-		PrismContainer attributesContainer = shadow.asObjectable().getAttributes().asPrismContainer();
+		return getAttributesContainer(shadow).getIdentifiers();	
+	}
+	
+	public static ResourceAttributeContainer getAttributesContainer(ResourceObjectShadowType shadowType) {
+		return getAttributesContainer(shadowType.asPrismObject());
+	}
+	
+	public static ResourceAttributeContainer getAttributesContainer(PrismObject<? extends ResourceObjectShadowType> shadow) {
+		PrismContainer attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
 		if (attributesContainer instanceof ResourceAttributeContainer) {
-			ResourceAttributeContainer rAttrContainer = (ResourceAttributeContainer)attributesContainer;
-			return rAttrContainer.getIdentifiers();
+			return (ResourceAttributeContainer)attributesContainer;
 		} else {
 			throw new SystemException("Expected that <attributes> will be ResourceAttributeContainer but it is "+attributesContainer.getClass());
 		}
