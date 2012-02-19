@@ -67,35 +67,53 @@ public class ShadowCacheUtil {
 	 * Make sure that the shadow is complete, e.g. that all the mandatory fields are filled (e.g name, resourceRef, ...)
 	 * Also transforms the shadow with respect to simulated capabilities.
 	 */
-    public static ResourceObjectShadowType completeShadow(ResourceObjectShadowType shadow, ResourceType resource, 
-    		OperationResult parentResult) throws SchemaException {
-
-    	ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
+    public static <T extends ResourceObjectShadowType> T completeShadow(T resourceShadow, T repoShadow,
+    		ResourceType resource, OperationResult parentResult) throws SchemaException {
     	
-        if (shadow.getObjectClass() == null) {
-            shadow.setObjectClass(attributesContainer.getDefinition().getTypeName());
+    	// repoShadow is a result, we need to copy there everything that needs to be there
+    	
+    	// If there is no repo shadow, use resource shadow instead
+    	if (repoShadow == null) {
+    		repoShadow = resourceShadow;
+    	}
+    	ResourceAttributeContainer resourceAttributesContainer = ResourceObjectShadowUtil.getAttributesContainer(resourceShadow);
+    	ResourceAttributeContainer repoAttributesContainer = ResourceObjectShadowUtil.getAttributesContainer(repoShadow);
+    	
+        if (repoShadow.getObjectClass() == null) {
+        	repoShadow.setObjectClass(resourceAttributesContainer.getDefinition().getTypeName());
         }
-        if (shadow.getName() == null) {
-            shadow.setName(determineShadowName(shadow));
+        if (repoShadow.getName() == null) {
+        	repoShadow.setName(determineShadowName(resourceShadow));
         }
-        if (shadow.getResource() == null) {
-            shadow.setResourceRef(ObjectTypeUtil.createObjectRef(resource));
+        if (repoShadow.getResource() == null) {
+        	repoShadow.setResourceRef(ObjectTypeUtil.createObjectRef(resource));
         }
-//        if (shadow.getAttributes() == null) {
-//            Attributes attributes = new Attributes();
-//            shadow.setAttributes(attributes);
-//        }
-
-        Document doc = DOMUtil.getDocument();
         
-        if (shadow instanceof AccountShadowType) {
-        	if (((AccountShadowType) shadow).getActivation() == null) {
-	        	ActivationType activationType = completeActivation(shadow, resource, parentResult);
-		        ((AccountShadowType)shadow).setActivation(activationType);
+        // Attributes
+        // If the shadows are the same then no copy is needed.
+        if (repoShadow != resourceShadow) {
+        	repoAttributesContainer.getValue().clear();
+        	for (ResourceAttribute resourceAttribute: resourceAttributesContainer.getAttributes()) {
+        		repoAttributesContainer.getValue().add(resourceAttribute);
         	}
         }
         
-        return shadow;
+        // Activation
+    	if (resourceShadow.getActivation() != null) {
+        	ActivationType activationType = completeActivation(resourceShadow, resource, parentResult);
+	        repoShadow.setActivation(activationType);
+    	} else {
+    		repoShadow.setActivation(null);
+    	}
+    	
+    	if (repoShadow instanceof AccountShadowType) {
+	    	// Credentials
+    		AccountShadowType repoAccountShadow = (AccountShadowType)repoShadow;
+    		AccountShadowType resourceAccountShadow = (AccountShadowType)resourceShadow;
+    		repoAccountShadow.setCredentials(resourceAccountShadow.getCredentials());
+    	}
+        
+        return repoShadow;
     }
     
 	/**
@@ -326,9 +344,10 @@ public class ShadowCacheUtil {
         return query;
     }
 
-    public static QueryType createSearchShadowQuery(ResourceAttributeContainer resourceObject, ResourceType resource, OperationResult parentResult) throws SchemaException {
+    public static QueryType createSearchShadowQuery(ResourceObjectShadowType resourceShadow, ResourceType resource, OperationResult parentResult) throws SchemaException {
         XPathHolder xpath = createXpathHolder();
-        PrismProperty identifier = resourceObject.getIdentifier();
+        ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(resourceShadow);
+        PrismProperty identifier = attributesContainer.getIdentifier();
 
         Collection<PrismPropertyValue<Object>> idValues = identifier.getValues();
         // Only one value is supported for an identifier

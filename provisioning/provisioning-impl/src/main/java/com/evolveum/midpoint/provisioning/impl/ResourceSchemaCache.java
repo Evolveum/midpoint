@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.refinery.EnhancedResourceType;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -43,10 +44,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 public class ResourceSchemaCache {
 
 	private Map<String,ResourceSchemaCacheEntry> cache;
+	private PrismContext prismContext;
 	
-	private ResourceSchemaCache() {
+	private ResourceSchemaCache(PrismContext prismContext) {
 		super();
 		cache = new HashMap<String, ResourceSchemaCache.ResourceSchemaCacheEntry>();
+		this.prismContext = prismContext;
 	}
 	
 	public synchronized ResourceType put(ResourceType resourceType) throws SchemaException {
@@ -83,7 +86,7 @@ public class ResourceSchemaCache {
 		
 		// Cache entry does not exist (or was deleted). Parse the schema.
 		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaType);
-		PrismSchema parsedSchema = PrismSchema.parse(xsdElement);
+		PrismSchema parsedSchema = PrismSchema.parse(xsdElement, prismContext);
 		// Put it into cache
 		ResourceSchemaCacheEntry entry = new ResourceSchemaCacheEntry(serial, xsdElement, parsedSchema);
 		cache.put(oid,entry);

@@ -22,6 +22,8 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
@@ -59,6 +61,8 @@ public class ShadowConverter {
 	private ConnectorTypeManager connectorTypeManager;
 	@Autowired
 	private ResourceTypeManager resourceTypeManager;
+	@Autowired(required=true)
+	private PrismContext prismContext;
 
 	public ShadowConverter() {
 	}
@@ -81,7 +85,7 @@ public class ShadowConverter {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowConverter.class);
 
-	public ResourceObjectShadowType getShadow(ResourceType resource, ResourceObjectShadowType shadow,
+	public <T extends ResourceObjectShadowType> T getShadow(Class<T> type, ResourceType resource, T repoShadow,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 			SchemaException {
 
@@ -89,11 +93,11 @@ public class ShadowConverter {
 
 		PrismSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
 
-		QName objectClass = shadow.getObjectClass();
-		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) schema
+		QName objectClass = repoShadow.getObjectClass();
+		ResourceAttributeContainerDefinition objectClassDefinition = (ResourceAttributeContainerDefinition) schema
 				.findContainerDefinitionByType(objectClass);
 
-		if (rod == null) {
+		if (objectClassDefinition == null) {
 			// Unknown objectclass
 			SchemaException ex = new SchemaException("Object class " + objectClass
 					+ " defined in the repository shadow is not known in schema of resource "
@@ -104,40 +108,40 @@ public class ShadowConverter {
 		}
 
 		// Let's get all the identifiers from the Shadow <attributes> part
-		Collection<? extends ResourceAttribute> identifiers = ResourceObjectShadowUtil.getIdentifiers(shadow);
+		Collection<? extends ResourceAttribute> identifiers = ResourceObjectShadowUtil.getIdentifiers(repoShadow);
 
 		if (identifiers == null || identifiers.isEmpty()) {
 			// No identifiers found
 			SchemaException ex = new SchemaException("No identifiers found in the respository shadow "
-					+ ObjectTypeUtil.toShortString(shadow) + " with respect to resource "
+					+ ObjectTypeUtil.toShortString(repoShadow) + " with respect to resource "
 					+ ObjectTypeUtil.toShortString(resource));
 			parentResult.recordFatalError(
-					"No identifiers found in the respository shadow " + ObjectTypeUtil.toShortString(shadow),
+					"No identifiers found in the respository shadow " + ObjectTypeUtil.toShortString(repoShadow),
 					ex);
 			throw ex;
 		}
 
-		ResourceAttributeContainer ro = fetchResourceObject(rod, identifiers, connector, resource, parentResult);
+		T resourceShadow = fetchResourceObject(type, objectClassDefinition, identifiers, connector, resource, parentResult);
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Shadow from repository:\n{}", ObjectTypeUtil.dump(shadow));
-			LOGGER.trace("Resource object fetched from resource:\n{}", ro.dump());
+			LOGGER.trace("Shadow from repository:\n{}", repoShadow.asPrismObject().dump());
+			LOGGER.trace("Resource object fetched from resource:\n{}", resourceShadow.asPrismObject().dump());
 		}
 
-		if (shadow instanceof AccountShadowType) {
+		if (repoShadow instanceof AccountShadowType) {
 			// convert resource activation attribute to the <activation>
 			// attribute
 			// of shadow
-			ActivationType activationType = ShadowCacheUtil.completeActivation(resource, ro, parentResult);
+			ActivationType activationType = ShadowCacheUtil.completeActivation(resourceShadow, resource, parentResult);
 			if (activationType != null) {
 				LOGGER.trace("Determined activation: {}", activationType.isEnabled());
-				((AccountShadowType) shadow).setActivation(activationType);
+				((AccountShadowType) repoShadow).setActivation(activationType);
 			}
 
 		}
 
 		// Complete the shadow by adding attributes from the resource object
-		ResourceObjectShadowType resultShadow = resourceTypeManager.assembleShadow(ro, shadow, parentResult);
+		T resultShadow = resourceTypeManager.assembleShadow(resourceShadow, repoShadow, parentResult);
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Shadow when assembled:\n", ObjectTypeUtil.dump(resultShadow));
@@ -182,7 +186,7 @@ public class ShadowConverter {
 						SchemaDebugUtil.prettyPrint(resourceAttributesAfterAdd));
 			}
 
-			shadow.addAllReplaceExisting(resourceAttributesAfterAdd);
+			addAllAttributesReplaceExisting(shadow, resourceAttributesAfterAdd);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
 			parentResult.recordFatalError(
 					"Error communitacing with the connector " + connector + ": " + ex.getMessage(), ex);
@@ -206,12 +210,11 @@ public class ShadowConverter {
 
 		PrismSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
 
-		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) schema.findContainerDefinitionByType(shadow
+		ResourceAttributeContainerDefinition objectClassDefinition = (ResourceAttributeContainerDefinition) schema.findContainerDefinitionByType(shadow
 				.getObjectClass());
 
 		LOGGER.trace("Getting object identifiers");
-		Collection<? extends ResourceAttribute> identifiers = rod.parseIdentifiers(shadow
-				.getAttributes().getAny());
+		Collection<? extends ResourceAttribute> identifiers =  ResourceObjectShadowUtil.getIdentifiers(shadow);
 
 		try {
 
@@ -222,7 +225,7 @@ public class ShadowConverter {
 								SchemaDebugUtil.debugDump(identifiers), SchemaDebugUtil.debugDump(additionalOperations) });
 			}
 
-			connector.deleteObject(rod, additionalOperations, identifiers, parentResult);
+			connector.deleteObject(objectClassDefinition, additionalOperations, identifiers, parentResult);
 
 			LOGGER.debug("Connector DELETE successful");
 			parentResult.recordSuccess();
@@ -251,12 +254,11 @@ public class ShadowConverter {
 
 		PrismSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
 
-		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) schema.findContainerDefinitionByType(shadow
+		ResourceAttributeContainerDefinition objectClassDefinition = (ResourceAttributeContainerDefinition) schema.findContainerDefinitionByType(shadow
 				.getObjectClass());
-		Collection<? extends ResourceAttribute> identifiers = rod.parseIdentifiers(shadow
-				.getAttributes().getAny());
+		Collection<? extends ResourceAttribute> identifiers = ResourceObjectShadowUtil.getIdentifiers(shadow); 
 
-		Set<Operation> attributeChanges = getAttributeChanges(objectChanges, changes, rod);
+		Set<Operation> attributeChanges = getAttributeChanges(objectChanges, changes, objectClassDefinition);
 		if (attributeChanges != null) {
 			changes.addAll(attributeChanges);
 		}
@@ -271,7 +273,7 @@ public class ShadowConverter {
 			}
 
 			// Invoke ICF
-			sideEffectChanges = connector.modifyObject(rod, identifiers, changes, parentResult);
+			sideEffectChanges = connector.modifyObject(objectClassDefinition, identifiers, changes, parentResult);
 
 			LOGGER.debug("Connector MODIFY successful, side-effect changes {}",
 					SchemaDebugUtil.debugDump(sideEffectChanges));
@@ -302,7 +304,7 @@ public class ShadowConverter {
 
 		LOGGER.trace("Getting last token");
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
-		PrismSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType);
+		PrismSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
 		ResourceAttributeContainerDefinition objectClass = resourceSchema.findAccountDefinition();
 		PrismProperty lastToken = null;
 		try {
@@ -381,7 +383,7 @@ public class ShadowConverter {
 			// shadow = ShadowCacheUtil.createShadow(resourceObject, resource,
 			// null);
 			// change.setOldShadow(shadow);
-			shadow = ShadowCacheUtil.createRepositoryShadow(resourceObject, resource, shadow);
+			shadow = ShadowCacheUtil.createRepositoryShadow(shadow, resource);
 
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError("Can't create account shadow from identifiers: "
@@ -394,7 +396,8 @@ public class ShadowConverter {
 		return shadow;
 	}
 
-	private ResourceAttributeContainer fetchResourceObject(ResourceAttributeContainerDefinition rod,
+	private <T extends ResourceObjectShadowType> T fetchResourceObject(Class<T> type,
+			ResourceAttributeContainerDefinition objectClassDefinition,
 			Collection<? extends ResourceAttribute> identifiers, ConnectorInstance connector,
 			ResourceType resource, OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException {
@@ -409,8 +412,8 @@ public class ShadowConverter {
 		// }
 
 		try {
-			ResourceAttributeContainer resourceObject = connector.fetchObject(rod, identifiers, true, null, parentResult);
-			return resourceObject;
+			PrismObject<T> resourceObject = connector.fetchObject(type, objectClassDefinition, identifiers, true, null, parentResult);
+			return resourceObject.asObjectable();
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException e) {
 			parentResult.recordFatalError(
 					"Object not found. Identifiers: " + identifiers + ". Reason: " + e.getMessage(), e);
@@ -446,58 +449,6 @@ public class ShadowConverter {
 		return connectorTypeManager.getConfiguredConnectorInstance(resource, parentResult);
 	}
 
-
-	/**
-	 * convert resource object shadow to the resource object according to given
-	 * schema
-	 * 
-	 * @param resourceObjectShadow
-	 *            object from which attributes are converted
-	 * @param schema
-	 * @return resourceObject
-	 * @throws SchemaException
-	 *             Object class definition was not found
-	 */
-	private ResourceAttributeContainer convertResourceObjectFromXml(ResourceObjectShadowType resourceObjectShadow,
-			PrismSchema schema, OperationResult parentResult) throws SchemaException {
-		QName objectClass = resourceObjectShadow.getObjectClass();
-
-		Validate.notNull(objectClass, "Object class must not be null.");
-		Validate.notNull(schema, "Resource schema must not be null.");
-
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Shadow before conversion:\n{}", ObjectTypeUtil.dump(resourceObjectShadow));
-		}
-
-		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) schema
-				.findContainerDefinitionByType(objectClass);
-
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Shadow resource object definition:\n{}", rod.dump());
-		}
-
-		if (rod == null) {
-			parentResult.recordFatalError("Schema definition for object class " + objectClass
-					+ " was not found");
-			throw new SchemaException("Schema definition for object class " + objectClass + " was not found");
-		}
-		ResourceAttributeContainer resourceObject = rod.instantiate();
-
-		List<Object> attributes = resourceObjectShadow.getAttributes().getAny();
-
-		if (attributes == null) {
-			throw new IllegalArgumentException("Attributes for the account was not defined.");
-		}
-
-		Set<ResourceAttribute> resAttr = rod.parseAttributes(attributes);
-		resourceObject.addAll(resAttr);
-
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Shadow converted to resource object:\n{}", resourceObject.dump());
-		}
-
-		return resourceObject;
-	}
 
 	private Set<Operation> getAttributeChanges(ObjectModificationType objectChange, Set<Operation> changes,
 			ResourceAttributeContainerDefinition rod) throws SchemaException {

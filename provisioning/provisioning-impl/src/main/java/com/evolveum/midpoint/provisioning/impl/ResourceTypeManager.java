@@ -18,7 +18,10 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
@@ -67,6 +70,8 @@ public class ResourceTypeManager {
 	private ResourceSchemaCache resourceSchemaCache;
 	@Autowired
 	private ConnectorTypeManager connectorTypeManager;
+	@Autowired(required=true)
+	private PrismContext prismContext;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceTypeManager.class);
 	
@@ -182,10 +187,10 @@ public class ResourceTypeManager {
 			xmlSchemaType.getAny().add(xsdElement);
 			xmlSchemaType.setCachingMetadata(MiscSchemaUtil.generateCachingMetadata());
 
-			ObjectModificationType objectModificationType = ObjectTypeUtil.createModificationReplaceProperty(
+			ObjectDelta<ResourceType> objectDelta = ObjectDelta.createModificationReplaceProperty(
 					resource.getOid(), SchemaConstants.I_SCHEMA, xmlSchemaType);
 
-			repositoryService.modifyObject(resource.getClass(), objectModificationType, result);
+			repositoryService.modifyObject(ResourceType.class, objectDelta, result);
 
 			newResource = resourceSchemaCache.put(resource);
 		}
@@ -373,7 +378,7 @@ public class ResourceTypeManager {
 			// this will also retrieve the schema from cache and/or parse it if
 			// needed
 			ResourceType completeResource = completeResource(resource, null, parentResult);
-			schema = RefinedResourceSchema.getResourceSchema(completeResource);
+			schema = RefinedResourceSchema.getResourceSchema(completeResource, prismContext);
 
 		} catch (SchemaException e) {
 			parentResult.recordFatalError("Unable to parse resource schema: " + e.getMessage(), e);
@@ -398,88 +403,91 @@ public class ResourceTypeManager {
 			parentResult.recordFatalError("Resource must not be null");
 			throw new IllegalArgumentException("Resource must not be null.");
 		}
+		
+		// TODO: implement using searchObjectsIterative
+		throw new UnsupportedOperationException();
 
-		LOGGER.trace("Start listing objects on resource with oid {} with object class {} ",
-				resource.getOid(), objectClass);
-
-		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
-
-		PrismSchema schema = getResourceSchema(resource, connector, parentResult);
-
-		if (schema == null) {
-			parentResult.recordFatalError("Can't get resource schema.");
-			throw new IllegalArgumentException("Can't get resource schema.");
-		}
-
-		ResourceAttributeContainerDefinition resourceDef = (ResourceAttributeContainerDefinition) schema
-				.findContainerDefinitionByType(objectClass);
-
-		if (resourceDef == null) {
-			// Unknown objectclass
-			SchemaException ex = new SchemaException("Object class " + objectClass
-					+ " defined in the repository shadow is not known in schema of resource "
-					+ ObjectTypeUtil.toShortString(resource));
-			parentResult.recordFatalError("Object class " + objectClass
-					+ " defined in the repository shadow is not known in resource schema", ex);
-			throw ex;
-		}
-
-		ResultHandler resultHandler = new ResultHandler() {
-
-			@Override
-			public boolean handle(ResourceAttributeContainer object) {
-
-				ResourceObjectShadowType shadow;
-				if (readFromRepository) {
-					// Attached shadow (with OID)
-					try {
-						shadow = lookupShadow(object, resource, parentResult);
-					} catch (SchemaException e) {
-						// TODO: better error handling
-						LOGGER.error(
-								"Schema exception in resource object search on {} for {}: {}",
-								new Object[] { ObjectTypeUtil.toShortString(resource), objectClass,
-										e.getMessage(), e });
-						return false;
-					}
-				} else {
-					// Detached shadow (without OID)
-					try {
-						shadow = assembleShadow(object, null, parentResult);
-
-					} catch (SchemaException e) {
-						// TODO: better error handling
-						LOGGER.error(
-								"Schema exception in resource object search on {} for {}: {}",
-								new Object[] { ObjectTypeUtil.toShortString(resource), objectClass,
-										e.getMessage(), e });
-						return false;
-					}
-				}
-
-				// TODO: if shadow does not exists, create it now
-
-				return handler.handle(shadow);
-			}
-		};
-
-		try {
-			connector.search(resourceDef, resultHandler, parentResult);
-			LOGGER.trace("Finished listing obejcts.");
-		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
-			parentResult.recordFatalError("Error communicationg with the connector " + connector
-					+ ". Reason: " + e.getMessage(), e);
-			throw new CommunicationException("Error communicationg with the connector " + connector
-					+ ". Reason: " + e.getMessage(), e);
-		} catch (GenericFrameworkException e) {
-			parentResult.recordFatalError("Generic error in connector. Reason: " + e.getMessage(), e);
-			throw new GenericConnectorException("Generic error in connector. Reason: " + e.getMessage(), e);
-		}
-		parentResult.recordSuccess();
+//		LOGGER.trace("Start listing objects on resource with oid {} with object class {} ",
+//				resource.getOid(), objectClass);
+//
+//		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
+//
+//		PrismSchema schema = getResourceSchema(resource, connector, parentResult);
+//
+//		if (schema == null) {
+//			parentResult.recordFatalError("Can't get resource schema.");
+//			throw new IllegalArgumentException("Can't get resource schema.");
+//		}
+//
+//		ResourceAttributeContainerDefinition resourceDef = (ResourceAttributeContainerDefinition) schema
+//				.findContainerDefinitionByType(objectClass);
+//
+//		if (resourceDef == null) {
+//			// Unknown objectclass
+//			SchemaException ex = new SchemaException("Object class " + objectClass
+//					+ " defined in the repository shadow is not known in schema of resource "
+//					+ ObjectTypeUtil.toShortString(resource));
+//			parentResult.recordFatalError("Object class " + objectClass
+//					+ " defined in the repository shadow is not known in resource schema", ex);
+//			throw ex;
+//		}
+//
+//		ResultHandler resultHandler = new ResultHandler() {
+//
+//			@Override
+//			public boolean handle(PrismObject object) {
+//
+//				ResourceObjectShadowType shadow;
+//				if (readFromRepository) {
+//					// Attached shadow (with OID)
+//					try {
+//						shadow = lookupShadowInRepository(object, resource, parentResult);
+//					} catch (SchemaException e) {
+//						// TODO: better error handling
+//						LOGGER.error(
+//								"Schema exception in resource object search on {} for {}: {}",
+//								new Object[] { ObjectTypeUtil.toShortString(resource), objectClass,
+//										e.getMessage(), e });
+//						return false;
+//					}
+//				} else {
+//					// Detached shadow (without OID)
+//					try {
+//						shadow = assembleShadow(object, null, parentResult);
+//
+//					} catch (SchemaException e) {
+//						// TODO: better error handling
+//						LOGGER.error(
+//								"Schema exception in resource object search on {} for {}: {}",
+//								new Object[] { ObjectTypeUtil.toShortString(resource), objectClass,
+//										e.getMessage(), e });
+//						return false;
+//					}
+//				}
+//
+//				// TODO: if shadow does not exists, create it now
+//
+//				return handler.handle(shadow);
+//			}
+//		};
+//
+//		try {
+//			connector.search(resourceDef, resultHandler, parentResult);
+//			LOGGER.trace("Finished listing obejcts.");
+//		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
+//			parentResult.recordFatalError("Error communicationg with the connector " + connector
+//					+ ". Reason: " + e.getMessage(), e);
+//			throw new CommunicationException("Error communicationg with the connector " + connector
+//					+ ". Reason: " + e.getMessage(), e);
+//		} catch (GenericFrameworkException e) {
+//			parentResult.recordFatalError("Generic error in connector. Reason: " + e.getMessage(), e);
+//			throw new GenericConnectorException("Generic error in connector. Reason: " + e.getMessage(), e);
+//		}
+//		parentResult.recordSuccess();
 	}
 
-	public void searchObjectsIterative(final QName objectClass, final ResourceType resourceType,
-			final ShadowHandler handler, final DiscoveryHandler discoveryHandler,
+	public <T extends ResourceObjectShadowType> void searchObjectsIterative(final Class<T> type, final QName objectClass, 
+			final ResourceType resourceType, final ShadowHandler handler, final DiscoveryHandler discoveryHandler,
 			final OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 			SchemaException {
 
@@ -510,22 +518,23 @@ public class ResourceTypeManager {
 			throw new SchemaException(message);
 		}
 
-		ResultHandler resultHandler = new ResultHandler() {
+		ResultHandler<T> resultHandler = new ResultHandler<T>() {
 
 			@Override
-			public boolean handle(ResourceAttributeContainer object) {
-				ResourceObjectShadowType shadow;
-				LOGGER.trace("Found resource object {}", SchemaDebugUtil.prettyPrint(object));
+			public boolean handle(PrismObject<T> resourceShadow) {
+				LOGGER.trace("Found resource object {}", SchemaDebugUtil.prettyPrint(resourceShadow));
+				ResourceObjectShadowType resultShadowType;
 				try {
 
+					T resourceShadowType = resourceShadow.asObjectable();
 					// Try to find shadow that corresponds to the resource
 					// object
-					shadow = lookupShadow(object, resourceType, parentResult);
+					resultShadowType = lookupShadowInRepository(type, resourceShadowType, resourceType, parentResult);
 
-					if (shadow == null) {
+					if (resultShadowType == null) {
 						LOGGER.trace(
 								"Shadow object (in repo) corresponding to the resource object (on the resource) was not found. The repo shadow will be created. The resource object:\n{}",
-								SchemaDebugUtil.prettyPrint(object));
+								SchemaDebugUtil.prettyPrint(resourceShadow));
 
 						// TODO: make sure that the resource object has
 						// appropriate definition
@@ -538,11 +547,11 @@ public class ResourceTypeManager {
 						// the reality (resource)
 						
 						try {
-							ResourceObjectShadowType repoShadow = ShadowCacheUtil.createRepositoryShadow(object, resourceType, shadow);
-							String oid = getRepositoryService().addObject(repoShadow, parentResult);
+							ResourceObjectShadowType repoShadow = ShadowCacheUtil.createRepositoryShadow(resourceShadowType, resourceType);
+							String oid = getRepositoryService().addObject(repoShadow.asPrismObject(), parentResult);
 							
-							shadow = ShadowCacheUtil.completeShadow(object, resourceType, repoShadow);
-							shadow.setOid(oid);
+							resultShadowType = ShadowCacheUtil.completeShadow(resourceShadowType, repoShadow, resourceType, parentResult);
+							resultShadowType.setOid(oid);
 						} catch (ObjectAlreadyExistsException e) {
 							// This should not happen. We haven't supplied an
 							// OID so is should not conflict
@@ -556,11 +565,11 @@ public class ResourceTypeManager {
 						// And notify about the change we have discovered (if
 						// requested to do so)
 						if (discoveryHandler != null) {
-							discoveryHandler.discovered(shadow, parentResult);
+							discoveryHandler.discovered(resultShadowType, parentResult);
 						}
 					} else {
 						LOGGER.trace("Found shadow object in the repository {}",
-								SchemaDebugUtil.prettyPrint(shadow));
+								SchemaDebugUtil.prettyPrint(resultShadowType));
 					}
 
 				} catch (SchemaException e) {
@@ -572,14 +581,14 @@ public class ResourceTypeManager {
 
 				
 
-				return handler.handle(shadow);
+				return handler.handle(resultShadowType);
 			}
 
 		};
 
 		try {
 
-			connector.search(resourceDef, resultHandler, parentResult);
+			connector.search(type, resourceDef, resultHandler, parentResult);
 		} catch (GenericFrameworkException e) {
 			parentResult.recordFatalError("Generic error in the connector: " + e.getMessage(), e);
 			throw new CommunicationException("Generic error in the connector: " + e.getMessage(), e);
@@ -606,16 +615,16 @@ public class ResourceTypeManager {
 	 * @throws SchemaProcessorException
 	 * @throws SchemaException
 	 */
-	private ResourceObjectShadowType lookupShadow(ResourceAttributeContainer resourceObject, ResourceType resource,
+	private <T extends ResourceObjectShadowType> T lookupShadowInRepository(Class<T> type, T resourceShadow, ResourceType resource,
 			OperationResult parentResult) throws SchemaException {
 
-		QueryType query = ShadowCacheUtil.createSearchShadowQuery(resourceObject, resource, parentResult);
+		QueryType query = ShadowCacheUtil.createSearchShadowQuery(resourceShadow, resource, parentResult);
 		PagingType paging = new PagingType();
 
 		// TODO: check for errors
-		List<ResourceObjectShadowType> results;
+		List<PrismObject<T>> results;
 
-		results = getRepositoryService().searchObjects(ResourceObjectShadowType.class, query, paging,
+		results = getRepositoryService().searchObjects(type, query, paging,
 				parentResult);
 
 		LOGGER.trace("lookupShadow found {} objects", results.size());
@@ -624,60 +633,13 @@ public class ResourceTypeManager {
 			return null;
 		}
 		if (results.size() > 1) {
-			LOGGER.error("More than one shadows found for " + resourceObject);
+			LOGGER.error("More than one shadows found for " + resourceShadow);
 			// TODO: Better error handling later
-			throw new IllegalStateException("More than one shadows found for " + resourceObject);
+			throw new IllegalStateException("More than one shadows found for " + resourceShadow);
 		}
 
-		ResourceObjectShadowType repoShadow = results.get(0);
-		return ShadowCacheUtil.completeShadow(resourceObject, resource, repoShadow);
-	}
-
-	/**
-	 * Creates a shadow object from the supplied resource object.
-	 * 
-	 * If an optional resourceObject is specified, it will be used as a base for
-	 * creating the shadow. In this case the same instance is returned, but it
-	 * is enriched with attributes from the resource object.
-	 * 
-	 * @param resourceObject
-	 * @param repositoryShadow
-	 * @return
-	 * @throws SchemaException
-	 */
-	public ResourceObjectShadowType assembleShadow(ResourceAttributeContainer resourceObject,
-			ResourceObjectShadowType repositoryShadow, OperationResult parentResult) throws SchemaException {
-		ResourceObjectShadowType resultShadow;
-		Document doc;
-		if (repositoryShadow != null) {
-			resultShadow = repositoryShadow;
-			Object firstElement = resultShadow.getAttributes().getAny().get(0);
-			doc = JAXBUtil.getDocument(firstElement);
-		} else {
-			// TODO: create specific subtypes
-			resultShadow = new ResourceObjectShadowType();
-			Attributes attributes = new Attributes();
-			resultShadow.setAttributes(attributes);
-			doc = DOMUtil.getDocument();
-		}
-		// Let's replace the attribute values fetched from repository with the
-		// ResourceObject content fetched from resource. The resource is more
-		// fresh and the attributes more complete.
-		// TODO: Discovery
-		// TODO: Optimize the use of XML namespaces
-
-		List<Object> xmlAttributes;
-		try {
-			xmlAttributes = resourceObject.serializePropertiesToJaxb(doc);
-
-		} catch (SchemaException ex) {
-			parentResult.recordFatalError(ex.getMessage());
-			throw ex;
-		}
-		resultShadow.getAttributes().getAny().clear();
-		resultShadow.getAttributes().getAny().addAll(xmlAttributes);
-
-		return resultShadow;
+		T repoShadow = results.get(0).asObjectable();
+		return ShadowCacheUtil.completeShadow(resourceShadow, repoShadow, resource, parentResult);
 	}
 
 	private void checkSchema(PrismSchema schema) throws SchemaException {
