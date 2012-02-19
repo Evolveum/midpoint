@@ -489,7 +489,7 @@ public class PrismProperty extends Item {
                 for (PrismPropertyValue<Object> value : other.getValues()) {
                 	replaceValues.add(value.clone());
                 }
-    			delta.setValuesToReplace(replaceValues);
+    			delta.setValuesToReplace((Collection)replaceValues);
     			return delta;
             }
         } else {

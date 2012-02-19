@@ -74,10 +74,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UnknownJavaObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -526,7 +526,7 @@ public class SchemaDebugUtil implements ObjectFormatter {
 		sb.append("\n");
 		indentDebugDump(sb, indent + 1);
 		sb.append("attributes:");
-		Attributes attributes = object.getAttributes();
+		ResourceObjectShadowAttributesType attributes = object.getAttributes();
 		if (attributes == null) {
 			sb.append("null");
 		} else {

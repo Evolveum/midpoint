@@ -119,7 +119,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
             if (property == null) {
                 return null;
             }
-            PropertyDelta propDelta = new PropertyDelta(propertyPath);
+            PropertyDelta propDelta = new PropertyDelta(propertyPath, property.getDefinition());
             propDelta.addValuesToAdd(property.getValues());
             return propDelta;
         } else if (changeType == ChangeType.MODIFY) {

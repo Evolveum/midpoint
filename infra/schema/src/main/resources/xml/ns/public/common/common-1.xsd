@@ -2115,7 +2115,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="eMailAddress" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="emailAddress" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 E-Mail address of the user. This is the address

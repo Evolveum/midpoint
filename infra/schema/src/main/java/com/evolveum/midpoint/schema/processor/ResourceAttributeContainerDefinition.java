@@ -364,6 +364,10 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 		return findItemDefinition(elementQName,ResourceAttributeDefinition.class);
 	}
 	
+	public ResourceAttributeDefinition findAttributeDefinition(PropertyPath elementPath) {
+		return findItemDefinition(elementPath,ResourceAttributeDefinition.class);
+	}
+	
 	public ResourceAttributeDefinition findAttributeDefinition(String elementLocalname) {
 		QName elementQName = new QName(getNameOrDefaultName().getNamespaceURI(),elementLocalname);
 		return findAttributeDefinition(elementQName);

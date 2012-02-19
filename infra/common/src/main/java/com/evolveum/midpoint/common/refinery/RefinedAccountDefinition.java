@@ -274,16 +274,9 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         // Almost-shallow clone of object definition and complex type
         PrismObjectDefinition<AccountShadowType> originalObjectDefinition = 
         	getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
-        PrismObjectDefinition<AccountShadowType> refinedObjectDef = originalObjectDefinition.clone();
-        ComplexTypeDefinition originalComplexTypeDefinition = refinedObjectDef.getComplexTypeDefinition();
-        ComplexTypeDefinition refinedComplexTypeDefinition = originalComplexTypeDefinition.clone();
-        refinedObjectDef.setComplexTypeDefinition(refinedComplexTypeDefinition);
-
-        // Replace definition of "attributes" with objectClass definition
-        refinedComplexTypeDefinition.replaceDefinition(SchemaConstants.I_ATTRIBUTES, this);
-
-        // TODO: extension
-
+        PrismObjectDefinition<AccountShadowType> refinedObjectDef = 
+        	originalObjectDefinition.cloneWithReplacedDefinition(AccountShadowType.F_ATTRIBUTES, this); 
+        	
         this.objectDefinition = refinedObjectDef;
     }
 

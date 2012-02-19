@@ -209,7 +209,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 
 			if (thisProperty == null) {
 				// this must be an add
-				propertyDelta = new PropertyDelta(path);
+				propertyDelta = new PropertyDelta(path, otherProperty.getDefinition());
 				// TODO: mangle source
 				propertyDelta.addValuesToAdd(otherProperty.getValues());
 			} else {

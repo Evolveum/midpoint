@@ -8,11 +8,11 @@ public class ExecuteScriptArgument {
 	private String argumentName;
 	private List<Object> argumentValue;
 
-	public ExecuteScriptArgument(){
+	public ExecuteScriptArgument() {
 		
 	}
 	
-	public ExecuteScriptArgument(String name, List<Object> value){
+	public ExecuteScriptArgument(String name, List<Object> value) {
 		this.argumentName = name;
 		this.argumentValue = value;
 	}

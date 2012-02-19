@@ -152,7 +152,8 @@ public interface ConnectorInstance {
 	 *				- nothing was fetched.
 	 * @throws SchemaException error converting object from native (connector) format
 	 */
-	public ResourceAttributeContainer fetchObject(ResourceAttributeContainerDefinition objectClass,
+	public <T extends ResourceObjectShadowType> PrismObject<T> fetchObject(
+			Class<T> type, ResourceAttributeContainerDefinition objectClassDefinition,
 			Collection<? extends ResourceAttribute> identifiers, boolean returnDefaultAttributes,
 			Collection<? extends ResourceAttributeDefinition> attributesToReturn, OperationResult parentResult)
 		throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
@@ -189,7 +190,9 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException 
 	 * @throws SchemaException error converting object from the native (connector) format
 	 */
-	public void search(ResourceAttributeContainerDefinition objectClass, ResultHandler handler, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException;
+	public <T extends ResourceObjectShadowType> void search(Class<T> type, ResourceAttributeContainerDefinition objectClass,
+			ResultHandler<T> handler, OperationResult parentResult) 
+			throws CommunicationException, GenericFrameworkException, SchemaException;
 
 	/**
 	 * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not
@@ -215,7 +218,9 @@ public interface ConnectorInstance {
 	 * @return created object attributes. May be null.
 	 * @throws ObjectAlreadyExistsException object already exists on the resource
 	 */
-	public Set<ResourceAttribute> addObject(PrismObject<ResourceObjectShadowType> object, Set<Operation> additionalOperations, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException;
+	public Set<ResourceAttribute> addObject(PrismObject<ResourceObjectShadowType> object, Set<Operation> additionalOperations, 
+			OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, 
+			ObjectAlreadyExistsException;
 	
 	/**
 	 * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not

@@ -21,12 +21,18 @@ package com.evolveum.midpoint.schema.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 
@@ -37,6 +43,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
  * @author Radovan Semancik
  */
 public class ResourceObjectShadowUtil {
+	
+	public static Set<ResourceAttribute> getIdentifiers(PrismObject<? extends ResourceObjectShadowType> shadow) {
+		PrismContainer attributesContainer = shadow.asObjectable().getAttributes().asPrismContainer();
+		if (attributesContainer instanceof ResourceAttributeContainer) {
+			ResourceAttributeContainer rAttrContainer = (ResourceAttributeContainer)attributesContainer;
+			return rAttrContainer.getIdentifiers();
+		} else {
+			throw new SystemException("Expected that <attributes> will be ResourceAttributeContainer but it is "+attributesContainer.getClass());
+		}
+	}
 	
 	public static String getResourceOid(ResourceObjectShadowType shadow) {
 		if (shadow.getResourceRef() != null) {

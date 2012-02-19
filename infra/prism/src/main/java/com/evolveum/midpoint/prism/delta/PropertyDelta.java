@@ -68,20 +68,28 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
     Collection<PrismPropertyValue<Object>> valuesToAdd = null;
     Collection<PrismPropertyValue<Object>> valuesToDelete = null;
 
+    public PropertyDelta(PrismPropertyDefinition propertyDefinition) {
+        this.name = propertyDefinition.getName();
+        this.parentPath = new PropertyPath();
+        this.propertyDefinition = propertyDefinition;
+    }
+    
     public PropertyDelta(QName name, PrismPropertyDefinition propertyDefinition) {
         this.name = name;
         this.parentPath = new PropertyPath();
         this.propertyDefinition = propertyDefinition;
     }
 
-    public PropertyDelta(PropertyPath parentPath, QName name) {
+    public PropertyDelta(PropertyPath parentPath, QName name, PrismPropertyDefinition propertyDefinition) {
         this.name = name;
         this.parentPath = parentPath;
+        this.propertyDefinition = propertyDefinition;
     }
 
-    public PropertyDelta(PropertyPath propertyPath) {
+    public PropertyDelta(PropertyPath propertyPath, PrismPropertyDefinition propertyDefinition) {
         this.name = propertyPath.last().getName();
         this.parentPath = propertyPath.allExceptLast();
+        this.propertyDefinition = propertyDefinition;
     }
 
     public QName getName() {
@@ -103,9 +111,25 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
     public PropertyPath getPath() {
         return getParentPath().subPath(name);
     }
+    
+    PrismPropertyDefinition getPropertyDefinition() {
+		return propertyDefinition;
+	}
 
-    public boolean isReplace() {
+	void setPropertyDefinition(PrismPropertyDefinition propertyDefinition) {
+		this.propertyDefinition = propertyDefinition;
+	}
+
+	public boolean isReplace() {
         return (valuesToReplace != null);
+    }
+    
+    public boolean isAdd() {
+        return (valuesToAdd != null && !valuesToAdd.isEmpty());
+    }
+    
+    public boolean isDelete() {
+        return (valuesToDelete != null && !valuesToDelete.isEmpty());
     }
 
     public Collection<PrismPropertyValue<Object>> getValuesToAdd() {
@@ -148,6 +172,10 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         if (valuesToReplace != null && (valuesToAdd != null || valuesToDelete != null)) {
             throw new IllegalStateException("The delta cannot be both 'replace' and 'add/delete' at the same time");
         }
+    }
+    
+    public <T extends PrismProperty> T instantiateEmptyProperty() {
+    	return (T) getPropertyDefinition().instantiate(getName());
     }
     
 	public static <T extends Objectable> PropertyDelta createReplaceDelta(PrismObjectDefinition<T> objectDefinition,
@@ -267,22 +295,22 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         valuesToDelete.add(newValue);
     }
 
-    public void setValuesToReplace(Collection<PrismPropertyValue<Object>> newValues) {
+    public void setValuesToReplace(Collection<PrismPropertyValue<?>> newValues) {
         if (valuesToReplace == null) {
             valuesToReplace = newValueCollection();
         } else {
             valuesToReplace.clear();
         }
-        valuesToReplace.addAll(newValues);
+        valuesToReplace.addAll((Collection)newValues);
     }
     
-    public void setValueToReplace(PrismPropertyValue<Object> newValue) {
+    public void setValueToReplace(PrismPropertyValue<?> newValue) {
         if (valuesToReplace == null) {
             valuesToReplace = newValueCollection();
         } else {
             valuesToReplace.clear();
         }
-        valuesToReplace.add(newValue);
+        valuesToReplace.add((PrismPropertyValue<Object>) newValue);
     }
 
     public boolean isEmpty() {
@@ -344,7 +372,7 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
      * is applied.
      * Assumes "replace" delta.
      */
-    public PrismProperty getPropertyNew(PrismPropertyDefinition propertyDefinition, PropertyPath parentPath) {
+    public PrismProperty getPropertyNew() {
         if (valuesToAdd != null && valuesToDelete != null) {
             throw new IllegalStateException("Cannot fetch new property state, not a 'replace' delta");
         }

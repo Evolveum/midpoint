@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -28,8 +29,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import java.util.Set;
 
 /**
- * FIXME: this is somehow wrong. It is using concept of Shadow. Universal API should not use that.
- * But it works for now.
  * @author Radovan Semancik
  *
  */
@@ -38,8 +37,8 @@ public final class Change {
     private Set<ResourceAttribute> identifiers;
     private ObjectDelta<? extends ResourceObjectShadowType> objectDelta;
     private PrismProperty token;
-    private ResourceObjectShadowType oldShadow;
-    private ResourceObjectShadowType currentShadow;
+    private PrismObject<? extends ResourceObjectShadowType> oldShadow;
+    private PrismObject<? extends ResourceObjectShadowType> currentShadow;
 
     public Change(Set<ResourceAttribute> identifiers, ObjectDelta<? extends ResourceObjectShadowType> change, PrismProperty token) {
         this.identifiers = identifiers;
@@ -48,7 +47,7 @@ public final class Change {
         this.token = token;
     }
 
-    public Change(Set<ResourceAttribute> identifiers, ResourceObjectShadowType currentShadow, PrismProperty token) {
+    public Change(Set<ResourceAttribute> identifiers, PrismObject<? extends ResourceObjectShadowType> currentShadow, PrismProperty token) {
         this.identifiers = identifiers;
         this.objectDelta = null;
         this.currentShadow = currentShadow;
@@ -84,19 +83,19 @@ public final class Change {
 		this.token = token;
 	}
 
-	public ResourceObjectShadowType getOldShadow() {
+	public PrismObject<? extends ResourceObjectShadowType> getOldShadow() {
 		return oldShadow;
 	}
 
-	public void setOldShadow(ResourceObjectShadowType oldShadow) {
+	public void setOldShadow(PrismObject<? extends ResourceObjectShadowType> oldShadow) {
 		this.oldShadow = oldShadow;
 	}
 
-	public ResourceObjectShadowType getCurrentShadow() {
+	public PrismObject<? extends ResourceObjectShadowType> getCurrentShadow() {
 		return currentShadow;
 	}
 
-	public void setCurrentShadow(ResourceObjectShadowType currentShadow) {
+	public void setCurrentShadow(PrismObject<? extends ResourceObjectShadowType> currentShadow) {
 		this.currentShadow = currentShadow;
 	}
 	

@@ -94,6 +94,10 @@ public class PrismObjectDefinition<T extends Objectable> extends PrismContainerD
 		copyDefinitionData(clone);
 		return clone;
 	}
+	
+	public PrismObjectDefinition<T> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
+		return (PrismObjectDefinition<T>) super.cloneWithReplacedDefinition(itemName, newDefinition);
+	}
 
 	public void setExtensionDefinition(ComplexTypeDefinition extensionComplexTypeDefinition) {
 		QName extensionQName = getExtensionQName();

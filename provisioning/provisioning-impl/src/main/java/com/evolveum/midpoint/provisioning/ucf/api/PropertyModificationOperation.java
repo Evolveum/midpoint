@@ -32,16 +32,16 @@ public final class PropertyModificationOperation extends Operation {
 	
 	private PropertyDelta propertyDelta;
 	
-	PropertyModificationOperation(PropertyDelta propertyDelta) {
+	public PropertyModificationOperation(PropertyDelta propertyDelta) {
 		super();
 		this.propertyDelta = propertyDelta;
 	}
 
-	PropertyDelta getPropertyDelta() {
+	public PropertyDelta getPropertyDelta() {
 		return propertyDelta;
 	}
 
-	void setPropertyDelta(PropertyDelta propertyDelta) {
+	public void setPropertyDelta(PropertyDelta propertyDelta) {
 		this.propertyDelta = propertyDelta;
 	}
 

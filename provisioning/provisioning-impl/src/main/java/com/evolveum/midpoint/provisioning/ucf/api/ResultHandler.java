@@ -19,7 +19,8 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 
 /**
  * Classes implementing this interface are used to handle iterative results.
@@ -29,13 +30,13 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
  * 
  * @author Radovan Semancik
  */
-public interface ResultHandler {
+public interface ResultHandler<T extends ResourceObjectShadowType> {
 
     /**
      * Handle a single result.
      * @param object Resource object to process.
      * @return true if the operation shoudl proceed, false if it should stop
      */
-    public boolean handle(ResourceAttributeContainer object);
+    public boolean handle(PrismObject<T> object);
     
 }

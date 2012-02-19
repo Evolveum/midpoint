@@ -246,8 +246,7 @@ public class PrismContainerDefinition extends ItemDefinition {
         }
         return props;
     }
-
-
+    
     public boolean isRuntimeSchema() {
         return isRuntimeSchema;
     }
@@ -290,6 +289,15 @@ public class PrismContainerDefinition extends ItemDefinition {
         super.copyDefinitionData(clone);
         clone.complexTypeDefinition = this.complexTypeDefinition;
         clone.isRuntimeSchema = this.isRuntimeSchema;
+    }
+    
+    public PrismContainerDefinition cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
+    	PrismContainerDefinition clone = clone();
+    	ComplexTypeDefinition originalComplexTypeDefinition = getComplexTypeDefinition();
+        ComplexTypeDefinition cloneComplexTypeDefinition = originalComplexTypeDefinition.clone();
+        clone.setComplexTypeDefinition(cloneComplexTypeDefinition);
+        cloneComplexTypeDefinition.replaceDefinition(itemName, newDefinition);
+        return clone;
     }
 
     /**
