@@ -76,6 +76,7 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_SET_CONTAINER = "setContainer";
     private static final String METHOD_GET_CONTAINER_NAME = "getContainerName";
     private static final String METHOD_AS_PRISM_OBJECT = "asPrismObject";
+    private static final String METHOD_AS_PRISM_CONTAINER_VALUE = "asPrismContainerValue";
     private static final String METHOD_AS_PRISM_CONTAINER = "asPrismContainer";
     //methods in PrismForJAXBUtil
     private static final String METHOD_PRISM_GET_PROPERTY_VALUE = "getPropertyValue";
@@ -112,7 +113,7 @@ public class SchemaProcessor implements Processor {
                     String.class, Object.class, XmlTransient.class, Override.class, IllegalArgumentException.class,
                     QName.class, PrismForJAXBUtil.class, PrismReferenceArrayList.class, PrismContainerValue.class,
                     List.class, Objectable.class, StringBuilder.class, XmlAccessorType.class, XmlElement.class,
-                    XmlAttribute.class, XmlAnyAttribute.class, XmlAnyElement.class);
+                    XmlAttribute.class, XmlAnyAttribute.class, XmlAnyElement.class, PrismContainer.class);
 
             StepSchemaConstants stepSchemaConstants = new StepSchemaConstants();
             stepSchemaConstants.run(outline, options, errorHandler);
@@ -252,6 +253,7 @@ public class SchemaProcessor implements Processor {
             createGetContainerValueMethod(classOutline, container);
             //create asPrismContainer
             createAsPrismContainer(definedClass);
+            createAsPrismContainerValue(definedClass);
             //create setContainer
             createSetContainerValueMethod(definedClass, container);
 
@@ -266,8 +268,17 @@ public class SchemaProcessor implements Processor {
     }
 
     private void createAsPrismContainer(JDefinedClass definedClass) {
-        JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismContainerValue.class),
+        JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismContainer.class),
                 METHOD_AS_PRISM_CONTAINER);
+
+        //create method body
+        JBlock body = getContainer.body();
+        body._return(JExpr.invoke(JExpr.invoke(METHOD_GET_CONTAINER), "getParent"));
+    }
+
+    private void createAsPrismContainerValue(JDefinedClass definedClass) {
+        JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismContainerValue.class),
+                METHOD_AS_PRISM_CONTAINER_VALUE);
 
         //create method body
         JBlock body = getContainer.body();
