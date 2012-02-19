@@ -124,6 +124,20 @@ public class PrismContainer extends Item {
     	getValues().add(pValue);
     }
     
+    /**
+     * Convenience method. Works only on single-valued containers.
+     */
+    public void add(Item item) {
+    	getValue().add(item);
+    }
+    
+    /**
+     * Convenience method. Works only on single-valued containers.
+     */
+    public void remove(Item item) {
+    	getValue().remove(item);
+    }
+    
     public PrismContainerValue createNewValue() {
     	PrismContainerValue pValue = new PrismContainerValue();
     	add(pValue);

@@ -55,7 +55,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationTy
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
@@ -240,7 +239,7 @@ public class ResourceTypeManager {
 				.createSubresult(ConnectorTestOperation.CONFIGURATION_VALIDATION.getOperation());
 
 		try {
-			connector.configure(resourceType.getConfiguration(), configResult);
+			connector.configure(resourceType.getConfiguration().asPrismContainer(), configResult);
 			configResult.recordSuccess();
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
 			configResult.recordFatalError("Communication error", e);
@@ -340,29 +339,28 @@ public class ResourceTypeManager {
 				// same attribute both from
 				// activation/enable and from the attribute using its native
 				// name.
-				ResourceAttributeContainerDefinition accountDefinition = resourceSchema.findAccountDefinition();
-				ResourceAttributeDefinition attributeDefinition = accountDefinition
-						.findAttributeDefinition(attributeName);
-				if (attributeDefinition != null) {
-					attributeDefinition.setIgnored(true);
-				} else {
-					// simulated activation attribute points to something that
-					// is not in the schema
-					// technically, this is an error. But it looks to be quite
-					// common in connectors.
-					// The enable/disable is using operational attributes that
-					// are not exposed in the
-					// schema, but they work if passed to the connector.
-					// Therefore we don't want to break anything. We could log
-					// an warning here, but the
-					// warning would be quite frequent. Maybe a better place to
-					// warn user would be import
-					// of the object.
-					LOGGER.debug("Simulated activation attribute "
-							+ attributeName
-							+ " in "
-							+ ObjectTypeUtil.toShortString(resource)
-							+ " does not exist in the resource schema. This may work well, but it is not clean. Connector exposing such schema should be fixed.");
+				for (ResourceAttributeContainerDefinition objectClassDefinition: resourceSchema.getDefinitions(ResourceAttributeContainerDefinition.class)) {
+					ResourceAttributeDefinition attributeDefinition = objectClassDefinition
+							.findAttributeDefinition(attributeName);
+					if (attributeDefinition != null) {
+						attributeDefinition.setIgnored(true);
+					} else {
+						// simulated activation attribute points to something that
+						// is not in the schema
+						// technically, this is an error. But it looks to be quite
+						// common in connectors.
+						// The enable/disable is using operational attributes that
+						// are not exposed in the
+						// schema, but they work if passed to the connector.
+						// Therefore we don't want to break anything. We could log
+						// an warning here, but the
+						// warning would be quite frequent. Maybe a better place to
+						// warn user would be import
+						// of the object.
+						LOGGER.debug("Simulated activation attribute " + attributeName + " for objectclass " +  objectClassDefinition.getTypeName() +
+								" in " + ObjectTypeUtil.toShortString(resource)
+								+ " does not exist in the resource schema. This may work well, but it is not clean. Connector exposing such schema should be fixed.");
+					}
 				}
 			}
 		}

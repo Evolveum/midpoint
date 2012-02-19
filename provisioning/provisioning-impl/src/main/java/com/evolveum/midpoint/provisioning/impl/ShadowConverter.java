@@ -25,6 +25,8 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
@@ -128,20 +130,8 @@ public class ShadowConverter {
 			LOGGER.trace("Resource object fetched from resource:\n{}", resourceShadow.asPrismObject().dump());
 		}
 
-		if (repoShadow instanceof AccountShadowType) {
-			// convert resource activation attribute to the <activation>
-			// attribute
-			// of shadow
-			ActivationType activationType = ShadowCacheUtil.completeActivation(resourceShadow, resource, parentResult);
-			if (activationType != null) {
-				LOGGER.trace("Determined activation: {}", activationType.isEnabled());
-				((AccountShadowType) repoShadow).setActivation(activationType);
-			}
-
-		}
-
 		// Complete the shadow by adding attributes from the resource object
-		T resultShadow = resourceTypeManager.assembleShadow(resourceShadow, repoShadow, parentResult);
+		T resultShadow = ShadowCacheUtil.completeShadow(resourceShadow, repoShadow, resource, parentResult);
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Shadow when assembled:\n", ObjectTypeUtil.dump(resultShadow));
@@ -186,7 +176,7 @@ public class ShadowConverter {
 						SchemaDebugUtil.prettyPrint(resourceAttributesAfterAdd));
 			}
 
-			addAllAttributesReplaceExisting(shadow, resourceAttributesAfterAdd);
+			applyAfterOperationAttributes(shadow, resourceAttributesAfterAdd);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
 			parentResult.recordFatalError(
 					"Error communitacing with the connector " + connector + ": " + ex.getMessage(), ex);
@@ -247,7 +237,7 @@ public class ShadowConverter {
 	}
 
 	public Set<PropertyModificationOperation> modifyShadow(ResourceType resource,
-			ResourceObjectShadowType shadow, Set<Operation> changes, ObjectModificationType objectChanges,
+			ResourceObjectShadowType shadow, Set<Operation> operations, ObjectDelta objectChanges,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
 			CommunicationException {
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
@@ -258,9 +248,9 @@ public class ShadowConverter {
 				.getObjectClass());
 		Collection<? extends ResourceAttribute> identifiers = ResourceObjectShadowUtil.getIdentifiers(shadow); 
 
-		Set<Operation> attributeChanges = getAttributeChanges(objectChanges, changes, objectClassDefinition);
+		Set<Operation> attributeChanges = getAttributeChanges(objectChanges, operations, objectClassDefinition);
 		if (attributeChanges != null) {
-			changes.addAll(attributeChanges);
+			operations.addAll(attributeChanges);
 		}
 		Set<PropertyModificationOperation> sideEffectChanges = null;
 		try {
@@ -269,11 +259,11 @@ public class ShadowConverter {
 				LOGGER.debug(
 						"Connector for resource {}\n MODIFY object, object class {}, identified by:\n{}\n changes:\n{}",
 						new Object[] { ObjectTypeUtil.toShortString(resource), shadow.getObjectClass(),
-								SchemaDebugUtil.debugDump(identifiers), SchemaDebugUtil.debugDump(changes) });
+								SchemaDebugUtil.debugDump(identifiers), SchemaDebugUtil.debugDump(operations) });
 			}
 
 			// Invoke ICF
-			sideEffectChanges = connector.modifyObject(objectClassDefinition, identifiers, changes, parentResult);
+			sideEffectChanges = connector.modifyObject(objectClassDefinition, identifiers, operations, parentResult);
 
 			LOGGER.debug("Connector MODIFY successful, side-effect changes {}",
 					SchemaDebugUtil.debugDump(sideEffectChanges));
@@ -334,7 +324,7 @@ public class ShadowConverter {
 		LOGGER.trace("Shadow cache, fetch changes");
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
-		PrismSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource);
+		PrismSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		ResourceAttributeContainerDefinition objectClass = resourceSchema.findAccountDefinition();
 
 		// get changes from the connector
@@ -369,8 +359,9 @@ public class ShadowConverter {
 		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) schema
 				.findContainerDefinitionByType(new QName(resource.getNamespace(), "AccountObjectClass"));
 
+		ResourceObjectShadowType shadow = null;
 		try {
-			resourceObject = fetchResourceObject(rod, change.getIdentifiers(), connector, resource,
+			shadow = fetchResourceObject(ResourceObjectShadowType.class, rod, change.getIdentifiers(), connector, resource,
 					parentResult);
 		} catch (ObjectNotFoundException ex) {
 			parentResult
@@ -378,11 +369,8 @@ public class ShadowConverter {
 			LOGGER.warn("Object detected in change log no longer exist on the resource. Skipping processing this object " + ex.getMessage());
 			return null;
 		}
-		ResourceObjectShadowType shadow = null;
 		try {
-			// shadow = ShadowCacheUtil.createShadow(resourceObject, resource,
-			// null);
-			// change.setOldShadow(shadow);
+
 			shadow = ShadowCacheUtil.createRepositoryShadow(shadow, resource);
 
 		} catch (SchemaException ex) {
@@ -436,43 +424,32 @@ public class ShadowConverter {
 
 	}
 
-	/**
-	 * @param resource
-	 * @param parentResult
-	 * @return
-	 * @throws SchemaException
-	 * @throws ObjectNotFoundException
-	 * @throws CommunicationException
-	 */
+	private void applyAfterOperationAttributes(ResourceObjectShadowType shadow,
+			Set<ResourceAttribute> resourceAttributesAfterOperation) {
+		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
+		for (ResourceAttribute attributeAfter: resourceAttributesAfterOperation) {
+			ResourceAttribute attributeBefore = attributesContainer.findAttribute(attributeAfter.getName());
+			if (attributeBefore != null) {
+				attributesContainer.remove(attributeBefore);
+			}
+			attributesContainer.add(attributeAfter);
+		}
+	}
+	
 	private ConnectorInstance getConnectorInstance(ResourceType resource, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException {
 		return connectorTypeManager.getConfiguredConnectorInstance(resource, parentResult);
 	}
 
 
-	private Set<Operation> getAttributeChanges(ObjectModificationType objectChange, Set<Operation> changes,
+	private Set<Operation> getAttributeChanges(ObjectDelta objectChange, Set<Operation> changes,
 			ResourceAttributeContainerDefinition rod) throws SchemaException {
 		if (changes == null) {
 			changes = new HashSet<Operation>();
 		}
-		for (PropertyModificationType modification : objectChange.getPropertyModification()) {
-
-			if (modification.getPath() == null) {
-				throw new IllegalArgumentException("Path to modificated attributes is null.");
-			}
-
-			if (modification.getPath().getTextContent().contains(SchemaConstants.I_ATTRIBUTES.getLocalPart())) {
-
-				Set<ResourceAttribute> changedProperties = rod.parseAttributes(modification.getValue()
-						.getAny());
-				for (PrismProperty p : changedProperties) {
-
-					PropertyModificationOperation attributeModification = new PropertyModificationOperation();
-					attributeModification.setChangeType(modification.getModificationType());
-					attributeModification.setNewAttribute(p);
-					changes.add(attributeModification);
-				}
-			}
+		for (PropertyDelta propDelta : objectChange.getModifications()) {
+			PropertyModificationOperation attributeModification = new PropertyModificationOperation(propDelta);
+			changes.add(attributeModification);
 		}
 		return changes;
 	}

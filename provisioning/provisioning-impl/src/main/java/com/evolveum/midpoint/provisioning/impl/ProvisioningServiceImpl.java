@@ -34,6 +34,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -201,7 +202,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			ResourceObjectShadowType shadow = null;
 			try {
-				shadow = getShadowCache().getShadow(oid, (ResourceObjectShadowType) (repositoryObject.getObjectable()), result);
+				
+				shadow = getShadowCache().getShadow((Class<ResourceObjectShadowType>)type, oid, 
+						(ResourceObjectShadowType) (repositoryObject.asObjectable()), result);
 				// if (LOGGER.isTraceEnabled()) {
 				// LOGGER.trace("**PROVISIONING: Got shadow object {}",
 				// JAXBUtil.silentMarshalWrap(shadow));
@@ -224,16 +227,16 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			result.recordSuccess();
 			// LOGGER.trace("Get object finished.");
-			return shadow.getContainer();
+			return shadow.asPrismObject();
 
 		} else if (repositoryObject.canRepresent(ResourceType.class)) {
 			// Make sure that the object is complete, e.g. there is a (fresh)
 			// schema
 			try {
 				ResourceType completeResource = getResourceTypeManager().completeResource(
-						(ResourceType) repositoryObject.getObjectable(), null, result);
+						(ResourceType) repositoryObject.asObjectable(), null, result);
 				result.computeStatus("Resource retrieval failed");
-				return completeResource.getContainer();
+				return completeResource.asPrismObject();
 			} catch (ObjectNotFoundException ex) {
 				result.recordFatalError("Resource object not found", ex);
 				throw ex;
@@ -272,7 +275,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		if (object.canRepresent(ResourceObjectShadowType.class)) {
 			try {
 				// calling shadow cache to add object
-				oid = getShadowCache().addShadow((ResourceObjectShadowType) object.getObjectable(), scripts, null, result);
+				oid = getShadowCache().addShadow((ResourceObjectShadowType) object.asObjectable(), scripts, null, result);
 				LOGGER.trace("**PROVISIONING: Added shadow object {}", oid);
 				result.recordSuccess();
 			} catch (GenericFrameworkException ex) {
@@ -316,7 +319,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			PrismObject<ResourceType> resourceObject = getObject(ResourceType.class, resourceOid,
 					new PropertyReferenceListType(), result);
 
-			ResourceType resourceType = resourceObject.getObjectable();
+			ResourceType resourceType = resourceObject.asObjectable();
 
 			LOGGER.trace("**PROVISIONING: Start synchronization of resource {} ",
 					SchemaDebugUtil.prettyPrint(resourceType));
@@ -500,7 +503,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 
 		if (ResourceType.class.equals(objectType)) {
-			ResultList<PrismObject<T>> newObjListType = new ResultArrayList<T>();
+			ResultList<PrismObject<T>> newObjListType = new ResultArrayList<PrismObject<T>>();
 			for (PrismObject<T> obj : objListType) {
 				OperationResult objResult = new OperationResult(ProvisioningService.class.getName()
 						+ ".listObjects.object");
@@ -509,15 +512,15 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 				try {
 
-					completeResource = getResourceTypeManager().completeResource(resource.getObjectable(), null, objResult);
-					newObjListType.add(completeResource.getContainer());
+					completeResource = getResourceTypeManager().completeResource(resource.asObjectable(), null, objResult);
+					newObjListType.add(completeResource.asPrismObject());
 					// TODO: what do to with objResult??
 
 				} catch (ObjectNotFoundException e) {
 					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
 							resource, e.getMessage(), e });
 					objResult.recordFatalError(e);
-					obj.getObjectable().setFetchResult(objResult.createOperationResultType());
+					obj.asObjectable().setFetchResult(objResult.createOperationResultType());
 					newObjListType.add(obj);
 					result.addSubresult(objResult);
 					result.recordPartialError(e);
@@ -526,7 +529,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
 							resource, e.getMessage(), e });
 					objResult.recordFatalError(e);
-					obj.getObjectable().setFetchResult(objResult.createOperationResultType());
+					obj.asObjectable().setFetchResult(objResult.createOperationResultType());
 					newObjListType.add(obj);
 					result.addSubresult(objResult);
 					result.recordPartialError(e);
@@ -535,7 +538,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
 							resource, e.getMessage(), e });
 					objResult.recordFatalError(e);
-					obj.getObjectable().setFetchResult(objResult.createOperationResultType());
+					obj.asObjectable().setFetchResult(objResult.createOperationResultType());
 					newObjListType.add(obj);
 					result.addSubresult(objResult);
 					result.recordPartialError(e);
@@ -551,7 +554,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					LOGGER.error("System error while completing {}: {}. Using non-complete resource.",
 							new Object[] { resource, e.getMessage(), e });
 					objResult.recordFatalError(e);
-					obj.getObjectable().setFetchResult(objResult.createOperationResultType());
+					obj.asObjectable().setFetchResult(objResult.createOperationResultType());
 					newObjListType.add(obj);
 					result.addSubresult(objResult);
 					result.recordPartialError(e);
@@ -574,12 +577,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		final ResultList<PrismObject<T>> objListType = new ResultArrayList<PrismObject<T>>();
 
-		final ResultHandler handler = new ResultHandler() {
+		final ResultHandler<T> handler = new ResultHandler<T>() {
 
 			@SuppressWarnings("unchecked")
 			@Override
-			public boolean handle(ObjectType object, OperationResult parentResult) {
-				return objListType.add(object.getContainer());
+			public boolean handle(PrismObject<T> object, OperationResult parentResult) {
+				return objListType.add(object);
 			}
 		};
 
@@ -604,7 +607,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		LOGGER.trace("**PROVISIONING: Start to modify object.");
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("*PROVISIONING: Object change: {}", JAXBUtil.silentMarshalWrap(objectChange));
+			LOGGER.trace("*PROVISIONING: Object change:\n{}", objectChange.dump());
 		}
 
 		if (objectChange == null || objectChange.getOid() == null) {
@@ -624,7 +627,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		try {
 
 			// calling shadow cache to modify object
-			getShadowCache().modifyShadow(object.getObjectable(), null, objectChange, scripts, parentResult);
+			getShadowCache().modifyShadow(object.asObjectable(), null, objectChange, scripts, parentResult);
 			result.recordSuccess();
 
 		} catch (CommunicationException e) {
@@ -644,7 +647,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throw new SystemException("Internal error: " + e.getMessage(), e);
 		}
 
-		LOGGER.trace("Finished modifying of object with oid {}", objectType.getOid());
+		LOGGER.trace("Finished modifying of object with oid {}", objectChange.getOid());
 	}
 
 	@Override
@@ -681,7 +684,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		if (object.canRepresent(ResourceObjectShadowType.class)) {
 
 			try {
-				getShadowCache().deleteShadow(object.getObjectable(), scripts, null, parentResult);
+				getShadowCache().deleteShadow(object.asObjectable(), scripts, null, parentResult);
 				result.recordSuccess();
 			} catch (CommunicationException e) {
 				result.recordFatalError(e.getMessage());
@@ -739,7 +742,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			PrismObject<ResourceType> resource = getCacheRepositoryService().getObject(ResourceType.class, resourceOid,
 					new PropertyReferenceListType(), parentResult);
 
-			resourceType = resource.getObjectable();
+			resourceType = resource.asObjectable();
 			resourceTypeManager.testConnection(resourceType, parentResult);
 
 		} catch (ObjectNotFoundException ex) {
@@ -783,7 +786,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throw new ObjectNotFoundException(e.getMessage(), e);
 		}
 
-		final ResultList<PrismObject<ResourceObjectShadowType>> objectList = new ResultArrayList<PrismObject<ResourceObjectShadowType>>();
+		final ResultList<PrismObject<? extends ResourceObjectShadowType>> objectList = new ResultArrayList<PrismObject<? extends ResourceObjectShadowType>>();
 
 		final ShadowHandler shadowHandler = new ShadowHandler() {
 			@Override
@@ -792,12 +795,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					LOGGER.trace("listResourceObjects: processing shadow: {}", SchemaDebugUtil.prettyPrint(shadow));
 				}
 
-				objectList.add(shadow.getContainer());
+				objectList.add(shadow.asPrismObject());
 				return true;
 			}
 		};
 
-		resourceTypeManager.listShadows(resource.getObjectable(), objectClass, shadowHandler, false, result);
+		resourceTypeManager.listShadows(resource.asObjectable(), objectClass, shadowHandler, false, result);
 
 		return objectList;
 	}
@@ -810,7 +813,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		Validate.notNull(query, "Search query must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
-		LOGGER.trace("Start to search object. Query {}", JAXBUtil.silentMarshalWrap(query));
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Start to search object. Query {}", QueryUtil.dump(query));
+		}
 
 		final OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".searchObjectsIterative");
@@ -886,7 +891,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 				OperationResult accountResult = result.createSubresult(ProvisioningService.class.getName()
 						+ ".searchObjectsIterative.handle");
-				boolean doContinue = handler.handle(shadowType.getContainer(), accountResult);
+				boolean doContinue = handler.handle(shadowType.asContainer(), accountResult);
 				accountResult.computeStatus();
 				
 				if (!accountResult.isSuccess()) {

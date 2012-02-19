@@ -24,11 +24,15 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -51,6 +55,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
+import javax.xml.namespace.QName;
 
 /**
  * This class manages the "cache" of ResourceObjectShadows in the repository.
@@ -135,7 +141,7 @@ public class ShadowCache {
 	 * @throws SchemaException
 	 *             problem processing schema or schema violation
 	 */
-	public ResourceObjectShadowType getShadow(String oid, ResourceObjectShadowType repositoryShadow,
+	public <T extends ResourceObjectShadowType> T getShadow(Class<T> type, String oid, T repositoryShadow,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 			SchemaException {
 
@@ -150,7 +156,7 @@ public class ShadowCache {
 		// for accessing the object by UCF.
 		// Later, the repository object may have a fully cached object from.
 		if (repositoryShadow == null) {
-			 PrismObject<ResourceObjectShadowType> repositoryPrism = getRepositoryService().getObject(ResourceObjectShadowType.class, oid, null,
+			 PrismObject<T> repositoryPrism = getRepositoryService().getObject(type, oid, null,
 					parentResult);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Found shadow object:\n{}", repositoryPrism.dump());
@@ -169,9 +175,9 @@ public class ShadowCache {
 
 		LOGGER.trace("Getting fresh object from ucf.");
 
-		ResourceObjectShadowType resultShadow = null;
+		T resultShadow = null;
 		try {
-			resultShadow = shadowConverter.getShadow(resource, repositoryShadow, parentResult);
+			resultShadow = shadowConverter.getShadow(type, resource, repositoryShadow, parentResult);
 		} catch (ObjectNotFoundException ex) {
 			// TODO: Discovery
 			parentResult.recordFatalError("Object " + ObjectTypeUtil.toShortString(repositoryShadow)
@@ -328,6 +334,8 @@ public class ShadowCache {
 				resource = getResource(ResourceObjectShadowUtil.getResourceOid(shadow), parentResult);
 
 			}
+			
+			ResourceAttributeContainerDefinition objectClassDefinition = ResourceObjectShadowUtil.getObjectClassDefinition(shadow);;
 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Modifying resource with oid {}, object:\n{}", resource.getOid(), 
@@ -342,8 +350,9 @@ public class ShadowCache {
 				if (passwordChangeOp != null) {
 					changes.add(passwordChangeOp);
 				}
+				
 				// look for activation change
-				Operation activationOperation = determineActivationChange(objectChange, resource);
+				Operation activationOperation = determineActivationChange(objectChange, resource, objectClassDefinition);
 				if (activationOperation != null) {
 					changes.add(activationOperation);
 				}
@@ -420,7 +429,7 @@ public class ShadowCache {
 //				 newShadow == null){
 //				
 
-				change.setOldShadow(newShadow);
+				change.setOldShadow(newShadow.asPrismObject());
 				
 				//skip setting other attribute when shadow is null
 				if (newShadow == null) {
@@ -429,12 +438,13 @@ public class ShadowCache {
 
 				// FIXME: hack. make sure that the current shadow has OID
 				// and resource ref, also the account type should be set
-				if (change.getCurrentShadow() != null) {
-					change.getCurrentShadow().setOid(newShadow.getOid());
-					change.getCurrentShadow().setResourceRef(newShadow.getResourceRef());
-					if (change.getCurrentShadow() instanceof AccountShadowType
+				ResourceObjectShadowType currentShadowType = change.getCurrentShadow().asObjectable();
+				if (currentShadowType != null) {
+					currentShadowType.setOid(newShadow.getOid());
+					currentShadowType.setResourceRef(newShadow.getResourceRef());
+					if (currentShadowType instanceof AccountShadowType
 							&& newShadow instanceof AccountShadowType) {
-						((AccountShadowType) change.getCurrentShadow())
+						((AccountShadowType) currentShadowType)
 								.setAccountType(((AccountShadowType) newShadow).getAccountType());
 					}
 				}
@@ -510,27 +520,40 @@ public class ShadowCache {
 		}
 	}
 
-	private PropertyModificationOperation convertToActivationAttribute(ResourceType resource, Boolean enabled)
-			throws SchemaException {
+	private PropertyModificationOperation convertToActivationAttribute(ResourceType resource, Boolean enabled, 
+			ResourceAttributeContainerDefinition objectClassDefinition) throws SchemaException {
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
 		if (activationCapability == null) {
 			throw new SchemaException("Resource " + ObjectTypeUtil.toShortString(resource)
 					+ " does not have native or simulated activation capability");
 		}
-		if (activationCapability.getEnableDisable() == null) {
+		
+		EnableDisable enableDisable = activationCapability.getEnableDisable();
+		if (enableDisable == null) {
 			throw new SchemaException("Resource " + ObjectTypeUtil.toShortString(resource)
 					+ " does not have native or simulated activation/enableDisable capability");
 		}
-		if (activationCapability.getEnableDisable().getAttribute() == null) {
+
+		QName enableAttributeName = enableDisable.getAttribute();
+		if (enableAttributeName == null) {
 			throw new SchemaException(
-					"Resource "
-							+ ObjectTypeUtil.toShortString(resource)
+					"Resource " + ObjectTypeUtil.toShortString(resource)
 							+ " does not have attribute specification for simulated activation/enableDisable capability");
 		}
-		PropertyModificationOperation attributeChange = new PropertyModificationOperation();
-		EnableDisable enableDisable = activationCapability.getEnableDisable();
-		PrismProperty property = new PrismProperty(enableDisable.getAttribute(), null, null, null);
+		
+		ResourceAttributeDefinition enableAttributeDefinition = objectClassDefinition.findAttributeDefinition(enableAttributeName);
+		if (enableAttributeDefinition == null) {
+			throw new SchemaException(
+					"Resource " + ObjectTypeUtil.toShortString(resource)
+							+ "  attribute for simulated activation/enableDisable capability" + enableAttributeName +
+							" in not present in the schema for objeclass " + objectClassDefinition);
+		}
+		
+		PropertyDelta enableAttributeDelta 
+			= new PropertyDelta(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, enableAttributeName),
+					enableAttributeDefinition);
+		
 		List<String> enableValues = enableDisable.getEnableValue();
 
 		Iterator<String> i = enableValues.iterator();
@@ -544,20 +567,23 @@ public class ShadowCache {
 		}
 		String disableValue = enableDisable.getDisableValue().iterator().next();
 		if (enabled) {
-			property.setValue(new PrismPropertyValue(enableValue));
+			enableAttributeDelta.setValueToReplace(new PrismPropertyValue(enableValue));
 		} else {
-			property.setValue(new PrismPropertyValue(disableValue));
+			enableAttributeDelta.setValueToReplace(new PrismPropertyValue(disableValue));
 		}
-		// property.setValue(String.valueOf(!enabled));
-		attributeChange.setNewAttribute(property);
-		attributeChange.setChangeType(PropertyModificationTypeType.replace);
+		
+		PropertyModificationOperation attributeChange = new PropertyModificationOperation(enableAttributeDelta);
 		return attributeChange;
 	}
 
-	private Operation determineActivationChange(ObjectDelta objectChange, ResourceType resource)
-			throws SchemaException {
-		Boolean enabled = ObjectTypeUtil.getPropertyNewValue(objectChange, "activation", "enabled",
-				Boolean.class);
+	private Operation determineActivationChange(ObjectDelta objectChange, ResourceType resource,
+			ResourceAttributeContainerDefinition objectClassDefinition) throws SchemaException {
+		PropertyDelta enabledPropertyDelta 
+			= objectChange.getPropertyDelta(new PropertyPath(ResourceObjectShadowType.F_ACTIVATION, ActivationType.F_ENABLED));
+		if (enabledPropertyDelta == null) {
+			return null;
+		}
+		Boolean enabled = enabledPropertyDelta.getPropertyNew().getRealValue(Boolean.class);
 		LOGGER.trace("Find activation change to: {}", enabled);
 
 		if (enabled != null) {
@@ -567,15 +593,12 @@ public class ShadowCache {
 				// if resource cannot do activation, resource should
 				// have specified policies to do that
 				PropertyModificationOperation activationAttribute = convertToActivationAttribute(resource,
-						enabled);
+						enabled, objectClassDefinition);
 				// changes.add(activationAttribute);
 				return activationAttribute;
 			} else {
-				// if resource can do activation, pass it to the
-				// connector
-
-				ActivationChangeOperation activationOp = new ActivationChangeOperation(enabled);
-				return activationOp;
+				// Navive activation, nothing special to do
+				return new PropertyModificationOperation(enabledPropertyDelta);
 			}
 
 		}
@@ -585,8 +608,14 @@ public class ShadowCache {
 	private PasswordChangeOperation determinePasswordChange(ObjectDelta objectChange,
 			ResourceObjectShadowType objectType) throws SchemaException {
 		// Look for password change
-		PasswordType newPasswordStructure = ObjectTypeUtil.getPropertyNewValue(objectChange, "credentials",
-				"password", PasswordType.class);
+		
+		PropertyDelta passwordPropertyDelta 
+			= objectChange.getPropertyDelta(new PropertyPath(AccountShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD));
+		if (passwordPropertyDelta == null) {
+			return null;
+		}
+		PasswordType newPasswordStructure = passwordPropertyDelta.getPropertyNew().getRealValue(PasswordType.class);
+		
 		PasswordChangeOperation passwordChangeOp = null;
 		if (newPasswordStructure != null) {
 			ProtectedStringType newPasswordPS = newPasswordStructure.getProtectedString();
@@ -607,7 +636,7 @@ public class ShadowCache {
 			CommunicationException, GenericFrameworkException {
 
 		// Try to locate existing shadow in the repository
-		List<AccountShadowType> accountList = searchAccountByIdenifiers(change, parentResult);
+		List<PrismObject<AccountShadowType>> accountList = searchAccountByIdenifiers(change, parentResult);
 
 		if (accountList.size() > 1) {
 			String message = "Found more than one account with the identifier " + change.getIdentifiers()
@@ -643,7 +672,7 @@ public class ShadowCache {
 		} else {
 			// Account was found in repository
 
-			newShadow = accountList.get(0);
+			newShadow = accountList.get(0).asObjectable();
 			// if the fetched change was one of the deletion type, delete
 			// corresponding account from repo now
 			// if (change.getObjectDelta() != null
@@ -667,12 +696,12 @@ public class ShadowCache {
 		return newShadow;
 	}
 
-	private List<AccountShadowType> searchAccountByIdenifiers(Change change, OperationResult parentResult)
+	private List<PrismObject<AccountShadowType>> searchAccountByIdenifiers(Change change, OperationResult parentResult)
 			throws SchemaException {
 
 		QueryType query = ShadowCacheUtil.createSearchShadowQuery(change.getIdentifiers(), parentResult);
 
-		List<AccountShadowType> accountList = null;
+		List<PrismObject<AccountShadowType>> accountList = null;
 		try {
 			accountList = getRepositoryService().searchObjects(AccountShadowType.class, query,
 					new PagingType(), parentResult);
@@ -689,9 +718,9 @@ public class ShadowCache {
 	private ResourceType getResource(String oid, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException {
 		// TODO: add some caching
-		ResourceType resource = getRepositoryService().getObject(ResourceType.class, oid, null, parentResult);
+		PrismObject<ResourceType> resource = getRepositoryService().getObject(ResourceType.class, oid, null, parentResult);
 		// return resource;
-		return shadowConverter.completeResource(resource, parentResult);
+		return shadowConverter.completeResource(resource.asObjectable(), parentResult);
 	}
 
 	private void addShadowToRepository(ResourceObjectShadowType shadow, OperationResult parentResult)
@@ -701,7 +730,7 @@ public class ShadowCache {
 		String oid = null;
 		try {
 
-			oid = getRepositoryService().addObject(shadow, parentResult);
+			oid = getRepositoryService().addObject(shadow.asPrismObject(), parentResult);
 
 		} catch (ObjectAlreadyExistsException ex) {
 			// This should not happen. The OID is not supplied and it is

@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -58,12 +59,22 @@ public class ResourceObjectShadowUtil {
 	
 	public static ResourceAttributeContainer getAttributesContainer(PrismObject<? extends ResourceObjectShadowType> shadow) {
 		PrismContainer attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		if (attributesContainer == null) {
+			return null;
+		}
 		if (attributesContainer instanceof ResourceAttributeContainer) {
 			return (ResourceAttributeContainer)attributesContainer;
 		} else {
 			throw new SystemException("Expected that <attributes> will be ResourceAttributeContainer but it is "+attributesContainer.getClass());
 		}
 	}
+	
+	public static ResourceAttributeContainerDefinition getObjectClassDefinition(ResourceObjectShadowType shadow) {
+		// TODO: maybe we can do something more intelligent here
+		ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
+		return attributesContainer.getDefinition();
+	}
+
 	
 	public static String getResourceOid(ResourceObjectShadowType shadow) {
 		if (shadow.getResourceRef() != null) {

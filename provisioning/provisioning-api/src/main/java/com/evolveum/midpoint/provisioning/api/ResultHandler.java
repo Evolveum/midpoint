@@ -31,13 +31,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
  * 
  * @author Radovan Semancik
  */
-public interface ResultHandler {
+public interface ResultHandler<T extends ObjectType> {
 
     /**
      * Handle a single result.
      * @param object Resource object to process.
      * @return true if the operation should proceed, false if it should stop
      */
-    public boolean handle(PrismObject<ObjectType> object, OperationResult parentResult);
+    public boolean handle(PrismObject<T> object, OperationResult parentResult);
     
 }

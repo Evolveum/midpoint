@@ -101,6 +101,7 @@ public class ShadowCacheUtil {
         // Activation
     	if (resourceShadow.getActivation() != null) {
         	ActivationType activationType = completeActivation(resourceShadow, resource, parentResult);
+			LOGGER.trace("Determined activation: {}", activationType.isEnabled());
 	        repoShadow.setActivation(activationType);
     	} else {
     		repoShadow.setActivation(null);
