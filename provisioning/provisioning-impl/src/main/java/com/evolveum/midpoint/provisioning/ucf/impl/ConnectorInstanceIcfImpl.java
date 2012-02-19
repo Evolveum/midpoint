@@ -25,6 +25,7 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -700,17 +701,18 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public Set<ResourceAttribute> addObject(ResourceAttributeContainer object, Set<Operation> additionalOperations,
+	public Set<ResourceAttribute> addObject(PrismObject<ResourceObjectShadowType> object, Set<Operation> additionalOperations,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			SchemaException, ObjectAlreadyExistsException {
 
+		ResourceAttributeContainer attributesContainer = object.asObjectable().getAttributes().asPrismContainer();
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".addObject");
 		result.addParam("resourceObject", object);
 		result.addParam("additionalOperations", additionalOperations);
 
 		// getting icf object class from resource object class
-		ObjectClass objectClass = objectClassToIcf(object.getDefinition());
+		ObjectClass objectClass = objectClassToIcf(object);
 
 		if (objectClass == null) {
 			result.recordFatalError("Couldn't get icf object class from resource definition.");
@@ -721,9 +723,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		Set<Attribute> attributes = null;
 		try {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("midPoint object before conversion:\n{}", object.dump());
+				LOGGER.trace("midPoint object before conversion:\n{}", attributesContainer.dump());
 			}
-			attributes = convertFromResourceObject(object.getAttributes(), result);
+			attributes = convertFromResourceObject(attributesContainer, result);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("ICF attributes after conversion:\n{}", IcfUtil.dump(attributes));
 			}
@@ -794,11 +796,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		ResourceAttribute attribute = setUidAttribute(uid);
-		object.addReplaceExisting(attribute);
+		attributesContainer.getValue().addReplaceExisting(attribute);
 		icfResult.recordSuccess();
 
 		result.recordSuccess();
-		return object.getAttributes();
+		return attributesContainer.getAttributes();
 	}
 
 	@Override
@@ -1379,6 +1381,18 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 	}
 
+	private ObjectClass objectClassToIcf(PrismObject<ResourceObjectShadowType> object) {
+		
+		ResourceObjectShadowType shadowType = object.asObjectable();
+		QName qnameObjectClass = shadowType.getObjectClass();
+		if (qnameObjectClass == null) {
+			ResourceAttributeContainerDefinition objectClassDefinition = shadowType.getAttributes().asPrismContainer();
+			qnameObjectClass = objectClassDefinition.getTypeName();
+		} 
+		
+		return objectClassToIcf(qnameObjectClass);
+	}
+	
 	/**
 	 * Maps a midPoint QName objctclass to the ICF native objectclass name.
 	 * <p/>
@@ -1387,8 +1401,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * <p/>
 	 * TODO: mind the special characters in the ICF objectclass names.
 	 */
-	private ObjectClass objectClassToIcf(ResourceAttributeContainerDefinition objectClass) {
-		QName qnameObjectClass = objectClass.getTypeName();
+	private ObjectClass objectClassToIcf(ResourceAttributeContainerDefinition objectClassDefinition) {
+		QName qnameObjectClass = objectClassDefinition.getTypeName();
+		return objectClassToIcf(qnameObjectClass);
+	}
+	
+	private ObjectClass objectClassToIcf(QName qnameObjectClass) {
 		if (!getSchemaNamespace().equals(qnameObjectClass.getNamespaceURI())) {
 			throw new IllegalArgumentException("ObjectClass QName " + qnameObjectClass
 					+ " is not in the appropriate namespace for "
@@ -1567,9 +1585,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	}
 
-	private Set<Attribute> convertFromResourceObject(Set<ResourceAttribute> resourceAttributes,
+	private Set<Attribute> convertFromResourceObject(ResourceAttributeContainer attributesPrism,
 			OperationResult parentResult) throws SchemaException {
 
+		Set<ResourceAttribute> resourceAttributes = attributesPrism.getAttributes();
+		
 		Set<Attribute> attributes = new HashSet<Attribute>();
 		if (resourceAttributes == null) {
 			// returning empty set

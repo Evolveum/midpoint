@@ -2115,7 +2115,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="emailAddress" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="eMailAddress" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 E-Mail address of the user. This is the address
@@ -4131,61 +4131,62 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="attributes">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Attribute values from the resource. The values may be freshly fetched from
-                                the resource or cached. The set of attributes may be empty, may provide a
-                                complete copy of the resource object or anything in between. This depends on
-                                the implementation of the caching and fetching strategy, configuration of the
-                                provisioning subsystem or operation that was invoked.
-
-                                While this object is stored, attibutes set will contain attribute values that
-                                are (persistently) cached from the resource.
-
-                                At the normal case there should be at least attributes that identify the
-                                resource object on the resouce (identifiers). This will be a single attribute
-                                in a normal case, something like uid, username, DN, etc. But if a single attribute
-                                is not enough to identify the account, more than one attribute may be present.
-
-                                There also may be no attributes. This can happen e.g. if IDM system knows that
-                                user should have account on the resource, but the account is not yet created
-                                and no identifier is yet assigned to it.
-
-                                This schema does not distinguish which attributes are idenfiers are which are
-                                ordinary attributes. That can be learned from the resource schema provided by
-                                resource or resource connector.
-
-                                Motivation: Resource schema is dynamic, the attribute that is identifier for a
-                                specific object may be different for different resources, even if the resources
-                                are of the same type (e.g. directory servers with different LDAP schema). And we
-                                do not really need to know which of the attributes is identifier in the compile-time.
-                                Knowing that in run-time is enough.
-
-                                Please note that this may be out of sync with regard to the resource. In some
-                                operations (e.g. lookup) it will be only milliseconds old, but in case of stored
-                                cached values this may be days or even weeks old value.
-
-                                Even though there is a single extensible element "attributes", we do not want to put
-                                its content directly to the body of resource object. Doing so will cause problems
-                                with UPA rule and it will effectively prohibit the the of type replacement extensibility
-                                on this object.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:container/>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
-                                </xsd:any>
-                            </xsd:sequence>
-                            <xsd:attribute name="id" type="xsd:string" use="optional"/>
-                        </xsd:complexType>
+                    <xsd:element name="attributes" type="tns:ResourceObjectShadowAttributesType" minOccurs="0">
                     </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:complexType name="ResourceObjectShadowAttributesType">
+    	<xsd:annotation>
+            <xsd:documentation>
+                Attribute values from the resource. The values may be freshly fetched from
+                the resource or cached. The set of attributes may be empty, may provide a
+                complete copy of the resource object or anything in between. This depends on
+                the implementation of the caching and fetching strategy, configuration of the
+                provisioning subsystem or operation that was invoked.
+
+                While this object is stored, attibutes set will contain attribute values that
+                are (persistently) cached from the resource.
+
+                At the normal case there should be at least attributes that identify the
+                resource object on the resouce (identifiers). This will be a single attribute
+                in a normal case, something like uid, username, DN, etc. But if a single attribute
+                is not enough to identify the account, more than one attribute may be present.
+
+                There also may be no attributes. This can happen e.g. if IDM system knows that
+                user should have account on the resource, but the account is not yet created
+                and no identifier is yet assigned to it.
+
+                This schema does not distinguish which attributes are idenfiers are which are
+                ordinary attributes. That can be learned from the resource schema provided by
+                resource or resource connector.
+
+                Motivation: Resource schema is dynamic, the attribute that is identifier for a
+                specific object may be different for different resources, even if the resources
+                are of the same type (e.g. directory servers with different LDAP schema). And we
+                do not really need to know which of the attributes is identifier in the compile-time.
+                Knowing that in run-time is enough.
+
+                Please note that this may be out of sync with regard to the resource. In some
+                operations (e.g. lookup) it will be only milliseconds old, but in case of stored
+                cached values this may be days or even weeks old value.
+
+                Even though there is a single extensible element "attributes", we do not want to put
+                its content directly to the body of resource object. Doing so will cause problems
+                with UPA rule and it will effectively prohibit the the of type replacement extensibility
+                on this object.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+	    <xsd:sequence>
+	        <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
+	        </xsd:any>
+	    </xsd:sequence>
+	    <xsd:attribute name="id" type="xsd:string" use="optional"/>
     </xsd:complexType>
 
     <xsd:complexType name="AccountShadowType">
