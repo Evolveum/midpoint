@@ -23,7 +23,6 @@ package com.evolveum.midpoint.schema.xjc;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-
 import org.apache.commons.lang.Validate;
 
 import java.util.AbstractList;
@@ -118,13 +117,29 @@ public class PropertyArrayList<T> extends AbstractList<T> {
 
     @Override
     public boolean remove(Object o) {
-        PrismPropertyValue<Object> value = getPropertyValue(i);
+        PrismPropertyValue<Object> value = null;
+        Iterator<PrismPropertyValue<Object>> iterator = property.getValues().iterator();
+        while (iterator.hasNext()) {
+            PrismPropertyValue prismValue = iterator.next();
+            if (o != null && o.equals(prismValue.getValue())) {
+                value = prismValue;
+                break;
+            } else if (o == null && prismValue.getValue() == null) {
+                value = prismValue;
+                break;
+            }
+        }
+
+        if (value == null) {
+            return false;
+        }
+
         return property.deleteValue(value);
     }
 
     @Override
     public boolean removeAll(Collection<?> objects) {
-        boolean changed =false;
+        boolean changed = false;
         for (Object object : objects) {
             if (!changed) {
                 changed = remove(object);
