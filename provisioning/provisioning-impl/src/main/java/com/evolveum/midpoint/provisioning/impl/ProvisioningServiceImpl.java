@@ -62,6 +62,7 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -589,43 +590,39 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectDelta<T> objectChange,
+	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<PropertyDelta> modifications,
 			ScriptsType scripts, OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException, CommunicationException {
 
-		Validate.notNull(objectChange, "Object change must not be null.");
+		Validate.notNull(oid, "OID must not be null.");
+		Validate.notNull(modifications, "Modifications must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".modifyObject");
-		result.addParam("objectChange", objectChange);
-		result.addParam(OperationResult.PARAM_OID, objectChange.getOid());
+		result.addParam("modifications", modifications);
+		result.addParam(OperationResult.PARAM_OID, oid);
 		result.addParam("scripts", scripts);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
 		LOGGER.trace("**PROVISIONING: Start to modify object.");
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("*PROVISIONING: Object change:\n{}", objectChange.dump());
-		}
-
-		if (objectChange == null || objectChange.getOid() == null) {
-			result.recordFatalError("Object change or object change oid cannot be null");
-			throw new IllegalArgumentException("Object change or object change oid cannot be null");
+			LOGGER.trace("*PROVISIONING: Object change:\n{}", DebugUtil.debugDump(modifications));
 		}
 
 		// getting object to modify
-		PrismObject<T> object = getCacheRepositoryService().getObject(type, objectChange.getOid(),
+		PrismObject<T> object = getCacheRepositoryService().getObject(type, oid,
 				new PropertyReferenceListType(), parentResult);
 
-		LOGGER.trace("**PROVISIONING: Modifying object with oid {}", objectChange.getOid());
 		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("**PROVISIONING: Modifying object with oid {}", oid);
 			LOGGER.trace("**PROVISIONING: Object to modify:\n{}.", object.dump());
 		}
 
 		try {
 
 			// calling shadow cache to modify object
-			getShadowCache().modifyShadow(object.asObjectable(), null, objectChange, scripts, parentResult);
+			getShadowCache().modifyShadow(object.asObjectable(), null, oid, modifications, scripts, parentResult);
 			result.recordSuccess();
 
 		} catch (CommunicationException e) {
@@ -645,7 +642,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throw new SystemException("Internal error: " + e.getMessage(), e);
 		}
 
-		LOGGER.trace("Finished modifying of object with oid {}", objectChange.getOid());
+		LOGGER.trace("Finished modifying of object with oid {}", oid);
 	}
 
 	@Override
@@ -893,11 +890,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				accountResult.computeStatus();
 				
 				if (!accountResult.isSuccess()) {
-					ObjectDelta shadowModificationType = ObjectDelta
-							.createModificationReplaceProperty(shadowType.getOid(), SchemaConstants.C_RESULT,
-									accountResult.createOperationResultType());
+					Collection<PropertyDelta> shadowModificationType = PropertyDelta.createModificationReplacePropertyCollection(
+							ResourceObjectShadowType.F_RESULT, accountResult.createOperationResultType());
 					try {
-						cacheRepositoryService.modifyObject(AccountShadowType.class, shadowModificationType,
+						cacheRepositoryService.modifyObject(AccountShadowType.class, shadowType.getOid(), shadowModificationType,
 								result);
 					} catch (ObjectNotFoundException ex) {
 						result.recordFatalError(
@@ -1041,7 +1037,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		ObjectDelta<ResourceObjectShadowType> shadowModification = 
 			(ObjectDelta<ResourceObjectShadowType>) createShadowResultModification(shadowChangeDescription, change, notifyChangeResult);
 		// maybe better error handling is needed
-		cacheRepositoryService.modifyObject(ResourceObjectShadowType.class, shadowModification, parentResult);
+		cacheRepositoryService.modifyObject(ResourceObjectShadowType.class, shadowModification.getOid(), 
+				shadowModification.getModifications(), parentResult);
 
 	}
 

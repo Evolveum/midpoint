@@ -19,11 +19,13 @@
  */
 package com.evolveum.midpoint.repo.cache;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -223,14 +225,14 @@ public class RepositoryCache implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectDelta<T> objectChange,
+	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<PropertyDelta> modifications,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		repository.modifyObject(type, objectChange, parentResult);
+		repository.modifyObject(type, oid, modifications, parentResult);
 		// this changes the object. We are too lazy to apply changes ourselves, so just invalidate
 		// the object in cache
 		Map<String, PrismObject<ObjectType>> cache = getCache();
 		if (cache != null) {
-			cache.remove(objectChange.getOid());
+			cache.remove(oid);
 		}
 	}
 

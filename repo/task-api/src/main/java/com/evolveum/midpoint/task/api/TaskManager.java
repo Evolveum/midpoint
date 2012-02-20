@@ -20,10 +20,12 @@
  */
 package com.evolveum.midpoint.task.api;
 
+import java.util.Collection;
 import java.util.Set;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -198,7 +200,7 @@ public interface TaskManager {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 */
-	public void modifyTask(ObjectDelta<TaskType> objectDelta, OperationResult parentResult)
+	public void modifyTask(String oid, Collection<PropertyDelta> modifications, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
 
 	/**

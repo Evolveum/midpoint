@@ -170,7 +170,7 @@ public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
 		ConnectorInstance cc = manager.createConnectorInstance(connectorType, resource.getNamespace());
 		assertNotNull("Failed to instantiate connector", cc);
 		OperationResult result = new OperationResult(SimpleUcfTest.class.getName() + ".testCreateConfiguredConnector");
-		cc.configure(resource.getConfiguration(), result);
+		cc.configure(resource.getConfiguration().asPrismContainer(), result);
 		result.computeStatus("test failed");
 		assertSuccess("Connector configuration failed", result);
 		// TODO: assert something

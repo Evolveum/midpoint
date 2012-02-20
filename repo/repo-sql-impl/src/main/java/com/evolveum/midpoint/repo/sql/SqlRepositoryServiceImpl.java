@@ -24,6 +24,7 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryProcessor;
 import com.evolveum.midpoint.schema.ResultArrayList;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -50,6 +52,7 @@ import org.springframework.stereotype.Repository;
 import java.lang.InstantiationException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -348,29 +351,28 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     }
 
     @Override
-    public <T extends ObjectType> void modifyObject(Class<T> type, ObjectDelta<T> delta, OperationResult result)
-            throws ObjectNotFoundException, SchemaException {
-        Validate.notNull(delta, "Object delta must not be null.");
-        Validate.notNull(delta.getObjectTypeClass(), "Object class in delta must not be null.");
-        Validate.notEmpty(delta.getOid(), "Oid in object delta must not null or empty.");
+    public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<PropertyDelta> modifications, 
+    		OperationResult result) throws ObjectNotFoundException, SchemaException {
+        Validate.notNull(modifications, "Modifications must not be null.");
+        Validate.notNull(type, "Object class in delta must not be null.");
+        Validate.notEmpty(oid, "Oid must not null or empty.");
         Validate.notNull(result, "Operation result must not be null.");
 
         LOGGER.debug("Modifying object '{}' with oid '{}'.",
-                new Object[]{delta.getObjectTypeClass().getSimpleName(), delta.getOid()});
+                new Object[]{type.getSimpleName(), oid});
 
         OperationResult subResult = result.createSubresult(MODIFY_OBJECT);
         Session session = null;
         try {
-            PrismObject<T> prismObject = getObject(delta.getObjectTypeClass(), delta.getOid(), null, subResult);
+            PrismObject<T> prismObject = getObject(type, oid, null, subResult);
 
             PrismSchema schema = schemaRegistry.getObjectSchema();
-            PrismObjectDefinition<T> objectDef = schema.findObjectDefinitionByCompileTimeClass(
-                    delta.getObjectTypeClass());
+            PrismObjectDefinition<T> objectDef = schema.findObjectDefinitionByCompileTimeClass(type);
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("OBJECT before:\n{}DELTA:\n{}", new Object[]{prismObject.dump(), delta.dump()});
+                LOGGER.trace("OBJECT before:\n{}MODS:\n{}", new Object[]{prismObject.dump(), DebugUtil.prettyPrint(modifications)});
             }
-            delta.applyTo(prismObject);
+            PropertyDelta.applyTo(modifications, prismObject);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT after:\n{}", prismObject.dump());
             }

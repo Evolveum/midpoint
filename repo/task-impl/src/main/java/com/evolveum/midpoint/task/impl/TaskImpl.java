@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.task.impl;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -506,14 +507,15 @@ public class TaskImpl implements Task {
 		}
 		GregorianCalendar cal = new GregorianCalendar();
 		cal.setTimeInMillis(lastRunStartTimestamp);
-		ObjectDelta<TaskType> modification = ObjectDelta.createModificationReplaceProperty(oid,
+		Collection<PropertyDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
 				TaskType.F_LAST_RUN_START_TIMESTAMP, cal);
 
 		// FIXME: if nextRunStartTime == 0 we should delete the corresponding element; however, this does not work as for now
-		if (nextRunStartTime > 0)
-			modification.addModification(taskManager.createNextRunStartTimeModification(nextRunStartTime));
+		if (nextRunStartTime > 0) {
+			modifications.add(taskManager.createNextRunStartTimeModification(nextRunStartTime));
+		}
 		
-		repositoryService.modifyObject(TaskType.class, modification, parentResult);
+		repositoryService.modifyObject(TaskType.class, oid, modifications, parentResult);
 	}
 
 	@Override
@@ -525,20 +527,19 @@ public class TaskImpl implements Task {
 			return;
 		}
 
-		ObjectDelta<TaskType> modification = new ObjectDelta(TaskType.class, ChangeType.MODIFY);
-		modification.setOid(oid);
+		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
 
 		// last run time modification
 		GregorianCalendar calLRFT = new GregorianCalendar();
 		calLRFT.setTimeInMillis(lastRunFinishTimestamp);
 		PropertyDelta timestampModificationLRFT = PropertyDelta.createReplaceDelta(taskManager.getTaskObjectDefinition(), 
 				TaskType.F_LAST_RUN_FINISH_TIMESTAMP, calLRFT);
-		modification.addModification(timestampModificationLRFT);
+		modifications.add(timestampModificationLRFT);
 		
 		// progress
 		PropertyDelta progressModification = PropertyDelta.createReplaceDelta(taskManager.getTaskObjectDefinition(), 
 				TaskType.F_PROGRESS, progress);
-		modification.addModification(progressModification);
+		modifications.add(progressModification);
 		
 		// result
 		PropertyDelta resultModification = null;
@@ -550,10 +551,10 @@ public class TaskImpl implements Task {
 		}
 //		// temporary - Pavol Mederly - make changes only if the task run result contains some OperationResult
 //		if (runResult.getOperationResult()!=null)
-			modification.addModification(resultModification);
+		modifications.add(resultModification);
 			
 		// execute the modification
-		repositoryService.modifyObject(TaskType.class, modification, parentResult);
+		repositoryService.modifyObject(TaskType.class, oid, modifications, parentResult);
 		
 		// TODO: Also save the OpResult
 	}
@@ -567,11 +568,10 @@ public class TaskImpl implements Task {
 		if (!isPersistent()) {
 			return;
 		}
-		ObjectDelta<TaskType> modification = new ObjectDelta<TaskType>(TaskType.class, ChangeType.MODIFY);
-		modification.setOid(oid);
+		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
 		PropertyDelta progressModification = PropertyDelta.createReplaceDelta(taskManager.getTaskObjectDefinition(), 
 				TaskType.F_PROGRESS, progress);
-		modification.addModification(progressModification);
+		modifications.add(progressModification);
 		PropertyDelta resultModification = null;
 		if (result!=null) {
 			resultModification = PropertyDelta.createReplaceDelta(taskManager.getTaskObjectDefinition(), 
@@ -580,8 +580,8 @@ public class TaskImpl implements Task {
 			// Make sure we replace any stale result that may be stored there
 			resultModification = PropertyDelta.createReplaceEmptyDelta(taskManager.getTaskObjectDefinition(), TaskType.F_RESULT);
 		}
-		modification.addModification(resultModification);
-		repositoryService.modifyObject(TaskType.class, modification, parentResult);		
+		modifications.add(resultModification);
+		repositoryService.modifyObject(TaskType.class, oid, modifications, parentResult);		
 		
 	}
 	
@@ -627,10 +627,10 @@ public class TaskImpl implements Task {
 		result.addContext(OperationResult.CONTEXT_OID, getOid());
 		
 		// Close the task
-		ObjectDelta<TaskType> modification = ObjectDelta.createModificationReplaceProperty(oid, TaskType.F_EXECUTION_STATUS, 
-				TaskExecutionStatusType.CLOSED.value());
+		Collection<PropertyDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
+				TaskType.F_EXECUTION_STATUS, TaskExecutionStatusType.CLOSED.value());
 		try {
-			repositoryService.modifyObject(TaskType.class, modification, result);
+			repositoryService.modifyObject(TaskType.class, oid, modifications, result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Object not found", ex);
 			throw ex;

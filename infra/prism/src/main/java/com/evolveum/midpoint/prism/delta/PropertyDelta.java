@@ -34,6 +34,8 @@ import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import javax.xml.namespace.QName;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
@@ -237,6 +239,12 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         PrismProperty property = null; //FIXME propertyContainer.findOrCreateProperty(getParentPath(), getName(), valueClass);
         applyTo(property);
     }
+    
+    public static void applyTo(Collection<PropertyDelta> deltas, PrismContainer propertyContainer) {
+    	for (PropertyDelta delta: deltas) {
+    		delta.applyTo(propertyContainer);
+    	}
+    }
 
     public Class<?> getValueClass() {
         if (valuesToReplace != null && !valuesToReplace.isEmpty()) {
@@ -383,7 +391,50 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         prop.getValues().addAll(valuesToReplace);
         return prop;
     }
+    
+    public static PropertyDelta createDelta(PropertyPath propertyPath, PrismObjectDefinition<?> objectDefinition) {
+    	PrismPropertyDefinition propDef = objectDefinition.findPropertyDefinition(propertyPath);
+    	return new PropertyDelta(propertyPath, propDef);
+    }
+    
+    /**
+     * Convenience method for quick creation of object deltas that replace a single object property. This is used quite often
+     * to justify a separate method. 
+     */
+    public static PropertyDelta createModificationReplaceProperty(QName propertyName, Object... propertyValues) {
+    	// TODO
+    	throw new UnsupportedOperationException();
+    }
 
+    /**
+     * Convenience method for quick creation of object deltas that replace a single object property. This is used quite often
+     * to justify a separate method. 
+     */
+    public static Collection<PropertyDelta> createModificationReplacePropertyCollection(QName propertyName, Object... propertyValues) {
+    	Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>(1);
+    	PropertyDelta delta = createModificationReplaceProperty(propertyName, propertyValues);
+    	modifications.add(delta);
+    	return modifications;
+    }
+    
+    public static PropertyDelta findPropertyDelta(Collection<PropertyDelta> modifications, PropertyPath propertyPath) {
+    	for (PropertyDelta delta: modifications) {
+    		if (delta.getPath().equals(propertyPath)) {
+    			return delta;
+    		}
+    	}
+    	return null;
+    }
+    
+    public static PropertyDelta findPropertyDelta(Collection<PropertyDelta> modifications, QName propertyName) {
+    	for (PropertyDelta delta: modifications) {
+    		if (delta.getParentPath().isEmpty() &&
+    			delta.getName().equals(propertyName)) {
+    			return delta;
+    		}
+    	}
+    	return null;
+    }
 
     @Override
     public String toString() {

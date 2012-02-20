@@ -366,7 +366,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public PrismSchema getResourceSchema(OperationResult parentResult) throws CommunicationException,
+	public ResourceSchema getResourceSchema(OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException {
 
 		// Result type for this operation
@@ -706,7 +706,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public Set<ResourceAttribute> addObject(PrismObject<ResourceObjectShadowType> object, Set<Operation> additionalOperations,
+	public Set<ResourceAttribute> addObject(PrismObject<? extends ResourceObjectShadowType> object, Set<Operation> additionalOperations,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			SchemaException, ObjectAlreadyExistsException {
 
@@ -1389,7 +1389,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 	}
 
-	private ObjectClass objectClassToIcf(PrismObject<ResourceObjectShadowType> object) {
+	private ObjectClass objectClassToIcf(PrismObject<? extends ResourceObjectShadowType> object) {
 		
 		ResourceObjectShadowType shadowType = object.asObjectable();
 		QName qnameObjectClass = shadowType.getObjectClass();

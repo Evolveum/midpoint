@@ -33,6 +33,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
@@ -43,6 +44,7 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.PrismTestUtil;
@@ -159,8 +161,8 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 	@Test(expectedExceptions = ObjectNotFoundException.class)
 	public void modifyNotExistingObject() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111234";
-		ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(oid, UserType.F_FULL_NAME,
-				"Foo Bar");
+		Collection<PropertyDelta> mods = PropertyDelta.createModificationReplacePropertyCollection(UserType.F_FULL_NAME,
+			"Foo Bar");
 //		ObjectModificationType objModifications = new ObjectModificationType();
 //		objModifications.setOid(oid);
 //		PropertyModificationType modification = new PropertyModificationType();
@@ -171,7 +173,7 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 //		modification.setValue(value);
 //		objModifications.getPropertyModification().add(modification);
 		//try to modify not existing object, exception is expected
-		repositoryService.modifyObject(UserType.class, delta, new OperationResult("test"));
+		repositoryService.modifyObject(UserType.class, oid, mods, new OperationResult("test"));
 	}
 	
 	@Test(expectedExceptions = ObjectNotFoundException.class)

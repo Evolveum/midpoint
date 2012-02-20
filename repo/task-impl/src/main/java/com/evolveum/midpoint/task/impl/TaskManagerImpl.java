@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.task.impl;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -590,10 +592,10 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	}
 
 	@Override
-	public void modifyTask(ObjectDelta<TaskType> objectDelta, OperationResult parentResult) throws ObjectNotFoundException,
+	public void modifyTask(String oid, Collection<PropertyDelta> modifications, OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException {
 		// TODO: result
-		repositoryService.modifyObject(TaskType.class, objectDelta, parentResult);
+		repositoryService.modifyObject(TaskType.class, oid, modifications, parentResult);
 		// Wake up scanner thread. This may be runnable task now
 		scannerThread.scan();
 	}
@@ -711,9 +713,9 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 
 	private void suspendTaskByOid(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		try {
-			ObjectDelta<TaskType> delta = ObjectDelta.createModificationReplaceProperty(oid, 
+			Collection<PropertyDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
 					SchemaConstants.C_TASK_EXECUTION_STATUS, TaskExecutionStatusType.SUSPENDED.value());
-			repositoryService.modifyObject(TaskType.class, delta, result);
+			repositoryService.modifyObject(TaskType.class, oid, modifications, result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Cannot suspend task, as it was not found", ex);
 			throw ex;
@@ -736,9 +738,9 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		// TODO: recompute next running time
 		
 		try {
-			ObjectDelta<TaskType> delta = ObjectDelta.createModificationReplaceProperty(oid, 
+			Collection<PropertyDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
 				SchemaConstants.C_TASK_EXECUTION_STATUS, TaskExecutionStatusType.RUNNING.value());
-			repositoryService.modifyObject(TaskType.class, delta, result);
+			repositoryService.modifyObject(TaskType.class, oid, modifications, result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Cannot resume task, as it was not found", ex);
 			throw ex;
@@ -774,10 +776,9 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 			return;
 		
 		try {
-			ObjectDelta<TaskType> delta = new ObjectDelta<TaskType>(TaskType.class, ChangeType.MODIFY);
-			delta.setOid(oid);
-			delta.addModification(createNextRunStartTimeModification(time));
-			repositoryService.modifyObject(TaskType.class, delta, result);
+			Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>(1);
+			modifications.add(createNextRunStartTimeModification(time));
+			repositoryService.modifyObject(TaskType.class, oid, modifications, result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Cannot record next run start time, as the task object was not found", ex);
 			throw ex;

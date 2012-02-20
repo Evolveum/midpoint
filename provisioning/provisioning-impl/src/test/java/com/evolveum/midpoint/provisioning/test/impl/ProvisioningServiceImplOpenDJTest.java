@@ -53,8 +53,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.EnhancedResourceType;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
@@ -62,15 +65,18 @@ import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -86,12 +92,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
@@ -171,7 +179,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	@Override
 	public void initSystem(OperationResult initResult) throws Exception {
 		provisioningService.postInit(initResult);
-		ResourceType resource = addResourceFromFile(FILENAME_RESOURCE_OPENDJ, LDAP_CONNECTOR_TYPE, initResult);
+		PrismObject<ResourceType> resource = addResourceFromFile(FILENAME_RESOURCE_OPENDJ, LDAP_CONNECTOR_TYPE, initResult);
 //		addObjectFromFile(FILENAME_ACCOUNT1);
 		addObjectFromFile(FILENAME_ACCOUNT_BAD,initResult);
 	}
@@ -228,11 +236,12 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".test001Connectors");
 		
-		List<ConnectorType> connectors = repositoryService.listObjects(ConnectorType.class, null, result);
+		ResultList<PrismObject<ConnectorType>> connectors = repositoryService.listObjects(ConnectorType.class, null, result);
 		
 		assertFalse("No connector found",connectors.isEmpty());
 		
-		for (ConnectorType conn : connectors) {
+		for (PrismObject<ConnectorType> connector : connectors) {
+			ConnectorType conn = connector.asObjectable();
 			display("Found connector",conn);
 			if (conn.getConnectorType().equals("org.identityconnectors.ldap.LdapConnector")) {
 				// This connector is loaded manually, it has no schema
@@ -242,7 +251,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			assertNotNull("xmlSchemaType is null",xmlSchemaType);
 			assertFalse("Empty schema",xmlSchemaType.getAny().isEmpty());
 			// Try to parse the schema
-			PrismSchema schema = PrismSchema.parse(xmlSchemaType.getAny().get(0));
+			PrismSchema schema = PrismSchema.parse(xmlSchemaType.getAny().get(0), prismContext);
 			assertNotNull("Cannot parse schema",schema);
 			assertFalse("Empty schema",schema.isEmpty());
 			display("Parsed connector schema",schema);
@@ -265,10 +274,11 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		displayTestTile("test003Connection");
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test003Connection");
-		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
+		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result).asObjectable();
 		assertNotNull("No connector ref",resourceBefore.getConnectorRef());
 		assertNotNull("No connector ref OID",resourceBefore.getConnectorRef().getOid());
-		ConnectorType connector = repositoryService.getObject(ConnectorType.class, resourceBefore.getConnectorRef().getOid(), null, result);
+		ConnectorType connector = repositoryService.getObject(ConnectorType.class, resourceBefore.getConnectorRef().getOid(), null,
+				result).asObjectable();
 		assertNotNull(connector);
 		XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
 		AssertJUnit.assertTrue("Found schema before test connection. Bad test setup?",xmlSchemaTypeBefore.getAny().isEmpty());
@@ -278,7 +288,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		display("Test connection result",operationResult);
 		assertSuccess("Test connection failed",operationResult);
 
-		ResourceType resourceAfter = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
+		ResourceType resourceAfter = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result).asObjectable();
 		
 		display("Resource after testResource",resourceAfter);
 		
@@ -292,10 +302,10 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		assertNotNull("No serialNumber",cachingMetadata.getSerialNumber());
 		
 		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-		PrismSchema parsedSchema = PrismSchema.parse(xsdElement);
+		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, prismContext);
 		assertNotNull("No schema after parsing",parsedSchema);
 		
-		ResourceAttributeContainerDefinition accountDefinition = parsedSchema.findAccountDefinition();
+		ResourceAttributeContainerDefinition accountDefinition = parsedSchema.findDefaultAccountDefinition();
 		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDefinition.findAttributeDefinition(
 				new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"password")));
 		assertNull("The userPassword attribute sneaked into schema", accountDefinition.findAttributeDefinition(
@@ -311,7 +321,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test005Capabilities");
 
 		// WHEN
-		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result);
+		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result).asObjectable();
 		
 		// THEN
 		display("Resource from provisioninig", resource);
@@ -347,7 +357,8 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test006ListResourceObjects");
 		// WHEN
-		ResultList<? extends ResourceObjectShadowType> objectList = provisioningService.listResourceObjects(RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, null, result);
+		ResultList<PrismObject<? extends ResourceObjectShadowType>> objectList = provisioningService.listResourceObjects(
+				RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, null, result);
 		// THEN
 		assertNotNull(objectList);
 		assertFalse("Empty list returned",objectList.isEmpty());
@@ -365,20 +376,18 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			ObjectType objectToAdd = unmarshallJaxbFromFile(FILENAME_ACCOUNT1);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(objectToAdd));
-			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(objectToAdd,
-					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
+			System.out.println(objectToAdd.asPrismObject().dump());
 
-			String addedObjectOid = provisioningService.addObject(objectToAdd, null, result);
+			String addedObjectOid = provisioningService.addObject(objectToAdd.asPrismObject(), null, result);
 			assertEquals(ACCOUNT1_OID, addedObjectOid);
 			PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-			AccountShadowType acct = provisioningService.getObject(AccountShadowType.class, ACCOUNT1_OID, resolve, result);
+			AccountShadowType acct = provisioningService.getObject(AccountShadowType.class, ACCOUNT1_OID, resolve, result).asObjectable();
 
 			assertNotNull(acct);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(acct));
-			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(acct,
-					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
+			System.out.println(acct.asPrismObject().dump());
 			
 			assertEquals("jbond", acct.getName());
 			
@@ -407,7 +416,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
 		try {
-			ObjectType object = provisioningService.getObject(ObjectType.class, NON_EXISTENT_OID, resolve, result);
+			ObjectType object = provisioningService.getObject(ObjectType.class, NON_EXISTENT_OID, resolve, result).asObjectable();
 			Assert.fail("Expected exception, but haven't got one");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
@@ -450,7 +459,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
 		try {
-			ObjectType object = provisioningService.getObject(ObjectType.class, ACCOUNT_BAD_OID, resolve, result);
+			ObjectType object = provisioningService.getObject(ObjectType.class, ACCOUNT_BAD_OID, resolve, result).asObjectable();
 			Assert.fail("Expected exception, but haven't got one");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
@@ -491,18 +500,17 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_NEW);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
-			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
-					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
+			System.out.println(object.asPrismObject().dump());
 
-			String addedObjectOid = provisioningService.addObject(object, null, result);
+			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
 			assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
 
 			AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
-					new PropertyReferenceListType(), result);
+					new PropertyReferenceListType(), result).asObjectable();
 			assertEquals("will", accountType.getName());
 
 			AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
-					new PropertyReferenceListType(), result);
+					new PropertyReferenceListType(), result).asObjectable();
 			assertEquals("will", provisioningAccountType.getName());
 		} finally {
 			try {
@@ -561,10 +569,9 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_DELETE);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
-			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
-					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
+			System.out.println(object.asPrismObject().dump());
 
-			String addedObjectOid = provisioningService.addObject(object, null, result);
+			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
 			assertEquals(ACCOUNT_DELETE_OID, addedObjectOid);
 
 			provisioningService.deleteObject(AccountShadowType.class, ACCOUNT_DELETE_OID, null, result);
@@ -573,7 +580,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 			try {
 				objType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_DELETE_OID, new PropertyReferenceListType(),
-						result);
+						result).asObjectable();
 				Assert.fail("Expected exception ObjectNotFoundException, but haven't got one.");
 			} catch (ObjectNotFoundException ex) {
 				System.out.println("Catched ObjectNotFoundException.");
@@ -582,7 +589,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 			try {
 				objType = repositoryService.getObject(AccountShadowType.class, ACCOUNT_DELETE_OID, new PropertyReferenceListType(),
-						result);
+						result).asObjectable();
 				// objType = container.getObject();
 				Assert.fail("Expected exception, but haven't got one.");
 			} catch (Exception ex) {
@@ -615,23 +622,21 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_MODIFY);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
-			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
-					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
+			System.out.println(object.asPrismObject().dump());
 
-			String addedObjectOid = provisioningService.addObject(object, null, result);
+			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
 			assertEquals(ACCOUNT_MODIFY_OID, addedObjectOid);
 
-			ObjectChangeModificationType objectChange = ((JAXBElement<ObjectChangeModificationType>) JAXBUtil
-					.unmarshal(new File("src/test/resources/impl/account-change-description.xml")))
-					.getValue();
-			display("Object change",SchemaDebugUtil.prettyPrint(objectChange));
-			System.out.println("new sn value: " + ((Element)objectChange.getObjectModification().getPropertyModification().get(0).getValue().getAny().get(0)).getTextContent());
-			System.out.println("oid changed obj: " + objectChange.getObjectModification().getOid());
+			ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
+					new File("src/test/resources/impl/account-change-description.xml"));
+			ObjectDelta<AccountShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class, PrismTestUtil.getPrismContext());
+			display("Object change",delta);
 
-			provisioningService.modifyObject(AccountShadowType.class,objectChange.getObjectModification(), null, result);
+			provisioningService.modifyObject(AccountShadowType.class, objectChange.getOid(),
+					delta.getModifications(), null, result);
 			
 			AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
-					ACCOUNT_MODIFY_OID, new PropertyReferenceListType(), result);
+					ACCOUNT_MODIFY_OID, new PropertyReferenceListType(), result).asObjectable();
 			
 			display("Object after change",accountType);
 
@@ -684,12 +689,12 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_MODIFY_PASSWORD);
 
-			String addedObjectOid = provisioningService.addObject(object, null, result);
+			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
 
 			assertEquals(ACCOUNT_MODIFY_PASSWORD_OID, addedObjectOid);
 			
 			AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
-					ACCOUNT_MODIFY_PASSWORD_OID, new PropertyReferenceListType(), result);
+					ACCOUNT_MODIFY_PASSWORD_OID, new PropertyReferenceListType(), result).asObjectable();
 			
 			display("Object after password change",accountType);
 			
@@ -706,14 +711,14 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 			String passwordBefore = OpenDJController.getAttributeValue(entryBefore, "userPassword");
 			assertNull("Unexpected password before change",passwordBefore);
-
-			ObjectChangeModificationType objectChange = ((JAXBElement<ObjectChangeModificationType>) JAXBUtil
-					.unmarshal(new File("src/test/resources/impl/account-change-password.xml")))
-					.getValue();
-			display("Object change",SchemaDebugUtil.prettyPrint(objectChange));
+			
+			ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
+					new File("src/test/resources/impl/account-change-password.xml"));
+			ObjectDelta<AccountShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class, PrismTestUtil.getPrismContext());
+			display("Object change",delta);
 
 			// WHEN
-			provisioningService.modifyObject(AccountShadowType.class,objectChange.getObjectModification(), null, result);
+			provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(), null, result);
 
 			// THEN
 			
@@ -754,18 +759,17 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_NEW_WITH_PASSWORD);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
-			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
-					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
+			System.out.println(object.asPrismObject().dump());
 
-			String addedObjectOid = provisioningService.addObject(object, null, result);
+			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
 			assertEquals(ACCOUNT_NEW_WITH_PASSWORD_OID, addedObjectOid);
 
 			AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID,
-					new PropertyReferenceListType(), result);
+					new PropertyReferenceListType(), result).asObjectable();
 			assertEquals("lechuck", accountType.getName());
 
 			AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID,
-					new PropertyReferenceListType(), result);
+					new PropertyReferenceListType(), result).asObjectable();
 			assertEquals("lechuck", provisioningAccountType.getName());
 			
 			String uid = null;
@@ -812,7 +816,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		try {
 
 			try {
-				List<AccountShadowType> objListType = provisioningService.listObjects(AccountShadowType.class,
+				ResultList<PrismObject<AccountShadowType>> objListType = provisioningService.listObjects(AccountShadowType.class,
 						new PagingType(), result);
 				Assert.fail("Expected excetpion, but haven't got one");
 			} catch (Exception ex) {
@@ -846,22 +850,22 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_SEARCH_ITERATIVE);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
-			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
-					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
+			System.out.println(object.asPrismObject().dump());
 
-			String addedObjectOid = provisioningService.addObject(object, null, result);
+			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
 			assertEquals(ACCOUNT_SEARCH_ITERATIVE_OID, addedObjectOid);
 
-			final List<ObjectType> objectTypeList = new ArrayList<ObjectType>();
+			final List<AccountShadowType> objectTypeList = new ArrayList<AccountShadowType>();
 
-			QueryType query = ((JAXBElement<QueryType>) JAXBUtil.unmarshal(new File(
-					"src/test/resources/impl/query-filter-all-accounts.xml"))).getValue();
-			provisioningService.searchObjectsIterative(query, new PagingType(), new ResultHandler() {
+			QueryType query = PrismTestUtil.unmarshalObject(new File(
+					"src/test/resources/impl/query-filter-all-accounts.xml"));
+			provisioningService.searchObjectsIterative(AccountShadowType.class, query, new PagingType(), 
+					new ResultHandler<AccountShadowType>() {
 
 				@Override
-				public boolean handle(ObjectType object, OperationResult parentResult) {
+				public boolean handle(PrismObject<AccountShadowType> object, OperationResult parentResult) {
 
-					return objectTypeList.add(object);
+					return objectTypeList.add(object.asObjectable());
 				}
 			}, result);
 
@@ -902,21 +906,21 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_SEARCH);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
-			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
-					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
+			System.out.println(object.asPrismObject().dump());
 
-			String addedObjectOid = provisioningService.addObject(object, null, result);
+			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
 			assertEquals(ACCOUNT_SEARCH_OID, addedObjectOid);
 
-			QueryType query = ((JAXBElement<QueryType>) JAXBUtil.unmarshal(new File(
-					"src/test/resources/impl/query-filter-all-accounts.xml"))).getValue();
+			QueryType query = PrismTestUtil.unmarshalObject(new File("src/test/resources/impl/query-filter-all-accounts.xml"));
 
-			List<AccountShadowType> objListType = provisioningService.searchObjects(AccountShadowType.class, query, new PagingType(), result);
-			for (AccountShadowType objType : objListType) {
+			ResultList<PrismObject<AccountShadowType>> objListType = 
+				provisioningService.searchObjects(AccountShadowType.class, query, new PagingType(), result);
+			
+			for (PrismObject<AccountShadowType> objType : objListType) {
 				if (objType == null) {
 					System.out.println("Object not found in repository.");
 				} else {
-					System.out.println("found object: " + objType.getName());
+					System.out.println("found object: " + objType.asObjectable().getName());
 				}
 			}
 		} finally {
@@ -941,10 +945,11 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".listConnectorsTest");
 		
-		List<ConnectorType> connectors = provisioningService.listObjects(ConnectorType.class, new PagingType(), result);
+		ResultList<PrismObject<ConnectorType>> connectors = provisioningService.listObjects(ConnectorType.class, new PagingType(), result);
 		assertNotNull(connectors);
 		
-		for (ConnectorType conn : connectors){
+		for (PrismObject<ConnectorType> connector : connectors){
+			ConnectorType conn = connector.asObjectable();
 			System.out.println("connector name: "+ conn.getName());
 			System.out.println("connector type: "+ conn.getConnectorType());
 		}

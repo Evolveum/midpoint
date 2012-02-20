@@ -186,7 +186,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 //					"src/test/resources/user-without-extension.xml"), new File(
 //					"src/test/resources/user-added-extension.xml"));
 			
-			repositoryService.modifyObject(UserType.class, delta, new OperationResult("test"));
+			repositoryService.modifyObject(UserType.class, delta.getOid(), delta.getModifications(), new OperationResult("test"));
 
 			//check the extension in the object
 			retrievedObject = repositoryService.getObject(UserType.class, oid, new PropertyReferenceListType(), new OperationResult("test"));
@@ -264,7 +264,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			modification.setValue(value);
 			modifications.getPropertyModification().add(modification);
 			ObjectDelta<UserType> delta = DeltaConvertor.createObjectDelta(modifications, UserType.class, PrismTestUtil.getPrismContext());
-			repositoryService.modifyObject(UserType.class, delta, new OperationResult("test"));
+			repositoryService.modifyObject(UserType.class, delta.getOid(), delta.getModifications(), new OperationResult("test"));
 
 			//check if account ref was removed from the object
 			PrismObject<UserType> retrievedObject = repositoryService.getObject(UserType.class, oid,

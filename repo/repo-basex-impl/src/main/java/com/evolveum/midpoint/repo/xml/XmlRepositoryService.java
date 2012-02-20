@@ -21,6 +21,8 @@
  */
 package com.evolveum.midpoint.repo.xml;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +56,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -65,6 +68,7 @@ import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.EscapeStringBuilder;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.XQueryEscapeStringBuilder;
@@ -380,25 +384,33 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectDelta<T> objectDelta,
+	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<PropertyDelta> modifications,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName() + ".modifyObject");
-		result.addParam("objectChange", objectDelta);
+		result.addParam(OperationResult.PARAM_OID, modifications);
+		result.addParam("objectChange", modifications);
 
-		validateObjectDelta(objectDelta);
+		validateOid(oid);
+		validateObjectModifications(modifications);
 
-        PrismObject<T> object = this.getObject(type, objectDelta.getOid(), null, result);
-
-        LOGGER.trace("OBJECT before:\n{}",object.dump());
-        LOGGER.trace("DELTA:\n{}",objectDelta.dump());
-        objectDelta.applyTo(object);
-        LOGGER.trace("OBJECT after:\n{}",object.dump());
+        PrismObject<T> object = this.getObject(type, oid, null, result);
+        
+        if (LOGGER.isTraceEnabled()) {
+	        LOGGER.trace("OBJECT before:\n{}",object.dump());
+	        LOGGER.trace("MODIFICATIONS:\n{}",DebugUtil.prettyPrint(modifications));
+        }
+        
+        PropertyDelta.applyTo(modifications, object);
+	    
+	    if (LOGGER.isTraceEnabled()) {
+	        LOGGER.trace("OBJECT after:\n{}",object.dump());
+	    }
 
 		String serializedObject = prismContext.getPrismDomProcessor().serializeObjectToString(object);
 
 		// store modified object in repo
 		EscapeStringBuilder query = new XQueryEscapeStringBuilder();
-		query.append(DECLARE_NAMESPACE_C).append("replace node //c:object[@oid=\"").eappend(objectDelta.getOid())
+		query.append(DECLARE_NAMESPACE_C).append("replace node //c:object[@oid=\"").eappend(oid)
 				.append("\"] with ").eappend(serializedObject);
 
         if (LOGGER.isTraceEnabled()) {
@@ -526,10 +538,12 @@ public class XmlRepositoryService implements RepositoryService {
 		// Modify the status to claim the task.
 		// TODO: mark node identifier and claim expiration (later)
 		
-		ObjectDelta<TaskType> delta = ObjectDelta.createModificationReplaceProperty(oid,
+		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>(1);
+		PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(
 				SchemaConstants.C_TASK_EXECLUSIVITY_STATUS, TaskExclusivityStatusType.CLAIMED.value());
+		modifications.add(delta);
 
-		modifyObject(TaskType.class, delta, result);
+		modifyObject(TaskType.class, oid, modifications, result);
 
 	}
 
@@ -541,10 +555,12 @@ public class XmlRepositoryService implements RepositoryService {
 
 		// Modify the status to claim the task.
 
-		ObjectDelta<TaskType> delta = ObjectDelta.createModificationReplaceProperty(oid,
+		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>(1);
+		PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(
 				SchemaConstants.C_TASK_EXECLUSIVITY_STATUS, TaskExclusivityStatusType.RELEASED.value());
-
-		modifyObject(TaskType.class, delta, result);
+		modifications.add(delta);
+		
+		modifyObject(TaskType.class, oid, modifications, result);
 
 	}
 
@@ -763,15 +779,11 @@ public class XmlRepositoryService implements RepositoryService {
 		}
 	}
 
-	private void validateObjectDelta(ObjectDelta<?> objectDelta) {
-		if (null == objectDelta) {
+	private void validateObjectModifications(Collection<PropertyDelta> modifications) {
+		if (null == modifications) {
 			throw new IllegalArgumentException("Provided null object modifications");
 		}
-		validateOid(objectDelta.getOid());
-		if (objectDelta.getChangeType() != ChangeType.MODIFY) {
-			throw new IllegalArgumentException("Expected MODIFY delta but got "+objectDelta.getChangeType());
-		}
-		if (null == objectDelta.getModifications() || objectDelta.getModifications().size() == 0) {
+		if (modifications.size() == 0) {
 			throw new IllegalArgumentException("No property modifications provided");
 		}
 	}

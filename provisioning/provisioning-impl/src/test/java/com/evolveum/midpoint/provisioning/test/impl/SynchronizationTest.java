@@ -94,7 +94,7 @@ public class SynchronizationTest extends AbstractIntegrationTest {
 	@Override
 	public void initSystem(OperationResult initResult) throws Exception {
 		assertNotNull(manager);
-		resource = (ResourceType) addObjectFromFile(FILENAME_RESOURCE_OPENDJ, initResult);
+		resource = (ResourceType) addObjectFromFile(FILENAME_RESOURCE_OPENDJ, initResult).asObjectable();
 		assertNotNull(provisioningService);
 	}
 

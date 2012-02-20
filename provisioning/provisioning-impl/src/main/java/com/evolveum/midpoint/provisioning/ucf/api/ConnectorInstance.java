@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -126,7 +127,7 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException error in communication to the resource 
 	 *				- nothing was fetched.
 	 */
-	public PrismSchema getResourceSchema(OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	public ResourceSchema getResourceSchema(OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Retrieves a specific object from the resource.
@@ -218,7 +219,7 @@ public interface ConnectorInstance {
 	 * @return created object attributes. May be null.
 	 * @throws ObjectAlreadyExistsException object already exists on the resource
 	 */
-	public Set<ResourceAttribute> addObject(PrismObject<ResourceObjectShadowType> object, Set<Operation> additionalOperations, 
+	public Set<ResourceAttribute> addObject(PrismObject<? extends ResourceObjectShadowType> object, Set<Operation> additionalOperations, 
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, 
 			ObjectAlreadyExistsException;
 	

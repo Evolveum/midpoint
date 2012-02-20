@@ -38,6 +38,7 @@ import com.evolveum.midpoint.common.refinery.EnhancedResourceType;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -45,6 +46,7 @@ import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
@@ -59,6 +61,7 @@ import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -75,8 +78,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationTy
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
@@ -333,7 +338,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test005Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException {
+	public void test005Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException, JAXBException {
 		displayTestTile("test005Capabilities");
 
 		// GIVEN
@@ -348,7 +353,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		// Check native capabilities
 		CapabilitiesType nativeCapabilities = resource.getNativeCapabilities();
-		System.out.println("Native capabilities: " + JAXBUtil.silentMarshalWrap(nativeCapabilities));
+		System.out.println("Native capabilities: " + PrismTestUtil.marshalWrap(nativeCapabilities));
 		System.out.println("resource: " + resource.asPrismObject().dump());
 		List<Object> capabilities = nativeCapabilities.getAny();
 		assertFalse("Empty capabilities returned", capabilities.isEmpty());
@@ -524,12 +529,13 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		ObjectModificationType objectModification = unmarshallJaxbFromFile(FILENAME_DISABLE_ACCOUNT,
 				ObjectModificationType.class);
-		System.out.println(SchemaDebugUtil.prettyPrint(objectModification));
-		System.out.println("ObjectModification:");
-		System.out.println(JAXBUtil.silentMarshalWrap(objectModification));
+		ObjectDelta<AccountShadowType> delta = DeltaConvertor.createObjectDelta(objectModification, 
+				AccountShadowType.class, PrismTestUtil.getPrismContext());		
+		System.out.println("ObjectDelta:");
+		System.out.println(delta.dump());
 
-		provisioningService.modifyObject(AccountShadowType.class, objectModification, new ScriptsType(),
-				result);
+		provisioningService.modifyObject(AccountShadowType.class, objectModification.getOid(), delta.getModifications(),
+				new ScriptsType(), result);
 
 		// check if activation was changed
 		dummyAccount = dummyResource.getAccountByUsername("will");
@@ -557,11 +563,13 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		ObjectModificationType objectModification = unmarshallJaxbFromFile(FILENAME_ENABLE_ACCOUNT,
 				ObjectModificationType.class);
+		ObjectDelta<AccountShadowType> delta = DeltaConvertor.createObjectDelta(objectModification, 
+				AccountShadowType.class, PrismTestUtil.getPrismContext());
 		System.out.println(SchemaDebugUtil.prettyPrint(objectModification));
-		System.out.println("ObjectModification:");
-		System.out.println(JAXBUtil.silentMarshalWrap(objectModification));
+		System.out.println("ObjectDelta:");
+		System.out.println(delta.dump());
 
-		provisioningService.modifyObject(AccountShadowType.class, objectModification, new ScriptsType(),
+		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(), new ScriptsType(),
 				result);
 
 		// check if activation was changed
@@ -580,14 +588,13 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		AccountShadowType account = unmarshallJaxbFromFile(FILENAME_ACCOUNT_SCRIPT, AccountShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(account));
-		System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(account,
-				SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
+		System.out.println(account.asPrismObject().dump());
 
 		ScriptsType scriptsType = unmarshallJaxbFromFile(FILENAME_SCRIPT_ADD, ScriptsType.class);
-		System.out.println(JAXBUtil.silentMarshalWrap(scriptsType));
+		System.out.println(PrismTestUtil.marshalWrap(scriptsType));
 
 		// WHEN
-		String addedObjectOid = provisioningService.addObject(account, scriptsType, result);
+		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), scriptsType, result);
 
 	
 		
@@ -681,8 +688,9 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
 //		assertNull("Old shadow present when not expecting it", lastChange.getOldShadow());
 		assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
+		ResourceObjectShadowType currentShadowType = lastChange.getCurrentShadow().asObjectable();
 		assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
-		assertTrue("Wrong type of current shadow: "+ lastChange.getCurrentShadow().getClass().getName(), lastChange.getCurrentShadow() instanceof AccountShadowType);
+		assertTrue("Wrong type of current shadow: "+ currentShadowType.getClass().getName(), currentShadowType instanceof AccountShadowType);
 		
 	}
 

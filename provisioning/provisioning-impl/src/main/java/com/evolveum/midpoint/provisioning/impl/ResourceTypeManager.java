@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
@@ -186,10 +188,10 @@ public class ResourceTypeManager {
 			xmlSchemaType.getAny().add(xsdElement);
 			xmlSchemaType.setCachingMetadata(MiscSchemaUtil.generateCachingMetadata());
 
-			ObjectDelta<ResourceType> objectDelta = ObjectDelta.createModificationReplaceProperty(
-					resource.getOid(), SchemaConstants.I_SCHEMA, xmlSchemaType);
+			Collection<PropertyDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
+					SchemaConstants.I_SCHEMA, xmlSchemaType);
 
-			repositoryService.modifyObject(ResourceType.class, objectDelta, result);
+			repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
 
 			newResource = resourceSchemaCache.put(resource);
 		}

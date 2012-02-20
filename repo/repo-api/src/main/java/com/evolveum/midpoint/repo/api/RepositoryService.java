@@ -20,8 +20,11 @@
  */
 package com.evolveum.midpoint.repo.api;
 
+import java.util.Collection;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
@@ -281,7 +284,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 */
-	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectDelta<T> objectDelta, OperationResult parentResult)
+	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<PropertyDelta> modifications, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
 
 	/**

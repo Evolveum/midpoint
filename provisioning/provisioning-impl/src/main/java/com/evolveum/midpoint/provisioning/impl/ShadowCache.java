@@ -35,6 +35,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefiniti
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -51,6 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -320,13 +322,14 @@ public class ShadowCache {
 		}
 	}
 
-	public void modifyShadow(ObjectType objectType, ResourceType resource,
-			ObjectDelta objectChange, ScriptsType scripts, OperationResult parentResult)
+	public void modifyShadow(ObjectType objectType, ResourceType resource, String oid,
+			Collection<PropertyDelta> modifications, ScriptsType scripts, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
 			SchemaException {
 
 		Validate.notNull(objectType, "Object to modify must not be null.");
-		Validate.notNull(objectChange, "Object change must not be null.");
+		Validate.notNull(oid, "OID must not be null.");
+		Validate.notNull(modifications, "Object modification must not be null.");
 
 		if (objectType instanceof ResourceObjectShadowType) {
 			ResourceObjectShadowType shadow = (ResourceObjectShadowType) objectType;
@@ -346,13 +349,13 @@ public class ShadowCache {
 			if (shadow instanceof AccountShadowType) {
 
 				// Look for password change
-				PasswordChangeOperation passwordChangeOp = determinePasswordChange(objectChange, shadow);
+				PasswordChangeOperation passwordChangeOp = determinePasswordChange(modifications, shadow);
 				if (passwordChangeOp != null) {
 					changes.add(passwordChangeOp);
 				}
 				
 				// look for activation change
-				Operation activationOperation = determineActivationChange(objectChange, resource, objectClassDefinition);
+				Operation activationOperation = determineActivationChange(modifications, resource, objectClassDefinition);
 				if (activationOperation != null) {
 					changes.add(activationOperation);
 				}
@@ -361,12 +364,12 @@ public class ShadowCache {
 			addExecuteScriptOperation(changes, OperationTypeType.MODIFY, scripts, parentResult);
 
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Applying change: {}", objectChange.dump());
+				LOGGER.trace("Applying change: {}", DebugUtil.debugDump(modifications));
 			}
 
 			Set<PropertyModificationOperation> sideEffectChanges = null;
 			try {
-				sideEffectChanges = shadowConverter.modifyShadow(resource, shadow, changes, objectChange,
+				sideEffectChanges = shadowConverter.modifyShadow(resource, shadow, changes, oid, modifications,
 						parentResult);
 			} catch (ObjectNotFoundException ex) {
 				parentResult.recordFatalError(
@@ -576,10 +579,11 @@ public class ShadowCache {
 		return attributeChange;
 	}
 
-	private Operation determineActivationChange(ObjectDelta objectChange, ResourceType resource,
+	private Operation determineActivationChange(Collection<PropertyDelta> objectChange, ResourceType resource,
 			ResourceAttributeContainerDefinition objectClassDefinition) throws SchemaException {
-		PropertyDelta enabledPropertyDelta 
-			= objectChange.getPropertyDelta(new PropertyPath(ResourceObjectShadowType.F_ACTIVATION, ActivationType.F_ENABLED));
+		
+		PropertyDelta enabledPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
+				new PropertyPath(ResourceObjectShadowType.F_ACTIVATION, ActivationType.F_ENABLED));
 		if (enabledPropertyDelta == null) {
 			return null;
 		}
@@ -605,12 +609,12 @@ public class ShadowCache {
 		return null;
 	}
 
-	private PasswordChangeOperation determinePasswordChange(ObjectDelta objectChange,
+	private PasswordChangeOperation determinePasswordChange(Collection<PropertyDelta> objectChange,
 			ResourceObjectShadowType objectType) throws SchemaException {
 		// Look for password change
 		
-		PropertyDelta passwordPropertyDelta 
-			= objectChange.getPropertyDelta(new PropertyPath(AccountShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD));
+		PropertyDelta passwordPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
+				new PropertyPath(AccountShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD));
 		if (passwordPropertyDelta == null) {
 			return null;
 		}

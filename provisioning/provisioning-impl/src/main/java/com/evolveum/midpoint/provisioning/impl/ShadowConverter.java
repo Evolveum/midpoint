@@ -237,7 +237,7 @@ public class ShadowConverter {
 	}
 
 	public Set<PropertyModificationOperation> modifyShadow(ResourceType resource,
-			ResourceObjectShadowType shadow, Set<Operation> operations, ObjectDelta objectChanges,
+			ResourceObjectShadowType shadow, Set<Operation> operations, String oid, Collection<PropertyDelta> objectChanges,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
 			CommunicationException {
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
@@ -444,12 +444,12 @@ public class ShadowConverter {
 	}
 
 
-	private Set<Operation> getAttributeChanges(ObjectDelta<?> objectChange, Set<Operation> changes,
+	private Set<Operation> getAttributeChanges(Collection<PropertyDelta> objectChange, Set<Operation> changes,
 			ResourceAttributeContainerDefinition rod) throws SchemaException {
 		if (changes == null) {
 			changes = new HashSet<Operation>();
 		}
-		for (PropertyDelta propDelta : objectChange.getModifications()) {
+		for (PropertyDelta propDelta : objectChange) {
 			PropertyModificationOperation attributeModification = new PropertyModificationOperation(propDelta);
 			changes.add(attributeModification);
 		}
