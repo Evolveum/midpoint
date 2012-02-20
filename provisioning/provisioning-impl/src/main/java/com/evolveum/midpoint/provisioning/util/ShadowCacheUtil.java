@@ -22,15 +22,19 @@
 package com.evolveum.midpoint.provisioning.util;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.impl.ShadowConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -392,5 +396,20 @@ public class ShadowCacheUtil {
         XPathHolder xpath = new XPathHolder(xpathSegments);
         return xpath;
     }
+
+	public static PrismObjectDefinition<ResourceObjectShadowType> getResourceObjectShadowDefinition(
+			PrismContext prismContext) {
+		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceObjectShadowType.class);
+	}
+
+	public static ResourceAttributeContainerDefinition findDefaultAccountObjectClassDefinition(
+			PrismSchema resourceSchema) {
+		for (ResourceAttributeContainerDefinition attrContDef: resourceSchema.getDefinitions(ResourceAttributeContainerDefinition.class)) {
+			if (attrContDef.isDefaultAccountType()) {
+				return attrContDef;
+			}
+		}
+		return null;
+	}
 
 }

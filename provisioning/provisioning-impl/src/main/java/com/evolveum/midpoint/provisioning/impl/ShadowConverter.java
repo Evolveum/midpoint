@@ -295,7 +295,8 @@ public class ShadowConverter {
 		LOGGER.trace("Getting last token");
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
 		PrismSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
-		ResourceAttributeContainerDefinition objectClass = resourceSchema.findAccountDefinition();
+		// This is a HACK. It should not work only for default account, but also for other objectclasses (FIXME)
+		ResourceAttributeContainerDefinition objectClass = ShadowCacheUtil.findDefaultAccountObjectClassDefinition(resourceSchema);
 		PrismProperty lastToken = null;
 		try {
 			lastToken = connector.fetchCurrentToken(objectClass, parentResult);
@@ -325,7 +326,8 @@ public class ShadowConverter {
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
 		PrismSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
-		ResourceAttributeContainerDefinition objectClass = resourceSchema.findAccountDefinition();
+		// This is a HACK. It should not work only for default account, but also for other objectclasses (FIXME)
+		ResourceAttributeContainerDefinition objectClass = ShadowCacheUtil.findDefaultAccountObjectClassDefinition(resourceSchema);;
 
 		// get changes from the connector
 		List<Change> changes = null;
@@ -442,7 +444,7 @@ public class ShadowConverter {
 	}
 
 
-	private Set<Operation> getAttributeChanges(ObjectDelta objectChange, Set<Operation> changes,
+	private Set<Operation> getAttributeChanges(ObjectDelta<?> objectChange, Set<Operation> changes,
 			ResourceAttributeContainerDefinition rod) throws SchemaException {
 		if (changes == null) {
 			changes = new HashSet<Operation>();

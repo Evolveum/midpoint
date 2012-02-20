@@ -286,7 +286,8 @@ public interface ProvisioningService {
 	 *             unknown property used in search query
 	 * @throws ObjectNotFoundException appropriate connector object was not found
 	 */
-	public void searchObjectsIterative(QueryType query, PagingType paging, final ResultHandler handler, final OperationResult parentResult)
+	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, QueryType query, PagingType paging, 
+			final ResultHandler<T> handler, final OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException;
 
 	/**

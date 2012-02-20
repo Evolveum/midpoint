@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.task.impl;
 
 import java.math.BigInteger;
+import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.List;
 
@@ -609,9 +610,12 @@ public class TaskImpl implements Task {
 		result.recordSuccess();
 	}
 	
+	@Override
+	public void modify(Collection<PropertyDelta> modifications, OperationResult parentResult) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException();
+	}
 
-
-	
 	private boolean isPersistent() {
 		return persistenceStatus == TaskPersistenceStatus.PERSISTENT;
 	}

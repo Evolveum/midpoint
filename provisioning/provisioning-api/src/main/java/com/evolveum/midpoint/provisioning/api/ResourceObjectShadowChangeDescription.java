@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.provisioning.api;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -43,10 +44,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 public class ResourceObjectShadowChangeDescription implements Dumpable, DebugDumpable {
 
     private ObjectDelta<? extends ResourceObjectShadowType> objectDelta;
-    private ResourceObjectShadowType currentShadow;
-    private ResourceObjectShadowType oldShadow;
+    private PrismObject<? extends ResourceObjectShadowType> currentShadow;
+    private PrismObject<? extends ResourceObjectShadowType> oldShadow;
     private String sourceChannel;
-    private ResourceType resource;
+    private PrismObject<ResourceType> resource;
 
     public ObjectDelta<? extends ResourceObjectShadowType> getObjectDelta() {
         return objectDelta;
@@ -56,19 +57,19 @@ public class ResourceObjectShadowChangeDescription implements Dumpable, DebugDum
         this.objectDelta = objectDelta;
     }
 
-    public ResourceObjectShadowType getCurrentShadow() {
+    public PrismObject<? extends ResourceObjectShadowType> getCurrentShadow() {
         return currentShadow;
     }
 
-    public void setCurrentShadow(ResourceObjectShadowType currentShadow) {
+    public void setCurrentShadow(PrismObject<? extends ResourceObjectShadowType> currentShadow) {
         this.currentShadow = currentShadow;
     }
 
-    public ResourceObjectShadowType getOldShadow() {
+    public PrismObject<? extends ResourceObjectShadowType> getOldShadow() {
         return oldShadow;
     }
 
-    public void setOldShadow(ResourceObjectShadowType oldShadow) {
+    public void setOldShadow(PrismObject<? extends ResourceObjectShadowType> oldShadow) {
         this.oldShadow = oldShadow;
     }
 
@@ -80,11 +81,11 @@ public class ResourceObjectShadowChangeDescription implements Dumpable, DebugDum
         this.sourceChannel = sourceChannel;
     }
 
-    public ResourceType getResource() {
+    public PrismObject<ResourceType> getResource() {
         return resource;
     }
 
-    public void setResource(ResourceType resource) {
+    public void setResource(PrismObject<ResourceType> resource) {
         this.resource = resource;
     }
     
@@ -110,7 +111,7 @@ public class ResourceObjectShadowChangeDescription implements Dumpable, DebugDum
 	public String toString() {
 		return "ResourceObjectShadowChangeDescription(objectDelta=" + objectDelta + ", currentShadow="
 				+ SchemaDebugUtil.prettyPrint(currentShadow) + ", oldShadow=" + SchemaDebugUtil.prettyPrint(oldShadow) + ", sourceChannel=" + sourceChannel
-				+ ", resource=" + ObjectTypeUtil.toShortString(resource) + ")";
+				+ ", resource=" + resource + ")";
 	}
     
     @Override
@@ -142,7 +143,7 @@ public class ResourceObjectShadowChangeDescription implements Dumpable, DebugDum
 		if (resource == null) {
 			sb.append(" null");
 		} else {
-			sb.append(ObjectTypeUtil.toShortString(resource));
+			sb.append(resource);
 		}
 		
 		sb.append("\n");
@@ -161,7 +162,7 @@ public class ResourceObjectShadowChangeDescription implements Dumpable, DebugDum
 		if (oldShadow == null) {
 			sb.append(" null");
 		} else {
-			sb.append(SchemaDebugUtil.debugDump(oldShadow, indent+2));
+			sb.append(oldShadow.debugDump(indent+2));
 		}
 		
 		sb.append("\n");
@@ -172,7 +173,7 @@ public class ResourceObjectShadowChangeDescription implements Dumpable, DebugDum
 			sb.append(" null\n");
 		} else {
 			sb.append("\n");
-			sb.append(SchemaDebugUtil.debugDump(currentShadow, indent+2));
+			sb.append(currentShadow.debugDump(indent+2));
 		}
 
 		return sb.toString();

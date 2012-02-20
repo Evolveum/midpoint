@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.task.api;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -27,6 +28,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Dumpable;
@@ -342,6 +344,8 @@ public interface Task extends Dumpable {
 	public boolean isLooselyBound();
 
 	public ScheduleType getSchedule();
+	
+	public void modify(Collection<PropertyDelta> modifications, OperationResult parentResult);
 
 	/**
 	 * Signal the task to shut down.

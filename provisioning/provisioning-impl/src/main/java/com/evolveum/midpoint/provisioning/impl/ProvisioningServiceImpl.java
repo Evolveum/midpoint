@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -35,10 +36,16 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -47,17 +54,14 @@ import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.PropertyModification;
 import com.evolveum.midpoint.schema.ResultArrayList;
 import com.evolveum.midpoint.schema.ResultList;
-import com.evolveum.midpoint.schema.PropertyModification.ModificationType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -67,22 +71,14 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.FailedOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
@@ -104,17 +100,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 @Service(value = "provisioningService")
 public class ProvisioningServiceImpl implements ProvisioningService {
 
-	@Autowired
+	@Autowired(required=true)
 	private ShadowCache shadowCache;
-	@Autowired
+	@Autowired(required=true)
 	private ResourceTypeManager resourceTypeManager;
-	@Autowired
+	@Autowired(required=true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService cacheRepositoryService;
-	@Autowired
+	@Autowired(required=true)
 	private ChangeNotificationDispatcher changeNotificationDispatcher;
-	@Autowired
+	@Autowired(required=true)
 	private ConnectorTypeManager connectorTypeManager;
+	@Autowired(required=true)
+	private PrismContext prismContext;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImpl.class);
 
@@ -356,7 +354,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						SchemaDebugUtil.prettyPrint(tokenProperty));
 			}
 
-			List<PropertyModification> modifications = new ArrayList<PropertyModification>();
+			Collection<PropertyDelta> taskModifications = new ArrayList<PropertyDelta>();
 			List<Change> changes = null;
 
 			LOGGER.trace("Calling shadow cache to fetch changes.");
@@ -373,8 +371,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				// such a change should be skipped to process consistent changes
 				if (change.getOldShadow() == null) {
 					PrismProperty newToken = change.getToken();
-					PropertyModification modificatedToken = getTokenModification(newToken);
-					modifications.add(modificatedToken);
+					PropertyDelta modificatedToken = getTokenModification(newToken);
+					taskModifications.add(modificatedToken);
 					processedChanges++;
 					LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was deleted on the resource meantime).");
 					continue;
@@ -408,8 +406,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					// create property modification from new token
 					// and replace old token with the new one
 					PrismProperty newToken = change.getToken();
-					PropertyModification modificatedToken = getTokenModification(newToken);
-					modifications.add(modificatedToken);
+					PropertyDelta modificatedToken = getTokenModification(newToken);
+					taskModifications.add(modificatedToken);
 					processedChanges++;
 
 				} else {
@@ -420,10 +418,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// also if no changes was detected, update token
 			if (changes.isEmpty()) {
 				LOGGER.trace("No changes to synchronize on " + ObjectTypeUtil.toShortString(resourceType));
-				PropertyModification modificatedToken = getTokenModification(tokenProperty);
-				modifications.add(modificatedToken);
+				PropertyDelta modificatedToken = getTokenModification(tokenProperty);
+				taskModifications.add(modificatedToken);
 			}
-			task.modifyExtension(modifications, result);
+			task.modify(taskModifications, result);
 
 			// This happens in the (scheduled async) task. Recording of results
 			// in the task is still not
@@ -586,7 +584,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 		};
 
-		searchObjectsIterative(query, paging, handler, parentResult);
+		searchObjectsIterative(type, query, paging, handler, parentResult);
 		return objListType;
 	}
 
@@ -806,8 +804,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public void searchObjectsIterative(QueryType query, PagingType paging, final ResultHandler handler,
-			final OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
+	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, QueryType query, PagingType paging, 
+			final ResultHandler<T> handler, final OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
 			CommunicationException {
 
 		Validate.notNull(query, "Search query must not be null.");
@@ -831,8 +829,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		if (QNameUtil.compareQName(SchemaConstants.C_FILTER_AND, filter)) {
 			for (int i = 0; i < list.getLength(); i++) {
 				if (QNameUtil.compareQName(SchemaConstants.C_FILTER_TYPE, list.item(i))) {
-					String type = list.item(i).getAttributes().getNamedItem("uri").getNodeValue();
-					if (type == null || "".equals(type)) {
+					String filterType = list.item(i).getAttributes().getNamedItem("uri").getNodeValue();
+					if (filterType == null || "".equals(filterType)) {
 						result.recordFatalError("Object type is not defined.");
 						throw new IllegalArgumentException("Object type is not defined.");
 					}
@@ -891,11 +889,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 				OperationResult accountResult = result.createSubresult(ProvisioningService.class.getName()
 						+ ".searchObjectsIterative.handle");
-				boolean doContinue = handler.handle(shadowType.asContainer(), accountResult);
+				boolean doContinue = handler.handle(shadowType.asPrismObject(), accountResult);
 				accountResult.computeStatus();
 				
 				if (!accountResult.isSuccess()) {
-					ObjectModificationType shadowModificationType = ObjectTypeUtil
+					ObjectDelta shadowModificationType = ObjectDelta
 							.createModificationReplaceProperty(shadowType.getOid(), SchemaConstants.C_RESULT,
 									accountResult.createOperationResultType());
 					try {
@@ -916,7 +914,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 		};
 
-		getResourceTypeManager().searchObjectsIterative(objectClass, resource, shadowHandler, null, result);
+		getResourceTypeManager().searchObjectsIterative((Class<? extends ResourceObjectShadowType>)type,
+				objectClass, resource.asObjectable(), shadowHandler, null, result);
 		result.recordSuccess();
 	}
 
@@ -929,13 +928,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			ResourceType resourceType) {
 		ResourceObjectShadowChangeDescription shadowChangeDescription = new ResourceObjectShadowChangeDescription();
 		shadowChangeDescription.setObjectDelta(change.getObjectDelta());
-		shadowChangeDescription.setResource(resourceType);
+		shadowChangeDescription.setResource(resourceType.asPrismObject());
 		shadowChangeDescription.setOldShadow(change.getOldShadow());
-		ResourceObjectShadowType currentShadow = change.getCurrentShadow();
-		if (currentShadow instanceof AccountShadowType) {
-			AccountShadowType account = (AccountShadowType) currentShadow;
-			account.setActivation(ShadowCacheUtil.determineActivation(resourceType, account, null));
-		}
+		ResourceObjectShadowType currentShadowType = change.getCurrentShadow().asObjectable();
+		currentShadowType.setActivation(ShadowCacheUtil.completeActivation(currentShadowType, resourceType, null));
 
 		shadowChangeDescription.setCurrentShadow(change.getCurrentShadow());
 		shadowChangeDescription.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_SYNC));
@@ -943,10 +939,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	}
 
-	private PropertyModification getTokenModification(PrismProperty token) {
-		PropertyModification propertyModification = token.createModification(ModificationType.REPLACE,
-				token.getValues());
-		return propertyModification;
+	private PropertyDelta getTokenModification(PrismProperty token) {
+		PropertyDelta tokenDelta = new PropertyDelta(new PropertyPath(ResourceObjectShadowType.F_EXTENSION, token.getName()),
+				token.getDefinition());
+		tokenDelta.setValuesToReplace((Collection)token.getValues());
+		return tokenDelta;
 	}
 
 	/*
@@ -999,7 +996,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.computeStatus("Provisioning post-initialization failed");
 	}
 
-	private ObjectModificationType createShadowResultModification(
+	private ObjectDelta<? extends ResourceObjectShadowType> createShadowResultModification(
 			ResourceObjectShadowChangeDescription shadowChangeDescription, Change change,
 			OperationResult shadowResult) {
 		
@@ -1019,14 +1016,19 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 		}
 
-		ObjectModificationType shadowModification = ObjectTypeUtil.createModificationReplaceProperty(
+		PrismObjectDefinition<ResourceObjectShadowType> shadowDefinition = 
+			ShadowCacheUtil.getResourceObjectShadowDefinition(prismContext);
+		
+		ObjectDelta<? extends ResourceObjectShadowType> shadowModification = ObjectDelta.createModificationReplaceProperty(
 				shadowOid, SchemaConstants.C_RESULT, shadowResult.createOperationResultType());
 
 		if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
-						PropertyModificationType deleteFlagProperty = ObjectTypeUtil.createPropertyModificationType(
-					PropertyModificationTypeType.replace, null, SchemaConstants.C_FAILED_OPERATION_TYPE,
-					FailedOperationTypeType.DELETE);
-			shadowModification.getPropertyModification().add(deleteFlagProperty);
+			PrismPropertyDefinition failedOperationTypePropDef =
+				shadowDefinition.findPropertyDefinition(ResourceObjectShadowType.F_FAILED_OPERATION_TYPE);
+			PropertyDelta failedOperationTypeDelta = new PropertyDelta(ResourceObjectShadowType.F_FAILED_OPERATION_TYPE,
+					failedOperationTypePropDef);
+			failedOperationTypeDelta.setValueToReplace(new PrismPropertyValue(FailedOperationTypeType.DELETE));
+			shadowModification.addModification(failedOperationTypeDelta);
 		}
 		return shadowModification;
 
@@ -1036,10 +1038,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			Change change, OperationResult notifyChangeResult, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException {
 
-		ObjectModificationType shadowModification = createShadowResultModification(shadowChangeDescription,
-				change, notifyChangeResult);
+		ObjectDelta<ResourceObjectShadowType> shadowModification = 
+			(ObjectDelta<ResourceObjectShadowType>) createShadowResultModification(shadowChangeDescription, change, notifyChangeResult);
 		// maybe better error handling is needed
-		cacheRepositoryService.modifyObject(AccountShadowType.class, shadowModification, parentResult);
+		cacheRepositoryService.modifyObject(ResourceObjectShadowType.class, shadowModification, parentResult);
 
 	}
 
@@ -1053,9 +1055,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						parentResult);
 			} catch (ObjectNotFoundException ex) {
 				parentResult.recordFatalError("Can't find object "
-						+ ObjectTypeUtil.toShortString(change.getOldShadow()) + " in repository.");
+						+ change.getOldShadow() + " in repository.");
 				throw new ObjectNotFoundException("Can't find object "
-						+ ObjectTypeUtil.toShortString(change.getOldShadow()) + " in repository.");
+						+ change.getOldShadow() + " in repository.");
 			}
 			LOGGER.debug("Shadow object deleted successfully form repository.");
 		}

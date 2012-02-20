@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
  * @author Radovan Semancik
  *
  */
-public interface ShadowHandler {
+public interface ShadowHandler<T extends ResourceObjectShadowType> {
 
 	/**
      * Handle a single shadow. Used e.g. to return results
@@ -35,6 +35,6 @@ public interface ShadowHandler {
      * @param object Resource object to process.
      * @return true if the operation should proceed, false if it should stop
      */
-    public boolean handle(ResourceObjectShadowType shadow);
+    public boolean handle(T shadow);
 	
 }
