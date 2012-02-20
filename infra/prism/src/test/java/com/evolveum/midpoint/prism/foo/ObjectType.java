@@ -54,7 +54,7 @@ public abstract class ObjectType
     @XmlAttribute(name = "oid")
     protected String oid;
     @XmlAttribute(name = "version")
-    protected String version;
+    protected Long version;
 
     /**
      * Gets the value of the name property.
@@ -160,7 +160,7 @@ public abstract class ObjectType
      *     {@link String }
      *     
      */
-    public String getVersion() {
+    public Long getVersion() {
         return version;
     }
 
@@ -172,7 +172,7 @@ public abstract class ObjectType
      *     {@link String }
      *     
      */
-    public void setVersion(String value) {
+    public void setVersion(Long value) {
         this.version = value;
     }
 

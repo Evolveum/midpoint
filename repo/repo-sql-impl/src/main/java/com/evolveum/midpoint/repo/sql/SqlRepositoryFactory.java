@@ -45,49 +45,10 @@ import java.sql.Statement;
 public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryFactory.class);
-
-    private Configuration configuration;
-
-    //embedded configuration
-    private boolean embedded = true;
-    private boolean asServer = false;
-    private String baseDir = "~/";
-    private boolean tcpSSL = false;
-    private int port = 5437;
-    //connection for hibernate
-    private String driverClassName = "org.h2.Driver";
-    private String jdbcUrl = "jdbc:h2:file:~/midpoint";
-    private String jdbcUsername = "midpoint";
-    private String jdbcPassword = "midpoint";
-    private String hibernateDialect = "org.hibernate.dialect.H2Dialect";
-    private String hibernateHbm2ddl = "update";
-
+    private Configuration configuration;             //todo remove dependency
+    private SqlRepositoryConfiguration sqlConfiguration;
     //embedded h2
     private Server server;
-
-    public boolean isAsServer() {
-        return asServer;
-    }
-
-    public void setAsServer(boolean asServer) {
-        this.asServer = asServer;
-    }
-
-    public String getBaseDir() {
-        return baseDir;
-    }
-
-    public void setBaseDir(String baseDir) {
-        this.baseDir = baseDir;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
 
     public Server getServer() {
         return server;
@@ -97,96 +58,25 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         this.server = server;
     }
 
-    public boolean isTcpSSL() {
-        return tcpSSL;
-    }
-
-    public void setTcpSSL(boolean tcpSSL) {
-        this.tcpSSL = tcpSSL;
-    }
-
-    public String getDriverClassName() {
-        return driverClassName;
-    }
-
-    public void setDriverClassName(String driverClassName) {
-        this.driverClassName = driverClassName;
-    }
-
-    public boolean isEmbedded() {
-        return embedded;
-    }
-
-    public void setEmbedded(boolean embedded) {
-        this.embedded = embedded;
-    }
-
-    public String getHibernateDialect() {
-        return hibernateDialect;
-    }
-
-    public void setHibernateDialect(String hibernateDialect) {
-        this.hibernateDialect = hibernateDialect;
-    }
-
-    public String getHibernateHbm2ddl() {
-        return hibernateHbm2ddl;
-    }
-
-    public void setHibernateHbm2ddl(String hibernateHbm2ddl) {
-        this.hibernateHbm2ddl = hibernateHbm2ddl;
-    }
-
-    public String getJdbcPassword() {
-        return jdbcPassword;
-    }
-
-    public void setJdbcPassword(String jdbcPassword) {
-        this.jdbcPassword = jdbcPassword;
-    }
-
-    public String getJdbcUrl() {
-        return jdbcUrl;
-    }
-
-    public void setJdbcUrl(String jdbcUrl) {
-        this.jdbcUrl = jdbcUrl;
-    }
-
-    public String getJdbcUsername() {
-        return jdbcUsername;
-    }
-
-    public void setJdbcUsername(String jdbcUsername) {
-        this.jdbcUsername = jdbcUsername;
-    }
-
     private void applyConfiguration() {
         if (configuration == null) {
             throw new IllegalStateException("Configuration has to be injected prior the initialization.");
         }
-
-        setAsServer(configuration.getBoolean("asServer", asServer));
-        setBaseDir(configuration.getString("baseDir", baseDir));
-        setDriverClassName(configuration.getString("driverClassName", driverClassName));
-        setEmbedded(configuration.getBoolean("embedded", embedded));
-        setHibernateDialect(configuration.getString("hibernateDialect", hibernateDialect));
-        setHibernateHbm2ddl(configuration.getString("hibernateHbm2ddl", hibernateHbm2ddl));
-        setJdbcPassword(configuration.getString("jdbcPassword", jdbcPassword));
-        setJdbcUrl(configuration.getString("jdbcUrl", jdbcUrl));
-        setJdbcUsername(configuration.getString("jdbcUsername", jdbcUsername));
-        setPort(configuration.getInt("port", port));
-        setTcpSSL(configuration.getBoolean("tcpSSL", tcpSSL));
+        sqlConfiguration = new SqlRepositoryConfiguration(configuration);
     }
 
+    private SqlRepositoryConfiguration getSqlConfiguration() {
+        Validate.notNull(sqlConfiguration, "Sql repository configuration not available (null).");
+        return sqlConfiguration;
+    }
 
     @Override
     public void destroy() throws RepositoryServiceFactoryException {
-        if (!isEmbedded()) {
+        if (!getSqlConfiguration().isEmbedded()) {
             LOGGER.info("Repository is not running in embedded mode, shutdown complete.");
         }
 
-        if (isAsServer()) {
+        if (getSqlConfiguration().isAsServer()) {
             LOGGER.info("Shutting down embedded H2");
             if (server != null && server.isRunning(true))
                 server.stop();
@@ -221,19 +111,19 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 //        [-ifExists]             Only existing databases may be opened (all servers)
 //        [-trace]                Print additional trace information (all servers)
 
-        checkPort(getPort());
+        checkPort(getSqlConfiguration().getPort());
 
         StringBuilder args = new StringBuilder();
         args.append("-baseDir");
-        args.append(getBaseDir());
+        args.append(getSqlConfiguration().getBaseDir());
         args.append(" ");
-        if (isTcpSSL()) {
+        if (getSqlConfiguration().isTcpSSL()) {
             args.append("-tcpSSL ");
         }
         args.append("-ifExists ");
-        if (getPort() > 0) {
+        if (getSqlConfiguration().getPort() > 0) {
             args.append("-tcpPort");
-            args.append(getPort());
+            args.append(getSqlConfiguration().getPort());
             args.append(" ");
         }
 
@@ -250,8 +140,8 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         LOGGER.info("Applying configuration");
         applyConfiguration();
 
-        if (isEmbedded()) {
-            if (isAsServer()) {
+        if (getSqlConfiguration().isEmbedded()) {
+            if (getSqlConfiguration().isAsServer()) {
                 LOGGER.info("Starting h2 in server mode.");
                 startServer();
             } else {
@@ -292,18 +182,18 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
         Connection connection = null;
         try {
-            File baseDir = new File(getBaseDir());
+            File baseDir = new File(getSqlConfiguration().getBaseDir());
             if (!baseDir.exists() || !baseDir.isDirectory()) {
-                throw new RepositoryServiceFactoryException("File '" + getBaseDir()
+                throw new RepositoryServiceFactoryException("File '" + getSqlConfiguration().getBaseDir()
                         + "' defined as baseDir doesn't exist or is not directory.");
             }
 
             Class.forName(org.h2.Driver.class.getName());
             StringBuilder jdbcUrl = new StringBuilder("jdbc:h2:");
-            if (isAsServer()) {
+            if (getSqlConfiguration().isAsServer()) {
                 //jdbc:h2:tcp://<server>[:<port>]/[<path>]<databaseName>
                 jdbcUrl.append("tcp://127.0.0.1:");
-                jdbcUrl.append(getPort());
+                jdbcUrl.append(getSqlConfiguration().getPort());
             } else {
                 //jdbc:h2:[file:][<path>]<databaseName>
                 jdbcUrl.append("file:");
