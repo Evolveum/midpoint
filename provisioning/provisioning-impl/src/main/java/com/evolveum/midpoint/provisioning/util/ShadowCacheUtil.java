@@ -402,14 +402,4 @@ public class ShadowCacheUtil {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceObjectShadowType.class);
 	}
 
-	public static ResourceAttributeContainerDefinition findDefaultAccountObjectClassDefinition(
-			PrismSchema resourceSchema) {
-		for (ResourceAttributeContainerDefinition attrContDef: resourceSchema.getDefinitions(ResourceAttributeContainerDefinition.class)) {
-			if (attrContDef.isDefaultAccountType()) {
-				return attrContDef;
-			}
-		}
-		return null;
-	}
-
 }

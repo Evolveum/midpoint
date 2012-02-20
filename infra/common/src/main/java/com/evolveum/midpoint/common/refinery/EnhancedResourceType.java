@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 /**
@@ -30,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 public class EnhancedResourceType extends ResourceType {
 
 	private static final long serialVersionUID = -3858765689306267363L;
-	private PrismSchema parsedSchema;
+	private ResourceSchema parsedSchema;
 	private RefinedResourceSchema refinedSchema;
 
 	public EnhancedResourceType() {
@@ -55,11 +56,11 @@ public class EnhancedResourceType extends ResourceType {
 		setVersion(resourceType.getVersion());
 	}
 
-	public PrismSchema getParsedSchema() {
+	public ResourceSchema getParsedSchema() {
 		return parsedSchema;
 	}
 
-	public void setParsedSchema(PrismSchema parsedSchema) {
+	public void setParsedSchema(ResourceSchema parsedSchema) {
 		this.parsedSchema = parsedSchema;
 	}
 

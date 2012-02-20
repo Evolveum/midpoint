@@ -108,9 +108,9 @@ public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 		
 		OperationResult result = new OperationResult(ProvisioningServiceImplDBTest.class.getName()+".test000Integrity");
 		
-		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result);
+		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result).asObjectable();
 		String connectorOid = resource.getConnectorRef().getOid();
-		ConnectorType connector = repositoryService.getObject(ConnectorType.class, connectorOid, null, result);
+		ConnectorType connector = repositoryService.getObject(ConnectorType.class, connectorOid, null, result).asObjectable();
 		assertNotNull(connector);
 		display("DB Connector",connector);
 	}
@@ -125,7 +125,7 @@ public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 		display("Test result",testResult);
 		assertSuccess("Test resource failed (result)", testResult);
 		
-		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result);
+		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result).asObjectable();
 		display("Resource after test",resource);
 	}
 	
@@ -139,11 +139,10 @@ public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 		AccountShadowType account = unmarshallJaxbFromFile(FILENAME_ACCOUNT, AccountShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(account));
-		System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(account,
-				SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
+		System.out.println(account.asPrismObject().dump());
 
 		// WHEN
-		String addedObjectOid = provisioningService.addObject(account, null, result);
+		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, result);
 		
 		// THEN
 		result.computeStatus();
@@ -152,11 +151,11 @@ public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 		assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
 
 		AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
-				new PropertyReferenceListType(), result);
+				new PropertyReferenceListType(), result).asObjectable();
 		assertEquals("will", accountType.getName());
 
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
-				new PropertyReferenceListType(), result);
+				new PropertyReferenceListType(), result).asObjectable();
 		assertEquals("will", provisioningAccountType.getName());
 		
 		// Check database content

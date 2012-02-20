@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -125,7 +126,7 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		return refinedSchema;
 	}
 	
-	public static PrismSchema getResourceSchema(ResourceType resource, PrismContext prismContext) throws SchemaException {
+	public static ResourceSchema getResourceSchema(ResourceType resource, PrismContext prismContext) throws SchemaException {
 		Element resourceXsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
 		if (resourceXsdSchema == null) {
 			return null;
@@ -135,12 +136,12 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 			if (enh.getParsedSchema() != null) {
 				return enh.getParsedSchema();
 			} else {
-				PrismSchema parsedSchema = PrismSchema.parse(resourceXsdSchema, prismContext);
+				ResourceSchema parsedSchema = ResourceSchema.parse(resourceXsdSchema, prismContext);
 				enh.setParsedSchema(parsedSchema);
 				return parsedSchema;
 			}
 		}
-		PrismSchema parsedSchema = PrismSchema.parse(resourceXsdSchema, prismContext);
+		ResourceSchema parsedSchema = ResourceSchema.parse(resourceXsdSchema, prismContext);
 		return parsedSchema;
 	}
 

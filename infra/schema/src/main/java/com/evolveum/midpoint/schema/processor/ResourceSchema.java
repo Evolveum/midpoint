@@ -21,9 +21,12 @@ package com.evolveum.midpoint.schema.processor;
 
 import javax.xml.namespace.QName;
 
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
@@ -33,6 +36,11 @@ public class ResourceSchema extends PrismSchema {
 
 	public ResourceSchema(String namespace, PrismContext prismContext) {
 		super(namespace, prismContext);
+	}
+	
+	public static ResourceSchema parse(Element element, PrismContext prismContext) throws SchemaException {
+		// TODO: make sure correct parser plugins are used
+		return (ResourceSchema) PrismSchema.parse(element, prismContext);
 	}
 
 	/**
@@ -65,5 +73,14 @@ public class ResourceSchema extends PrismSchema {
 		add(cTypeDef);
 		add(def);
 		return def;
+	}
+
+	public ResourceAttributeContainerDefinition findDefaultAccountDefinition() {
+		for (ResourceAttributeContainerDefinition attrContDef: getDefinitions(ResourceAttributeContainerDefinition.class)) {
+			if (attrContDef.isDefaultAccountType()) {
+				return attrContDef;
+			}
+		}
+		return null;
 	}
 }

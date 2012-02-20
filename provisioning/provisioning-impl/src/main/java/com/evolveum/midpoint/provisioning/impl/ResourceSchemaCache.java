@@ -28,6 +28,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.refinery.EnhancedResourceType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadata;
@@ -86,7 +87,7 @@ public class ResourceSchemaCache {
 		
 		// Cache entry does not exist (or was deleted). Parse the schema.
 		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaType);
-		PrismSchema parsedSchema = PrismSchema.parse(xsdElement, prismContext);
+		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, prismContext);
 		// Put it into cache
 		ResourceSchemaCacheEntry entry = new ResourceSchemaCacheEntry(serial, xsdElement, parsedSchema);
 		cache.put(oid,entry);
@@ -141,9 +142,9 @@ public class ResourceSchemaCache {
 	private class ResourceSchemaCacheEntry {
 		public String serialNumber;
 		public Element xsdElement;
-		public PrismSchema parsedSchema;
+		public ResourceSchema parsedSchema;
 		
-		private ResourceSchemaCacheEntry(String serialNumber, Element xsdElement, PrismSchema parsedSchema) {
+		private ResourceSchemaCacheEntry(String serialNumber, Element xsdElement, ResourceSchema parsedSchema) {
 			super();
 			this.serialNumber = serialNumber;
 			this.xsdElement = xsdElement;

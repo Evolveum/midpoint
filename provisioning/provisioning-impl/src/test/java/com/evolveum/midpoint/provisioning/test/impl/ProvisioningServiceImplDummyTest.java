@@ -37,6 +37,7 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.EnhancedResourceType;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -47,8 +48,10 @@ import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -72,7 +75,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationTy
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
@@ -153,10 +155,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				+ ".test000Integrity");
 
 		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null,
-				result);
+				result).asObjectable();
 		String connectorOid = resource.getConnectorRef().getOid();
 		ConnectorType connector = repositoryService
-				.getObject(ConnectorType.class, connectorOid, null, result);
+				.getObject(ConnectorType.class, connectorOid, null, result).asObjectable();
 		assertNotNull(connector);
 		display("Dummy Connector", connector);
 	}
@@ -176,17 +178,18 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				+ ".test001Connectors");
 
 		// WHEN
-		List<ConnectorType> connectors = repositoryService.listObjects(ConnectorType.class, null, result);
+		List<PrismObject<ConnectorType>> connectors = repositoryService.listObjects(ConnectorType.class, null, result);
 
 		// THEN
 		assertFalse("No connector found", connectors.isEmpty());
-		for (ConnectorType conn : connectors) {
+		for (PrismObject<ConnectorType> connPrism : connectors) {
+			ConnectorType conn = connPrism.asObjectable();
 			display("Found connector", conn);
 			XmlSchemaType xmlSchemaType = conn.getSchema();
 			assertNotNull("xmlSchemaType is null", xmlSchemaType);
 			assertFalse("Empty schema", xmlSchemaType.getAny().isEmpty());
 			// Try to parse the schema
-			PrismSchema schema = PrismSchema.parse(xmlSchemaType.getAny().get(0));
+			PrismSchema schema = PrismSchema.parse(xmlSchemaType.getAny().get(0), prismContext);
 			assertNotNull("Cannot parse schema", schema);
 			assertFalse("Empty schema", schema.isEmpty());
 			display("Parsed connector schema", schema);
@@ -233,11 +236,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				+ ".test003Connection");
 		// Check that there is no schema before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID,
-				null, result);
+				null, result).asObjectable();
 		assertNotNull("No connector ref", resourceBefore.getConnectorRef());
 		assertNotNull("No connector ref OID", resourceBefore.getConnectorRef().getOid());
 		ConnectorType connector = repositoryService.getObject(ConnectorType.class, resourceBefore
-				.getConnectorRef().getOid(), null, result);
+				.getConnectorRef().getOid(), null, result).asObjectable();
 		assertNotNull(connector);
 		XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
 		AssertJUnit.assertTrue("Found schema before test connection. Bad test setup?", xmlSchemaTypeBefore
@@ -250,7 +253,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		display("Test result", testResult);
 		assertSuccess("Test resource failed (result)", testResult);
 
-		resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+		resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result).asObjectable();
 		display("Resource after test", resource);
 
 		XmlSchemaType xmlSchemaTypeAfter = resource.getSchema();
@@ -263,7 +266,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertNotNull("No serialNumber", cachingMetadata.getSerialNumber());
 
 		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-		PrismSchema parsedSchema = PrismSchema.parse(xsdElement);
+		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, prismContext);
 		assertNotNull("No schema after parsing", parsedSchema);
 
 		// schema will be checked in next test
@@ -278,7 +281,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		// WHEN
 		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null,
-				result);
+				result).asObjectable();
 
 		// THEN
 		// The returned type should have the schema pre-parsed
@@ -287,13 +290,13 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertNotNull(enh.getParsedSchema());
 
 		// Also test if the utility method returns the same thing
-		PrismSchema returnedSchema = RefinedResourceSchema.getResourceSchema(resource);
+		ResourceSchema returnedSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 
 		// Not equals() but == ... we want to really know if exactly the same
 		// object instance is returned
 		assertTrue(returnedSchema == enh.getParsedSchema());
 
-		ResourceAttributeContainerDefinition accountDef = returnedSchema.findAccountDefinition();
+		ResourceAttributeContainerDefinition accountDef = returnedSchema.findDefaultAccountDefinition();
 		assertNotNull("Account definition is missing", accountDef);
 		assertNotNull("Null identifiers in account", accountDef.getIdentifiers());
 		assertFalse("Empty identifiers in account", accountDef.getIdentifiers().isEmpty());
@@ -339,14 +342,14 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		// WHEN
 		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null,
-				result);
+				result).asObjectable();
 
 		// THEN
 
 		// Check native capabilities
 		CapabilitiesType nativeCapabilities = resource.getNativeCapabilities();
 		System.out.println("Native capabilities: " + JAXBUtil.silentMarshalWrap(nativeCapabilities));
-		System.out.println("resource: " + JAXBUtil.silentMarshalWrap(resource));
+		System.out.println("resource: " + resource.asPrismObject().dump());
 		List<Object> capabilities = nativeCapabilities.getAny();
 		assertFalse("Empty capabilities returned", capabilities.isEmpty());
 		CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(capabilities,
@@ -392,11 +395,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		AccountShadowType account = unmarshallJaxbFromFile(FILENAME_ACCOUNT, AccountShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(account));
-		System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(account,
-				SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
+		System.out.println(account.asPrismObject().dump());
 
 		// WHEN
-		String addedObjectOid = provisioningService.addObject(account, null, result);
+		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, result);
 
 		// THEN
 		result.computeStatus();
@@ -405,11 +407,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
 
 		AccountShadowType accountType = repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
-				new PropertyReferenceListType(), result);
+				new PropertyReferenceListType(), result).asObjectable();
 		assertEquals("will", accountType.getName());
 
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class,
-				ACCOUNT_NEW_OID, new PropertyReferenceListType(), result);
+				ACCOUNT_NEW_OID, new PropertyReferenceListType(), result).asObjectable();
 		display("account from provisioning",provisioningAccountType);
 		assertEquals("will", provisioningAccountType.getName());
 		
@@ -436,7 +438,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		// WHEN
 		AccountShadowType shadow = provisioningService.getObject(AccountShadowType.class,
-				ACCOUNT_NEW_OID, null, result);
+				ACCOUNT_NEW_OID, null, result).asObjectable();
 
 		// THEN
 		display("Retrieved account shadow", shadow);
@@ -462,24 +464,24 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				QueryUtil.createEqualFilter(doc, null, SchemaConstants.I_OBJECT_CLASS, new QName(resource.getNamespace(),ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME)),
 				QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, "will")));
 		
-		final List<ObjectType> foundObjects = new ArrayList<ObjectType>();
-		ResultHandler handler = new ResultHandler() {
+		final List<AccountShadowType> foundObjects = new ArrayList<AccountShadowType>();
+		ResultHandler<AccountShadowType> handler = new ResultHandler<AccountShadowType>() {
 			
 			@Override
-			public boolean handle(ObjectType object, OperationResult parentResult) {
-				foundObjects.add(object);
+			public boolean handle(PrismObject<AccountShadowType> object, OperationResult parentResult) {
+				foundObjects.add(object.asObjectable());
 				return true;
 			}
 		};
 		
 		// WHEN
-		provisioningService.searchObjectsIterative(query, null, handler , result);
+		provisioningService.searchObjectsIterative(AccountShadowType.class, query, null, handler , result);
 		
 		// THEN
 		
 		assertEquals(1,foundObjects.size());
 		
-		AccountShadowType shadow = (AccountShadowType) foundObjects.get(0);
+		AccountShadowType shadow = foundObjects.get(0);
 		display("Found object",shadow);
 		checkShadow(shadow);
 		
@@ -489,9 +491,9 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	private void checkShadow(AccountShadowType shadow) {
 		assertNotNull("no OID",shadow.getOid());
 		assertNotNull("no name",shadow.getName());
-		Attributes attrs = shadow.getAttributes();
+		ResourceAttributeContainer attrs = ResourceObjectShadowUtil.getAttributesContainer(shadow);
 		assertNotNull("no attributes",attrs);
-		assertFalse("empty attributes",attrs.getAny().isEmpty());
+		assertFalse("empty attributes",attrs.isEmpty());
 		assertNotNull("no ICF UID",ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow, ConnectorFactoryIcfImpl.ICFS_UID));
 		assertNotNull("no ICF NAME",ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow, ConnectorFactoryIcfImpl.ICFS_NAME));
 		assertEquals("Will Turner",
@@ -511,7 +513,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				+ ".test021EnableAccount");
 
 		AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
-				ACCOUNT_NEW_OID, null, result);
+				ACCOUNT_NEW_OID, null, result).asObjectable();
 		assertNotNull(accountType);
 
 		// THEN
@@ -544,7 +546,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				+ ".test022EnableAccount");
 
 		AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
-				ACCOUNT_NEW_OID, null, result);
+				ACCOUNT_NEW_OID, null, result).asObjectable();
 		assertNotNull(accountType);
 
 		// THEN
@@ -596,11 +598,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertEquals(ACCOUNT_NEW_SCRIPT_OID, addedObjectOid);
 
 		AccountShadowType accountType = repositoryService.getObject(AccountShadowType.class,
-				ACCOUNT_NEW_SCRIPT_OID, new PropertyReferenceListType(), result);
+				ACCOUNT_NEW_SCRIPT_OID, new PropertyReferenceListType(), result).asObjectable();
 		assertEquals("william", accountType.getName());
 
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class,
-				ACCOUNT_NEW_SCRIPT_OID, new PropertyReferenceListType(), result);
+				ACCOUNT_NEW_SCRIPT_OID, new PropertyReferenceListType(), result).asObjectable();
 		assertEquals("william", provisioningAccountType.getName());
 
 		
@@ -694,7 +696,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		XPathHolder xpath = new XPathHolder(SchemaConstants.I_ATTRIBUTES);
 		query.setFilter(QueryUtil.createEqualFilter(doc, xpath, ConnectorFactoryIcfImpl.ICFS_UID, ACCOUNT_NEW_ICF_UID));
 		
-		ResultList<AccountShadowType> objects = repositoryService.searchObjects(AccountShadowType.class, query , null, result);
+		ResultList<PrismObject<AccountShadowType>> objects = repositoryService.searchObjects(AccountShadowType.class, query , null, result);
 		assertEquals("Wrong number of shadows for ICF UID " + ACCOUNT_NEW_ICF_UID, 1, objects.size());
 		
 	}

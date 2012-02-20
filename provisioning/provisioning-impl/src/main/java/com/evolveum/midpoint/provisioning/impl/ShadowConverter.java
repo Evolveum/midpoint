@@ -294,9 +294,9 @@ public class ShadowConverter {
 
 		LOGGER.trace("Getting last token");
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
-		PrismSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
+		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
 		// This is a HACK. It should not work only for default account, but also for other objectclasses (FIXME)
-		ResourceAttributeContainerDefinition objectClass = ShadowCacheUtil.findDefaultAccountObjectClassDefinition(resourceSchema);
+		ResourceAttributeContainerDefinition objectClass = resourceSchema.findDefaultAccountDefinition();
 		PrismProperty lastToken = null;
 		try {
 			lastToken = connector.fetchCurrentToken(objectClass, parentResult);
@@ -325,9 +325,9 @@ public class ShadowConverter {
 		LOGGER.trace("Shadow cache, fetch changes");
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
-		PrismSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		// This is a HACK. It should not work only for default account, but also for other objectclasses (FIXME)
-		ResourceAttributeContainerDefinition objectClass = ShadowCacheUtil.findDefaultAccountObjectClassDefinition(resourceSchema);;
+		ResourceAttributeContainerDefinition objectClass = resourceSchema.findDefaultAccountDefinition();
 
 		// get changes from the connector
 		List<Change> changes = null;

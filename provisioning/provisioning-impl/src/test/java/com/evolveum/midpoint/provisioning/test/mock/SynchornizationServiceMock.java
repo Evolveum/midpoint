@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.provisioning.test.mock;
 
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 import javax.annotation.PostConstruct;
@@ -14,10 +15,12 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 
 
 @Service(value = "syncServiceMock")
@@ -52,13 +55,14 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener{
 		
 		assertTrue("Either current shadow or delta must be present",change.getCurrentShadow() != null || change.getObjectDelta() != null);
 		if (change.getCurrentShadow() != null) {
+			ResourceObjectShadowType currentShadowType = change.getCurrentShadow().asObjectable();
 			assertNotNull("Current shadow does not have an OID", change.getCurrentShadow().getOid());
-			assertNotNull("Current shadow does not have resourceRef", change.getCurrentShadow().getResourceRef());
-			assertNotNull("Current shadow has null attributes", change.getCurrentShadow().getAttributes());
-			assertNotNull("Current shadow has empty attributes", change.getCurrentShadow().getAttributes().getAny().isEmpty());
+			assertNotNull("Current shadow does not have resourceRef", currentShadowType.getResourceRef());
+			assertNotNull("Current shadow has null attributes", currentShadowType.getAttributes());
+			assertFalse("Current shadow has empty attributes", ResourceObjectShadowUtil.getAttributesContainer(currentShadowType).isEmpty());
 			
-			if (change.getCurrentShadow() instanceof AccountShadowType) {
-				AccountShadowType account = (AccountShadowType)change.getCurrentShadow();
+			if (change.getCurrentShadow().asObjectable() instanceof AccountShadowType) {
+				AccountShadowType account = (AccountShadowType)change.getCurrentShadow().asObjectable();
 				assertNotNull("Current shadow does not have activation", account.getActivation());
 				assertNotNull("Current shadow activation/enabled is null", account.getActivation().isEnabled());
 			} else {
@@ -68,7 +72,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener{
 		}
 		if (change.getOldShadow() != null) {
 			assertNotNull("Old shadow does not have an OID", change.getOldShadow().getOid());
-			assertNotNull("Old shadow does not have an resourceRef", change.getOldShadow().getResourceRef());
+			assertNotNull("Old shadow does not have an resourceRef", change.getOldShadow().asObjectable().getResourceRef());
 		}
 		if (change.getObjectDelta() != null) {
 			assertNotNull("Delta has null OID", change.getObjectDelta().getOid());
