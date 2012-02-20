@@ -97,7 +97,7 @@ public abstract class RObjectType {
         jaxb.setDescription(repo.getDescription());
         jaxb.setName(repo.getName());
         jaxb.setOid(repo.getOid());
-        jaxb.setVersion(repo.getVersion());
+        jaxb.setVersion(Long.toString(repo.getVersion()));
     }
 
     public static void copyFromJAXB(ObjectType jaxb, RObjectType repo) throws DtoTranslationException {
@@ -108,7 +108,10 @@ public abstract class RObjectType {
         repo.setName(jaxb.getName());
         repo.setOid(jaxb.getOid());
 
-        repo.setVersion(jaxb.getVersion());
+        String strVersion = jaxb.getVersion();
+        long version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*")
+                ? Long.parseLong(jaxb.getVersion()) : 0;
+        repo.setVersion(version);
     }
 
     public abstract <T extends ObjectType> T toJAXB() throws DtoTranslationException;

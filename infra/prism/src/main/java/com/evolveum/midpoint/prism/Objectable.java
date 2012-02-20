@@ -29,9 +29,9 @@ public interface Objectable {
 	
 	public void setOid(String oid);
 	
-	public Long getVersion();
+	public String getVersion();
 	
-	public void setVersion(Long version);
+	public void setVersion(String version);
 	
 	public String getName();
 	

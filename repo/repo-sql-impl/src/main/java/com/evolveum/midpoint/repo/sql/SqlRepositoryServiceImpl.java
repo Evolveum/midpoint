@@ -44,6 +44,7 @@ import org.apache.commons.lang.Validate;
 import org.hibernate.*;
 import org.hibernate.criterion.Projections;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.orm.hibernate4.HibernateOptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 
 import java.lang.InstantiationException;
@@ -381,6 +382,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             session = beginTransaction();
             session.update(rObject);
             session.getTransaction().commit();
+        } catch (HibernateOptimisticLockingFailureException ex) {
+            rollbackTransaction(session);
+            throw new SystemException(ex.getMessage(), ex);
         } catch (ObjectNotFoundException ex) {
             rollbackTransaction(session);
             throw ex;
@@ -463,6 +467,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
             session.getTransaction().commit();
             LOGGER.debug("Task status updated.");
+        } catch (HibernateOptimisticLockingFailureException ex) {
+            rollbackTransaction(session);
+            throw new SystemException(ex.getMessage(), ex);
         } catch (ObjectNotFoundException ex) {
             rollbackTransaction(session);
             throw ex;
