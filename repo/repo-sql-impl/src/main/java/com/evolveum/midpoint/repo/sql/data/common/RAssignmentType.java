@@ -98,8 +98,7 @@ public class RAssignmentType implements Identifiable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-//        jaxb.setId(repo.getId());
-
+        jaxb.setId(Long.toString(repo.getId()));
         try {
             jaxb.setAccountConstruction(RUtil.toJAXB(repo.getAccountConstruction(), AccountConstructionType.class));
         } catch (Exception ex) {
@@ -124,6 +123,8 @@ public class RAssignmentType implements Identifiable {
     public static void copyFromJAXB(AssignmentType jaxb, RAssignmentType repo) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
+        
+        repo.setId(RUtil.getLongFromString(jaxb.getId()));
 
         try {
             repo.setAccountConstruction(RUtil.toRepo(jaxb.getAccountConstruction()));

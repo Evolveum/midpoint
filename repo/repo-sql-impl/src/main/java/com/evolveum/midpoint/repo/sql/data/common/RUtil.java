@@ -109,7 +109,7 @@ public final class RUtil {
         Validate.notNull(object, "Object must not be null.");
 
         RValue value;
-        if ((object instanceof Element)){// || XmlTypeConverter.canConvert(object.getClass())) {
+        if ((object instanceof Element)) {// || XmlTypeConverter.canConvert(object.getClass())) {
             try {
                 Object javaValue = null;//XmlTypeConverter.toJavaValue(object);
                 System.out.println(javaValue.getClass());
@@ -167,5 +167,14 @@ public final class RUtil {
         complex.setDom(true);
 
         return complex;
+    }
+
+    public static Long getLongWrappedFromString(String text) {
+        return StringUtils.isNotEmpty(text) && text.matches("[0-9]*") ? Long.parseLong(text) : null;
+    }
+
+    public static long getLongFromString(String text) {
+        Long value = getLongWrappedFromString(text);
+        return value != null ? value : 0;
     }
 }
