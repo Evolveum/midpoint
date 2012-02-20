@@ -146,12 +146,12 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 	}
 
 	@Override
-	public <T extends Item> T findItem(PropertyPath path, Class<T> type) {
+	public <I extends Item> I findItem(PropertyPath path, Class<I> type) {
 		return findCreateItem(path, type, false);
 	}
 
 	@Override
-	<T extends Item> T findCreateItem(PropertyPath path, Class<T> type, boolean create) {
+	<I extends Item> I findCreateItem(PropertyPath path, Class<I> type, boolean create) {
 		// Objects are only a single-valued containers. The path of the object itself is "empty".
 		// Fix this special behavior here.
 		PropertyPathSegment first = path.first();
@@ -162,7 +162,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 		if (subitem instanceof PrismContainer) {
 			return ((PrismContainer)subitem).findCreateItem(path, type, create);
 		} else if (type.isAssignableFrom(subitem.getClass())){
-			return (T) subitem;
+			return (I) subitem;
 		} else {
 			if (create) {
 				throw new IllegalStateException("The " + type.getSimpleName() + " cannot be created because "

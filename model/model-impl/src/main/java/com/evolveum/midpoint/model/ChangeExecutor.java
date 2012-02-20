@@ -23,9 +23,13 @@ package com.evolveum.midpoint.model;
 
 import com.evolveum.midpoint.model.controller.ModelUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -63,9 +67,9 @@ public class ChangeExecutor {
     @Autowired(required = true)
     private ProvisioningService provisioning;
 
-    public void executeChanges(Collection<ObjectDelta<?>> changes, OperationResult result) throws
+    public <T extends ObjectType> void executeChanges(Collection<ObjectDelta<T>> changes, OperationResult result) throws
             ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException {
-        for (ObjectDelta<?> change : changes) {
+        for (ObjectDelta<T> change : changes) {
             executeChange(change, result);
         }
     }
@@ -126,7 +130,7 @@ public class ChangeExecutor {
      */
     private void updateAccountLinks(PrismObject<UserType> userNew, AccountSyncContext accCtx,
             OperationResult result) throws ObjectNotFoundException, SchemaException {
-        UserType userTypeNew = userNew.getOrParseObjectType();
+        UserType userTypeNew = userNew.asObjectable();
         String accountOid = accCtx.getOid();
         if (accountOid == null) {
             throw new IllegalStateException("Account has null OID, this should not happen");
@@ -159,33 +163,36 @@ public class ChangeExecutor {
             SchemaException {
 
         LOGGER.trace("Linking account " + accountOid + " to user " + userOid);
-        ObjectReferenceType accountRef = new ObjectReferenceType();
+        PrismReferenceValue accountRef = new PrismReferenceValue();
         accountRef.setOid(accountOid);
-        accountRef.setType(ObjectTypes.ACCOUNT.getTypeQName());
+        accountRef.setTargetType(AccountShadowType.COMPLEX_TYPE);
 
-        PropertyModificationType accountRefMod = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.add, null, SchemaConstants.I_ACCOUNT_REF, accountRef);
-        ObjectModificationType objectChange = new ObjectModificationType();
-        objectChange.setOid(userOid);
-        objectChange.getPropertyModification().add(accountRefMod);
-        cacheRepositoryService.modifyObject(UserType.class, objectChange, result);
+        Collection<? extends ItemDelta> accountRefDeltas = ReferenceDelta.createModificationAddCollection(
+        		UserType.F_ACCOUNT_REF, getUserDefinition(), accountRef); 
+
+        cacheRepositoryService.modifyObject(UserType.class, userOid, accountRefDeltas, result);
     }
 
-    private void unlinkAccount(String userOid, String accountOid, OperationResult result) throws
+	private PrismObjectDefinition<UserType> getUserDefinition() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private void unlinkAccount(String userOid, String accountOid, OperationResult result) throws
             ObjectNotFoundException, SchemaException {
 
         LOGGER.trace("Unlinking account " + accountOid + " to user " + userOid);
-        ObjectReferenceType accountRef = new ObjectReferenceType();
+        PrismReferenceValue accountRef = new PrismReferenceValue();
         accountRef.setOid(accountOid);
-        accountRef.setType(ObjectTypes.ACCOUNT.getTypeQName());
+        accountRef.setTargetType(AccountShadowType.COMPLEX_TYPE);
 
-        PropertyModificationType accountRefMod = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.delete, null, SchemaConstants.I_ACCOUNT_REF, accountRef);
-        ObjectModificationType objectChange = new ObjectModificationType();
-        objectChange.setOid(userOid);
-        objectChange.getPropertyModification().add(accountRefMod);
-        cacheRepositoryService.modifyObject(UserType.class, objectChange, result);
+        Collection<? extends ItemDelta> accountRefDeltas = ReferenceDelta.createModificationDeleteCollection(
+        		UserType.F_ACCOUNT_REF, getUserDefinition(), accountRef); 
+
+        cacheRepositoryService.modifyObject(UserType.class, userOid, accountRefDeltas, result);
     }
 
-    public void executeChange(ObjectDelta<?> change, OperationResult result) throws ObjectAlreadyExistsException,
+    public <T extends ObjectType> void executeChange(ObjectDelta<T> change, OperationResult result) throws ObjectAlreadyExistsException,
             ObjectNotFoundException, SchemaException, CommunicationException {
 
         if (change == null) {
@@ -203,38 +210,37 @@ public class ChangeExecutor {
         }
     }
 
-    private void executeAddition(ObjectDelta<?> change, OperationResult result) throws ObjectAlreadyExistsException,
+    private <T extends ObjectType> void executeAddition(ObjectDelta<T> change, OperationResult result) throws ObjectAlreadyExistsException,
             ObjectNotFoundException, SchemaException, CommunicationException {
 
-        PrismObject<?> mpObject = change.getObjectToAdd();
+        PrismObject<T> objectToAdd = change.getObjectToAdd();
 
         if (change.getModifications() != null) {
-            for (PropertyDelta delta : change.getModifications()) {
-                delta.applyTo(mpObject);
+            for (ItemDelta delta : change.getModifications()) {
+                delta.applyTo(objectToAdd);
             }
             change.getModifications().clear();
         }
 
-        mpObject.setObjectType(null);
-        ObjectType object = mpObject.getOrParseObjectType();
+        T objectTypeToAdd = objectToAdd.asObjectable();
 
         String oid = null;
-        if (object instanceof TaskType) {
-            oid = addTask((TaskType) object, result);
-        } else if (ObjectTypes.isManagedByProvisioning(object)) {
-            oid = addProvisioningObject(object, result);
+        if (objectTypeToAdd instanceof TaskType) {
+            oid = addTask((TaskType) objectTypeToAdd, result);
+        } else if (ObjectTypes.isManagedByProvisioning(objectTypeToAdd)) {
+            oid = addProvisioningObject(objectTypeToAdd, result);
         } else {
-            oid = cacheRepositoryService.addObject(object, result);
+            oid = cacheRepositoryService.addObject(objectToAdd, result);
         }
         change.setOid(oid);
 
     }
 
-    private void executeDeletion(ObjectDelta<? extends ObjectType> change, OperationResult result) throws
+    private <T extends ObjectType> void executeDeletion(ObjectDelta<T> change, OperationResult result) throws
             ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException {
 
         String oid = change.getOid();
-        Class<? extends ObjectType> objectTypeClass = change.getObjectTypeClass();
+        Class<T> objectTypeClass = change.getObjectTypeClass();
 
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
             taskManager.deleteTask(oid, result);
@@ -245,29 +251,28 @@ public class ChangeExecutor {
         }
     }
 
-    private void executeModification(ObjectDelta<?> change, OperationResult result) throws ObjectNotFoundException,
+    private <T extends ObjectType> void executeModification(ObjectDelta<T> change, OperationResult result) throws ObjectNotFoundException,
             SchemaException {
         if (change.isEmpty()) {
             // Nothing to do
             return;
         }
         String oid = change.getOid();
-        Class<? extends ObjectType> objectTypeClass = change.getObjectTypeClass();
-        ObjectModificationType objectChange = change.toObjectModificationType();
+        Class<T> objectTypeClass = change.getObjectTypeClass();
 
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
-            taskManager.modifyTask(objectChange, result);
+            taskManager.modifyTask(change.getOid(), change.getModifications(), result);
         } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
-            modifyProvisioningObject(objectTypeClass, objectChange, result);
+            modifyProvisioningObject(objectTypeClass, change.getOid(), change.getModifications(), result);
         } else {
-            cacheRepositoryService.modifyObject(objectTypeClass, objectChange, result);
+            cacheRepositoryService.modifyObject(objectTypeClass, change.getOid(), change.getModifications(), result);
         }
     }
 
     private String addTask(TaskType task, OperationResult result) throws ObjectAlreadyExistsException,
             ObjectNotFoundException {
         try {
-            return taskManager.addTask(task, result);
+            return taskManager.addTask(task.asPrismObject(), result);
         } catch (ObjectAlreadyExistsException ex) {
             throw ex;
         } catch (Exception ex) {
@@ -291,7 +296,7 @@ public class ChangeExecutor {
 
         try {
             ScriptsType scripts = getScripts(object, result);
-            return provisioning.addObject(object, scripts, result);
+            return provisioning.addObject(object.asPrismObject(), scripts, result);
         } catch (ObjectNotFoundException ex) {
             throw ex;
         } catch (ObjectAlreadyExistsException ex) {
@@ -317,12 +322,12 @@ public class ChangeExecutor {
         }
     }
 
-    private void modifyProvisioningObject(Class<? extends ObjectType> objectTypeClass,
-            ObjectModificationType objectChange, OperationResult result) throws ObjectNotFoundException {
+    private void modifyProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid,
+            Collection<? extends ItemDelta> modifications, OperationResult result) throws ObjectNotFoundException {
 
         try {
             // TODO: scripts
-            provisioning.modifyObject(objectTypeClass, objectChange, null, result);
+            provisioning.modifyObject(objectTypeClass, oid, modifications, null, result);
         } catch (ObjectNotFoundException ex) {
             throw ex;
         } catch (Exception ex) {
@@ -343,7 +348,7 @@ public class ChangeExecutor {
             } else {
                 String resourceOid = ResourceObjectShadowUtil.getResourceOid(resourceObject);
                 ResourceType resObject = provisioning.getObject(ResourceType.class, resourceOid,
-                        new PropertyReferenceListType(), result);
+                        new PropertyReferenceListType(), result).asObjectable();
                 scripts = resObject.getScripts();
             }
         }

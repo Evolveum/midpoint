@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -92,7 +93,7 @@ public class DeltaConvertor {
         ObjectModificationType modType = new ObjectModificationType();
         modType.setOid(delta.getOid());
         List<PropertyModificationType> propModTypes = modType.getPropertyModification();
-        for (PropertyDelta propDelta : delta.getModifications()) {
+        for (ItemDelta propDelta : delta.getModifications()) {
             Collection<PropertyModificationType> propPropModTypes;
             try {
                 propPropModTypes = toPropertyModificationTypes(propDelta);
@@ -152,7 +153,7 @@ public class DeltaConvertor {
     /**
      * Converts this delta to PropertyModificationType (XML).
      */
-    public static Collection<PropertyModificationType> toPropertyModificationTypes(PropertyDelta delta) throws SchemaException {
+    public static Collection<PropertyModificationType> toPropertyModificationTypes(ItemDelta delta) throws SchemaException {
     	delta.checkConsistence();
         Collection<PropertyModificationType> mods = new ArrayList<PropertyModificationType>();
         XPathHolder xpath = new XPathHolder(delta.getParentPath());
@@ -194,7 +195,7 @@ public class DeltaConvertor {
         return mods;
     }
 
-    private static void addModValues(PropertyDelta delta, PropertyModificationType mod, Collection<PrismPropertyValue<Object>> values,
+    private static void addModValues(ItemDelta delta, PropertyModificationType mod, Collection<PrismPropertyValue<Object>> values,
             Document document) throws SchemaException {
         Value modValue = new Value();
         mod.setValue(modValue);

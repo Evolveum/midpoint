@@ -46,6 +46,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAccountTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
 
@@ -242,5 +243,13 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	@Override
 	public String toString() {
 		return "RSchema(ns=" + namespace + ")";
+	}
+
+	/**
+	 * Make sure that the specified shadow has definitions pointing to this refined schema.
+	 */
+	public <T extends ResourceObjectShadowType> PrismObject<T> refine(PrismObject<T> shadow) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException();
 	}
 }

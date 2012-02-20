@@ -28,6 +28,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -223,7 +224,7 @@ public interface ModelService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<PropertyDelta> modifications, Task task,
+	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, Task task,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException;
 
 	/**

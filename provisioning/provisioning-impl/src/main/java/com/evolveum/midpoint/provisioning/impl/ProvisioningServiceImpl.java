@@ -115,6 +115,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	private ConnectorTypeManager connectorTypeManager;
 	@Autowired(required=true)
 	private PrismContext prismContext;
+	
+	private PrismObjectDefinition<ResourceObjectShadowType> resourceObjectShadowDefinition = null;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImpl.class);
 
@@ -891,8 +893,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				accountResult.computeStatus();
 				
 				if (!accountResult.isSuccess()) {
-					Collection<PropertyDelta> shadowModificationType = PropertyDelta.createModificationReplacePropertyCollection(
-							ResourceObjectShadowType.F_RESULT, accountResult.createOperationResultType());
+					Collection<? extends ItemDelta> shadowModificationType = PropertyDelta.createModificationReplacePropertyCollection(
+							ResourceObjectShadowType.F_RESULT, getResourceObjectShadowDefinition(), accountResult.createOperationResultType());
 					try {
 						cacheRepositoryService.modifyObject(AccountShadowType.class, shadowType.getOid(), shadowModificationType,
 								result);
@@ -1059,6 +1061,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 			LOGGER.debug("Shadow object deleted successfully form repository.");
 		}
+	}
+
+	private PrismObjectDefinition<ResourceObjectShadowType> getResourceObjectShadowDefinition() {
+		if (resourceObjectShadowDefinition == null) {
+			resourceObjectShadowDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceObjectShadowType.class);
+		}
+		return resourceObjectShadowDefinition;
 	}
 
 }

@@ -541,7 +541,9 @@ public class XmlRepositoryService implements RepositoryService {
 		
 		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>(1);
 		PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(
-				SchemaConstants.C_TASK_EXECLUSIVITY_STATUS, TaskExclusivityStatusType.CLAIMED.value());
+				SchemaConstants.C_TASK_EXECLUSIVITY_STATUS, 
+				prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class), 
+				TaskExclusivityStatusType.CLAIMED.value());
 		modifications.add(delta);
 
 		modifyObject(TaskType.class, oid, modifications, result);
@@ -558,7 +560,9 @@ public class XmlRepositoryService implements RepositoryService {
 
 		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>(1);
 		PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(
-				SchemaConstants.C_TASK_EXECLUSIVITY_STATUS, TaskExclusivityStatusType.RELEASED.value());
+				SchemaConstants.C_TASK_EXECLUSIVITY_STATUS, 
+				prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class), 
+				TaskExclusivityStatusType.RELEASED.value());
 		modifications.add(delta);
 		
 		modifyObject(TaskType.class, oid, modifications, result);

@@ -50,6 +50,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -592,7 +593,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	}
 
 	@Override
-	public void modifyTask(String oid, Collection<PropertyDelta> modifications, OperationResult parentResult) throws ObjectNotFoundException,
+	public void modifyTask(String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException {
 		// TODO: result
 		repositoryService.modifyObject(TaskType.class, oid, modifications, parentResult);
@@ -713,8 +714,10 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 
 	private void suspendTaskByOid(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		try {
-			Collection<PropertyDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
-					SchemaConstants.C_TASK_EXECUTION_STATUS, TaskExecutionStatusType.SUSPENDED.value());
+			Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
+					SchemaConstants.C_TASK_EXECUTION_STATUS, 
+					prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class),
+					TaskExecutionStatusType.SUSPENDED.value());
 			repositoryService.modifyObject(TaskType.class, oid, modifications, result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Cannot suspend task, as it was not found", ex);
@@ -738,8 +741,10 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		// TODO: recompute next running time
 		
 		try {
-			Collection<PropertyDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
-				SchemaConstants.C_TASK_EXECUTION_STATUS, TaskExecutionStatusType.RUNNING.value());
+			Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
+				SchemaConstants.C_TASK_EXECUTION_STATUS, 
+				prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class),
+				TaskExecutionStatusType.RUNNING.value());
 			repositoryService.modifyObject(TaskType.class, oid, modifications, result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Cannot resume task, as it was not found", ex);

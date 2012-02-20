@@ -77,9 +77,9 @@ public class ModelObjectResolver implements ObjectResolver {
 		try {
 			ObjectType objectType = null;
 			if (ObjectTypes.isClassManagedByProvisioning(clazz)) {
-				objectType = provisioning.getObject(clazz, oid, resolve, result);
+				objectType = provisioning.getObject(clazz, oid, resolve, result).asObjectable();
 			} else {
-				objectType = cacheRepositoryService.getObject(clazz, oid, resolve, result);
+				objectType = cacheRepositoryService.getObject(clazz, oid, resolve, result).asObjectable();
 			}
 			if (!clazz.isInstance(objectType)) {
 				throw new ObjectNotFoundException("Bad object type returned for referenced oid '" + oid

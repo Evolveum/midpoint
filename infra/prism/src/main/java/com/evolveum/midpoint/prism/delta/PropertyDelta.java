@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import javax.xml.namespace.QName;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
@@ -168,19 +169,27 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
      * Convenience method for quick creation of object deltas that replace a single object property. This is used quite often
      * to justify a separate method. 
      */
-    public static PropertyDelta createModificationReplaceProperty(QName propertyName, Object... propertyValues) {
-    	// TODO
-    	throw new UnsupportedOperationException();
+    public static PropertyDelta createModificationReplaceProperty(QName propertyName, PrismObjectDefinition<?> objectDefinition, 
+    		Object... propertyValues) {
+    	PrismPropertyDefinition propDef = objectDefinition.findPropertyDefinition(propertyName);
+    	PropertyDelta<Object> propertyDelta = new PropertyDelta<Object>(propertyName, propDef);
+    	Collection<PrismPropertyValue<Object>> pValues = new ArrayList<PrismPropertyValue<Object>>(propertyValues.length);
+    	for (Object val: propertyValues) {
+    		pValues.add(new PrismPropertyValue<Object>(val));
+    	}
+		propertyDelta.setValuesToReplace(pValues);
+    	return propertyDelta;
     }
 
     /**
      * Convenience method for quick creation of object deltas that replace a single object property. This is used quite often
      * to justify a separate method. 
      */
-    public static Collection<PropertyDelta> createModificationReplacePropertyCollection(QName propertyName, Object... propertyValues) {
-    	Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>(1);
-    	PropertyDelta delta = createModificationReplaceProperty(propertyName, propertyValues);
-    	modifications.add(delta);
+    public static Collection<? extends ItemDelta> createModificationReplacePropertyCollection(QName propertyName, 
+    		PrismObjectDefinition<?> objectDefinition, Object... propertyValues) {
+    	Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
+    	PropertyDelta delta = createModificationReplaceProperty(propertyName, objectDefinition, propertyValues);
+    	((Collection)modifications).add(delta);
     	return modifications;
     }
     

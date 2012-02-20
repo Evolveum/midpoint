@@ -20,9 +20,13 @@
  */
 package com.evolveum.midpoint.prism.delta;
 
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -64,7 +68,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     /**
      * Set of relative property deltas. Valid only if changeType==MODIFY
      */
-    private Collection<PropertyDelta> modifications;
+    private Collection<? extends ItemDelta> modifications;
 
     /**
      * Class of the object that we describe.
@@ -105,28 +109,50 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         }
     }
 
-    public Collection<PropertyDelta> getModifications() {
+    public Collection<? extends ItemDelta> getModifications() {
         return modifications;
     }
 
-    public void addModification(PropertyDelta propertyDelta) {
-        modifications.add(propertyDelta);
+    public void addModification(ItemDelta propertyDelta) {
+        ((Collection)modifications).add(propertyDelta);
+    }
+    
+    public void addModifications(Collection<? extends ItemDelta> propertyDeltas) {
+        modifications.addAll((Collection)propertyDeltas);
+    }
+    
+    public PropertyDelta getPropertyDelta(PropertyPath propertyPath) {
+    	return getItemDelta(propertyPath, PropertyDelta.class, PrismProperty.class);
+    }
+    
+    public ContainerDelta getContainerDelta(PropertyPath propertyPath) {
+    	return getItemDelta(propertyPath, ContainerDelta.class, PrismContainer.class);
     }
 
-    public PropertyDelta getPropertyDelta(PropertyPath propertyPath) {
+    private <D extends ItemDelta, I extends Item> D getItemDelta(PropertyPath propertyPath, Class<D> deltaType, Class<I> itemType) {
         if (changeType == ChangeType.ADD) {
-            PrismProperty property = objectToAdd.findProperty(propertyPath);
-            if (property == null) {
+            I item = objectToAdd.findItem(propertyPath, itemType);
+            if (item == null) {
                 return null;
             }
-            PropertyDelta propDelta = new PropertyDelta(propertyPath, property.getDefinition());
-            propDelta.addValuesToAdd(property.getValues());
-            return propDelta;
+            D itemDelta = createEmptyDelta(propertyPath, item.getDefinition(), deltaType, itemType);
+            itemDelta.addValuesToAdd(item.getValues());
+            return itemDelta;
         } else if (changeType == ChangeType.MODIFY) {
-            return findModification(propertyPath);
+            return findModification(propertyPath, deltaType);
         } else {
             return null;
         }
+    }
+    
+    private <D extends ItemDelta, I extends Item> D createEmptyDelta(PropertyPath propertyPath, ItemDefinition itemDef,
+    		Class<D> deltaType, Class<I> itemType) {
+    
+    	if (PrismProperty.class.isAssignableFrom(itemType)) {
+    		return (D) new PropertyDelta(propertyPath, (PrismPropertyDefinition)itemDef);
+    	} else {
+    		throw new IllegalArgumentException("Unknown item type "+itemType);
+    	}
     }
 
     public Class<T> getObjectTypeClass() {
@@ -148,13 +174,13 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         return getPropertyDelta(new PropertyPath(parentPath, propertyName));
     }
 
-    private PropertyDelta findModification(PropertyPath propertyPath) {
+    private <D extends ItemDelta> D findModification(PropertyPath propertyPath, Class<D> deltaType) {
         if (modifications == null) {
             return null;
         }
-        for (PropertyDelta delta : modifications) {
-            if (delta.getPath().equals(propertyPath)) {
-                return delta;
+        for (ItemDelta delta : modifications) {
+            if (deltaType.isAssignableFrom(delta.getClass()) && delta.getPath().equals(propertyPath)) {
+                return (D) delta;
             }
         }
         return null;
@@ -171,7 +197,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         ObjectDelta<T> clone = new ObjectDelta<T>(this.objectTypeClass, this.changeType);
         clone.oid = this.oid;
         clone.modifications = createEmptyModifications();
-        clone.modifications.addAll(this.modifications);
+        clone.modifications.addAll((Collection)this.modifications);
         if (this.objectToAdd == null) {
             clone.objectToAdd = null;
         } else {
@@ -285,14 +311,14 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         return delta;
     }
 
-    private void mergeModifications(Collection<PropertyDelta> modificationsToMerge) {
-        for (PropertyDelta propDelta : modificationsToMerge) {
+    private void mergeModifications(Collection<? extends ItemDelta> modificationsToMerge) {
+        for (ItemDelta propDelta : modificationsToMerge) {
             if (changeType == ChangeType.ADD) {
                 propDelta.applyTo(objectToAdd);
             } else if (changeType == ChangeType.MODIFY) {
-                PropertyDelta myDelta = findModification(propDelta.getPath());
+            	ItemDelta myDelta = findModification(propDelta.getPath(), ItemDelta.class);
                 if (myDelta == null) {
-                    modifications.add(propDelta);
+                    ((Collection)modifications).add(propDelta);
                 } else {
                     myDelta.merge(propDelta);
                 }
@@ -313,7 +339,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         if (changeType != ChangeType.MODIFY) {
             throw new IllegalStateException("Can apply only MODIFY delta to object, got " + changeType + " delta");
         }
-        for (PropertyDelta propDelta : modifications) {
+        for (ItemDelta propDelta : modifications) {
             propDelta.applyTo(mpObject);
         }
     }
@@ -340,7 +366,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         }
         // MODIFY change
         PrismObject<T> objectNew = objectOld.clone();
-        for (PropertyDelta modification : modifications) {
+        for (ItemDelta modification : modifications) {
             modification.applyTo(objectNew);
         }
         return objectNew;
@@ -375,6 +401,13 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	// TODO
     	throw new UnsupportedOperationException();
     }
+    
+    public static <T extends Objectable> ObjectDelta<T> createModifyDelta(String oid, Collection<? extends ItemDelta> modifications,
+    		Class<T> objectTypeClass) {
+    	ObjectDelta<T> objectDelta = new ObjectDelta<T>(objectTypeClass, ChangeType.MODIFY);
+    	objectDelta.addModifications(modifications);
+    	return objectDelta;
+    }
 
     @Override
     public String toString() {
@@ -388,7 +421,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
                 sb.append(objectToAdd.toString());
             }
         } else if (changeType == ChangeType.MODIFY) {
-            Iterator<PropertyDelta> i = modifications.iterator();
+            Iterator<? extends ItemDelta> i = modifications.iterator();
             while (i.hasNext()) {
                 sb.append(i.next().toString());
                 if (i.hasNext()) {
@@ -420,7 +453,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
                 sb.append(objectToAdd.debugDump(indent + 1));
             }
         } else if (changeType == ChangeType.MODIFY) {
-            Iterator<PropertyDelta> i = modifications.iterator();
+            Iterator<? extends ItemDelta> i = modifications.iterator();
             while (i.hasNext()) {
                 sb.append(i.next().debugDump(indent + 1));
                 if (i.hasNext()) {

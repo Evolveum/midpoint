@@ -42,7 +42,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -161,8 +163,8 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 	@Test(expectedExceptions = ObjectNotFoundException.class)
 	public void modifyNotExistingObject() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111234";
-		Collection<PropertyDelta> mods = PropertyDelta.createModificationReplacePropertyCollection(UserType.F_FULL_NAME,
-			"Foo Bar");
+		Collection<? extends ItemDelta> mods = PropertyDelta.createModificationReplacePropertyCollection(UserType.F_FULL_NAME,
+			PrismTestUtil.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class), "Foo Bar");
 //		ObjectModificationType objModifications = new ObjectModificationType();
 //		objModifications.setOid(oid);
 //		PropertyModificationType modification = new PropertyModificationType();

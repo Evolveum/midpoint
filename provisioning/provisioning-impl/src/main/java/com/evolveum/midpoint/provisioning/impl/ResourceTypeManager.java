@@ -21,7 +21,9 @@ import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -73,6 +75,8 @@ public class ResourceTypeManager {
 	private ConnectorTypeManager connectorTypeManager;
 	@Autowired(required=true)
 	private PrismContext prismContext;
+	
+	private PrismObjectDefinition<ResourceType> resourceTypeDefinition = null;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceTypeManager.class);
 	
@@ -188,8 +192,8 @@ public class ResourceTypeManager {
 			xmlSchemaType.getAny().add(xsdElement);
 			xmlSchemaType.setCachingMetadata(MiscSchemaUtil.generateCachingMetadata());
 
-			Collection<PropertyDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
-					SchemaConstants.I_SCHEMA, xmlSchemaType);
+			Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
+					ResourceType.F_SCHEMA, getResourceTypeDefinition(), xmlSchemaType); 
 
 			repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
 
@@ -205,6 +209,7 @@ public class ResourceTypeManager {
 
 		return newResource;
 	}
+
 
 	public void testConnection(ResourceType resourceType, OperationResult parentResult) {
 
@@ -695,6 +700,13 @@ public class ResourceTypeManager {
 	private ConnectorInstance getConnectorInstance(ResourceType resource, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException {
 		return connectorTypeManager.getConfiguredConnectorInstance(resource, parentResult);
+	}
+
+	private PrismObjectDefinition<ResourceType> getResourceTypeDefinition() {
+		if (resourceTypeDefinition == null) {
+			resourceTypeDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
+		}
+		return resourceTypeDefinition;
 	}
 
 }

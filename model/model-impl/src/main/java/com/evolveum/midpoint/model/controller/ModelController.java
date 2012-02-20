@@ -56,10 +56,12 @@ import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -151,7 +153,7 @@ public class ModelController implements ModelService {
 	private UserSynchronizer userSynchronizer;
 
 	@Autowired(required = true)
-	private SchemaRegistry schemaRegistry;
+	PrismContext prismContext;
 
 	@Autowired(required = true)
 	private ProvisioningService provisioning;
@@ -312,12 +314,10 @@ public class ModelController implements ModelService {
 				LOGGER.trace(object.dump());
 			}
 
-			PrismSchema commonSchema = schemaRegistry.getObjectSchema();
-
 			if (objectType instanceof UserType) {
 				UserType userType = (UserType) objectType;
 
-				SyncContext syncContext = userTypeAddToContext(userType.asPrismObject(), commonSchema, result);
+				SyncContext syncContext = userTypeAddToContext(userType.asPrismObject(), result);
 				
 				auditRecord.addDeltas(syncContext.getAllChanges());
 				auditService.audit(auditRecord, task);
@@ -467,11 +467,11 @@ public class ModelController implements ModelService {
 		return executePostChange(deltas, task, result);
 	}
 
-	private SyncContext userTypeAddToContext(PrismObject<UserType> user, PrismSchema objectSchema, OperationResult result)
+	private SyncContext userTypeAddToContext(PrismObject<UserType> user, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, CommunicationException {
 
 		UserType userType = user.asObjectable();
-		SyncContext syncContext = new SyncContext();
+		SyncContext syncContext = new SyncContext(prismContext);
 
 		// Convert all <account> instances to syncContext or <accountRef>s
 		if (userType.getAccount() != null) {
@@ -484,7 +484,7 @@ public class ModelController implements ModelService {
 					userType.getAccountRef().add(accountRef);
 				} else {
 					// new account (no OID)
-					addAccountToContext(syncContext, accountType, ChangeType.ADD, objectSchema, result);
+					addAccountToContext(syncContext, accountType, ChangeType.ADD, result);
 				}
 				userType.getAccount().remove(accountType);
 			}
@@ -621,7 +621,7 @@ public class ModelController implements ModelService {
 	}
 
 	@Override
-	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<PropertyDelta> modifications, Task task,
+	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, Task task,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			CommunicationException {
 
@@ -665,13 +665,12 @@ public class ModelController implements ModelService {
 
 		try {
 			
-			auditRecord.setTarget(object);
-			PrismSchema commonSchema = schemaRegistry.getObjectSchema();			
+			auditRecord.setTarget(object);			
 
 			ObjectDelta<T> objectDelta = null;
 
 			if (UserType.class.isAssignableFrom(type)) {
-				SyncContext syncContext = userTypeModifyToContext(modifications, commonSchema, result);
+				SyncContext syncContext = userTypeModifyToContext(oid, modifications, result);
 
 				auditRecord.addDeltas(syncContext.getAllChanges());
 				auditService.audit(auditRecord, task);
@@ -696,20 +695,18 @@ public class ModelController implements ModelService {
 					// Need to read the shadow to get reference to resource and
 					// account type
 					AccountShadowType shadow = (AccountShadowType) cacheRepositoryService.getObject(type,
-							change.getOid(), null, result);
+							oid, null, result).asObjectable();
 					String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
 					ResourceType resource = provisioning.getObject(ResourceType.class, resourceOid, null,
-							result);
+							result).asObjectable();
 					RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
-							schemaRegistry);
+							prismContext);
 					PrismObjectDefinition<AccountShadowType> accountDefinition = refinedSchema
 							.getObjectDefinition(shadow);
 
 					// This creates a better delta than the one above
-					objectDelta = (ObjectDelta<T>) ObjectDelta.createDelta(change, accountDefinition);
-				} else {
-					objectDelta = ObjectDelta.createDelta(change, commonSchema, type);
 				}
+				objectDelta = (ObjectDelta<T>) ObjectDelta.createModifyDelta(oid, modifications, type);
 				
 				auditRecord.addDelta(objectDelta);
 				auditService.audit(auditRecord, task);
@@ -737,12 +734,12 @@ public class ModelController implements ModelService {
 			throw ex;
 		} catch (SchemaException ex) {
 			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
-			logDebugChange(type, change);
+			logDebugChange(type, oid, modifications);
 			result.recordFatalError(ex);
 			throw ex;
 		} catch (RuntimeException ex) {
 			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
-			logDebugChange(type, change);
+			logDebugChange(type, oid, modifications);
 			result.recordFatalError(ex);
 			throw ex;
 		} finally {
@@ -754,73 +751,30 @@ public class ModelController implements ModelService {
 		}
 	}
 
-	private void logDebugChange(Class<?> type, ObjectModificationType change) {
+	private void logDebugChange(Class<?> type, String oid, Collection<? extends ItemDelta> modifications) {
 		if (LOGGER.isDebugEnabled()) {
-			try {
-				LOGGER.debug("model.modifyObject class={}, change:\n{}", type.getName(),
-						JAXBUtil.marshalWrap(change, SchemaConstants.C_OBJECT_MODIFICATION));
-			} catch (JAXBException ex2) {
-				LOGGER.error("model.modifyObject error marshalling the 'change' parameter to log: {}",
-						ex2.getMessage(), ex2);
-			}
+			LOGGER.debug("model.modifyObject class={}, oid={}, change:\n{}", new Object[]{
+					oid, type.getName(), DebugUtil.debugDump(modifications)});
 		}
 	}
 
-	private SyncContext userTypeModifyToContext(Collection<PropertyDelta> modifications, PrismSchema commonSchema,
+	private SyncContext userTypeModifyToContext(String oid, Collection<? extends ItemDelta> modifications, 
 			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException {
-		SyncContext syncContext = new SyncContext();
+		SyncContext syncContext = new SyncContext(prismContext);
 
-		PropertyPath accountPath = new PropertyPath(UserType.F_ACCOUNT_REF);
-		Iterator<PropertyDelta> i = modifications.iterator();
-		while (i.hasNext()) {
-			PropertyDelta propDelta = i.next();
-			if (propDelta.getPath().equals(accountPath)) {
-				// TODO
-			}
-			
-			XPathHolder propXPath = new XPathHolder(propDelta.getPath());
-			if (propXPath.isEmpty()
-					&& !propDelta.getValue().getAny().isEmpty()
-					&& JAXBUtil.getElementQName(propDelta.getValue().getAny().get(0)).equals(
-							SchemaConstants.I_ACCOUNT)) {
-
-				if (propDelta.getModificationType() == PropertyModificationTypeType.add) {
-
-					for (Object element : propDelta.getValue().getAny()) {
-						AccountShadowType accountShadowType = XmlTypeConverter.toJavaValue(element,
-								AccountShadowType.class);
-						if (accountShadowType == null) {
-							throw new SchemaException(
-									"Unable to parse account shadow in the modification: unknown error (null was returned)");
-						}
-						ModelUtils.unresolveResourceObjectShadow(accountShadowType);
-
-						addAccountToContext(syncContext, accountShadowType, ChangeType.ADD, commonSchema,
-								result);
-					}
-
-				} else {
-					throw new UnsupportedOperationException("Modification type "
-							+ propDelta.getModificationType() + " with full <account> is not supported");
-				}
-
-				i.remove();
-			}
-
-		}
-
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(oid, modifications, UserType.class);
+		
 		// TODO? userOld?
 
 		syncContext.setUserOld(null);
 		syncContext.setUserNew(null);
-		ObjectDelta<UserType> userDelta = ObjectDelta.createDelta(change, commonSchema, UserType.class);
 		syncContext.setUserPrimaryDelta(userDelta);
 
 		return syncContext;
 	}
 
 	private void addAccountToContext(SyncContext syncContext, AccountShadowType accountType,
-			ChangeType changeType, PrismSchema commonSchema, OperationResult result) throws SchemaException,
+			ChangeType changeType, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException {
 
 		String resourceOid = ResourceObjectShadowUtil.getResourceOid(accountType);
@@ -831,15 +785,16 @@ public class ModelController implements ModelService {
 		// This is pure XML and does not contain
 		// parsed schema. Fetching cached resource from provisioning is much
 		// more efficient
-		ResourceType resourceType = provisioning.getObject(ResourceType.class, resourceOid, null, result);
+		ResourceType resourceType = provisioning.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType,
-				schemaRegistry);
+				prismContext);
 		syncContext.rememberResource(resourceType);
 
-		PrismObject<AccountShadowType> mpAccount = refinedSchema.parseObjectType(accountType);
+		// Chances are that the account is already "refined", but let's make sure
+		PrismObject<AccountShadowType> refinedAccount = refinedSchema.refine(accountType.asPrismObject());
 		ObjectDelta<AccountShadowType> accountDelta = new ObjectDelta<AccountShadowType>(
 				AccountShadowType.class, changeType);
-		accountDelta.setObjectToAdd(mpAccount);
+		accountDelta.setObjectToAdd(refinedAccount);
 		ResourceAccountType rat = new ResourceAccountType(resourceOid, accountType.getAccountType());
 		AccountSyncContext accountSyncContext = syncContext.createAccountSyncContext(rat);
 		accountSyncContext.setAccountPrimaryDelta(accountDelta);
@@ -861,9 +816,9 @@ public class ModelController implements ModelService {
 
 		AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.DELETE_OBJECT,
 				AuditEventStage.REQUEST);
-		ObjectType objectType = null;
+		PrismObject<T> object = null;
 		try {
-			objectType = cacheRepositoryService.getObject(clazz, oid, null, result);
+			object = cacheRepositoryService.getObject(clazz, oid, null, result);
 		} catch (ObjectNotFoundException e) {
 			result.recordFatalError(e);
 			RepositoryCache.exit();
@@ -879,7 +834,7 @@ public class ModelController implements ModelService {
 		}
 		
 		try {
-			auditRecord.setTarget(objectType);
+			auditRecord.setTarget(object);
 			ObjectDelta<T> objectDelta = new ObjectDelta<T>(clazz, ChangeType.DELETE);
 			objectDelta.setOid(oid);
 			auditRecord.addDelta(objectDelta);
@@ -891,7 +846,7 @@ public class ModelController implements ModelService {
 			Collection<ObjectDelta<?>> changes = null;
 
 			if (UserType.class.isAssignableFrom(clazz)) {
-				SyncContext syncContext = new SyncContext();
+				SyncContext syncContext = new SyncContext(prismContext);
 				syncContext.setUserOld(null);
 				syncContext.setUserNew(null);
 				syncContext.setUserPrimaryDelta((ObjectDelta<UserType>) objectDelta);
@@ -965,14 +920,14 @@ public class ModelController implements ModelService {
 	}
 
 	@Override
-	public UserType listAccountShadowOwner(String accountOid, OperationResult result)
+	public PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult result)
 			throws ObjectNotFoundException {
 		Validate.notEmpty(accountOid, "Account oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 
 		RepositoryCache.enter();
 
-		UserType user = null;
+		PrismObject<UserType> user = null;
 
 		try {
 			LOGGER.trace("Listing account shadow owner for account with oid {}.", new Object[] { accountOid });
@@ -1006,14 +961,14 @@ public class ModelController implements ModelService {
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> ResultList<T> listResourceObjectShadows(String resourceOid,
+	public <T extends ResourceObjectShadowType> ResultList<PrismObject<T>> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult result) throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 
 		RepositoryCache.enter();
 
-		ResultList<T> list = null;
+		ResultList<PrismObject<T>> list = null;
 
 		try {
 			LOGGER.trace("Listing resource object shadows \"{}\" for resource with oid {}.", new Object[] {
@@ -1045,7 +1000,7 @@ public class ModelController implements ModelService {
 			}
 
 			if (list == null) {
-				list = new ResultArrayList<T>();
+				list = new ResultArrayList<PrismObject<T>>();
 				list.setTotalResultCount(0);
 			}
 
@@ -1057,7 +1012,7 @@ public class ModelController implements ModelService {
 	}
 
 	@Override
-	public ResultList<? extends ResourceObjectShadowType> listResourceObjects(String resourceOid,
+	public ResultList<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid,
 			QName objectClass, PagingType paging, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
@@ -1068,7 +1023,7 @@ public class ModelController implements ModelService {
 
 		RepositoryCache.enter();
 
-		ResultList<? extends ResourceObjectShadowType> list = null;
+		ResultList<PrismObject<? extends ResourceObjectShadowType>> list = null;
 
 		try {
 			LOGGER.trace(
@@ -1100,7 +1055,7 @@ public class ModelController implements ModelService {
 			subResult.recordSuccess();
 
 			if (list == null) {
-				list = new ResultArrayList<ResourceObjectShadowType>();
+				list = new ResultArrayList<PrismObject<? extends ResourceObjectShadowType>>();
 				list.setTotalResultCount(0);
 			}
 		} finally {
@@ -1174,7 +1129,7 @@ public class ModelController implements ModelService {
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 		ResourceType resource = null;
 		try {
-			resource = getObject(ResourceType.class, resourceOid, resolve, result);
+			resource = getObject(ResourceType.class, resourceOid, resolve, result).asObjectable();
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Object not found");
 			RepositoryCache.exit();

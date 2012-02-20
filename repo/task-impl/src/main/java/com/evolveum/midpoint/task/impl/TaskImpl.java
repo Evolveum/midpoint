@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -507,12 +508,14 @@ public class TaskImpl implements Task {
 		}
 		GregorianCalendar cal = new GregorianCalendar();
 		cal.setTimeInMillis(lastRunStartTimestamp);
-		Collection<PropertyDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
-				TaskType.F_LAST_RUN_START_TIMESTAMP, cal);
+		Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
+				TaskType.F_LAST_RUN_START_TIMESTAMP, 
+				getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class),
+				cal);
 
 		// FIXME: if nextRunStartTime == 0 we should delete the corresponding element; however, this does not work as for now
 		if (nextRunStartTime > 0) {
-			modifications.add(taskManager.createNextRunStartTimeModification(nextRunStartTime));
+			((Collection)modifications).add(taskManager.createNextRunStartTimeModification(nextRunStartTime));
 		}
 		
 		repositoryService.modifyObject(TaskType.class, oid, modifications, parentResult);
@@ -627,8 +630,10 @@ public class TaskImpl implements Task {
 		result.addContext(OperationResult.CONTEXT_OID, getOid());
 		
 		// Close the task
-		Collection<PropertyDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
-				TaskType.F_EXECUTION_STATUS, TaskExecutionStatusType.CLOSED.value());
+		Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
+				TaskType.F_EXECUTION_STATUS, 
+				getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class),
+				TaskExecutionStatusType.CLOSED.value());
 		try {
 			repositoryService.modifyObject(TaskType.class, oid, modifications, result);
 		} catch (ObjectNotFoundException ex) {
@@ -746,6 +751,10 @@ public class TaskImpl implements Task {
 		LOGGER.trace("finishHandler: new current handler uri = {}, stack size = {}", handlerUri, stackSize);
 		
 		// TODO: make changes in repository as well (really? this has to be thought out yet)
+	}
+	
+	private PrismContext getPrismContext() {
+		return taskManager.getPrismContext();
 	}
 
 }

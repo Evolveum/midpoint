@@ -24,7 +24,13 @@ package com.evolveum.midpoint.model;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -117,10 +123,14 @@ public class SyncContext implements Dumpable, DebugDumpable {
      * True if we want to reconcile all accounts in this context.
      */
     private boolean doReconciliationForAllAccounts = false;
+    
+    private PrismObjectDefinition<UserType> userDefinition = null;
+    private PrismContext prismContext;
 
-    public SyncContext() {
+    public SyncContext(PrismContext prismContext) {
         accountContextMap = new HashMap<ResourceAccountType, AccountSyncContext>();
         resourceCache = new HashMap<String, ResourceType>();
+        this.prismContext = prismContext;
     }
 
     public UserType getUserTypeOld() {
@@ -291,23 +301,33 @@ public class SyncContext implements Dumpable, DebugDumpable {
      * Returns delta of user assignments, both primary and secondary (merged together).
      * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
      */
-    public PropertyDelta getAssignmentDelta() {
+    public ContainerDelta getAssignmentDelta() {
         ObjectDelta<UserType> userDelta = getUserDelta();
         if (userDelta == null) {
             return createEmptyAssignmentDelta();
         }
-        PropertyDelta assignmentDelta = userDelta.getPropertyDelta(SchemaConstants.C_ASSIGNMENT);
-        if (assignmentDelta == null) {
+        ContainerDelta assignmentDelta = userDelta.getContainerDelta(new PropertyPath(SchemaConstants.C_ASSIGNMENT));
+        if (assignmentDelta == null) { 
             return createEmptyAssignmentDelta();
         }
         return assignmentDelta;
     }
 
-    private PropertyDelta createEmptyAssignmentDelta() {
-        return new PropertyDelta(SchemaConstants.C_ASSIGNMENT);
+    private ContainerDelta createEmptyAssignmentDelta() {
+        return new ContainerDelta(getContainerDefinition());
     }
 
-    public void addPrimaryUserDelta(ObjectDelta<UserType> userDelta) {
+	private PrismObjectDefinition<UserType> getUserDefinition() {
+		if (userDefinition == null) {
+			userDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+		}
+		return userDefinition;
+	}
+	private PrismContainerDefinition getContainerDefinition() {
+		return getUserDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+	}
+
+	public void addPrimaryUserDelta(ObjectDelta<UserType> userDelta) {
         if (userPrimaryDelta == null) {
             userPrimaryDelta = userDelta;
         } else {
@@ -322,9 +342,9 @@ public class SyncContext implements Dumpable, DebugDumpable {
      *
      * @see SyncContext#rememberResource(ResourceType)
      */
-    public RefinedResourceSchema getRefinedResourceSchema(ResourceAccountType rat, SchemaRegistry schemaRegistry) throws
+    public RefinedResourceSchema getRefinedResourceSchema(ResourceAccountType rat) throws
             SchemaException {
-        return RefinedResourceSchema.getRefinedSchema(getResource(rat), schemaRegistry);
+        return RefinedResourceSchema.getRefinedSchema(getResource(rat), prismContext);
     }
 
     /**
@@ -334,10 +354,9 @@ public class SyncContext implements Dumpable, DebugDumpable {
      *
      * @see SyncContext#rememberResource(ResourceType)
      */
-    public RefinedAccountDefinition getRefinedAccountDefinition(ResourceAccountType rat,
-            SchemaRegistry schemaRegistry) throws SchemaException {
+    public RefinedAccountDefinition getRefinedAccountDefinition(ResourceAccountType rat) throws SchemaException {
         // TODO: check for null
-        return getRefinedResourceSchema(rat, schemaRegistry).getAccountDefinition(rat.getAccountType());
+        return getRefinedResourceSchema(rat).getAccountDefinition(rat.getAccountType());
     }
 
     /**
