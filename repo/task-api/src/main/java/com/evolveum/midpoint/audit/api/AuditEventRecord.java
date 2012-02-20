@@ -64,7 +64,7 @@ public class AuditEventRecord {
 	
 	// (primary) target (object, the thing acted on): store OID, type, name
 	// OPTIONAL
-	private PrismObject<ObjectType> target;
+	private PrismObject<? extends ObjectType> target;
 	
 	// user that the target "belongs to"????
 	private PrismObject<UserType> targetOwner;
@@ -164,11 +164,11 @@ public class AuditEventRecord {
 		this.initiator = initiator;
 	}
 
-	public PrismObject<ObjectType> getTarget() {
+	public PrismObject<? extends ObjectType> getTarget() {
 		return target;
 	}
 
-	public void setTarget(PrismObject<ObjectType> target) {
+	public void setTarget(PrismObject<? extends ObjectType> target) {
 		this.target = target;
 	}
 

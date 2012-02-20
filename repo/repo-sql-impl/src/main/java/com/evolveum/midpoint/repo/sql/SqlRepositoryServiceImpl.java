@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -351,7 +352,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     }
 
     @Override
-    public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<PropertyDelta> modifications, 
+    public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, 
     		OperationResult result) throws ObjectNotFoundException, SchemaException {
         Validate.notNull(modifications, "Modifications must not be null.");
         Validate.notNull(type, "Object class in delta must not be null.");

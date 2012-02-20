@@ -55,6 +55,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -384,7 +385,7 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<PropertyDelta> modifications,
+	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName() + ".modifyObject");
 		result.addParam(OperationResult.PARAM_OID, modifications);
@@ -779,7 +780,7 @@ public class XmlRepositoryService implements RepositoryService {
 		}
 	}
 
-	private void validateObjectModifications(Collection<PropertyDelta> modifications) {
+	private void validateObjectModifications(Collection<? extends ItemDelta> modifications) {
 		if (null == modifications) {
 			throw new IllegalArgumentException("Provided null object modifications");
 		}

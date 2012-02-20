@@ -25,6 +25,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -237,7 +238,7 @@ public class ShadowConverter {
 	}
 
 	public Set<PropertyModificationOperation> modifyShadow(ResourceType resource,
-			ResourceObjectShadowType shadow, Set<Operation> operations, String oid, Collection<PropertyDelta> objectChanges,
+			ResourceObjectShadowType shadow, Set<Operation> operations, String oid, Collection<? extends ItemDelta> objectChanges,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
 			CommunicationException {
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
@@ -444,14 +445,18 @@ public class ShadowConverter {
 	}
 
 
-	private Set<Operation> getAttributeChanges(Collection<PropertyDelta> objectChange, Set<Operation> changes,
+	private Set<Operation> getAttributeChanges(Collection<? extends ItemDelta> objectChange, Set<Operation> changes,
 			ResourceAttributeContainerDefinition rod) throws SchemaException {
 		if (changes == null) {
 			changes = new HashSet<Operation>();
 		}
-		for (PropertyDelta propDelta : objectChange) {
-			PropertyModificationOperation attributeModification = new PropertyModificationOperation(propDelta);
-			changes.add(attributeModification);
+		for (ItemDelta itemDelta : objectChange) {
+			if (itemDelta instanceof PropertyDelta) {
+				PropertyModificationOperation attributeModification = new PropertyModificationOperation((PropertyDelta)itemDelta);
+				changes.add(attributeModification);
+			} else {
+				throw new UnsupportedOperationException("Not supported delta: "+itemDelta);
+			}
 		}
 		return changes;
 	}

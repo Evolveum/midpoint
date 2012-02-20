@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
@@ -323,7 +324,7 @@ public class ShadowCache {
 	}
 
 	public void modifyShadow(ObjectType objectType, ResourceType resource, String oid,
-			Collection<PropertyDelta> modifications, ScriptsType scripts, OperationResult parentResult)
+			Collection<? extends ItemDelta> modifications, ScriptsType scripts, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
 			SchemaException {
 
@@ -579,7 +580,7 @@ public class ShadowCache {
 		return attributeChange;
 	}
 
-	private Operation determineActivationChange(Collection<PropertyDelta> objectChange, ResourceType resource,
+	private Operation determineActivationChange(Collection<? extends ItemDelta> objectChange, ResourceType resource,
 			ResourceAttributeContainerDefinition objectClassDefinition) throws SchemaException {
 		
 		PropertyDelta enabledPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
@@ -609,7 +610,7 @@ public class ShadowCache {
 		return null;
 	}
 
-	private PasswordChangeOperation determinePasswordChange(Collection<PropertyDelta> objectChange,
+	private PasswordChangeOperation determinePasswordChange(Collection<? extends ItemDelta> objectChange,
 			ResourceObjectShadowType objectType) throws SchemaException {
 		// Look for password change
 		

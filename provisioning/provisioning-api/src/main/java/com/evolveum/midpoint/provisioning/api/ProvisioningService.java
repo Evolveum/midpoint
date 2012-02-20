@@ -25,6 +25,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.ResultList;
@@ -324,8 +325,8 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<PropertyDelta> modifications, ScriptsType scripts,
-			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException;
+	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+			ScriptsType scripts, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException;
 
 	/**
 	 * <p>Deletes object with specified OID.</p>

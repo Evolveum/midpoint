@@ -34,6 +34,7 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 
@@ -47,7 +48,7 @@ import java.util.List;
  *
  * @author Radovan Semancik
  */
-public abstract class Item implements Dumpable, DebugDumpable, Serializable {
+public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpable, Serializable {
 
 	// The object should basically work without definition and prismContext. This is the
 	// usual case when it is constructed "out of the blue", e.g. as a new JAXB object
@@ -55,7 +56,7 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
     protected QName name;
     protected PrismValue parent;
     protected ItemDefinition definition;
-    private List<PrismValue> values = new ArrayList<PrismValue>();
+    private List<V> values = new ArrayList<V>();
     
     transient protected PrismContext prismContext;
 
@@ -172,10 +173,36 @@ public abstract class Item implements Dumpable, DebugDumpable, Serializable {
     	this.parent = parentValue;
     }
     
-    public List<? extends PrismValue> getValues() {
+    public List<V> getValues() {
 		return values;
 	}
     
+    public void addAll(Collection<V> newValues) {
+    	values.addAll(newValues);
+    }
+    
+    public void add(V newValue) {
+    	values.add(newValue);
+    }
+    
+    public void removeAll(Collection<V> newValues) {
+    	values.removeAll(newValues);
+    }
+
+    public void remove(V newValue) {
+    	values.remove(newValue);
+    }
+
+    public void replaceAll(Collection<V> newValues) {
+    	values.clear();
+    	values.addAll(newValues);
+    }
+
+    public void replace(V newValue) {
+    	values.clear();
+    	values.add(newValue);
+    }
+
     public Element asDomElement() {
     	// TODO
     	throw new UnsupportedOperationException();

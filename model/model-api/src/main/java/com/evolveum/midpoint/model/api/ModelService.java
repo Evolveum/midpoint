@@ -22,10 +22,13 @@ package com.evolveum.midpoint.model.api;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -127,7 +130,7 @@ public interface ModelService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	<T extends ObjectType> T getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
+	<T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
 			OperationResult result) throws ObjectNotFoundException, SchemaException;
 
 	/**
@@ -180,7 +183,7 @@ public interface ModelService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	<T extends ObjectType> String addObject(T object, Task task, OperationResult parentResult) throws ObjectAlreadyExistsException,
+	<T extends ObjectType> String addObject(PrismObject<T> object, Task task, OperationResult parentResult) throws ObjectAlreadyExistsException,
 			ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException;
 
 	/**
@@ -220,7 +223,7 @@ public interface ModelService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	<T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType change, Task task,
+	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<PropertyDelta> modifications, Task task,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException;
 
 	/**
@@ -277,7 +280,7 @@ public interface ModelService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	UserType listAccountShadowOwner(String accountOid, OperationResult parentResult)
+	PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult parentResult)
 			throws ObjectNotFoundException;
 
 	/**
@@ -311,7 +314,7 @@ public interface ModelService {
 	 * @return list of found shadows
 	 * @throws ObjectNotFoundException
 	 */
-	<T extends ResourceObjectShadowType> ResultList<T> listResourceObjectShadows(String resourceOid,
+	<T extends ResourceObjectShadowType> ResultList<PrismObject<T>> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException;
 
 	/**
@@ -364,7 +367,7 @@ public interface ModelService {
 	 * @throws CommunicationException
 	 *             error communicating with the resource
 	 */
-	ResultList<? extends ResourceObjectShadowType> listResourceObjects(String resourceOid, QName objectClass, PagingType paging,
+	ResultList<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid, QName objectClass, PagingType paging,
 			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException;
 
 	/**
@@ -393,7 +396,7 @@ public interface ModelService {
 	 * @throws IllegalArgumentException
 	 *             wrong object type
 	 */
-	<T extends ObjectType> ResultList<T> listObjects(Class<T> objectType, PagingType paging, OperationResult result);
+	<T extends ObjectType> ResultList<PrismObject<T>> listObjects(Class<T> objectType, PagingType paging, OperationResult result);
 
 	/**
 	 * <p>
@@ -429,7 +432,7 @@ public interface ModelService {
 	 * @throws IllegalArgumentException
 	 *             wrong query format
 	 */
-	<T extends ObjectType> ResultList<T> searchObjects(Class<T> type, QueryType query, PagingType paging,
+	<T extends ObjectType> ResultList<PrismObject<T>> searchObjects(Class<T> type, QueryType query, PagingType paging,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
 
 	/**

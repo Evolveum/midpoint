@@ -355,7 +355,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
             // TODO: check for conflict
             addModification(newPropertyDelta);
         } else if (changeType == ChangeType.ADD) {
-        	Class<?> valueClass = newPropertyDelta.getValueClass();
+//        	Class<?> valueClass = newPropertyDelta.getValueClass();
             PrismProperty property = null; //FIXME objectToAdd.findOrCreateProperty(newPropertyDelta.getParentPath(), newPropertyDelta.getName(), valueClass);
             newPropertyDelta.applyTo(property);
         }

@@ -840,17 +840,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				if (delta.getParentPath().equals(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES))) {
 					// Change in (ordinary) attributes. Transform to the ICF attributes.
 					if (delta.isAdd()) {
-						ResourceAttribute addAttribute = delta.instantiateEmptyProperty();
+						ResourceAttribute addAttribute = (ResourceAttribute) delta.instantiateEmptyProperty();
 						addAttribute.addValues(delta.getValuesToAdd());
 						addValues.add(addAttribute);
 					}
 					if (delta.isDelete()) {
-						ResourceAttribute deleteAttribute = delta.instantiateEmptyProperty();
+						ResourceAttribute deleteAttribute = (ResourceAttribute) delta.instantiateEmptyProperty();
 						deleteAttribute.addValues(delta.getValuesToDelete());
 						valuesToRemove.add(deleteAttribute);
 					}
 					if (delta.isReplace()) {
-						ResourceAttribute updateAttribute = delta.instantiateEmptyProperty();
+						ResourceAttribute updateAttribute = (ResourceAttribute) delta.instantiateEmptyProperty();
 						updateAttribute.addValues(delta.getValuesToReplace());
 						updateValues.add(updateAttribute);
 					}

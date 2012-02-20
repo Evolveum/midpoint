@@ -54,109 +54,31 @@ import java.util.Iterator;
  * @author Radovan Semancik
  * @see ObjectDelta
  */
-public class PropertyDelta implements Dumpable, DebugDumpable {
-
-    /**
-     * Name of the property
-     */
-    QName name;
-    /**
-     * Parent path of the property (path to the property container)
-     */
-    PropertyPath parentPath;
-    PrismPropertyDefinition propertyDefinition;
-
-    Collection<PrismPropertyValue<Object>> valuesToReplace = null;
-    Collection<PrismPropertyValue<Object>> valuesToAdd = null;
-    Collection<PrismPropertyValue<Object>> valuesToDelete = null;
+public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValue<T>> {
 
     public PropertyDelta(PrismPropertyDefinition propertyDefinition) {
-        this.name = propertyDefinition.getName();
-        this.parentPath = new PropertyPath();
-        this.propertyDefinition = propertyDefinition;
+        super(propertyDefinition);
     }
     
     public PropertyDelta(QName name, PrismPropertyDefinition propertyDefinition) {
-        this.name = name;
-        this.parentPath = new PropertyPath();
-        this.propertyDefinition = propertyDefinition;
+    	super(name, propertyDefinition);
     }
 
     public PropertyDelta(PropertyPath parentPath, QName name, PrismPropertyDefinition propertyDefinition) {
-        this.name = name;
-        this.parentPath = parentPath;
-        this.propertyDefinition = propertyDefinition;
+    	super(parentPath, name, propertyDefinition);
     }
 
     public PropertyDelta(PropertyPath propertyPath, PrismPropertyDefinition propertyDefinition) {
-        this.name = propertyPath.last().getName();
-        this.parentPath = propertyPath.allExceptLast();
-        this.propertyDefinition = propertyDefinition;
-    }
-
-    public QName getName() {
-        return name;
-    }
-
-    public void setName(QName name) {
-        this.name = name;
-    }
-
-    public PropertyPath getParentPath() {
-        return parentPath;
-    }
-
-    public void setParentPath(PropertyPath parentPath) {
-        this.parentPath = parentPath;
-    }
-
-    public PropertyPath getPath() {
-        return getParentPath().subPath(name);
+    	super(propertyPath, propertyDefinition);
     }
     
     PrismPropertyDefinition getPropertyDefinition() {
-		return propertyDefinition;
+		return (PrismPropertyDefinition) super.getDefinition();
 	}
 
 	void setPropertyDefinition(PrismPropertyDefinition propertyDefinition) {
-		this.propertyDefinition = propertyDefinition;
+		super.setDefinition(propertyDefinition);
 	}
-
-	public boolean isReplace() {
-        return (valuesToReplace != null);
-    }
-    
-    public boolean isAdd() {
-        return (valuesToAdd != null && !valuesToAdd.isEmpty());
-    }
-    
-    public boolean isDelete() {
-        return (valuesToDelete != null && !valuesToDelete.isEmpty());
-    }
-
-    public Collection<PrismPropertyValue<Object>> getValuesToAdd() {
-        return valuesToAdd;
-    }
-
-    public Collection<PrismPropertyValue<Object>> getValuesToDelete() {
-        return valuesToDelete;
-    }
-
-    public void clear() {
-        if (valuesToAdd != null) {
-            valuesToAdd.clear();
-        }
-        if (valuesToDelete != null) {
-            valuesToDelete.clear();
-        }
-        if (valuesToReplace != null) {
-            valuesToReplace.clear();
-        }
-    }
-    
-    public Collection<PrismPropertyValue<Object>> getValuesToReplace() {
-    	return valuesToReplace;
-    }
 
     /**
      * Returns all values regardless of whether they are added or removed or replaced.
@@ -169,18 +91,12 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         }
         return (Collection) MiscUtil.union(valuesToAdd, valuesToDelete);
     }
-
-    public void checkConsistence() {
-        if (valuesToReplace != null && (valuesToAdd != null || valuesToDelete != null)) {
-            throw new IllegalStateException("The delta cannot be both 'replace' and 'add/delete' at the same time");
-        }
+    
+    public <P extends PrismProperty> P instantiateEmptyProperty() {
+    	return (P) getPropertyDefinition().instantiate(getName());
     }
     
-    public <T extends PrismProperty> T instantiateEmptyProperty() {
-    	return (T) getPropertyDefinition().instantiate(getName());
-    }
-    
-	public static <T extends Objectable> PropertyDelta createReplaceDelta(PrismObjectDefinition<T> objectDefinition,
+	public static <O extends Objectable> PropertyDelta createReplaceDelta(PrismObjectDefinition<O> objectDefinition,
 			QName propertyName, Object... realValues) {
 		PrismPropertyDefinition propertyDefinition = objectDefinition.findPropertyDefinition(propertyName);
 		if (propertyDefinition == null) {
@@ -197,7 +113,7 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
 	/**
 	 * Create delta that deletes all values of the specified property.
 	 */
-	public static <T extends Objectable> PropertyDelta createReplaceEmptyDelta(PrismObjectDefinition<T> objectDefinition,
+	public static <O extends Objectable> PropertyDelta createReplaceEmptyDelta(PrismObjectDefinition<O> objectDefinition,
 			QName propertyName) {
 		PrismPropertyDefinition propertyDefinition = objectDefinition.findPropertyDefinition(propertyName);
 		if (propertyDefinition == null) {
@@ -206,138 +122,6 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
 		PropertyDelta delta = new PropertyDelta(propertyName, propertyDefinition);
 		return delta;
 	}
-
-    /**
-     * Merge specified delta to this delta. This delta is assumed to be
-     * chronologically earlier.
-     */
-    public void merge(PropertyDelta deltaToMerge) {
-        checkConsistence();
-        deltaToMerge.checkConsistence();
-        if (deltaToMerge.isEmpty()) {
-            return;
-        }
-        if (deltaToMerge.valuesToReplace != null) {
-            if (this.valuesToReplace != null) {
-                this.valuesToReplace.clear();
-                this.valuesToReplace.addAll(deltaToMerge.valuesToReplace);
-            }
-            this.valuesToReplace = newValueCollection();
-            this.valuesToReplace.addAll(deltaToMerge.valuesToReplace);
-        } else {
-            addValuesToAdd(deltaToMerge.valuesToAdd);
-            addValuesToDelete(deltaToMerge.valuesToDelete);
-        }
-    }
-
-    /**
-     * Apply this delta (path) to a property container.
-     */
-    public void applyTo(PrismContainer propertyContainer) {
-        // valueClass is kind of HACK, it should be FIXME
-        Class<?> valueClass = getValueClass();
-        PrismProperty property = null; //FIXME propertyContainer.findOrCreateProperty(getParentPath(), getName(), valueClass);
-        applyTo(property);
-    }
-    
-    public static void applyTo(Collection<PropertyDelta> deltas, PrismContainer propertyContainer) {
-    	for (PropertyDelta delta: deltas) {
-    		delta.applyTo(propertyContainer);
-    	}
-    }
-
-    public Class<?> getValueClass() {
-        if (valuesToReplace != null && !valuesToReplace.isEmpty()) {
-            return valuesToReplace.iterator().next().getValue().getClass();
-        }
-        if (valuesToAdd != null && !valuesToAdd.isEmpty()) {
-            return valuesToAdd.iterator().next().getValue().getClass();
-        }
-        if (valuesToDelete != null && !valuesToDelete.isEmpty()) {
-            return valuesToDelete.iterator().next().getValue().getClass();
-        }
-        return null;
-    }
-
-    /**
-     * Apply this delta (path) to a property.
-     */
-    public void applyTo(PrismProperty property) {
-        if (valuesToReplace != null) {
-            property.replaceValues(valuesToReplace);
-            return;
-        }
-        if (valuesToAdd != null) {
-            property.addValues(valuesToAdd);
-        }
-        if (valuesToDelete != null) {
-            property.deleteValues(valuesToDelete);
-        }
-    }
-
-    public void addValuesToAdd(Collection<PrismPropertyValue<Object>> newValues) {
-        if (valuesToAdd == null) {
-            valuesToAdd = newValueCollection();
-        }
-        valuesToAdd.addAll(newValues);
-    }
-
-    public void addValueToAdd(PrismPropertyValue<Object> newValue) {
-        if (valuesToAdd == null) {
-            valuesToAdd = newValueCollection();
-        }
-        valuesToAdd.add(newValue);
-    }
-
-    public void addValuesToDelete(Collection<PrismPropertyValue<Object>> newValues) {
-        if (valuesToDelete == null) {
-            valuesToDelete = newValueCollection();
-        }
-        valuesToDelete.addAll(newValues);
-    }
-
-    public void addValueToDelete(PrismPropertyValue<Object> newValue) {
-        if (valuesToDelete == null) {
-            valuesToDelete = newValueCollection();
-        }
-        valuesToDelete.add(newValue);
-    }
-
-    public void setValuesToReplace(Collection<PrismPropertyValue<?>> newValues) {
-        if (valuesToReplace == null) {
-            valuesToReplace = newValueCollection();
-        } else {
-            valuesToReplace.clear();
-        }
-        valuesToReplace.addAll((Collection)newValues);
-    }
-    
-    public void setValueToReplace(PrismPropertyValue<?> newValue) {
-        if (valuesToReplace == null) {
-            valuesToReplace = newValueCollection();
-        } else {
-            valuesToReplace.clear();
-        }
-        valuesToReplace.add((PrismPropertyValue<Object>) newValue);
-    }
-
-    public boolean isEmpty() {
-        if (valuesToAdd == null && valuesToDelete == null && valuesToReplace == null) {
-            return true;
-        }
-        return false;
-    }
-
-    private Collection<PrismPropertyValue<Object>> newValueCollection() {
-        return new HashSet<PrismPropertyValue<Object>>();
-    }
-
-    public boolean isValueToAdd(PrismPropertyValue<?> value) {
-        if (valuesToAdd == null) {
-            return false;
-        }
-        return valuesToAdd.contains(value);
-    }
 
     public boolean isRealValueToAdd(PrismPropertyValue<?> value) {
         if (valuesToAdd == null) {
@@ -349,17 +133,9 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
                 return true;
             }
         }
-
         return false;
     }
-
-    public boolean isValueToDelete(PrismPropertyValue<?> value) {
-        if (valuesToDelete == null) {
-            return false;
-        }
-        return valuesToDelete.contains(value);
-    }
-
+    
     public boolean isRealValueToDelete(PrismPropertyValue<?> value) {
         if (valuesToDelete == null) {
             return false;
@@ -374,22 +150,13 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
         return false;
     }
 
-
     /**
      * Returns the "new" state of the property - the state that would be after the delta
      * is applied.
      * Assumes "replace" delta.
      */
     public PrismProperty getPropertyNew() {
-        if (valuesToAdd != null && valuesToDelete != null) {
-            throw new IllegalStateException("Cannot fetch new property state, not a 'replace' delta");
-        }
-        PrismProperty prop = propertyDefinition.instantiate();
-        if (valuesToReplace == null || valuesToReplace.isEmpty()) {
-            return prop;
-        }
-        prop.getValues().addAll(valuesToReplace);
-        return prop;
+        return (PrismProperty) super.getItemNew();
     }
     
     public static PropertyDelta createDelta(PropertyPath propertyPath, PrismObjectDefinition<?> objectDefinition) {
@@ -417,98 +184,23 @@ public class PropertyDelta implements Dumpable, DebugDumpable {
     	return modifications;
     }
     
-    public static PropertyDelta findPropertyDelta(Collection<PropertyDelta> modifications, PropertyPath propertyPath) {
-    	for (PropertyDelta delta: modifications) {
-    		if (delta.getPath().equals(propertyPath)) {
-    			return delta;
+    public static PropertyDelta findPropertyDelta(Collection<? extends ItemDelta> modifications, PropertyPath propertyPath) {
+    	for (ItemDelta delta: modifications) {
+    		if (delta instanceof PropertyDelta && delta.getPath().equals(propertyPath)) {
+    			return (PropertyDelta) delta;
     		}
     	}
     	return null;
     }
     
-    public static PropertyDelta findPropertyDelta(Collection<PropertyDelta> modifications, QName propertyName) {
-    	for (PropertyDelta delta: modifications) {
-    		if (delta.getParentPath().isEmpty() &&
+    public static PropertyDelta findPropertyDelta(Collection<? extends ItemDelta> modifications, QName propertyName) {
+    	for (ItemDelta delta: modifications) {
+    		if (delta instanceof PropertyDelta && delta.getParentPath().isEmpty() &&
     			delta.getName().equals(propertyName)) {
-    			return delta;
+    			return (PropertyDelta) delta;
     		}
     	}
     	return null;
     }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder("PropertyDelta(");
-        sb.append(parentPath).append(" / ").append(DebugUtil.prettyPrint(name));
-        if (valuesToReplace != null) {
-            sb.append(", REPLACE");
-        }
-
-        if (valuesToAdd != null) {
-            sb.append(", ADD");
-        }
-
-        if (valuesToDelete != null) {
-            sb.append(", DELETE");
-        }
-        sb.append(")");
-        return sb.toString();
-    }
-
-    @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
-
-    @Override
-    public String debugDump(int indent) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < indent; i++) {
-            sb.append(INDENT_STRING);
-        }
-        sb.append("PropertyDelta(");
-        sb.append(parentPath).append(" / ").append(DebugUtil.prettyPrint(name)).append(")");
-
-        if (valuesToReplace != null) {
-            sb.append("\n");
-            dumpValues(sb, "REPLACE", valuesToReplace, indent + 1);
-        }
-
-        if (valuesToAdd != null) {
-            sb.append("\n");
-            dumpValues(sb, "ADD", valuesToAdd, indent + 1);
-        }
-
-        if (valuesToDelete != null) {
-            sb.append("\n");
-            dumpValues(sb, "DELETE", valuesToDelete, indent + 1);
-        }
-
-        return sb.toString();
-
-    }
-
-    public String dump() {
-        return debugDump();
-    }
-
-    private void dumpValues(StringBuilder sb, String label, Collection<PrismPropertyValue<Object>> values, int indent) {
-        for (int i = 0; i < indent; i++) {
-            sb.append(INDENT_STRING);
-        }
-        sb.append(label).append(": ");
-        if (values == null) {
-            sb.append("(null)");
-        } else {
-            Iterator<PrismPropertyValue<Object>> i = values.iterator();
-            while (i.hasNext()) {
-                sb.append(DebugUtil.prettyPrint(i.next()));
-                if (i.hasNext()) {
-                    sb.append(", ");
-                }
-            }
-        }
-    }
-
 
 }

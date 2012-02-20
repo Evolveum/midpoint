@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.api;
 import java.util.Collection;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.ResultList;
@@ -284,7 +285,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 */
-	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<PropertyDelta> modifications, OperationResult parentResult)
+	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
 
 	/**

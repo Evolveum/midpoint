@@ -58,8 +58,10 @@ import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -79,6 +81,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
@@ -179,7 +182,7 @@ public class ModelController implements ModelService {
 	private AuditService auditService;
 
 	@Override
-	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, PropertyReferenceListType resolve,
+	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid, PropertyReferenceListType resolve,
 			OperationResult result) throws ObjectNotFoundException, SchemaException {
 		Validate.notEmpty(oid, "Object oid must not be null or empty.");
 		Validate.notNull(result, "Operation result must not be null.");
@@ -202,7 +205,7 @@ public class ModelController implements ModelService {
 		} finally {
 			RepositoryCache.exit();
 		}
-		return object;
+		return object.asPrismObject();
 	}
 
 	protected void resolveObjectAttributes(ObjectType object, PropertyReferenceListType resolve,
@@ -230,7 +233,7 @@ public class ModelController implements ModelService {
 			subResult.addParams(new String[] { "user", "accountRef" }, user, accountRef);
 			try {
 				AccountShadowType account = getObject(AccountShadowType.class, accountRef.getOid(), resolve,
-						subResult);
+						subResult).asObjectable();
 				user.getAccount().add(account);
 				refToBeDeleted.add(accountRef);
 				subResult.recordSuccess();
@@ -262,7 +265,7 @@ public class ModelController implements ModelService {
 		subResult.addParams(new String[] { "account", "resolve" }, account, resolve);
 		try {
 			ResourceType resource = getObject(ResourceType.class, account.getResourceRef().getOid(), resolve,
-					result);
+					result).asObjectable();
 			account.setResource(resource);
 			account.setResourceRef(null);
 			subResult.recordSuccess();
@@ -277,14 +280,15 @@ public class ModelController implements ModelService {
 	}
 
 	@Override
-	public <T extends ObjectType> String addObject(T object, Task task, OperationResult parentResult)
+	public <T extends ObjectType> String addObject(PrismObject<T> object, Task task, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException,
 			ExpressionEvaluationException, CommunicationException {
 		Validate.notNull(object, "Object must not be null.");
 		Validate.notNull(parentResult, "Result type must not be null.");
-
-		if (!(object instanceof ResourceObjectShadowType)) {
-			Validate.notEmpty(object.getName(), "Object name must not be null or empty.");
+		
+		T objectType = object.asObjectable();
+		if (!(objectType instanceof ResourceObjectShadowType)) {
+			Validate.notEmpty(objectType.getName(), "Object name must not be null or empty.");
 		}
 
 		OperationResult result = parentResult.createSubresult(ADD_OBJECT);
@@ -301,20 +305,19 @@ public class ModelController implements ModelService {
 		try {
 
 			auditRecord.setTarget(object);
-			ObjectDelta<T> objectDelta = new ObjectDelta<T>((Class<T>) object.getClass(), ChangeType.ADD);
-
-			LOGGER.trace("Entering addObject with {}", ObjectTypeUtil.toShortString(object));
-
+			ObjectDelta<T> objectDelta = new ObjectDelta<T>(object.getCompileTimeClass(), ChangeType.ADD);
+			
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace(JAXBUtil.silentMarshalWrap(object));
+				LOGGER.trace("Entering addObject with {}", object);
+				LOGGER.trace(object.dump());
 			}
 
 			PrismSchema commonSchema = schemaRegistry.getObjectSchema();
 
-			if (object instanceof UserType) {
-				UserType userType = (UserType) object;
+			if (objectType instanceof UserType) {
+				UserType userType = (UserType) objectType;
 
-				SyncContext syncContext = userTypeAddToContext(userType, commonSchema, result);
+				SyncContext syncContext = userTypeAddToContext(userType.asPrismObject(), commonSchema, result);
 				
 				auditRecord.addDeltas(syncContext.getAllChanges());
 				auditService.audit(auditRecord, task);
@@ -342,8 +345,7 @@ public class ModelController implements ModelService {
 				auditRecord.addDelta(objectDelta);
 				auditService.audit(auditRecord, task);
 
-				PrismObject<T> mpObject = commonSchema.parseObjectType(object);
-				objectDelta.setObjectToAdd(mpObject);
+				objectDelta.setObjectToAdd(object);
 
 				if (executePreChangePrimary(objectDelta, task, result) != HookOperationMode.FOREGROUND)
 					return null;
@@ -465,9 +467,10 @@ public class ModelController implements ModelService {
 		return executePostChange(deltas, task, result);
 	}
 
-	private SyncContext userTypeAddToContext(UserType userType, PrismSchema objectSchema, OperationResult result)
+	private SyncContext userTypeAddToContext(PrismObject<UserType> user, PrismSchema objectSchema, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, CommunicationException {
 
+		UserType userType = user.asObjectable();
 		SyncContext syncContext = new SyncContext();
 
 		// Convert all <account> instances to syncContext or <accountRef>s
@@ -488,18 +491,17 @@ public class ModelController implements ModelService {
 		}
 
 		ObjectDelta<UserType> userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD);
-		PrismObject<UserType> mpUser = objectSchema.parseObjectType(userType);
-		userDelta.setObjectToAdd(mpUser);
+		userDelta.setObjectToAdd(user);
 
 		syncContext.setUserOld(null);
-		syncContext.setUserNew(mpUser);
+		syncContext.setUserNew(user);
 		syncContext.setUserPrimaryDelta(userDelta);
 
 		return syncContext;
 	}
 
 	@Override
-	public <T extends ObjectType> ResultList<T> listObjects(Class<T> objectType, PagingType paging,
+	public <T extends ObjectType> ResultList<PrismObject<T>> listObjects(Class<T> objectType, PagingType paging,
 			OperationResult result) {
 		Validate.notNull(objectType, "Object type must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
@@ -507,7 +509,7 @@ public class ModelController implements ModelService {
 
 		RepositoryCache.enter();
 
-		ResultList<T> list = null;
+		ResultList<PrismObject<T>> list = null;
 
 		try {
 			if (paging == null) {
@@ -545,7 +547,7 @@ public class ModelController implements ModelService {
 			}
 
 			if (list == null) {
-				list = new ResultArrayList<T>();
+				list = new ResultArrayList<PrismObject<T>>();
 				list.setTotalResultCount(0);
 			}
 			LOGGER.trace("Returning {} objects.", new Object[] { list.size() });
@@ -557,7 +559,7 @@ public class ModelController implements ModelService {
 	}
 
 	@Override
-	public <T extends ObjectType> ResultList<T> searchObjects(Class<T> type, QueryType query,
+	public <T extends ObjectType> ResultList<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
 			PagingType paging, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(query, "Query must not be null.");
@@ -566,7 +568,7 @@ public class ModelController implements ModelService {
 
 		RepositoryCache.enter();
 
-		ResultList<T> list = null;
+		ResultList<PrismObject<T>> list = null;
 
 		try {
 			if (paging == null) {
@@ -575,9 +577,6 @@ public class ModelController implements ModelService {
 				LOGGER.trace("Searching objects from {} to {} ordered {} by {} (query in TRACE).",
 						new Object[] { paging.getOffset(), paging.getMaxSize(), paging.getOrderDirection(),
 								paging.getOrderBy() });
-			}
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace(JAXBUtil.silentMarshalWrap(query));
 			}
 
 			boolean searchInProvisioning = ObjectTypes.isClassManagedByProvisioning(type);
@@ -610,7 +609,7 @@ public class ModelController implements ModelService {
 			}
 
 			if (list == null) {
-				list = new ResultArrayList<T>();
+				list = new ResultArrayList<PrismObject<T>>();
 				list.setTotalResultCount(0);
 			}
 
@@ -622,33 +621,34 @@ public class ModelController implements ModelService {
 	}
 
 	@Override
-	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType change, Task task,
-			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
-			ExpressionEvaluationException, CommunicationException {
+	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<PropertyDelta> modifications, Task task,
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+			CommunicationException {
 
-		Validate.notNull(change, "Object modification must not be null.");
-		Validate.notEmpty(change.getOid(), "Change oid must not be null or empty.");
+		Validate.notNull(modifications, "Object modification must not be null.");
+		Validate.notEmpty(oid, "Change oid must not be null or empty.");
 		Validate.notNull(parentResult, "Result type must not be null.");
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Modifying object with oid {}", new Object[] { change.getOid() });
-			LOGGER.trace(JAXBUtil.silentMarshalWrap(change));
+			LOGGER.trace("Modifying object with oid {}", oid);
+			LOGGER.trace(DebugUtil.debugDump(modifications));
 		}
 
-		if (change.getPropertyModification().isEmpty()) {
+		if (modifications.isEmpty()) {
+			LOGGER.warn("Calling modifyObject with empty modificaiton set");
 			return;
 		}
 
 		OperationResult result = parentResult.createSubresult(MODIFY_OBJECT);
-		result.addParams(new String[] { "change" }, change);
+		result.addParams(new String[] { "modifications" }, modifications);
 
 		RepositoryCache.enter();
 
 		AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.MODIFY_OBJECT,
 				AuditEventStage.REQUEST);
-		ObjectType objectType = null;
+		PrismObject<T> object = null;
 		try {
-			objectType = cacheRepositoryService.getObject(type, change.getOid(), null, result);
+			object = cacheRepositoryService.getObject(type, oid, null, result);
 		} catch (ObjectNotFoundException e) {
 			result.recordFatalError(e);
 			RepositoryCache.exit();
@@ -665,13 +665,13 @@ public class ModelController implements ModelService {
 
 		try {
 			
-			auditRecord.setTarget(objectType);
+			auditRecord.setTarget(object);
 			PrismSchema commonSchema = schemaRegistry.getObjectSchema();			
 
 			ObjectDelta<T> objectDelta = null;
 
 			if (UserType.class.isAssignableFrom(type)) {
-				SyncContext syncContext = userTypeModifyToContext(change, commonSchema, result);
+				SyncContext syncContext = userTypeModifyToContext(modifications, commonSchema, result);
 
 				auditRecord.addDeltas(syncContext.getAllChanges());
 				auditService.audit(auditRecord, task);
@@ -766,22 +766,27 @@ public class ModelController implements ModelService {
 		}
 	}
 
-	private SyncContext userTypeModifyToContext(ObjectModificationType change, PrismSchema commonSchema,
+	private SyncContext userTypeModifyToContext(Collection<PropertyDelta> modifications, PrismSchema commonSchema,
 			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException {
 		SyncContext syncContext = new SyncContext();
 
-		Iterator<PropertyModificationType> i = change.getPropertyModification().iterator();
+		PropertyPath accountPath = new PropertyPath(UserType.F_ACCOUNT_REF);
+		Iterator<PropertyDelta> i = modifications.iterator();
 		while (i.hasNext()) {
-			PropertyModificationType propModType = i.next();
-			XPathHolder propXPath = new XPathHolder(propModType.getPath());
+			PropertyDelta propDelta = i.next();
+			if (propDelta.getPath().equals(accountPath)) {
+				// TODO
+			}
+			
+			XPathHolder propXPath = new XPathHolder(propDelta.getPath());
 			if (propXPath.isEmpty()
-					&& !propModType.getValue().getAny().isEmpty()
-					&& JAXBUtil.getElementQName(propModType.getValue().getAny().get(0)).equals(
+					&& !propDelta.getValue().getAny().isEmpty()
+					&& JAXBUtil.getElementQName(propDelta.getValue().getAny().get(0)).equals(
 							SchemaConstants.I_ACCOUNT)) {
 
-				if (propModType.getModificationType() == PropertyModificationTypeType.add) {
+				if (propDelta.getModificationType() == PropertyModificationTypeType.add) {
 
-					for (Object element : propModType.getValue().getAny()) {
+					for (Object element : propDelta.getValue().getAny()) {
 						AccountShadowType accountShadowType = XmlTypeConverter.toJavaValue(element,
 								AccountShadowType.class);
 						if (accountShadowType == null) {
@@ -796,7 +801,7 @@ public class ModelController implements ModelService {
 
 				} else {
 					throw new UnsupportedOperationException("Modification type "
-							+ propModType.getModificationType() + " with full <account> is not supported");
+							+ propDelta.getModificationType() + " with full <account> is not supported");
 				}
 
 				i.remove();
