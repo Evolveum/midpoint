@@ -217,8 +217,8 @@ public class TestPrismConstruction {
 		assertParentConsistency(user);
 	}
 	
-	private void assertParentConsistency(PrismContainerValue pval) {
-		for (Item item: pval.getItems()) {
+	private void assertParentConsistency(PrismContainerValue<?> pval) {
+		for (Item<?> item: pval.getItems()) {
 			assertTrue("Wrong parent in "+item, item.getParent() == pval);
 			assertParentConsistency(item);
 		}

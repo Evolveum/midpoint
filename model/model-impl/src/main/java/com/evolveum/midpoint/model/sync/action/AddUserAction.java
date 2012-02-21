@@ -47,6 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSitua
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.derby.catalog.GetProcedureColumns;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
@@ -65,7 +66,7 @@ public class AddUserAction extends BaseAction {
 
         OperationResult subResult = result.createSubresult(ACTION_ADD_USER);
 
-        SyncContext context = new SyncContext();
+        SyncContext context = new SyncContext(getPrismContext());
         try {
             UserType user = getUser(userOid, subResult);
             if (user == null) {
@@ -85,8 +86,8 @@ public class AddUserAction extends BaseAction {
                 }
 
                 //create empty user
-                PrismSchema schema = getSchemaRegistry().getObjectSchema();
-                PrismObjectDefinition<UserType> userDefinition = schema.findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
+                PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().
+                				findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
                 PrismObject<UserType> oldUser = userDefinition.instantiate(SchemaConstants.I_USER_TYPE);
 //                context.setUserOld(oldUser);
 //                context.setUserTypeOld(user);
@@ -96,7 +97,7 @@ public class AddUserAction extends BaseAction {
                 delta.setObjectToAdd(oldUser);
                 context.setUserSecondaryDelta(delta);
 
-                context.rememberResource(change.getResource());
+                context.rememberResource(change.getResource().asObjectable());
             } else {
                 LOGGER.debug("User with oid {} already exists, skipping create.",
                         new Object[]{user.getOid()});
@@ -146,6 +147,6 @@ public class AddUserAction extends BaseAction {
             return null;
         }
 
-        return getModel().getObject(UserTemplateType.class, oid, null, result);
+        return getModel().getObject(UserTemplateType.class, oid, null, result).asObjectable();
     }
 }

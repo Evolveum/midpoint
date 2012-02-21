@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -50,7 +51,7 @@ public class AssignmentEvaluator {
 	private RepositoryService repository;
 	private PrismObject<UserType> user;
 	private ObjectResolver objectResolver;
-	private SchemaRegistry schemaRegistry;
+	private PrismContext prismContext;
 	private ValueConstructionFactory valueConstructionFactory;
 	
 	public RepositoryService getRepository() {
@@ -77,12 +78,12 @@ public class AssignmentEvaluator {
 		this.objectResolver = objectResolver;
 	}
 
-	public SchemaRegistry getSchemaRegistry() {
-		return schemaRegistry;
+	public PrismContext getPrismContext() {
+		return prismContext;
 	}
 
-	public void setSchemaRegistry(SchemaRegistry schemaRegistry) {
-		this.schemaRegistry = schemaRegistry;
+	public void setPrismContext(PrismContext prismContext) {
+		this.prismContext = prismContext;
 	}
 
 	public ValueConstructionFactory getValueConstructionFactory() {
@@ -150,7 +151,7 @@ public class AssignmentEvaluator {
 		accContruction.addAssignments(assignmentPath);
 		accContruction.setUser(user);		
 		accContruction.setObjectResolver(objectResolver);
-		accContruction.setSchemaRegistry(schemaRegistry);
+		accContruction.setPrismContext(prismContext);
 		accContruction.setValueConstructionFactory(valueConstructionFactory);
 		
 		accContruction.evaluate(result);
@@ -172,7 +173,7 @@ public class AssignmentEvaluator {
 		}
 		ObjectType target = null;
 		try {
-			target = repository.getObject(clazz, oid, null, result);
+			target = repository.getObject(clazz, oid, null, result).asObjectable();
 			if (target == null) {
 				throw new IllegalArgumentException("Got null target from repository, oid:"+oid+", class:"+clazz+" (should not happen, probably a bug) in "+ObjectTypeUtil.toShortString(source));
 			}

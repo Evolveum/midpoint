@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -63,6 +64,9 @@ public class UserPolicyProcessor {
 	
 	@Autowired(required=true)
 	private ValueConstructionFactory valueConstructionFactory;
+	
+	@Autowired(required=true)
+	private PrismContext prismContext;
 
 	public void processUserPolicy(SyncContext context, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 		
@@ -83,7 +87,7 @@ public class UserPolicyProcessor {
 		ObjectDelta<UserType> userSecondaryDelta = context.getUserSecondaryDelta();
 		for (PropertyConstructionType propConstr: userTemplate.getPropertyConstruction()) {
 			XPathHolder propertyXPath = new XPathHolder(propConstr.getProperty());
-			PropertyPath propertyPath = new PropertyPath(propertyXPath);
+			PropertyPath propertyPath = propertyXPath.toPropertyPath();
 			
 			PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
 			PrismPropertyDefinition propertyDefinition = userDefinition.findPropertyDefinition(propertyPath);
@@ -94,7 +98,7 @@ public class UserPolicyProcessor {
 			ValueConstructionType valueConstructionType = propConstr.getValueConstruction();
 			// TODO: is the parentPath correct (null)?
 			ValueConstruction valueConstruction = valueConstructionFactory.createValueConstruction(valueConstructionType, 
-					propertyDefinition, null, 
+					propertyDefinition,
 					"user template expression for "+propertyDefinition.getName()+" while processing user " + context.getUserNew());
 			
 			PrismProperty existingValue = context.getUserNew().findProperty(propertyPath);
@@ -107,7 +111,7 @@ public class UserPolicyProcessor {
 			evaluateUserTemplateValueConstruction(valueConstruction, propertyDefinition, context, result);
 
 			PrismProperty output = valueConstruction.getOutput();
-			PropertyDelta propDelta = new PropertyDelta(propertyPath);
+			PropertyDelta propDelta = PropertyDelta.createDelta(propertyPath, UserType.class, prismContext);
 			
 			if (propertyDefinition.isMultiValue()) {
 				propDelta.addValuesToAdd(output.getValues());
@@ -125,7 +129,7 @@ public class UserPolicyProcessor {
 	}
 
 	private PrismObjectDefinition<UserType> getUserDefinition() {
-		return schemaRegistry.getObjectSchema().findObjectDefinition(UserType.class);
+		return prismContext.getSchemaRegistry().getObjectSchema().findObjectDefinitionByCompileTimeClass(UserType.class);
 	}
 
 	private void evaluateUserTemplateValueConstruction(

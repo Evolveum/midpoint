@@ -61,13 +61,6 @@ import java.util.Map.Entry;
 public class SyncContext implements Dumpable, DebugDumpable {
 
     /**
-     * User as UserType (XML) before any change (at the time when context was created).
-     * This is just an optimization not to parse userOld every time a UserType is needed.
-     * This value is considered immutable.
-     */
-    private UserType userTypeOld;
-
-    /**
      * User as midPointObject before any change (at the time when context was created)
      * This value is considered immutable.
      */
@@ -131,14 +124,6 @@ public class SyncContext implements Dumpable, DebugDumpable {
         accountContextMap = new HashMap<ResourceAccountType, AccountSyncContext>();
         resourceCache = new HashMap<String, ResourceType>();
         this.prismContext = prismContext;
-    }
-
-    public UserType getUserTypeOld() {
-        return userTypeOld;
-    }
-
-    public void setUserTypeOld(UserType userTypeOld) {
-        this.userTypeOld = userTypeOld;
     }
 
     public PrismObject<UserType> getUserOld() {

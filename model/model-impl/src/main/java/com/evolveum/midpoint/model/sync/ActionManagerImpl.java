@@ -26,6 +26,7 @@ import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.sync.action.BaseAction;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -45,7 +46,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
     private Map<String, Class<T>> actionMap;
     private UserSynchronizer synchronizer;
     private ChangeExecutor changeExecutor;
-    private SchemaRegistry schemaRegistry;
+    private PrismContext prismContext;
     private AuditService auditService;
     
     @Deprecated
@@ -72,7 +73,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
                 BaseAction baseAction = (BaseAction) action;
                 baseAction.setSynchronizer(synchronizer);
                 baseAction.setExecutor(changeExecutor);
-                baseAction.setSchemaRegistry(schemaRegistry);
+                baseAction.setPrismContext(prismContext);
                 baseAction.setAuditService(auditService);
                 baseAction.setModel(model);
             }
@@ -106,8 +107,8 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
         this.model = model;
     }
 
-    public void setSchemaRegistry(SchemaRegistry schemaRegistry) {
-        this.schemaRegistry = schemaRegistry;
+    public void setPrismContext(PrismContext prismContext) {
+        this.prismContext = prismContext;
     }
 
 	public void setAuditService(AuditService auditService) {

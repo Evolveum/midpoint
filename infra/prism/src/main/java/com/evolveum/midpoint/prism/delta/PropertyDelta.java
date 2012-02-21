@@ -23,6 +23,7 @@ package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -161,6 +162,12 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     }
     
     public static PropertyDelta createDelta(PropertyPath propertyPath, PrismObjectDefinition<?> objectDefinition) {
+    	PrismPropertyDefinition propDef = objectDefinition.findPropertyDefinition(propertyPath);
+    	return new PropertyDelta(propertyPath, propDef);
+    }
+    
+    public static <T extends Objectable> PropertyDelta createDelta(PropertyPath propertyPath, Class<T> compileTimeClass, PrismContext prismContext) {
+    	PrismObjectDefinition<T> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(compileTimeClass);
     	PrismPropertyDefinition propDef = objectDefinition.findPropertyDefinition(propertyPath);
     	return new PropertyDelta(propertyPath, propDef);
     }

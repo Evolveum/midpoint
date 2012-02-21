@@ -31,6 +31,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -71,7 +72,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	private ValueConstructionFactory valueConstructionFactory;
 	private Collection<ValueConstruction> attributeConstructions;
 	private RefinedAccountDefinition refinedAccountDefinition;
-	private SchemaRegistry schemaRegistry;
+	private PrismContext prismContext;
 	
 	public AccountConstruction(AccountConstructionType accountConstructionType, ObjectType source) {
 		this.accountConstructionType = accountConstructionType;
@@ -96,12 +97,12 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		this.objectResolver = objectResolver;
 	}
 
-	public SchemaRegistry getSchemaRegistry() {
-		return schemaRegistry;
+	PrismContext getPrismContext() {
+		return prismContext;
 	}
 
-	public void setSchemaRegistry(SchemaRegistry schemaRegistry) {
-		this.schemaRegistry = schemaRegistry;
+	void setPrismContext(PrismContext prismContext) {
+		this.prismContext = prismContext;
 	}
 
 	public ValueConstructionFactory getValueConstructionFactory() {
@@ -163,7 +164,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 			throw new IllegalStateException("The specified resource and the resource in construction does not match");
 		}
 		
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(getResource(result), schemaRegistry);
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(getResource(result), prismContext);
 		
 		refinedAccountDefinition = refinedSchema.getAccountDefinition(accountConstructionType.getType());
 		
@@ -195,16 +196,12 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 			throw new SchemaException("Attribute "+attrName+" not found in schema for account type "+getAccountType()+", "+ObjectTypeUtil.toShortString(getResource(result))+" as definied in "+ObjectTypeUtil.toShortString(source), attrName);
 		}
 		// TODO: is the parentPath correct (null)?
-		ValueConstruction attributeConstruction = valueConstructionFactory.createValueConstruction(attributeConstructionType, outputDefinition, null, "in "+ObjectTypeUtil.toShortString(source));
+		ValueConstruction attributeConstruction = valueConstructionFactory.createValueConstruction(attributeConstructionType, outputDefinition, "in "+ObjectTypeUtil.toShortString(source));
 		attributeConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, user);
 		attributeConstruction.setRootNode(user);
 		if (!assignments.isEmpty()) {
 			AssignmentType assignmentType = assignments.get(0);
-			try {
-				attributeConstruction.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, JAXBUtil.jaxbToDom(assignmentType, SchemaConstants.C_ASSIGNMENT, null));
-			} catch (JAXBException e) {
-				throw new SchemaException("Error serializing assignment in attribute construction in account construction in "+ObjectTypeUtil.toShortString(source)+": "+e.getMessage(),e);
-			}
+			attributeConstruction.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, assignmentType.asPrismContainerValue());
 		}
 		// TODO: other variables ?
 		attributeConstruction.evaluate(result);

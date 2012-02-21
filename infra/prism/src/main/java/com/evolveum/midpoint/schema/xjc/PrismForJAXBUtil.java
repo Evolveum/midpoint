@@ -107,15 +107,15 @@ public final class PrismForJAXBUtil {
         return getContainerValue(parent.getValue(), name);
     }
 
-    public static PrismContainerValue getContainerValue(PrismContainerValue parent, QName name) {
+    public static PrismContainerValue<?> getContainerValue(PrismContainerValue<?> parent, QName name) {
         Validate.notNull(parent, "Container must not be null.");
         Validate.notNull(name, "QName must not be null.");
 
-        PrismContainer container = parent.findItem(name, PrismContainer.class);
+        PrismContainer<?> container = parent.findItem(name, PrismContainer.class);
         return container != null ? container.getValue() : null;
     }
 
-    public static <T extends PrismContainer> T getContainer(PrismContainer parent, QName name, Class<T> clazz) {
+    public static <T extends PrismContainer<?>> T getContainer(PrismContainer<?> parent, QName name, Class<T> clazz) {
         Validate.notNull(parent, "Container must not be null.");
         Validate.notNull(name, "QName must not be null.");
         Validate.notNull(clazz, "Class type must not be null.");
@@ -149,7 +149,7 @@ public final class PrismForJAXBUtil {
         return setContainerValue(parent.getValue(), name, value);
     }
 
-    public static PrismReferenceValue getReferenceValue(PrismContainerValue parent, QName name) {
+    public static PrismReferenceValue getReferenceValue(PrismContainerValue<?> parent, QName name) {
         Validate.notNull(parent, "Prism container value must not be null.");
         Validate.notNull(name, "QName must not be null.");
 
@@ -172,7 +172,7 @@ public final class PrismForJAXBUtil {
         return parent.findReference(name);
     }
 
-    public static void setReferenceValue(PrismContainerValue parent, QName name,
+    public static void setReferenceValue(PrismContainerValue<?> parent, QName name,
             PrismReferenceValue value) {
         Validate.notNull(parent, "Prism container value must not be null.");
         Validate.notNull(name, "QName must not be null.");

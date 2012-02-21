@@ -25,6 +25,7 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -55,7 +56,7 @@ public class ActivationProcessor {
     private static final Trace LOGGER = TraceManager.getTrace(ActivationProcessor.class);
 
     @Autowired(required = true)
-    private SchemaRegistry schemaRegistry;
+    private PrismContext prismContext;
 
     @Autowired(required = true)
     private ValueConstructionFactory valueConstructionFactory;
@@ -78,10 +79,10 @@ public class ActivationProcessor {
         }
         PrismProperty userEnabledNew = userNew.findProperty(SchemaConstants.PATH_ACTIVATION_ENABLE);
 
-        PrismSchema commonSchema = schemaRegistry.getObjectSchema();
-
-        PrismObjectDefinition<AccountShadowType> accountDefinition = commonSchema.findObjectDefinition(AccountShadowType.class);
-        PrismPropertyDefinition accountEnabledPropertyDefinition = accountDefinition.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_ENABLE);
+        PrismObjectDefinition<AccountShadowType> accountDefinition = 
+        	prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
+        PrismPropertyDefinition accountEnabledPropertyDefinition = 
+        	accountDefinition.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_ENABLE);
 
         for (AccountSyncContext accCtx : context.getAccountContexts()) {
             ResourceAccountType rat = accCtx.getResourceAccountType();
@@ -122,8 +123,9 @@ public class ActivationProcessor {
                 continue;
             }
             
-            ValueConstruction enabledConstruction = valueConstructionFactory.createValueConstruction(outbound, accountEnabledPropertyDefinition, 
-            		SchemaConstants.PATH_ACTIVATION, "outbound activation in account type " + rat);
+            ValueConstruction enabledConstruction =
+            	valueConstructionFactory.createValueConstruction(outbound, accountEnabledPropertyDefinition, 
+            		"outbound activation in account type " + rat);
             enabledConstruction.setInput(userEnabledNew);
             enabledConstruction.evaluate(result);
             PrismProperty accountEnabledNew = enabledConstruction.getOutput();
@@ -131,7 +133,7 @@ public class ActivationProcessor {
                 LOGGER.trace("Activation 'enable' expression resulted in null or empty value, skipping activation processing for {}", rat);
                 continue;
             }
-            PropertyDelta accountEnabledDelta = new PropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
+            PropertyDelta accountEnabledDelta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ENABLE, AccountShadowType.class, prismContext);
             accountEnabledDelta.setValuesToReplace(accountEnabledNew.getValues());
             LOGGER.trace("Adding new 'enabled' delta for account {}: {}", rat, accountEnabledNew.getValues());
             accCtx.addToSecondaryDelta(accountEnabledDelta);

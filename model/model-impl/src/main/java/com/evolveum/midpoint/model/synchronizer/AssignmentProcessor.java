@@ -27,8 +27,12 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -68,7 +72,7 @@ public class AssignmentProcessor {
     private ObjectResolver objectResolver;
 
     @Autowired(required = true)
-    private SchemaRegistry schemaRegistry;
+    private PrismContext prismContext;
 
     @Autowired(required = true)
     private ValueConstructionFactory valueConstructionFactory;
@@ -94,32 +98,26 @@ public class AssignmentProcessor {
             }
         }
 
-        Collection<PrismPropertyValue<AssignmentType>> assignmentsOld = new HashSet<PrismPropertyValue<AssignmentType>>();
+        Collection<PrismContainerValue<AssignmentType>> assignmentsOld = new HashSet<PrismContainerValue<AssignmentType>>();
         if (context.getUserOld() != null) {
-            PrismProperty assignmentProperty = context.getUserOld().findProperty(UserType.F_ASSIGNMENT);
+            PrismContainer<AssignmentType> assignmentProperty = (PrismContainer<AssignmentType>) context.getUserOld().findContainer(UserType.F_ASSIGNMENT);
             if (assignmentProperty != null) {
-            	assignmentsOld.addAll(assignmentProperty.getValues(AssignmentType.class));
-            }
-        } else if (context.getUserTypeOld() != null) {
-        	// TODO: legacy code, should be removed after complete switch to our objects
-            List<AssignmentType> assignments = context.getUserTypeOld().getAssignment();
-            for (AssignmentType assignment : assignments) {
-                assignmentsOld.add(new PrismPropertyValue<AssignmentType>(assignment));
+            	assignmentsOld.addAll(assignmentProperty.getValues());
             }
         }
 
-        PropertyDelta assignmentDelta = context.getAssignmentDelta();
+        ContainerDelta assignmentDelta = context.getAssignmentDelta();
 
         LOGGER.trace("Assignment delta {}", assignmentDelta.dump());
 
         // TODO: preprocess assignment delta. If it is replace, then we need to convert it to: delete all existing assignments, add all new assignments
-        Collection<PrismPropertyValue<AssignmentType>> changedAssignments = assignmentDelta.getValues(AssignmentType.class);
+        Collection<PrismContainerValue<AssignmentType>> changedAssignments = assignmentDelta.getValues(AssignmentType.class);
 
         AssignmentEvaluator assignmentEvaluator = new AssignmentEvaluator();
         assignmentEvaluator.setRepository(repositoryService);
         assignmentEvaluator.setUser(context.getUserNew());
         assignmentEvaluator.setObjectResolver(objectResolver);
-        assignmentEvaluator.setSchemaRegistry(schemaRegistry);
+        assignmentEvaluator.setPrismContext(prismContext);
         assignmentEvaluator.setValueConstructionFactory(valueConstructionFactory);
 
         Map<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>> zeroAccountMap = new HashMap<ResourceAccountType, Collection<PrismPropertyValue<AccountConstruction>>>();
@@ -129,15 +127,15 @@ public class AssignmentProcessor {
         LOGGER.trace("Old assignments {}", SchemaDebugUtil.prettyPrint(assignmentsOld));
         LOGGER.trace("Changed assignments {}", SchemaDebugUtil.prettyPrint(changedAssignments));
 
-        ObjectType source = context.getUserTypeOld();
+        ObjectType source = context.getUserOld().asObjectable();
         if (source == null) {
-            source = context.getUserNew().getOrParseObjectType();
+            source = context.getUserNew().asObjectable();
         }
 
         Collection<AssignmentType> newAssignments = new HashSet<AssignmentType>();
-        Collection<PrismPropertyValue<AssignmentType>> allAssignments = MiscUtil.union(assignmentsOld, changedAssignments);
-        for (PrismPropertyValue<AssignmentType> propertyValue : allAssignments) {
-            AssignmentType assignmentType = propertyValue.getValue();
+        Collection<PrismContainerValue<AssignmentType>> allAssignments = MiscUtil.union(assignmentsOld, changedAssignments);
+        for (PrismContainerValue<AssignmentType> propertyValue : allAssignments) {
+            AssignmentType assignmentType = propertyValue.asCompileTimeObject();
 
             LOGGER.trace("Processing assignment {}", SchemaDebugUtil.prettyPrint(assignmentType));
 

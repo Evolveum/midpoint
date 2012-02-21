@@ -34,6 +34,7 @@ import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -139,6 +140,10 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 	}
 
 	public void addVariableDefinition(QName name, Element value) {
+		addVariableDefinition(name,(Object)value);
+	}
+	
+	public void addVariableDefinition(QName name, PrismValue value) {
 		addVariableDefinition(name,(Object)value);
 	}
 

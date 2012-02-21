@@ -71,13 +71,12 @@ public class DeleteUserAction extends BaseAction {
             throw new SynchronizationException(message);
         }
 
-        SyncContext context = new SyncContext();
+        SyncContext context = new SyncContext(getPrismContext());
         try {
-            context.rememberResource(change.getResource());
+            context.rememberResource(change.getResource().asObjectable());
 
             //set old user
-            PrismSchema schema = getSchemaRegistry().getObjectSchema();
-            PrismObjectDefinition<UserType> userDefinition = schema.findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
+            PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
             PrismObject<UserType> oldUser = userDefinition.parseObjectType(userType);
             context.setUserOld(oldUser);
             context.setUserTypeOld(userType);

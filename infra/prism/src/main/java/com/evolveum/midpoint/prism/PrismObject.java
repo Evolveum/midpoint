@@ -54,7 +54,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  *
  */
-public class PrismObject<T extends Objectable> extends PrismContainer {
+public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 
 	protected String oid;
 	protected String version;
@@ -65,7 +65,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 		this.compileTimeClass = compileTimeClass;
 	}
 
-	public PrismObject(QName name, PrismObjectDefinition definition, PrismContext prismContext) {
+	public PrismObject(QName name, PrismObjectDefinition<T> definition, PrismContext prismContext) {
 		super(name, definition, prismContext);
 	}
 
@@ -133,8 +133,8 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
         }
 	}
 
-	public PrismContainer getExtension() {
-		return getValue().findItem(new QName(getName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME), PrismContainer.class);
+	public PrismContainer<?> getExtension() {
+		return (PrismContainer<?>) getValue().findItem(new QName(getName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME), PrismContainer.class);
 	}
 	
 	@Override
@@ -146,21 +146,21 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 	}
 
 	@Override
-	public <I extends Item> I findItem(PropertyPath path, Class<I> type) {
+	public <I extends Item<?>> I findItem(PropertyPath path, Class<I> type) {
 		return findCreateItem(path, type, false);
 	}
 
 	@Override
-	<I extends Item> I findCreateItem(PropertyPath path, Class<I> type, boolean create) {
+	<I extends Item<?>> I findCreateItem(PropertyPath path, Class<I> type, boolean create) {
 		// Objects are only a single-valued containers. The path of the object itself is "empty".
 		// Fix this special behavior here.
 		PropertyPathSegment first = path.first();
-		Item subitem = getValue().findCreateItem(first.getName(), Item.class, create);
+		Item<?> subitem = getValue().findCreateItem(first.getName(), Item.class, create);
 		if (subitem == null) {
 			return null;
 		}
 		if (subitem instanceof PrismContainer) {
-			return ((PrismContainer)subitem).findCreateItem(path, type, create);
+			return ((PrismContainer<?>)subitem).findCreateItem(path, type, create);
 		} else if (type.isAssignableFrom(subitem.getClass())){
 			return (I) subitem;
 		} else {
@@ -172,7 +172,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer {
 		}
 	}
 	
-	public void addReplaceExisting(Item item) {
+	public void addReplaceExisting(Item<?> item) {
 		getValue().addReplaceExisting(item);
 	}
 

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.sync.Action;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -72,9 +73,9 @@ public abstract class BaseAction implements Action {
     private UserSynchronizer synchronizer;
     private ChangeExecutor executor;
     private ModelController model;
-    private SchemaRegistry schemaRegistry;
     private List<Object> parameters;
 
+    private PrismContext prismContext;
     private AuditService auditService;
     
 	public AuditService getAuditService() {
@@ -83,6 +84,14 @@ public abstract class BaseAction implements Action {
 
     public void setAuditService(AuditService auditService) {
 		this.auditService = auditService;
+	}
+    
+	public PrismContext getPrismContext() {
+		return prismContext;
+	}
+
+	public void setPrismContext(PrismContext prismContext) {
+		this.prismContext = prismContext;
 	}
 
 	@Override
@@ -124,7 +133,7 @@ public abstract class BaseAction implements Action {
         }
 
         try {
-            return model.getObject(UserType.class, oid, new PropertyReferenceListType(), result);
+            return model.getObject(UserType.class, oid, new PropertyReferenceListType(), result).asObjectable();
         } catch (ObjectNotFoundException ex) {
             // user was not found, we return null
         } catch (Exception ex) {
@@ -165,20 +174,12 @@ public abstract class BaseAction implements Action {
         this.executor = executor;
     }
 
-    public SchemaRegistry getSchemaRegistry() {
-        return schemaRegistry;
-    }
-
-    public void setSchemaRegistry(SchemaRegistry schemaRegistry) {
-        this.schemaRegistry = schemaRegistry;
-    }
-
     protected AccountSyncContext createAccountSyncContext(SyncContext context,
             ResourceObjectShadowChangeDescription change, PolicyDecision policyDecision,
             ActivationDecision activationDecision) throws SchemaException {
         LOGGER.debug("Creating account context for sync change.");
 
-        ResourceType resource = change.getResource();
+        ResourceType resource = change.getResource().asObjectable();
 
         String accountType = getAccountTypeFromChange(change);
         ResourceAccountType resourceAccount = new ResourceAccountType(resource.getOid(), accountType);
@@ -215,8 +216,7 @@ public abstract class BaseAction implements Action {
             return;
         }
 
-        PrismProperty enable = object.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ENABLE.allExceptLast(),
-                SchemaConstants.PATH_ACTIVATION_ENABLE.last(), Boolean.class);
+        PrismProperty enable = object.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ENABLE);
         LOGGER.debug("Account activation defined, activation property found {}", enable);
 
         ObjectDelta<AccountShadowType> accDelta = accContext.getAccountSecondaryDelta();
@@ -244,7 +244,7 @@ public abstract class BaseAction implements Action {
     }
 
     private boolean determineAttributeReconciliation(ResourceObjectShadowChangeDescription change) {
-        Boolean reconcileAttributes = change.getResource().getSynchronization().isReconcileAttributes();
+        Boolean reconcileAttributes = change.getResource().asObjectable().getSynchronization().isReconcileAttributes();
         if (reconcileAttributes == null) {
             // "Automatic mode", do reconciliation only if the complete current shadow was provided
             reconcileAttributes = change.getCurrentShadow() != null;
@@ -264,18 +264,18 @@ public abstract class BaseAction implements Action {
         }
 
         PrismObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(
-                change.getResource(), getSchemaRegistry()).getObjectDefinition(account);
+                change.getResource().asObjectable(), getPrismContext()).getObjectDefinition(account);
 
         return definition.parseObjectType(account);
     }
 
     protected AccountShadowType getAccountShadowFromChange(ResourceObjectShadowChangeDescription change) {
         if (change.getCurrentShadow() != null) {
-            return (AccountShadowType) change.getCurrentShadow();
+            return (AccountShadowType) change.getCurrentShadow().asObjectable();
         }
 
         if (change.getOldShadow() != null) {
-            return (AccountShadowType) change.getOldShadow();
+            return (AccountShadowType) change.getOldShadow().asObjectable();
         }
 
         return null;
@@ -328,7 +328,8 @@ public abstract class BaseAction implements Action {
 
         PropertyDelta delta = objectDelta.getPropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
         if (delta == null) {
-            delta = new PropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
+            delta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ENABLE, ResourceObjectShadowType.class,
+            		getPrismContext());
             objectDelta.addModification(delta);
         }
         delta.clear();

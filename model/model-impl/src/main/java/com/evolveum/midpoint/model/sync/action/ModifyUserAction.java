@@ -131,7 +131,7 @@ public class ModifyUserAction extends BaseAction {
 
         SyncContext context = null;
         try {
-            context = createSyncContext(userType, change.getResource());
+            context = createSyncContext(userType, change.getResource().asObjectable());
 
             AccountSyncContext accountContext = createAccountSyncContext(context, change,
                     getAccountPolicyDecision(), getAccountActivationDecision());
@@ -170,20 +170,19 @@ public class ModifyUserAction extends BaseAction {
         }
 
         if (change.getCurrentShadow() != null) {
-            return change.getCurrentShadow().getClass();
+            return change.getCurrentShadow().getCompileTimeClass();
         }
 
-        return change.getOldShadow().getClass();
+        return change.getOldShadow().getCompileTimeClass();
     }
 
     private SyncContext createSyncContext(UserType user, ResourceType resource) throws SchemaException {
-        PrismSchema schema = getSchemaRegistry().getObjectSchema();
         LOGGER.debug("Creating sync context.");
 
-        PrismObjectDefinition<UserType> userDefinition = schema.findObjectDefinitionByType(
+        PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(
                 SchemaConstants.I_USER_TYPE);
 
-        SyncContext context = new SyncContext();
+        SyncContext context = new SyncContext(getPrismContext());
         PrismObject<UserType> oldUser = userDefinition.parseObjectType(user);
         context.setUserOld(oldUser);
         context.rememberResource(resource);
@@ -194,8 +193,7 @@ public class ModifyUserAction extends BaseAction {
             return context;
         }
 
-        PrismProperty enable = oldUser.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ENABLE.allExceptLast(),
-                SchemaConstants.PATH_ACTIVATION_ENABLE.last(), Boolean.class);
+        PrismProperty enable = oldUser.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ENABLE);
         LOGGER.debug("User activation defined, activation property found {}", enable);
 
         PrismPropertyValue<Boolean> value = enable.getValue(Boolean.class);

@@ -27,6 +27,7 @@ import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.util.Utils;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -89,7 +90,7 @@ public class UserSynchronizer {
     private ActivationProcessor activationProcessor;
 
     @Autowired(required = true)
-    private SchemaRegistry schemaRegistry;
+    private PrismContext prismContext;
 
     public void synchronizeUser(SyncContext context, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
@@ -156,14 +157,13 @@ public class UserSynchronizer {
                 }
 
                 AccountShadowType account = provisioningService.getObject(AccountShadowType.class, accContext.getOid(),
-                        null, subResult);
+                        null, subResult).asObjectable();
                 ResourceType resource = Utils.getResource(account, provisioningService, result);
                 PrismObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(
-                        resource, schemaRegistry).getObjectDefinition(account);
+                        resource, prismContext).getObjectDefinition(account);
 
-                PrismObject<AccountShadowType> object = definition.instantiate(SchemaConstants.I_ACCOUNT_SHADOW_TYPE);
+                PrismObject<AccountShadowType> object = definition.instantiate(SchemaConstants.I_ACCOUNT);
                 object.setOid(account.getOid());
-                object.setObjectType(account);
                 accContext.setAccountOld(object);
             }
         } finally {
@@ -210,10 +210,9 @@ public class UserSynchronizer {
         }
         String userOid = userPrimaryDelta.getOid();
 
-        UserType userType = cacheRepositoryService.getObject(UserType.class, userOid, null, result);
+        UserType userType = cacheRepositoryService.getObject(UserType.class, userOid, null, result).asObjectable();
         context.setUserTypeOld(userType);
-        PrismSchema commonSchema = schemaRegistry.getObjectSchema();
-        PrismObject<UserType> user = commonSchema.parseObjectType(userType);
+        PrismObject<UserType> user = userType.asPrismObject();
         context.setUserOld(user);
     }
 
@@ -227,7 +226,7 @@ public class UserSynchronizer {
 
         PrismObject<UserType> userNew = context.getUserNew();
         if (userNew != null) {
-            UserType userTypeNew = userNew.getOrParseObjectType();
+            UserType userTypeNew = userNew.asObjectable();
             loadAccountRefsFromUser(context, userTypeNew, policyDecision, result);
         }
 
@@ -253,7 +252,7 @@ public class UserSynchronizer {
                 continue;
             }
             // Fetching from repository instead of provisioning so we avoid reading in a full account
-            AccountShadowType accountType = cacheRepositoryService.getObject(AccountShadowType.class, oid, null, result);
+            AccountShadowType accountType = cacheRepositoryService.getObject(AccountShadowType.class, oid, null, result).asObjectable();
             String resourceOid = ResourceObjectShadowUtil.getResourceOid(accountType);
             ResourceAccountType rat = new ResourceAccountType(resourceOid, accountType.getAccountType());
             AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
@@ -261,7 +260,7 @@ public class UserSynchronizer {
                 ResourceType resource = context.getResource(rat);
                 if (resource == null) {
                     // Fetching from provisioning to take advantage of caching and pre-parsed schema
-                    resource = provisioningService.getObject(ResourceType.class, resourceOid, null, result);
+                    resource = provisioningService.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
                     context.rememberResource(resource);
                 }
                 accountSyncContext = context.createAccountSyncContext(rat);
@@ -288,7 +287,9 @@ public class UserSynchronizer {
 
     private void loadFromSystemConfig(SyncContext context, OperationResult result) throws ObjectNotFoundException,
             SchemaException {
-        SystemConfigurationType systemConfigurationType = cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
+        SystemConfigurationType systemConfigurationType = 
+        	cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
+        			result).asObjectable();
         if (systemConfigurationType == null) {
             // throw new SystemException("System configuration object is null (should not happen!)");
             // This should not happen, but it happens in tests. And it is a convenient short cut. Tolerate it for now.

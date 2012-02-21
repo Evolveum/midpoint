@@ -203,7 +203,6 @@ public class RecomputeTaskHandler implements TaskHandler {
 		LOGGER.trace("Reconciling user {}", user);
 		
 		SyncContext syncContext = new SyncContext(prismContext);
-		syncContext.setUserTypeOld(user.asObjectable());
 		syncContext.setUserOld(user);
 		syncContext.setUserOid(user.getOid());
 
