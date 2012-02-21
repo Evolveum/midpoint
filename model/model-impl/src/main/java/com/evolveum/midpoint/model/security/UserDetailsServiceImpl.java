@@ -29,10 +29,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.test.diff.CalculateXmlDiff;
-import com.evolveum.midpoint.test.diff.DiffException;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -44,7 +41,6 @@ import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -149,27 +145,29 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     private PrincipalUser save(PrincipalUser person) throws RepositoryException {
-        try {
-            UserType userType = getUserByOid(person.getOid());
-            UserType oldUserType = (UserType) JAXBUtil.clone(userType);
+    	
+    	throw new UnsupportedOperationException("Saving user is not supported (in security)");
+//        try {
+//            UserType userType = getUserByOid(person.getOid());
+//            UserType oldUserType = (UserType) JAXBUtil.clone(userType);
+//
+//            updateUserType(userType, person);
+//
+//            ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldUserType, userType);
+//            if (modification != null && modification.getOid() != null) {
+//                repositoryService.modifyObject(UserType.class, modification, new OperationResult("Save user"));
+//            }
+//
+//        } catch (DiffException ex) {
+//            throw new RepositoryException("Can't save user. Unexpected error: "
+//                    + "Couldn't create create diff.", ex);
+//        } catch (JAXBException ex) {
+//            // TODO: finish
+//        } catch (Exception ex) {
+//            throw new RepositoryException(ex.getMessage(), ex);
+//        }
 
-            updateUserType(userType, person);
-
-            ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldUserType, userType);
-            if (modification != null && modification.getOid() != null) {
-                repositoryService.modifyObject(UserType.class, modification, new OperationResult("Save user"));
-            }
-
-        } catch (DiffException ex) {
-            throw new RepositoryException("Can't save user. Unexpected error: "
-                    + "Couldn't create create diff.", ex);
-        } catch (JAXBException ex) {
-            // TODO: finish
-        } catch (Exception ex) {
-            throw new RepositoryException(ex.getMessage(), ex);
-        }
-
-        return null;
+//        return null;
     }
 
     private UserType getUserByOid(String oid) throws ObjectNotFoundException, SchemaException {

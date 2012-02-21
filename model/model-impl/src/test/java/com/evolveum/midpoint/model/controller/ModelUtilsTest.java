@@ -39,12 +39,14 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.test.util.XmlAsserts;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -103,8 +105,7 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void getPasswordExistingAccount() throws Exception {
-		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
-				TEST_FOLDER, "account-with-pwd.xml"))).getValue();
+		AccountShadowType account = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "account-with-pwd.xml"));
 		PasswordType password = ModelUtils.getPassword(account);
 		assertNotNull(password);
 	}
@@ -112,8 +113,7 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void getPasswordNonExistingAccount() throws Exception {
-		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
-				TEST_FOLDER, "account-without-pwd.xml"))).getValue();
+		AccountShadowType account = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "account-without-pwd.xml"));
 		PasswordType password = ModelUtils.getPassword(account);
 		assertNotNull(password);
 	}
@@ -126,8 +126,7 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void generatePasswordBadLength() throws Exception {
-		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
-				TEST_FOLDER, "account-with-pwd.xml"))).getValue();
+		AccountShadowType account = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "account-with-pwd.xml"));
 		int length = 5;
 		ModelUtils.generatePassword(account, length, protector);
 
@@ -147,7 +146,9 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 		assertNotNull(list);
 		assertEquals(2, list.getProperty().size());
 
-		XmlAsserts.assertPatch(new File(TEST_FOLDER, "property-list-type.xml"), JAXBUtil.marshalWrap(list));
+		// TODO
+		AssertJUnit.fail("FIXME");
+//		XmlAsserts.assertPatch(new File(TEST_FOLDER, "property-list-type.xml"), JAXBUtil.marshalWrap(list));
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
@@ -158,8 +159,7 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void unresolveResourceObject() throws Exception {
-		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
-				TEST_FOLDER, "account-schema-handling.xml"))).getValue();
+		AccountShadowType account = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "account-schema-handling.xml"));
 
 		assertNotNull(account.getResource());
 		String resourceOid = account.getResource().getOid();

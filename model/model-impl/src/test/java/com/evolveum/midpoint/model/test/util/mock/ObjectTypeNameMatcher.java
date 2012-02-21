@@ -25,13 +25,14 @@ package com.evolveum.midpoint.model.test.util.mock;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
  * 
  * @author lazyman
  */
-public class ObjectTypeNameMatcher extends BaseMatcher<ObjectType> {
+public class ObjectTypeNameMatcher extends BaseMatcher<PrismObject<ObjectType>> {
 
 	private String name;
 
@@ -41,9 +42,9 @@ public class ObjectTypeNameMatcher extends BaseMatcher<ObjectType> {
 
 	@Override
 	public boolean matches(Object item) {
-		ObjectType object = (ObjectType) item;
+		PrismObject<ObjectType> object = (PrismObject<ObjectType>) item;
 
-		return object.getName().equals(name);
+		return object.asObjectable().getName().equals(name);
 	}
 
 	@Override

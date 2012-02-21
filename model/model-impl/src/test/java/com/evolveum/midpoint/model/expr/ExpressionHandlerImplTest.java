@@ -40,7 +40,9 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -65,23 +67,19 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 	@Autowired
 	private ExpressionHandler expressionHandler;
 
-	@Test(expectedExceptions = ExpressionException.class)
+	@Test(expectedExceptions = ExpressionEvaluationException.class)
 	@SuppressWarnings("unchecked")
 	public void testConfirmUserWithoutModel() throws Exception {
-		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
-				TEST_FOLDER, "./expr/account-xpath-evaluation-without-resource.xml"))).getValue();
-		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "./user-new.xml")))
-				.getValue();
+		AccountShadowType account = PrismTestUtil.unmarshalObject(new File(
+				TEST_FOLDER, "./expr/account-xpath-evaluation-without-resource.xml"));
+		UserType user = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "./user-new.xml"));
 
-		ExpressionType expression = JAXBUtil
-				.unmarshal(
-						ExpressionType.class,
+		ExpressionType expression = PrismTestUtil.unmarshalObject(
 						"<object xsi:type=\"ExpressionType\" xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd\" "
 								+ "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
 								+ "<code>declare namespace c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd\";\n"
 								+ "declare namespace dj=\"http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ\";\n"
-								+ "$c:user/c:givenName = $c:account/c:attributes/dj:givenName</code></object>")
-				.getValue();
+								+ "$c:user/c:givenName = $c:account/c:attributes/dj:givenName</code></object>");
 
 		OperationResult result = new OperationResult("testConfirmUserWithoutModel");
 		try {
@@ -95,20 +93,16 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testConfirmUser() throws Exception {
-		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
-				TEST_FOLDER, "./account-xpath-evaluation.xml"))).getValue();
-		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "./user-new.xml")))
-				.getValue();
+		AccountShadowType account = PrismTestUtil.unmarshalObject(new File(
+				TEST_FOLDER, "./account-xpath-evaluation.xml"));
+		UserType user = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "./user-new.xml"));
 
-		ExpressionType expression = JAXBUtil
-				.unmarshal(
-						ExpressionType.class,
+		ExpressionType expression = PrismTestUtil.unmarshalObject(
 						"<object xsi:type=\"ExpressionType\" xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd\" "
 								+ "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
 								+ "<code>declare namespace c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd\";\n"
 								+ "declare namespace dj=\"http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ\";\n"
-								+ "$c:user/c:givenName = $c:account/c:attributes/dj:givenName</code></object>")
-				.getValue();
+								+ "$c:user/c:givenName = $c:account/c:attributes/dj:givenName</code></object>");
 
 		OperationResult result = new OperationResult("testConfirmUser");
 		boolean confirmed = expressionHandler.evaluateConfirmationExpression(user, account, expression,
@@ -121,10 +115,8 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEvaluateExpression() throws Exception {
-		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
-				TEST_FOLDER, "./expr/account.xml"))).getValue();
-		ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(TEST_FOLDER_COMMON,
-				"resource.xml"))).getValue();
+		AccountShadowType account = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "./expr/account.xml"));
+		ResourceType resource = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON, "resource.xml"));
 		account.setResource(resource);
 		account.setResourceRef(null);
 
@@ -135,7 +127,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 		LOGGER.debug(SchemaDebugUtil.prettyPrint(expression));
 
 		OperationResult result = new OperationResult("testCorrelationRule");
-		String name = expressionHandler.evaluateExpression(account, expression, result);
+		String name = expressionHandler.evaluateExpression(account, expression, "test expression", result);
 		LOGGER.info(result.dump());
 
 		assertEquals("hbarbossa", name);

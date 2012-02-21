@@ -31,11 +31,6 @@ public class AccountShadowTypeComparator extends Equals<AccountShadowType> {
 
 	@Override
 	public boolean areEqual(AccountShadowType o1, AccountShadowType o2) {
-		if (!new ResourceObjectShadowTypeComparator().areEqual(o1, o2)) {
-			return false;
-		}
-
-		return areEqual(o1.getActivation(), o2.getActivation(), new ActivationTypeComparator())
-				&& areEqual(o1.getCredentials(), o2.getCredentials(), new CredentialsTypeComparator());
+		return o1.asPrismObject().equivalent(o2.asPrismObject());
 	}
 }

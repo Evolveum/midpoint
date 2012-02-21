@@ -41,6 +41,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
@@ -102,13 +103,13 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 	@SuppressWarnings("unchecked")
 	public void testDeleteCorrectRepo() throws FaultMessage, JAXBException, ObjectNotFoundException, SchemaException,
 			ConsistencyViolationException, CommunicationException {
-		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
-				"delete-user.xml"))).getValue();
+		final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
+				"delete-user.xml"));
 
 		final String oid = "abababab-abab-abab-abab-000000000001";
 		when(
 				repository.getObject(any(Class.class), eq(oid), any(PropertyReferenceListType.class),
-						any(OperationResult.class))).thenReturn(expectedUser);
+						any(OperationResult.class))).thenReturn(expectedUser.asPrismObject());
 		OperationResult result = new OperationResult("Delete Object From Repo");
 		try {
 			controller.deleteObject(UserType.class, oid, taskManager.createTaskInstance(), result);
@@ -122,13 +123,13 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 	@SuppressWarnings("unchecked")
 	public void testDeleteCorrectProvisioning() throws FaultMessage, JAXBException, ObjectNotFoundException,
 			SchemaException, CommunicationException, ConsistencyViolationException {
-		final ResourceType expectedResource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(TEST_FOLDER_COMMON,
-				"resource.xml"))).getValue();
+		final ResourceType expectedResource = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON,
+				"resource.xml"));
 
 		final String oid = "abababab-abab-abab-abab-000000000001";
 		when(
 				repository.getObject(any(Class.class), eq(oid), any(PropertyReferenceListType.class),
-						any(OperationResult.class))).thenReturn(expectedResource);
+						any(OperationResult.class))).thenReturn(expectedResource.asPrismObject());
 		OperationResult result = new OperationResult("Delete Object From Provisioning");
 		try {
 			controller.deleteObject(ResourceType.class, oid, taskManager.createTaskInstance(), result);

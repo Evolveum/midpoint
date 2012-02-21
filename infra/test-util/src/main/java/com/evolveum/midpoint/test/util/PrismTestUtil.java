@@ -96,6 +96,12 @@ public class PrismTestUtil {
     public static <T> T unmarshalObject(File file) throws JAXBException {
     	return prismContext.getPrismJaxbProcessor().unmarshalObject(file);
     }
+    
+    public static <T> T unmarshalObject(String StringXml) throws JAXBException {
+ //   	return prismContext.getPrismJaxbProcessor().unmarshalObject(StringXml);
+    	// TODO
+    	throw new UnsupportedOperationException();
+    }
 
     public static <T> JAXBElement<T> unmarshalElement(File xmlFile) throws JAXBException {
         return prismContext.getPrismJaxbProcessor().unmarshalElement(xmlFile);

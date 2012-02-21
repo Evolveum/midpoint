@@ -21,12 +21,15 @@
 package com.evolveum.midpoint.model.controller;
 
 import com.evolveum.midpoint.model.test.util.ModelTUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.test.util.PrismAsserts;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.test.util.XmlAsserts;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -88,45 +91,37 @@ public class TestAssignment extends AbstractTestNGSpringContextTests {
 
         ModelTUtil.mockGetSystemConfiguration(repository, new File(
                 TEST_FOLDER_COMMON, "system-configuration.xml"));
-        final UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "user.xml")))
-                .getValue();
-        final RoleType role = ((JAXBElement<RoleType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "role.xml")))
-                .getValue();
-        final ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(TEST_FOLDER_COMMON,
-                "resource.xml"))).getValue();
+        final UserType user = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "user.xml"));
+        final RoleType role = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "role.xml"));
+        final ResourceType resource = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON, "resource.xml"));
 
         when(
                 repository.getObject(eq(RoleType.class), eq(role.getOid()),
-                        any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(role);
+                        any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(role.asPrismObject());
         when(
                 provisioning.getObject(eq(ResourceType.class), eq(resource.getOid()),
                         any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
-                resource);
+                resource.asPrismObject());
 
         when(
-                provisioning.addObject(any(AccountShadowType.class), any(ScriptsType.class),
+                provisioning.addObject(any(PrismObject.class), any(ScriptsType.class),
                         any(OperationResult.class))).thenAnswer(new Answer<String>() {
             @Override
             public String answer(InvocationOnMock invocation) throws Throwable {
                 AccountShadowType account = (AccountShadowType) invocation.getArguments()[0];
-                LOGGER.info("Created account:\n{}", JAXBUtil.silentMarshalWrap(account));
-                XmlAsserts.assertPatch(new File(TEST_FOLDER, "account-expected.xml"),
-                        JAXBUtil.marshalWrap(account));
+                LOGGER.info("Created account:\n{}", account);
+                PrismAsserts.assertEquals(new File(TEST_FOLDER, "account-expected.xml"), account);
 
                 return "12345678-d34d-b33f-f00d-987987987989";
             }
         });
 
-        when(repository.addObject(any(UserType.class), any(OperationResult.class))).thenAnswer(
+        when(repository.addObject(any(PrismObject.class), any(OperationResult.class))).thenAnswer(
                 new Answer<String>() {
                     @Override
                     public String answer(InvocationOnMock invocation) throws Throwable {
                         UserType user = (UserType) invocation.getArguments()[0];
-                        System.out.println("XXXXXXXXX");
-                        System.out.println(JAXBUtil.marshalWrap(user));
-                        XmlAsserts.assertPatch(new File(TEST_FOLDER, "user-expected.xml"),
-                                JAXBUtil.marshalWrap(user));
-
+                        PrismAsserts.assertEquals(new File(TEST_FOLDER, "user-expected.xml"), user);
                         return "12345678-d34d-b33f-f00d-987987987988";
                     }
                 });
@@ -136,7 +131,7 @@ public class TestAssignment extends AbstractTestNGSpringContextTests {
         try {
 
             //WHEN
-            model.addObject(user, task, result);
+            model.addObject(user.asPrismObject(), task, result);
 
         } finally {
             LOGGER.debug(result.dump());
@@ -155,45 +150,42 @@ public class TestAssignment extends AbstractTestNGSpringContextTests {
 
             ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER_COMMON,
                     "system-configuration.xml"));
-            final UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
-                    "user-account-assignment.xml"))).getValue();
+            final UserType user = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
+                    "user-account-assignment.xml"));
 
-            final ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
-                    TEST_FOLDER_COMMON, "resource.xml"))).getValue();
+            final ResourceType resource = PrismTestUtil.unmarshalObject(new File(
+                    TEST_FOLDER_COMMON, "resource.xml"));
 
             when(
                     provisioning.getObject(eq(ResourceType.class), eq(resource.getOid()),
                             any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
-                    resource);
+                    resource.asPrismObject());
             when(
-                    provisioning.addObject(any(AccountShadowType.class), any(ScriptsType.class),
+                    provisioning.addObject(any(PrismObject.class), any(ScriptsType.class),
                             any(OperationResult.class))).thenAnswer(new Answer<String>() {
                 @Override
                 public String answer(InvocationOnMock invocation) throws Throwable {
                     AccountShadowType account = (AccountShadowType) invocation.getArguments()[0];
-                    LOGGER.info("Created account:\n{}", JAXBUtil.silentMarshalWrap(account));
-                    XmlAsserts.assertPatch(new File(TEST_FOLDER, "account-expected.xml"),
-                            JAXBUtil.marshalWrap(account));
-
+                    LOGGER.info("Created account:\n{}", account);
+                    PrismAsserts.assertEquals(new File(TEST_FOLDER, "account-expected.xml"), account);
                     return "12345678-d34d-b33f-f00d-987987987989";
                 }
             });
-            when(repository.addObject(any(UserType.class), any(OperationResult.class))).thenAnswer(
+            when(repository.addObject(any(PrismObject.class), any(OperationResult.class))).thenAnswer(
                     new Answer<String>() {
                         @Override
                         public String answer(InvocationOnMock invocation) throws Throwable {
                             UserType returnedUser = (UserType) invocation.getArguments()[0];
 
-                            final UserType userExpected = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
-                                    "user-expected.xml"))).getValue();
+                            final UserType userExpected = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
+                                    "user-expected.xml"));
                             userExpected.getAssignment().clear();
                             userExpected.getAssignment().add(user.getAssignment().get(0));
 
 //							System.out.println("XXXXXXXXXXXX");
-                            System.out.println(JAXBUtil.marshalWrap(returnedUser));
+                            System.out.println(returnedUser);
 
-                            XmlAsserts.assertPatch(JAXBUtil.marshalWrap(userExpected),
-                                    JAXBUtil.marshalWrap(returnedUser));
+                            PrismAsserts.assertEquals(userExpected, returnedUser);
 
                             return "12345678-d34d-b33f-f00d-987987987988";
                         }
@@ -202,7 +194,7 @@ public class TestAssignment extends AbstractTestNGSpringContextTests {
             OperationResult result = new OperationResult("Account Assignment");
             Task task = taskManager.createTaskInstance();
             try {
-                model.addObject(user, task, result);
+                model.addObject(user.asPrismObject(), task, result);
             } finally {
                 LOGGER.debug(result.dump());
             }

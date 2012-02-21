@@ -47,7 +47,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSitua
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.apache.commons.lang.StringUtils;
-import org.apache.derby.catalog.GetProcedureColumns;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;

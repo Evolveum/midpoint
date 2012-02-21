@@ -27,6 +27,7 @@ import java.util.Random;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ResultArrayList;
 import com.evolveum.midpoint.schema.ResultList;
@@ -62,16 +63,16 @@ public class MiscSchemaUtil {
 		return list;
 	}
 
-	public static <T extends ObjectType> ResultList<T> toResultList(Class<T> type, ObjectListType listType) {
-		ResultList<T> list = toResultList(type,listType.getObject());
+	public static <T extends ObjectType> ResultList<PrismObject<T>> toResultList(Class<T> type, ObjectListType listType) {
+		ResultList<PrismObject<T>> list = toResultList(type,listType.getObject());
 		list.setTotalResultCount(listType.getCount());
 		return list;
 	}
 	
-	public static <T extends ObjectType> ResultList<T> toResultList(Class<T> type, List<? extends ObjectType> list) {
-		ResultList<T> outList = new ResultArrayList<T>();
+	public static <T extends ObjectType> ResultList<PrismObject<T>> toResultList(Class<T> type, List<? extends ObjectType> list) {
+		ResultList<PrismObject<T>> outList = new ResultArrayList<PrismObject<T>>();
 		for (ObjectType o : list) {
-			outList.add((T)o);
+			outList.add(((T)o).asPrismObject());
 		}
 		return outList;
 	}

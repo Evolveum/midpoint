@@ -33,9 +33,11 @@ import org.testng.Assert;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.test.patch.PatchXml;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -58,25 +60,24 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 public class ModelTUtil {
 
 	@SuppressWarnings("unchecked")
-	public static <T extends ObjectType> T patchXml(ObjectModificationType changes, ObjectType object,
+	public static <T extends ObjectType> T patchXml(ObjectModificationType changes, T object,
 			Class<T> clazz) throws PatchException, JAXBException {
 
-		PatchXml patchXml = new PatchXml();
-		String xml = patchXml.applyDifferences(changes, object);
-		return ((JAXBElement<T>) JAXBUtil.unmarshal(xml)).getValue();
+		ObjectDelta<T> objectDelta = DeltaConvertor.createObjectDelta(changes, clazz, PrismTestUtil.getPrismContext());
+		objectDelta.applyTo(object.asPrismObject());
+		return object;
 	}
 
 	@SuppressWarnings("unchecked")
 	public static void mockGetSystemConfiguration(RepositoryService repository, File file)
 			throws JAXBException, ObjectNotFoundException, SchemaException {
-		SystemConfigurationType systemConfiguration = ((JAXBElement<SystemConfigurationType>) JAXBUtil
-				.unmarshal(file)).getValue();
+		SystemConfigurationType systemConfiguration = PrismTestUtil.unmarshalObject(file);
 
 		when(
 				repository.getObject(eq(SystemConfigurationType.class),
 						eq(SystemObjectsType.SYSTEM_CONFIGURATION.value()),
 						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
-				systemConfiguration);
+				systemConfiguration.asPrismObject());
 	}
 
 	public static void assertObjectNotFoundFault(FaultMessage ex) throws FaultMessage {
@@ -95,7 +96,7 @@ public class ModelTUtil {
 
 	public static ObjectType addObjectToRepo(RepositoryService repositoryService, ObjectType object)
 			throws Exception {
-		repositoryService.addObject(object, new OperationResult("Add Object"));
+		repositoryService.addObject(object.asPrismObject(), new OperationResult("Add Object"));
 		return object;
 	}
 
@@ -112,8 +113,8 @@ public class ModelTUtil {
 	@SuppressWarnings("unchecked")
 	public static ObjectType addObjectToRepo(RepositoryService repositoryService, String fileString)
 			throws Exception {
-		ObjectType object = ((JAXBElement<ObjectType>) JAXBUtil.unmarshal(new File(fileString))).getValue();
-		repositoryService.addObject(object, new OperationResult("Add Object"));
+		ObjectType object = PrismTestUtil.unmarshalObject(new File(fileString));
+		repositoryService.addObject(object.asPrismObject(), new OperationResult("Add Object"));
 		return object;
 	}
 
@@ -132,12 +133,12 @@ public class ModelTUtil {
 	public static String mockUser(RepositoryService repository, File file, String userOid) throws Exception {
 		String userOidExpected = userOid;
 		if (file != null) {
-			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(file)).getValue();
+			UserType user = PrismTestUtil.unmarshalObject(file);
 			userOidExpected = user.getOid();
 			when(
 					repository.getObject(any(Class.class), eq(user.getOid()),
 							any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
-					user);
+					user.asPrismObject());
 		} else {
 			when(
 					repository.getObject(any(Class.class), eq(userOid),

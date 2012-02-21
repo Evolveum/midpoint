@@ -38,6 +38,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.model.test.util.equal.ResourceObjectShadowTypeComparator;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultArrayList;
@@ -45,6 +46,7 @@ import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -104,8 +106,8 @@ public class ControllerListResourceObjectShadowsTest extends AbstractTestNGSprin
 	public <T extends ResourceObjectShadowType> void correctList() throws Exception {
 
 		final String resourceOid = "abababab-abab-abab-abab-000000000001";
-		final ResourceObjectShadowListType expected = ((JAXBElement<ResourceObjectShadowListType>) JAXBUtil
-				.unmarshal(new File(TEST_FOLDER, "resource-object-shadow-list.xml"))).getValue();
+		final ResourceObjectShadowListType expected = PrismTestUtil.unmarshalObject(
+				new File(TEST_FOLDER, "resource-object-shadow-list.xml"));
 		LOGGER.warn("TODO: File resource-object-shadow-list.xml doesn't contain proper resource object shadow list.");
 
 		when(
@@ -115,7 +117,7 @@ public class ControllerListResourceObjectShadowsTest extends AbstractTestNGSprin
 
 		OperationResult result = new OperationResult("List Resource Object Shadows");
 		try {
-			List<T> returned = controller.listResourceObjectShadows(resourceOid,
+			List<PrismObject<T>> returned = controller.listResourceObjectShadows(resourceOid,
 					(Class<T>) ObjectTypes.ACCOUNT.getClassDefinition(), result);
 
 			assertNotNull(expected);
@@ -128,14 +130,14 @@ public class ControllerListResourceObjectShadowsTest extends AbstractTestNGSprin
 
 	@Test(enabled = false)
 	private <T extends ResourceObjectShadowType> void testShadowListType(ResourceObjectShadowListType expected,
-			List<T> returnedList) {
+			List<PrismObject<T>> returnedList) {
 		List<ResourceObjectShadowType> expectedList = expected.getObject();
 
 		assertTrue(expectedList == null ? returnedList == null : returnedList != null);
 		assertEquals(expected.getObject().size(), expectedList.size());
 		ResourceObjectShadowTypeComparator comp = new ResourceObjectShadowTypeComparator();
 		for (int i = 0; i < expectedList.size(); i++) {
-			assertTrue(comp.areEqual(expectedList.get(i), returnedList.get(i)));
+			assertTrue(comp.areEqual(expectedList.get(i), returnedList.get(i).asObjectable()));
 		}
 	}
 }

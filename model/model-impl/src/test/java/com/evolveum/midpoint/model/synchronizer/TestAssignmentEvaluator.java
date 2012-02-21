@@ -92,11 +92,11 @@ public class TestAssignmentEvaluator extends AbstractModelIntegrationTest {
 		AssignmentEvaluator assignmentEvaluator = new AssignmentEvaluator();
 		assignmentEvaluator.setRepository(repositoryService);
 		
-		PrismObject<UserType> userJack = schemaRegistry.getObjectSchema().findObjectDefinition(UserType.class).parseObjectType(userTypeJack);
+		PrismObject<UserType> userJack = schemaRegistry.findObjectDefinitionByCompileTimeClass(UserType.class).parseObjectType(userTypeJack);
 		assignmentEvaluator.setUser(userJack);
 		
 		assignmentEvaluator.setObjectResolver(objectResolver);
-		assignmentEvaluator.setSchemaRegistry(schemaRegistry);
+		assignmentEvaluator.setPrismContext(prismContext);
 		return assignmentEvaluator;
 	}
 	

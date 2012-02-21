@@ -43,7 +43,9 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -113,11 +115,11 @@ public class ImportRefTest extends AbstractTestNGSpringContextTests {
 		QueryType query = new QueryType();
 		query.setFilter(filter);
 
-		List<UserType> users = repositoryService.searchObjects(UserType.class, query, null, result);
+		ResultList<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
 
 		assertNotNull(users);
 		assertEquals("Search retuned unexpected results", 1, users.size());
-		UserType jack = users.get(0);
+		UserType jack = users.get(0).asObjectable();
 		assertNotNull(jack);
 		assertEquals("Jack", jack.getGivenName());
 		assertEquals("Sparrow", jack.getFamilyName());

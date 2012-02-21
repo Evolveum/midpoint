@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -95,8 +96,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     @Test(expectedExceptions = FaultMessage.class)
     @SuppressWarnings("unchecked")
     public void addUserWithoutName() throws Exception {
-        final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
-                TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"))).getValue();
+        final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
+                TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"));
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(expectedUser, null));
         try {
             modelService.addObject(expectedUser, new Holder<String>(), new Holder<OperationResultType>());
@@ -203,8 +204,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
                             any(OperationResult.class))).thenThrow(
                     new ObjectNotFoundException("Object with oid '' not found."));
 
-            final UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
-                    TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"))).getValue();
+            final UserType user = PrismTestUtil.unmarshalObject(new File(
+                    TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"));
             SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null));
 
             modelService.deleteObject(ObjectTypes.USER.getObjectTypeUri(), oid);
@@ -353,8 +354,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
                         any(OperationResult.class))).thenThrow(
                 new ObjectNotFoundException("Oid '" + oid + "' not found."));
 
-        final UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
-                TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"))).getValue();
+        final UserType user = PrismTestUtil.unmarshalObject(new File(
+                TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"));
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null));
 
         try {

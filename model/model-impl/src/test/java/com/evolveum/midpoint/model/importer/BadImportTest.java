@@ -38,7 +38,9 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -99,13 +101,13 @@ public class BadImportTest extends AbstractTestNGSpringContextTests {
 
 		// Jack is OK in the import file, he should be imported
 		try {
-			UserType jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+			UserType jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result).asObjectable();
 			AssertJUnit.assertNotNull("Jack is null", jack);
 		} catch (ObjectNotFoundException e) {
 			AssertJUnit.fail("Jack was not imported");
 		}
 		
-		List<UserType> users = repositoryService.listObjects(UserType.class, null, result);
+		ResultList<PrismObject<UserType>> users = repositoryService.listObjects(UserType.class, null, result);
 
 		AssertJUnit.assertNotNull(users);
 		AssertJUnit.assertEquals("Search retuned unexpected results", 2, users.size());

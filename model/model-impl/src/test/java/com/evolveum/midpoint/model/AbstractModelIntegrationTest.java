@@ -96,11 +96,11 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		
 		addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, initResult);
 		addObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
-		userTypeJack = (UserType) addObjectFromFile(USER_JACK_FILENAME, initResult);
-		userTypeBarbossa = (UserType) addObjectFromFile(USER_BARBOSSA_FILENAME, initResult);
+		userTypeJack = addObjectFromFile(USER_JACK_FILENAME, UserType.class, initResult).asObjectable();
+		userTypeBarbossa = addObjectFromFile(USER_BARBOSSA_FILENAME, UserType.class, initResult).asObjectable();
 		addObjectFromFile(ACCOUNT_HBARBOSSA_OPENDJ_FILENAME, initResult);
 		
-		resourceType = (ResourceType) addObjectFromFile(RESOURCE_OPENDJ_FILENAME, initResult);
+		resourceType = addObjectFromFile(RESOURCE_OPENDJ_FILENAME, ResourceType.class, initResult).asObjectable();
 		// TODO
 		//importObjectFromFile(RESOURCE_OPENDJ_FILENAME, initResult);
 	}

@@ -21,6 +21,7 @@
  */
 package com.evolveum.midpoint.model.test.util.equal;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -35,15 +36,6 @@ public class ResourceObjectShadowTypeComparator extends Equals<ResourceObjectSha
 
 	@Override
 	public boolean areEqual(ResourceObjectShadowType o1, ResourceObjectShadowType o2) {
-		if (!new ExtensibleObjectTypeComparator().areEqual(o1, o2)) {
-			return false;
-		}
-		LOGGER.warn("ResourceObjectShadowTypeComparator is not comparing all class members (not implemented yet).");
-
-		o1.getAttributes();
-
-		return areQNameEqual(o1.getObjectClass(), o2.getObjectClass())
-				&& new ObjectReferenceTypeComparator().areEqual(o1.getResourceRef(), o2.getResourceRef())
-				&& new ResourceTypeComparator().areEqual(o1.getResource(), o2.getResource());
+		return o1.asPrismObject().equivalent(o2.asPrismObject());
 	}
 }

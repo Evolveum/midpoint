@@ -33,12 +33,15 @@ import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -113,7 +116,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test001OutboundEmpty");
 
-        SyncContext context = new SyncContext();
+        SyncContext context = new SyncContext(prismContext);
         fillInUser(context, USER_JACK_OID, result);
 
         // WHEN
@@ -135,7 +138,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test011AddAssignmentAddAccountDirect");
 
-        SyncContext context = new SyncContext();
+        SyncContext context = new SyncContext(prismContext);
         fillInUser(context, USER_JACK_OID, result);
         addModification(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ);
 
@@ -191,7 +194,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test012AddAssignmentAddAccountDirectWithAttrs");
 
-        SyncContext context = new SyncContext();
+        SyncContext context = new SyncContext(prismContext);
         fillInUser(context, USER_JACK_OID, result);
         addModification(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
 
@@ -262,7 +265,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test021AddAssignmentModifyAccount");
 
-        SyncContext context = new SyncContext();
+        SyncContext context = new SyncContext(prismContext);
         fillInUser(context, USER_BARBOSSA_OID, result);
         fillInAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
         addModification(context, REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
@@ -334,7 +337,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test031DeleteAssignmentModifyAccount");
 
-        SyncContext context = new SyncContext();
+        SyncContext context = new SyncContext(prismContext);
         fillInUser(context, USER_BARBOSSA_OID, result);
         fillInAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
         addModification(context, REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
@@ -393,9 +396,8 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
 
 
     private ObjectDelta<UserType> addModification(SyncContext context, String filename) throws JAXBException, SchemaException {
-        PrismSchema commonSchema = schemaRegistry.getObjectSchema();
-        JAXBElement<ObjectModificationType> modElement = (JAXBElement<ObjectModificationType>) JAXBUtil.unmarshal(new File(filename));
-        ObjectDelta<UserType> userDelta = ObjectDelta.createDelta(modElement.getValue(), commonSchema, UserType.class);
+        ObjectModificationType modElement = PrismTestUtil.unmarshalObject(new File(filename));
+        ObjectDelta<UserType> userDelta = DeltaConvertor.createObjectDelta(modElement, UserType.class, prismContext);
         context.addPrimaryUserDelta(userDelta);
         return userDelta;
     }
@@ -406,19 +408,17 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         assertEquals(userOld.getOid(), userPrimaryDelta.getOid());
         assertEquals(ChangeType.MODIFY, userPrimaryDelta.getChangeType());
         assertNull(userPrimaryDelta.getObjectToAdd());
-        for (PropertyDelta propMod : userPrimaryDelta.getModifications()) {
+        for (ItemDelta propMod : userPrimaryDelta.getModifications()) {
             if (propMod.getValuesToDelete() != null) {
-                PrismProperty property = userOld.findProperty(propMod.getParentPath(), propMod.getName());
+                PrismProperty<?> property = userOld.findProperty(propMod.getPath());
                 assertNotNull("Deleted property " + propMod.getParentPath() + "/" + propMod.getName() + " not found in user", property);
                 for (Object valueToDelete : propMod.getValuesToDelete()) {
                     if (!property.getValues().contains(valueToDelete)) {
                         display("Deleted value " + valueToDelete + " is not in user property " + propMod.getParentPath() + "/" + propMod.getName());
                         display("Deleted value", valueToDelete);
-                        display("Deleted value (XML)", JAXBUtil.marshalWrap(valueToDelete));
                         display("HASHCODE: " + valueToDelete.hashCode());
                         for (Object value : property.getValues()) {
                             display("Existing value", value);
-                            display("Existing value (XML)", JAXBUtil.marshalWrap(value));
                             display("EQUALS: " + valueToDelete.equals(value));
                             display("HASHCODE: " + value.hashCode());
                         }
@@ -432,27 +432,19 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
 
     private void fillInUser(SyncContext context, String userOid, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
-        UserType userType = repositoryService.getObject(UserType.class, userOid, null, result);
-
-        PrismSchema commonSchema = schemaRegistry.getObjectSchema();
-        PrismObjectDefinition<UserType> userDefinition = commonSchema.findObjectDefinition(UserType.class);
-        PrismObject<UserType> user = userDefinition.parseObjectType(userType);
+        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
         context.setUserOld(user);
-        context.setUserTypeOld(userType);
 
     }
 
     private void fillInAccount(SyncContext context, String accountOid, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
-        AccountShadowType accountType = repositoryService.getObject(AccountShadowType.class, accountOid, null, result);
-
-        PrismSchema commonSchema = schemaRegistry.getObjectSchema();
-        PrismObjectDefinition<AccountShadowType> accountDefinition = commonSchema.findObjectDefinition(AccountShadowType.class);
-//        MidPointObject<AccountShadowType> account = accountDefinition.parseObjectType(accountType);
+        PrismObject<AccountShadowType> account = repositoryService.getObject(AccountShadowType.class, accountOid, null, result);
+        AccountShadowType accountType = account.asObjectable();
         ResourceAccountType rat = new ResourceAccountType(accountType.getResourceRef().getOid(), accountType.getAccountType());
         AccountSyncContext accountSyncContext = context.createAccountSyncContext(rat);
         accountSyncContext.setOid(accountOid);
-//		accountSyncContext.setAccountOld(account);
+		accountSyncContext.setAccountOld(account);
     }
 
     private Object getSingleValueFromDeltaSetTripleWithCheck(DeltaSetTriple<ValueConstruction> triple, Collection<PrismPropertyValue<ValueConstruction>> set) {
@@ -474,12 +466,12 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
     	return getMultiValueFromDeltaSetTriple(set);
     }
 
-    private Collection<Object> getMultiValueFromDeltaSetTriple(Collection<PrismPropertyValue<ValueConstruction>> set) {	
-    	Collection<Object> values = new HashSet<Object>();
+    private <V> Collection<V> getMultiValueFromDeltaSetTriple(Collection<PrismPropertyValue<ValueConstruction>> set) {	
+    	Collection<V> values = new HashSet<V>();
         for (PrismPropertyValue<ValueConstruction> value: set) {
 	        ValueConstruction vc = value.getValue();
-	        Set<PrismPropertyValue<Object>> propValues = vc.getOutput().getValues();
-	        for (PrismPropertyValue<Object> pval: propValues) {
+	        Set<PrismPropertyValue<V>> propValues = (Set<PrismPropertyValue<V>>) vc.getOutput().getValues();
+	        for (PrismPropertyValue<V> pval: propValues) {
 	        	values.add(pval.getValue());
 	        }
         }

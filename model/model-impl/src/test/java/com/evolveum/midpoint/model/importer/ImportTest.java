@@ -48,7 +48,9 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -128,7 +130,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Import has failed (result)", result);
 
 		// Check import with fixed OID
-		ConnectorType connector = repositoryService.getObject(ConnectorType.class, CONNECOTR_LDAP_OID, null, result);
+		ConnectorType connector = repositoryService.getObject(ConnectorType.class, CONNECOTR_LDAP_OID, null, result).asObjectable();
 		assertNotNull(connector);
 		assertEquals("ICF org.identityconnectors.databasetable.DatabaseTableConnector", connector.getName());
 		assertEquals(CONNECTOR_NAMESPACE, connector.getNamespace());
@@ -152,7 +154,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Import has failed (result)", result, 2);
 
 		// Check import with fixed OID
-		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result);
+		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result).asObjectable();
 		assertNotNull(resource);
 		display("Imported resource",resource);
 		assertEquals("Embedded Test Derby", resource.getName());
@@ -183,7 +185,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Import has failed (result)", result);
 
 		// Check import with fixed OID
-		UserType jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+		UserType jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result).asObjectable();
 		display("Jack",jack);
 		assertNotNull(jack);
 		assertEquals("Jack", jack.getGivenName());
@@ -201,11 +203,11 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		QueryType query = new QueryType();
 		query.setFilter(filter);
 
-		List<UserType> users = repositoryService.searchObjects(UserType.class, query, null, result);
+		ResultList<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
 
 		assertNotNull(users);
 		assertEquals("Search retuned unexpected results", 1, users.size());
-		UserType guybrush = users.get(0);
+		UserType guybrush = users.get(0).asObjectable();
 		assertNotNull(guybrush);
 		guybrushOid = guybrush.getOid();
 		assertNotNull(guybrushOid);
@@ -263,36 +265,37 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Import failed (result)", result,1);
 
 		// list all users
-		List<UserType> users = modelService.listObjects(UserType.class, null, result);
+		ResultList<PrismObject<UserType>> users = modelService.listObjects(UserType.class, null, result);
 		// Three old users, one new
 		assertEquals(4,users.size());
 		
-		for (UserType user : users) {
-			if (user.getName().equals("jack")) {
+		for (PrismObject<UserType> user : users) {
+			UserType userType = user.asObjectable();
+			if (userType.getName().equals("jack")) {
 				// OID and all the attributes should be the same
-				assertEquals(USER_JACK_OID,user.getOid());
-				assertEquals("Jack", user.getGivenName());
-				assertEquals("Sparrow", user.getFamilyName());
-				assertEquals("Cpt. Jack Sparrow", user.getFullName());
+				assertEquals(USER_JACK_OID,userType.getOid());
+				assertEquals("Jack", userType.getGivenName());
+				assertEquals("Sparrow", userType.getFamilyName());
+				assertEquals("Cpt. Jack Sparrow", userType.getFullName());
 			}
-			if (user.getName().equals("will")) {
+			if (userType.getName().equals("will")) {
 				// OID should be the same, and there should be an employee type
-				assertEquals(USER_WILL_OID,user.getOid());
-				assertTrue("Wrong Will's employee type", user.getEmployeeType().contains("legendary"));
+				assertEquals(USER_WILL_OID,userType.getOid());
+				assertTrue("Wrong Will's employee type", userType.getEmployeeType().contains("legendary"));
 			}			
-			if (user.getName().equals("guybrush")) {
+			if (userType.getName().equals("guybrush")) {
 				// OID may be different, there should be a locality attribute
-				guybrushOid = user.getOid();
+				guybrushOid = userType.getOid();
 				assertNotNull(guybrushOid);
-				assertEquals("Guybrush is not in the Caribbean", "Deep in the Caribbean", user.getLocality());
+				assertEquals("Guybrush is not in the Caribbean", "Deep in the Caribbean", userType.getLocality());
 			}			
-			if (user.getName().equals("ht")) {
+			if (userType.getName().equals("ht")) {
 				// Herman should be here now
-				hermanOid = user.getOid();
+				hermanOid = userType.getOid();
 				assertNotNull(hermanOid);
-				assertEquals("Herman is confused", "Herman Toothrot", user.getFullName());
-				assertEquals("Herman is confused", "Herman", user.getGivenName());
-				assertEquals("Herman is confused", "Toothrot", user.getFamilyName());
+				assertEquals("Herman is confused", "Herman Toothrot", userType.getFullName());
+				assertEquals("Herman is confused", "Herman", userType.getGivenName());
+				assertEquals("Herman is confused", "Toothrot", userType.getFamilyName());
 			}	
 		}
 	}
@@ -320,34 +323,35 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Import failed (result)", result,1);
 
 		// list all users
-		List<UserType> users = modelService.listObjects(UserType.class, null, result);
+		ResultList<PrismObject<UserType>> users = modelService.listObjects(UserType.class, null, result);
 		// Three old users, one new
 		assertEquals(4,users.size());
 		
-		for (UserType user : users) {
-			if (user.getName().equals("jack")) {
+		for (PrismObject<UserType> user : users) {
+			UserType userType = user.asObjectable();
+			if (userType.getName().equals("jack")) {
 				// OID and all the attributes should be the same
-				assertEquals(USER_JACK_OID,user.getOid());
-				assertEquals("Jack", user.getGivenName());
-				assertEquals("Sparrow", user.getFamilyName());
-				assertEquals("Cpt. Jack Sparrow", user.getFullName());
+				assertEquals(USER_JACK_OID,userType.getOid());
+				assertEquals("Jack", userType.getGivenName());
+				assertEquals("Sparrow", userType.getFamilyName());
+				assertEquals("Cpt. Jack Sparrow", userType.getFullName());
 			}
-			if (user.getName().equals("will")) {
+			if (userType.getName().equals("will")) {
 				// OID should be the same, and there should be an employee type
-				assertEquals(USER_WILL_OID,user.getOid());
-				assertTrue("Wrong Will's employee type", user.getEmployeeType().contains("legendary"));
+				assertEquals(USER_WILL_OID,userType.getOid());
+				assertTrue("Wrong Will's employee type", userType.getEmployeeType().contains("legendary"));
 			}			
-			if (user.getName().equals("guybrush")) {
+			if (userType.getName().equals("guybrush")) {
 				// OID should be the same, there should be a locality attribute
-				assertEquals("Guybrush's OID went leeway", guybrushOid, user.getOid());
-				assertEquals("Guybrush is not in the Caribbean", "Deep in the Caribbean", user.getLocality());
+				assertEquals("Guybrush's OID went leeway", guybrushOid, userType.getOid());
+				assertEquals("Guybrush is not in the Caribbean", "Deep in the Caribbean", userType.getLocality());
 			}
-			if (user.getName().equals("ht")) {
+			if (userType.getName().equals("ht")) {
 				// Herman should still be here
-				assertEquals("Herman's OID went leeway", hermanOid, user.getOid());
-				assertEquals("Herman is confused", "Herman Toothrot", user.getFullName());
-				assertEquals("Herman is confused", "Herman", user.getGivenName());
-				assertEquals("Herman is confused", "Toothrot", user.getFamilyName());
+				assertEquals("Herman's OID went leeway", hermanOid, userType.getOid());
+				assertEquals("Herman is confused", "Herman Toothrot", userType.getFullName());
+				assertEquals("Herman is confused", "Herman", userType.getGivenName());
+				assertEquals("Herman is confused", "Toothrot", userType.getFamilyName());
 			}	
 		}
 	}

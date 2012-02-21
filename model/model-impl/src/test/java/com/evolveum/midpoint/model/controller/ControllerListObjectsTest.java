@@ -41,6 +41,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.test.util.equal.UserTypeComparator;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -101,21 +103,20 @@ public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void userList() throws Exception {
-		final ResultList<UserType> expectedUserList = MiscSchemaUtil.toResultList(UserType.class,
-				((JAXBElement<ObjectListType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "user-list.xml")))
-						.getValue());
+		final ResultList<PrismObject<UserType>> expectedUserList = MiscSchemaUtil.toResultList(UserType.class,
+				(ObjectListType)PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "user-list.xml")));
 
 		when(repository.listObjects(eq(UserType.class), any(PagingType.class), any(OperationResult.class)))
 				.thenReturn(expectedUserList);
 
 		OperationResult result = new OperationResult("List Users");
 		try {
-			final List<UserType> returnedUserList = controller.listObjects(UserType.class, new PagingType(),
+			final List<PrismObject<UserType>> returnedUserList = controller.listObjects(UserType.class, new PagingType(),
 					result);
 
 			verify(repository, times(1)).listObjects(eq(ObjectTypes.USER.getClassDefinition()),
 					any(PagingType.class), any(OperationResult.class));
-			testObjectList(expectedUserList, returnedUserList);
+			testObjectList((List)expectedUserList, (List)returnedUserList);
 		} finally {
 			LOGGER.debug(result.dump());
 		}
@@ -123,8 +124,8 @@ public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests 
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test(enabled = false)
-	private void testObjectList(List<? extends ObjectType> expectedList,
-			List<? extends ObjectType> returnedList) {
+	private void testObjectList(List<PrismObject<? extends ObjectType>> expectedList,
+			List<PrismObject<? extends ObjectType>> returnedList) {
 		assertNotNull(expectedList);
 		assertNotNull(returnedList);
 
@@ -137,19 +138,20 @@ public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests 
 			return;
 		}
 
-		if (expectedList.get(0) instanceof UserType) {
-			testUserLists(new ArrayList(expectedList), new ArrayList(returnedList));
-		}
+		assertEquals(expectedList, returnedList);
+//		if (expectedList.get(0).asObjectable() instanceof UserType) {
+//			testUserLists(new ArrayList(expectedList), new ArrayList(returnedList));
+//		}
 	}
 
-	@Test(enabled = false)
-	private void testUserLists(List<UserType> expected, List<UserType> returned) {
-		UserTypeComparator comp = new UserTypeComparator();
-		for (int i = 0; i < expected.size(); i++) {
-			UserType u1 = expected.get(i);
-			UserType u2 = returned.get(i);
-
-			assertTrue(comp.areEqual(u1, u2));
-		}
-	}
+//	@Test(enabled = false)
+//	private void testUserLists(List<UserType> expected, List<UserType> returned) {
+//		UserTypeComparator comp = new UserTypeComparator();
+//		for (int i = 0; i < expected.size(); i++) {
+//			UserType u1 = expected.get(i);
+//			UserType u2 = returned.get(i);
+//
+//			assertTrue(comp.areEqual(u1, u2));
+//		}
+//	}
 }

@@ -49,6 +49,8 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.util.PrismAsserts;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.test.util.XmlAsserts;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -97,12 +99,9 @@ public class TestSynchronizerAddUser extends AbstractTestNGSpringContextTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void addUserWithSimpleTemplate() throws Exception {
-		UserType userType = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER_COMMON, "user-drake.xml")))
-				.getValue();
-		UserTemplateType userTemplate = ((JAXBElement<UserTemplateType>) JAXBUtil.unmarshal(new File(
-				TEST_FOLDER_COMMON, "user-template.xml"))).getValue();
-		ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(TEST_FOLDER_COMMON,
-				"resource.xml"))).getValue();
+		UserType userType = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON, "user-drake.xml"));
+		UserTemplateType userTemplate = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON, "user-template.xml"));
+		ResourceType resource = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON, "resource.xml"));
 
 		final String userOid = "10000000-0000-0000-0000-000000000001";
 		final String resourceOid = "10000000-0000-0000-0000-000000000003";
@@ -111,44 +110,34 @@ public class TestSynchronizerAddUser extends AbstractTestNGSpringContextTests {
 		when(
 				provisioning.getObject(eq(ResourceType.class), eq(resourceOid),
 						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
-				resource);
+				resource.asPrismObject());
 		when(
-				provisioning.addObject(any(AccountShadowType.class), any(ScriptsType.class),
+				provisioning.addObject(any(PrismObject.class), any(ScriptsType.class),
 						any(OperationResult.class))).thenAnswer(new Answer<String>() {
 			@Override
 			public String answer(InvocationOnMock invocation) throws Throwable {
 				AccountShadowType account = (AccountShadowType) invocation.getArguments()[0];
-				AccountShadowType expectedAccount = ((JAXBElement<AccountShadowType>) JAXBUtil
-						.unmarshal(new File(TEST_FOLDER, "expected-account.xml"))).getValue();
-				
-				XmlAsserts.assertPatch(JAXBUtil.marshalWrap(expectedAccount, SchemaConstants.I_ACCOUNT_SHADOW_TYPE),
-						JAXBUtil.marshalWrap(account, SchemaConstants.I_ACCOUNT_SHADOW_TYPE));
+				PrismAsserts.assertEquals(new File(TEST_FOLDER, "expected-account.xml"), account);
 
 				return accountOid;
 			}
 		});
-		when(repository.addObject(any(UserType.class), any(OperationResult.class))).thenAnswer(
+		when(repository.addObject(any(PrismObject.class), any(OperationResult.class))).thenAnswer(
 				new Answer<String>() {
 					@Override
 					public String answer(InvocationOnMock invocation) throws Throwable {
 						UserType user = (UserType) invocation.getArguments()[0];
-						UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
-								TEST_FOLDER, "expected-user.xml"))).getValue();
-
-						XmlAsserts.assertPatch(JAXBUtil.marshalWrap(user, SchemaConstants.I_USER_TYPE),
-								JAXBUtil.marshalWrap(expectedUser, SchemaConstants.I_USER_TYPE));
-
+						PrismAsserts.assertEquals(new File(TEST_FOLDER, "expected-user.xml"), user);
 						return userOid;
 					}
 				});
 
 		OperationResult result = new OperationResult("Add User With Template");
 		
-		SyncContext syncContext = new SyncContext();
+		SyncContext syncContext = new SyncContext(PrismTestUtil.getPrismContext());
 
 		ObjectDelta<UserType> objectDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD);
-		PrismSchema commonSchema = schemaRegistry.getObjectSchema();
-		PrismObject<UserType> user = commonSchema.parseObjectType(userType);
+		PrismObject<UserType> user = userType.asPrismObject();
 		objectDelta.setObjectToAdd(user);
 		
 		syncContext.setUserOld(null);

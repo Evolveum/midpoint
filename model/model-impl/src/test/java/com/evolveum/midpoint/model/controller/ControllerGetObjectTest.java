@@ -43,6 +43,7 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -113,17 +114,17 @@ public class ControllerGetObjectTest extends AbstractTestNGSpringContextTests  {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void getUserCorrect() throws JAXBException, FaultMessage, ObjectNotFoundException, SchemaException {
-		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
-				"get-user-correct.xml"))).getValue();
+		final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
+				"get-user-correct.xml"));
 
 		final String oid = "abababab-abab-abab-abab-000000000001";
 		when(repository.getObject(eq(UserType.class),eq(oid), any(PropertyReferenceListType.class), any(OperationResult.class)))
-				.thenReturn(expectedUser);
+				.thenReturn(expectedUser.asPrismObject());
 
 		OperationResult result = new OperationResult("Get Object");
 		try {
 			final UserType user = controller.getObject(UserType.class, oid, new PropertyReferenceListType(),
-					result);
+					result).asObjectable();
 
 			assertNotNull(user);
 			assertEquals(expectedUser.getName(), user.getName());

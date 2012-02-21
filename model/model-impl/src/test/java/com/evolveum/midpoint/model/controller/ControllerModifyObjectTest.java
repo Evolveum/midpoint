@@ -17,6 +17,8 @@
  */
 package com.evolveum.midpoint.model.controller;
 
+import java.util.ArrayList;
+
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
 import org.mockito.Mockito;
@@ -25,6 +27,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -62,25 +65,22 @@ public class ControllerModifyObjectTest extends AbstractTestNGSpringContextTests
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullChange() throws Exception {
-		controller.modifyObject(UserType.class, null, null, null);
+		controller.modifyObject(UserType.class, null, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullChangeOid() throws Exception {
-		controller.modifyObject(UserType.class, new ObjectModificationType(), taskManager.createTaskInstance(), null);
+		controller.modifyObject(UserType.class, null, new ArrayList<ItemDelta>(), taskManager.createTaskInstance(), null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void emptyChangeOid() throws Exception {
-		ObjectModificationType change = new ObjectModificationType();
-		change.setOid("");
-		controller.modifyObject(UserType.class, change, taskManager.createTaskInstance(), null);
+		controller.modifyObject(UserType.class, "", new ArrayList<ItemDelta>(), taskManager.createTaskInstance(), null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
-		ObjectModificationType change = new ObjectModificationType();
-		change.setOid("1");
-		controller.modifyObject(UserType.class, change, taskManager.createTaskInstance(), null);
+
+		controller.modifyObject(UserType.class, "1", new ArrayList<ItemDelta>(), taskManager.createTaskInstance(), null);
 	}
 }

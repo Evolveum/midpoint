@@ -40,9 +40,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -99,7 +101,7 @@ public class ControllerListAccountShadowOwnerTest extends AbstractTestNGSpringCo
 
 		OperationResult result = new OperationResult("accountWithoutOwner");
 		try {
-			final UserType returned = controller.listAccountShadowOwner("1", result);
+			final PrismObject<UserType> returned = controller.listAccountShadowOwner("1", result);
 			assertNull(returned);
 		} finally {
 			LOGGER.debug(result.dump());
@@ -110,14 +112,14 @@ public class ControllerListAccountShadowOwnerTest extends AbstractTestNGSpringCo
 	@SuppressWarnings("unchecked")
 	public void correctListAccountShadowOwner() throws FaultMessage, JAXBException, ObjectNotFoundException {
 		final String accountOid = "acc11111-76e0-48e2-86d6-3d4f02d3e1a2";
-		UserType expected = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
-				"list-account-shadow-owner.xml"))).getValue();
+		UserType expected = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
+				"list-account-shadow-owner.xml"));
 
 		when(repository.listAccountShadowOwner(eq(accountOid), any(OperationResult.class))).thenReturn(
-				expected);
+				expected.asPrismObject());
 		OperationResult result = new OperationResult("correctListAccountShadowOwner");
 		try {
-			final UserType returned = (UserType) controller.listAccountShadowOwner(accountOid, result);
+			final UserType returned = controller.listAccountShadowOwner(accountOid, result).asObjectable();
 			assertNotNull(returned);
 			assertEquals(expected, returned);
 		} finally {

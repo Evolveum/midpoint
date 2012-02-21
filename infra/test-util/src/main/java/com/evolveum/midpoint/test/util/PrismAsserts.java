@@ -61,12 +61,20 @@ public class PrismAsserts {
 //        }
     }
 	
-	public static void assertElementsEquals(Object element1, Object element2) throws SchemaException {
-		assertEquals(elementToPrism(element1), elementToPrism(element2));
+	public static void assertElementsEquals(Object expected, Object actual) throws SchemaException {
+		assertEquals(elementToPrism(expected), elementToPrism(actual));
     }
 	
 	public static void assertEquals(File fileNewXml, String objectString) throws SchemaException {
 		assertEquals(toPrism(fileNewXml), toPrism(objectString));
+    }
+	
+	public static void assertEquals(Objectable expected, Objectable actual) throws SchemaException {
+		assertEquals(actual.asPrismObject(), actual.asPrismObject());
+    }
+	
+	public static void assertEquals(File fileNewXml, Objectable objectable) throws SchemaException {
+		assertEquals(toPrism(fileNewXml), objectable.asPrismObject());
     }
 
 	public static void assertEquals(PrismObject<?> prism1, PrismObject<?> prism2) {
