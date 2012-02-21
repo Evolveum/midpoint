@@ -22,6 +22,7 @@ package com.evolveum.midpoint.model;
 
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -120,11 +121,14 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
      * True if we want to reconcile account in this context.
      */
     private boolean doReconciliation;
+    
+    private PrismContext prismContext;
 
-    AccountSyncContext(ResourceAccountType resourceAccountType) {
+    AccountSyncContext(ResourceAccountType resourceAccountType, PrismContext prismContext) {
         this.resourceAccountType = resourceAccountType;
         this.attributeValueDeltaSetTripleMap = new HashMap<QName, DeltaSetTriple<ValueConstruction>>();
         this.isAssigned = false;
+        this.prismContext = prismContext;
     }
 
     public ObjectDelta<AccountShadowType> getAccountSyncDelta() {
@@ -273,7 +277,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
                 PrismObjectDefinition<AccountShadowType> objectDefinition = (PrismObjectDefinition<AccountShadowType>)
                         accountToAdd.getDefinition();
                 // TODO: remove constructor, use some factory method instead
-                oldAccount = new PrismObject<AccountShadowType>(accountToAdd.getName(), objectDefinition, null, null);
+                oldAccount = new PrismObject<AccountShadowType>(accountToAdd.getName(), objectDefinition, prismContext);
                 oldAccount = accountSyncDelta.computeChangedObject(oldAccount);
             }
         }

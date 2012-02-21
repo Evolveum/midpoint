@@ -86,7 +86,7 @@ public class BasicValidatorTest {
 			}
 
             @Override
-            public EventResult postMarshall(PrismObject<ObjectType> object, Element objectElement, OperationResult objectResult) {
+            public <T extends ObjectType> EventResult postMarshall(PrismObject<T> object, Element objectElement, OperationResult objectResult) {
             	System.out.println("Handler processing " + object + ", result:");
 				System.out.println(objectResult.dump());
                 postMarshallHandledOids.add(object.getOid());

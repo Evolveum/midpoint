@@ -67,9 +67,9 @@ public class ChangeExecutor {
     @Autowired(required = true)
     private ProvisioningService provisioning;
 
-    public <T extends ObjectType> void executeChanges(Collection<ObjectDelta<T>> changes, OperationResult result) throws
+    public void executeChanges(Collection<ObjectDelta<? extends ObjectType>> changes, OperationResult result) throws
             ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException {
-        for (ObjectDelta<T> change : changes) {
+        for (ObjectDelta<? extends ObjectType> change : changes) {
             executeChange(change, result);
         }
     }

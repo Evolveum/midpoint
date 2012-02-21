@@ -400,7 +400,7 @@ public class ModelController implements ModelService {
 	 *         TODO in the future, maybe some error status returned from hooks
 	 *         should be considered here.
 	 */
-	private HookOperationMode executePreChangePrimary(Collection<ObjectDelta<?>> objectDeltas, Task task,
+	private HookOperationMode executePreChangePrimary(Collection<ObjectDelta<? extends ObjectType>> objectDeltas, Task task,
 			OperationResult result) {
 
 		HookOperationMode resultMode = HookOperationMode.FOREGROUND;
@@ -417,9 +417,9 @@ public class ModelController implements ModelService {
 	/**
 	 * A convenience method when there is only one delta.
 	 */
-	private HookOperationMode executePreChangePrimary(ObjectDelta<?> objectDelta, Task task,
+	private HookOperationMode executePreChangePrimary(ObjectDelta<? extends ObjectType> objectDelta, Task task,
 			OperationResult result) {
-		Collection<ObjectDelta<?>> deltas = new ArrayList<ObjectDelta<?>>();
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 		deltas.add(objectDelta);
 		return executePreChangePrimary(deltas, task, result);
 	}
@@ -427,7 +427,7 @@ public class ModelController implements ModelService {
 	/**
 	 * Executes preChangeSecondary. See above for comments.
 	 */
-	private HookOperationMode executePreChangeSecondary(Collection<ObjectDelta<?>> objectDeltas, Task task,
+	private HookOperationMode executePreChangeSecondary(Collection<ObjectDelta<? extends ObjectType>> objectDeltas, Task task,
 			OperationResult result) {
 
 		HookOperationMode resultMode = HookOperationMode.FOREGROUND;
@@ -444,7 +444,7 @@ public class ModelController implements ModelService {
 	/**
 	 * Executes postChange. See above for comments.
 	 */
-	private HookOperationMode executePostChange(Collection<ObjectDelta<?>> objectDeltas, Task task,
+	private HookOperationMode executePostChange(Collection<ObjectDelta<? extends ObjectType>> objectDeltas, Task task,
 			OperationResult result) {
 
 		HookOperationMode resultMode = HookOperationMode.FOREGROUND;
@@ -461,8 +461,8 @@ public class ModelController implements ModelService {
 	/**
 	 * A convenience method when there is only one delta.
 	 */
-	private HookOperationMode executePostChange(ObjectDelta<?> objectDelta, Task task, OperationResult result) {
-		Collection<ObjectDelta<?>> deltas = new ArrayList<ObjectDelta<?>>();
+	private HookOperationMode executePostChange(ObjectDelta<? extends ObjectType> objectDelta, Task task, OperationResult result) {
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 		deltas.add(objectDelta);
 		return executePostChange(deltas, task, result);
 	}
@@ -711,7 +711,7 @@ public class ModelController implements ModelService {
 				auditRecord.addDelta(objectDelta);
 				auditService.audit(auditRecord, task);
 				
-				Collection<ObjectDelta<?>> changes = new HashSet<ObjectDelta<?>>();
+				Collection<ObjectDelta<? extends ObjectType>> changes = new HashSet<ObjectDelta<? extends ObjectType>>();
 				changes.add(objectDelta);
 
 				try {
@@ -843,7 +843,7 @@ public class ModelController implements ModelService {
 			LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
 
 			
-			Collection<ObjectDelta<?>> changes = null;
+			Collection<ObjectDelta<? extends ObjectType>> changes = null;
 
 			if (UserType.class.isAssignableFrom(clazz)) {
 				SyncContext syncContext = new SyncContext(prismContext);
@@ -863,7 +863,7 @@ public class ModelController implements ModelService {
 
 				changes = syncContext.getAllChanges();
 			} else {
-				changes = new HashSet<ObjectDelta<?>>();
+				changes = new HashSet<ObjectDelta<? extends ObjectType>>();
 				changes.add(objectDelta);
 			}
 

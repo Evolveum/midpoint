@@ -24,7 +24,9 @@ package com.evolveum.midpoint.model.security;
 import com.evolveum.midpoint.model.security.api.Credentials;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.diff.CalculateXmlDiff;
@@ -36,6 +38,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -87,7 +90,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         query.setFilter(createQuery(username));
         LOGGER.trace("Looking for user, query:\n" + DOMUtil.printDom(query.getFilter()));
 
-        List<UserType> list = repositoryService.searchObjects(UserType.class, query, new PagingType(),
+        ResultList<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, new PagingType(),
                 new OperationResult("Find by username"));
         if (list == null) {
             return null;
@@ -97,7 +100,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             return null;
         }
 
-        return createUser(list.get(0));
+        return createUser(list.get(0).asObjectable());
     }
 
     private PrincipalUser createUser(UserType userType) {
@@ -171,7 +174,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     private UserType getUserByOid(String oid) throws ObjectNotFoundException, SchemaException {
         ObjectType object = repositoryService.getObject(UserType.class, oid, new PropertyReferenceListType(),
-                new OperationResult("Get user by oid"));
+                new OperationResult("Get user by oid")).asObjectable();
         if (object != null && (object instanceof UserType)) {
             return (UserType) object;
         }

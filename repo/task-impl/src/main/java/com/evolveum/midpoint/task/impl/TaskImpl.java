@@ -614,7 +614,7 @@ public class TaskImpl implements Task {
 	}
 	
 	@Override
-	public void modify(Collection<PropertyDelta> modifications, OperationResult parentResult) {
+	public void modify(Collection<? extends ItemDelta> modifications, OperationResult parentResult) {
 		// TODO Auto-generated method stub
 		throw new UnsupportedOperationException();
 	}

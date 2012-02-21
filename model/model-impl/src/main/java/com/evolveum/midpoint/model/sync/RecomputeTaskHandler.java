@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -85,7 +86,7 @@ public class RecomputeTaskHandler implements TaskHandler {
 	private RepositoryService repositoryService;
 	
 	@Autowired(required=true)
-	private SchemaRegistry schemaRegistry;
+	private PrismContext prismContext;
 	
     @Autowired(required = true)
     private UserSynchronizer userSynchronizer;
@@ -182,11 +183,11 @@ public class RecomputeTaskHandler implements TaskHandler {
 		while (true) {
 			paging.setOffset(offset);
 			paging.setMaxSize(SEARCH_MAX_SIZE);
-			ResultList<UserType> users = repositoryService.listObjects(UserType.class, paging, result);
+			ResultList<PrismObject<UserType>> users = repositoryService.listObjects(UserType.class, paging, result);
 			if (users == null || users.isEmpty()) {
 				break;
 			}
-			for (UserType user : users) {
+			for (PrismObject<UserType> user : users) {
 				OperationResult subResult = result.createSubresult(OperationConstants.RECOMPUTE_USER);
 				subResult.addContext(OperationResult.CONTEXT_OBJECT, user);
 				recomputeUser(user, subResult);
@@ -198,14 +199,12 @@ public class RecomputeTaskHandler implements TaskHandler {
 		
 	}
 
-	private void recomputeUser(UserType user, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException {
-		LOGGER.trace("Reconciling user {}",ObjectTypeUtil.toShortString(user));
+	private void recomputeUser(PrismObject<UserType> user, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException {
+		LOGGER.trace("Reconciling user {}", user);
 		
-		SyncContext syncContext = new SyncContext();
-		syncContext.setUserTypeOld(user);
-		PrismSchema objectSchema = schemaRegistry.getObjectSchema();
-		PrismObject<UserType> mpUser = objectSchema.parseObjectType(user);
-		syncContext.setUserOld(mpUser);
+		SyncContext syncContext = new SyncContext(prismContext);
+		syncContext.setUserTypeOld(user.asObjectable());
+		syncContext.setUserOld(user);
 		syncContext.setUserOid(user.getOid());
 
 		syncContext.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
@@ -213,13 +212,13 @@ public class RecomputeTaskHandler implements TaskHandler {
 		
 		userSynchronizer.synchronizeUser(syncContext, result);
 		
-		LOGGER.trace("Reconciling of user {}: context:\n{}",ObjectTypeUtil.toShortString(user),syncContext.dump());
+		LOGGER.trace("Reconciling of user {}: context:\n{}", user,syncContext.dump());
 		
 		changeExecutor.executeChanges(syncContext, result);
 		
 		// TODO: process result
 		
-		LOGGER.trace("Reconciling of user {}: {}",ObjectTypeUtil.toShortString(user),result.getStatus());
+		LOGGER.trace("Reconciling of user {}: {}", user,result.getStatus());
 	}
 
 	@Override

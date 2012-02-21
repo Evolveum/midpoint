@@ -46,6 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAddition
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 /**
@@ -62,7 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
  * @author Radovan Semancik
  * 
  */
-public class SynchronizeAccountResultHandler implements ResultHandler {
+public class SynchronizeAccountResultHandler implements ResultHandler<AccountShadowType> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SynchronizeAccountResultHandler.class);
 	
@@ -128,8 +129,8 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 	 * .midpoint.xml.ns._public.common.common_1.ObjectType)
 	 */
 	@Override
-	public boolean handle(ObjectType object, OperationResult parentResult) {
-		if (object.getOid() == null) {
+	public boolean handle(PrismObject<AccountShadowType> accountShadow, OperationResult parentResult) {
+		if (accountShadow.getOid() == null) {
 			throw new IllegalArgumentException("Object has null OID");
 		}
 		
@@ -138,12 +139,12 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 		long startTime = System.currentTimeMillis();
 		OperationResult result = parentResult.createSubresult(SynchronizeAccountResultHandler.class
 				.getName() + ".handle");
-		result.addParam("object", object);
+		result.addParam("object", accountShadow);
 		result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("{} {} from {}",new Object[] {
-					getProcessShortNameCapitalized(), ObjectTypeUtil.toShortString(object),ObjectTypeUtil.toShortString(resource)});
+					getProcessShortNameCapitalized(), accountShadow,resource.asPrismObject()});
 		}
 
 		if (objectChangeListener == null) {
@@ -156,11 +157,11 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 		// That will efficiently import them to the IDM repository
 
 		try {
-			AccountShadowType newShadow = (AccountShadowType) object;
+			AccountShadowType newShadowType = accountShadow.asObjectable();
 	
 			ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
 			change.setSourceChannel(QNameUtil.qNameToUri(sourceChannel));
-			change.setResource(resource);
+			change.setResource(resource.asPrismObject());
 			
 			if (forceAdd) {
 				// We should provide shadow in the state before the change. But we are
@@ -168,14 +169,14 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 				// not existed before, so we will not provide it.
 				ObjectDelta<AccountShadowType> shadowDelta = new ObjectDelta<AccountShadowType>(
 						AccountShadowType.class, ChangeType.ADD);
-				PrismObject<AccountShadowType> shadowToAdd = refinedAccountDefinition.getObjectDefinition().parseObjectType(newShadow);
+				PrismObject<AccountShadowType> shadowToAdd = refinedAccountDefinition.getObjectDefinition().parseObjectType(newShadowType);
 				shadowDelta.setObjectToAdd(shadowToAdd);
-				shadowDelta.setOid(newShadow.getOid());
+				shadowDelta.setOid(newShadowType.getOid());
 				change.setObjectDelta(shadowDelta);
 				
 			} else {
 				// No change, therefore the delta stays null. But we will set the current
-				change.setCurrentShadow(newShadow);
+				change.setCurrentShadow(accountShadow);
 			}
 
 // No need to log. The notification dispatcher will log it all right
@@ -197,7 +198,7 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 			long endTime = System.currentTimeMillis();
 			if (LOGGER.isInfoEnabled()) {
 				LOGGER.info("{} object {} from resource {} done ({} ms)",new Object[]{
-						getProcessShortNameCapitalized(), ObjectTypeUtil.toShortString(newShadow),
+						getProcessShortNameCapitalized(), ObjectTypeUtil.toShortString(newShadowType),
 						ObjectTypeUtil.toShortString(resource), endTime - startTime});
 			}
 		} catch (Exception ex) {
@@ -205,12 +206,12 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 			if (LOGGER.isErrorEnabled()) {
 				LOGGER.error("{} of object {} from resource {} failed: {}", new Object[] {
 						getProcessShortNameCapitalized(),
-					ObjectTypeUtil.toShortString(object), ObjectTypeUtil.toShortString(resource), ex.getMessage(), ex });
+						accountShadow, resource.asPrismObject(), ex.getMessage(), ex });
 			}
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Change notication listener failed for {} of object {}: {}: ", new Object[] {
 						getProcessShortName(),
-						object, ex.getClass().getSimpleName(), ex.getMessage(), ex });
+						accountShadow, ex.getClass().getSimpleName(), ex.getMessage(), ex });
 			}
 			result.recordPartialError("failed to synchronize: "+ex.getMessage(), ex);
 			return !isStopOnError();
@@ -227,7 +228,7 @@ public class SynchronizeAccountResultHandler implements ResultHandler {
 			// Everything OK, signal to continue
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("{} of {} finished, result: {}", new Object[]{
-						getProcessShortNameCapitalized(), ObjectTypeUtil.toShortString(object),result.dump()});
+						getProcessShortNameCapitalized(), accountShadow,result.dump()});
 			}
 			return true;
 		} else {

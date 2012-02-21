@@ -24,15 +24,17 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.sync.SynchronizeAccountResultHandler;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
-import com.evolveum.midpoint.schema.PropertyModification;
-import com.evolveum.midpoint.schema.PropertyModification.ModificationType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -48,8 +50,11 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
@@ -58,6 +63,7 @@ import org.w3c.dom.Element;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,6 +103,9 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 
     @Autowired(required = true)
     private ChangeNotificationDispatcher changeNotificationDispatcher;
+    
+    @Autowired(required = true)
+    private PrismContext prismContext;
 
     private Map<Task, SynchronizeAccountResultHandler> handlers;
     private PrismPropertyDefinition objectclassPropertyDefinition;
@@ -106,7 +115,8 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
     public ImportAccountsFromResourceTaskHandler() {
         super();
         handlers = new HashMap<Task, SynchronizeAccountResultHandler>();
-        objectclassPropertyDefinition = new PrismPropertyDefinition(ImportConstants.OBJECTCLASS_PROPERTY_NAME, DOMUtil.XSD_QNAME);
+        objectclassPropertyDefinition = new PrismPropertyDefinition(ImportConstants.OBJECTCLASS_PROPERTY_NAME, 
+        		ImportConstants.OBJECTCLASS_PROPERTY_NAME, DOMUtil.XSD_QNAME, prismContext);
     }
 
     @PostConstruct
@@ -141,14 +151,14 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         task.setObjectRef(ObjectTypeUtil.createObjectRef(resource));
 
         // Set objectclass
-        PrismProperty objectclassProperty = objectclassPropertyDefinition.instantiate(null);
-        objectclassProperty.setValue(new PrismPropertyValue(objectclass));
-        PropertyModification modification = objectclassProperty.createModification(
-                ModificationType.REPLACE, new PrismPropertyValue<Object>(objectclass));
-        List<PropertyModification> modifications = new ArrayList<PropertyModification>();
-        modifications.add(modification);
+        Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
+        PropertyDelta objectClassDelta = new PropertyDelta<Object>(
+        		new PropertyPath(TaskType.F_EXTENSION, objectclassPropertyDefinition.getName()),
+        		objectclassPropertyDefinition);
+        objectClassDelta.setValueToReplace(new PrismPropertyValue<Object>(objectclass));
+        ((Collection)modifications).add(objectClassDelta);
         try {
-            task.modifyExtension(modifications, result);
+            task.modify(modifications, result);
         } catch (ObjectNotFoundException e) {
             LOGGER.error("Task object not found, expecting it to exist (task {})", task, e);
             result.recordFatalError("Task object not found", e);
@@ -188,7 +198,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         ResourceType resource = null;
         try {
 
-            resource = task.getObject(ResourceType.class, opResult);
+            resource = task.getObject(ResourceType.class, opResult).asObjectable();
 
         } catch (ObjectNotFoundException ex) {
             String resourceOid = null;
@@ -242,7 +252,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         
         RefinedResourceSchema refinedSchema;
 		try {
-			refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, schemaRegistry);
+			refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
 		} catch (SchemaException e) {
 			LOGGER.error("Import: Schema error during processing account definition: {}",e.getMessage());
             opResult.recordFatalError("Schema error during processing account definition: "+e.getMessage(),e);
@@ -265,7 +275,8 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 
         try {
 
-            provisioning.searchObjectsIterative(QueryUtil.createResourceAndAccountQuery(resource, objectclass, null), null, handler, opResult);
+            provisioning.searchObjectsIterative(AccountShadowType.class,
+            		QueryUtil.createResourceAndAccountQuery(resource, objectclass, null), null, handler, opResult);
 
         } catch (ObjectNotFoundException ex) {
             LOGGER.error("Import: Object not found: {}", ex.getMessage(), ex);

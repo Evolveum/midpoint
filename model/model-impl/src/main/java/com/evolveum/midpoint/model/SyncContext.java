@@ -233,14 +233,14 @@ public class SyncContext implements Dumpable, DebugDumpable {
 
     public void setAccountPrimaryDelta(ResourceAccountType rat, ObjectDelta<AccountShadowType> accountDelta) {
         if (!accountContextMap.containsKey(rat)) {
-            accountContextMap.put(rat, new AccountSyncContext(rat));
+            accountContextMap.put(rat, new AccountSyncContext(rat, prismContext));
         }
         accountContextMap.get(rat).setAccountPrimaryDelta(accountDelta);
     }
 
     public void setAccountSecondaryDelta(ResourceAccountType rat, ObjectDelta<AccountShadowType> accountDelta) {
         if (!accountContextMap.containsKey(rat)) {
-            accountContextMap.put(rat, new AccountSyncContext(rat));
+            accountContextMap.put(rat, new AccountSyncContext(rat, prismContext));
         }
         accountContextMap.get(rat).setAccountSecondaryDelta(accountDelta);
     }
@@ -396,8 +396,8 @@ public class SyncContext implements Dumpable, DebugDumpable {
      * these are not merged.
      * TODO: maybe it would be better to merge them.
      */
-    public Collection<ObjectDelta<?>> getAllChanges() {
-        Collection<ObjectDelta<?>> allChanges = new HashSet<ObjectDelta<?>>();
+    public Collection<ObjectDelta<? extends ObjectType>> getAllChanges() {
+        Collection<ObjectDelta<? extends ObjectType>> allChanges = new HashSet<ObjectDelta<? extends ObjectType>>();
 
         addChangeIfNotNull(allChanges, userPrimaryDelta);
         addChangeIfNotNull(allChanges, userSecondaryDelta);
@@ -410,8 +410,8 @@ public class SyncContext implements Dumpable, DebugDumpable {
         return allChanges;
     }
 
-    private void addChangeIfNotNull(Collection<ObjectDelta<?>> changes,
-            ObjectDelta<?> change) {
+    private <T extends ObjectType> void addChangeIfNotNull(Collection<ObjectDelta<? extends ObjectType>> changes,
+            ObjectDelta<T> change) {
         if (change != null) {
             changes.add(change);
         }
@@ -421,7 +421,7 @@ public class SyncContext implements Dumpable, DebugDumpable {
      * Creates new empty account sync context and adds it to this context.
      */
     public AccountSyncContext createAccountSyncContext(ResourceAccountType rat) {
-        AccountSyncContext accountSyncContext = new AccountSyncContext(rat);
+        AccountSyncContext accountSyncContext = new AccountSyncContext(rat, prismContext);
         addAccountSyncContext(rat, accountSyncContext);
         return accountSyncContext;
     }

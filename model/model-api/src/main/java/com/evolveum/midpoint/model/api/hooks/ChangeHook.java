@@ -24,6 +24,7 @@ import java.util.Collection;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
  * TODO
@@ -53,7 +54,7 @@ public interface ChangeHook {
 	 * @param result ????
 	 * @return indication of hook operation mode (foreground or background)
 	 */
-	HookOperationMode preChangePrimary(Collection<ObjectDelta<?>> changes, Task task, OperationResult result);
+	HookOperationMode preChangePrimary(Collection<ObjectDelta<? extends ObjectType>> changes, Task task, OperationResult result);
 
 	/**
 	 * Callback before the change is processed by the model. The callback is in the
@@ -72,7 +73,7 @@ public interface ChangeHook {
 	 * @param result ????
 	 * @return indication of hook operation mode (foreground or background)
 	 */
-	HookOperationMode preChangeSecondary(Collection<ObjectDelta<?>> changes, Task task, OperationResult result);
+	HookOperationMode preChangeSecondary(Collection<ObjectDelta<? extends ObjectType>> changes, Task task, OperationResult result);
 
 	/**
 	 * Callback after the change is executed by the model. The callback gets a view of the
@@ -91,5 +92,5 @@ public interface ChangeHook {
 	 * @param result ????
 	 * @return indication of hook operation mode (foreground or background)
 	 */
-	HookOperationMode postChange(Collection<ObjectDelta<?>> changes, Task task, OperationResult result);
+	HookOperationMode postChange(Collection<ObjectDelta<? extends ObjectType>> changes, Task task, OperationResult result);
 }

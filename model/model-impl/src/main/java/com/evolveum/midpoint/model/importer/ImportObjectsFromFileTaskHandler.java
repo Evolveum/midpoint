@@ -20,13 +20,15 @@
  */
 package com.evolveum.midpoint.model.importer;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
-import com.evolveum.midpoint.schema.PropertyModification;
-import com.evolveum.midpoint.schema.PropertyModification.ModificationType;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -39,6 +41,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -46,6 +50,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -70,6 +75,9 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 
     @Autowired(required = true)
     private ChangeNotificationDispatcher changeNotificationDispatcher;
+    
+    @Autowired(required = true)
+    private PrismContext prismContext;
 
     //private Map<Task,ImportAccountsFromResourceResultHandler> handlers;
     private PrismPropertyDefinition filenamePropertyDefinition;
@@ -79,7 +87,8 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
     public ImportObjectsFromFileTaskHandler() {
         super();
         //handlers = new HashMap<Task, ImportAccountsFromResourceResultHandler>();
-        filenamePropertyDefinition = new PrismPropertyDefinition(ImportConstants.FILENAME_PROPERTY_NAME, DOMUtil.XSD_STRING);
+        filenamePropertyDefinition = new PrismPropertyDefinition(ImportConstants.FILENAME_PROPERTY_NAME, 
+        		ImportConstants.FILENAME_PROPERTY_NAME, DOMUtil.XSD_STRING, prismContext);
     }
 
     @PostConstruct
@@ -112,13 +121,14 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
         // TODO: bind task to this node
 
         // Set filename
-        PrismProperty filenameProperty = filenamePropertyDefinition.instantiate(null);
-        PropertyModification modification = filenameProperty.createModification(
-                ModificationType.REPLACE, new PrismPropertyValue<Object>(input.getAbsolutePath()));
-        List<PropertyModification> modifications = new ArrayList<PropertyModification>();
-        modifications.add(modification);
+        Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
+        PropertyDelta objectClassDelta = new PropertyDelta<Object>(
+        		new PropertyPath(TaskType.F_EXTENSION, filenamePropertyDefinition.getName()),
+        		filenamePropertyDefinition);
+        objectClassDelta.setValueToReplace(new PrismPropertyValue<Object>(input.getAbsolutePath()));
+        ((Collection)modifications).add(objectClassDelta);        
         try {
-            task.modifyExtension(modifications, result);
+            task.modify(modifications, result);
         } catch (ObjectNotFoundException e) {
             LOGGER.error("Task object not found, expecting it to exist (task {})", task, e);
             result.recordFatalError("Task object not found", e);

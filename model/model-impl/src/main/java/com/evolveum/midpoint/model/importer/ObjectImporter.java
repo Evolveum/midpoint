@@ -29,6 +29,8 @@ import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -82,6 +84,8 @@ public class ObjectImporter {
     private Protector protector;
     @Autowired(required = true)
     private LightweightIdentifierGenerator lightweightIdentifierGenerator;
+    @Autowired(required = true)
+    private PrismContext prismContext;
 
     public void importObjects(InputStream input, final ImportOptionsType options, final Task task, final OperationResult parentResult,
                               final RepositoryService repository) {
@@ -94,48 +98,49 @@ public class ObjectImporter {
             }
 
             @Override
-            public EventResult postMarshall(ObjectType object, Element objectElement, OperationResult objectResult) {
-                LOGGER.debug("Importing object {}", ObjectTypeUtil.toShortString(object));
-
+            public <T extends ObjectType> EventResult postMarshall(PrismObject<T> object, Element objectElement, OperationResult objectResult) {
+                LOGGER.debug("Importing object {}", object);
+                T objectType = object.asObjectable();
+                
                 if (objectResult.isAcceptable()) {
-                    resolveReferences(object, repository, 
+                    resolveReferences(objectType, repository, 
                     		options.isReferentialIntegrity() == null ? false : options.isReferentialIntegrity(), objectResult);
                 }
                 
                 if (objectResult.isAcceptable()) {
-                    generateIdentifiers(object, repository,  objectResult);
+                    generateIdentifiers(objectType, repository,  objectResult);
                 }
 
                 PrismContainer dynamicPart = null;
                 if (BooleanUtils.isTrue(options.isValidateDynamicSchema()) && objectResult.isAcceptable()) {
-                    dynamicPart = validateWithDynamicSchemas(object, objectElement, repository, objectResult);
+                    dynamicPart = validateWithDynamicSchemas(objectType, objectElement, repository, objectResult);
                 }
 
                 if (BooleanUtils.isTrue(options.isEncryptProtectedValues()) && objectResult.isAcceptable()) {
-                    encryptValuesInStaticPart(object, objectResult);
+                    encryptValuesInStaticPart(objectType, objectResult);
                     if (dynamicPart != null) {
-                        encryptValuesInDynamicPart(dynamicPart, object, objectResult);
+                        encryptValuesInDynamicPart(dynamicPart, objectType, objectResult);
                     }
                 }
 
                 if (objectResult.isAcceptable()) {
                     try {
 
-                        importObjectToRepository(object, options, repository, objectResult);
+                        importObjectToRepository(objectType, options, repository, objectResult);
 
-                        LOGGER.info("Imported object {}", ObjectTypeUtil.toShortString(object));
+                        LOGGER.info("Imported object {}", object);
 
                     } catch (SchemaException e) {
                         objectResult.recordFatalError("Schema violation", e);
                         LOGGER.error("Import of object {} failed: Schema violation: {}",
-                                new Object[]{ObjectTypeUtil.toShortString(object), e.getMessage(), e});
+                                new Object[]{object, e.getMessage(), e});
                     } catch (RuntimeException e) {
                         objectResult.recordFatalError("Unexpected problem", e);
                         LOGGER.error("Import of object {} failed: Unexpected problem: {}",
-                                new Object[]{ObjectTypeUtil.toShortString(object), e.getMessage(), e});
+                                new Object[]{object, e.getMessage(), e});
                     } catch (ObjectAlreadyExistsException e) {
                         LOGGER.error("Import of object {} failed: Object already exists: {}",
-                                new Object[]{ObjectTypeUtil.toShortString(object), e.getMessage(), e});
+                                new Object[]{object, e.getMessage(), e});
                         LOGGER.error("Object already exists", e);
                     }
 
@@ -175,7 +180,7 @@ public class ObjectImporter {
 
         try {
 
-            repository.addObject(object, result);
+            repository.addObject(object.asPrismObject(), result);
             result.recordSuccess();
 
         } catch (ObjectAlreadyExistsException e) {
@@ -186,7 +191,7 @@ public class ObjectImporter {
                     if (BooleanUtils.isTrue(options.isKeepOid())) {
                         object.setOid(deletedOid);
                     }
-                    repository.addObject(object, result);
+                    repository.addObject(object.asPrismObject(), result);
                     result.recordSuccess();
                 } else {
                     // cannot delete, throw original exception
@@ -220,7 +225,7 @@ public class ObjectImporter {
             // it is pretty safe to try to delete the conflicting object
             // look for an object by name and type and delete it
             QueryType query = QueryUtil.createNameQuery(object);
-            List<? extends ObjectType> objects = repository.searchObjects(object.getClass(), query, null, objectResult);
+            List<PrismObject<? extends ObjectType>> objects = (List) repository.searchObjects(object.getClass(), query, null, objectResult);
             if (objects.size() != 1) {
                 // too few or too much results, not safe to delete
                 return null;
@@ -272,7 +277,7 @@ public class ObjectImporter {
 
             ConnectorType connector = null;
             try {
-                connector = repository.getObject(ConnectorType.class, connectorOid, null, objectResult);
+                connector = repository.getObject(ConnectorType.class, connectorOid, null, objectResult).asObjectable();
             } catch (ObjectNotFoundException e) {
                 // No connector, no fun. We can't check the schema. But this is referential integrity problem.
                 // Mark the error ... there is nothing more to do
@@ -321,7 +326,7 @@ public class ObjectImporter {
         }
 
         try {
-            com.evolveum.midpoint.prism.schema.PrismSchema.parse(xsdElement);
+            com.evolveum.midpoint.prism.schema.PrismSchema.parse(xsdElement, prismContext);
         } catch (SchemaException e) {
             result.recordFatalError("Error during " + schemaName + " schema integrity check: " + e.getMessage(), e);
             return;
@@ -350,7 +355,7 @@ public class ObjectImporter {
 
         com.evolveum.midpoint.prism.schema.PrismSchema schema = null;
         try {
-            schema = com.evolveum.midpoint.prism.schema.PrismSchema.parse(xsdElement);
+            schema = com.evolveum.midpoint.prism.schema.PrismSchema.parse(xsdElement, prismContext);
         } catch (SchemaException e) {
             result.recordFatalError("Error during " + schemaName + " schema parsing: " + e.getMessage(), e);
             LOGGER.trace("Validation error: {}" + e.getMessage());
@@ -360,13 +365,13 @@ public class ObjectImporter {
         PrismContainerDefinition containerDefinition = schema.findItemDefinition(elementRef, PrismContainerDefinition.class);
 
         PrismContainer propertyContainer = null;
-        try {
-            propertyContainer = containerDefinition.parseAsContent(elementRef, contentElements, null);
-        } catch (SchemaException e) {
-            result.recordFatalError("Error during " + schemaName + " schema validation: " + e.getMessage(), e);
-            LOGGER.trace("Validation error: {}" + e.getMessage());
-            return null;
-        }
+//        try {
+//            propertyContainer = containerDefinition.parseAsContent(elementRef, contentElements, null);
+//        } catch (SchemaException e) {
+//            result.recordFatalError("Error during " + schemaName + " schema validation: " + e.getMessage(), e);
+//            LOGGER.trace("Validation error: {}" + e.getMessage());
+//            return null;
+//        }
 
         result.recordSuccess();
         return propertyContainer;
@@ -483,7 +488,7 @@ public class ObjectImporter {
             }
             ObjectType object = null;
             try {
-                object = repository.getObject(type, ref.getOid(), null, result);
+                object = repository.getObject(type, ref.getOid(), null, result).asObjectable();
             } catch (ObjectNotFoundException e) {
             	String message = "Reference " + propName + " refers to a non-existing object " + ref.getOid();
             	if (enforceReferentialIntegrity) {
@@ -529,7 +534,7 @@ public class ObjectImporter {
         // Let's do resolving
         QueryType query = new QueryType();
         query.setFilter(filter);
-        List<? extends ObjectType> objects = null;
+        List<PrismObject<? extends ObjectType>> objects = null;
         QName objectType = ref.getType();
         if (objectType == null) {
             result.recordFatalError("Missing definition of type of reference " + propName);
@@ -537,7 +542,7 @@ public class ObjectImporter {
         }
         try {
 
-            objects = repository.searchObjects(ObjectTypes.getObjectTypeFromTypeQName(objectType)
+            objects = (List)repository.searchObjects(ObjectTypes.getObjectTypeFromTypeQName(objectType)
                     .getClassDefinition(), query, null, result);
 
         } catch (SchemaException e) {
@@ -589,38 +594,38 @@ public class ObjectImporter {
         for (int i = 0; i < methods.length; i++) {
             Method method = methods[i];
             String propName = parseGetterPropName(method);
-            if (propName != null) {
-                // It has to return a value in JAXB package or List to be interesting
-                Class<?> returnType = method.getReturnType();
-                if (JAXBUtil.isJaxbClass(returnType) || returnType.equals(List.class)) {
-                    Object fieldValue;
-                    try {
-                        fieldValue = method.invoke(object);
-                    } catch (IllegalArgumentException e) {
-                        result.recordFatalError("Access to field " + propName + " failed (illegal argument): " + e.getMessage(), e);
-                        return;
-                    } catch (IllegalAccessException e) {
-                        result.recordFatalError("Access to field " + propName + " failed (illegal access): " + e.getMessage(), e);
-                        return;
-                    } catch (InvocationTargetException e) {
-                        result.recordFatalError("Access to field " + propName + " failed (invocation target): " + e.getMessage(), e);
-                        return;
-                    }
-                    if (fieldValue == null) {
-                        continue;
-                    }
-                    if (returnType.equals(List.class)) {
-                        List<?> valueList = (List<?>) fieldValue;
-                        for (Object value : valueList) {
-                            if (value != null && JAXBUtil.isJaxbClass(value.getClass())) {
-                                encryptValueInStaticPartAndRecurse(value, propName, objectType, result);
-                            }
-                        }
-                    } else {
-                        encryptValueInStaticPartAndRecurse(fieldValue, propName, objectType, result);
-                    }
-                }
-            }
+//            if (propName != null) {
+//                // It has to return a value in JAXB package or List to be interesting
+//                Class<?> returnType = method.getReturnType();
+//                if (JAXBUtil.isJaxbClass(returnType) || returnType.equals(List.class)) {
+//                    Object fieldValue;
+//                    try {
+//                        fieldValue = method.invoke(object);
+//                    } catch (IllegalArgumentException e) {
+//                        result.recordFatalError("Access to field " + propName + " failed (illegal argument): " + e.getMessage(), e);
+//                        return;
+//                    } catch (IllegalAccessException e) {
+//                        result.recordFatalError("Access to field " + propName + " failed (illegal access): " + e.getMessage(), e);
+//                        return;
+//                    } catch (InvocationTargetException e) {
+//                        result.recordFatalError("Access to field " + propName + " failed (invocation target): " + e.getMessage(), e);
+//                        return;
+//                    }
+//                    if (fieldValue == null) {
+//                        continue;
+//                    }
+//                    if (returnType.equals(List.class)) {
+//                        List<?> valueList = (List<?>) fieldValue;
+//                        for (Object value : valueList) {
+//                            if (value != null && JAXBUtil.isJaxbClass(value.getClass())) {
+//                                encryptValueInStaticPartAndRecurse(value, propName, objectType, result);
+//                            }
+//                        }
+//                    } else {
+//                        encryptValueInStaticPartAndRecurse(fieldValue, propName, objectType, result);
+//                    }
+//                }
+//            }
         }
     }
 
@@ -665,15 +670,15 @@ public class ObjectImporter {
 
     private void encryptValuesInDynamicPartRecursive(PrismContainer dynamicPart, ObjectType objectType,
                                                      OperationResult result) {
-        for (Item i : dynamicPart.getItems()) {
-            if (i instanceof PrismProperty) {
-                encryptProperty((PrismProperty) i, objectType, result);
-            } else if (i instanceof PrismContainer) {
-                encryptValuesInDynamicPartRecursive((PrismContainer) i, objectType, result);
-            } else {
-                throw new IllegalArgumentException("Unexpected item in property container: " + i);
-            }
-        }
+//        for (Item i : dynamicPart.getItems()) {
+//            if (i instanceof PrismProperty) {
+//                encryptProperty((PrismProperty) i, objectType, result);
+//            } else if (i instanceof PrismContainer) {
+//                encryptValuesInDynamicPartRecursive((PrismContainer) i, objectType, result);
+//            } else {
+//                throw new IllegalArgumentException("Unexpected item in property container: " + i);
+//            }
+//        }
     }
 
     private void encryptProperty(PrismProperty property, ObjectType objectType, OperationResult result) {
@@ -689,13 +694,13 @@ public class ObjectImporter {
             result.recordFatalError("Faild to encrypt value for field " + property.getName() + ": " + e.getMessage(), e);
             return;
         }
-        try {
-            property.applyValueToElement();
-        } catch (SchemaException e) {
-            LOGGER.info("Faild to apply encrypted value for field " + property.getName() + " while importing " + ObjectTypeUtil.toShortString(objectType));
-            result.recordFatalError("Faild to apply encrypted value for field " + property.getName() + ": " + e.getMessage(), e);
-            return;
-        }
+//        try {
+//            property.applyValueToElement();
+//        } catch (SchemaException e) {
+//            LOGGER.info("Faild to apply encrypted value for field " + property.getName() + " while importing " + ObjectTypeUtil.toShortString(objectType));
+//            result.recordFatalError("Faild to apply encrypted value for field " + property.getName() + ": " + e.getMessage(), e);
+//            return;
+//        }
     }
 }
  

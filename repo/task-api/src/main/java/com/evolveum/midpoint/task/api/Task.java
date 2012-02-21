@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -345,7 +346,8 @@ public interface Task extends Dumpable {
 
 	public ScheduleType getSchedule();
 	
-	public void modify(Collection<PropertyDelta> modifications, OperationResult parentResult);
+	public void modify(Collection<? extends ItemDelta> modifications, OperationResult parentResult) 
+			throws ObjectNotFoundException, SchemaException;
 
 	/**
 	 * Signal the task to shut down.

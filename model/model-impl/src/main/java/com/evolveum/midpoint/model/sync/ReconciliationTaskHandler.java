@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.synchronizer.UserSynchronizer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -58,6 +59,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -88,7 +90,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	private RepositoryService repositoryService;
 	
 	@Autowired(required=true)
-	private SchemaRegistry schemaRegistry;
+	private PrismContext prismContext;
 	
     @Autowired(required = true)
     private UserSynchronizer userSynchronizer;
@@ -183,9 +185,9 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 	private void performResourceReconciliation(String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException {
 		
-		ResourceType resource = repositoryService.getObject(ResourceType.class, resourceOid, null, result);
+		ResourceType resource = repositoryService.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
 
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, schemaRegistry);
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
 		RefinedAccountDefinition refinedAccountDefinition = refinedSchema.getDefaultAccountDefinition();
 
         LOGGER.info("Start executing reconciliation of resource {}, reconciling object class {}", ObjectTypeUtil.toShortString(resource), refinedAccountDefinition);
@@ -198,7 +200,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
                 
 		QueryType query = createAccountSearchQuery(resource, refinedAccountDefinition);
 		
-		provisioningService.searchObjectsIterative(query , null, handler , result);
+		provisioningService.searchObjectsIterative(AccountShadowType.class, query , null, handler , result);
 				
 		
 		// TODO: process result

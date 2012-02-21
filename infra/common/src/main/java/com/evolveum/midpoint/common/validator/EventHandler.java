@@ -63,7 +63,7 @@ public interface EventHandler {
 	 * @param objectResult Operation result for this object
 	 * @return true if the process should continue, false if it should stop
 	 */
-    public EventResult postMarshall(PrismObject<ObjectType> object, Element objectElement, OperationResult objectResult);
+    public <T extends ObjectType> EventResult postMarshall(PrismObject<T> object, Element objectElement, OperationResult objectResult);
     
     /**
      * Call-back to handle global errors.

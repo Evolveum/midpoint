@@ -36,6 +36,8 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.schema.ResultArrayList;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -52,6 +54,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationType.Reaction;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,7 +106,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
         OperationResult subResult = parentResult.createSubresult(NOTIFY_CHANGE);
         try {
-            ResourceType resource = change.getResource();
+            ResourceType resource = change.getResource().asObjectable();
 
             if (!isSynchronizationEnabled(resource.getSynchronization())) {
                 String message = "Synchronization is not enabled for " + ObjectTypeUtil.toShortString(resource) + " ignoring change from channel " + change.getSourceChannel();
@@ -155,10 +158,11 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         try {
             String shadowOid = getOidFromChange(change);
             Validate.notEmpty(shadowOid, "Couldn't get resource object shadow oid from change.");
-            UserType user = controller.listAccountShadowOwner(shadowOid, subResult);
+            PrismObject<UserType> user = controller.listAccountShadowOwner(shadowOid, subResult);
 
             if (user != null) {
-                LOGGER.trace("Shadow OID {} does have owner: {}", shadowOid, user.getName());
+            	UserType userType = user.asObjectable();
+                LOGGER.trace("Shadow OID {} does have owner: {}", shadowOid, userType.getName());
                 SynchronizationSituationType state = null;
                 switch (getModificationType(change)) {
                     case ADD:
@@ -170,7 +174,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                     case DELETE:
                         state = SynchronizationSituationType.DELETED;
                 }
-                situation = new SynchronizationSituation(user, state);
+                situation = new SynchronizationSituation(userType, state);
             } else {
                 LOGGER.trace("Resource object shadow doesn't have owner.");
                 situation = checkSituationWithCorrelation(change, result);
@@ -223,32 +227,28 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             return new SynchronizationSituation(null, SynchronizationSituationType.DELETED);
         }
 
-        ResourceObjectShadowType resourceShadow = change.getCurrentShadow();
+        ResourceObjectShadowType resourceShadow = change.getCurrentShadow().asObjectable();
         ObjectDelta syncDelta = change.getObjectDelta();
         if (resourceShadow == null && syncDelta != null
                 && ChangeType.ADD.equals(syncDelta.getChangeType())) {
             LOGGER.debug("Trying to compute current shadow from change delta add.");
-            try {
-                PrismObject<ResourceObjectShadowType> shadow =
-                        syncDelta.computeChangedObject(syncDelta.getObjectToAdd());
-                resourceShadow = (ResourceObjectShadowType) shadow.getOrParseObjectType();
-                change.setCurrentShadow(resourceShadow);
-            } catch (SchemaException ex) {
-                throw new SynchronizationException("Couldn't compute current shadow", ex);
-            }
+            PrismObject<ResourceObjectShadowType> shadow =
+                    syncDelta.computeChangedObject(syncDelta.getObjectToAdd());
+            resourceShadow = (ResourceObjectShadowType) shadow.asObjectable();
+            change.setCurrentShadow(shadow);
         }
         Validate.notNull(resourceShadow, "Current shadow must not be null.");
 
-        ResourceType resource = change.getResource();
+        ResourceType resource = change.getResource().asObjectable();
         validateResourceInShadow(resourceShadow, resource);
 
         SynchronizationType synchronization = resource.getSynchronization();
 
         SynchronizationSituationType state = null;
         LOGGER.debug("CORRELATION: Looking for list of users based on correlation rule.");
-        List<UserType> users = findUsersByCorrelationRule(resourceShadow, synchronization.getCorrelation(), result);
+        List<PrismObject<UserType>> users = findUsersByCorrelationRule(resourceShadow, synchronization.getCorrelation(), result);
         if (users == null) {
-            users = new ArrayList<UserType>();
+            users = new ArrayList<PrismObject<UserType>>();
         }
 
         if (users.size() > 1) {
@@ -278,7 +278,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                         break;
                 }
 
-                user = users.get(0);
+                user = users.get(0).asObjectable();
                 break;
             default:
                 state = SynchronizationSituationType.DISPUTED;
@@ -414,7 +414,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         return actions;
     }
 
-    private List<UserType> findUsersByCorrelationRule(ResourceObjectShadowType currentShadow,
+    private List<PrismObject<UserType>> findUsersByCorrelationRule(ResourceObjectShadowType currentShadow,
             QueryType query, OperationResult result) throws SynchronizationException {
 
         if (query == null) {
@@ -434,7 +434,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             LOGGER.error("Couldn't create search filter from correlation rule.");
             return null;
         }
-        List<UserType> users = null;
+        ResultList<PrismObject<UserType>> users = null;
         try {
             query = new ObjectFactory().createQueryType();
             query.setFilter(filter);
@@ -446,7 +446,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
             users = controller.searchObjects(UserType.class, query, paging, result);
 
             if (users == null) {
-                users = new ArrayList<UserType>();
+                users = new ResultArrayList<PrismObject<UserType>>();
             }
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER,
@@ -461,13 +461,14 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         return users;
     }
 
-    private List<UserType> findUserByConfirmationRule(List<UserType> users, ResourceObjectShadowType currentShadow,
+    private List<PrismObject<UserType>> findUserByConfirmationRule(List<PrismObject<UserType>> users, ResourceObjectShadowType currentShadow,
             ExpressionType expression, OperationResult result) throws SynchronizationException {
 
-        List<UserType> list = new ArrayList<UserType>();
-        for (UserType user : users) {
+        List<PrismObject<UserType>> list = new ArrayList<PrismObject<UserType>>();
+        for (PrismObject<UserType> user : users) {
             try {
-                boolean confirmedUser = expressionHandler.evaluateConfirmationExpression(user,
+            	UserType userType = user.asObjectable();
+                boolean confirmedUser = expressionHandler.evaluateConfirmationExpression(userType,
                         currentShadow, expression, result);
                 if (user != null && confirmedUser) {
                     list.add(user);
@@ -525,7 +526,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                     ExpressionType valueExpression = XmlTypeConverter.toJavaValue(valueExpressionElement,
                             ExpressionType.class);
                     if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Filter transformed to expression\n{}", JAXBUtil.silentMarshalWrap(valueExpression));
+                        LOGGER.trace("Filter transformed to expression\n{}", valueExpression);
                     }
                     String expressionResult = expressionHandler.evaluateExpression(currentShadow,
                             valueExpression, result);

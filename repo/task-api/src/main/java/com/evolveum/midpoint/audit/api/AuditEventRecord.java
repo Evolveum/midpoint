@@ -204,7 +204,7 @@ public class AuditEventRecord {
 		deltas.add(delta);
 	}
 
-	public void addDeltas(Collection<ObjectDelta<?>> deltasToAdd) {
+	public void addDeltas(Collection<ObjectDelta<? extends ObjectType>> deltasToAdd) {
 		deltas.addAll(deltasToAdd);
 	}
 	
