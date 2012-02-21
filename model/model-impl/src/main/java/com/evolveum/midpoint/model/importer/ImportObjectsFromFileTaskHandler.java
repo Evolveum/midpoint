@@ -164,7 +164,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 
         // Determine the input file from task extension
 
-        PrismProperty filenameProperty = task.getExtension(ImportConstants.FILENAME_PROPERTY_NAME);
+        PrismProperty<String> filenameProperty = task.getExtension(ImportConstants.FILENAME_PROPERTY_NAME);
         if (filenameProperty == null) {
             LOGGER.error("Import: No file specified");
             opResult.recordFatalError("No file specified");
@@ -172,7 +172,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
             return runResult;
         }
 
-        String filename = filenameProperty.getValue(String.class).getValue();
+        String filename = filenameProperty.getValue().getValue();
         if (filename == null) {
             LOGGER.error("Import: No file specified");
             opResult.recordFatalError("No file specified");

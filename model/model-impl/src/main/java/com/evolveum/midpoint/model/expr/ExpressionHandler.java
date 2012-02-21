@@ -34,10 +34,10 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.expression.Expression;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.common.expression.xpath.XPathExpressionEvaluator;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
-import com.evolveum.midpoint.common.xpath.XPathUtil;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -48,6 +48,7 @@ import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.Variable;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
@@ -72,6 +73,9 @@ public class ExpressionHandler {
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
 	
+	@Autowired(required = true)
+	private ExpressionFactory expressionFactory;
+	
 	private XPathExpressionEvaluator xpathEvaluator = null;
 	
 
@@ -83,108 +87,66 @@ public class ExpressionHandler {
 		return model;
 	}
 
-	public String evaluateExpression(ResourceObjectShadowType shadow, ExpressionType expression,
-			OperationResult result) throws ExpressionException {
+	public String evaluateExpression(ResourceObjectShadowType shadow, ExpressionType expressionType,
+			String shortDesc, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		Validate.notNull(shadow, "Resource object shadow must not be null.");
-		Validate.notNull(expression, "Expression must not be null.");
+		Validate.notNull(expressionType, "Expression must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
 
 		ResourceType resource = resolveResource(shadow, result);
 		Map<QName, Object> variables = getDefaultXPathVariables(null, shadow, resource);
-		ExpressionCodeHolder expressionCode = new ExpressionCodeHolder(expression.getCode());
-
-		return (String) XPathUtil.evaluateExpression(variables, expressionCode, XPathConstants.STRING);
+		
+		Expression expression = expressionFactory.createExpression(expressionType, shortDesc);
+		expression.addVariableDefinitions(variables);
+		return expression.evaluateScalar(String.class, result).getValue();
 	}
 
 	public boolean evaluateConfirmationExpression(UserType user, ResourceObjectShadowType shadow,
-			ExpressionType expression, OperationResult result) throws ExpressionException {
+			ExpressionType expressionType, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		Validate.notNull(user, "User must not be null.");
 		Validate.notNull(shadow, "Resource object shadow must not be null.");
-		Validate.notNull(expression, "Expression must not be null.");
+		Validate.notNull(expressionType, "Expression must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
 
 		ResourceType resource = resolveResource(shadow, result);
-		Map<QName, Object> variables = getDefaultXPathVariables(user, shadow, resource);
-		ExpressionCodeHolder expressionCode = new ExpressionCodeHolder(expression.getCode());
-
-		String confirmed = (String) XPathUtil.evaluateExpression(variables, expressionCode,
-				XPathConstants.STRING);
-
-		return Boolean.valueOf(confirmed);
+		String expressionResult = evaluateExpression(shadow, expressionType, "Confiration expression for "+resource.asPrismObject(), result);
+		
+		return Boolean.valueOf(expressionResult);
 	}
 
 	// TODO: refactor - this method is also in SchemaHandlerImpl
-	private ResourceType resolveResource(ResourceObjectShadowType shadow, OperationResult result)
-			throws ExpressionException {
+	private ResourceType resolveResource(ResourceObjectShadowType shadow, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException
+			 {
 		if (shadow.getResource() != null) {
 			return shadow.getResource();
 		}
 
 		ObjectReferenceType ref = shadow.getResourceRef();
 		if (ref == null) {
-			throw new ExpressionException("Resource shadow object '', oid '' doesn't have defined resource.");
+			throw new ExpressionEvaluationException("Resource shadow object '', oid '' doesn't have defined resource.");
 		}
 
-		try {
-			return getModel().getObject(ResourceType.class, ref.getOid(), new PropertyReferenceListType(),
-					result);
-		} catch (Exception ex) {
-			throw new ExpressionException("Couldn't get resource object, reason: " + ex.getMessage(), ex);
-		}
-	}
-
-	public static Map<QName, Object> getDefaultXPathVariables(Element user, Element shadow, Element resource) {
-		Map<QName, Object> variables = new HashMap<QName, Object>();
-		if (user != null) {
-			variables.put(SchemaConstants.I_USER, user);
-		}
-
-		if (shadow != null) {
-			variables.put(SchemaConstants.I_ACCOUNT, shadow);
-		}
-
-		if (resource != null) {
-			variables.put(SchemaConstants.I_RESOURCE, resource);
-		}
-
-		return variables;
+		return getModel().getObject(ResourceType.class, ref.getOid(), new PropertyReferenceListType(),
+				result).asObjectable();
 	}
 
 	public static Map<QName, Object> getDefaultXPathVariables(UserType user,
 			ResourceObjectShadowType shadow, ResourceType resource) {
-		try {
-			Element userElement = null;
-			Element shadowElement = null;
-			Element resourceElement = null;
-
-			ObjectFactory of = new ObjectFactory();
-			if (user != null) {
-				// Following code is wrong, but it works
-				JAXBElement<ObjectType> userJaxb = of.createObject(user);
-				Document userDoc = DOMUtil.parseDocument(JAXBUtil.marshal(userJaxb));
-				userElement = (Element) userDoc.getFirstChild();
-
-				// JAXBElement<ObjectType> userJaxb = of.createObject(user);
-				// Element userEl =
-				// JAXBUtil.objectTypeToDom(userJaxb.getValue(), null);
-				// variables.put(SchemaConstants.I_USER, new Variable(userEl,
-				// false));
-			}
-
-			if (shadow != null) {
-				JAXBElement<ObjectType> accountJaxb = of.createObject(shadow);
-				shadowElement = JAXBUtil.objectTypeToDom(accountJaxb.getValue(), null);
-			}
-
-			if (resource != null) {
-				JAXBElement<ObjectType> resourceJaxb = of.createObject(resource);
-				resourceElement = JAXBUtil.objectTypeToDom(resourceJaxb.getValue(), null);
-			}
-
-			return getDefaultXPathVariables(userElement, shadowElement, resourceElement);
-		} catch (JAXBException ex) {
-			throw new IllegalArgumentException(ex);
+		
+		Map<QName, Object> variables = new HashMap<QName, Object>();
+		if (user != null) {
+			variables.put(SchemaConstants.I_USER, user.asPrismObject());
 		}
+
+		if (shadow != null) {
+			variables.put(SchemaConstants.I_ACCOUNT, shadow.asPrismObject());
+		}
+
+		if (resource != null) {
+			variables.put(SchemaConstants.I_RESOURCE, resource.asPrismObject());
+		}
+
+		return variables;
 	}
 
 	// Called from the ObjectResolver.resolve
@@ -197,7 +159,7 @@ public class ExpressionHandler {
 			type = objectTypeType.getClassDefinition();
 		}
 		
-		return repositoryService.getObject(type, ref.getOid(), null, result);
+		return repositoryService.getObject(type, ref.getOid(), null, result).asObjectable();
 
 	}
 	

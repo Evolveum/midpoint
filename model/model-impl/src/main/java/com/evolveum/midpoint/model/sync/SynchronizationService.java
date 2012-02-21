@@ -27,7 +27,6 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.controller.ModelController;
-import com.evolveum.midpoint.model.expr.ExpressionException;
 import com.evolveum.midpoint.model.expr.ExpressionHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -429,7 +428,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                     + "returning empty list of users.", currentShadow.getName());
             return null;
         }
-        Element filter = updateFilterWithAccountValues(currentShadow, element, result);
+        Element filter = updateFilterWithAccountValues(currentShadow, element, "Correlation expression", result);
         if (filter == null) {
             LOGGER.error("Couldn't create search filter from correlation rule.");
             return null;
@@ -473,7 +472,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                 if (user != null && confirmedUser) {
                     list.add(user);
                 }
-            } catch (ExpressionException ex) {
+            } catch (Exception ex) {
                 LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getName());
                 throw new SynchronizationException("Couldn't confirm user " + user.getName(), ex);
             }
@@ -485,7 +484,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
     }
 
     private Element updateFilterWithAccountValues(ResourceObjectShadowType currentShadow,
-            Element filter, OperationResult result) throws SynchronizationException {
+            Element filter, String shortDesc, OperationResult result) throws SynchronizationException {
         LOGGER.trace("updateFilterWithAccountValues::begin");
         if (filter == null) {
             return null;
@@ -529,7 +528,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
                         LOGGER.trace("Filter transformed to expression\n{}", valueExpression);
                     }
                     String expressionResult = expressionHandler.evaluateExpression(currentShadow,
-                            valueExpression, result);
+                            valueExpression, shortDesc, result);
 
                     if (StringUtils.isEmpty(expressionResult)) {
                         LOGGER.debug("Result of search filter expression was null or empty. Expression: {}", valueExpression);

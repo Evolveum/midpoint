@@ -234,7 +234,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         }
 
         // Determine object class to import
-        PrismProperty objectclassProperty = task.getExtension(ImportConstants.OBJECTCLASS_PROPERTY_NAME);
+        PrismProperty<QName> objectclassProperty = task.getExtension(ImportConstants.OBJECTCLASS_PROPERTY_NAME);
         if (objectclassProperty == null) {
             LOGGER.error("Import: No objectclass specified");
             opResult.recordFatalError("No objectclass specified");
@@ -242,7 +242,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
             return runResult;
         }
 
-        QName objectclass = objectclassProperty.getValue(QName.class).getValue();
+        QName objectclass = objectclassProperty.getValue().getValue();
         if (objectclass == null) {
             LOGGER.error("Import: No objectclass specified");
             opResult.recordFatalError("No objectclass specified");

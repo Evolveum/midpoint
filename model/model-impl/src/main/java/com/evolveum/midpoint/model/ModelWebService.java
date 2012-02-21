@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.model;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.jws.WebParam;
@@ -27,6 +28,7 @@ import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -35,6 +37,10 @@ import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.model.api.ModelPort;
 import com.evolveum.midpoint.model.controller.ModelController;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -65,15 +71,19 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	private ModelController model;
 	@Autowired(required = true)
 	private TaskManager taskManager;
+	@Autowired(required = true)
+	private PrismContext prismContext;
 
 	@Override
-	public void addObject(ObjectType object, Holder<String> oidHolder, Holder<OperationResultType> result) throws FaultMessage {
-		notNullArgument(object, "Object must not be null.");
+	public void addObject(ObjectType objectType, Holder<String> oidHolder, Holder<OperationResultType> result) throws FaultMessage {
+		notNullArgument(objectType, "Object must not be null.");
 
 		Task task = createTaskInstance(ADD_OBJECT);
         setTaskOwner(task);
 		OperationResult operationResult = task.getResult();
 		try {
+			PrismObject object = objectType.asPrismObject();
+			object.revive(prismContext);
 			String oid = model.addObject(object, task, operationResult);
 			handleOperationResult(operationResult, result);
 			oidHolder.value = oid;
@@ -92,10 +102,10 @@ public class ModelWebService implements ModelPortType, ModelPort {
 
 		OperationResult operationResult = new OperationResult(GET_OBJECT);
 		try {
-			ObjectType object = model.getObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri)
+			PrismObject<? extends ObjectType> object = model.getObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri)
 					.getClassDefinition(), oid, resolve, operationResult);
 			handleOperationResult(operationResult, resultHolder);
-			objectHolder.value = object;
+			objectHolder.value = object.asObjectable();
 			return;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL getObject() failed", ex);
@@ -110,13 +120,13 @@ public class ModelWebService implements ModelPortType, ModelPort {
 
 		OperationResult operationResult = new OperationResult(LIST_OBJECTS);
 		try {
-			ResultList<? extends ObjectType> list = model.listObjects(ObjectTypes.getObjectTypeFromUri(objectType)
+			ResultList<PrismObject<? extends ObjectType>> list = (ResultList)model.listObjects(ObjectTypes.getObjectTypeFromUri(objectType)
 					.getClassDefinition(), paging, operationResult);
 			handleOperationResult(operationResult, result);
 
 			ObjectListType listType = new ObjectListType();
-			for (ObjectType o : list) {
-				listType.getObject().add(o);
+			for (PrismObject<? extends ObjectType> o : list) {
+				listType.getObject().add(o.asObjectable());
 			}
 			listType.setCount(list.getTotalResultCount());
 			objectListHolder.value = listType;
@@ -134,13 +144,13 @@ public class ModelWebService implements ModelPortType, ModelPort {
 
 		OperationResult operationResult = new OperationResult(SEARCH_OBJECTS);
 		try {
-			ResultList<? extends ObjectType> list = model.searchObjects(
+			ResultList<PrismObject<? extends ObjectType>> list = (ResultList)model.searchObjects(
 					ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), query, paging,
 					operationResult);
 			handleOperationResult(operationResult, result);
 			ObjectListType listType = new ObjectListType();
-			for (ObjectType o : list) {
-				listType.getObject().add(o);
+			for (PrismObject<? extends ObjectType> o : list) {
+				listType.getObject().add(o.asObjectable());
 			}
 			listType.setCount(list.getTotalResultCount());
 			objectListHolder.value = listType;
@@ -158,8 +168,9 @@ public class ModelWebService implements ModelPortType, ModelPort {
         setTaskOwner(task);
 		OperationResult operationResult = task.getResult();
 		try {
-			model.modifyObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), change,
-					task, operationResult);
+			Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(change);
+			model.modifyObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), change.getOid(),
+					modifications , task, operationResult);
 			return handleOperationResult(operationResult);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL modifyObject() failed", ex);
@@ -214,9 +225,11 @@ public class ModelWebService implements ModelPortType, ModelPort {
 
 		OperationResult operationResult = new OperationResult(LIST_ACCOUNT_SHADOW_OWNER);
 		try {
-			UserType user = model.listAccountShadowOwner(accountOid, operationResult);
+			PrismObject<UserType> user = model.listAccountShadowOwner(accountOid, operationResult);
 			handleOperationResult(operationResult, result);
-			userHolder.value = user;
+			if (user != null) {
+				userHolder.value = user.asObjectable();
+			}
 			return;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL listAccountShadowOwner() failed", ex);
@@ -234,15 +247,17 @@ public class ModelWebService implements ModelPortType, ModelPort {
 
 		OperationResult operationResult = new OperationResult(LIST_RESOURCE_OBJECT_SHADOWS);
 		try {
-			List<ResourceObjectShadowType> list = model.listResourceObjectShadows(
+			ResultList<PrismObject<ResourceObjectShadowType>> list = model.listResourceObjectShadows(
 					resourceOid,
 					(Class<ResourceObjectShadowType>) ObjectTypes.getObjectTypeFromUri(
 							resourceObjectShadowType).getClassDefinition(), operationResult);
 			handleOperationResult(operationResult, result);
 
-			ResourceObjectShadowListType shadowList = new ResourceObjectShadowListType();
-			shadowList.getObject().addAll(list);
-			resourceObjectShadowListHolder.value = shadowList;
+			ResourceObjectShadowListType resultList = new ResourceObjectShadowListType();
+			for (PrismObject<ResourceObjectShadowType> shadow: list) {
+				resultList.getObject().add(shadow.asObjectable());
+			}
+			resourceObjectShadowListHolder.value = resultList;
 			return;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL listResourceObjectShadows() failed", ex);
@@ -260,11 +275,11 @@ public class ModelWebService implements ModelPortType, ModelPort {
 
 		OperationResult operationResult = new OperationResult(LIST_RESOURCE_OBJECTS);
 		try {
-			ResultList<? extends ResourceObjectShadowType> list = model.listResourceObjects(resourceOid, objectType, paging, operationResult);
+			ResultList<PrismObject<? extends ResourceObjectShadowType>> list = model.listResourceObjects(resourceOid, objectType, paging, operationResult);
 			handleOperationResult(operationResult, result);
 			ObjectListType listType = new ObjectListType();
-			for (ObjectType o : list) {
-				listType.getObject().add(o);
+			for (PrismObject<? extends ResourceObjectShadowType> o : list) {
+				listType.getObject().add(o.asObjectable());
 			}
 			listType.setCount(list.getTotalResultCount());
 			objectListTypeHolder.value = listType;
@@ -380,7 +395,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
         if (userType == null) {
             throw new SystemException("Failed to get user from authentication object");
         }
-        task.setOwner(userType);
+        task.setOwner(userType.asPrismObject());
     }
 
     private Task createTaskInstance(String operationName) {
@@ -395,6 +410,6 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	 * @param task
 	 */
 	private TaskType handleTaskResult(Task task) {
-		return task.getTaskPrismObject();
+		return task.getTaskPrismObject().asObjectable();
 	}
 }

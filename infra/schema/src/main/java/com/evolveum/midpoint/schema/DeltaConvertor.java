@@ -205,6 +205,11 @@ public class DeltaConvertor {
         }
     }
 
+	public static Collection<? extends ItemDelta> toModifications(ObjectModificationType change) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException();
+	}
+
 
 
 }
