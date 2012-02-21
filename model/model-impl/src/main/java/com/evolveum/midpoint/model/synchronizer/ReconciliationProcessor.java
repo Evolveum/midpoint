@@ -28,6 +28,7 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -64,7 +66,7 @@ import java.util.Set;
 public class ReconciliationProcessor {
 
 	@Autowired(required=true)
-	SchemaRegistry schemaRegistry;
+	PrismContext prismContext;
 	
     public static final String PROCESS_RECONCILIATION = ReconciliationProcessor.class.getName() + ".processReconciliation";
     private static final Trace LOGGER = TraceManager.getTrace(ReconciliationProcessor.class);
@@ -103,7 +105,7 @@ public class ReconciliationProcessor {
                 	continue;
                 }
 
-                RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(accContext.getResource(), schemaRegistry);
+                RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(accContext.getResource(), prismContext);
                 RefinedAccountDefinition accountDefinition = refinedSchema.getAccountDefinition(accContext.getResourceAccountType().getAccountType());
                 
                 reconcileAccount(accContext, tripleMap, accountDefinition);
@@ -125,7 +127,7 @@ public class ReconciliationProcessor {
     	PrismObject<AccountShadowType> account = accCtx.getAccountNew();
 
         PrismContainer attributesContainer = account.findContainer(AccountShadowType.F_ATTRIBUTES);
-        Collection<QName> attributeNames = MiscUtil.union(tripleMap.keySet(),attributesContainer.getPropertyNames());
+        Collection<QName> attributeNames = MiscUtil.union(tripleMap.keySet(),attributesContainer.getValue().getPropertyNames());
 
         for (QName attrName: attributeNames) {
         	//LOGGER.trace("Attribute reconciliation processing attribute {}",attrName);
@@ -159,12 +161,12 @@ public class ReconciliationProcessor {
         			// "initial" value and the attribute already has a value. Skip it.
         			continue;
         		}
-        		PrismProperty shoudlBeProperty = shouldBeVc.getOutput();
-        		for (PrismPropertyValue<Object> shouldBePPValue: shoudlBeProperty.getValues()) {
+        		PrismProperty<?> shoudlBeProperty = shouldBeVc.getOutput();
+        		for (PrismPropertyValue<?> shouldBePPValue: shoudlBeProperty.getValues()) {
         			Object shouldBeValue = shouldBePPValue.getValue();
         			// Make sure this value is in the values
         			if (!isInValues(shouldBeValue, arePValues)) {
-        				recordDelta(accCtx, attrName, ChangeType.ADD, shouldBeValue);
+        				recordDelta(accCtx, attributeDefinition, ChangeType.ADD, shouldBeValue);
         			}
         		}
         	}
@@ -172,17 +174,17 @@ public class ReconciliationProcessor {
         	if (!attributeDefinition.isTolerant()) {
         		for (PrismPropertyValue<Object> isPValue: arePValues) {
         			if (!isInValues(isPValue.getValue(), shouldBePValues)) {
-        				recordDelta(accCtx, attrName, ChangeType.DELETE, isPValue.getValue());
+        				recordDelta(accCtx, attributeDefinition, ChangeType.DELETE, isPValue.getValue());
         			}
         		}
         	}
         }
     }
 
-	private void recordDelta(AccountSyncContext accCtx, QName attrName, ChangeType changeType, Object value) {
-		LOGGER.trace("Reconciliation will {} value of attribute {}: {}", new Object[]{changeType, attrName, value});
+	private void recordDelta(AccountSyncContext accCtx, ResourceAttributeDefinition attrDef, ChangeType changeType, Object value) {
+		LOGGER.trace("Reconciliation will {} value of attribute {}: {}", new Object[]{changeType, attrDef, value});
 		
-		PropertyDelta attrDelta = new PropertyDelta(SchemaConstants.PATH_ATTRIBUTES, attrName);
+		PropertyDelta attrDelta = new PropertyDelta(SchemaConstants.PATH_ATTRIBUTES, attrDef.getName(), attrDef);
 		PrismPropertyValue<Object> pValue = new PrismPropertyValue<Object>(value, SourceType.RECONCILIATION, null);
 		if (changeType == ChangeType.ADD) {
 			attrDelta.addValueToAdd(pValue);
@@ -210,8 +212,8 @@ public class ReconciliationProcessor {
 	private boolean isInValues(Object value, Collection<PrismPropertyValue<ValueConstruction>> shouldBePValues) {
 		for (PrismPropertyValue<ValueConstruction> shouldBePValue: shouldBePValues) {
     		ValueConstruction shouldBeVc = shouldBePValue.getValue();
-    		PrismProperty shoudlBeProperty = shouldBeVc.getOutput();
-    		for (PrismPropertyValue<Object> shouldBePPValue: shoudlBeProperty.getValues()) {
+    		PrismProperty<?> shoudlBeProperty = shouldBeVc.getOutput();
+    		for (PrismPropertyValue<?> shouldBePPValue: shoudlBeProperty.getValues()) {
     			Object shouldBeValue = shouldBePPValue.getValue();
     			if (shouldBeValue.equals(value)) {
     				return true;

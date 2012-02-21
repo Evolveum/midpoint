@@ -157,8 +157,8 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
      * is applied.
      * Assumes "replace" delta.
      */
-    public PrismProperty getPropertyNew() {
-        return (PrismProperty) super.getItemNew();
+    public PrismProperty<T> getPropertyNew() {
+        return (PrismProperty<T>) super.getItemNew();
     }
     
     public static PropertyDelta createDelta(PropertyPath propertyPath, PrismObjectDefinition<?> objectDefinition) {

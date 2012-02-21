@@ -30,10 +30,12 @@ import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.model.controller.Filter;
 import com.evolveum.midpoint.model.controller.FilterManager;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PropertyPathSegment;
 import com.evolveum.midpoint.prism.SourceType;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -69,7 +71,7 @@ public class InboundProcessor {
     private static final Trace LOGGER = TraceManager.getTrace(InboundProcessor.class);
 
     @Autowired(required = true)
-    private SchemaRegistry schemaRegistry;
+    private PrismContext prismContext;
     @Autowired(required = true)
     private FilterManager<Filter> filterManager;
     @Autowired(required = true)
@@ -97,7 +99,7 @@ public class InboundProcessor {
                 ResourceAccountType rat = accountContext.getResourceAccountType();
                 LOGGER.trace("Processing inbound expressions for account {} starting", rat);
 
-                RefinedAccountDefinition accountDefinition = context.getRefinedAccountDefinition(rat, schemaRegistry);
+                RefinedAccountDefinition accountDefinition = context.getRefinedAccountDefinition(rat);
                 if (accountDefinition == null) {
                     LOGGER.error("Definition for account type {} not found in the context, but it " +
                             "should be there, dumping context:\n{}", rat, context.dump());
@@ -161,7 +163,7 @@ public class InboundProcessor {
                     delta = createUserPropertyDelta(inbound, propertyDelta, context.getUserNew());
                 } else if (oldAccount != null) {
                     LOGGER.debug("Processing inbound from account sync absolute state (oldAccount).");
-                    PrismProperty oldAccountProperty = oldAccount.findProperty(new PropertyPath(SchemaConstants.I_ATTRIBUTES), name);
+                    PrismProperty oldAccountProperty = oldAccount.findProperty(new PropertyPath(AccountShadowType.F_ATTRIBUTES, name));
                     delta = createUserPropertyDelta(inbound, oldAccountProperty, context.getUserNew());
                 }
 
@@ -199,22 +201,22 @@ public class InboundProcessor {
             PrismObject<UserType> newUser) {
         List<ValueFilterType> filters = inbound.getValueFilter();
 
-        PropertyPath targetUserAttribute = createUserPropertyPath(inbound);
-        PrismProperty userProperty = newUser.findProperty(targetUserAttribute);
+        PropertyPath targetUserPropertyPath = createUserPropertyPath(inbound);
+        PrismProperty targetUserProperty = newUser.findProperty(targetUserPropertyPath);
 
         PropertyDelta delta = null;
-        if (userProperty != null) {
+        if (targetUserProperty != null) {
             LOGGER.trace("Simple property comparing user property {} to old account property {} ",
-                    new Object[]{userProperty, oldAccountProperty});
+                    new Object[]{targetUserProperty, oldAccountProperty});
             //simple property comparing if user property exists
-            delta = userProperty.compareRealValuesTo(oldAccountProperty);
-            delta.setName(targetUserAttribute.last());
-            delta.setParentPath(targetUserAttribute.allExceptLast());
+            delta = targetUserProperty.compareRealValuesTo(oldAccountProperty);
+            delta.setName(targetUserPropertyPath.last().getName());
+            delta.setParentPath(targetUserPropertyPath.allExceptLast());
         } else {
             if (oldAccountProperty != null) {
                 LOGGER.trace("Adding user property because inbound say so (account doesn't contain that value)");
                 //if user property doesn't exist we have to add it (as delta), because inbound say so
-                delta = new PropertyDelta(targetUserAttribute);
+                delta = new PropertyDelta(targetUserPropertyPath, targetUserProperty.getDefinition());
                 delta.addValuesToAdd(oldAccountProperty.getValues());
             }
             //we don't have to create delta, because everything is alright
@@ -224,26 +226,26 @@ public class InboundProcessor {
         return delta;
     }
 
-    private PropertyDelta createUserPropertyDelta(ValueAssignmentType inbound, PropertyDelta propertyDelta,
+    private <T> PropertyDelta<T> createUserPropertyDelta(ValueAssignmentType inbound, PropertyDelta<T> propertyDelta,
             PrismObject<UserType> newUser) {
         List<ValueFilterType> filters = inbound.getValueFilter();
 
-        PropertyPath targetUserAttribute = createUserPropertyPath(inbound);
-        PrismProperty property = newUser.findProperty(targetUserAttribute);
+        PropertyPath targetUserPropertyPath = createUserPropertyPath(inbound);
+        PrismProperty<T> targetUserProperty = (PrismProperty<T>) newUser.findProperty(targetUserPropertyPath);
 
-        PropertyDelta delta = new PropertyDelta(targetUserAttribute);
+        PropertyDelta<T> delta = new PropertyDelta<T>(targetUserPropertyPath, targetUserProperty.getDefinition());
         if (propertyDelta.getValuesToAdd() != null) {
             LOGGER.trace("Checking account sync property delta values to add");
-            for (PrismPropertyValue<Object> value : propertyDelta.getValuesToAdd()) {
-                PrismPropertyValue<Object> filteredValue = filterValue(value, filters);
+            for (PrismPropertyValue<T> value : propertyDelta.getValuesToAdd()) {
+                PrismPropertyValue<T> filteredValue = filterValue(value, filters);
 
-                if (property != null && property.hasRealValue(filteredValue)) {
+                if (targetUserProperty != null && targetUserProperty.hasRealValue(filteredValue)) {
                     continue;
                 }
 
                 //if property is not multi value replace existing attribute
-                if (property != null && !property.getDefinition().isMultiValue() && !property.isEmpty()) {
-                    Collection<PrismPropertyValue<Object>> replace = new ArrayList<PrismPropertyValue<Object>>();
+                if (targetUserProperty != null && !targetUserProperty.getDefinition().isMultiValue() && !targetUserProperty.isEmpty()) {
+                    Collection<PrismPropertyValue<T>> replace = new ArrayList<PrismPropertyValue<T>>();
                     replace.add(filteredValue);
                     delta.setValuesToReplace(replace);
                 } else {
@@ -253,10 +255,10 @@ public class InboundProcessor {
         }
         if (propertyDelta.getValuesToDelete() != null) {
             LOGGER.trace("Checking account sync property delta values to delete");
-            for (PrismPropertyValue<Object> value : propertyDelta.getValuesToDelete()) {
-                PrismPropertyValue<Object> filteredValue = filterValue(value, filters);
+            for (PrismPropertyValue<T> value : propertyDelta.getValuesToDelete()) {
+                PrismPropertyValue<T> filteredValue = filterValue(value, filters);
 
-                if (property == null || property.hasRealValue(filteredValue)) {
+                if (targetUserProperty == null || targetUserProperty.hasRealValue(filteredValue)) {
                     delta.addValueToDelete(filteredValue);
                 }
             }
@@ -267,8 +269,8 @@ public class InboundProcessor {
     }
 
     private PropertyPath createUserPropertyPath(ValueAssignmentType inbound) {
-        PropertyPath path = new PropertyPath(new XPathHolder(inbound.getTarget()));
-        List<QName> segments = path.getSegments();
+        PropertyPath path = new XPathHolder(inbound.getTarget()).toPropertyPath();
+        List<PropertyPathSegment> segments = path.getSegments();
         if (!segments.isEmpty() && SchemaConstants.I_USER.equals(segments.get(0))) {
             segments.remove(0);
         }
@@ -276,8 +278,8 @@ public class InboundProcessor {
         return path;
     }
 
-    private PrismPropertyValue<Object> filterValue(PrismPropertyValue<Object> propertyValue, List<ValueFilterType> filters) {
-        PrismPropertyValue<Object> filteredValue = propertyValue.clone();
+    private <T> PrismPropertyValue<T> filterValue(PrismPropertyValue<T> propertyValue, List<ValueFilterType> filters) {
+        PrismPropertyValue<T> filteredValue = propertyValue.clone();
         filteredValue.setType(SourceType.INBOUND);
 
         if (filters == null || filters.isEmpty()) {
@@ -302,14 +304,13 @@ public class InboundProcessor {
         ValueConstructionType valueConstruction = inbound.getSource();
         boolean initial = valueConstruction.isInitial() == null ? false : valueConstruction.isInitial();
 
-        PrismProperty property = newUser.findOrCreateProperty(path.allExceptLast(),
-                path.last(), String.class);
+        PrismProperty<?> property = newUser.findOrCreateProperty(path);
         if (initial && !property.isEmpty()) {
             //inbound will be constructed only if initial == false or initial == true and value doesn't exist
             return;
         }
 
-        PropertyDelta delta = userSecondaryDelta.getPropertyDelta(path);
+        PropertyDelta<?> delta = userSecondaryDelta.getPropertyDelta(path);
         if (delta != null) {
             //remove delta if exists, it will be handled by inbound
             userSecondaryDelta.getModifications().remove(delta);
@@ -334,7 +335,7 @@ public class InboundProcessor {
         try {
         	// TODO: is the parentPath correct (null)?
             ValueConstruction construction = valueConstructionFactory.createValueConstruction(
-                    valueConstruction, property.getDefinition(), null, "Inbound value construction");
+                    valueConstruction, property.getDefinition(), "Inbound value construction");
             construction.setInput(input);
             construction.evaluate(opResult);
             result = construction.getOutput();

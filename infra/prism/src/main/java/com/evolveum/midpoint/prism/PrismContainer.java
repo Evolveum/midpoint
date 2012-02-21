@@ -279,11 +279,11 @@ public class PrismContainer<T> extends Item<PrismContainerValue<T>> {
         return findItem(containerName, PrismContainer.class);
     }
 
-    public PrismProperty findProperty(PropertyPath path) {
+    public PrismProperty<?> findProperty(PropertyPath path) {
         return findItem(path, PrismProperty.class);
     }
     
-    public PrismProperty findProperty(QName propertyQName) {
+    public PrismProperty<?> findProperty(QName propertyQName) {
     	return findItem(propertyQName, PrismProperty.class);
     }
 
@@ -303,11 +303,11 @@ public class PrismContainer<T> extends Item<PrismContainerValue<T>> {
         return findCreateItem(containerName, PrismContainer.class, true);
     }
     
-    public PrismProperty findOrCreateProperty(PropertyPath propertyPath) {
+    public PrismProperty<?> findOrCreateProperty(PropertyPath propertyPath) {
         return findCreateItem(propertyPath, PrismProperty.class, true);
     }
     
-    public PrismProperty findOrCreateProperty(QName propertyName) {
+    public PrismProperty<?> findOrCreateProperty(QName propertyName) {
         return findCreateItem(propertyName, PrismProperty.class, true);
     }
 

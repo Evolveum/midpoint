@@ -67,8 +67,8 @@ public class ElementPrismPropertyImpl extends ElementPrismAbstractImpl {
 		if (index == 0) {
 			return null;
 		}
-		PrismProperty property = getProperty();
-		PrismPropertyValue<Object> previousPVal = property.getValues().get(index-1);
+		PrismProperty<?> property = getProperty();
+		PrismPropertyValue<?> previousPVal = property.getValues().get(index-1);
 		return previousPVal.asDomElement();
 	}
 

@@ -81,7 +81,7 @@ public class OutboundProcessor {
 
             LOGGER.trace("Processing outbound expressions for account {} starting", rat);
 
-            RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(rat, schemaRegistry);
+            RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(rat);
             if (rAccount == null) {
                 LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", rat, context.dump());
                 throw new IllegalStateException("Definition for account type " + rat + " not found in the context, but it should be there");
@@ -161,7 +161,7 @@ public class OutboundProcessor {
 
         // TODO: is the parentPath correct (null)?
         ValueConstruction valueConstruction = valueConstructionFactory.createValueConstruction(outboundValueConstructionType, 
-        		refinedAttributeDefinition, null,
+        		refinedAttributeDefinition,
                 "outbound expression for " + refinedAttributeDefinition.getName() + " in " + ObjectTypeUtil.toShortString(refinedAccountDefinition.getResourceType()));
 
         valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, user);

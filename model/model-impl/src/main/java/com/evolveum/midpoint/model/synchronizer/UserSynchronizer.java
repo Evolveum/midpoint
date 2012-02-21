@@ -46,6 +46,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -210,9 +211,7 @@ public class UserSynchronizer {
         }
         String userOid = userPrimaryDelta.getOid();
 
-        UserType userType = cacheRepositoryService.getObject(UserType.class, userOid, null, result).asObjectable();
-        context.setUserTypeOld(userType);
-        PrismObject<UserType> user = userType.asPrismObject();
+        PrismObject<UserType> user = cacheRepositoryService.getObject(UserType.class, userOid, null, result);
         context.setUserOld(user);
     }
 
@@ -230,13 +229,13 @@ public class UserSynchronizer {
             loadAccountRefsFromUser(context, userTypeNew, policyDecision, result);
         }
 
-        UserType userTypeOld = context.getUserTypeOld();
-        if (userTypeOld != null) {
+        PrismObject<UserType> userOld = context.getUserOld();
+        if (userOld != null) {
             // Accounts that are not in userNew but are in userOld are to be unlinked
             if (policyDecision == null) {
                 policyDecision = PolicyDecision.UNLINK;
             }
-            loadAccountRefsFromUser(context, userTypeOld, policyDecision, result);
+            loadAccountRefsFromUser(context, userOld.asObjectable(), policyDecision, result);
         }
 
     }

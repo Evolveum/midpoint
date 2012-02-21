@@ -298,7 +298,7 @@ public class ShadowCacheUtil {
             throw new SchemaException("No naming attribute defined (and identifier not usable)");
         }
         // TODO: Error handling
-        return attributesContainer.getNamingAttribute().getValue(String.class).getValue();
+        return attributesContainer.getNamingAttribute().getValue().getValue();
     }
 
 	/**

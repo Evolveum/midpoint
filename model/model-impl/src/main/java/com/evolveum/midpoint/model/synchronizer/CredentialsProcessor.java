@@ -24,6 +24,7 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -59,7 +60,7 @@ public class CredentialsProcessor {
     private static final Trace LOGGER = TraceManager.getTrace(CredentialsProcessor.class);
 
     @Autowired(required = true)
-    private SchemaRegistry schemaRegistry;
+    private PrismContext prismContext;
 
     @Autowired(required = true)
     private ValueConstructionFactory valueConstructionFactory;
@@ -82,9 +83,7 @@ public class CredentialsProcessor {
         }
         PrismProperty userPasswordNew = context.getUserNew().findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
 
-        PrismSchema commonSchema = schemaRegistry.getObjectSchema();
-
-        PrismObjectDefinition<AccountShadowType> accountDefinition = commonSchema.findObjectDefinition(AccountShadowType.class);
+        PrismObjectDefinition<AccountShadowType> accountDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
         PrismPropertyDefinition accountPasswordPropertyDefinition = accountDefinition.findPropertyDefinition(SchemaConstants.PATH_PASSWORD_VALUE);
 
         for (AccountSyncContext accCtx : context.getAccountContexts()) {
@@ -122,7 +121,7 @@ public class CredentialsProcessor {
             }
             // TODO: is the parentPath correct (null)?
             ValueConstruction passwordConstruction = valueConstructionFactory.createValueConstruction(outbound, 
-            		accountPasswordPropertyDefinition, null, "outbound password in account type " + rat);
+            		accountPasswordPropertyDefinition, "outbound password in account type " + rat);
             passwordConstruction.setInput(userPasswordNew);
             passwordConstruction.evaluate(result);
             PrismProperty accountPasswordNew = passwordConstruction.getOutput();
@@ -130,7 +129,7 @@ public class CredentialsProcessor {
                 LOGGER.trace("Credentials 'password' expression resulted in null, skipping credentials processing for {}", rat);
                 continue;
             }
-            PropertyDelta accountPasswordDelta = new PropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
+            PropertyDelta accountPasswordDelta = new PropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE, accountPasswordPropertyDefinition);
             accountPasswordDelta.setValuesToReplace(accountPasswordNew.getValues());
             LOGGER.trace("Adding new password delta for account {}", rat);
             accCtx.addToSecondaryDelta(accountPasswordDelta);

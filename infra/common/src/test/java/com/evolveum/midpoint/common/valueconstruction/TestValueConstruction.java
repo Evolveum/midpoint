@@ -396,10 +396,10 @@ public class TestValueConstruction {
         ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "generate construction");
         construction.setInput(givenName);
         construction.evaluate(opResult);
-        PrismProperty result = construction.getOutput();
+        PrismProperty<String> result = construction.getOutput();
 
         // THEN (1)
-        String value1 = result.getValue(String.class).getValue();
+        String value1 = result.getValue().getValue();
         System.out.println("Generated value (1): "+value1);
         assertEquals(10, value1.length());
 
@@ -408,7 +408,7 @@ public class TestValueConstruction {
         result = construction.getOutput();
 
         // THEN (2)
-        String value2 = result.getValue(String.class).getValue();
+        String value2 = result.getValue().getValue();
         System.out.println("Generated value (2): "+value2);
         assertEquals(10, value2.length());
         
@@ -434,10 +434,10 @@ public class TestValueConstruction {
         ValueConstruction construction = factory.createValueConstruction(valueConstructionType, propDef, "generate protected construction");
         construction.setInput(prop);
         construction.evaluate(opResult);
-        PrismProperty result = construction.getOutput();
+        PrismProperty<ProtectedStringType> result = construction.getOutput();
 
         // THEN
-        ProtectedStringType value1 = result.getValue(ProtectedStringType.class).getValue();
+        ProtectedStringType value1 = result.getValue().getValue();
         System.out.println("Generated excrypted value: "+value1);
         assertNotNull(value1);
         assertNotNull(value1.getEncryptedData());

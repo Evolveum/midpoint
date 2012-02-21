@@ -79,7 +79,6 @@ public class DeleteUserAction extends BaseAction {
             PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
             PrismObject<UserType> oldUser = userDefinition.parseObjectType(userType);
             context.setUserOld(oldUser);
-            context.setUserTypeOld(userType);
             //set object delta with delete
             ObjectDelta<UserType> userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.DELETE);
             userDelta.setOid(oldUser.getOid());

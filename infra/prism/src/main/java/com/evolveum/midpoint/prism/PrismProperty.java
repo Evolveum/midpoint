@@ -64,7 +64,7 @@ import java.util.*;
  *
  * @author Radovan Semancik
  */
-public class PrismProperty extends Item {
+public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismProperty.class);
 
@@ -104,39 +104,61 @@ public class PrismProperty extends Item {
      *
      * @return property values
      */
-    public List<PrismPropertyValue<Object>> getValues() {
-        return (List<PrismPropertyValue<Object>>) super.getValues();
+    public List<PrismPropertyValue<V>> getValues() {
+        return (List<PrismPropertyValue<V>>) super.getValues();
+    }
+    
+    public PrismPropertyValue<V> getValue() {
+        List<PrismPropertyValue<V>> values = getValues();
+        if (values == null || values.isEmpty()) {
+        	return null;
+        }
+        if (values.size() == 1) {
+        	return values.get(0);
+        }
+        throw new IllegalStateException("Attempt to get a single value from a multi-valued property "+getName());
     }
 
     /**
-     * Returns property values.
-     * <p/>
-     * The values are returned as set. The order of values is not significant.
-     * <p/>
-     * The values are cast to the "T" java type.
-     *
-     * @param <T> Target class for property values
-     * @param T   Target class for property values
-     * @return property values
-     * @throws ClassCastException if the values cannot be cast to "T"
+     * Type override, also for compatibility.
      */
-    @SuppressWarnings("unchecked")
     public <T> Set<PrismPropertyValue<T>> getValues(Class<T> T) {
         return (Set) getValues();
     }
 
+    public Collection<V> getRealValues() {
+		Collection<V> realValues = new ArrayList<V>(getValues().size());
+		for (PrismPropertyValue<V> pValue: getValues()) {
+			realValues.add(pValue.getValue());
+		}
+		return realValues;
+	}
+    
+    /**
+     * Type override, also for compatibility.
+     */
 	public <T> Collection<T> getRealValues(Class<T> type) {
 		Collection<T> realValues = new ArrayList<T>(getValues().size());
-		for (PrismPropertyValue<Object> pValue: getValues()) {
+		for (PrismPropertyValue<V> pValue: getValues()) {
 			realValues.add((T) pValue.getValue());
 		}
 		return realValues;
 	}
 	
+	public V getRealValue() {
+		return getValue().getValue();
+	}
+	
+	/**
+     * Type override, also for compatibility.
+     */
 	public <T> T getRealValue(Class<T> type) {
 		return (T) getValue().getValue();
 	}
 
+	/**
+     * Type override, also for compatibility.
+     */
 	public <T> T[] getRealValuesArray(Class<T> type) {
 		Object valuesArrary = Array.newInstance(type, getValues().size());
 		for (int j = 0; j < getValues().size(); ++j) {
@@ -147,17 +169,8 @@ public class PrismProperty extends Item {
 	}
 
     /**
-     * Returns value of a single-valued property.
-     * <p/>
-     * The value is cast to the "T" java type.
-     *
-     * @param <T> Target class for property values
-     * @param T   Target class for property values
-     * @return value of a single-valued property
-     * @throws ClassCastException
-     * @throws IllegalStateException more than one value is present
+     * Type override, also for compatibility.
      */
-    @SuppressWarnings("unchecked")
     public <T> PrismPropertyValue<T> getValue(Class<T> T) {
     	if (getDefinition() != null) {
     		if (getDefinition().isMultiValue()) {
@@ -172,20 +185,8 @@ public class PrismProperty extends Item {
         if (getValues().isEmpty()) {
             return null;
         }
-        PrismPropertyValue<Object> o = getValues().iterator().next();
+        PrismPropertyValue<V> o = getValues().iterator().next();
         return (PrismPropertyValue<T>) o;
-    }
-
-    public PrismPropertyValue<Object> getValue() {
-        if (getValues().size() > 1) {
-            throw new IllegalStateException("Attempt to get single value from property " + name
-                    + " with multiple values");
-        }
-        if (getValues().isEmpty()) {
-            return null;
-        }
-
-        return getValues().iterator().next();
     }
 
     /**
@@ -194,21 +195,21 @@ public class PrismProperty extends Item {
      * Will remove all existing values.
      * TODO
      */
-    public void setValue(PrismPropertyValue value) {
+    public void setValue(PrismPropertyValue<V> value) {
     	getValues().clear();
         addValue(value);
     }
 
-    public void addValues(Collection<PrismPropertyValue<Object>> pValuesToAdd) {
-    	for (PrismPropertyValue<Object> pValue: pValuesToAdd) {
+    public void addValues(Collection<PrismPropertyValue<V>> pValuesToAdd) {
+    	for (PrismPropertyValue<V> pValue: pValuesToAdd) {
     		addValue(pValue);
     	}
     }
 
-    public void addValue(PrismPropertyValue<Object> pValueToAdd) {
-    	Iterator<PrismPropertyValue<Object>> iterator = getValues().iterator();
+    public void addValue(PrismPropertyValue<V> pValueToAdd) {
+    	Iterator<PrismPropertyValue<V>> iterator = getValues().iterator();
     	while (iterator.hasNext()) {
-    		PrismPropertyValue<Object> pValue = iterator.next();
+    		PrismPropertyValue<V> pValue = iterator.next();
     		if (pValue.equalsRealValue(pValueToAdd)) {
     			LOGGER.warn("Adding value to property "+getName()+" that already exists (overwriting), value: "+pValueToAdd);
     			iterator.remove();
@@ -218,9 +219,9 @@ public class PrismProperty extends Item {
     	getValues().add(pValueToAdd);
     }
 
-    public boolean deleteValues(Collection<PrismPropertyValue<Object>> pValuesToDelete) {
+    public boolean deleteValues(Collection<PrismPropertyValue<V>> pValuesToDelete) {
         boolean changed = false;
-    	for (PrismPropertyValue<Object> pValue: pValuesToDelete) {
+    	for (PrismPropertyValue<V> pValue: pValuesToDelete) {
             if (!changed) {
     		    changed = deleteValue(pValue);
             } else {
@@ -230,11 +231,11 @@ public class PrismProperty extends Item {
         return changed;
     }
 
-    public boolean deleteValue(PrismPropertyValue<Object> pValueToDelete) {
-    	Iterator<PrismPropertyValue<Object>> iterator = getValues().iterator();
+    public boolean deleteValue(PrismPropertyValue<V> pValueToDelete) {
+    	Iterator<PrismPropertyValue<V>> iterator = getValues().iterator();
     	boolean found = false;
     	while (iterator.hasNext()) {
-    		PrismPropertyValue<Object> pValue = iterator.next();
+    		PrismPropertyValue<V> pValue = iterator.next();
     		if (pValue.equalsRealValue(pValueToDelete)) {
     			iterator.remove();
     			pValue.setParent(null);
@@ -248,17 +249,17 @@ public class PrismProperty extends Item {
         return found;
     }
 
-    public void replaceValues(Collection<PrismPropertyValue<Object>> valuesToReplace) {
+    public void replaceValues(Collection<PrismPropertyValue<V>> valuesToReplace) {
     	getValues().clear();
         addValues(valuesToReplace);
     }
 
-    public boolean hasValue(PrismPropertyValue<Object> value) {
+    public boolean hasValue(PrismPropertyValue<V> value) {
         return getValues().contains(value);
     }
 
-    public boolean hasRealValue(PrismPropertyValue<Object> value) {
-        for (PrismPropertyValue<Object> propVal : getValues()) {
+    public boolean hasRealValue(PrismPropertyValue<V> value) {
+        for (PrismPropertyValue<V> propVal : getValues()) {
             if (propVal.equalsRealValue(value)) {
                 return true;
             }
@@ -267,16 +268,16 @@ public class PrismProperty extends Item {
         return false;
     }
     
-    public Class getValueClass() {
+    public Class<V> getValueClass() {
     	if (getDefinition() != null) {
     		return getDefinition().getTypeClass();
     	}
     	if (!getValues().isEmpty()) {
-    		PrismPropertyValue<Object> firstPVal = getValues().get(0);
+    		PrismPropertyValue<V> firstPVal = getValues().get(0);
     		if (firstPVal != null) {
-    			Object firstVal = firstPVal.getValue();
+    			V firstVal = firstPVal.getValue();
     			if (firstVal != null) {
-    				return firstVal.getClass();
+    				return (Class<V>) firstVal.getClass();
     			}
     		}
     	}
@@ -297,19 +298,19 @@ public class PrismProperty extends Item {
 //        serializeToDom(parentNode, null, null, false);
 //    }
 
-    public void serializeToDom(Node parentNode, PrismPropertyDefinition propDef, Set<PrismPropertyValue<Object>> alternateValues,
+    public void serializeToDom(Node parentNode, PrismPropertyDefinition propDef, Set<PrismPropertyValue<V>> alternateValues,
             boolean recordType) throws SchemaException {
 
         if (propDef == null) {
             propDef = getDefinition();
         }
 
-        Collection<PrismPropertyValue<Object>> serializeValues = getValues();
+        Collection<PrismPropertyValue<V>> serializeValues = getValues();
         if (alternateValues != null) {
             serializeValues = alternateValues;
         }
 
-        for (PrismPropertyValue<Object> val : serializeValues) {
+        for (PrismPropertyValue<V> val : serializeValues) {
             // If we have a definition then try to use it. The conversion may be more realiable
             // Otherwise the conversion will be governed by Java type
             QName xsdType = null;
@@ -362,7 +363,7 @@ public class PrismProperty extends Item {
      * <p/>
      * Package-private. Useful for some internal calls inside schema processor.
      */
-    List<Object> serializeToJaxb(Document doc, PrismPropertyDefinition propDef, Set<PrismPropertyValue<Object>> alternateValues,
+    List<Object> serializeToJaxb(Document doc, PrismPropertyDefinition propDef, Set<PrismPropertyValue<V>> alternateValues,
             boolean recordType) throws SchemaException {
 
 
@@ -375,13 +376,13 @@ public class PrismProperty extends Item {
             propDef = getDefinition();
         }
 
-        Collection<PrismPropertyValue<Object>> serializeValues = getValues();
+        Collection<PrismPropertyValue<V>> serializeValues = getValues();
         if (alternateValues != null) {
             serializeValues = alternateValues;
         }
 
 
-        for (PrismPropertyValue<Object> val : serializeValues) {
+        for (PrismPropertyValue<V> val : serializeValues) {
             // If we have a definition then try to use it. The conversion may be more realiable
             // Otherwise the conversion will be governed by Java type
             QName xsdType = null;
@@ -405,22 +406,21 @@ public class PrismProperty extends Item {
     }
 
 	@Override
-    public PrismProperty clone() {
-        PrismProperty clone = new PrismProperty(getName(), getDefinition(), prismContext);
+    public PrismProperty<V> clone() {
+        PrismProperty<V> clone = new PrismProperty<V>(getName(), getDefinition(), prismContext);
         copyValues(clone);
         return clone;
     }
 
-    protected void copyValues(PrismProperty clone) {
+    protected void copyValues(PrismProperty<V> clone) {
         super.copyValues(clone);
-        for (PrismPropertyValue<Object> value : getValues()) {
+        for (PrismPropertyValue<V> value : getValues()) {
             clone.addValue(value.clone());
         }
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
         int result = super.hashCode();
         return result;
     }
@@ -433,7 +433,6 @@ public class PrismProperty extends Item {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        PrismProperty other = (PrismProperty) obj;
         return true;
     }
 
@@ -447,7 +446,7 @@ public class PrismProperty extends Item {
      *         resulting property delta is applied on other property then other property and "this" property
      *         will be equal.
      */
-    public PropertyDelta compareRealValuesTo(PrismProperty other) {
+    public PropertyDelta<V> compareRealValuesTo(PrismProperty<V> other) {
         return compareTo(other, true);
     }
 
@@ -459,23 +458,23 @@ public class PrismProperty extends Item {
      *         resulting property delta is applied on other property then other property and "this" property
      *         will be equal.
      */
-    public PropertyDelta compareTo(PrismProperty other) {
+    public PropertyDelta<V> compareTo(PrismProperty<V> other) {
         return compareTo(other, false);
     }
 
-    private PropertyDelta compareTo(PrismProperty other, boolean compareReal) {
-        PropertyDelta delta = null; //new PropertyDelta(getPath());
+    private PropertyDelta<V> compareTo(PrismProperty<V> other, boolean compareReal) {
+        PropertyDelta<V> delta = null; //new PropertyDelta(getPath());
 
         PrismPropertyDefinition def = getDefinition();
 
         if (other != null) {
-            for (PrismPropertyValue<Object> value : getValues()) {
+            for (PrismPropertyValue<V> value : getValues()) {
                 if ((!compareReal && !other.hasValue(value))
                         || (compareReal && !other.hasRealValue(value))) {
                     delta.addValueToDelete(value.clone());
                 }
             }
-            for (PrismPropertyValue<Object> otherValue : other.getValues()) {
+            for (PrismPropertyValue<V> otherValue : other.getValues()) {
                 if ((!compareReal && !hasValue(otherValue))
                         || (compareReal && !hasRealValue(otherValue))) {
                     delta.addValueToAdd(otherValue.clone());
@@ -485,16 +484,16 @@ public class PrismProperty extends Item {
             	// Drop the current delta (it was used only to detect that something has changed
             	// Generate replace delta instead of add/delete delta
             	// FIXME delta = new PropertyDelta(getPath());
-        		Collection<PrismPropertyValue<Object>> replaceValues = new ArrayList<PrismPropertyValue<Object>>(other.getValues().size());
-                for (PrismPropertyValue<Object> value : other.getValues()) {
+        		Collection<PrismPropertyValue<V>> replaceValues = new ArrayList<PrismPropertyValue<V>>(other.getValues().size());
+                for (PrismPropertyValue<V> value : other.getValues()) {
                 	replaceValues.add(value.clone());
                 }
-    			delta.setValuesToReplace((Collection)replaceValues);
+    			delta.setValuesToReplace(replaceValues);
     			return delta;
             }
         } else {
         	//other doesn't exist, so delta means delete all values
-            for (PrismPropertyValue<Object> value : getValues()) {
+            for (PrismPropertyValue<V> value : getValues()) {
                 delta.addValueToDelete(value.clone());
             }
         }

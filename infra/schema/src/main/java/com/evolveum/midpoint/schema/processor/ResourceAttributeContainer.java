@@ -211,14 +211,14 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	 * @return attribute that should be used as a "technical" name
 	 * 				for the account.
 	 */
-	public ResourceAttribute getNamingAttribute() {
+	public ResourceAttribute<String> getNamingAttribute() {
 		if (getDefinition() == null) {
 			return null;
 		}
 		if (getDefinition().getNamingAttribute()==null) {
 			return null;
 		}
-		return findAttribute(getDefinition().getNamingAttribute());
+		return (ResourceAttribute<String>) findAttribute(getDefinition().getNamingAttribute());
 	}
 
 	/**
@@ -319,8 +319,8 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	 *            attribute name to find.
 	 * @return found attribute or null
 	 */
-	public ResourceAttribute findAttribute(QName attributeQName) {
-		return (ResourceAttribute) super.findProperty(attributeQName);
+	public ResourceAttribute<?> findAttribute(QName attributeQName) {
+		return (ResourceAttribute<?>) super.findProperty(attributeQName);
 	}
 
 	/**
@@ -332,8 +332,8 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	 *            attribute definition to find.
 	 * @return found attribute or null
 	 */
-	private ResourceAttribute findAttribute(ResourceAttributeDefinition attributeDefinition) {
-		return (ResourceAttribute) getValue().findProperty(attributeDefinition);
+	private ResourceAttribute<?> findAttribute(ResourceAttributeDefinition attributeDefinition) {
+		return (ResourceAttribute<?>) getValue().findProperty(attributeDefinition);
 	}
 	
 	/**

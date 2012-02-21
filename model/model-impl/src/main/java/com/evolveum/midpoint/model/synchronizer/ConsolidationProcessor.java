@@ -22,12 +22,14 @@
 package com.evolveum.midpoint.model.synchronizer;
 
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -67,8 +69,6 @@ public class ConsolidationProcessor {
 
     public static final String PROCESS_CONSOLIDATION = ConsolidationProcessor.class.getName() + ".consolidateValues";
     private static final Trace LOGGER = TraceManager.getTrace(ReconciliationProcessor.class);
-    @Autowired(required = true)
-    private SchemaRegistry schemaRegistry;
 
     /**
      * Converts delta set triples to a secondary account deltas.
@@ -122,7 +122,7 @@ public class ConsolidationProcessor {
         ObjectDelta<AccountShadowType> objectDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY);
         objectDelta.setOid(accCtx.getOid());
 
-        RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(rat, schemaRegistry);
+        RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(rat);
         if (rAccount == null) {
             LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", rat, context.dump());
             throw new IllegalStateException("Definition for account type " + rat + " not found in the context, but it should be there");
@@ -162,7 +162,8 @@ public class ConsolidationProcessor {
                     continue;
                 }
                 if (propDelta == null) {
-                    propDelta = new PropertyDelta(parentPath, attributeName);
+                	RefinedAttributeDefinition attributeDefinition = rAccount.findAttributeDefinition(attributeName);
+                    propDelta = new PropertyDelta(parentPath, attributeName, attributeDefinition);
                 }
 
                 boolean initialOnly = true;
@@ -231,7 +232,7 @@ public class ConsolidationProcessor {
         } else {
             if (accCtx.getAccountPrimaryDelta() == null) {
                 ObjectDelta<AccountShadowType> addDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.ADD);
-                RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(accCtx.getResourceAccountType(), schemaRegistry);
+                RefinedAccountDefinition rAccount = context.getRefinedAccountDefinition(accCtx.getResourceAccountType());
 
                 if (rAccount == null) {
                     LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", accCtx.getResourceAccountType(), context.dump());

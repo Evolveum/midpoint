@@ -217,7 +217,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	}
 
 	private String getEntryUuid(Set<ResourceAttribute> identifiers) {
-		for (ResourceAttribute identifier : identifiers) {
+		for (ResourceAttribute<?> identifier : identifiers) {
 			if (identifier.getName().equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
 				return identifier.getValue(String.class).getValue();
 			}
@@ -234,7 +234,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		Set<ResourceAttribute> identifiers = addSampleResourceObject("john", "John", "Smith");
 
 		String uid = null;
-		for (ResourceAttribute resourceAttribute : identifiers) {
+		for (ResourceAttribute<?> resourceAttribute : identifiers) {
 			if (ConnectorFactoryIcfImpl.ICFS_UID.equals(resourceAttribute.getName())) {
 				uid = resourceAttribute.getValue(String.class).getValue();
 				System.out.println("uuuuid:" + uid);

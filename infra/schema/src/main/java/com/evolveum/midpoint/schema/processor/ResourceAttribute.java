@@ -44,7 +44,7 @@ import java.util.Set;
  *
  * @author Radovan Semancik
  */
-public class ResourceAttribute extends PrismProperty {
+public class ResourceAttribute<T> extends PrismProperty<T> {
 
     public ResourceAttribute(QName name, PrismPropertyDefinition definition, PrismContext prismContext) {
         super(name, definition, prismContext);

@@ -63,17 +63,17 @@ public class NoOpTaskHandler implements TaskHandler {
 		runResult.setOperationResult(opResult);
 		
         PrismContainer taskExtension = task.getExtension();
-        PrismProperty delayProp = taskExtension.findProperty(new QName(EXT_SCHEMA_URI, "delay"));
+        PrismProperty<Integer> delayProp = taskExtension.findProperty(new QName(EXT_SCHEMA_URI, "delay"));
         long delay;
         if (delayProp != null && !delayProp.getValues().isEmpty())
-        	delay = delayProp.getValue(Integer.class).getValue();
+        	delay = delayProp.getValue().getValue();
         else
         	delay = 0;
 
-        PrismProperty stepsProp = taskExtension.findProperty(new QName(EXT_SCHEMA_URI, "steps"));
+        PrismProperty<Integer> stepsProp = taskExtension.findProperty(new QName(EXT_SCHEMA_URI, "steps"));
         int steps;
         if (stepsProp != null && !stepsProp.getValues().isEmpty())
-        	steps = stepsProp.getValue(Integer.class).getValue();
+        	steps = stepsProp.getValue().getValue();
         else
         	steps = 1;
 

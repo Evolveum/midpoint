@@ -1449,7 +1449,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private Uid getUid(Collection<? extends ResourceAttribute> identifiers) {
 		for (ResourceAttribute attr : identifiers) {
 			if (attr.getName().equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
-				return new Uid(attr.getValue(String.class).getValue());
+				return new Uid(((ResourceAttribute<String>)attr).getValue().getValue());
 			}
 		}
 		return null;
@@ -1640,12 +1640,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			return attributes;
 		}
 
-		for (ResourceAttribute attribute : resourceAttributes) {
+		for (ResourceAttribute<?> attribute : resourceAttributes) {
 
 			String attrName = convertAttributeNameToIcf(attribute.getName(), parentResult);
 
 			Set<Object> convertedAttributeValues = new HashSet<Object>();
-			for (PrismPropertyValue<Object> value : attribute.getValues()) {
+			for (PrismPropertyValue<?> value : attribute.getValues()) {
 				convertedAttributeValues.add(convertValueToIcf(value, attribute.getName()));
 			}
 
@@ -2004,11 +2004,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 	}
 
-	private int parseInt(PrismProperty prop) {
+	private int parseInt(PrismProperty<?> prop) {
 		return  prop.getRealValue(Integer.class);
 	}
 
-	private long parseLong(PrismProperty prop) {
+	private long parseLong(PrismProperty<?> prop) {
 		return  prop.getRealValue(Long.class);
 	}
 

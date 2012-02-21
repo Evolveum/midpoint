@@ -583,12 +583,12 @@ public class ShadowCache {
 	private Operation determineActivationChange(Collection<? extends ItemDelta> objectChange, ResourceType resource,
 			ResourceAttributeContainerDefinition objectClassDefinition) throws SchemaException {
 		
-		PropertyDelta enabledPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
+		PropertyDelta<Boolean> enabledPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
 				new PropertyPath(ResourceObjectShadowType.F_ACTIVATION, ActivationType.F_ENABLED));
 		if (enabledPropertyDelta == null) {
 			return null;
 		}
-		Boolean enabled = enabledPropertyDelta.getPropertyNew().getRealValue(Boolean.class);
+		Boolean enabled = enabledPropertyDelta.getPropertyNew().getRealValue();
 		LOGGER.trace("Find activation change to: {}", enabled);
 
 		if (enabled != null) {
@@ -614,12 +614,12 @@ public class ShadowCache {
 			ResourceObjectShadowType objectType) throws SchemaException {
 		// Look for password change
 		
-		PropertyDelta passwordPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
+		PropertyDelta<PasswordType> passwordPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
 				new PropertyPath(AccountShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD));
 		if (passwordPropertyDelta == null) {
 			return null;
 		}
-		PasswordType newPasswordStructure = passwordPropertyDelta.getPropertyNew().getRealValue(PasswordType.class);
+		PasswordType newPasswordStructure = passwordPropertyDelta.getPropertyNew().getRealValue();
 		
 		PasswordChangeOperation passwordChangeOp = null;
 		if (newPasswordStructure != null) {
