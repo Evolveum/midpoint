@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
@@ -29,6 +30,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.Validate;
 import org.h2.tools.Server;
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,9 +48,12 @@ import java.sql.Statement;
 public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryFactory.class);
-    private Configuration configuration;             //todo remove dependency
+    @Autowired(required = true)
+    SchemaRegistry schemaRegistry;
+    @Autowired(required = true)
+    SessionFactory sessionFactory;
+
     private SqlRepositoryConfiguration sqlConfiguration;
-    //embedded h2
     private Server server;
 
     public Server getServer() {
@@ -56,13 +62,6 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
     public void setServer(Server server) {
         this.server = server;
-    }
-
-    private void applyConfiguration() {
-        if (configuration == null) {
-            throw new IllegalStateException("Configuration has to be injected prior the initialization.");
-        }
-        sqlConfiguration = new SqlRepositoryConfiguration(configuration);
     }
 
     private SqlRepositoryConfiguration getSqlConfiguration() {
@@ -136,9 +135,12 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     }
 
     @Override
-    public void init() throws RepositoryServiceFactoryException {
-        LOGGER.info("Applying configuration");
-        applyConfiguration();
+    public void init(Configuration configuration) throws RepositoryServiceFactoryException {
+        LOGGER.info("Initializing SQL repository factory");
+        if (configuration == null) {
+            throw new IllegalStateException("Configuration has to be injected prior the initialization.");
+        }
+        sqlConfiguration = new SqlRepositoryConfiguration(configuration);
 
         if (getSqlConfiguration().isEmbedded()) {
             if (getSqlConfiguration().isAsServer()) {
@@ -158,23 +160,12 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
     @Override
     public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {
-        return new SqlRepositoryServiceImpl();
-    }
+        SqlRepositoryServiceImpl service =  new SqlRepositoryServiceImpl();
+        //todo maybe not necessary, maybe can be autowired
+        service.schemaRegistry = schemaRegistry;
+        service.sessionFactory = sessionFactory;
 
-    @Override
-    public void setConfiguration(Configuration config) {
-        Validate.notNull(config, "Configuration must not be null.");
-        this.configuration = config;
-    }
-
-    @Override
-    public String getComponentId() {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
-
-    @Override
-    public Configuration getCurrentConfiguration() {
-        return configuration;
+        return service;
     }
 
     private void initScript() throws RepositoryServiceFactoryException {

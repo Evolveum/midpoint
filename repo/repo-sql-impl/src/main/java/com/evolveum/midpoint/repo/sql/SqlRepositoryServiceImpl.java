@@ -63,11 +63,9 @@ import java.util.List;
 public class SqlRepositoryServiceImpl implements RepositoryService {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
-
-    @Autowired(required = true)
-    private SchemaRegistry schemaRegistry;
-
-    @Autowired(required = true)
+    //    @Autowired(required = true)//todo maybe not necessary, maybe can be autowired
+    SchemaRegistry schemaRegistry;
+    //    @Autowired(required = true)//todo maybe not necessary, maybe can be autowired
     SessionFactory sessionFactory;
 
     @Override
@@ -352,8 +350,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     }
 
     @Override
-    public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, 
-    		OperationResult result) throws ObjectNotFoundException, SchemaException {
+    public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
+            Collection<? extends ItemDelta> modifications,
+            OperationResult result) throws ObjectNotFoundException, SchemaException {
         Validate.notNull(modifications, "Modifications must not be null.");
         Validate.notNull(type, "Object class in delta must not be null.");
         Validate.notEmpty(oid, "Oid must not null or empty.");

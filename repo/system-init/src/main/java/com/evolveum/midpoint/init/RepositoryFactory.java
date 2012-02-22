@@ -19,13 +19,9 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  * Portions Copyrighted 2011 Igor Farinic
  * Portions Copyrighted 2011 Peter Prochazka
+ * * Portions Copyrighted 2012 Viliam Repan
  */
 package com.evolveum.midpoint.init;
-
-import org.apache.commons.configuration.Configuration;
-import org.apache.cxf.common.util.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.configuration.api.RuntimeConfiguration;
@@ -36,113 +32,117 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.commons.configuration.Configuration;
+import org.apache.cxf.common.util.StringUtils;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
 
 @Component
-public class RepositoryFactory implements RuntimeConfiguration {
+public class RepositoryFactory implements ApplicationContextAware, RuntimeConfiguration {
 
-	private static final Trace LOGGER = TraceManager.getTrace(RepositoryFactory.class);
-	
-	@Autowired
-	MidpointConfiguration midpointConfiguration;
-	Configuration config;
-	RepositoryServiceFactory repositoryServiceFactory;
-	RepositoryService repositoryService;
-	RepositoryService cacheRepositoryService;
-	
-	public void init() {
-		loadConfiguration();
-		String repositoryServiceFactoryClassName = config.getString("repositoryServiceFactoryClass");
-		
-		if (StringUtils.isEmpty(repositoryServiceFactoryClassName)) {
-			LOGGER.error("RepositoryServiceFactory implementation class name (repositoryServiceFactoryClass) not found in configuration. Provided configuration: {}", config);
-			throw new SystemException("RepositoryServiceFactory implementation class name (repositoryServiceFactoryClass) not found in configuration. Provided configuration: " + config);
-		}
-		
-		ClassLoader classLoader = RepositoryFactory.class.getClassLoader();
+    private static final String REPOSITORY_CONFIGURATION = "midpoint.repository";
+    private static final String REPOSITORY_FACTORY_CLASS = "repositoryServiceFactoryClass";
+    private static final Trace LOGGER = TraceManager.getTrace(RepositoryFactory.class);
+    private ApplicationContext applicationContext;
+    @Autowired
+    MidpointConfiguration midpointConfiguration;
+    RepositoryService repositoryService;
+    RepositoryService cacheRepositoryService;
 
-	    try {
-	        Class<RepositoryServiceFactory> repositoryServiceFactoryClass = (Class<RepositoryServiceFactory>) classLoader.loadClass(repositoryServiceFactoryClassName);
-	        repositoryServiceFactory = repositoryServiceFactoryClass.newInstance();
-	        repositoryServiceFactory.setConfiguration(config);
-	        repositoryServiceFactory.init();
-	    } catch (ClassNotFoundException e) {
-	    	LoggingUtils.logException(LOGGER, "RepositoryServiceFactory implementation class {} defined in configuration was not found.", e, repositoryServiceFactoryClassName);
-	    	throw new SystemException("RepositoryServiceFactory implementation class "+repositoryServiceFactoryClassName+" defined in configuration was not found.", e);
-	    } catch (InstantiationException e) {
-	    	LoggingUtils.logException(LOGGER, "RepositoryServiceFactory implementation class {} could not be instantiated.", e, repositoryServiceFactoryClassName);
-	    	throw new SystemException("RepositoryServiceFactory implementation class "+repositoryServiceFactoryClassName+" could not be instantiated.", e);
-		} catch (IllegalAccessException e) {
-			LoggingUtils.logException(LOGGER, "RepositoryServiceFactory implementation class {} could not be instantiated.", e, repositoryServiceFactoryClassName);
-	    	throw new SystemException("RepositoryServiceFactory implementation class "+repositoryServiceFactoryClassName+" could not be instantiated.", e);
-		} catch (RepositoryServiceFactoryException e) {
-			LoggingUtils.logException(LOGGER, "RepositoryServiceFactory implementation class {} failed to initialize.", e, repositoryServiceFactoryClassName);
-	    	throw new SystemException("RepositoryServiceFactory implementation class "+repositoryServiceFactoryClassName+" failed to initialize.", e);
-		}
-		
-	}
-	
-	public void destroy() {
-		if (repositoryServiceFactory != null) {
-			try {
-				repositoryServiceFactory.destroy();
-			} catch (RepositoryServiceFactoryException e) {
-		    	LoggingUtils.logException(LOGGER, "Failed to destroy RepositoryServiceFactory", e);
-		    	throw new SystemException("Failed to destroy RepositoryServiceFactory", e);
-			}
-		} else {
-			LOGGER.error("RepositoryFactory is in illegal state, repositoryServiceFactory cannot be destroyed, becuase it is not set");
-			throw new IllegalStateException("RepositoryFactory is in illegal state, repositoryServiceFactory cannot be destroyed, becuase it is not set");
-		}
-	}
-	
-	@Override
-	public String getComponentId() {
-		return "midpoint.repository";
-	}
+    public void init() {
+        Configuration config = midpointConfiguration.getConfiguration(REPOSITORY_CONFIGURATION);
+        try {
+            RepositoryServiceFactory factory = getFactory(config);
+            factory.init(config);
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "RepositoryServiceFactory implementation class {} failed to " +
+                    "initialize.", ex, config.getString(REPOSITORY_FACTORY_CLASS));
+            throw new SystemException("RepositoryServiceFactory implementation class " +
+                    config.getString(REPOSITORY_FACTORY_CLASS) + " failed to initialize.", ex);
+        }
+    }
 
-	@Override
-	public Configuration getCurrentConfiguration() {
-		if (repositoryServiceFactory != null) {
-			config = repositoryServiceFactory.getCurrentConfiguration();
-		} else {
-			LOGGER.error("RepositoryFactory is in illegal state, repositoryServiceFactory is not set");
-			throw new IllegalStateException("RepositoryFactory is in illegal state, repositoryServiceFactory is not set");
-		}
-		return config;
-	}
-	
-	public synchronized RepositoryService getRepositoryService() {
-		if (repositoryService == null) {
-			try {
-				repositoryService = repositoryServiceFactory.getRepositoryService();
-			} catch (RepositoryServiceFactoryException e) {
-				LoggingUtils.logException(LOGGER, "Failed to get repository service from factory", e);
-				throw new SystemException("Failed to get repository service from factory", e);
-			}
-		}
-		return repositoryService;
-	}
+    private String getFactoryClassName(Configuration config) {
+        String className = config.getString(REPOSITORY_FACTORY_CLASS);
+        if (StringUtils.isEmpty(className)) {
+            LOGGER.error("RepositoryServiceFactory implementation class name ({}) not found in configuration. " +
+                    "Provided configuration:\n{}", new Object[]{REPOSITORY_FACTORY_CLASS, config});
+            throw new SystemException("RepositoryServiceFactory implementation class name (" + REPOSITORY_FACTORY_CLASS
+                    + ") not found in configuration. Provided configuration:\n" + config);
+        }
 
-	public synchronized RepositoryService getCacheRepositoryService() {
-		if (cacheRepositoryService == null) {
-			try {
-				ClassLoader classLoader = RepositoryFactory.class.getClassLoader();
-				//FIXME: create hammer factory factory solution also for RepositoryCache, if required
-		        Class<RepositoryService> repositoryCacheServiceClass = (Class<RepositoryService>) classLoader.loadClass("com.evolveum.midpoint.repo.cache.RepositoryCache");
-		        //TODO: test
-		        cacheRepositoryService = repositoryCacheServiceClass.getConstructor(RepositoryService.class).newInstance(getRepositoryService());
-			} catch (Exception e) {
-				LoggingUtils.logException(LOGGER, "Failed to get cache repository service. ExceptionClass = {}", e, e.getClass().getName());
-				throw new SystemException("Failed to get cache repository service", e);
-			}
-		}
-		return cacheRepositoryService;
-	}
-	
-	private void loadConfiguration() {
-		config = midpointConfiguration.getConfiguration("midpoint.repository");
-		
-	}
+        return className;
+    }
 
-	
+    private RepositoryServiceFactory getFactory(Configuration config) throws RepositoryServiceFactoryException {
+        try {
+            String className = getFactoryClassName(config);
+            Class<RepositoryServiceFactory> clazz = (Class<RepositoryServiceFactory>) Class.forName(className);
+            return applicationContext.getBean(clazz);
+        } catch (Exception ex) {
+            throw new RepositoryServiceFactoryException(ex.getMessage(), ex);
+        }
+    }
+
+    public void destroy() {
+        try {
+            Configuration config = midpointConfiguration.getConfiguration(REPOSITORY_CONFIGURATION);
+            RepositoryServiceFactory factory = getFactory(config);
+            factory.destroy();
+        } catch (RepositoryServiceFactoryException ex) {
+            LoggingUtils.logException(LOGGER, "Failed to destroy RepositoryServiceFactory", ex);
+            throw new SystemException("Failed to destroy RepositoryServiceFactory", ex);
+        }
+    }
+
+    @Override
+    public String getComponentId() {
+        return "midpoint.repository";
+    }
+
+    @Override
+    public Configuration getCurrentConfiguration() {
+        return midpointConfiguration.getConfiguration(REPOSITORY_CONFIGURATION);
+    }
+
+    public synchronized RepositoryService getRepositoryService() {
+        if (repositoryService == null) {
+            try {
+                Configuration config = midpointConfiguration.getConfiguration(REPOSITORY_CONFIGURATION);
+                RepositoryServiceFactory factory = getFactory(config);
+                repositoryService = factory.getRepositoryService();
+            } catch (RepositoryServiceFactoryException e) {
+                LoggingUtils.logException(LOGGER, "Failed to get repository service from factory", e);
+                throw new SystemException("Failed to get repository service from factory", e);
+            }
+        }
+        return repositoryService;
+    }
+
+    public synchronized RepositoryService getCacheRepositoryService() {
+        if (cacheRepositoryService == null) {
+            try {
+                ClassLoader classLoader = RepositoryFactory.class.getClassLoader();
+                //FIXME: create hammer factory factory solution also for RepositoryCache, if required
+                Class<RepositoryService> repositoryCacheServiceClass = (Class<RepositoryService>)
+                        classLoader.loadClass("com.evolveum.midpoint.repo.cache.RepositoryCache");
+                //TODO: test
+                cacheRepositoryService = repositoryCacheServiceClass.getConstructor(RepositoryService.class)
+                        .newInstance(getRepositoryService());
+            } catch (Exception e) {
+                LoggingUtils.logException(LOGGER, "Failed to get cache repository service. ExceptionClass = {}",
+                        e, e.getClass().getName());
+                throw new SystemException("Failed to get cache repository service", e);
+            }
+        }
+        return cacheRepositoryService;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
 }

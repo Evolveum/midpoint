@@ -37,6 +37,8 @@
 		class="com.evolveum.midpoint.repo.api.RepositoryService" depends-on="repositoryFactory" init-method="init"
 		destroy-method="close"></bean>
 
+    <!-- wtf??? init-method init....that method is not defined in interface...omg, same for destroy-method -->
+
 	<bean name="cacheRepositoryService" factory-bean="repositoryFactory" factory-method="getCacheRepositoryService"
 		class="com.evolveum.midpoint.repo.api.RepositoryService" depends-on="repositoryFactory" init-method="init"
 		destroy-method="destroy"></bean>

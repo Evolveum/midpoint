@@ -59,24 +59,20 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 	private String serverPath;
 	private BaseXServer server;
 
-	private Configuration config;
-
 	@Override
-	public void init() throws RepositoryServiceFactoryException {
+	public void init(Configuration config) throws RepositoryServiceFactoryException {
 		// TODO: if no configuration is set then generate default configuration
-
-		applyConfiguration();
+		applyConfiguration(config);
 
 		startServer();
 
 		recreateDatabase();
-
 	}
 
 	/**
 	 * Starts BaseX server. Based on configuration it will start BaseX server in
 	 * daemon or standalone mode or won't start server at all.
-	 * 
+	 *
 	 * @throws RepositoryServiceFactoryException
 	 */
 	private void startServer() throws RepositoryServiceFactoryException {
@@ -102,8 +98,8 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 			String debugging = "";
 			if (debug) {
 				debugging = "-d";
-			} 
-			
+			}
+
 			// args ordering is important!
 			if (embedded) {
 				this.checkPort(port);
@@ -121,7 +117,7 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 	/**
 	 * (re)create of the database. It will drop old database only if Factory's
 	 * property dropDatabase is set to true.
-	 * 
+	 *
 	 * @throws RepositoryServiceFactoryException
 	 */
 	private void recreateDatabase() throws RepositoryServiceFactoryException {
@@ -175,7 +171,7 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 		}
 	}
 
-	private void applyConfiguration() {
+	private void applyConfiguration(Configuration config) {
 		if (config != null) {
 			// apply default values, if property not found in configuration
 			setDatabaseName(config.getString("databaseName", databaseName));
@@ -253,7 +249,7 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 	public void setPort(int port) {
 		this.port = port;
 	}
-	
+
 	public int getEventPort() {
 		return eventPort;
 	}
@@ -309,7 +305,7 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 	public void setServerPath(String serverPath) {
 		this.serverPath = serverPath;
 	}
-	
+
 	public boolean isDebug() {
 		return debug;
 	}
@@ -339,21 +335,4 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 			}
 		}
 	}
-
-	@Override
-	public String getComponentId() {
-		throw new UnsupportedOperationException(
-				"Operation is not supported on RepositoryServiceFactory implementation class. See RepositoryFactory in component system-init");
-	}
-
-	@Override
-	public Configuration getCurrentConfiguration() {
-		return config;
-	}
-
-	@Override
-	public void setConfiguration(Configuration config) {
-		this.config = config;
-	}
-
 }
