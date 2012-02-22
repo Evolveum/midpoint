@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.schema;
 
+import static org.testng.AssertJUnit.assertEquals;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -45,11 +46,13 @@ public class SimpleJaxbMarshalTest {
     public void unmarshalMarshalUser() throws Exception {
         JAXBElement<UserType> element = JaxbTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),
                 UserType.class);
-        UserType user = element.getValue();
-        element = JaxbTestUtil.unmarshalElement(JaxbTestUtil.marshalWrap(user));
         UserType user1 = element.getValue();
+        
+        element = JaxbTestUtil.unmarshalElement(JaxbTestUtil.marshalToString(user1));
+        UserType user2 = element.getValue();
 
-        AssertJUnit.assertEquals(user, user1);
+        assertEquals("Users not same (UserType)", user1, user2);
+        assertEquals("Users not same (prism)", user1.asPrismObject(), user2.asPrismObject());
     }
 
     @Test
@@ -64,11 +67,11 @@ public class SimpleJaxbMarshalTest {
         ref.setType(AccountShadowType.COMPLEX_TYPE);
         user.getAccountRef().add(ref);
 
-        JAXBElement<UserType> element = JaxbTestUtil.unmarshalElement(JaxbTestUtil.marshalWrap(user));
+        JAXBElement<UserType> element = JaxbTestUtil.unmarshalElement(JaxbTestUtil.marshalToString(user));
         UserType user1 = element.getValue();
-        AssertJUnit.assertEquals(user.getOid(), user1.getOid());
-        AssertJUnit.assertEquals(user.getGivenName(), user1.getGivenName());
-        AssertJUnit.assertEquals(user.getName(), user1.getName());
-        AssertJUnit.assertEquals(user.getFamilyName(), user1.getFamilyName());
+        assertEquals(user.getOid(), user1.getOid());
+        assertEquals(user.getGivenName(), user1.getGivenName());
+        assertEquals(user.getName(), user1.getName());
+        assertEquals(user.getFamilyName(), user1.getFamilyName());
     }
 }

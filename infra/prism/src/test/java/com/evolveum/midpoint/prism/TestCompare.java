@@ -31,6 +31,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -51,8 +53,8 @@ public class TestCompare {
 	 * Parse the same files twice, compare the results.
 	 */
 	@Test
-	public void testCompare() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testCompare ]===");
+	public void testCompareJack() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testCompareJack ]===");
 		
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -72,6 +74,38 @@ public class TestCompare {
 		// assertTrue("Users not the same (Objectable)", user1.asObjectable().equals(user2.asObjectable()));
 		
 		assertTrue("Users not equivalent", user1.equivalent(user2));
+	}
+	
+	/**
+	 * Parse original jack and modified Jack. Diff and assert if the resulting
+	 * delta is OK.
+	 */
+	@Test
+	public void testDiffJack() throws SchemaException, SAXException, IOException {
+System.out.println("===[ testDiffJack ]===");
+		
+		// GIVEN
+		PrismContext prismContext = constructInitializedPrismContext();
+		
+		Document document = DOMUtil.parseFile(USER_JACK_FILE);
+		Element userElement = DOMUtil.getFirstChildElement(document);		
+		PrismObject<UserType> jackOriginal = prismContext.parseObject(userElement);
+		
+		document = DOMUtil.parseFile(USER_JACK_MODIFIED_FILE);
+		userElement = DOMUtil.getFirstChildElement(document);		
+		PrismObject<UserType> jackModified = prismContext.parseObject(userElement);
+		
+		// WHEN
+		ObjectDelta<UserType> jackDelta = jackOriginal.diff(jackModified);
+		
+		// THEN
+		System.out.println("Jack delta:");
+		System.out.println(jackDelta.dump());
+		
+		assertEquals("Wrong delta type", ChangeType.MODIFY, jackDelta.getChangeType());
+		assertEquals("Wrong delta OID", USER_JACK_OID, jackDelta.getOid());
+		assertEquals("Wrong number of modificaitions", 1, jackDelta.getModifications().size());
+		
 	}
 
 }

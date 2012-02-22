@@ -251,58 +251,6 @@ public class TestParseDiffPatch {
 //        
 //	}
 //
-//	
-//	private void assertReplace(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
-//		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyName);
-//		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
-//		assertSet(propertyName, propertyDelta.getValuesToReplace(), expectedValues);
-//	}
-//
-//	private void assertAdd(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
-//		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyName);
-//		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
-//		assertSet(propertyName, propertyDelta.getValuesToAdd(), expectedValues);
-//	}
-//	
-//	private void assertDelete(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
-//		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyName);
-//		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
-//		assertSet(propertyName, propertyDelta.getValuesToDelete(), expectedValues);
-//	}
-//
-//	private void assertReplace(ObjectDelta<?> userDelta, PropertyPath propertyPath, Object... expectedValues) {
-//		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyPath);
-//		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
-//		assertSet(propertyPath.last(), propertyDelta.getValuesToReplace(), expectedValues);
-//	}
-//
-//	private void assertAdd(ObjectDelta<?> userDelta, PropertyPath propertyPath, Object... expectedValues) {
-//		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyPath);
-//		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
-//		assertSet(propertyPath.last(), propertyDelta.getValuesToAdd(), expectedValues);
-//	}
-//	
-//	private void assertDelete(ObjectDelta<?> userDelta, PropertyPath propertyPath, Object... expectedValues) {
-//		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyPath);
-//		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
-//		assertSet(propertyPath.last(), propertyDelta.getValuesToDelete(), expectedValues);
-//	}
-//
-//	private void assertSet(QName propertyName, Collection<PrismPropertyValue<Object>> valuesFromDelta, Object[] expectedValues) {
-//		assertEquals("Wrong number of values",expectedValues.length, valuesFromDelta.size());
-//		for (PrismPropertyValue<Object> valueToReplace: valuesFromDelta) {
-//			boolean found = false;
-//			for (Object value: expectedValues) {
-//				if (value.equals(valueToReplace.getValue())) {
-//					found = true;
-//				}
-//			}
-//			if (!found) {
-//				AssertJUnit.fail("Unexpected value "+valueToReplace+" in delta for "+propertyName);
-//			}
-//		}
-//	}
-//
 //	private void assertXmlMod(ObjectModificationType objectModificationType, QName propertyName,
 //			PropertyModificationTypeType modType, String... expectedValues) {
 //		for (PropertyModificationType mod: objectModificationType.getPropertyModification()) {

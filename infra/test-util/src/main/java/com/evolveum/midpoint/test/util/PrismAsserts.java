@@ -19,12 +19,16 @@
  */
 package com.evolveum.midpoint.test.util;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
 import java.io.File;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 
 import org.testng.AssertJUnit;
 import org.w3c.dom.Node;
@@ -33,6 +37,9 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -95,6 +102,57 @@ public class PrismAsserts {
 			AssertJUnit.fail(message + ": Right prism is null");
 		}
 		AssertJUnit.assertEquals(message, prism1, prism2);
+	}
+	
+	public static void assertPropertyReplace(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
+		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyName);
+		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
+		assertSet(propertyName, propertyDelta.getValuesToReplace(), expectedValues);
+	}
+
+	public static void assertPropertyAdd(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
+		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyName);
+		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
+		assertSet(propertyName, propertyDelta.getValuesToAdd(), expectedValues);
+	}
+	
+	public static void assertPropertyDelete(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
+		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyName);
+		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
+		assertSet(propertyName, propertyDelta.getValuesToDelete(), expectedValues);
+	}
+
+	public static void assertPropertyReplace(ObjectDelta<?> userDelta, PropertyPath propertyPath, Object... expectedValues) {
+		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyPath);
+		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
+		assertSet(propertyPath.last().getName(), propertyDelta.getValuesToReplace(), expectedValues);
+	}
+
+	public static void assertPropertyAdd(ObjectDelta<?> userDelta, PropertyPath propertyPath, Object... expectedValues) {
+		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyPath);
+		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
+		assertSet(propertyPath.last(), propertyDelta.getValuesToAdd(), expectedValues);
+	}
+	
+	public static void assertPropertyDelete(ObjectDelta<?> userDelta, PropertyPath propertyPath, Object... expectedValues) {
+		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyPath);
+		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
+		assertSet(propertyPath.last(), propertyDelta.getValuesToDelete(), expectedValues);
+	}
+
+	private static void assertSet(QName propertyName, Collection<PrismPropertyValue<?>> valuesFromDelta, Object[] expectedValues) {
+		AssertJUnit.assertEquals("Wrong number of values",expectedValues.length, valuesFromDelta.size());
+		for (PrismPropertyValue<?> valueToReplace: valuesFromDelta) {
+			boolean found = false;
+			for (Object value: expectedValues) {
+				if (value.equals(valueToReplace.getValue())) {
+					found = true;
+				}
+			}
+			if (!found) {
+				AssertJUnit.fail("Unexpected value "+valueToReplace+" in delta for "+propertyName);
+			}
+		}
 	}
 	
 	private static PrismObject<?> toPrism(String objectString) throws SchemaException {

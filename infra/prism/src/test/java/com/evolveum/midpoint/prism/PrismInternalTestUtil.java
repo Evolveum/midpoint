@@ -51,6 +51,7 @@ public class PrismInternalTestUtil {
 	public static String OBJECT_DIR_PATH = "src/test/resources/parsing";
 	
 	public static File USER_JACK_FILE = new File(OBJECT_DIR_PATH, "user-jack.xml");
+	public static File USER_JACK_MODIFIED_FILE = new File(OBJECT_DIR_PATH, "user-jack-modified.xml");
 	public static String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	
 	public static File EXTRA_SCHEMA_DIR = new File("src/test/resources/schema");
