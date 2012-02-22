@@ -42,7 +42,7 @@ public class SystemManagerImpl extends ObjectManagerImpl<SystemConfigurationType
 
     @Override
     public Collection<SystemConfigurationDto> list(PagingType paging) {
-        SystemConfigurationType config = null;
+        SystemConfigurationType config;
         try {
             PrismObject<SystemConfigurationType> object = get(SystemConfigurationType.class,
                     SystemObjectsType.SYSTEM_CONFIGURATION.value(), new PropertyReferenceListType());
@@ -81,20 +81,21 @@ public class SystemManagerImpl extends ObjectManagerImpl<SystemConfigurationType
         Task task = taskManager.createTaskInstance(UPDATE_LOGGING_CONFIGURATION);
         OperationResult result = task.getResult();
         try {
-            String xml = JAXBUtil.marshalWrap(configuration, SchemaConstants.LOGGING);
-            Document document = DOMUtil.parseDocument(xml);
-
-            List<XPathSegment> segments = new ArrayList<XPathSegment>();
-            XPathHolder xpath = new XPathHolder(segments);
-
-            ObjectModificationType change = new ObjectModificationType();
-            change.setOid(SystemObjectsType.SYSTEM_CONFIGURATION.value());
-            change.getPropertyModification().add(
-                    ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace,
-                            xpath, document.getDocumentElement()));
-
-            getModel().modifyObject(SystemConfigurationType.class, change, task, result);
-            updated = true;
+//            String xml = JAXBUtil.marshalWrap(configuration, SchemaConstants.LOGGING);
+//            Document document = DOMUtil.parseDocument(xml);
+//
+//            List<XPathSegment> segments = new ArrayList<XPathSegment>();
+//            XPathHolder xpath = new XPathHolder(segments);
+//
+//            ObjectModificationType change = new ObjectModificationType();
+//            change.setOid(SystemObjectsType.SYSTEM_CONFIGURATION.value());
+//            change.getPropertyModification().add(
+//                    ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace,
+//                            xpath, document.getDocumentElement()));
+//
+//            getModel().modifyObject(SystemConfigurationType.class, change, task, result);
+//            updated = true;
+            //todo update configuration somehow...
         } catch (Exception ex) {
             ex.printStackTrace();
         }

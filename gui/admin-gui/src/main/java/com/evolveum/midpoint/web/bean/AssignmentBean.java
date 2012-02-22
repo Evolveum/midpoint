@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.web.bean;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -233,7 +234,9 @@ public class AssignmentBean extends SelectableBean implements Serializable {
             case TARGET_REF:
                 ObjectReferenceType objectRef = assignment.getTargetRef();
                 if (objectRef != null) {
-                    ObjectType objType = model.getObject(ObjectTypes.getObjectTypeClass(objectRef.getType().getLocalPart()), objectRef.getOid(), new PropertyReferenceListType(), new OperationResult("Get object"));
+                    PrismObject<? extends ObjectType> objType = model.getObject(ObjectTypes.getObjectTypeClass(
+                            objectRef.getType().getLocalPart()), objectRef.getOid(), new PropertyReferenceListType(),
+                            new OperationResult("Get object"));
                     builder.append(objType.getName());
                     builder.append(", oid: ");
                     builder.append(objectRef.getOid());

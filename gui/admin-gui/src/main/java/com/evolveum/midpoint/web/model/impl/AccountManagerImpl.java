@@ -158,33 +158,13 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
                     AccountShadowType.class, schemaRegistry.getObjectSchema());
 
             LOGGER.trace("Account delta:\n{}", accountDelta.dump());
-            ObjectModificationType changes = null;
-            if (accountDelta != null && !accountDelta.isEmpty()) {
-                changes = accountDelta.toObjectModificationType();
-            }
 
-//			// detect other changes
-//			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldObject.getXmlObject(),
-//					);
-//			// if there is a password change, add it to other changes and
-//			// process it.
-
-            if (changes != null || passwordChange != null) {
-                if (changes == null) {
-                    changes = new ObjectModificationType();
-                    changes.setOid(accountOld.getOid());
-                }
-                if (passwordChange != null) {
-                    if (changes.getOid() == null) {
-                        changes.setOid(changedObject.getOid());
-                    }
-                    changes.getPropertyModification().add(passwordChange);
-                }
-                if (changes.getOid() != null) {
+			// if there is a password change, add it to other changes and process it.
+            if (!accountDelta.isEmpty()) {
                     LOGGER.debug("Modifying account submited in gui. {}",
                             ObjectTypeUtil.toShortString(changedObject.getXmlObject()));
-                    getModel().modifyObject(AccountShadowType.class, changes, task, result);
-                }
+                    getModel().modifyObject(AccountShadowType.class, accountDelta.getOid(), 
+                            accountDelta.getModifications(), task, result);                
             } else {
                 LOGGER.debug("No account changes detected.");
             }

@@ -32,6 +32,7 @@ import javax.faces.model.ArrayDataModel;
 import javax.faces.model.DataModel;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -80,6 +81,8 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 	private static final int MAX_COLUMNS = 6;
 	@Autowired(required = true)
 	private transient ObjectTypeCatalog objectTypeCatalog;
+    @Autowired(required = true)
+    private transient PrismContext prismContext;
 	private ResourceListItem resource;
 	private QName objectClass;
 	private List<String> columns;
@@ -240,7 +243,7 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 
 		PrismSchema schema = null;
 		try {
-			schema = RefinedResourceSchema.getResourceSchema(resource);
+			schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		} catch (SchemaException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't parse resource schema", ex);
 			FacesUtils.addErrorMessage("Couldn't parse resource schema.", ex);

@@ -27,6 +27,7 @@ import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -156,7 +157,7 @@ public class DebugViewController implements Serializable {
 		}
 
 		try {
-			List<? extends ObjectType> list = repositoryManager.searchObjects(editOtherName);
+			List<PrismObject<? extends ObjectType>> list = repositoryManager.searchObjects(editOtherName);
 
 			if (list.isEmpty()) {
 				FacesUtils.addErrorMessage("Couldn't find object that matches name '" + editOtherName + "'.");
@@ -167,7 +168,8 @@ public class DebugViewController implements Serializable {
 						+ "'.");
 				return null;
 			}
-			ObjectType objectType = list.get(0);
+			PrismObject prismObject = list.get(0);
+            ObjectType objectType = (ObjectType) prismObject.asObjectable();
 			object = new ObjectBean(objectType.getOid(), objectType.getName());
 			xml = JAXBUtil.marshal(new ObjectFactory().createObject(objectType));
 		} catch (Exception ex) {
@@ -187,11 +189,11 @@ public class DebugViewController implements Serializable {
 		}
 
 		try {
-			ObjectType objectType = repositoryManager.getObject(object.getOid());
-			if (objectType == null) {
+			PrismObject<?> prismObject = repositoryManager.getObject(object.getOid());
+			if (prismObject == null) {
 				return DebugListController.PAGE_NAVIGATION;
 			}
-
+            ObjectType objectType = (ObjectType) prismObject.asObjectable();
 			object = new ObjectBean(objectType.getOid(), objectType.getName());
 			xml = JAXBUtil.marshal(new ObjectFactory().createObject(objectType));
 		} catch (JAXBException ex) {
@@ -223,7 +225,7 @@ public class DebugViewController implements Serializable {
 			return null;
 		}
 
-		if (!repositoryManager.saveObject(newObject, xml)) {
+		if (!repositoryManager.saveObject(newObject.asPrismObject(), xml)) {
 			result.recordFatalError("Couln't update object '" + newObject.getName() + "'.");
 //			FacesUtils.addErrorMessage("Couln't update object '" + newObject.getName() + "'.");
 		}
@@ -240,9 +242,10 @@ public class DebugViewController implements Serializable {
 		Validator validator = new Validator(new EventHandler() {
 
 			@Override
-			public EventResult postMarshall(ObjectType object, Element objectElement, OperationResult objectResult) {
+			public <T extends ObjectType> EventResult postMarshall(PrismObject<T> object, Element objectElement,
+                    OperationResult objectResult) {
 				if (objects.isEmpty()) {
-					objects.add(object);
+					objects.add(object.asObjectable());
 				}
 				return EventResult.cont();
 			}

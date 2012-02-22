@@ -96,7 +96,7 @@ public class InitialDataImport {
                 }
 
                 task.setOwner(null);
-                model.addObject(object, task, result);
+                model.addObject(object.asPrismObject(), task, result);
                 result.recordSuccess();
             } catch (Exception ex) {
                 LoggingUtils.logException(LOGGER, "Couldn't import file {}", ex, file);

@@ -26,9 +26,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.diff.CalculateXmlDiff;
-import com.evolveum.midpoint.test.diff.DiffException;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -45,20 +42,15 @@ import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.FacesUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import it.sauronsoftware.cron4j.InvalidPatternException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
-import org.w3c.dom.Element;
-
-import it.sauronsoftware.cron4j.InvalidPatternException;
 
 import javax.faces.event.ActionEvent;
 import javax.faces.model.SelectItem;
-import javax.xml.bind.JAXBException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -225,63 +217,64 @@ public class TaskDetailsController implements Serializable {
 //            task.setObjectRef(getRefFromName(getSelectedResurceRef()));
             PrismObject<TaskType> oldObject = taskManager.getTask(task.getOid(), result).getTaskPrismObject();
             TaskType newObject = task.toTaskType();
-            
-            ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldObject,
-                    newObject);
+
+//            ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldObject,
+//                    newObject);
 
             //todo fix this modification cleanup mess - remove calculate diff later...
             // original modification
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Modification:\n{}", JAXBUtil.marshalWrap(modification));
-            }
-
-            // now let us remove OperationResult from the modification request
-            // also remove other information about task execution
-            for (PropertyModificationType pmt : new ArrayList<PropertyModificationType>(modification.getPropertyModification())) {
-                if (pmt.getPath() != null) {
-                    if (pmt.getPath().getTextContent().startsWith("c:result/") ||
-                            pmt.getPath().getTextContent().equals("c:result")) {
-                        modification.getPropertyModification().remove(pmt);
-                    }
-                }
-                List<String> namesToRemove = new ArrayList<String>();
-                namesToRemove.add("lastRunStartTimestamp");
-                namesToRemove.add("lastRunFinishTimestamp");
-                namesToRemove.add("progress");        // is this ok?
-                namesToRemove.add("extension");        // is this ok?
-
-                if (pmt.getPath() == null || ".".equals(pmt.getPath().getTextContent())) {
-                    List<Object> values = pmt.getValue().getAny();
-                    if (values.size() == 1) {
-                        Object value = values.get(0);
-                        if (LOGGER.isTraceEnabled())
-                            LOGGER.trace("Value: " + value + " (class: " + value.getClass().getName() + ")");
-                        if (value instanceof Element) {
-                            String name = ((Element) value).getLocalName();
-                            if (namesToRemove.contains(name)) {
-                                if (LOGGER.isTraceEnabled())
-                                    LOGGER.trace("Skipping modification of " + name);
-                                modification.getPropertyModification().remove(pmt);
-                            }
-                        }
-                    }
-                }
-            }
-
-            // reduced modification
-            try {
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Modification without task execution information: " + JAXBUtil.marshalWrap(modification));
-                }
-            } catch (JAXBException e) {
-                e.printStackTrace();
-            }
-
-            if (!modification.getPropertyModification().isEmpty()) {
-                taskManager.modifyTask(modification, result);
-                FacesUtils.addSuccessMessage("Task modified successfully");
-            } else
-                FacesUtils.addSuccessMessage("You have done no modifications.");
+//            if (LOGGER.isTraceEnabled()) {
+//                LOGGER.trace("Modification:\n{}", delta.debugDump(3));
+//            }
+//            //todo fix task diffing
+//            // now let us remove OperationResult from the modification request
+//            // also remove other information about task execution
+//            for (PropertyModificationType pmt : new ArrayList<PropertyModificationType>(modification.getPropertyModification())) {
+//                if (pmt.getPath() != null) {
+//                    if (pmt.getPath().getTextContent().startsWith("c:result/") ||
+//                            pmt.getPath().getTextContent().equals("c:result")) {
+//                        modification.getPropertyModification().remove(pmt);
+//                    }
+//                }
+//                List<String> namesToRemove = new ArrayList<String>();
+//                namesToRemove.add("lastRunStartTimestamp");
+//                namesToRemove.add("lastRunFinishTimestamp");
+//                namesToRemove.add("progress");        // is this ok?
+//                namesToRemove.add("extension");        // is this ok?
+//
+//                if (pmt.getPath() == null || ".".equals(pmt.getPath().getTextContent())) {
+//                    List<Object> values = pmt.getValue().getAny();
+//                    if (values.size() == 1) {
+//                        Object value = values.get(0);
+//                        if (LOGGER.isTraceEnabled())
+//                            LOGGER.trace("Value: " + value + " (class: " + value.getClass().getName() + ")");
+//                        if (value instanceof Element) {
+//                            String name = ((Element) value).getLocalName();
+//                            if (namesToRemove.contains(name)) {
+//                                if (LOGGER.isTraceEnabled())
+//                                    LOGGER.trace("Skipping modification of " + name);
+//                                modification.getPropertyModification().remove(pmt);
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//
+//            // reduced modification
+//            try {
+//                if (LOGGER.isTraceEnabled()) {
+//                    LOGGER.trace("Modification without task execution information: " + JAXBUtil.marshalWrap(modification));
+//                }
+//            } catch (JAXBException e) {
+//                e.printStackTrace();
+//            }
+//
+//            if (!modification.getPropertyModification().isEmpty()) {
+//                taskManager.modifyTask(modification, result);
+//                FacesUtils.addSuccessMessage("Task modified successfully");
+//            } else{
+//                FacesUtils.addSuccessMessage("You have done no modifications.");
+//            }
 
             result.recordSuccess();
         } catch (ObjectNotFoundException ex) {
