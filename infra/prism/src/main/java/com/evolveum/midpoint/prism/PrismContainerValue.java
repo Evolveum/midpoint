@@ -406,6 +406,10 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
         return property;
     }
     
+    public boolean equivalent(PrismContainerValue<?> other) {
+        return equalsRealValue(other);
+    }
+    
 	@Override
 	public boolean equalsRealValue(PrismValue value) {
 		if (value instanceof PrismPropertyValue) {
@@ -590,11 +594,5 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
             }
         }
         return sb.toString();
-    }
-
-    @Deprecated
-    public boolean equivalent(PrismContainerValue<?> containerValue) {
-        //todo implement, experimental, used for xjc stuff with jaxb
-        throw new UnsupportedOperationException("not implemented yet.");
     }
 }

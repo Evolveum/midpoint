@@ -281,7 +281,6 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	 * These methods compare the "meaningful" parts of the objects.
 	 */
 	public boolean equivalent(Object obj) {
-		// Alibistic implementation for now. But shoudl work well.
 		if (this == obj)
 			return true;
 		if (getClass() != obj.getClass())
@@ -292,7 +291,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 				return false;
 		} else if (!oid.equals(other.oid))
 			return false;
-		ObjectDelta<T> delta = diff(other, false);
+		ObjectDelta<T> delta = diff(other, true);
 		return delta.isEmpty();
 	}
 

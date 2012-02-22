@@ -30,6 +30,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
@@ -58,6 +59,11 @@ public class TestJaxbSanity {
 		JAXBElement<UserType> userEl2 = JaxbTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),UserType.class);
 		UserType user2 = userEl2.getValue();
 		assertNotNull(user2);
+		
+		// Compare plain JAXB objects (not backed by containers)
+		AccountConstructionType ac1 = user1.getAssignment().get(0).getAccountConstruction();
+		AccountConstructionType ac2 = user2.getAssignment().get(0).getAccountConstruction();
+		assertTrue("AccountConstructionType not equals", ac1.equals(ac2));
 		
 		// WHEN, THEN
 		assertTrue("User not equals", user1.equals(user2));
