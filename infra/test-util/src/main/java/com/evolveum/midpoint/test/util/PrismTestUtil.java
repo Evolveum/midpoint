@@ -84,32 +84,16 @@ public class PrismTestUtil {
         prismContext.getPrismJaxbProcessor().marshalElementToDom(jaxbElement, parentNode);
     }
 
-    public static <T> JAXBElement<T> unmarshalElement(String xmlString) throws JAXBException {
-        return prismContext.getPrismJaxbProcessor().unmarshalElement(xmlString);
-    }
-
-    // Compatibility
     public static <T> JAXBElement<T> unmarshalElement(String xmlString, Class<T> type) throws JAXBException {
-        return prismContext.getPrismJaxbProcessor().unmarshalElement(xmlString);
+        return prismContext.getPrismJaxbProcessor().unmarshalElement(xmlString, type);
     }
     
-    public static <T> T unmarshalObject(File file) throws JAXBException {
-    	return prismContext.getPrismJaxbProcessor().unmarshalObject(file);
+    public static <T> T unmarshalObject(File file, Class<T> type) throws JAXBException {
+    	return prismContext.getPrismJaxbProcessor().unmarshalObject(file, type);
     }
     
-    public static <T> T unmarshalObject(String StringXml) throws JAXBException {
- //   	return prismContext.getPrismJaxbProcessor().unmarshalObject(StringXml);
-    	// TODO
-    	throw new UnsupportedOperationException();
-    }
-
-    public static <T> JAXBElement<T> unmarshalElement(File xmlFile) throws JAXBException {
-        return prismContext.getPrismJaxbProcessor().unmarshalElement(xmlFile);
-    }
-
-    // Compatibility
     public static <T> JAXBElement<T> unmarshalElement(File xmlFile, Class<T> type) throws JAXBException {
-        return prismContext.getPrismJaxbProcessor().unmarshalElement(xmlFile);
+        return prismContext.getPrismJaxbProcessor().unmarshalElement(xmlFile, type);
     }
     
     public static <T> Element marshalObjectToDom(T jaxbObject, QName elementQName, Document doc) throws JAXBException {

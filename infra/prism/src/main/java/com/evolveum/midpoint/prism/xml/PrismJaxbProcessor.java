@@ -272,7 +272,7 @@ public class PrismJaxbProcessor {
 	}
 
 
-	public <T> JAXBElement<T> unmarshalElement(String xmlString) throws JAXBException {
+	public <T> JAXBElement<T> unmarshalElement(String xmlString, Class<T> type) throws JAXBException {
 		if (xmlString == null) {
 			return null;
 		}
@@ -285,7 +285,7 @@ public class PrismJaxbProcessor {
 		StringReader reader = null;
 		try {
 			reader = new StringReader(xmlString); 
-			return unmarshalElement(reader);
+			return unmarshalElement(reader, type);
 		} finally {
 			if (reader != null) {
 				IOUtils.closeQuietly(reader);
@@ -293,41 +293,41 @@ public class PrismJaxbProcessor {
 		}
 	}
 	
-	public <T> JAXBElement<T> unmarshalElement(InputStream input) throws JAXBException {
+	public <T> JAXBElement<T> unmarshalElement(InputStream input, Class<T> type) throws JAXBException {
 		Object object = getUnmarshaller().unmarshal(input);
 		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
 		return jaxbElement;
 	}
 	
-	public <T> JAXBElement<T> unmarshalElement(Reader reader) throws JAXBException {
+	public <T> JAXBElement<T> unmarshalElement(Reader reader, Class<T> type) throws JAXBException {
 		Object object = getUnmarshaller().unmarshal(reader);
 		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
 		return jaxbElement;
 	}
 	
-	public <T> T unmarshalToObject(Node node) throws JAXBException {
-		JAXBElement<T> element = unmarshalElement(node);
+	public <T> T unmarshalToObject(Node node, Class<T> type) throws JAXBException {
+		JAXBElement<T> element = unmarshalElement(node, type);
 		if (element == null) {
 			return null;
 		}
 		return element.getValue();
 	}
 	
-	public <T> JAXBElement<T> unmarshalElement(Node node) throws JAXBException {
+	public <T> JAXBElement<T> unmarshalElement(Node node, Class<T> type) throws JAXBException {
 		Object object = createUnmarshaller().unmarshal(node);
 		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
 		return jaxbElement;
 	}
 	
-	public <T> T unmarshalObject(File file) throws JAXBException {
-		JAXBElement<T> element = unmarshalElement(file);
+	public <T> T unmarshalObject(File file, Class<T> type) throws JAXBException {
+		JAXBElement<T> element = unmarshalElement(file, type);
 		if (element == null) {
 			return null;
 		}
 		return element.getValue();
 	}
 	
-	public <T> JAXBElement<T> unmarshalElement(File file) throws JAXBException {
+	public <T> JAXBElement<T> unmarshalElement(File file, Class<T> type) throws JAXBException {
 		if (file == null) {
 			throw new IllegalArgumentException("File argument must not be null.");
 		}
@@ -436,7 +436,7 @@ public class PrismJaxbProcessor {
 		
 		if (element instanceof Element) {
 			try {
-				JAXBElement<T> unmarshalledElement = unmarshalElement((Element)element);
+				JAXBElement<T> unmarshalledElement = unmarshalElement((Element)element, type);
 				return unmarshalledElement.getValue();
 			} catch (JAXBException e) {
 				throw new IllegalArgumentException("Unmarshall failed: " + e.getMessage(),e);

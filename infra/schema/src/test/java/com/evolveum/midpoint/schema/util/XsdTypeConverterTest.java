@@ -92,9 +92,9 @@ public class XsdTypeConverterTest {
 	@Test
 	public void testAccountMarshall() throws JAXBException, SchemaException {
 		System.out.println("===[ testAccountMarshall ]===");
-		JAXBElement jaxbElement = (JAXBElement)JaxbTestUtil.unmarshalElement(new File("src/test/resources/converter/account-jack.xml"));
+		JAXBElement<AccountShadowType> jaxbElement = JaxbTestUtil.unmarshalElement(new File("src/test/resources/converter/account-jack.xml"), AccountShadowType.class);
 		System.out.println("Object: "+jaxbElement.getValue());
-		AccountShadowType shadow = (AccountShadowType)jaxbElement.getValue();
+		AccountShadowType shadow = jaxbElement.getValue();
 		
 		ProtectedStringType ps = new ProtectedStringType();
 		ps.setClearValue("foo");

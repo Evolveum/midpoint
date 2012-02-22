@@ -47,22 +47,12 @@ public class JaxbTestUtil {
         prismContext.getPrismJaxbProcessor().marshalElementToDom(jaxbElement, parentNode);
     }
 
-    public static <T> JAXBElement<T> unmarshalElement(String xmlString) throws JAXBException {
-        return prismContext.getPrismJaxbProcessor().unmarshalElement(xmlString);
-    }
-
-    // Compatibility
     public static <T> JAXBElement<T> unmarshalElement(String xmlString, Class<T> type) throws JAXBException {
-        return prismContext.getPrismJaxbProcessor().unmarshalElement(xmlString);
+        return prismContext.getPrismJaxbProcessor().unmarshalElement(xmlString, type);
     }
 
-    public static <T> JAXBElement<T> unmarshalElement(File xmlFile) throws JAXBException {
-        return prismContext.getPrismJaxbProcessor().unmarshalElement(xmlFile);
-    }
-
-    // Compatibility
     public static <T> JAXBElement<T> unmarshalElement(File xmlFile, Class<T> type) throws JAXBException {
-        return prismContext.getPrismJaxbProcessor().unmarshalElement(xmlFile);
+        return prismContext.getPrismJaxbProcessor().unmarshalElement(xmlFile, type);
     }
 
     public static String marshalToString(Objectable objectable) throws JAXBException {

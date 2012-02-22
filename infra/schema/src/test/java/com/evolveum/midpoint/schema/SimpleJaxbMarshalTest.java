@@ -48,7 +48,7 @@ public class SimpleJaxbMarshalTest {
                 UserType.class);
         UserType user1 = element.getValue();
         
-        element = JaxbTestUtil.unmarshalElement(JaxbTestUtil.marshalToString(user1));
+        element = JaxbTestUtil.unmarshalElement(JaxbTestUtil.marshalToString(user1), UserType.class);
         UserType user2 = element.getValue();
 
         assertEquals("Users not same (UserType)", user1, user2);
@@ -67,7 +67,7 @@ public class SimpleJaxbMarshalTest {
         ref.setType(AccountShadowType.COMPLEX_TYPE);
         user.getAccountRef().add(ref);
 
-        JAXBElement<UserType> element = JaxbTestUtil.unmarshalElement(JaxbTestUtil.marshalToString(user));
+        JAXBElement<UserType> element = JaxbTestUtil.unmarshalElement(JaxbTestUtil.marshalToString(user), UserType.class);
         UserType user1 = element.getValue();
         assertEquals(user.getOid(), user1.getOid());
         assertEquals(user.getGivenName(), user1.getGivenName());
