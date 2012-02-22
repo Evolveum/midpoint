@@ -33,8 +33,6 @@ import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -48,7 +46,6 @@ import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.util.*;
 
@@ -135,79 +132,82 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 
             LOGGER.trace("USER FORM delta:\n{}", userDelta.dump());
 
-            ObjectModificationType changes = userDelta.toObjectModificationType();
-
-            //todo XXX: MEGA HACK
-
-            // Account add and account delete are doing "together" with user modify now, so they
-            // will be properly linked/unlinked "inside" the operation. FIXME: is this correct?
-
-            List<AccountShadowDto> newAccounts = changedObject.getAccount();
-            if (newAccounts != null) {
-                for (AccountShadowDto account : newAccounts) {
-                    if (account.getOid() == null) {
-                        // This has to mean that the account is being created
-                        accontAdd(changes, account.getXmlObject());
-                    } else if (hasAccount(oldUser.getXmlObject(), account.getOid())) {
-                        // modification?
-
-                    } else {
-                        // also creating an account
-                        accontAdd(changes, account.getXmlObject());
-                    }
-                }
+            if (!userDelta.isEmpty()) {
+                getModel().modifyObject(UserType.class, userDelta.getOid(),  userDelta.getModifications(), task, result);
             }
+            //todo this magic was commented out during refactor, will be fixed later by somebody :)
 
-            List<AccountShadowDto> oldAccounts = oldUser.getAccount();
-            if (oldAccounts != null) {
-                for (AccountShadowDto account : oldAccounts) {
-                    if (account.getOid() == null) {
-                        // This has to mean that the account is being created
-                        accontDelete(changes, account.getXmlObject());
-                    } else if (hasAccount(changedObject.getXmlObject(), account.getOid())) {
-                        // no change in account links
-
-                    } else {
-                        // also creating an account
-                        accontDelete(changes, account.getXmlObject());
-                    }
-                }
-            }
-
-            //todo XXX: MEGA HACK END
-
-//            ObjectModificationType changes1 = CalculateXmlDiff.calculateChanges(oldUser.getXmlObject(),
-//                    changedObject.getXmlObject());
-
-
-            //process user changes
-            if (changes != null) {
-                if (passwordChange != null) {
-                    if (changes.getOid() == null) {
-                        changes.setOid(changedObject.getXmlObject().getOid());
-                    }
-                    changes.getPropertyModification().add(passwordChange);
-                }
-                if (changes.getOid() != null && changes.getPropertyModification().size() > 0) {
-                    getModel().modifyObject(UserType.class, changes, task, result);
-                }
-
-            }
-
-            //TODO: probably, this is not needed more, test and remove this if isn't needed
-            if (null != changes) {
-                set = new HashSet<PropertyChange>();
-                // TODO: finish this
-                List<PropertyModificationType> modifications = changes.getPropertyModification();
-                for (PropertyModificationType modification : modifications) {
-                    Set<Object> values = new HashSet<Object>();
-                    if (modification.getValue() != null) {
-                        values.addAll(modification.getValue().getAny());
-                    }
-                    set.add(new PropertyChange(createQName(modification.getPath()),
-                            getChangeType(modification.getModificationType()), values));
-                }
-            }
+//            //todo XXX: MEGA HACK
+//
+//            // Account add and account delete are doing "together" with user modify now, so they
+//            // will be properly linked/unlinked "inside" the operation. FIXME: is this correct?
+//
+//            List<AccountShadowDto> newAccounts = changedObject.getAccount();
+//            if (newAccounts != null) {
+//                for (AccountShadowDto account : newAccounts) {
+//                    if (account.getOid() == null) {
+//                        // This has to mean that the account is being created
+//                        accontAdd(changes, account.getXmlObject());
+//                    } else if (hasAccount(oldUser.getXmlObject(), account.getOid())) {
+//                        // modification?
+//
+//                    } else {
+//                        // also creating an account
+//                        accontAdd(changes, account.getXmlObject());
+//                    }
+//                }
+//            }
+//
+//            List<AccountShadowDto> oldAccounts = oldUser.getAccount();
+//            if (oldAccounts != null) {
+//                for (AccountShadowDto account : oldAccounts) {
+//                    if (account.getOid() == null) {
+//                        // This has to mean that the account is being created
+//                        accontDelete(changes, account.getXmlObject());
+//                    } else if (hasAccount(changedObject.getXmlObject(), account.getOid())) {
+//                        // no change in account links
+//
+//                    } else {
+//                        // also creating an account
+//                        accontDelete(changes, account.getXmlObject());
+//                    }
+//                }
+//            }
+//
+//            //todo XXX: MEGA HACK END
+//
+////            ObjectModificationType changes1 = CalculateXmlDiff.calculateChanges(oldUser.getXmlObject(),
+////                    changedObject.getXmlObject());
+//
+//
+//            //process user changes
+//            if (changes != null) {
+//                if (passwordChange != null) {
+//                    if (changes.getOid() == null) {
+//                        changes.setOid(changedObject.getXmlObject().getOid());
+//                    }
+//                    changes.getPropertyModification().add(passwordChange);
+//                }
+//                if (changes.getOid() != null && changes.getPropertyModification().size() > 0) {
+//                    getModel().modifyObject(UserType.class, changes, task, result);
+//                }
+//
+//            }
+//
+//            //TODO: probably, this is not needed more, test and remove this if isn't needed
+//            if (null != changes) {
+//                set = new HashSet<PropertyChange>();
+//                // TODO: finish this
+//                List<PropertyModificationType> modifications = changes.getPropertyModification();
+//                for (PropertyModificationType modification : modifications) {
+//                    Set<Object> values = new HashSet<Object>();
+//                    if (modification.getValue() != null) {
+//                        values.addAll(modification.getValue().getAny());
+//                    }
+//                    set.add(new PropertyChange(createQName(modification.getPath()),
+//                            getChangeType(modification.getModificationType()), values));
+//                }
+//            }
 
             result.recordSuccess();
 
@@ -239,25 +239,25 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
         return false;
     }
 
-    private void accontAdd(ObjectModificationType changes, AccountShadowType xmlObject) throws JAXBException {
-        Element element = JAXBUtil.jaxbToDom(xmlObject, SchemaConstants.I_ACCOUNT,
-                DOMUtil.getDocument());
-
-        PropertyModificationType propertyModification = ObjectTypeUtil.createPropertyModificationType(
-                PropertyModificationTypeType.add, null, element);
-        changes.getPropertyModification().add(propertyModification);
-
-    }
-
-    private void accontDelete(ObjectModificationType changes, AccountShadowType xmlObject) throws JAXBException {
-        Element element = JAXBUtil.jaxbToDom(xmlObject, SchemaConstants.I_ACCOUNT,
-                DOMUtil.getDocument());
-
-        PropertyModificationType propertyModification = ObjectTypeUtil.createPropertyModificationType(
-                PropertyModificationTypeType.delete, null, element);
-        changes.getPropertyModification().add(propertyModification);
-
-    }
+//    private void accontAdd(ObjectModificationType changes, AccountShadowType xmlObject) throws JAXBException {
+//        Element element = JAXBUtil.jaxbToDom(xmlObject, SchemaConstants.I_ACCOUNT,
+//                DOMUtil.getDocument());
+//
+//        PropertyModificationType propertyModification = ObjectTypeUtil.createPropertyModificationType(
+//                PropertyModificationTypeType.add, null, element);
+//        changes.getPropertyModification().add(propertyModification);
+//
+//    }
+//
+//    private void accontDelete(ObjectModificationType changes, AccountShadowType xmlObject) throws JAXBException {
+//        Element element = JAXBUtil.jaxbToDom(xmlObject, SchemaConstants.I_ACCOUNT,
+//                DOMUtil.getDocument());
+//
+//        PropertyModificationType propertyModification = ObjectTypeUtil.createPropertyModificationType(
+//                PropertyModificationTypeType.delete, null, element);
+//        changes.getPropertyModification().add(propertyModification);
+//
+//    }
 
     @Override
     public String add(GuiUserDto object) {

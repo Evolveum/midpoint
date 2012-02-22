@@ -21,31 +21,19 @@
 
 package com.evolveum.midpoint.web.bean;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import it.sauronsoftware.cron4j.InvalidPatternException;
+import org.apache.commons.lang.time.DurationFormatUtils;
 
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
-
-import org.apache.commons.lang.time.DurationFormatUtils;
-
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.ExtensionProcessor;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskBinding;
-import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 public class TaskItem extends SelectableBean {
 
@@ -223,15 +211,12 @@ public class TaskItem extends SelectableBean {
             taskType.setResult(getResult().createOperationResultType());
         }
         if (getExtension() != null) {
-            try {
-                Extension extension = new Extension();
-                List<Object> extensionProperties = getExtension()
-                        .serializePropertiesToJaxb(DOMUtil.getDocument());
-                extension.getAny().addAll(extensionProperties);
-                taskType.setExtension(extension);
-            } catch (SchemaException ex) {
-                // TODO: error handling
+            Extension extension = new Extension();
+            List<PrismContainerValue> values = getExtension().getValues();
+            for (PrismContainerValue value :values) {
+                extension.asPrismContainer().add(value);
             }
+            taskType.setExtension(extension);
         }
 
         taskType.setProgress(BigInteger.valueOf(getProgress()));
