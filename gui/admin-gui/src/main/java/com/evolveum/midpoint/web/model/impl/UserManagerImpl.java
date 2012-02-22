@@ -22,6 +22,7 @@ package com.evolveum.midpoint.web.model.impl;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -44,8 +44,6 @@ import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.dto.*;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
-
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
@@ -126,55 +124,56 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
             }
 
             //detect other changes
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("USER FORM old:\n{}", oldUser.toString());
+                LOGGER.trace("USER FORM changed:\n{}", oldUser.toString());
+            }
 
-            LOGGER.trace("USER FORM old:\n{}",JAXBUtil.marshalWrap(oldUser.getXmlObject()));
-            LOGGER.trace("USER FORM changed:\n{}",JAXBUtil.marshalWrap(changedObject.getXmlObject()));
-            
             ObjectDelta<UserType> userDelta = DiffUtil.diff(
                     oldUser.getXmlObject(), changedObject.getXmlObject(),
                     UserType.class, schemaRegistry.getObjectSchema());
-            
-            LOGGER.trace("USER FORM delta:\n{}",userDelta.dump());
+
+            LOGGER.trace("USER FORM delta:\n{}", userDelta.dump());
 
             ObjectModificationType changes = userDelta.toObjectModificationType();
-            
+
             //todo XXX: MEGA HACK
-            
+
             // Account add and account delete are doing "together" with user modify now, so they
             // will be properly linked/unlinked "inside" the operation. FIXME: is this correct?
-            
+
             List<AccountShadowDto> newAccounts = changedObject.getAccount();
-            if (newAccounts != null) {                
+            if (newAccounts != null) {
                 for (AccountShadowDto account : newAccounts) {
-                	if (account.getOid() == null) {
-                		// This has to mean that the account is being created
-                		accontAdd(changes, account.getXmlObject());
-                	} else if (hasAccount(oldUser.getXmlObject(), account.getOid())) {
-                		// modification?
-                		
-                	} else {
-                		// also creating an account
-                		accontAdd(changes, account.getXmlObject());
-                	}
+                    if (account.getOid() == null) {
+                        // This has to mean that the account is being created
+                        accontAdd(changes, account.getXmlObject());
+                    } else if (hasAccount(oldUser.getXmlObject(), account.getOid())) {
+                        // modification?
+
+                    } else {
+                        // also creating an account
+                        accontAdd(changes, account.getXmlObject());
+                    }
                 }
             }
-            
+
             List<AccountShadowDto> oldAccounts = oldUser.getAccount();
-            if (oldAccounts != null) {                
+            if (oldAccounts != null) {
                 for (AccountShadowDto account : oldAccounts) {
-                	if (account.getOid() == null) {
-                		// This has to mean that the account is being created
-                		accontDelete(changes, account.getXmlObject());
-                	} else if (hasAccount(changedObject.getXmlObject(), account.getOid())) {
-                		// no change in account links
-                		
-                	} else {
-                		// also creating an account
-                		accontDelete(changes, account.getXmlObject());
-                	}
+                    if (account.getOid() == null) {
+                        // This has to mean that the account is being created
+                        accontDelete(changes, account.getXmlObject());
+                    } else if (hasAccount(changedObject.getXmlObject(), account.getOid())) {
+                        // no change in account links
+
+                    } else {
+                        // also creating an account
+                        accontDelete(changes, account.getXmlObject());
+                    }
                 }
             }
-            
+
             //todo XXX: MEGA HACK END
 
 //            ObjectModificationType changes1 = CalculateXmlDiff.calculateChanges(oldUser.getXmlObject(),
@@ -209,7 +208,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
                             getChangeType(modification.getModificationType()), values));
                 }
             }
-            	        
+
             result.recordSuccess();
 
         } catch (Exception ex) {
@@ -219,48 +218,48 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
         }
 
         result.computeStatus();
-                
+
 //		ControllerUtil.printResults(LOGGER, result);
 
         return set;
     }
 
 
-	private boolean hasAccount(UserType user, String oid) {
-		for (AccountShadowType account: user.getAccount()) {
-			if (oid.equals(account.getOid())) {
-				return true;
-			}
-		}
-		for (ObjectReferenceType ref: user.getAccountRef()) {
-			if (oid.equals(ref.getOid())) {
-				return true;
-			}
-		}
-		return false;
-	}
+    private boolean hasAccount(UserType user, String oid) {
+        for (AccountShadowType account : user.getAccount()) {
+            if (oid.equals(account.getOid())) {
+                return true;
+            }
+        }
+        for (ObjectReferenceType ref : user.getAccountRef()) {
+            if (oid.equals(ref.getOid())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-	private void accontAdd(ObjectModificationType changes, AccountShadowType xmlObject) throws JAXBException {
-		Element element = JAXBUtil.jaxbToDom(xmlObject, SchemaConstants.I_ACCOUNT,
+    private void accontAdd(ObjectModificationType changes, AccountShadowType xmlObject) throws JAXBException {
+        Element element = JAXBUtil.jaxbToDom(xmlObject, SchemaConstants.I_ACCOUNT,
                 DOMUtil.getDocument());
-        
+
         PropertyModificationType propertyModification = ObjectTypeUtil.createPropertyModificationType(
                 PropertyModificationTypeType.add, null, element);
         changes.getPropertyModification().add(propertyModification);
 
-	}
+    }
 
-	private void accontDelete(ObjectModificationType changes, AccountShadowType xmlObject) throws JAXBException {
-		Element element = JAXBUtil.jaxbToDom(xmlObject, SchemaConstants.I_ACCOUNT,
+    private void accontDelete(ObjectModificationType changes, AccountShadowType xmlObject) throws JAXBException {
+        Element element = JAXBUtil.jaxbToDom(xmlObject, SchemaConstants.I_ACCOUNT,
                 DOMUtil.getDocument());
-        
+
         PropertyModificationType propertyModification = ObjectTypeUtil.createPropertyModificationType(
                 PropertyModificationTypeType.delete, null, element);
         changes.getPropertyModification().add(propertyModification);
 
-	}
+    }
 
-	@Override
+    @Override
     public String add(GuiUserDto object) {
         Validate.notNull(object);
         try {
@@ -276,7 +275,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
     public AccountShadowDto addAccount(UserDto userDto, String resourceOid) {
         AccountShadowDto accountShadowDto = new AccountShadowDto();
         AccountShadowType accountShadowType = new AccountShadowType();
-        accountShadowType.setAttributes(new Attributes());
+        accountShadowType.setAttributes(new ResourceObjectShadowAttributesType());
 
         ResourceManager manager = (ResourceManager) objectTypeCatalog.getObjectManager(ResourceType.class,
                 GuiResourceDto.class);
@@ -304,9 +303,9 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
         OperationResult result = new OperationResult(SEARCH);
         List<UserDto> users = new ArrayList<UserDto>();
         try {
-            List<UserType> list = getModel().searchObjects(UserType.class, search, paging, result);
-            for (UserType user : list) {
-                UserDto userDto = createObject(user);
+            List<PrismObject<UserType>> list = getModel().searchObjects(UserType.class, search, paging, result);
+            for (PrismObject<UserType> object : list) {
+                UserDto userDto = createObject(object.asObjectable());
                 users.add(userDto);
             }
         } catch (Exception ex) {

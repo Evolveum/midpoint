@@ -33,6 +33,7 @@ import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -105,6 +106,8 @@ public class UserDetailsController implements Serializable {
 	private transient Protector protector;
 	@Autowired(required = true)
 	private transient TaskManager taskManager;
+    @Autowired(required = true)
+    private transient PrismContext prismContext;
 	
 	private boolean editMode = false;
 	private GuiUserDto user;
@@ -241,7 +244,7 @@ public class UserDetailsController implements Serializable {
 		Task task = taskManager.createTaskInstance("Save User Changes");
 		SecurityUtils security = new SecurityUtils();
 		PrincipalUser principal = security.getPrincipalUser();
-        task.setOwner(principal.getUser());
+        task.setOwner(principal.getUser().asPrismObject());
 		OperationResult result = task.getResult();
 		
 		if (user != null) {
@@ -607,7 +610,7 @@ public class UserDetailsController implements Serializable {
 		ResourceCapability capability = null;
 		try {
 			SchemaFormParser parser = new SchemaFormParser();
-			object = parser.parseSchemaForAccount(account, accountType);
+			object = parser.parseSchemaForAccount(account, accountType, prismContext);
 			AccountManager manager = ControllerUtil.getAccountManager(objectTypeCatalog);
 			capability = manager.getResourceCapability(account);
 			// capability.setActivation(account.getActivation().isEnabled());

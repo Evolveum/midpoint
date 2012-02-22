@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Document;
 
@@ -32,71 +33,72 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 
 public class SystemManagerImpl extends ObjectManagerImpl<SystemConfigurationType, SystemConfigurationDto>
-		implements SystemManager {
+        implements SystemManager {
 
-	private static final long serialVersionUID = 7510934216789096238L;
+    private static final long serialVersionUID = 7510934216789096238L;
 
-	@Autowired(required=true)
-	TaskManager taskManager;
-	
-	@Override
-	public Collection<SystemConfigurationDto> list(PagingType paging) {
-		SystemConfigurationType config = null;
-		try {
-			config = get(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-					new PropertyReferenceListType());
-		} catch (ObjectNotFoundException ex) {
-			// TODO: error handling
-			throw new SystemException(ex);
-		}
+    @Autowired(required = true)
+    TaskManager taskManager;
 
-		Collection<SystemConfigurationDto> collection = new ArrayList<SystemConfigurationDto>();
-		if (config != null) {
-			collection.add(createObject(config));
-		}
+    @Override
+    public Collection<SystemConfigurationDto> list(PagingType paging) {
+        SystemConfigurationType config = null;
+        try {
+            PrismObject<SystemConfigurationType> object = get(SystemConfigurationType.class,
+                    SystemObjectsType.SYSTEM_CONFIGURATION.value(), new PropertyReferenceListType());
+            config = object.asObjectable();
+        } catch (ObjectNotFoundException ex) {
+            // TODO: error handling
+            throw new SystemException(ex);
+        }
 
-		return collection;
-	}
+        Collection<SystemConfigurationDto> collection = new ArrayList<SystemConfigurationDto>();
+        if (config != null) {
+            collection.add(createObject(config));
+        }
 
-	@Override
-	protected Class<? extends ObjectType> getSupportedObjectClass() {
-		return SystemConfigurationType.class;
-	}
+        return collection;
+    }
 
-	@Override
-	protected SystemConfigurationDto createObject(SystemConfigurationType objectType) {
-		return new SystemConfigurationDto(objectType);
-	}
+    @Override
+    protected Class<? extends ObjectType> getSupportedObjectClass() {
+        return SystemConfigurationType.class;
+    }
 
-	@Override
-	public Set<PropertyChange> submit(SystemConfigurationDto changedObject, Task task, OperationResult parentResult) {
-		throw new UnsupportedOperationException("Not implemented yet.");
-	}
+    @Override
+    protected SystemConfigurationDto createObject(SystemConfigurationType objectType) {
+        return new SystemConfigurationDto(objectType);
+    }
 
-	@Override
-	public boolean updateLoggingConfiguration(LoggingConfigurationType configuration) {
-		boolean updated = false;
-		Task task = taskManager.createTaskInstance(UPDATE_LOGGING_CONFIGURATION);
-		OperationResult result = task.getResult();
-		try {
-			String xml = JAXBUtil.marshalWrap(configuration, SchemaConstants.LOGGING);
-			Document document = DOMUtil.parseDocument(xml);
+    @Override
+    public Set<PropertyChange> submit(SystemConfigurationDto changedObject, Task task, OperationResult parentResult) {
+        throw new UnsupportedOperationException("Not implemented yet.");
+    }
 
-			List<XPathSegment> segments = new ArrayList<XPathSegment>();
-			XPathHolder xpath = new XPathHolder(segments);
+    @Override
+    public boolean updateLoggingConfiguration(LoggingConfigurationType configuration) {
+        boolean updated = false;
+        Task task = taskManager.createTaskInstance(UPDATE_LOGGING_CONFIGURATION);
+        OperationResult result = task.getResult();
+        try {
+            String xml = JAXBUtil.marshalWrap(configuration, SchemaConstants.LOGGING);
+            Document document = DOMUtil.parseDocument(xml);
 
-			ObjectModificationType change = new ObjectModificationType();
-			change.setOid(SystemObjectsType.SYSTEM_CONFIGURATION.value());
-			change.getPropertyModification().add(
-					ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace,
-							xpath, document.getDocumentElement()));
+            List<XPathSegment> segments = new ArrayList<XPathSegment>();
+            XPathHolder xpath = new XPathHolder(segments);
 
-			getModel().modifyObject(SystemConfigurationType.class, change, task, result);
-			updated = true;
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
+            ObjectModificationType change = new ObjectModificationType();
+            change.setOid(SystemObjectsType.SYSTEM_CONFIGURATION.value());
+            change.getPropertyModification().add(
+                    ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace,
+                            xpath, document.getDocumentElement()));
 
-		return updated;
-	}
+            getModel().modifyObject(SystemConfigurationType.class, change, task, result);
+            updated = true;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return updated;
+    }
 }

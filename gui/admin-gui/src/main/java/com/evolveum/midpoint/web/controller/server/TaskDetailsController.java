@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.controller.server;
 
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -222,7 +223,7 @@ public class TaskDetailsController implements Serializable {
         OperationResult result = new OperationResult(TaskDetailsController.class.getName() + ".modifyTask");
         try {
 //            task.setObjectRef(getRefFromName(getSelectedResurceRef()));
-            TaskType oldObject = taskManager.getTask(task.getOid(), result).getTaskPrismObject();
+            PrismObject<TaskType> oldObject = taskManager.getTask(task.getOid(), result).getTaskPrismObject();
             TaskType newObject = task.toTaskType();
             
             ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldObject,
@@ -230,11 +231,8 @@ public class TaskDetailsController implements Serializable {
 
             //todo fix this modification cleanup mess - remove calculate diff later...
             // original modification
-            try {
-                if (LOGGER.isTraceEnabled())
-                    LOGGER.trace("Modification: " + JAXBUtil.marshalWrap(modification));
-            } catch (JAXBException e) {
-                e.printStackTrace();
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Modification:\n{}", JAXBUtil.marshalWrap(modification));
             }
 
             // now let us remove OperationResult from the modification request
@@ -296,12 +294,6 @@ public class TaskDetailsController implements Serializable {
             result.recordFatalError("Couldn't modify task. Reason: " + ex.getMessage(), ex);
             FacesUtils.addErrorMessage("Couldn't modify task. Reason: " + ex.getMessage(), ex);
             return null;
-        } catch (DiffException ex) {
-            result.recordFatalError("Couldn't get object change for task " + task.getName() + ". Reason: "
-                    + ex.getMessage(), ex);
-            FacesUtils.addErrorMessage("Couldn't get object change for task " + task.getName() + ". Reason: "
-                    + ex.getMessage(), ex);
-            return null;
         } catch (InvalidPatternException ex) {
             result.recordFatalError("Cron-like scheduling pattern is invalid: "
                     + ex.getMessage(), ex);
@@ -326,7 +318,7 @@ public class TaskDetailsController implements Serializable {
     		PrincipalUser principal = security.getPrincipalUser();
             task.setOwner(principal.getUser());
             
-            taskManager.addTask(task.toTaskType(), result);
+            taskManager.addTask(task.toTaskType().asPrismObject(), result);
             FacesUtils.addSuccessMessage("Task added successfully");
             result.recordSuccess();
         } catch (InvalidPatternException ex) {

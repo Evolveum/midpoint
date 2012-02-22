@@ -30,6 +30,7 @@ import java.util.Set;
 import javax.faces.event.ActionEvent;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -92,6 +93,9 @@ public class EndUserDetailsController implements Serializable {
 	private transient AssignmentEditor<UserDto> assignmentEditor;
 	@Autowired(required = true)
 	private transient TaskManager taskManager;
+    @Autowired(required = true)
+    private transient PrismContext prismContext;
+    @Autowired(required = true)
 	private Protector protector;
 	private List<AccountFormBean> accountList;
 	private List<AccountFormBean> accountListDeleted = new ArrayList<AccountFormBean>();
@@ -400,7 +404,7 @@ public class EndUserDetailsController implements Serializable {
 		ResourceCapability capability = null;
 		try {
 			SchemaFormParser parser = new SchemaFormParser();
-			object = parser.parseSchemaForAccount(account, accountType);
+			object = parser.parseSchemaForAccount(account, accountType, prismContext);
 			AccountManager manager = ControllerUtil.getAccountManager(objectTypeCatalog);
 			capability = manager.getResourceCapability(account);
 			// capability.setActivation(account.getActivation().isEnabled());

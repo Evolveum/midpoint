@@ -20,16 +20,7 @@
  */
 package com.evolveum.midpoint.web.model.impl;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -38,35 +29,25 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.bean.AccountFormBean;
 import com.evolveum.midpoint.web.bean.ResourceCapability;
-import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.AccountManager;
-import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.ObjectReferenceDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.*;
 
 /**
  * @author lazyman
@@ -255,7 +236,8 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
         UserType user = null;
         OperationResult result = new OperationResult(AccountManager.SUBMIT);
         try {
-            user = getModel().listAccountShadowOwner(oid, result);
+            PrismObject<UserType> object = getModel().listAccountShadowOwner(oid, result);
+            user = object.asObjectable();
             result.recordSuccess();
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't list owner of account oid {}", ex, oid);
@@ -274,9 +256,9 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
             ResourceDto resource = account.getResource();
             if (resource == null) {
                 ObjectReferenceDto ref = account.getResourceRef();
-                ResourceType resourceType = get(ResourceType.class, ref.getOid(),
+                PrismObject<ResourceType> object = get(ResourceType.class, ref.getOid(),
                         new PropertyReferenceListType());
-                resource = new ResourceDto(resourceType);
+                resource = new ResourceDto(object.asObjectable());
             }
 
             capability
