@@ -127,7 +127,7 @@ public class PrismDomProcessor {
 		if (objectDefinition == null) {
 			throw new SchemaException("No object definition for element "+elementName+" in schema "+schema);
 		}
-		PrismObject<T> object = parsePrismContainer(objectElement, objectDefinition);
+		PrismObject<T> object = (PrismObject<T>) parsePrismContainer(objectElement, objectDefinition);
 		String oid = objectElement.getAttribute(PrismConstants.ATTRIBUTE_OID_LOCAL_NAME);
 		object.setOid(oid);
 		String version = objectElement.getAttribute(PrismConstants.ATTRIBUTE_VERSION_LOCAL_NAME);
@@ -147,15 +147,15 @@ public class PrismDomProcessor {
 		return parsePrismContainer(domElement, propertyContainerDefinition);
 	}
 
-	private <T extends PrismContainer> T parsePrismContainer(Element domElement, PrismContainerDefinition propertyContainerDefinition) throws SchemaException {
+	private PrismContainer parsePrismContainer(Element domElement, PrismContainerDefinition propertyContainerDefinition) throws SchemaException {
 		List<Element> valueElements = new ArrayList<Element>(1);
 		valueElements.add(domElement);
 		return parsePrismContainer(valueElements, propertyContainerDefinition);
 	}
 
-	private <T extends PrismContainer> T parsePrismContainer(List<Element> valueElements, PrismContainerDefinition containerDefinition) throws SchemaException {
+	private PrismContainer parsePrismContainer(List<Element> valueElements, PrismContainerDefinition containerDefinition) throws SchemaException {
 		QName elementQName = DOMUtil.getQName(valueElements.get(0));
-        T container = (T) containerDefinition.instantiate(elementQName);
+		PrismContainer container = containerDefinition.instantiate(elementQName);
         for (Element element: valueElements) {
         	String id = getContainerId(element);
         	PrismContainerValue pval = new PrismContainerValue(null, null, container, id);
