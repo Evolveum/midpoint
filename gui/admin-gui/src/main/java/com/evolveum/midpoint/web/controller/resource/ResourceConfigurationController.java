@@ -20,12 +20,7 @@
  */
 package com.evolveum.midpoint.web.controller.resource;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Controller;
-
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.web.bean.ResourceConfigFormBean;
 import com.evolveum.midpoint.web.controller.util.WizardPage;
 import com.evolveum.midpoint.web.jsf.form.FormObject;
@@ -33,12 +28,20 @@ import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SchemaFormParser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfigurationType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Controller("resourceConfiguration")
 @Scope("session")
 public class ResourceConfigurationController extends WizardPage {
 
 	private static final long serialVersionUID = 3516650461724866075L;
+    @Autowired(required = true)
+    private transient PrismContext prismContext;
 	private List<ResourceConfigFormBean> configurationList;
 
 	public ResourceConfigurationController() {
@@ -73,7 +76,7 @@ public class ResourceConfigurationController extends WizardPage {
 
 		try {
 			SchemaFormParser parser = new SchemaFormParser();
-			List<FormObject> objects = parser.parseSchemaForConnector(connector, configuration);
+			List<FormObject> objects = parser.parseSchemaForConnector(connector, configuration, prismContext);
 			int id = 0;
 			for (FormObject object : objects) {
 				getConfigurationList().add(

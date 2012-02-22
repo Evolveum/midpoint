@@ -22,18 +22,16 @@
 
 package com.evolveum.midpoint.web.model.dto;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import org.w3c.dom.Element;
+
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import javax.xml.namespace.QName;
-
-import org.w3c.dom.Element;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 
 /**
  * 
@@ -84,10 +82,10 @@ public class ResourceObjectShadowDto<T extends ResourceObjectShadowType> extends
 	}
 
 	public void setAttributes(List<Element> attributes) {
-		ResourceObjectShadowType.Attributes attrElement = getXmlObject().getAttributes();
+		 ResourceObjectShadowAttributesType attrElement = getXmlObject().getAttributes();
 		if (attrElement == null) {
 			ObjectFactory of = new ObjectFactory();
-			attrElement = of.createResourceObjectShadowTypeAttributes();
+			attrElement = new ResourceObjectShadowAttributesType();
 			getXmlObject().setAttributes(attrElement);
 		}
 

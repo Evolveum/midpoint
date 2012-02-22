@@ -88,7 +88,7 @@ public class TaskItem extends SelectableBean {
             this.objectRef = null;
         this.oid = task.getOid();
         this.name = task.getName();
-        this.owner = task.getOwner();
+        this.owner = task.getOwner().asObjectable();
         this.lastRunStartTimestampLong = task.getLastRunStartTimestamp();
         this.lastRunFinishTimestampLong = task.getLastRunFinishTimestamp();
         this.nextRunStartTimeLong = task.getNextRunStartTime();
@@ -172,13 +172,7 @@ public class TaskItem extends SelectableBean {
                     .getResult());
         }
         if (taskType.getExtension() != null) {
-            try {
-                this.extension = ExtensionProcessor.parseExtension(taskType
-                        .getExtension());
-            } catch (SchemaException e) {
-                // FIXME: this is probably wrong
-                throw new IllegalArgumentException(e.getMessage(), e);
-            }
+            this.extension = taskType.getExtension().asPrismContainer();
         }
     }
 

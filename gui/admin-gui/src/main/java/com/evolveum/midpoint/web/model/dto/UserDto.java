@@ -81,13 +81,13 @@ public class UserDto extends ExtensibleObjectDto<UserType> implements ContainsAs
     }
 
     public void setEmail(String email) {
-        List<String> list = getXmlObject().getEMailAddress();
+        List<String> list = getXmlObject().getEmailAddress();
         list.clear();
         list.add(email);
     }
 
     public String getEmail() {
-        List<String> list = getXmlObject().getEMailAddress();
+        List<String> list = getXmlObject().getEmailAddress();
         if (list.size() == 0) {
             return null;
         }
