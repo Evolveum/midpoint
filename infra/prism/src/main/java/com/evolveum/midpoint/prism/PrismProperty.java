@@ -297,6 +297,22 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
 	public PropertyDelta<V> createDelta(PropertyPath path) {
 		return new PropertyDelta<V>(path, getDefinition());
 	}
+    
+    public PropertyDelta<V> diff(PrismProperty<V> other, PropertyPath pathPrefix) {
+    	return diff(other, pathPrefix, true);
+    }
+    
+    public PropertyDelta<V> diff(PrismProperty<V> other, PropertyPath pathPrefix, boolean ignoreMetadata) {
+    	List<? extends ItemDelta> deltas = new ArrayList<ItemDelta>();
+    	diffInternal(other, pathPrefix, deltas, ignoreMetadata);
+    	if (deltas.isEmpty()) {
+    		return null;
+    	}
+    	if (deltas.size() > 1) {
+    		throw new IllegalStateException("Unexpected number of deltas from property diff: "+deltas);
+    	}
+    	return (PropertyDelta<V>)deltas.get(0);
+    }
 
 //    @Override
 //    public void serializeToDom(Node parentNode) throws SchemaException {

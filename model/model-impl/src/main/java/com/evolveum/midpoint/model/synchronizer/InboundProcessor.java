@@ -209,7 +209,7 @@ public class InboundProcessor {
             LOGGER.trace("Simple property comparing user property {} to old account property {} ",
                     new Object[]{targetUserProperty, oldAccountProperty});
             //simple property comparing if user property exists
-            delta = targetUserProperty.compareRealValuesTo(oldAccountProperty);
+            delta = targetUserProperty.diff(oldAccountProperty, targetUserPropertyPath);
             delta.setName(targetUserPropertyPath.last().getName());
             delta.setParentPath(targetUserPropertyPath.allExceptLast());
         } else {
@@ -345,7 +345,7 @@ public class InboundProcessor {
             throw new SchemaException(ex.getMessage(), ex);
         }
 
-        delta = property.compareRealValuesTo(result);
+        delta = property.diff(result, path);
         delta.setParentPath(path.allExceptLast());
         if (!delta.isEmpty()) {
             userSecondaryDelta.addModification(delta);
