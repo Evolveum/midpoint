@@ -245,7 +245,12 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
     }
         
     protected void diffInternal(Item<V> other, PropertyPath pathPrefix, Collection<? extends ItemDelta> deltas, boolean ignoreMetadata) {
-    	ItemDelta delta = createDelta(getPath(pathPrefix));
+    	PropertyPath deltaPath = getPath(pathPrefix);
+    	ItemDelta delta = null;
+    	if (deltaPath != null && !deltaPath.isEmpty()) {
+    		// DeltaPath can be empty in objects. But in that case we don't expect to create any delta at this level anyway.
+    		delta = createDelta(deltaPath);
+    	}
     	if (other == null) {
     		//other doesn't exist, so delta means delete all values
             for (PrismValue value : getValues()) {
@@ -257,22 +262,26 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
     		outstandingOtheValues.addAll(other.getValues());
     		for (PrismValue thisValue : getValues()) {
     			Iterator<PrismValue> iterator = outstandingOtheValues.iterator();
+    			boolean found = false;
     			while (iterator.hasNext()) {
     				PrismValue otherValue = iterator.next();
-    				if (thisValue.representsSameValue(otherValue)) {
+    				if (thisValue.representsSameValue(otherValue) || delta == null) {
+    					found = true;
     					// Matching IDs, look inside to figure out internal deltas
     					thisValue.diffMatchingRepresentation(otherValue, pathPrefix, deltas, ignoreMetadata);
     					// No need to process this value again
     					iterator.remove();
     				} else if (thisValue.equals(otherValue, ignoreMetadata)) {
+    					found = true;
     					// same values. No delta
     					// No need to process this value again
     					iterator.remove();
-    				} else {
-    					// We have the value and the other does not, this is delete of the entire value
-    					delta.addValueToDelete(thisValue.clone());
     				}
     			}
+				if (!found) {
+					// We have the value and the other does not, this is delete of the entire value
+					delta.addValueToDelete(thisValue.clone());
+				}
             }
     		// outstandingOtheValues are those values that the other has and we could not
     		// match them to any of our values. These must be new values to add

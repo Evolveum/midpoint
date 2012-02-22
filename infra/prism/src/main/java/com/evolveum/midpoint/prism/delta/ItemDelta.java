@@ -204,7 +204,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Dumpable, Debug
     public void clear() {
     	valuesToReplace = null;
     	valuesToAdd = null;
-    	valuesToReplace = null;
+    	valuesToDelete = null;
     }
 
     public void checkConsistence() {

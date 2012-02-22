@@ -214,6 +214,26 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 		
 		return objectDelta;
 	}
+	
+	
+
+	@Override
+	public void setParent(PrismValue parentValue) {
+		throw new IllegalStateException("Cannot set parent for an object");
+	}
+	
+	@Override
+	public PrismValue getParent() {
+		return null;
+	}
+
+	@Override
+	public PropertyPath getPath(PropertyPath pathPrefix) {
+		if (pathPrefix != null && !pathPrefix.isEmpty()) {
+			throw new IllegalStateException("It makes no sense to use pathPrefix for an object");
+		}
+		return new PropertyPath();
+	}
 
 	private Collection<PropertyPath> listItemPaths() {
 		List<PropertyPath> list = new ArrayList<PropertyPath>();

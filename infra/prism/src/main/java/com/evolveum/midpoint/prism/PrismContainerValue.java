@@ -102,12 +102,12 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 	}
 	
 	public PropertyPath getPath(PropertyPath pathPrefix) {
-		PropertyPathSegment mySegment = new PropertyPathSegment(getParent().getName(), getId());
-		if (pathPrefix == null) {
-			return new PropertyPath(mySegment);
-		} else {
-			return pathPrefix.subPath(mySegment);
+		PropertyPath parentPath = getParent().getPath(pathPrefix);
+		if (parentPath == null || parentPath.isEmpty()) {
+			return parentPath;
 		}
+		PropertyPathSegment mySegment = new PropertyPathSegment(getParent().getName(), getId());
+		return parentPath.allExceptLast().subPath(mySegment);
 	}
 
 	void setParent(PrismContainer<T> container) {
@@ -424,12 +424,12 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 		if (this.getId() != null || other.getId() != null) {
 			return false;
 		}
-		return compareItems(other, true);
+		return diffItems(other, true);
 	}
 	
 	@Override
 	public boolean representsSameValue(PrismValue other) {
-		if (other instanceof PrismPropertyValue) {
+		if (other instanceof PrismContainerValue) {
 			return representsSameValue((PrismContainerValue<T>)other);
 		} else {
 			return false;
@@ -437,6 +437,15 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 	}
 	
 	public boolean representsSameValue(PrismContainerValue<T> other) {
+		if (getParent() != null) {
+			PrismContainerDefinition definition = getParent().getDefinition();
+			if (definition != null) {
+				if (definition.isSingleValue()) {
+					// There is only one value, therefore it always represents the same thing
+					return true;
+				}
+			}
+		}
 		if (this.getId() != null && other.getId() != null) {
 			return this.getId().equals(other.getId());
 		}
@@ -448,19 +457,19 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 	void diffMatchingRepresentation(PrismValue otherValue, PropertyPath pathPrefix,
 			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata) {
 		if (otherValue instanceof PrismContainerValue) {
-			compareToMatchingRepresentation((PrismContainerValue)otherValue, pathPrefix, deltas, ignoreMetadata);
+			diffRepresentation((PrismContainerValue)otherValue, pathPrefix, deltas, ignoreMetadata);
 		} else {
 			throw new IllegalStateException("Comparing incompatible values "+this+" - "+otherValue);
 		}		
 	}
 	
-	void compareToMatchingRepresentation(PrismContainerValue<T> otherValue, PropertyPath pathPrefix,
+	void diffRepresentation(PrismContainerValue<T> otherValue, PropertyPath pathPrefix,
 			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata) {
 		// TODO 
 		diffItems(otherValue, pathPrefix, deltas, ignoreMetadata);
 	}
 	
-	boolean compareItems(PrismContainerValue<T> other, boolean ignoreMetadata) {
+	boolean diffItems(PrismContainerValue<T> other, boolean ignoreMetadata) {
 		Collection<? extends ItemDelta> deltas = new ArrayList<ItemDelta>();
 		diffItems(other, null, deltas, ignoreMetadata);
 		return deltas.isEmpty();

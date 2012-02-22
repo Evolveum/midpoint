@@ -465,7 +465,8 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
         	// Drop the current delta (it was used only to detect that something has changed
         	// Generate replace delta instead of add/delete delta
 			PrismProperty<V> other = (PrismProperty<V>)otherItem;
-			PropertyDelta<V> propertyDelta = (PropertyDelta<V>)delta; 
+			PropertyDelta<V> propertyDelta = (PropertyDelta<V>)delta;
+			delta.clear();
     		Collection<PrismPropertyValue<V>> replaceValues = new ArrayList<PrismPropertyValue<V>>(other.getValues().size());
             for (PrismPropertyValue<V> value : other.getValues()) {
             	replaceValues.add(value.clone());
