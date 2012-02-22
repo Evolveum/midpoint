@@ -28,6 +28,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -167,15 +168,18 @@ public class PrismDomProcessor {
 	
 	private String getContainerId(Element element) {
 		String id = element.getAttribute(PrismConstants.ATTRIBUTE_ID_LOCAL_NAME);
-		if (id != null) {
+		if (StringUtils.isNotBlank(id)) {
 			return id;
 		}
 		id = element.getAttributeNS(element.getNamespaceURI(), PrismConstants.ATTRIBUTE_ID_LOCAL_NAME);
-		if (id != null) {
+		if (StringUtils.isNotBlank(id)) {
 			return id;
 		}
 		id = element.getAttributeNS(DOMUtil.XML_ID_ATTRIBUTE.getNamespaceURI(), DOMUtil.XML_ID_ATTRIBUTE.getLocalPart());
-		return id;
+		if (StringUtils.isNotBlank(id)) {
+			return id;
+		}
+		return null;
 	}
 
 	private Collection<? extends Item> parsePrismContainerItems(List<Element> childElements, PrismContainerDefinition containerDefinition) throws SchemaException {

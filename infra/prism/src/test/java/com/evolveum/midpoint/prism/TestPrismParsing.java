@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.prism;
 
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -102,6 +104,9 @@ public class TestPrismParsing {
 		assertPropertyValue(user, "name", "jack");
 		
 		PrismContainer extension = user.getExtension();
+		PrismContainerValue extensionValue = extension.getValue();
+		assertTrue("Extension parent", extensionValue.getParent() == extension);
+		assertNull("Extension ID", extensionValue.getId());
 		assertPropertyValue(extension, new QName(NS_USER_EXT, "bar"), "BAR");
 		assertPropertyValue(extension, new QName(NS_USER_EXT, "num"), 42);
 		Collection<PrismPropertyValue<Object>> multiPVals = extension.findProperty(new QName(NS_USER_EXT, "multi")).getValues();

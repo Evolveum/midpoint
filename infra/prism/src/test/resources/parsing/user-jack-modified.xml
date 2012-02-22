@@ -28,7 +28,6 @@
 		<ext:bar xsi:type="xsd:string">BAR</ext:bar>
 		<ext:num xsi:type="xsd:integer">42</ext:num>
 		<ext:multi xsi:type="xsd:string">raz</ext:multi>
-		<ext:multi xsi:type="xsd:string">dva</ext:multi>
 		<ext:multi xsi:type="xsd:string">tri</ext:multi>
 	<!--	<foo:password xsi:type="ProtectedStringType">
 			<clearValue>openS3zam3</clearValue>

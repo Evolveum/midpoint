@@ -104,8 +104,9 @@ System.out.println("===[ testDiffJack ]===");
 		
 		assertEquals("Wrong delta type", ChangeType.MODIFY, jackDelta.getChangeType());
 		assertEquals("Wrong delta OID", USER_JACK_OID, jackDelta.getOid());
-		assertEquals("Wrong number of modificaitions", 1, jackDelta.getModifications().size());
+		assertEquals("Wrong number of modificaitions", 2, jackDelta.getModifications().size());
 		DeltaAsserts.assertPropertyReplace(jackDelta, USER_FULLNAME_QNAME, "Jack Sparrow");
+		DeltaAsserts.assertPropertyDelete(jackDelta, new PropertyPath(USER_EXTENSION_QNAME, USER_EXTENSION_MULTI_QNAME), "dva");
 	}
 
 }

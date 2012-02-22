@@ -64,7 +64,9 @@ public class PrismInternalTestUtil {
 	// FOO
 	public static final QName USER_QNAME = new QName(NS_FOO,"user");
 	public static final QName USER_TYPE_QNAME = new QName(NS_FOO,"UserType");
+	
 	public static final QName USER_EXTENSION_QNAME = new QName(NS_FOO,"extension");
+	public static final QName USER_EXTENSION_MULTI_QNAME = new QName(NS_USER_EXT,"multi");
 	
 	public static final QName USER_NAME_QNAME = new QName(NS_FOO,"name");
 	public static final QName USER_FULLNAME_QNAME = new QName(NS_FOO,"fullName");
