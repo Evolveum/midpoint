@@ -99,6 +99,15 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		return true;
 	}
 
+	@Override
+	public boolean equalsRealValue(PrismValue value) {
+		if (value instanceof PrismPropertyValue) {
+			return equalsRealValue((PrismPropertyValue<T>)value);
+		} else {
+			return false;
+		}
+	}
+	
 	public boolean equalsRealValue(PrismPropertyValue<T> pValueToCompare) {
         if (pValueToCompare == null) {
             return false;

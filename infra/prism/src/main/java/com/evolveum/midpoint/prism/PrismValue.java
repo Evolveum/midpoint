@@ -19,7 +19,11 @@
  */
 package com.evolveum.midpoint.prism;
 
+import java.util.Collection;
+
 import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 
 /**
  * @author semancik
@@ -82,7 +86,29 @@ public abstract class PrismValue {
 
 	//protected abstract Element createDomElement();
 	protected Element createDomElement() {return null;};
+	
+	/**
+	 * Returns true if this and other value represent the same value.
+	 * E.g. if they have the same IDs, OIDs or it is otherwise know
+	 * that they "belong together" without a deep examination of the
+	 * values.
+	 */
+	public boolean representsSameValue(PrismValue other) {
+		return false;
+	}
 
+	public boolean equals(PrismValue value, boolean ignoreMetadata) {
+		if (ignoreMetadata) {
+			return equalsRealValue(value);
+		} else {
+			return equals(value);
+		}
+	}
+	
+	public abstract boolean equalsRealValue(PrismValue value);
+	
+	public abstract PrismValue clone();
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -91,7 +117,7 @@ public abstract class PrismValue {
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		return result;
 	}
-
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -101,12 +127,7 @@ public abstract class PrismValue {
 		if (getClass() != obj.getClass())
 			return false;
 		PrismValue other = (PrismValue) obj;
-		if (parent == null) {
-			if (other.parent != null)
-				return false;
-		// Following != is there by purpose to avoid loops. This check is sufficient here.
-		} else if (parent != other.parent)
-			return false;
+		// parent is not considered at all. it is not relevant.
 		if (source == null) {
 			if (other.source != null)
 				return false;
@@ -115,6 +136,11 @@ public abstract class PrismValue {
 		if (type != other.type)
 			return false;
 		return true;
+	}
+
+	void diffMatchingRepresentation(PrismValue otherValue, PropertyPath pathPrefix,
+			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata) {
+		// Nothing to do by default
 	}
 
 	

@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -129,7 +130,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
         } catch (SystemException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw new SystemException("Couldn't create jaxb object instance of '" + getCompileTimeClass() + "'.");
+            throw new SystemException("Couldn't create jaxb object instance of '" + getCompileTimeClass() + "'.", ex);
         }
 	}
 
@@ -148,6 +149,11 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	@Override
 	public <I extends Item<?>> I findItem(PropertyPath path, Class<I> type) {
 		return findCreateItem(path, type, false);
+	}
+	
+	@Override
+	public Item<?> findItem(PropertyPath path) {
+		return findCreateItem(path, Item.class, false);
 	}
 
 	@Override
@@ -187,8 +193,12 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 		super.copyValues(clone);
 		clone.oid = this.oid;
 	}
+	
+	public ObjectDelta<T> diff(PrismObject<T> other) {
+		return diff(other, true);
+	}
 
-	public ObjectDelta<T> compareTo(PrismObject<T> other) {
+	public ObjectDelta<T> diff(PrismObject<T> other, boolean ignoreMetadata) {
 		if (other == null) {
 			ObjectDelta<T> objectDelta = new ObjectDelta<T>(getCompileTimeClass(), ChangeType.DELETE);
 			objectDelta.setOid(getOid());
@@ -198,35 +208,16 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 		ObjectDelta<T> objectDelta = new ObjectDelta<T>(getCompileTimeClass(), ChangeType.MODIFY);
 		objectDelta.setOid(getOid());
 
-		Collection<PropertyPath> thisPropertyPaths = listPropertyPaths();
-		Collection<PropertyPath> otherPropertyPaths = other.listPropertyPaths();
-		Collection<PropertyPath> allPropertyPaths = MiscUtil.union(thisPropertyPaths,otherPropertyPaths);
-
-		for (PropertyPath path: allPropertyPaths) {
-			PrismProperty thisProperty = findProperty(path);
-			PrismProperty otherProperty = other.findProperty(path);
-			PropertyDelta propertyDelta = null;
-
-			if (thisProperty == null) {
-				// this must be an add
-				propertyDelta = new PropertyDelta(path, otherProperty.getDefinition());
-				// TODO: mangle source
-				propertyDelta.addValuesToAdd(otherProperty.getValues());
-			} else {
-				// TODO: mangle source
-				propertyDelta = thisProperty.compareRealValuesTo(otherProperty);
-			}
-			if (propertyDelta != null && !propertyDelta.isEmpty()) {
-				objectDelta.addModification(propertyDelta);
-			}
-		}
-
+		Collection<? extends ItemDelta> itemDeltas = new ArrayList<ItemDelta>();
+		diffInternal(other, null, itemDeltas, ignoreMetadata);
+		objectDelta.addModifications(itemDeltas);
+		
 		return objectDelta;
 	}
 
-	private Collection<PropertyPath> listPropertyPaths() {
+	private Collection<PropertyPath> listItemPaths() {
 		List<PropertyPath> list = new ArrayList<PropertyPath>();
-		addPropertyPathsToList(new PropertyPath(), list);
+		addItemPathsToList(new PropertyPath(), list);
 		return list;
 	}
 
@@ -281,7 +272,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 				return false;
 		} else if (!oid.equals(other.oid))
 			return false;
-		ObjectDelta<T> delta = compareTo(other);
+		ObjectDelta<T> delta = diff(other, false);
 		return delta.isEmpty();
 	}
 

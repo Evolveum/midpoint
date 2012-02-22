@@ -27,6 +27,9 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.util.DebugUtil;
 
 /**
@@ -101,7 +104,12 @@ public class PrismReference extends Item {
     	return getValue().getOid();
     }
     
-    void applyDefinition(ItemDefinition definition) {
+    @Override
+	public ReferenceDelta createDelta(PropertyPath path) {
+    	return new ReferenceDelta(path, getDefinition());
+	}
+
+	void applyDefinition(ItemDefinition definition) {
 		if (!(definition instanceof PrismReferenceDefinition)) {
 			throw new IllegalArgumentException("Cannot apply "+definition+" to reference");
 		}

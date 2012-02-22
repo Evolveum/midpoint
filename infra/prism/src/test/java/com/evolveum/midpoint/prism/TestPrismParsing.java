@@ -55,7 +55,7 @@ public class TestPrismParsing {
 		
 	@BeforeSuite
 	public void setupDebug() {
-		DebugUtil.setDefaultNamespacePrefix("http://midpoint.evolveum.com/xml/ns");
+		DebugUtil.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
 	}
 	
 	@Test

@@ -44,6 +44,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -516,8 +518,17 @@ public class PrismJaxbProcessor {
 //	}
 
 	private QName determineElementQName(Objectable objectable) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException();
+		PrismObject<?> prismObject = objectable.asPrismObject();
+		if (prismObject.getName() != null) {
+			return prismObject.getName();
+		}
+		PrismObjectDefinition<?> definition = prismObject.getDefinition();
+		if (definition != null) {
+			if (definition.getNameOrDefaultName() != null) {
+				return definition.getNameOrDefaultName();
+			}
+		}
+		throw new IllegalStateException("Cannot determine element name of "+objectable);
 	}
 
 

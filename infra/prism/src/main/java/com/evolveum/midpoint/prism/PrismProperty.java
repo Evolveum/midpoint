@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -255,7 +256,7 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
     }
 
     public boolean hasValue(PrismPropertyValue<V> value) {
-        return getValues().contains(value);
+        return super.hasValue(value);
     }
 
     public boolean hasRealValue(PrismPropertyValue<V> value) {
@@ -291,14 +292,18 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
 		}
 		super.applyDefinition(definition);
 	}
-
+	
+    @Override
+	public PropertyDelta<V> createDelta(PropertyPath path) {
+		return new PropertyDelta<V>(path, getDefinition());
+	}
 
 //    @Override
 //    public void serializeToDom(Node parentNode) throws SchemaException {
 //        serializeToDom(parentNode, null, null, false);
 //    }
 
-    public void serializeToDom(Node parentNode, PrismPropertyDefinition propDef, Set<PrismPropertyValue<V>> alternateValues,
+	public void serializeToDom(Node parentNode, PrismPropertyDefinition propDef, Set<PrismPropertyValue<V>> alternateValues,
             boolean recordType) throws SchemaException {
 
         if (propDef == null) {
@@ -435,71 +440,26 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
             return false;
         return true;
     }
-
-
-    /**
-     * This method compares "this" property with other property. Comparing only real values wrapped in
-     * {@link PrismPropertyValue}.
-     *
-     * @param other can be null, property delta will be add all values from "this" property.
-     * @return The result is {@link PropertyDelta} which represents differences between them. That means when
-     *         resulting property delta is applied on other property then other property and "this" property
-     *         will be equal.
-     */
-    public PropertyDelta<V> compareRealValuesTo(PrismProperty<V> other) {
-        return compareTo(other, true);
-    }
-
-    /**
-     * This method compares "this" property with other property. Comparing property values as whole.
-     *
-     * @param other can be null, property delta will be add all values from "this" property.
-     * @return The result is {@link PropertyDelta} which represents differences between them. That means when
-     *         resulting property delta is applied on other property then other property and "this" property
-     *         will be equal.
-     */
-    public PropertyDelta<V> compareTo(PrismProperty<V> other) {
-        return compareTo(other, false);
-    }
-
-    private PropertyDelta<V> compareTo(PrismProperty<V> other, boolean compareReal) {
-        PropertyDelta<V> delta = null; //new PropertyDelta(getPath());
-
-        PrismPropertyDefinition def = getDefinition();
-
-        if (other != null) {
-            for (PrismPropertyValue<V> value : getValues()) {
-                if ((!compareReal && !other.hasValue(value))
-                        || (compareReal && !other.hasRealValue(value))) {
-                    delta.addValueToDelete(value.clone());
-                }
+	
+	@Override
+	protected ItemDelta fixupDelta(ItemDelta delta, Item otherItem, PropertyPath pathPrefix,
+			boolean ignoreMetadata) {
+		PrismPropertyDefinition def = getDefinition();
+		if (def != null && def.isSingleValue() && !delta.isEmpty()) {
+        	// Drop the current delta (it was used only to detect that something has changed
+        	// Generate replace delta instead of add/delete delta
+			PrismProperty<V> other = (PrismProperty<V>)otherItem;
+			PropertyDelta<V> propertyDelta = (PropertyDelta<V>)delta; 
+    		Collection<PrismPropertyValue<V>> replaceValues = new ArrayList<PrismPropertyValue<V>>(other.getValues().size());
+            for (PrismPropertyValue<V> value : other.getValues()) {
+            	replaceValues.add(value.clone());
             }
-            for (PrismPropertyValue<V> otherValue : other.getValues()) {
-                if ((!compareReal && !hasValue(otherValue))
-                        || (compareReal && !hasRealValue(otherValue))) {
-                    delta.addValueToAdd(otherValue.clone());
-                }
-            }
-            if (def != null && def.isSingleValue() && !delta.isEmpty()) {
-            	// Drop the current delta (it was used only to detect that something has changed
-            	// Generate replace delta instead of add/delete delta
-            	// FIXME delta = new PropertyDelta(getPath());
-        		Collection<PrismPropertyValue<V>> replaceValues = new ArrayList<PrismPropertyValue<V>>(other.getValues().size());
-                for (PrismPropertyValue<V> value : other.getValues()) {
-                	replaceValues.add(value.clone());
-                }
-    			delta.setValuesToReplace(replaceValues);
-    			return delta;
-            }
+            propertyDelta.setValuesToReplace(replaceValues);
+			return propertyDelta;
         } else {
-        	//other doesn't exist, so delta means delete all values
-            for (PrismPropertyValue<V> value : getValues()) {
-                delta.addValueToDelete(value.clone());
-            }
+        	return super.fixupDelta(delta, otherItem, pathPrefix, ignoreMetadata);
         }
-
-        return delta;
-    }
+	}
 
 	@Override
     public String toString() {

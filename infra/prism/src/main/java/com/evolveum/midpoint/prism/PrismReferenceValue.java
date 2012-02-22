@@ -127,6 +127,15 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 			return false;
 		return true;
 	}
+	
+	@Override
+	public boolean equalsRealValue(PrismValue value) {
+		if (value instanceof PrismReferenceValue) {
+			return equalsRealValue((PrismReferenceValue)value);
+		} else {
+			return false;
+		}
+	}
 
 	public boolean equalsRealValue(PrismReferenceValue pValueToCompare) {
         if (pValueToCompare == null) {
@@ -144,7 +153,23 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
         return getOid().equals(pValueToCompare.getOid());
     }
 	
-    @Override
+	@Override
+	public boolean representsSameValue(PrismValue other) {
+		if (other instanceof PrismPropertyValue) {
+			return representsSameValue((PrismReferenceValue)other);
+		} else {
+			return false;
+		}
+	}
+	
+	public boolean representsSameValue(PrismReferenceValue other) {
+		if (this.getOid() != null && other.getOid() != null) {
+			return this.getOid().equals(other.getOid());
+		}
+		return false;
+	}
+
+	@Override
 	public String toString() {
 		return "PRV[oid=" + oid + ", targetType=" + targetType + ", type=" + getType()
 				+ ", source=" + getSource() + "]";

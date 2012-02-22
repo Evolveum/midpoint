@@ -46,7 +46,7 @@ public class DiffUtil {
 			objectDelta.setObjectToAdd(newObject);
 			return objectDelta;
 		} else {
-			return oldObject.compareTo(newObject);
+			return oldObject.diff(newObject);
 		}
 	}
 

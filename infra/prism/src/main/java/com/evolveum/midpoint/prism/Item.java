@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -35,6 +37,7 @@ import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 
@@ -173,9 +176,42 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
     	this.parent = parentValue;
     }
     
+    public PropertyPath getPath(PropertyPath pathPrefix) {
+    	if (pathPrefix == null) {
+    		return new PropertyPath(getName());
+    	}
+    	return pathPrefix.subPath(getName());
+    }
+    
     public List<V> getValues() {
 		return values;
 	}
+    
+    public boolean hasValue(PrismValue value, boolean ignoreMetadata) {
+    	return (findValue(value, ignoreMetadata) != null);
+    }
+    
+    public boolean hasValue(PrismValue value) {
+        return hasValue(value, false);
+    }
+    
+    public boolean hasRealValue(PrismValue value) {
+    	return hasValue(value, true);
+    }
+    
+    /**
+     * Returns value that is equal or equivalent to the provided value.
+     * The returned value is an instance stored in this item, while the
+     * provided value argument may not be.
+     */
+    public PrismValue findValue(PrismValue value, boolean ignoreMetadata) {
+        for (PrismValue myVal : getValues()) {
+            if (myVal.equals(value, ignoreMetadata)) {
+                return myVal;
+            }
+        }
+        return null;
+    }
     
     public void addAll(Collection<V> newValues) {
     	values.addAll(newValues);
@@ -207,6 +243,57 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
     	// TODO
     	throw new UnsupportedOperationException();
     }
+        
+    protected void diffInternal(Item<V> other, PropertyPath pathPrefix, Collection<? extends ItemDelta> deltas, boolean ignoreMetadata) {
+    	ItemDelta delta = createDelta(getPath(pathPrefix));
+    	if (other == null) {
+    		//other doesn't exist, so delta means delete all values
+            for (PrismValue value : getValues()) {
+                delta.addValueToDelete(value.clone());
+            }
+    	} else {
+    		// the other exists, this means that we need to compare the values one by one
+    		Collection<PrismValue> outstandingOtheValues = new ArrayList<PrismValue>(other.getValues().size());
+    		outstandingOtheValues.addAll(other.getValues());
+    		for (PrismValue thisValue : getValues()) {
+    			Iterator<PrismValue> iterator = outstandingOtheValues.iterator();
+    			while (iterator.hasNext()) {
+    				PrismValue otherValue = iterator.next();
+    				if (thisValue.representsSameValue(otherValue)) {
+    					// Matching IDs, look inside to figure out internal deltas
+    					thisValue.diffMatchingRepresentation(otherValue, pathPrefix, deltas, ignoreMetadata);
+    					// No need to process this value again
+    					iterator.remove();
+    				} else if (thisValue.equals(otherValue, ignoreMetadata)) {
+    					// same values. No delta
+    					// No need to process this value again
+    					iterator.remove();
+    				} else {
+    					// We have the value and the other does not, this is delete of the entire value
+    					delta.addValueToDelete(thisValue.clone());
+    				}
+    			}
+            }
+    		// outstandingOtheValues are those values that the other has and we could not
+    		// match them to any of our values. These must be new values to add
+    		for (PrismValue outstandingOtherValue : outstandingOtheValues) {
+    			delta.addValueToAdd(outstandingOtherValue.clone());
+            }
+    		// Some deltas may need to be polished a bit. E.g. transforming
+    		// add/delete delta to a replace delta.
+    		delta = fixupDelta(delta, other, pathPrefix, ignoreMetadata);
+    	}
+    	if (delta != null && !delta.isEmpty()) {
+    		((Collection)deltas).add(delta);
+    	}
+    }
+    
+	protected ItemDelta fixupDelta(ItemDelta delta, Item<V> other, PropertyPath pathPrefix,
+			boolean ignoreMetadata) {
+		return delta;
+	}
+
+	public abstract ItemDelta<V> createDelta(PropertyPath path);
     
 	/**
      * Serializes property to DOM or JAXB element(s).
@@ -292,12 +379,7 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
 				return false;
 		} else if (!name.equals(other.name))
 			return false;
-		if (parent == null) {
-			if (other.parent != null)
-				return false;
-		// The != is there by purpose (to avoid loops)
-		} else if (parent != other.parent)
-			return false;
+		// Do not compare parent at all. This is not relevant.
 		if (values == null) {
 			if (other.values != null)
 				return false;

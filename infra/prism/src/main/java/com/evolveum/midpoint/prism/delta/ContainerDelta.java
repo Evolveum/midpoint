@@ -10,7 +10,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.util.MiscUtil;
 
-public class ContainerDelta extends ItemDelta<PrismContainerValue> {
+public class ContainerDelta<V> extends ItemDelta<PrismContainerValue<V>> {
 
 	public ContainerDelta(PrismContainerDefinition itemDefinition) {
 		super(itemDefinition);

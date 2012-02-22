@@ -21,7 +21,10 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -55,7 +58,7 @@ import java.util.*;
  *
  * @author Radovan Semancik
  */
-public class PrismContainer<T> extends Item<PrismContainerValue<T>> {
+public class PrismContainer<V> extends Item<PrismContainerValue<V>> {
     private static final long serialVersionUID = 5206821250098051028L;
 
     public PrismContainer(QName name) {
@@ -67,11 +70,11 @@ public class PrismContainer<T> extends Item<PrismContainerValue<T>> {
     }
 
     @Override
-    public List<PrismContainerValue<T>> getValues() {
-    	return (List<PrismContainerValue<T>>) super.getValues();
+    public List<PrismContainerValue<V>> getValues() {
+    	return (List<PrismContainerValue<V>>) super.getValues();
     }
    
-    public PrismContainerValue<T> getValue() {
+    public PrismContainerValue<V> getValue() {
     	if (getValues().size() == 1) {
     		return getValues().get(0);
 		}
@@ -82,7 +85,7 @@ public class PrismContainer<T> extends Item<PrismContainerValue<T>> {
 			if (getDefinition().isSingleValue()) {
 				// Insert first empty value. This simulates empty single-valued container. It the container exists
 		        // it is clear that it has at least one value (and that value is empty).
-				PrismContainerValue<T> pValue = new PrismContainerValue<T>(null, null, this, null);
+				PrismContainerValue<V> pValue = new PrismContainerValue<V>(null, null, this, null);
 		        add(pValue);
 		        return pValue;
 			} else {
@@ -91,7 +94,7 @@ public class PrismContainer<T> extends Item<PrismContainerValue<T>> {
 		} else {
 			// Insert first empty value. This simulates empty single-valued container. It the container exists
 	        // it is clear that it has at least one value (and that value is empty).
-			PrismContainerValue<T> pValue = new PrismContainerValue<T>(null, null, this, null);
+			PrismContainerValue<V> pValue = new PrismContainerValue<V>(null, null, this, null);
 	        add(pValue);
 	        return pValue;
 		}
@@ -109,8 +112,8 @@ public class PrismContainer<T> extends Item<PrismContainerValue<T>> {
 		}
 	}
     
-    public PrismContainerValue<T> getValue(String id) {
-    	for (PrismContainerValue<T> pval: getValues()) {
+    public PrismContainerValue<V> getValue(String id) {
+    	for (PrismContainerValue<V> pval: getValues()) {
     		if ((id == null && pval.getId() == null) ||
     				id.equals(pval.getId())) {
     			return pval;
@@ -119,7 +122,7 @@ public class PrismContainer<T> extends Item<PrismContainerValue<T>> {
     	return null;
     }
     
-    public void add(PrismContainerValue<T> pValue) {
+    public void add(PrismContainerValue<V> pValue) {
     	pValue.setParent(this);
     	getValues().add(pValue);
     }
@@ -138,26 +141,26 @@ public class PrismContainer<T> extends Item<PrismContainerValue<T>> {
     	getValue().remove(item);
     }
     
-    public PrismContainerValue<T> createNewValue() {
-    	PrismContainerValue<T> pValue = new PrismContainerValue<T>();
+    public PrismContainerValue<V> createNewValue() {
+    	PrismContainerValue<V> pValue = new PrismContainerValue<V>();
     	add(pValue);
     	return pValue;
     }
     
-    public void mergeValues(PrismContainer<T> other) {
+    public void mergeValues(PrismContainer<V> other) {
     	mergeValues(other.getValues());
     }
     
-    public void mergeValues(Collection<PrismContainerValue<T>> otherValues) {
-    	for (PrismContainerValue<T> otherValue : otherValues) {
+    public void mergeValues(Collection<PrismContainerValue<V>> otherValues) {
+    	for (PrismContainerValue<V> otherValue : otherValues) {
     		mergeValue(otherValue);
     	}
     }
     
-	public void mergeValue(PrismContainerValue<T> otherValue) {
-		Iterator<PrismContainerValue<T>> iterator = getValues().iterator();
+	public void mergeValue(PrismContainerValue<V> otherValue) {
+		Iterator<PrismContainerValue<V>> iterator = getValues().iterator();
 		while (iterator.hasNext()) {
-			PrismContainerValue<T> thisValue = iterator.next();
+			PrismContainerValue<V> thisValue = iterator.next();
 			if (thisValue.equals(otherValue)) {
 				// Same values, nothing to merge
 				return;
@@ -178,9 +181,9 @@ public class PrismContainer<T> extends Item<PrismContainerValue<T>> {
      * Remove all empty values
      */
     public void trim() {
-    	Iterator<PrismContainerValue<T>> iterator = getValues().iterator();
+    	Iterator<PrismContainerValue<V>> iterator = getValues().iterator();
     	while (iterator.hasNext()) {
-    		PrismContainerValue<T> pval = iterator.next();
+    		PrismContainerValue<V> pval = iterator.next();
     		if (pval.isEmpty()) {
     			iterator.remove();
     		}
@@ -214,13 +217,17 @@ public class PrismContainer<T> extends Item<PrismContainerValue<T>> {
     		throw new IllegalArgumentException("Cannot apply "+definition+" to container");
     	}
     	this.definition = definition;
-		for (PrismContainerValue<T> pval: getValues()) {
+		for (PrismContainerValue<V> pval: getValues()) {
 			pval.applyDefinition((PrismContainerDefinition)definition);
 		}
 	}
 
 	public <I extends Item<?>> I findItem(QName itemQName, Class<I> type) {
     	return findCreateItem(itemQName, type, false);
+    }
+	
+	public Item<?> findItem(QName itemQName) {
+    	return findCreateItem(itemQName, Item.class, false);
     }
     
     <I extends Item<?>> I findCreateItem(QName itemQName, Class<I> type, boolean create) {
@@ -229,6 +236,10 @@ public class PrismContainer<T> extends Item<PrismContainerValue<T>> {
         
     public <I extends Item<?>> I findItem(PropertyPath propPath, Class<I> type) {
     	return findCreateItem(propPath, type, false);
+    }
+    
+    public Item<?> findItem(PropertyPath propPath) {
+    	return findCreateItem(propPath, Item.class, false);
     }
     
     // Expects that "self" path IS present in propPath
@@ -262,7 +273,7 @@ public class PrismContainer<T> extends Item<PrismContainerValue<T>> {
     			throw new IllegalArgumentException("Attempt to get segment "+first+" without an ID from a multi-valued container "+getName());
     		}
     	} else {
-	        for (PrismContainerValue<T> pval : getValues()) {
+	        for (PrismContainerValue<V> pval : getValues()) {
 	        	if (first.getId().equals(pval.getId())) {
 	        		return pval.findCreateItem(rest, type, create);
 	        	}
@@ -320,31 +331,46 @@ public class PrismContainer<T> extends Item<PrismContainerValue<T>> {
     }
 
     // Expects that the "self" path segment is NOT included in the basePath
-    void addPropertyPathsToList(PropertyPath basePath, Collection<PropertyPath> list) {
+    void addItemPathsToList(PropertyPath basePath, Collection<PropertyPath> list) {
     	boolean addIds = true;
     	if (getDefinition() != null) {
     		if (getDefinition().isSingleValue()) {
     			addIds = false;
     		}
     	}
-    	for (PrismContainerValue<T> pval: getValues()) {
+    	for (PrismContainerValue<V> pval: getValues()) {
     		PropertyPathSegment segment = null;
     		if (addIds) {
     			segment = new PropertyPathSegment(getName(), pval.getId());
     		} else {
     			segment = new PropertyPathSegment(getName());
     		}
-    		pval.addPropertyPathsToList(basePath.subPath(segment), list);
+    		pval.addItemPathsToList(basePath.subPath(segment), list);
     	}
     }
+    
+    @Override
+	public ContainerDelta<V> createDelta(PropertyPath path) {
+    	return new ContainerDelta<V>(path, getDefinition());
+	}
 
+    public Collection<? extends ItemDelta> diff(PrismContainer<V> other, PropertyPath pathPrefix) {
+    	return diff(other, pathPrefix, true);
+    }
+    
+    public Collection<? extends ItemDelta> diff(PrismContainer<V> other, PropertyPath pathPrefix, boolean ignoreMetadata) {
+    	Collection<? extends ItemDelta> deltas = new ArrayList<ItemDelta>();
+    	diffInternal(other, pathPrefix, deltas, ignoreMetadata);
+    	return deltas;
+    }
+    
     @Override
 	public void revive(PrismContext prismContext) {
 		if (this.prismContext != null) {
 			return;
 		}
 		super.revive(prismContext);
-		for (PrismContainerValue<T> pval: getValues()) {
+		for (PrismContainerValue<V> pval: getValues()) {
 			pval.revive(prismContext);
 		}
 	}
@@ -363,7 +389,7 @@ public class PrismContainer<T> extends Item<PrismContainerValue<T>> {
 
 
     public boolean isEmpty() {
-        for(PrismContainerValue<T> pval : getValues()) {
+        for(PrismContainerValue<V> pval : getValues()) {
         	if (!pval.isEmpty()) {
         		return false;
         	}
@@ -372,15 +398,15 @@ public class PrismContainer<T> extends Item<PrismContainerValue<T>> {
     }
 
     @Override
-    public PrismContainer<T> clone() {
-    	PrismContainer<T> clone = new PrismContainer<T>(getName(), getDefinition(), prismContext);
+    public PrismContainer<V> clone() {
+    	PrismContainer<V> clone = new PrismContainer<V>(getName(), getDefinition(), prismContext);
         copyValues(clone);
         return clone;
     }
 
-    protected void copyValues(PrismContainer<T> clone) {
+    protected void copyValues(PrismContainer<V> clone) {
         super.copyValues(clone);
-        for (PrismContainerValue<T> pval : getValues()) {
+        for (PrismContainerValue<V> pval : getValues()) {
             clone.add(pval.clone());
         }
     }
@@ -442,12 +468,12 @@ public class PrismContainer<T> extends Item<PrismContainerValue<T>> {
         if (getDefinition() != null) {
             sb.append(" def");
         }
-        Iterator<PrismContainerValue<T>> i = getValues().iterator();
+        Iterator<PrismContainerValue<V>> i = getValues().iterator();
         if (i.hasNext()) {
             sb.append("\n");
         }
         while (i.hasNext()) {
-        	PrismContainerValue<T> pval = i.next();
+        	PrismContainerValue<V> pval = i.next();
             sb.append(pval.debugDump(indent + 1));
             if (i.hasNext()) {
                 sb.append("\n");

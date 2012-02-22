@@ -28,6 +28,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
@@ -98,6 +99,15 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 	
 	public PrismContainer<T> getParent() {
 		return (PrismContainer<T>)super.getParent();
+	}
+	
+	public PropertyPath getPath(PropertyPath pathPrefix) {
+		PropertyPathSegment mySegment = new PropertyPathSegment(getParent().getName(), getId());
+		if (pathPrefix == null) {
+			return new PropertyPath(mySegment);
+		} else {
+			return pathPrefix.subPath(mySegment);
+		}
 	}
 
 	void setParent(PrismContainer<T> container) {
@@ -198,12 +208,12 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
     }
 
     // Expects that the "self" path segment is already included in the basePath
-    void addPropertyPathsToList(PropertyPath basePath, Collection<PropertyPath> list) {
+    void addItemPathsToList(PropertyPath basePath, Collection<PropertyPath> list) {
     	for (Item<?> item: items) {
     		if (item instanceof PrismProperty) {
     			list.add(basePath.subPath(item.getName()));
     		} else if (item instanceof PrismContainer) {
-    			((PrismContainer<?>)item).addPropertyPathsToList(basePath, list);
+    			((PrismContainer<?>)item).addItemPathsToList(basePath, list);
     		}
     	}
     }
@@ -233,6 +243,10 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
     
     public <I extends Item<?>> I findItem(QName itemName, Class<I> type) {
     	return findCreateItem(itemName, type, false);
+    }
+    
+    public Item<?> findItem(QName itemName) {
+    	return findCreateItem(itemName, Item.class, false);
     }
     
     <I extends Item<?>> I findCreateItem(QName itemName, Class<I> type, boolean create) {
@@ -392,6 +406,90 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
         return property;
     }
     
+	@Override
+	public boolean equalsRealValue(PrismValue value) {
+		if (value instanceof PrismPropertyValue) {
+			return equalsRealValue((PrismContainerValue<T>)value);
+		} else {
+			return false;
+		}
+	}
+	
+	public boolean equalsRealValue(PrismContainerValue<T> other) {
+		if (this.getId() != null && other.getId() != null) {
+			if (!(this.getId().equals(other.getId()))) {
+				return false;
+			}
+		}
+		if (this.getId() != null || other.getId() != null) {
+			return false;
+		}
+		return compareItems(other, true);
+	}
+	
+	@Override
+	public boolean representsSameValue(PrismValue other) {
+		if (other instanceof PrismPropertyValue) {
+			return representsSameValue((PrismContainerValue<T>)other);
+		} else {
+			return false;
+		}
+	}
+	
+	public boolean representsSameValue(PrismContainerValue<T> other) {
+		if (this.getId() != null && other.getId() != null) {
+			return this.getId().equals(other.getId());
+		}
+		return false;
+	}
+
+
+	@Override
+	void diffMatchingRepresentation(PrismValue otherValue, PropertyPath pathPrefix,
+			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata) {
+		if (otherValue instanceof PrismContainerValue) {
+			compareToMatchingRepresentation((PrismContainerValue)otherValue, pathPrefix, deltas, ignoreMetadata);
+		} else {
+			throw new IllegalStateException("Comparing incompatible values "+this+" - "+otherValue);
+		}		
+	}
+	
+	void compareToMatchingRepresentation(PrismContainerValue<T> otherValue, PropertyPath pathPrefix,
+			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata) {
+		// TODO 
+		diffItems(otherValue, pathPrefix, deltas, ignoreMetadata);
+	}
+	
+	boolean compareItems(PrismContainerValue<T> other, boolean ignoreMetadata) {
+		Collection<? extends ItemDelta> deltas = new ArrayList<ItemDelta>();
+		diffItems(other, null, deltas, ignoreMetadata);
+		return deltas.isEmpty();
+	}
+	
+	void diffItems(PrismContainerValue<T> other, PropertyPath pathPrefix,
+			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata) {
+		
+		for (Item thisItem: this.getItems()) {
+			Item otherItem = other.findItem(thisItem.getName());
+			// The "delete" delta will also result from the following diff
+			thisItem.diffInternal(otherItem, getPath(pathPrefix), deltas, ignoreMetadata);
+		}
+		
+		for (Item otherItem: other.getItems()) {
+			Item thisItem = other.findItem(otherItem.getName());
+			if (thisItem == null) {
+				// Other has an item that we don't have, this must be an add
+				ItemDelta itemDelta = otherItem.createDelta(getPath(pathPrefix));
+				itemDelta.addValuesToAdd(otherItem.getValues());
+				if (!itemDelta.isEmpty()) {
+					((Collection)deltas).add(itemDelta);
+				}
+			}
+		}
+	}
+	
+	
+
 	public void applyDefinition(PrismContainerDefinition definition) {
 		for (Item<?> item: items) {
 			ItemDefinition itemDefinition = definition.findItemDefinition(item.getName());
