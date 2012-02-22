@@ -131,13 +131,13 @@ public class PrismAsserts {
 	public static void assertPropertyAdd(ObjectDelta<?> userDelta, PropertyPath propertyPath, Object... expectedValues) {
 		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyPath);
 		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
-		assertSet(propertyPath.last(), propertyDelta.getValuesToAdd(), expectedValues);
+		assertSet(propertyPath.last().getName(), propertyDelta.getValuesToAdd(), expectedValues);
 	}
 	
 	public static void assertPropertyDelete(ObjectDelta<?> userDelta, PropertyPath propertyPath, Object... expectedValues) {
 		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyPath);
 		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
-		assertSet(propertyPath.last(), propertyDelta.getValuesToDelete(), expectedValues);
+		assertSet(propertyPath.last().getName(), propertyDelta.getValuesToDelete(), expectedValues);
 	}
 
 	private static void assertSet(QName propertyName, Collection<PrismPropertyValue<?>> valuesFromDelta, Object[] expectedValues) {
