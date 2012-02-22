@@ -30,6 +30,7 @@ import javax.faces.event.ActionEvent;
 import javax.faces.model.SelectItem;
 import javax.xml.bind.JAXBException;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -168,7 +169,7 @@ public class RoleEditController implements Serializable {
 		try {
 			SecurityUtils security = new SecurityUtils();
 			PrincipalUser principal = security.getPrincipalUser();
-	        task.setOwner(principal.getUser());
+	        task.setOwner(principal.getUser().asPrismObject());
 			role.normalizeAssignments();
 			newObject = getObjectFromXml(xml, result);
 			RoleManager manager = ControllerUtil.getRoleManager(catalog);
@@ -181,7 +182,7 @@ public class RoleEditController implements Serializable {
 			LoggingUtils.logException(LOGGER, "Couldn't submit role {}", ex, role.getName());
 			result.recordFatalError("Couldn't submit role '" + role.getName() + "'.", ex);
 		} finally {
-			if (!repositoryManager.saveObject(newObject, xml)) {
+			if (!repositoryManager.saveObject(newObject.asPrismObject(), xml)) {
 				result.recordFatalError("Couln't update role '" + newObject.getName() + "'.");
 			}
 			initController();
@@ -197,13 +198,13 @@ public class RoleEditController implements Serializable {
 		}
 
 		try {
-			ObjectType objectType = repositoryManager.getObject(role.getOid());
+			PrismObject<?> objectType = repositoryManager.getObject(role.getOid());
 			if (objectType == null) {
 				return RoleListController.PAGE_NAVIGATION_LIST;
 			}
 
 			// role = new ObjectBean(objectType.getOid(), objectType.getName());
-			xml = JAXBUtil.marshal(new ObjectFactory().createObject(objectType));
+			xml = JAXBUtil.marshal(new ObjectFactory().createObject(objectType.asObjectable()));
 		} catch (JAXBException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't show role {} in editor", ex, role.getName());
 			FacesUtils.addErrorMessage("Couldn't show role '" + role.getName() + "' in editor.", ex);
@@ -224,10 +225,10 @@ public class RoleEditController implements Serializable {
 		Validator validator = new Validator(new EventHandler() {
 
 			@Override
-			public EventResult postMarshall(ObjectType object, Element objectElement,
+			public <T extends ObjectType> EventResult postMarshall(PrismObject<T> object, Element objectElement,
 					OperationResult objectResult) {
 				if (objects.isEmpty()) {
-					objects.add(object);
+					objects.add(object.asObjectable());
 				}
 				return EventResult.cont();
 			}

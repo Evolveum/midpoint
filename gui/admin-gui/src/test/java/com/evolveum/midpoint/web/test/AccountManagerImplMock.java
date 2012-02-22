@@ -22,24 +22,18 @@
 
 package com.evolveum.midpoint.web.test;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.bean.ResourceCapability;
 import com.evolveum.midpoint.web.model.AccountManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
-import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+
+import java.util.*;
 
 /**
  * 
@@ -86,11 +80,6 @@ public class AccountManagerImplMock implements AccountManager {
 
 	@Override
 	public void delete(String oid) {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public List<PropertyAvailableValues> getPropertyAvailableValues(String oid, List<String> properties) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

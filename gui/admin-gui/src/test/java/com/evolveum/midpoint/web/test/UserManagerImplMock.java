@@ -22,35 +22,16 @@
 
 package com.evolveum.midpoint.web.test;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.model.UserManager;
-import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
-import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
-import com.evolveum.midpoint.web.model.dto.GuiUserDto;
-import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
-import com.evolveum.midpoint.web.model.dto.PropertyChange;
-import com.evolveum.midpoint.web.model.dto.ResourceDto;
-import com.evolveum.midpoint.web.model.dto.UserDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.web.model.dto.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.*;
 
 /**
  * 
@@ -100,11 +81,6 @@ public class UserManagerImplMock implements UserManager {
 	}
 
 	@Override
-	public List<PropertyAvailableValues> getPropertyAvailableValues(String oid, List<String> properties) {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
 	public GuiUserDto create() {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
@@ -113,7 +89,7 @@ public class UserManagerImplMock implements UserManager {
 	public AccountShadowDto addAccount(UserDto userDto, String resourceOid) {
 		AccountShadowDto accountDto = new AccountShadowDto();
 		AccountShadowType accountType = new AccountShadowType();
-		accountType.setAttributes(new Attributes());
+		accountType.setAttributes(new ResourceObjectShadowAttributesType());
 		ResourceDto resourceDto = resourceManagerMock.get(resourceOid, new PropertyReferenceListType());
 		accountType.setResource((ResourceType) resourceDto.getXmlObject());
 		accountDto.setXmlObject(accountType);

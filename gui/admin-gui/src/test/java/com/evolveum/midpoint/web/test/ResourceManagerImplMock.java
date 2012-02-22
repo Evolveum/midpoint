@@ -22,30 +22,17 @@
 
 package com.evolveum.midpoint.web.test;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
-import javax.xml.namespace.QName;
-
-import org.testng.annotations.Test;
-
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.model.ResourceManager;
-import com.evolveum.midpoint.web.model.dto.ConnectorDto;
-import com.evolveum.midpoint.web.model.dto.ConnectorHostDto;
-import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
-import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
-import com.evolveum.midpoint.web.model.dto.PropertyChange;
-import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
+import com.evolveum.midpoint.web.model.dto.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import org.testng.annotations.Test;
+
+import javax.xml.namespace.QName;
+import java.util.*;
 
 /**
  * 
@@ -94,11 +81,6 @@ public class ResourceManagerImplMock implements ResourceManager {
 
 	@Override
 	public void delete(String oid) {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public List<PropertyAvailableValues> getPropertyAvailableValues(String oid, List<String> properties) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

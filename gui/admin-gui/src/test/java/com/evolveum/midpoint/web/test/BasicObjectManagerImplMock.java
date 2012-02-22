@@ -20,18 +20,16 @@
  */
 package com.evolveum.midpoint.web.test;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.model.ObjectManager;
-import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * 
@@ -72,11 +70,6 @@ public class BasicObjectManagerImplMock implements ObjectManager<ObjectType> {
 
 	@Override
 	public void delete(String oid) {
-		throw new UnsupportedOperationException("Not implemented yet.");
-	}
-
-	@Override
-	public List<PropertyAvailableValues> getPropertyAvailableValues(String oid, List<String> properties) {
 		throw new UnsupportedOperationException("Not implemented yet.");
 	}
 }

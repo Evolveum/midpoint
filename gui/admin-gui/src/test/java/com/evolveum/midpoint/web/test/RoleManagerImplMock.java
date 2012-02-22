@@ -20,18 +20,16 @@
  */
 package com.evolveum.midpoint.web.test;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.model.RoleManager;
-import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.RoleDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * 
@@ -80,11 +78,5 @@ public class RoleManagerImplMock implements RoleManager {
 	public void delete(String oid) {
 		// TODO Auto-generated method stub
 		
-	}
-
-	@Override
-	public List<PropertyAvailableValues> getPropertyAvailableValues(String oid, List<String> properties) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 }

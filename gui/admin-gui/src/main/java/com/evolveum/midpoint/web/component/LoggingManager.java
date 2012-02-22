@@ -20,30 +20,22 @@
  */
 package com.evolveum.midpoint.web.component;
 
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.SystemManager;
-import com.evolveum.midpoint.web.controller.config.LoggingController;
-import com.evolveum.midpoint.web.controller.util.ControllerUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SubSystemLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
+import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * 
@@ -118,10 +110,10 @@ public class LoggingManager {
 
 		SystemConfigurationType config = null;
 		try {
-			ObjectType object = model.getObject(SystemConfigurationType.class,
+			PrismObject<SystemConfigurationType> object = model.getObject(SystemConfigurationType.class,
 					SystemObjectsType.SYSTEM_CONFIGURATION.value(), new PropertyReferenceListType(),
 					getSystemConfigResult);
-			config = (SystemConfigurationType) object;
+			config = object.asObjectable();
 
 			getSystemConfigResult.recordSuccess();
 		} catch (Exception ex) {

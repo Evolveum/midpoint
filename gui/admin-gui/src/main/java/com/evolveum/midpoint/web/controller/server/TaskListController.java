@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.web.controller.server;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -71,12 +73,12 @@ public class TaskListController extends SortableListController<TaskItem> {
 
     @Override
     protected String listObjects() {
-        List<TaskType> taskTypeList = repositoryManager.listObjects(TaskType.class, getOffset(),
+        List<PrismObject<TaskType>> taskTypeList = repositoryManager.listObjects(TaskType.class, getOffset(),
                 getRowsCount());
         List<TaskItem> runningTasks = getObjects();
         runningTasks.clear();
-        for (TaskType taskType : taskTypeList) {
-            runningTasks.add(new TaskItem(taskType, taskManager));
+        for (PrismObject<TaskType> task : taskTypeList) {
+            runningTasks.add(new TaskItem(task.asObjectable(), taskManager));
         }
 
         listAll = true;

@@ -33,6 +33,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.xpath.XPathConstants;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -141,7 +142,7 @@ public class XPathDebugController implements Serializable {
 			if (StringUtils.isNotEmpty(variable.getVariableName())) {
 				if (variable.getType().equals("Object")) {
 					try {
-						ObjectType objectType = modelService.getObject(ObjectType.class, variable.getValue(),
+						PrismObject<ObjectType> objectType = modelService.getObject(ObjectType.class, variable.getValue(),
 								new PropertyReferenceListType(), new OperationResult("Get object"));
 						// Variable only accepts String or Node, but here we
 						// will get a JAXB object. Need to convert it.

@@ -29,6 +29,7 @@ import java.util.Set;
 import javax.faces.event.ActionEvent;
 import javax.faces.event.ValueChangeEvent;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -83,6 +84,8 @@ public class ResourceListController extends SortableListController<ResourceListI
 	private transient ResourceDetailsController resourceDetails;
 	@Autowired(required = true)
 	private transient ResourceSyncController resourceSync;
+    @Autowired(required = true)
+    private transient PrismContext prismContext;
 	private boolean selectAll = false;
 	private boolean showPopup = false;
 
@@ -204,7 +207,7 @@ public class ResourceListController extends SortableListController<ResourceListI
 
 		ResourceListItem item = new ResourceListItem(resource.getOid(), resource.getName(), type, version);
 		try {
-			PrismSchema schema = RefinedResourceSchema.getResourceSchema(resource);
+			PrismSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 			if (schema == null) {
 				LOGGER.debug("Schema for resource {} was null.", new Object[] { resource.getName() });
 				return item;
