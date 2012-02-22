@@ -628,7 +628,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			assertEquals(ACCOUNT_MODIFY_OID, addedObjectOid);
 
 			ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
-					new File("src/test/resources/impl/account-change-description.xml"));
+					new File("src/test/resources/impl/account-change-description.xml"), ObjectModificationType.class);
 			ObjectDelta<AccountShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class, PrismTestUtil.getPrismContext());
 			display("Object change",delta);
 
@@ -713,7 +713,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			assertNull("Unexpected password before change",passwordBefore);
 			
 			ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
-					new File("src/test/resources/impl/account-change-password.xml"));
+					new File("src/test/resources/impl/account-change-password.xml"), ObjectModificationType.class);
 			ObjectDelta<AccountShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class, PrismTestUtil.getPrismContext());
 			display("Object change",delta);
 
@@ -858,7 +858,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			final List<AccountShadowType> objectTypeList = new ArrayList<AccountShadowType>();
 
 			QueryType query = PrismTestUtil.unmarshalObject(new File(
-					"src/test/resources/impl/query-filter-all-accounts.xml"));
+					"src/test/resources/impl/query-filter-all-accounts.xml"), QueryType.class);
 			provisioningService.searchObjectsIterative(AccountShadowType.class, query, new PagingType(), 
 					new ResultHandler<AccountShadowType>() {
 
@@ -911,7 +911,8 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
 			assertEquals(ACCOUNT_SEARCH_OID, addedObjectOid);
 
-			QueryType query = PrismTestUtil.unmarshalObject(new File("src/test/resources/impl/query-filter-all-accounts.xml"));
+			QueryType query = PrismTestUtil.unmarshalObject(new File("src/test/resources/impl/query-filter-all-accounts.xml"), 
+					QueryType.class);
 
 			ResultList<PrismObject<AccountShadowType>> objListType = 
 				provisioningService.searchObjects(AccountShadowType.class, query, new PagingType(), result);

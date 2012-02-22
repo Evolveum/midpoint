@@ -107,7 +107,7 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			repositoryService.addObject(user, new OperationResult("test"));
 
 			QueryType query = PrismTestUtil.unmarshalObject(new File(
-					"src/test/resources/query-user-by-name.xml"));
+					"src/test/resources/query-user-by-name.xml"), QueryType.class);
 			List<PrismObject<UserType>> objectList = repositoryService.searchObjects(UserType.class, query, new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
 			assertEquals(1, objectList.size());
@@ -133,7 +133,7 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			repositoryService.addObject(user, new OperationResult("test"));
 
 			QueryType query = PrismTestUtil.unmarshalObject(new File(
-					"src/test/resources/query-all-by-name.xml"));
+					"src/test/resources/query-all-by-name.xml"), QueryType.class);
 			List<PrismObject<ObjectType>> objectList = repositoryService.searchObjects(ObjectType.class, query, new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
 			assertEquals(1, objectList.size());
@@ -161,7 +161,7 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			repositoryService.addObject(accountShadow, new OperationResult("test"));
 
 			QueryType query = PrismTestUtil.unmarshalObject(new File(
-					"src/test/resources/query-account-by-attributes.xml"));
+					"src/test/resources/query-account-by-attributes.xml"), QueryType.class);
 			List<PrismObject<AccountShadowType>> objectList = repositoryService.searchObjects(AccountShadowType.class, query, new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
 			assertEquals(1, objectList.size());
@@ -194,7 +194,7 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			repositoryService.addObject(accountShadow, new OperationResult("test"));
 
 			QueryType query = PrismTestUtil.unmarshalObject(new File(
-					"src/test/resources/query-account-by-attributes-and-resource-ref.xml"));
+					"src/test/resources/query-account-by-attributes-and-resource-ref.xml"), QueryType.class);
 			List<PrismObject<AccountShadowType>> objectList = repositoryService.searchObjects(AccountShadowType.class, query, new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
 			assertEquals(1, objectList.size());
@@ -300,7 +300,7 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			repositoryService.addObject(connector, new OperationResult("test"));
 
 			QueryType query = PrismTestUtil.unmarshalObject(new File(
-					"src/test/resources/query-connector-by-type.xml"));
+					"src/test/resources/query-connector-by-type.xml"), QueryType.class);
 			List<PrismObject<ConnectorType>> objectList = repositoryService.searchObjects(ConnectorType.class, query, new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
 			assertEquals(1, objectList.size());

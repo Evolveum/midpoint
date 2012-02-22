@@ -115,7 +115,7 @@ public class ControllerGetObjectTest extends AbstractTestNGSpringContextTests  {
 	@SuppressWarnings("unchecked")
 	public void getUserCorrect() throws JAXBException, FaultMessage, ObjectNotFoundException, SchemaException {
 		final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
-				"get-user-correct.xml"));
+				"get-user-correct.xml"), UserType.class);
 
 		final String oid = "abababab-abab-abab-abab-000000000001";
 		when(repository.getObject(eq(UserType.class),eq(oid), any(PropertyReferenceListType.class), any(OperationResult.class)))

@@ -24,6 +24,8 @@ import java.io.File;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
+import org.opends.server.types.ObjectClass;
+
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -51,8 +53,7 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
 		File file = new File( directory, oidToFilename(ref.getOid()));
 		if (file.exists()) {
 			try {
-				JAXBElement<ObjectType> jaxbElement = (JAXBElement) PrismTestUtil.unmarshalElement(file);
-				return jaxbElement.getValue();
+				return PrismTestUtil.unmarshalObject(file, ObjectType.class);
 			} catch (JAXBException e) {
 				throw new SchemaException(e.getMessage(),e);
 			}

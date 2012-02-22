@@ -105,7 +105,7 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void getPasswordExistingAccount() throws Exception {
-		AccountShadowType account = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "account-with-pwd.xml"));
+		AccountShadowType account = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "account-with-pwd.xml"), AccountShadowType.class);
 		PasswordType password = ModelUtils.getPassword(account);
 		assertNotNull(password);
 	}
@@ -113,7 +113,7 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void getPasswordNonExistingAccount() throws Exception {
-		AccountShadowType account = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "account-without-pwd.xml"));
+		AccountShadowType account = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "account-without-pwd.xml"), AccountShadowType.class);
 		PasswordType password = ModelUtils.getPassword(account);
 		assertNotNull(password);
 	}
@@ -126,7 +126,7 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void generatePasswordBadLength() throws Exception {
-		AccountShadowType account = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "account-with-pwd.xml"));
+		AccountShadowType account = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "account-with-pwd.xml"), AccountShadowType.class);
 		int length = 5;
 		ModelUtils.generatePassword(account, length, protector);
 
@@ -159,7 +159,7 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void unresolveResourceObject() throws Exception {
-		AccountShadowType account = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "account-schema-handling.xml"));
+		AccountShadowType account = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "account-schema-handling.xml"), AccountShadowType.class);
 
 		assertNotNull(account.getResource());
 		String resourceOid = account.getResource().getOid();

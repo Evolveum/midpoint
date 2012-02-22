@@ -113,7 +113,7 @@ public class ControllerListAccountShadowOwnerTest extends AbstractTestNGSpringCo
 	public void correctListAccountShadowOwner() throws FaultMessage, JAXBException, ObjectNotFoundException {
 		final String accountOid = "acc11111-76e0-48e2-86d6-3d4f02d3e1a2";
 		UserType expected = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
-				"list-account-shadow-owner.xml"));
+				"list-account-shadow-owner.xml"), UserType.class);
 
 		when(repository.listAccountShadowOwner(eq(accountOid), any(OperationResult.class))).thenReturn(
 				expected.asPrismObject());

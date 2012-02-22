@@ -396,7 +396,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
 
 
     private ObjectDelta<UserType> addModification(SyncContext context, String filename) throws JAXBException, SchemaException {
-        ObjectModificationType modElement = PrismTestUtil.unmarshalObject(new File(filename));
+        ObjectModificationType modElement = PrismTestUtil.unmarshalObject(new File(filename), ObjectModificationType.class);
         ObjectDelta<UserType> userDelta = DeltaConvertor.createObjectDelta(modElement, UserType.class, prismContext);
         context.addPrimaryUserDelta(userDelta);
         return userDelta;

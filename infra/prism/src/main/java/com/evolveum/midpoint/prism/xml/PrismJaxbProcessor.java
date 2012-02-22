@@ -327,6 +327,14 @@ public class PrismJaxbProcessor {
 		return element.getValue();
 	}
 	
+	public <T> T unmarshalObject(String stringXml, Class<T> type) throws JAXBException {
+		JAXBElement<T> element = unmarshalElement(stringXml, type);
+		if (element == null) {
+			return null;
+		}
+		return element.getValue();
+	}
+	
 	public <T> JAXBElement<T> unmarshalElement(File file, Class<T> type) throws JAXBException {
 		if (file == null) {
 			throw new IllegalArgumentException("File argument must not be null.");

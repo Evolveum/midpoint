@@ -91,9 +91,9 @@ public class TestAssignment extends AbstractTestNGSpringContextTests {
 
         ModelTUtil.mockGetSystemConfiguration(repository, new File(
                 TEST_FOLDER_COMMON, "system-configuration.xml"));
-        final UserType user = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "user.xml"));
-        final RoleType role = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "role.xml"));
-        final ResourceType resource = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON, "resource.xml"));
+        final UserType user = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "user.xml"), UserType.class);
+        final RoleType role = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "role.xml"), RoleType.class);
+        final ResourceType resource = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON, "resource.xml"), ResourceType.class);
 
         when(
                 repository.getObject(eq(RoleType.class), eq(role.getOid()),
@@ -151,10 +151,10 @@ public class TestAssignment extends AbstractTestNGSpringContextTests {
             ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER_COMMON,
                     "system-configuration.xml"));
             final UserType user = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
-                    "user-account-assignment.xml"));
+                    "user-account-assignment.xml"), UserType.class);
 
             final ResourceType resource = PrismTestUtil.unmarshalObject(new File(
-                    TEST_FOLDER_COMMON, "resource.xml"));
+                    TEST_FOLDER_COMMON, "resource.xml"), ResourceType.class);
 
             when(
                     provisioning.getObject(eq(ResourceType.class), eq(resource.getOid()),
@@ -178,7 +178,7 @@ public class TestAssignment extends AbstractTestNGSpringContextTests {
                             UserType returnedUser = (UserType) invocation.getArguments()[0];
 
                             final UserType userExpected = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
-                                    "user-expected.xml"));
+                                    "user-expected.xml"), UserType.class);
                             userExpected.getAssignment().clear();
                             userExpected.getAssignment().add(user.getAssignment().get(0));
 

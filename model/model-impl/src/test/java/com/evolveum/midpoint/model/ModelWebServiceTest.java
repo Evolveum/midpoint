@@ -97,7 +97,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     @SuppressWarnings("unchecked")
     public void addUserWithoutName() throws Exception {
         final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
-                TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"));
+                TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(expectedUser, null));
         try {
             modelService.addObject(expectedUser, new Holder<String>(), new Holder<OperationResultType>());
@@ -205,7 +205,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
                     new ObjectNotFoundException("Object with oid '' not found."));
 
             final UserType user = PrismTestUtil.unmarshalObject(new File(
-                    TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"));
+                    TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
             SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null));
 
             modelService.deleteObject(ObjectTypes.USER.getObjectTypeUri(), oid);
@@ -355,7 +355,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
                 new ObjectNotFoundException("Oid '" + oid + "' not found."));
 
         final UserType user = PrismTestUtil.unmarshalObject(new File(
-                TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"));
+                TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null));
 
         try {

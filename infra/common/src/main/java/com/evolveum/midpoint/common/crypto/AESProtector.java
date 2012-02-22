@@ -364,7 +364,7 @@ public class AESProtector implements Protector {
 			xmlCipher.getEncryptedData().setKeyInfo(keyInfo);
 
 			document = xmlCipher.doFinal(document, plain);
-			EncryptedDataType data = (EncryptedDataType) getJaxbProcessor().unmarshalToObject(document.getDocumentElement());
+			EncryptedDataType data = getJaxbProcessor().unmarshalToObject(document.getDocumentElement(), EncryptedDataType.class);
 			protectedString.setEncryptedData(data);
 		} catch (EncryptionException ex) {
 			throw ex;

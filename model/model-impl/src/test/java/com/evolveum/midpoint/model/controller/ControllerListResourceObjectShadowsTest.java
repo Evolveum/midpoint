@@ -107,7 +107,7 @@ public class ControllerListResourceObjectShadowsTest extends AbstractTestNGSprin
 
 		final String resourceOid = "abababab-abab-abab-abab-000000000001";
 		final ResourceObjectShadowListType expected = PrismTestUtil.unmarshalObject(
-				new File(TEST_FOLDER, "resource-object-shadow-list.xml"));
+				new File(TEST_FOLDER, "resource-object-shadow-list.xml"), ResourceObjectShadowListType.class);
 		LOGGER.warn("TODO: File resource-object-shadow-list.xml doesn't contain proper resource object shadow list.");
 
 		when(

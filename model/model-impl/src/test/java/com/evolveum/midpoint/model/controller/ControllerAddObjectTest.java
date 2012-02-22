@@ -121,7 +121,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 	public void addUserWithoutName() throws Exception {
 		displayTestTile("addUserWithoutName");
 		final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
-				"add-user-without-name.xml"));
+				"add-user-without-name.xml"), UserType.class);
 
 		OperationResult result = new OperationResult("Test Operation");
 		try {
@@ -145,7 +145,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 		ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER_COMMON, "system-configuration.xml"));
 
 		final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
-				"add-user-correct.xml"));
+				"add-user-correct.xml"), UserType.class);
 
 		final String oid = "abababab-abab-abab-abab-000000000001";
 		when(
@@ -187,7 +187,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 		Task task = taskManager.createTaskInstance();
 		
 		ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER_COMMON, "system-configuration.xml"));
-		final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "add-user-with-oid.xml"));
+		final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "add-user-with-oid.xml"), UserType.class);
 		
 		when(repository.addObject(eq(expectedUser.asPrismObject()), any(OperationResult.class))).thenThrow(
 				new ObjectAlreadyExistsException());
@@ -291,7 +291,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 		Task task = taskManager.createTaskInstance();
 		
 		final ResourceType expectedResource = PrismTestUtil.unmarshalObject(new File(
-				TEST_FOLDER, "add-resource-correct.xml"));
+				TEST_FOLDER, "add-resource-correct.xml"), ResourceType.class);
 
 		final String oid = "abababab-abab-abab-abab-000000000002";
 		when(

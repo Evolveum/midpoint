@@ -66,8 +66,8 @@ public class TestXPathExpressions {
     @Test
     public void testExpressionSimple() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ExpressionType> expressionTypeElement = (JAXBElement) PrismTestUtil.unmarshalElement(
-                new File(TEST_DIR, "expression-simple.xml"));
+        JAXBElement<ExpressionType> expressionTypeElement = PrismTestUtil.unmarshalElement(
+                new File(TEST_DIR, "expression-simple.xml"), ExpressionType.class);
         ExpressionType expressionType = expressionTypeElement.getValue();
 
         OperationResult opResult = new OperationResult("testExpressionSimple");
@@ -83,8 +83,8 @@ public class TestXPathExpressions {
     @Test
     public void testExpressionStringVariables() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ExpressionType> expressionTypeElement = (JAXBElement) PrismTestUtil.unmarshalElement(
-                new File(TEST_DIR, "expression-string-variables.xml"));
+        JAXBElement<ExpressionType> expressionTypeElement = PrismTestUtil.unmarshalElement(
+                new File(TEST_DIR, "expression-string-variables.xml"), ExpressionType.class);
         ExpressionType expressionType = expressionTypeElement.getValue();
 
         OperationResult opResult = new OperationResult("testExpressionStringVariables");
@@ -101,8 +101,8 @@ public class TestXPathExpressions {
     @Test
     public void testExpressionObjectRefVariables() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ExpressionType> expressionTypeElement = (JAXBElement) PrismTestUtil.unmarshalElement(
-                new File(TEST_DIR, "expression-objectref-variables.xml"));
+        JAXBElement<ExpressionType> expressionTypeElement = PrismTestUtil.unmarshalElement(
+                new File(TEST_DIR, "expression-objectref-variables.xml"), ExpressionType.class);
         ExpressionType expressionType = expressionTypeElement.getValue();
 
         OperationResult opResult = new OperationResult("testExpressionObjectRefVariables");
@@ -119,8 +119,8 @@ public class TestXPathExpressions {
     @Test
     public void testSystemVariables() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ExpressionType> expressionTypeElement = (JAXBElement) PrismTestUtil.unmarshalElement(
-                new File(TEST_DIR, "expression-system-variables.xml"));
+        JAXBElement<ExpressionType> expressionTypeElement = PrismTestUtil.unmarshalElement(
+                new File(TEST_DIR, "expression-system-variables.xml"), ExpressionType.class);
         ExpressionType expressionType = expressionTypeElement.getValue();
 
         OperationResult opResult = new OperationResult("testSystemVariables");
@@ -142,8 +142,8 @@ public class TestXPathExpressions {
     @Test
     public void testRootNode() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ExpressionType> expressionTypeElement = (JAXBElement) PrismTestUtil.unmarshalElement(
-                new File(TEST_DIR, "expression-root-node.xml"));
+        JAXBElement<ExpressionType> expressionTypeElement = PrismTestUtil.unmarshalElement(
+                new File(TEST_DIR, "expression-root-node.xml"), ExpressionType.class);
         ExpressionType expressionType = expressionTypeElement.getValue();
 
         OperationResult opResult = new OperationResult("testRootNode");
@@ -165,8 +165,8 @@ public class TestXPathExpressions {
     @Test
     public void testExpressionList() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        JAXBElement<ExpressionType> expressionTypeElement = (JAXBElement) PrismTestUtil.unmarshalElement(
-                new File(TEST_DIR, "expression-list.xml"));
+        JAXBElement<ExpressionType> expressionTypeElement = PrismTestUtil.unmarshalElement(
+                new File(TEST_DIR, "expression-list.xml"), ExpressionType.class);
         ExpressionType expressionType = expressionTypeElement.getValue();
 
         OperationResult opResult = new OperationResult("testExpressionList");

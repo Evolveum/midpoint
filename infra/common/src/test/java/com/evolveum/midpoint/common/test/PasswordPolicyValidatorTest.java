@@ -70,7 +70,7 @@ public class PasswordPolicyValidatorTest {
 		File file = new File(pathname);
 		JAXBElement<PasswordPolicyType> jbe = null;
 		try {
-			jbe = PrismTestUtil.unmarshalElement(file);
+			jbe = PrismTestUtil.unmarshalElement(file, PasswordPolicyType.class);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -94,7 +94,7 @@ public class PasswordPolicyValidatorTest {
 		File file = new File(pathname);
 		JAXBElement<PasswordPolicyType> jbe = null;
 		try {
-			jbe = PrismTestUtil.unmarshalElement(file);
+			jbe = PrismTestUtil.unmarshalElement(file, PasswordPolicyType.class);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -112,7 +112,7 @@ public class PasswordPolicyValidatorTest {
 		File file = new File(pathname);
 		JAXBElement<PasswordPolicyType> jbe = null;
 		try {
-			jbe = PrismTestUtil.unmarshalElement(file);
+			jbe = PrismTestUtil.unmarshalElement(file, PasswordPolicyType.class);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -174,7 +174,7 @@ public class PasswordPolicyValidatorTest {
 		File file = new File(pathname);
 		JAXBElement<PasswordPolicyType> jbe = null;
 		try {
-			jbe = PrismTestUtil.unmarshalElement(file);
+			jbe = PrismTestUtil.unmarshalElement(file, PasswordPolicyType.class);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -204,7 +204,7 @@ public class PasswordPolicyValidatorTest {
 		File file = new File(pathname);
 		JAXBElement<PasswordPolicyType> jbe = null;
 		try {
-			jbe = PrismTestUtil.unmarshalElement(file);
+			jbe = PrismTestUtil.unmarshalElement(file, PasswordPolicyType.class);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -235,7 +235,7 @@ public class PasswordPolicyValidatorTest {
 		File file = new File(pathname);
 		JAXBElement<PasswordPolicyType> jbe = null;
 		try {
-			jbe = PrismTestUtil.unmarshalElement(file);
+			jbe = PrismTestUtil.unmarshalElement(file, PasswordPolicyType.class);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

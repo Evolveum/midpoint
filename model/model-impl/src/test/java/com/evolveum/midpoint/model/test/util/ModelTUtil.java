@@ -71,7 +71,7 @@ public class ModelTUtil {
 	@SuppressWarnings("unchecked")
 	public static void mockGetSystemConfiguration(RepositoryService repository, File file)
 			throws JAXBException, ObjectNotFoundException, SchemaException {
-		SystemConfigurationType systemConfiguration = PrismTestUtil.unmarshalObject(file);
+		SystemConfigurationType systemConfiguration = PrismTestUtil.unmarshalObject(file, SystemConfigurationType.class);
 
 		when(
 				repository.getObject(eq(SystemConfigurationType.class),
@@ -113,7 +113,7 @@ public class ModelTUtil {
 	@SuppressWarnings("unchecked")
 	public static ObjectType addObjectToRepo(RepositoryService repositoryService, String fileString)
 			throws Exception {
-		ObjectType object = PrismTestUtil.unmarshalObject(new File(fileString));
+		ObjectType object = PrismTestUtil.unmarshalObject(new File(fileString), ObjectType.class);
 		repositoryService.addObject(object.asPrismObject(), new OperationResult("Add Object"));
 		return object;
 	}
@@ -133,7 +133,7 @@ public class ModelTUtil {
 	public static String mockUser(RepositoryService repository, File file, String userOid) throws Exception {
 		String userOidExpected = userOid;
 		if (file != null) {
-			UserType user = PrismTestUtil.unmarshalObject(file);
+			UserType user = PrismTestUtil.unmarshalObject(file, UserType.class);
 			userOidExpected = user.getOid();
 			when(
 					repository.getObject(any(Class.class), eq(user.getOid()),

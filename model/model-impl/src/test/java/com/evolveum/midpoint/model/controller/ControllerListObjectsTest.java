@@ -104,7 +104,7 @@ public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests 
 	@SuppressWarnings("unchecked")
 	public void userList() throws Exception {
 		final ResultList<PrismObject<UserType>> expectedUserList = MiscSchemaUtil.toResultList(UserType.class,
-				(ObjectListType)PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "user-list.xml")));
+				PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "user-list.xml"), ObjectListType.class));
 
 		when(repository.listObjects(eq(UserType.class), any(PagingType.class), any(OperationResult.class)))
 				.thenReturn(expectedUserList);

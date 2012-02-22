@@ -179,7 +179,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			PrismAsserts.assertEquals(user, retrievedObject);
 			
 			ObjectModificationType objectModificationType = PrismTestUtil.unmarshalObject(new File(
-			"src/test/resources/request/user-modify-add-extension.xml"));
+			"src/test/resources/request/user-modify-add-extension.xml"), ObjectModificationType.class);
 			ObjectDelta<UserType> delta = DeltaConvertor.createObjectDelta(objectModificationType, UserType.class, PrismTestUtil.getPrismContext());
 //			//modify user add extension
 //			ObjectModificationType objectModificationType = CalculateXmlDiff.calculateChanges(new File(
