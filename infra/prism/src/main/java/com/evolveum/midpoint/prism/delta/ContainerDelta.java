@@ -4,6 +4,8 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -26,6 +28,11 @@ public class ContainerDelta<V> extends ItemDelta<PrismContainerValue<V>> {
 
 	public ContainerDelta(QName name, PrismContainerDefinition itemDefinition) {
 		super(name, itemDefinition);
+	}
+
+	@Override
+	public Class<PrismContainer> getItemClass() {
+		return PrismContainer.class;
 	}
 
 	/**

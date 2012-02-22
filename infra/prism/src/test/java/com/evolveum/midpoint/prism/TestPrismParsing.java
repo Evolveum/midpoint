@@ -144,10 +144,10 @@ public class TestPrismParsing {
 		QName descriptionName = new QName(NS_FOO,"description");
 		PrismContainer assContainer = user.findContainer(assName);
 		assertEquals("Wrong assignement values", 2, assContainer.getValues().size());
-		PrismProperty a2DescProperty = assContainer.getValue("i1112").findProperty(descriptionName);
+		PrismProperty a2DescProperty = assContainer.getValue(USER_ASSIGNMENT_2_ID).findProperty(descriptionName);
 		assertEquals("Wrong assigment 2 description", "Assignment 2", a2DescProperty.getValue().getValue());
 		
-		PropertyPath a1Path = new PropertyPath(new PropertyPathSegment(assName, "i1111"),
+		PropertyPath a1Path = new PropertyPath(new PropertyPathSegment(assName, USER_ASSIGNMENT_1_ID),
 				new PropertyPathSegment(descriptionName));
 		PrismProperty a1Property = user.findProperty(a1Path);
 		assertNotNull("Property "+a1Path+" not found", a1Property);

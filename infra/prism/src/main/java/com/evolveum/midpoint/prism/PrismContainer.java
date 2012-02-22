@@ -306,6 +306,10 @@ public class PrismContainer<V> extends Item<PrismContainerValue<V>> {
     	return findItem(referenceQName, PrismReference.class);
     }
     
+    public <T extends Item<?>> T findOrCreateItem(PropertyPath containerPath, Class<T> type) {
+        return findCreateItem(containerPath, type, true);
+    }
+    
     public PrismContainer<?> findOrCreateContainer(PropertyPath containerPath) {
         return findCreateItem(containerPath, PrismContainer.class, true);
     }

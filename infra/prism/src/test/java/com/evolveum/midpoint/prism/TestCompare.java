@@ -32,6 +32,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -67,13 +68,15 @@ public class TestCompare {
 		
 		// WHEN, THEN
 		
-		assertTrue("Users not the same (PrismObject)", user1.equals(user2));
+		assertTrue("Users not the same (PrismObject)(1)", user1.equals(user2));
+		assertTrue("Users not the same (PrismObject)(2)", user2.equals(user1));
 		
 		// Following line won't work here. We don't have proper generated classes here. 
 		// It is tested in the "schema" project that has a proper code generation
 		// assertTrue("Users not the same (Objectable)", user1.asObjectable().equals(user2.asObjectable()));
 		
-		assertTrue("Users not equivalent", user1.equivalent(user2));
+		assertTrue("Users not equivalent (1)", user1.equivalent(user2));
+		assertTrue("Users not equivalent (2)", user2.equivalent(user1));
 	}
 	
 	/**
@@ -82,7 +85,7 @@ public class TestCompare {
 	 */
 	@Test
 	public void testDiffJack() throws SchemaException, SAXException, IOException {
-System.out.println("===[ testDiffJack ]===");
+		System.out.println("===[ testDiffJack ]===");
 		
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -104,9 +107,46 @@ System.out.println("===[ testDiffJack ]===");
 		
 		assertEquals("Wrong delta type", ChangeType.MODIFY, jackDelta.getChangeType());
 		assertEquals("Wrong delta OID", USER_JACK_OID, jackDelta.getOid());
-		assertEquals("Wrong number of modificaitions", 2, jackDelta.getModifications().size());
+		assertEquals("Wrong number of modificaitions", 5, jackDelta.getModifications().size());
+		
 		DeltaAsserts.assertPropertyReplace(jackDelta, USER_FULLNAME_QNAME, "Jack Sparrow");
+		
 		DeltaAsserts.assertPropertyDelete(jackDelta, new PropertyPath(USER_EXTENSION_QNAME, USER_EXTENSION_MULTI_QNAME), "dva");
+		DeltaAsserts.assertPropertyAdd(jackDelta, new PropertyPath(USER_EXTENSION_QNAME, USER_EXTENSION_MULTI_QNAME), "osem");
+		// TODO: asser BAR
+		
+		DeltaAsserts.assertPropertyReplace(jackDelta, 
+				new PropertyPath(
+						new PropertyPathSegment(USER_ASSIGNMENT_QNAME,  USER_ASSIGNMENT_2_ID),
+						new PropertyPathSegment(USER_DESCRIPTION_QNAME, null)), 
+				"Assignment II");
+		
+		ContainerDelta<?> assignment3Delta = DeltaAsserts.assertContainerAdd(jackDelta, new PropertyPath(USER_ASSIGNMENT_QNAME));
+		PrismContainerValue<?> assignment3DeltaAddValue = assignment3Delta.getValuesToAdd().iterator().next();
+		assertEquals("Assignment 3 wrong ID", USER_ASSIGNMENT_3_ID, assignment3DeltaAddValue.getId());
 	}
-
+	
+	@Test
+	public void testDiffPatchRoundTrip() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testDiffPatchRoundTrip ]===");
+		
+		// GIVEN
+		PrismContext prismContext = constructInitializedPrismContext();
+		
+		Document document = DOMUtil.parseFile(USER_JACK_FILE);
+		Element userElement = DOMUtil.getFirstChildElement(document);		
+		PrismObject<UserType> jackOriginal = prismContext.parseObject(userElement);
+		
+		document = DOMUtil.parseFile(USER_JACK_MODIFIED_FILE);
+		userElement = DOMUtil.getFirstChildElement(document);		
+		PrismObject<UserType> jackModified = prismContext.parseObject(userElement);
+		
+		ObjectDelta<UserType> jackDelta = jackOriginal.diff(jackModified);
+		
+		// WHEN
+		jackDelta.applyTo(jackOriginal);
+		
+		// THEN
+		assertTrue("Roundtrip failed", jackOriginal.equivalent(jackModified));
+	}
 }

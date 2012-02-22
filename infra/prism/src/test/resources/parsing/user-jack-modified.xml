@@ -25,10 +25,11 @@
 		xmlns:ext="http://example.com/xml/ns/user-extension">
     <name>jack</name>
     <extension>
-		<ext:bar xsi:type="xsd:string">BAR</ext:bar>
+		<ext:bar xsi:type="xsd:string">bar</ext:bar>
 		<ext:num xsi:type="xsd:integer">42</ext:num>
 		<ext:multi xsi:type="xsd:string">raz</ext:multi>
 		<ext:multi xsi:type="xsd:string">tri</ext:multi>
+		<ext:multi xsi:type="xsd:string">osem</ext:multi>
 	<!--	<foo:password xsi:type="ProtectedStringType">
 			<clearValue>openS3zam3</clearValue>
 		</foo:password>  -->
@@ -42,7 +43,11 @@
 	</assignment>
 
 	<assignment id="i1112">
-		<description>Assignment 2</description>
+		<description>Assignment II</description>
+	</assignment>
+	
+	<assignment id="i1113">
+		<description>Assignment 3</description>
 	</assignment>
 
 	<activation>

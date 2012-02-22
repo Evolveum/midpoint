@@ -24,8 +24,10 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PropertyPath;
@@ -52,6 +54,11 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue> {
 		super(name, itemDefinition);
 	}
 	
+	@Override
+	public Class<PrismReference> getItemClass() {
+		return PrismReference.class;
+	}
+
 	/**
      * Convenience method for quick creation of object deltas that replace a single object property. This is used quite often
      * to justify a separate method. 

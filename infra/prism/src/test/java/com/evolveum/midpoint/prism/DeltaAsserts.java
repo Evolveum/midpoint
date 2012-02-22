@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
@@ -84,6 +85,13 @@ public class DeltaAsserts {
 		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyPath);
 		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
 		assertSet(propertyPath.last().getName(), propertyDelta.getValuesToDelete(), expectedValues);
+	}
+	
+	public static ContainerDelta<?> assertContainerAdd(ObjectDelta<?> userDelta, PropertyPath propertyPath) {
+		ContainerDelta<?> delta = userDelta.getContainerDelta(propertyPath);
+		AssertJUnit.assertNotNull("Container delta for "+propertyPath+" not found",delta);
+		AssertJUnit.assertFalse("Container delta for "+propertyPath+" is empty", delta.isEmpty());
+		return delta;
 	}
 
 	private static void assertSet(QName propertyName, Collection<PrismPropertyValue<?>> valuesFromDelta, Object[] expectedValues) {

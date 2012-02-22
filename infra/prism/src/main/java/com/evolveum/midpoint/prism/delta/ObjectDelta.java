@@ -331,7 +331,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
      * Applies this object delta to specified object, returns updated object.
      * It modifies the provided object.
      */
-    public void applyTo(PrismObject<T> mpObject) {
+    public void applyTo(PrismObject<T> targetObject) {
     	if (isEmpty()) {
     		// nothing to do
     		return;
@@ -339,8 +339,8 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         if (changeType != ChangeType.MODIFY) {
             throw new IllegalStateException("Can apply only MODIFY delta to object, got " + changeType + " delta");
         }
-        for (ItemDelta propDelta : modifications) {
-            propDelta.applyTo(mpObject);
+        for (ItemDelta itemDelta : modifications) {
+            itemDelta.applyTo(targetObject);
         }
     }
 

@@ -106,6 +106,8 @@ public abstract class ItemDelta<V extends PrismValue> implements Dumpable, Debug
 		this.definition = definition;
 	}
 	
+    public abstract Class<? extends Item> getItemClass();
+	
 	public Collection<V> getValuesToAdd() {
         return valuesToAdd;
     }
@@ -239,8 +241,8 @@ public abstract class ItemDelta<V extends PrismValue> implements Dumpable, Debug
     /**
      * Apply this delta (path) to a property container.
      */
-    public void applyTo(PrismContainer propertyContainer) {
-        Item item = null; //FIXME propertyContainer.findOrCreateProperty(getParentPath(), getName(), valueClass);
+    public void applyTo(PrismContainer<?> propertyContainer) {
+        Item<?> item = propertyContainer.findOrCreateItem(getPath(), getItemClass());
         applyTo(item);
     }
     
@@ -314,7 +316,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Dumpable, Debug
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);
         }
-        sb.append("PropertyDelta(");
+        sb.append(getClass().getSimpleName()).append("(");
         sb.append(parentPath).append(" / ").append(DebugUtil.prettyPrint(name)).append(")");
 
         if (valuesToReplace != null) {

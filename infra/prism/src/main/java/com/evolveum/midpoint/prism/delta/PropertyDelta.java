@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.prism.delta;
 
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -81,8 +82,13 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 	void setPropertyDefinition(PrismPropertyDefinition propertyDefinition) {
 		super.setDefinition(propertyDefinition);
 	}
+	
+    @Override
+	public Class<PrismProperty> getItemClass() {
+		return PrismProperty.class;
+	}
 
-    /**
+	/**
      * Returns all values regardless of whether they are added or removed or replaced.
      * Useful for iterating over all the changed values.
      */
