@@ -92,6 +92,12 @@ public class PrismInternalTestUtil {
 	
 	public static final QName ACCOUNT_TYPE_QNAME = new QName(NS_FOO,"AccountType");
 	
+	public static final QName ACCOUNT_NAME_QNAME = new QName(NS_FOO,"name");
+	public static final QName ACCOUNT_DESCRIPTION_QNAME = new QName(NS_FOO,"description");
+	public static final QName ACCOUNT_ATTRIBUTES_QNAME = new QName(NS_FOO,"attributes");
+	
+	public static final QName ATTRIBUTES_TYPE_QNAME = new QName(NS_FOO,"AttributesType");
+	
 	
 	public static void assertDefinition(Item item, QName type, int minOccurs, int maxOccurs) {
 		ItemDefinition definition = item.getDefinition();

@@ -157,6 +157,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
+                	<xsd:element name="attributes" type="tns:AttributesType" minOccurs="0" maxOccurs="1"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -183,6 +184,17 @@
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="enabled" type="xsd:boolean"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="AttributesType">
+    	<xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
         </xsd:sequence>
     </xsd:complexType>
 

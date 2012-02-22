@@ -91,7 +91,7 @@ public class XsdTypeConverterTest {
 	
 	@Test
 	public void testAccountMarshall() throws JAXBException, SchemaException {
-		System.out.println("\ntestJaxbDom\n\n");
+		System.out.println("===[ testAccountMarshall ]===");
 		JAXBElement jaxbElement = (JAXBElement)JaxbTestUtil.unmarshalElement(new File("src/test/resources/converter/account-jack.xml"));
 		System.out.println("Object: "+jaxbElement.getValue());
 		AccountShadowType shadow = (AccountShadowType)jaxbElement.getValue();

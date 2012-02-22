@@ -103,11 +103,7 @@ public class PrismContainerDefinition extends ItemDefinition {
     public void setComplexTypeDefinition(ComplexTypeDefinition complexTypeDefinition) {
         this.complexTypeDefinition = complexTypeDefinition;
     }
-        
-    public boolean isWildcard() {
-        return (complexTypeDefinition == null);
-    }
-    
+
     @Override
 	void revive(PrismContext prismContext) {
 		if (this.prismContext != null) {

@@ -306,6 +306,9 @@ class DomToSchemaProcessor {
 					XSAnnotation containerAnnotation = complexType.getAnnotation();
 					PrismContainerDefinition containerDefinition = createPropertyContainerDefinition(xsType, p, 
 							innerComplexTypeDefinition, containerAnnotation);
+					if (isAny(xsType)) {
+						containerDefinition.setRuntimeSchema(true);
+					}
 					ctd.getDefinitions().add(containerDefinition);
 					
 				} else if (xsType.getName() == null) {
@@ -439,14 +442,46 @@ class DomToSchemaProcessor {
 		}
 	}
 	
+	/**
+	 * Determine whether the definition contains xsd:any (directly or indirectly)
+	 */
 	private boolean isAny(XSType xsType) {
-		// FIXME: Not perfect and probably quite wrong. But works for now.
-		if (xsType.getName() == null && xsType.getBaseType().getName().equals("anyType")) {
+		if (xsType instanceof XSComplexType) {
+			XSComplexType complexType = (XSComplexType)xsType;
+			XSContentType contentType = complexType.getContentType();
+			if (contentType != null) {
+				XSTerm term = contentType.asParticle().getTerm();
+				if (term != null) {
+					return isAny(term);
+				}
+			}
+		}		
+		return false;
+	}
+
+	/**
+	 * Determine whether the definition contains xsd:any (directly or indirectly)
+	 */
+	private boolean isAny(XSTerm term) {
+		if (term.isWildcard()) {
 			return true;
+		}
+		if (term.isModelGroup()) {
+			XSParticle[] children = term.asModelGroup().getChildren();
+			if (children != null) {
+				for (XSParticle childParticle: children) {
+					XSTerm childTerm = childParticle.getTerm();
+					if (childTerm != null) {
+						if (isAny(childTerm)) {
+							return true;
+						}
+					}
+				}
+			}
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Returns true if provides XSD type is a property container. It looks for annotations.
 	 */
