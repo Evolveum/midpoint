@@ -85,6 +85,11 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         LOGGER.info("Shutdown complete.");
     }
 
+    @Override
+    public void destroyService(RepositoryService service) throws RepositoryServiceFactoryException {
+        //we don't need destroying service objects, they will be GC correctly
+    }
+
     private void startServer() throws RepositoryServiceFactoryException {
 //        [-help] or [-?]         Print the list of options
 //        [-web]                  Start the web server with the H2 Console

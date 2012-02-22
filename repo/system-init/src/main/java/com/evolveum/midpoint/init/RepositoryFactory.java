@@ -28,6 +28,7 @@ import com.evolveum.midpoint.common.configuration.api.RuntimeConfiguration;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -38,17 +39,18 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Component;
 
-@Component
+
 public class RepositoryFactory implements ApplicationContextAware, RuntimeConfiguration {
 
     private static final String REPOSITORY_CONFIGURATION = "midpoint.repository";
     private static final String REPOSITORY_FACTORY_CLASS = "repositoryServiceFactoryClass";
+    private static final String REPOSITORY_FACTORY_CACHE_CLASS = "com.evolveum.midpoint.repo.cache.RepositoryCacheFactory";
     private static final Trace LOGGER = TraceManager.getTrace(RepositoryFactory.class);
     private ApplicationContext applicationContext;
     @Autowired
     MidpointConfiguration midpointConfiguration;
+    //Repository services
     RepositoryService repositoryService;
     RepositoryService cacheRepositoryService;
 
@@ -77,11 +79,16 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
         return className;
     }
 
+    private RepositoryServiceFactory getFactory(Class<RepositoryServiceFactory> clazz) throws
+            RepositoryServiceFactoryException {
+        return applicationContext.getBean(clazz);
+    }
+
     private RepositoryServiceFactory getFactory(Configuration config) throws RepositoryServiceFactoryException {
         try {
             String className = getFactoryClassName(config);
             Class<RepositoryServiceFactory> clazz = (Class<RepositoryServiceFactory>) Class.forName(className);
-            return applicationContext.getBean(clazz);
+            return getFactory(clazz);
         } catch (Exception ex) {
             throw new RepositoryServiceFactoryException(ex.getMessage(), ex);
         }
@@ -114,9 +121,9 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
                 Configuration config = midpointConfiguration.getConfiguration(REPOSITORY_CONFIGURATION);
                 RepositoryServiceFactory factory = getFactory(config);
                 repositoryService = factory.getRepositoryService();
-            } catch (RepositoryServiceFactoryException e) {
-                LoggingUtils.logException(LOGGER, "Failed to get repository service from factory", e);
-                throw new SystemException("Failed to get repository service from factory", e);
+            } catch (RepositoryServiceFactoryException ex) {
+                LoggingUtils.logException(LOGGER, "Failed to get repository service from factory", ex);
+                throw new SystemException("Failed to get repository service from factory", ex);
             }
         }
         return repositoryService;
@@ -125,17 +132,15 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
     public synchronized RepositoryService getCacheRepositoryService() {
         if (cacheRepositoryService == null) {
             try {
-                ClassLoader classLoader = RepositoryFactory.class.getClassLoader();
-                //FIXME: create hammer factory factory solution also for RepositoryCache, if required
-                Class<RepositoryService> repositoryCacheServiceClass = (Class<RepositoryService>)
-                        classLoader.loadClass("com.evolveum.midpoint.repo.cache.RepositoryCache");
-                //TODO: test
-                cacheRepositoryService = repositoryCacheServiceClass.getConstructor(RepositoryService.class)
-                        .newInstance(getRepositoryService());
-            } catch (Exception e) {
+                Class<RepositoryServiceFactory> clazz = (Class<RepositoryServiceFactory>) Class.forName(REPOSITORY_FACTORY_CACHE_CLASS);
+                RepositoryServiceFactory cacheFactory = getFactory(clazz);
+                //TODO decompose this dependency, remove class casting !!!
+                RepositoryCache cacheService = (RepositoryCache) cacheFactory.getRepositoryService();
+                cacheService.setRepository(getRepositoryService());
+            } catch (Exception ex) {
                 LoggingUtils.logException(LOGGER, "Failed to get cache repository service. ExceptionClass = {}",
-                        e, e.getClass().getName());
-                throw new SystemException("Failed to get cache repository service", e);
+                        ex, ex.getClass().getName());
+                throw new SystemException("Failed to get cache repository service", ex);
             }
         }
         return cacheRepositoryService;

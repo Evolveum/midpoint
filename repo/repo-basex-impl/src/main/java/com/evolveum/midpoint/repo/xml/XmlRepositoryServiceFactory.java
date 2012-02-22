@@ -204,10 +204,23 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 		LOGGER.info("Destroying BaseX server service.");
 	}
 
-	@Override
+    @Override
+    public void destroyService(RepositoryService service) throws RepositoryServiceFactoryException {
+        if (!(service instanceof XmlRepositoryService)) {
+            throw new RepositoryServiceFactoryException("Service '" + service.getClass().getName() 
+                    + "' is not instance of '" + XmlRepositoryService.class.getName() + "'.");
+        }
+        
+        XmlRepositoryService xmlService = (XmlRepositoryService) service;
+        xmlService.close();
+    }
+
+    @Override
 	public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {
-		RepositoryService repositoryService = new XmlRepositoryService(host, port, username, password, databaseName);
-		return repositoryService;
+		XmlRepositoryService service = new XmlRepositoryService(host, port, username, password, databaseName);
+        service.init();
+
+		return service;
 	}
 
 	public boolean isRunServer() {

@@ -45,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import org.apache.commons.lang.Validate;
 
 /**
  * Read-through write-through per-session repository cache.
@@ -63,11 +64,18 @@ public class RepositoryCache implements RepositoryService {
 	private RepositoryService repository;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(RepositoryCache.class);
+    
+    public RepositoryCache(){        
+    }
 	
 	public RepositoryCache(RepositoryService repository) {
-		super();
-		this.repository = repository;
+		setRepository(repository);
 	}
+    
+    public void setRepository(RepositoryService service) {
+        Validate.notNull(service, "Repository service must not be null.");
+        this.repository = service;
+    }
 	
 	private static Map<String,PrismObject<ObjectType>> getCache() {
 		// Don't instantiate unless the count in non-zero.
