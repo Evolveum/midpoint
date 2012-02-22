@@ -22,6 +22,9 @@ package com.evolveum.midpoint.web.model.impl;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -34,7 +37,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.dto.ObjectDto;
-import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
@@ -45,7 +47,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author lazyman
@@ -73,20 +74,15 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
         return list(null);
     }
 
-    @Override
-    public List<PropertyAvailableValues> getPropertyAvailableValues(String oid, List<String> properties) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    protected <O extends ObjectType> O get(Class<O> objectClass, String oid, PropertyReferenceListType resolve)
-            throws ObjectNotFoundException {
+    protected <O extends ObjectType> PrismObject<O> get(Class<O> objectClass, String oid,
+            PropertyReferenceListType resolve) throws ObjectNotFoundException {
         Validate.notEmpty(oid, "Object oid must not be null or empty.");
         Validate.notNull(objectClass, "Object class must not be null.");
 
         LOGGER.debug("Get object with oid {}.", new Object[]{oid});
         OperationResult result = new OperationResult(GET);
 
-        O objectType = null;
+        PrismObject<O> objectType = null;
         try {
             objectType = getModel().getObject(objectClass, oid, resolve, result);
             result.recordSuccess();
@@ -116,7 +112,8 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 
         T object = null;
         try {
-            ObjectType objectType = get(getSupportedObjectClass(), oid, resolve);
+            PrismObject prismObject = get(getSupportedObjectClass(), oid, resolve);
+            Objectable objectType = prismObject.asObjectable();
             isObjectTypeSupported(objectType);
             object = createObject((C) objectType);
             result.recordSuccess();
@@ -165,8 +162,8 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
         try {
             SecurityUtils security = new SecurityUtils();
             PrincipalUser principal = security.getPrincipalUser();
-            task.setOwner(principal.getUser());
-            oid = getModel().addObject(object.getXmlObject(), task, result);
+            task.setOwner(principal.getUser().asPrismObject());
+            oid = getModel().addObject(object.getXmlObject().asPrismObject(), task, result);
             result.recordSuccess();
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't add object {} to model", ex, object.getName());
@@ -186,10 +183,10 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
         Collection<O> collection = new ArrayList<O>();
         OperationResult result = new OperationResult(LIST);
         try {
-            List<O> objectList = getModel().listObjects(type, paging, result);
+            ResultList<PrismObject<O>> objectList = getModel().listObjects(type, paging, result);
             LOGGER.debug("Found {} objects of type {}.", new Object[]{objectList.size(), type});
-            for (O objectType : objectList) {
-                collection.add(objectType);
+            for (PrismObject<O> object : objectList) {
+                collection.add(object.asObjectable());
             }
             result.recordSuccess();
         } catch (Exception ex) {
@@ -224,18 +221,9 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
         return createObject(null);
     }
 
-//	protected void printResults(Trace logger, OperationResult result) {
-//		if (result == null) {
-//			return;
-//		}
-//		if (!result.isSuccess()) {
-//			FacesUtils.addMessage(result);
-//		}
-//
-//		if (logger.isDebugEnabled()) {
-//			logger.debug(result.dump());
-//		}
-//	}
+    private void isObjectTypeSupported(Objectable object) {
+        isObjectTypeSupported((ObjectType) object);
+    }
 
     private void isObjectTypeSupported(ObjectType object) {
         Class<? extends ObjectType> type = getSupportedObjectClass();

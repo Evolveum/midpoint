@@ -22,6 +22,8 @@ package com.evolveum.midpoint.web.repo;
 
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
@@ -40,15 +42,15 @@ public interface RepositoryManager {
 	String DELETE_OBJECT = CLASS_NAME_WITH_DOT + "deleteObject";
 	String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
 
-	<T extends ObjectType> List<T>  listObjects(Class<T> objectType, int offset, int count);
+	<T extends ObjectType> List<PrismObject<T>>  listObjects(Class<T> objectType, int offset, int count);
 
-	List<? extends ObjectType> searchObjects(String name);
+    <T extends ObjectType> ResultList<PrismObject<T>> searchObjects(String name);
 
-	ObjectType getObject(String oid);
+	PrismObject<?> getObject(String oid);
 
-	boolean saveObject(ObjectType object, String xml);
+	boolean saveObject(PrismObject<?> object, String xml);
 
 	<T extends ObjectType> boolean deleteObject(Class<T> type, String oid);
 
-	String addObject(ObjectType object) throws ObjectAlreadyExistsException;
+	String addObject(PrismObject<?> object) throws ObjectAlreadyExistsException;
 }
