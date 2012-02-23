@@ -21,17 +21,15 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.h2.tools.Server;
-import org.hibernate.SessionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +39,8 @@ import java.net.SocketAddress;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -117,23 +117,25 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
         checkPort(getSqlConfiguration().getPort());
 
-        StringBuilder args = new StringBuilder();
-        args.append("-baseDir");
-        args.append(getSqlConfiguration().getBaseDir());
-        args.append(" ");
-        if (getSqlConfiguration().isTcpSSL()) {
-            args.append("-tcpSSL ");
+        SqlRepositoryConfiguration config = getSqlConfiguration();
+        List<String> args = new ArrayList<String>();        
+        if (StringUtils.isNotEmpty(config.getBaseDir())) {
+            args.add("-baseDir");
+            args.add("\"" + config.getBaseDir() + "\"");
         }
-        args.append("-ifExists ");
-        if (getSqlConfiguration().getPort() > 0) {
-            args.append("-tcpPort");
-            args.append(getSqlConfiguration().getPort());
-            args.append(" ");
+        if (config.isTcpSSL()) {
+            args.add("-tcpSSL"); 
         }
+        if (config.getPort() > 0) {
+            args.add("-tcpPort");
+            args.add(Integer.toString(config.getPort()));
+        }
+        // todo with this we can't create database on first start..
+        // args.add("-ifExists");
 
         try {
-            server = Server.createTcpServer(args.toString()).start();
-            server.start();
+            String[] array = args.toArray(new String[args.size()]);
+            server = Server.createTcpServer(array).start();
         } catch (Exception ex) {
             throw new RepositoryServiceFactoryException(ex.getMessage(), ex);
         }
@@ -196,7 +198,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             }
             jdbcUrl.append(baseDir.getAbsolutePath());
             jdbcUrl.append("/midpoint");
-
+            jdbc:h2:tcp://127.0.0.1:5437/home/lazyman/Work/evolveum/midpoint-configuration/
             LOGGER.debug("Connecting to created JDBC uri '{}'.", new Object[]{jdbcUrl.toString()});
 
             connection = DriverManager.getConnection(jdbcUrl.toString(), "sa", "");
