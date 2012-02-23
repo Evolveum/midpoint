@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.JaxbTestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -50,19 +51,21 @@ import static org.testng.AssertJUnit.*;
 /**
  * @author semancik
  */
-public class SchemaProcessorBasicTest {
+public class TestResourceSchema {
 
     private static final String TEST_DIR = "src/test/resources/processor/";
 
-    private static final String SCHEMA1_FILENAME = TEST_DIR + "schema1.xsd";
-    private static final String OBJECT1_FILENAME = TEST_DIR + "object1.xml";
+    private static final String RESOURCE_SCHEMA_SIMPLE_FILENAME = TEST_DIR + "resource-schema-simple.xsd";
+    private static final String RESOURCE_OBJECT_SIMPLE_FILENAME = TEST_DIR + "object1.xml";
+    
     private static final String SCHEMA2_FILENAME = TEST_DIR + "schema2.xsd";
     private static final String OBJECT2_FILENAME = TEST_DIR + "object2.xml";
+    
     private static final String SCHEMA_NAMESPACE = "http://schema.foo.com/bar";
     
     private static final QName FIRST_QNAME = new QName(SCHEMA_NAMESPACE, "first");
 
-    public SchemaProcessorBasicTest() {
+    public TestResourceSchema() {
     }
 
     @BeforeMethod
@@ -73,90 +76,89 @@ public class SchemaProcessorBasicTest {
     public void tearDown() {
     }
 
-//    @Test
-//    public void parseSchemaTest() throws SchemaException {
-//        System.out.println("===[ parseSchemaTest ]===");
-//        // GIVEN
-//
-//        Document schemaDom = DOMUtil.parseFile(SCHEMA1_FILENAME);
-//
-//        // WHEN
-//
-//        Schema schema = Schema.parse(DOMUtil.getFirstChildElement(schemaDom));
-//
-//        // THEN
-//
-//        assertNotNull(schema);
-//
-//        System.out.println("Parsed schema from " + SCHEMA1_FILENAME + ":");
-//        System.out.println(schema.dump());
-//
-//        PrismContainerDefinition accDef = schema.findContainerDefinitionByType(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"));
-//        assertEquals(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"), accDef.getTypeName());
-//        assertTrue("Expected ResourceObjectDefinition but got " + accDef.getClass().getName(), accDef instanceof ResourceAttributeContainerDefinition);
-//        assertTrue("Not a default account", ((ResourceAttributeContainerDefinition) accDef).isDefaultAccountType());
-//        
-//        PrismPropertyDefinition loginDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "login"));
-//        assertEquals(new QName(SCHEMA_NAMESPACE, "login"), loginDef.getName());
-//        assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
-//        assertFalse("Ignored while it should not be", loginDef.isIgnored());
-//        
-//        PrismPropertyDefinition groupDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "group"));
-//        assertEquals(new QName(SCHEMA_NAMESPACE, "group"), groupDef.getName());
-//        assertEquals(DOMUtil.XSD_INTEGER, groupDef.getTypeName());
-//        assertFalse("Ignored while it should not be", groupDef.isIgnored());
-//        
-//        PrismPropertyDefinition ufoDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "ufo"));
-//        assertEquals(new QName(SCHEMA_NAMESPACE, "ufo"), ufoDef.getName());
-//        assertTrue("Not ignored as it should be", ufoDef.isIgnored());
-//    }
-//
-//    @Test
-//    public void instantiationTest() throws SchemaException, JAXBException {
-//        System.out.println("===[ instantiationTest ]===");
-//        // GIVEN
-//
-//        Document schemaDom = DOMUtil.parseFile(SCHEMA1_FILENAME);
-//        Schema schema = Schema.parse(DOMUtil.getFirstChildElement(schemaDom));
-//        assertNotNull(schema);
-//        System.out.println("Parsed schema:");
-//        System.out.println(schema.dump());
-//        PrismContainerDefinition accDef = schema.findContainerDefinitionByType(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"));
-//        assertEquals(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"), accDef.getTypeName());
-//        PrismPropertyDefinition loginDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "login"));
-//        assertEquals(new QName(SCHEMA_NAMESPACE, "login"), loginDef.getName());
-//        
-//        // WHEN
-//
-//        // Instantiate PropertyContainer (XSD type)
-//        PrismContainer accInst = accDef.instantiate(FIRST_QNAME);
-//        assertNotNull(accInst);
-//        assertNotNull(accInst.getDefinition());
-//        // as the definition is ResourceObjectDefinition, the instance should be of ResoureceObject type
-//        assertTrue(accInst instanceof ResourceAttributeContainer);
-//
-//        // Instantiate Property (XSD element)
-//        PrismProperty loginInst = loginDef.instantiate();
-//        assertNotNull(loginInst);
-//        assertNotNull(loginInst.getDefinition());
-//        assertTrue(loginInst instanceof ResourceAttribute);
-//        assertEquals("Wrong parent path", new PropertyPath(FIRST_QNAME));
-//        assertEquals("Wrong path", new PropertyPath(FIRST_QNAME, loginDef.getName()));
-//
-//        // Set some value
-//        loginInst.setValue(new PrismPropertyValue("FOOBAR"));
-//        accInst.getItems().add(loginInst);
-//
-//        // Same thing with the prop2 property (type int)
-//        PrismPropertyDefinition groupDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "group"));
-//        PrismProperty groupInst = groupDef.instantiate();
-//        groupInst.setValue(new PrismPropertyValue(321));
-//        accInst.getItems().add(groupInst);
-//
-//
-//        System.out.println("AccountObjectClass INST: " + accInst);
-//        // Serialize to DOM
-//
+    @Test
+    public void parseSchemaTest() throws SchemaException {
+        System.out.println("===[ parseSchemaTest ]===");
+        // GIVEN
+
+        Document schemaDom = DOMUtil.parseFile(RESOURCE_SCHEMA_SIMPLE_FILENAME);
+
+        // WHEN
+
+        ResourceSchema schema = ResourceSchema.parse(DOMUtil.getFirstChildElement(schemaDom), JaxbTestUtil.getPrismContext());
+
+        // THEN
+
+        assertNotNull(schema);
+
+        System.out.println("Parsed schema from " + RESOURCE_SCHEMA_SIMPLE_FILENAME + ":");
+        System.out.println(schema.dump());
+
+        PrismContainerDefinition accDef = schema.findContainerDefinitionByType(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"));
+        assertEquals(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"), accDef.getTypeName());
+        assertTrue("Expected ResourceObjectDefinition but got " + accDef.getClass().getName(), accDef instanceof ResourceAttributeContainerDefinition);
+        assertTrue("Not a default account", ((ResourceAttributeContainerDefinition) accDef).isDefaultAccountType());
+        
+        PrismPropertyDefinition loginDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "login"));
+        assertEquals(new QName(SCHEMA_NAMESPACE, "login"), loginDef.getName());
+        assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
+        assertFalse("Ignored while it should not be", loginDef.isIgnored());
+        
+        PrismPropertyDefinition groupDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "group"));
+        assertEquals(new QName(SCHEMA_NAMESPACE, "group"), groupDef.getName());
+        assertEquals(DOMUtil.XSD_INTEGER, groupDef.getTypeName());
+        assertFalse("Ignored while it should not be", groupDef.isIgnored());
+        
+        PrismPropertyDefinition ufoDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "ufo"));
+        assertEquals(new QName(SCHEMA_NAMESPACE, "ufo"), ufoDef.getName());
+        assertTrue("Not ignored as it should be", ufoDef.isIgnored());
+    }
+
+    @Test
+    public void instantiationTest() throws SchemaException, JAXBException {
+        System.out.println("===[ instantiationTest ]===");
+        // GIVEN
+
+        Document schemaDom = DOMUtil.parseFile(RESOURCE_SCHEMA_SIMPLE_FILENAME);
+        ResourceSchema schema = ResourceSchema.parse(DOMUtil.getFirstChildElement(schemaDom), JaxbTestUtil.getPrismContext());
+        assertNotNull(schema);
+        System.out.println("Parsed schema:");
+        System.out.println(schema.dump());
+        PrismContainerDefinition accDef = schema.findContainerDefinitionByType(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"));
+        assertNotNull("No AccountObjectClass definition",accDef);
+        assertEquals(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"), accDef.getTypeName());
+        PrismPropertyDefinition loginDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "login"));
+        assertEquals(new QName(SCHEMA_NAMESPACE, "login"), loginDef.getName());
+        
+        // WHEN
+
+        // Instantiate PropertyContainer (XSD type)
+        PrismContainer accInst = accDef.instantiate(FIRST_QNAME);
+        assertNotNull(accInst);
+        assertNotNull(accInst.getDefinition());
+        // as the definition is ResourceObjectDefinition, the instance should be of ResoureceObject type
+        assertTrue(accInst instanceof ResourceAttributeContainer);
+
+        // Instantiate Property (XSD element)
+        PrismProperty loginInst = loginDef.instantiate();
+        assertNotNull(loginInst);
+        assertNotNull(loginInst.getDefinition());
+        assertTrue("login is not an attribute", loginInst instanceof ResourceAttribute);
+
+        // Set some value
+        loginInst.setValue(new PrismPropertyValue("FOOBAR"));
+        accInst.getValue().getItems().add(loginInst);
+
+        // Same thing with the prop2 property (type int)
+        PrismPropertyDefinition groupDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "group"));
+        PrismProperty groupInst = groupDef.instantiate();
+        groupInst.setValue(new PrismPropertyValue(321));
+        accInst.getValue().getItems().add(groupInst);
+
+
+        System.out.println("AccountObjectClass INST: " + accInst);
+        // Serialize to DOM
+
 //        Document doc = DOMUtil.getDocument();
 //        accInst.serializeToDom(doc);
 //
@@ -164,15 +166,15 @@ public class SchemaProcessorBasicTest {
 //
 //        System.out.println("Serialized: ");
 //        System.out.println(DOMUtil.serializeDOMToString(doc));
-//    }
-//
+    }
+
 //    @Test
 //    public void valueParseTest() throws SchemaException, SchemaException {
 //        System.out.println("===[ valueParseTest ]===");
 //        // GIVEN
 //
-//        Document schemaDom = DOMUtil.parseFile(SCHEMA1_FILENAME);
-//        Schema schema = Schema.parse(DOMUtil.getFirstChildElement(schemaDom));
+//        Document schemaDom = DOMUtil.parseFile(RESOURCE_SCHEMA_SIMPLE_FILENAME);
+//        ResourceSchema schema = ResourceSchema.parse(DOMUtil.getFirstChildElement(schemaDom));
 //        AssertJUnit.assertNotNull(schema);
 //        PrismContainerDefinition type1Def = schema.findContainerDefinitionByType(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"));
 //        AssertJUnit.assertEquals(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"), type1Def.getTypeName());
@@ -181,7 +183,7 @@ public class SchemaProcessorBasicTest {
 //
 //        // WHEN
 //
-//        Document dataDom = DOMUtil.parseFile(OBJECT1_FILENAME);
+//        Document dataDom = DOMUtil.parseFile(RESOURCE_OBJECT_SIMPLE_FILENAME);
 //        PrismContainer container = type1Def.parseItem(DOMUtil.getFirstChildElement(dataDom));
 //
 //        // THEN
@@ -214,7 +216,7 @@ public class SchemaProcessorBasicTest {
 //        // GIVEN
 //
 //        Document schemaDom = DOMUtil.parseFile(SCHEMA2_FILENAME);
-//        Schema schema = Schema.parse(DOMUtil.getFirstChildElement(schemaDom));
+//        ResourceSchema schema = ResourceSchema.parse(DOMUtil.getFirstChildElement(schemaDom));
 //        assertNotNull(schema);
 //        System.out.println(SchemaProcessorBasicTest.class.getSimpleName() + ".testParsePropertyContainer parsed schema: ");
 //        System.out.println(schema.dump());

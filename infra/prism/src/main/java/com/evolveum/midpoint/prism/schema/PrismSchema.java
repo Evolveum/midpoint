@@ -72,6 +72,11 @@ public class PrismSchema implements Dumpable, DebugDumpable, Serializable {
 	protected Set<Definition> definitions;
 	protected PrismContext prismContext;
 
+	protected PrismSchema(PrismContext prismContext) {
+		this.prismContext = prismContext;
+		definitions = new HashSet<Definition>();
+	}
+	
 	public PrismSchema(String namespace, PrismContext prismContext) {
 		if (StringUtils.isEmpty(namespace)) {
 			throw new IllegalArgumentException("Namespace can't be null or empty.");
@@ -90,6 +95,10 @@ public class PrismSchema implements Dumpable, DebugDumpable, Serializable {
 	 */
 	public String getNamespace() {
 		return namespace;
+	}
+
+	public void setNamespace(String namespace) {
+		this.namespace = namespace;
 	}
 
 	/**
@@ -125,11 +134,21 @@ public class PrismSchema implements Dumpable, DebugDumpable, Serializable {
 		return prismContext;
 	}
 	
+	
+	// TODO: cleanup this chaos
 	public static PrismSchema parse(Element element, PrismContext prismContext) throws SchemaException {
-		return parse(element, prismContext.getSchemaRegistry().getBuiltinSchemaResolver(), prismContext);
+		return parse(element, prismContext.getSchemaRegistry().getBuiltinSchemaResolver(), new PrismSchema(prismContext), prismContext);
 	}
 	
 	public static PrismSchema parse(Element element, EntityResolver resolver, PrismContext prismContext) throws SchemaException {
+		return parse(element, resolver, new PrismSchema(prismContext), prismContext);
+	}
+	
+	protected static PrismSchema parse(Element element, PrismSchema schema, PrismContext prismContext) throws SchemaException {
+		return parse(element, prismContext.getSchemaRegistry().getBuiltinSchemaResolver(), schema, prismContext);
+	}
+	
+	protected static PrismSchema parse(Element element, EntityResolver resolver, PrismSchema schema, PrismContext prismContext) throws SchemaException {
 		if (element == null) {
 			throw new IllegalArgumentException("Schema DOM element must not be null.");
 		}
@@ -137,9 +156,10 @@ public class PrismSchema implements Dumpable, DebugDumpable, Serializable {
 		DomToSchemaProcessor processor = new DomToSchemaProcessor();
 		processor.setEntityResolver(resolver);
 		processor.setPrismContext(prismContext);
-		return processor.parseDom(element);
+		return processor.parseDom(schema, element);
 	}
 
+	
 	public Document serializeToXsd() throws SchemaException {
 		SchemaToDomProcessor processor = new SchemaToDomProcessor();
 		processor.setPrismContext(prismContext);

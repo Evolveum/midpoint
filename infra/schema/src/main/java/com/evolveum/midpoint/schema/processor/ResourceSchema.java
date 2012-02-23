@@ -34,13 +34,17 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class ResourceSchema extends PrismSchema {
 
+	protected ResourceSchema(PrismContext prismContext) {
+		super(prismContext);
+	}
+
 	public ResourceSchema(String namespace, PrismContext prismContext) {
 		super(namespace, prismContext);
 	}
 	
 	public static ResourceSchema parse(Element element, PrismContext prismContext) throws SchemaException {
 		// TODO: make sure correct parser plugins are used
-		return (ResourceSchema) PrismSchema.parse(element, prismContext);
+		return (ResourceSchema) PrismSchema.parse(element, new ResourceSchema(prismContext), prismContext);
 	}
 
 	/**
@@ -68,7 +72,7 @@ public class ResourceSchema extends PrismSchema {
 	 */
 	public ResourceAttributeContainerDefinition createResourceObjectDefinition(QName typeName) {
 		QName name = new QName(getNamespace(), toElementName(typeName.getLocalPart()));
-		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinition(name, typeName, getPrismContext());
+		ObjectClassComplexTypeDefinition cTypeDef = new ObjectClassComplexTypeDefinition(name, typeName, getPrismContext());
 		ResourceAttributeContainerDefinition def = new ResourceAttributeContainerDefinition(name, cTypeDef, getPrismContext());
 		add(cTypeDef);
 		add(def);

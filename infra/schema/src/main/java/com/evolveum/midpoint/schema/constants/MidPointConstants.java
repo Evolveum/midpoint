@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.schema.constants;
 
+import javax.xml.namespace.QName;
+
 /**
  * @author semancik
  *
@@ -26,5 +28,16 @@ package com.evolveum.midpoint.schema.constants;
 public class MidPointConstants {
 
 	public static final String NS_MIDPOINT_PUBLIC_PREFIX = "http://midpoint.evolveum.com/xml/ns/public";
+	
+	public static final String NS_RA = NS_MIDPOINT_PUBLIC_PREFIX+"/resource/annotation-1";
+	public static final QName MA_ACCOUNT_TYPE = new QName(NS_RA, "account");
+	public static final QName MA_RESOURCE_OBJECT = new QName(NS_RA, "resourceObject");
+	public static final QName RA_NATIVE_OBJECT_CLASS = new QName(NS_RA, "nativeObjectClass");
+	public static final QName RA_ACCOUNT_TYPE = new QName(NS_RA, "accountType");
+	public static final QName RA_DISPLAY_NAME_ATTRIBUTE = new QName(NS_RA, "displayNameAttribute");
+	public static final QName RA_NAMING_ATTRIBUTE = new QName(NS_RA, "namingAttribute");
+	public static final QName RA_DESCRIPTION_ATTRIBUTE = new QName(NS_RA, "descriptionAttribute");
+	public static final QName RA_IDENTIFIER = new QName(NS_RA, "identifier");
+	public static final QName RA_SECONDARY_IDENTIFIER = new QName(NS_RA, "secondaryIdentifier");
 
 }

@@ -102,6 +102,18 @@ public class ComplexTypeDefinition extends Definition {
 		return createPropertyDefinifion(name,typeName);
 	}
 	
+	/**
+     * Finds a PropertyDefinition by looking at the property name.
+     * <p/>
+     * Returns null if nothing is found.
+     *
+     * @param name property definition name
+     * @return found property definition or null
+     */
+    public PrismPropertyDefinition findPropertyDefinition(QName name) {
+        return findItemDefinition(name, PrismPropertyDefinition.class);
+    }
+	
 	public <T extends ItemDefinition> T findItemDefinition(QName name, Class<T> clazz) {
         if (clazz == null) {
             throw new IllegalArgumentException("type not specified while searching for " + name + " in " + this);

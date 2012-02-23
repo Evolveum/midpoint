@@ -27,11 +27,13 @@ import java.io.IOException;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.namespace.PrefixMapper;
+import com.evolveum.midpoint.schema.processor.MidPointSchemaDefinitionFactory;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
@@ -45,9 +47,14 @@ public class MidPointPrismContextFactory {
 	public PrismContext createPrismContext() throws SchemaException {
 		SchemaRegistry schemaRegistry = createSchemaRegistry();
 		PrismContext context = PrismContext.create(schemaRegistry);
+		context.setDefinitionFactory(createDefinitionFactory());
 		return context;
 	}
 	
+	private SchemaDefinitionFactory createDefinitionFactory() {
+		return new MidPointSchemaDefinitionFactory();
+	}
+
 	public PrismContext createInitializedPrismContext() throws SchemaException, SAXException, IOException {
 		PrismContext context = createPrismContext();
 		context.initialize();

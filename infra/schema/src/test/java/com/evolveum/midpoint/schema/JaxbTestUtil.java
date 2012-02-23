@@ -25,11 +25,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Class that statically instantiates the contexts for JAXB parsing.
@@ -81,16 +83,21 @@ public class JaxbTestUtil {
     	return prismContext;
     }
 
-    public static void initialize() {
+    public static void initialize() throws SAXException, IOException {
         MidPointPrismContextFactory factory = new MidPointPrismContextFactory();
         try {
-            prismContext = factory.createPrismContext();
+            prismContext = factory.createInitializedPrismContext();
         } catch (SchemaException e) {
             throw new SystemException(e);
         }
     }
 
     static {
-        initialize();
+    	try {
+    		initialize();
+    	} catch (Exception ex) {
+    		ex.printStackTrace();
+    		throw new SystemException("Error initializing JAXBTestUtil",ex);
+    	}
     }
 }

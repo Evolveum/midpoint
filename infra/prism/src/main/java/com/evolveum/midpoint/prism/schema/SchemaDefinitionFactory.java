@@ -22,12 +22,15 @@ package com.evolveum.midpoint.prism.schema;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.sun.xml.xsom.XSAnnotation;
+import com.sun.xml.xsom.XSComplexType;
 import com.sun.xml.xsom.XSParticle;
 
 /**
@@ -35,26 +38,53 @@ import com.sun.xml.xsom.XSParticle;
  *
  */
 public class SchemaDefinitionFactory {
+
+	public ComplexTypeDefinition createComplexTypeDefinition(XSComplexType complexType,
+			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
+		
+		QName typeName = new QName(complexType.getTargetNamespace(),complexType.getName());
+		return new ComplexTypeDefinition(null, typeName, prismContext);
+	}
 	
-	PrismPropertyDefinition createPropertyDefinition(QName elementName, QName typeName, PrismContext prismContext, 
-			XSAnnotation annotation, XSParticle elementParticle) {
+	public PrismPropertyDefinition createPropertyDefinition(QName elementName, QName typeName, ComplexTypeDefinition complexTypeDefinition,
+			PrismContext prismContext, XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
 		return new PrismPropertyDefinition(elementName, elementName, typeName, prismContext);
 	}
 	
-	PrismReferenceDefinition createReferenceDefinition(QName primaryElementName, QName typeName, PrismContext prismContext, 
-			XSAnnotation annotation, XSParticle elementParticle) {
+	public PrismReferenceDefinition createReferenceDefinition(QName primaryElementName, QName typeName, ComplexTypeDefinition complexTypeDefinition,
+			PrismContext prismContext, XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
 		return new PrismReferenceDefinition(primaryElementName, primaryElementName, typeName, prismContext);
 	}
 	
-	PrismContainerDefinition createContainerDefinition(QName elementName, ComplexTypeDefinition complexTypeDefinition,
-			PrismContext prismContext, XSAnnotation annotation, XSParticle elementParticle) {
+	public PrismContainerDefinition createContainerDefinition(QName elementName, ComplexTypeDefinition complexTypeDefinition,
+			PrismContext prismContext, XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
 		return new PrismContainerDefinition(elementName, complexTypeDefinition, prismContext);
 	}
 
-	public PrismObjectDefinition createObjectDefinition(QName elementName,
-			ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, Class compileTimeClass,
-			XSAnnotation annotation, XSParticle elementParticle) {
-		return new PrismObjectDefinition(elementName, complexTypeDefinition, prismContext, compileTimeClass );
+	public <T extends Objectable> PrismObjectDefinition<T> createObjectDefinition(QName elementName,
+			ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, Class<T> compileTimeClass,
+			XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
+		return new PrismObjectDefinition<T>(elementName, complexTypeDefinition, prismContext, compileTimeClass );
+	}
+
+	/**
+	 * Create optional extra definition form a top-level complex type definition.
+	 * This is used e.g. to create object class definitions in midPoint
+	 */
+	public PrismContainerDefinition createExtraDefinitionFromComplexType(XSComplexType complexType,
+			ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, 
+			XSAnnotation annotation) throws SchemaException {
+		// Create nothing by default
+		return null;
+	}
+
+	/**
+	 * Called after the complex type definition is filled with items. It may be used to finish building
+	 * the definition, e.g. by adding data that depends on existing internal definitions.
+	 */
+	public void finishComplexTypeDefinition(ComplexTypeDefinition complexTypeDefinition, XSComplexType complexType,
+			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
+		// Nothing to do by default
 	}
 	
 }

@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (c) 2011 Evolveum
  *
  * The contents of this file are subject to the terms
@@ -15,61 +15,40 @@
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
- *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-
 package com.evolveum.midpoint.schema.processor;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 
 /**
- * Resource Object Definition (Object Class).
- * 
- * Object Class refers to a type of object on the Resource. Unix account, Active
- * Directory group, inetOrgPerson LDAP objectclass or a schema of USERS database
- * table are all Object Classes from the midPoint point of view. Object class
- * defines a set of attribute names, types for each attributes and few
- * additional properties.
- * 
- * This class represents schema definition for resource object (object class).
- * See {@link Definition} for more details.
- * 
- * Resource Object Definition is immutable. TODO: This will probably need to be
- * changed to a mutable object.
- * 
- * @author Radovan Semancik
- * 
+ * @author semancik
+ *
  */
-public class ResourceAttributeContainerDefinition extends PrismContainerDefinition {
-
-	private static final long serialVersionUID = 3943909626639924429L;
+public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	
-	public ResourceAttributeContainerDefinition(QName name, ObjectClassComplexTypeDefinition complexTypeDefinition,  PrismContext prismContext) {
-		super(name, complexTypeDefinition, prismContext);
+	private Set<ResourceAttributeDefinition> idenitifiers;
+	private Set<ResourceAttributeDefinition> secondaryIdenitifiers;
+	private ResourceAttributeDefinition descriptionAttribute;
+	private ResourceAttributeDefinition displayNameAttribute;
+	private ResourceAttributeDefinition namingAttribute;
+	private boolean defaultAccountType = false;
+	private boolean accountType = false;
+	private String accountTypeName;
+	private String nativeObjectClass;
+
+	ObjectClassComplexTypeDefinition(QName defaultName, QName typeName, PrismContext prismContext) {
+		super(defaultName, typeName, prismContext);
 	}
 	
-	@Override
-	public ObjectClassComplexTypeDefinition getComplexTypeDefinition() {
-		return (ObjectClassComplexTypeDefinition)super.getComplexTypeDefinition();
-	}
-
 	/**
 	 * Returns the definition of identifier attributes of a resource object.
 	 * 
@@ -85,9 +64,12 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	 *             if there is no definition for the referenced attributed
 	 */
 	public Collection<ResourceAttributeDefinition> getIdentifiers() {
-		return getComplexTypeDefinition().getIdentifiers();
+		if (idenitifiers == null) {
+			idenitifiers = new HashSet<ResourceAttributeDefinition>();
+		}
+		return idenitifiers;
 	}
-
+	
 	/**
 	 * Returns the definition of secondary identifier attributes of a resource
 	 * object.
@@ -104,9 +86,12 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	 *             if there is no definition for the referenced attributed
 	 */
 	public Set<ResourceAttributeDefinition> getSecondaryIdentifiers() {
-		return getComplexTypeDefinition().getSecondaryIdentifiers();
+		if (secondaryIdenitifiers == null) {
+			secondaryIdenitifiers = new HashSet<ResourceAttributeDefinition>();
+		}
+		return secondaryIdenitifiers;
 	}
-
+	
 	/**
 	 * Returns the definition of description attribute of a resource object.
 	 * 
@@ -124,13 +109,11 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	 *             if there is no definition for the referenced attributed
 	 */
 	public ResourceAttributeDefinition getDescriptionAttribute() {
-		return getComplexTypeDefinition().getDescriptionAttribute();
+		return descriptionAttribute;
 	}
 
 	public void setDescriptionAttribute(ResourceAttributeDefinition descriptionAttribute) {
-		// We can afford to delegate a set here as we know that there is one-to-one correspondence between
-		// object class definition and attribute container
-		getComplexTypeDefinition().setDescriptionAttribute(descriptionAttribute);
+		this.descriptionAttribute = descriptionAttribute;
 	}
 	
 	/**
@@ -148,19 +131,17 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	 * 					for the account.
 	 */
 	public ResourceAttributeDefinition getNamingAttribute() {
-		return getComplexTypeDefinition().getNamingAttribute();
+		return namingAttribute;
 	}
 
 	public void setNamingAttribute(ResourceAttributeDefinition namingAttribute) {
-		// We can afford to delegate a set here as we know that there is one-to-one correspondence between
-		// object class definition and attribute container
-		getComplexTypeDefinition().setNamingAttribute(namingAttribute);
+		this.namingAttribute = namingAttribute;
 	}
-
+	
 	public void setNamingAttribute(QName namingAttribute) {
-		getComplexTypeDefinition().setNamingAttribute(namingAttribute);
+		setNamingAttribute(findAttributeDefinition(namingAttribute));
 	}
-
+	
 	/**
 	 * Returns the native object class string for the resource object.
 	 * 
@@ -181,15 +162,13 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	 *             if there is more than one description attribute.
 	 */
 	public String getNativeObjectClass() {
-		return getComplexTypeDefinition().getNativeObjectClass();
+		return nativeObjectClass;
 	}
 
 	public void setNativeObjectClass(String nativeObjectClass) {
-		// We can afford to delegate a set here as we know that there is one-to-one correspondence between
-		// object class definition and attribute container
-		getComplexTypeDefinition().setNativeObjectClass(nativeObjectClass);
+		this.nativeObjectClass = nativeObjectClass;
 	}
-
+	
 	/**
 	 * Indicates whether definition is should be used as account type.
 	 * 
@@ -204,15 +183,16 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	 * @return true if the definition should be used as account type.
 	 */
 	public boolean isAccountType() {
-		return getComplexTypeDefinition().isAccountType();
+		return accountType;
 	}
 
 	public void setAccountType(boolean accountType) {
-		// We can afford to delegate a set here as we know that there is one-to-one correspondence between
-		// object class definition and attribute container
-		getComplexTypeDefinition().setAccountType(accountType);
+		this.accountType = accountType;
+		if (!accountType) {
+			defaultAccountType = false;
+		}
 	}
-
+	
 	/**
 	 * Indicates whether definition is should be used as default account type.
 	 * 
@@ -235,21 +215,25 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	 *             if more than one default account is suggested in the schema.
 	 */
 	public boolean isDefaultAccountType() {
-		return getComplexTypeDefinition().isDefaultAccountType();
+		return defaultAccountType;
 	}
-
+	
 	public void setDefaultAccountType(boolean defaultAccountType) {
-		getComplexTypeDefinition().setDefaultAccountType(defaultAccountType);
+		this.defaultAccountType = defaultAccountType;
+		if (defaultAccountType && !accountType) {
+			throw new IllegalStateException(
+					"Can't be default account type, flat account type (boolean) not set.");
+		}
 	}
 	
 	public String getAccountTypeName() {
-		return getComplexTypeDefinition().getAccountTypeName();
+		return accountTypeName;
 	}
 	
 	public void setAccountTypeName(String accountTypeName) {
-		getComplexTypeDefinition().setAccountTypeName(accountTypeName);
+		this.accountTypeName = accountTypeName;
 	}
-
+	
 	/**
 	 * Returns the definition of display name attribute.
 	 * 
@@ -271,13 +255,13 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	 *             definition of the referenced attribute does not exist.
 	 */
 	public ResourceAttributeDefinition getDisplayNameAttribute() {
-		return getComplexTypeDefinition().getDisplayNameAttribute();
+		return displayNameAttribute;
 	}
 
 	public void setDisplayNameAttribute(ResourceAttributeDefinition displayName) {
-		getComplexTypeDefinition().setDisplayNameAttribute(displayName);
+		this.displayNameAttribute = displayName;
 	}
-
+	
 	/**
 	 * TODO
 	 * 
@@ -286,126 +270,44 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	 * @param displayName
 	 */
 	public void setDisplayNameAttribute(QName displayName) {
-		getComplexTypeDefinition().setDisplayNameAttribute(displayName);
-	}
-
-	public ResourceAttributeContainer instantiate() {
-		return instantiate(getNameOrDefaultName());
+		setDisplayNameAttribute(findAttributeDefinition(displayName));
 	}
 	
-	public ResourceAttributeContainer instantiate(QName name) {
-		return new ResourceAttributeContainer(name, this, prismContext);
-	}
+	/**
+     * Finds a attribute definition by looking at the property name.
+     * <p/>
+     * Returns null if nothing is found.
+     *
+     * @param name property definition name
+     * @return found property definition or null
+     */
+    public ResourceAttributeDefinition findAttributeDefinition(QName name) {
+        return findItemDefinition(name, ResourceAttributeDefinition.class);
+    }
 	
-	public ResourceAttributeContainerDefinition clone() {
-		ResourceAttributeContainerDefinition clone = new ResourceAttributeContainerDefinition(name, 
-				(ObjectClassComplexTypeDefinition)complexTypeDefinition.clone(), prismContext);
+	public ObjectClassComplexTypeDefinition clone() {
+		ObjectClassComplexTypeDefinition clone = new ObjectClassComplexTypeDefinition(getDefaultName(), 
+				getTypeName(), prismContext);
 		copyDefinitionData(clone);
 		return clone;
 	}
 	
-	protected void copyDefinitionData(ResourceAttributeContainerDefinition clone) {
+	protected void copyDefinitionData(ObjectClassComplexTypeDefinition clone) {
 		super.copyDefinitionData(clone);
-	}
-
-//	public Set<ResourceAttribute> parseAttributes(List<Object> elements, PropertyPath parentPath) throws SchemaException {
-//		return (Set) parseItems(elements, parentPath);
-//	}
-//	
-//	// Resource objects are usualy constructed as top-level objects, so this comes handy
-//	public Set<ResourceAttribute> parseAttributes(List<Object> elements) throws SchemaException {
-//		return (Set) parseItems(elements, null);
-//	}
-//
-//	public Collection<? extends ResourceAttribute> parseIdentifiers(List<Object> elements, PropertyPath parentPath) throws SchemaException {
-//		return (Collection) parseItems(elements, parentPath, getIdentifiers());
-//	}
-//	
-//	// Resource objects are usualy constructed as top-level objects, so this comes handy
-//	public Collection<? extends ResourceAttribute> parseIdentifiers(List<Object> elements) throws SchemaException {
-//		return (Collection) parseItems(elements, null, getIdentifiers());
-//	}
-
-	public ResourceAttributeDefinition findAttributeDefinition(QName elementQName) {
-		return findItemDefinition(elementQName,ResourceAttributeDefinition.class);
-	}
-	
-	public ResourceAttributeDefinition findAttributeDefinition(PropertyPath elementPath) {
-		return findItemDefinition(elementPath,ResourceAttributeDefinition.class);
-	}
-	
-	public ResourceAttributeDefinition findAttributeDefinition(String elementLocalname) {
-		QName elementQName = new QName(getNameOrDefaultName().getNamespaceURI(),elementLocalname);
-		return findAttributeDefinition(elementQName);
-	}
-	
-	public ResourceAttributeDefinition createAttributeDefinition(QName name, QName typeName) {
-		ResourceAttributeDefinition propDef = new ResourceAttributeDefinition(name, name, typeName, prismContext);
-		getDefinitions().add(propDef);
-		return propDef;
-	}
-	
-	public ResourceAttributeDefinition createAttributeDefinition(String localName, QName typeName) {
-		QName name = new QName(getSchemaNamespace(),localName);
-		return createAttributeDefinition(name,typeName);
-	}
-
-	
-	public ResourceAttributeDefinition createAttributeDefinition(String localName, String localTypeName) {
-		QName name = new QName(getSchemaNamespace(),localName);
-		QName typeName = new QName(getSchemaNamespace(),localTypeName);
-		return createAttributeDefinition(name,typeName);
-	}
-
-	public Collection<? extends ResourceAttributeDefinition> getAttributeDefinitions() {
-		Set<ResourceAttributeDefinition> attrs = new HashSet<ResourceAttributeDefinition>();
-		for (ItemDefinition def: complexTypeDefinition.getDefinitions()) {
-			if (def instanceof ResourceAttributeDefinition) {
-				attrs.add((ResourceAttributeDefinition)def);
-			}
-		}
-		return attrs;
-	}
-	
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		for (int i=0; i<indent; i++) {
-			sb.append(DebugDumpable.INDENT_STRING);
-		}
-		sb.append(toString());
-		sb.append("\n");
-		for (Definition def : getDefinitions()) {
-			if (def instanceof ResourceAttributeDefinition) {
-				ResourceAttributeDefinition attrDef = (ResourceAttributeDefinition)def;
-				sb.append(attrDef.debugDump(indent+1));
-				if (attrDef.isIdentifier(this)) {
-					sb.deleteCharAt(sb.length()-1);
-					sb.append(" id");
-					sb.append("\n");
-				}
-			} else {
-				sb.append(def.debugDump(indent+1));
-			}
-		}
-		return sb.toString();
+		clone.accountType = this.accountType;
+		clone.accountTypeName = this.accountTypeName;
+		clone.defaultAccountType = this.defaultAccountType;
+		clone.descriptionAttribute = this.descriptionAttribute;
+		clone.displayNameAttribute = this.displayNameAttribute;
+		clone.idenitifiers = this.idenitifiers;
+		clone.namingAttribute = this.namingAttribute;
+		clone.nativeObjectClass = this.nativeObjectClass;
+		clone.secondaryIdenitifiers = this.secondaryIdenitifiers;
 	}
 
 	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(getClass().getSimpleName()).append(":").append(getName()).append(" (").append(getTypeName()).append(")");
-		if (isDefaultAccountType()) {
-			sb.append(" def");
-		}
-		if (isAccountType()) {
-			sb.append(" acct");
-		}
-		if (getNativeObjectClass()!=null) {
-			sb.append(" native=");
-			sb.append(getNativeObjectClass());
-		}
-		return sb.toString();
+	protected String getDebugDumpClassName() {
+		return "OCD";
 	}
 
 }

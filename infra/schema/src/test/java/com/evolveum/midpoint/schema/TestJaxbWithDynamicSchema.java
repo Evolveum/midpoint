@@ -115,10 +115,10 @@ public class TestJaxbWithDynamicSchema {
 		
 		PrismContainerDefinition newContainerDef = unSchema.findContainerDefinitionByType(new QName(SCHEMA_NS,"AccountObjectClass"));
 		assertEquals(new QName(SCHEMA_NS,"AccountObjectClass"),newContainerDef.getTypeName());
-		assertTrue(newContainerDef instanceof ResourceAttributeContainerDefinition);
+		assertTrue("AccountObjectClass class not a ResourceAttributeContainerDefinition", newContainerDef instanceof ResourceAttributeContainerDefinition);
 		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) newContainerDef;
-		assertTrue(rod.isAccountType());
-		assertTrue(rod.isDefaultAccountType());
+		assertTrue("AccountObjectClass class not an account", rod.isAccountType());
+		assertTrue("AccountObjectClass class not a DEFAULT account", rod.isDefaultAccountType());
 		
 		PrismPropertyDefinition loginDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"login"));
 		assertEquals(new QName(SCHEMA_NS,"login"), loginDef.getName());

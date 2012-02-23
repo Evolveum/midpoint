@@ -177,7 +177,7 @@ public class TestPrismContext {
 		assertNotNull("No foo XSD DOM", fooXsd);
 	}
 	
-	@Test
+	@Test(enabled=false)
 	public void testSchemaParsingRoundTrip() throws SchemaException, SAXException, IOException {
 		System.out.println("===[ testSchemaParsingRoundTrip ]===");
 		

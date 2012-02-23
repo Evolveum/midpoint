@@ -5,7 +5,7 @@
 			xmlns:tns="http://schema.foo.com/bar"
 			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 			xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
-			xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+			xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-1"
             elementFormDefault="qualified">
             
 			<xsd:complexType name="AccountObjectClass">
@@ -29,7 +29,7 @@
 					<xsd:element name="ufo" type="xsd:string" minOccurs="0" maxOccurs="1">
 						<xsd:annotation>
 							<xsd:appinfo>
-								<c:ignore/>
+								<a:ignore/>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -40,7 +40,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<r:resourceObject/>
-						<r:identifier ref="tns:name"/>
+						<r:identifier ref="tns:groupId"/>
 						<r:nativeObjectClass>group</r:nativeObjectClass>
 					</xsd:appinfo>
 				</xsd:annotation>
