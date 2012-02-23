@@ -40,6 +40,7 @@ import com.sun.xml.xsom.XSElementDecl;
 import com.sun.xml.xsom.XSSchema;
 import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSType;
+import org.jvnet.jaxb2_commons.lang.Equals;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 import org.xml.sax.ErrorHandler;
@@ -113,7 +114,7 @@ public class SchemaProcessor implements Processor {
                     String.class, Object.class, XmlTransient.class, Override.class, IllegalArgumentException.class,
                     QName.class, PrismForJAXBUtil.class, PrismReferenceArrayList.class, PrismContainerValue.class,
                     List.class, Objectable.class, StringBuilder.class, XmlAccessorType.class, XmlElement.class,
-                    XmlAttribute.class, XmlAnyAttribute.class, XmlAnyElement.class, PrismContainer.class);
+                    XmlAttribute.class, XmlAnyAttribute.class, XmlAnyElement.class, PrismContainer.class, Equals.class);
 
             StepSchemaConstants stepSchemaConstants = new StepSchemaConstants();
             stepSchemaConstants.run(outline, options, errorHandler);
@@ -264,6 +265,8 @@ public class SchemaProcessor implements Processor {
             createHashCodeMethod(definedClass);
         }
 
+        removeGeneratedEquals(outline);
+
         return containers;
     }
 
@@ -319,10 +322,12 @@ public class SchemaProcessor implements Processor {
             createToDebugType(definedClass);
         }
 
+        removeGeneratedEquals(outline);
+
         return containers;
     }
-    
-    private void createAsPrismObject(JDefinedClass definedClass) {        
+
+    private void createAsPrismObject(JDefinedClass definedClass) {
         JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismObject.class),
                 METHOD_AS_PRISM_OBJECT);
         //adding XmlTransient annotation
@@ -413,12 +418,61 @@ public class SchemaProcessor implements Processor {
         body._return(JExpr.invoke(METHOD_GET_CONTAINER).invoke(METHOD_HASH_CODE));
     }
 
+    /**
+     * remove generated equals methods from classes which extends from prism containers/objects
+     */
+    private void removeGeneratedEquals(Outline outline) {
+        Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
+        for (Map.Entry<NClass, CClassInfo> entry : set) {
+            ClassOutline classOutline = outline.getClazz(entry.getValue());
+            QName qname = getCClassInfoQName(entry.getValue());
+            if (qname == null || (!hasParentAnnotation(classOutline, MIDPOINT_CONTAINER)
+                    && !hasParentAnnotation(classOutline, PROPERTY_CONTAINER))) {
+                continue;
+            }            
+
+            JDefinedClass definedClass = classOutline.implClass;
+            Iterator<JClass> iterator = definedClass._implements();
+            while(iterator.hasNext()) {
+                if (iterator.next().equals(CLASS_MAP.get(Equals.class))) {
+                    iterator.remove();
+                }
+            }
+            //todo remove Equals interface from defined class
+            removeOldEqualsMethods(definedClass);
+        }
+    }
+
+    private void removeOldEqualsMethods(JDefinedClass definedClass) {
+        Iterator<JMethod> methods = definedClass.methods().iterator();
+        while (methods.hasNext()) {
+            if (methods.next().name().equals(METHOD_EQUALS)) {
+                methods.remove();
+                break;
+            }
+        }
+    }
+
     private void createEqualsMethod(JDefinedClass definedClass) {
-        JMethod equals = definedClass.method(JMod.PUBLIC, boolean.class, METHOD_EQUALS);
-        JVar obj = equals.param(CLASS_MAP.get(Object.class), "obj");
+        JMethod equals = null;
+        for (JMethod method : definedClass.methods()) {
+            if (method.name().equals(METHOD_EQUALS) && method.listParamTypes().length == 1
+                    && method.listParamTypes()[0].equals(CLASS_MAP.get(Object.class))) {
+                equals = method;
+                break;
+            }
+        }
+
+        if (equals != null) {
+            removeOldEqualsMethods(definedClass);
+            equals = recreateMethod(equals, definedClass);
+        } else {
+            equals = definedClass.method(JMod.PUBLIC, boolean.class, METHOD_EQUALS);
+        }
         equals.annotate(CLASS_MAP.get(Override.class));
 
         JBlock body = equals.body();
+        JVar obj = equals.listParams()[0];
         JBlock ifNull = body._if(obj._instanceof(definedClass).not())._then();
         ifNull._return(JExpr.lit(false));
 
@@ -819,7 +873,7 @@ public class SchemaProcessor implements Processor {
         JMethod getValueFrom = anonymous.method(JMod.PUBLIC, CLASS_MAP.get(PrismReferenceValue.class), "getValueFrom");
         getValueFrom.annotate(CLASS_MAP.get(Override.class));
         getValueFrom.param(type, "value");
-        
+
         return anonymous;
     }
 
@@ -835,7 +889,7 @@ public class SchemaProcessor implements Processor {
 
     private void createFieldReferenceGetValueFrom(JFieldVar field, JMethod method) {
         JBlock body = method.body();
-        body._return(JExpr.invoke(method.listParams()[0],METHOD_GET_REFERENCE));
+        body._return(JExpr.invoke(method.listParams()[0], METHOD_GET_REFERENCE));
     }
 
     private void createFieldReferenceGetterBody(JFieldVar field, ClassOutline classOutline, JBlock body,
@@ -915,14 +969,14 @@ public class SchemaProcessor implements Processor {
         invocation.arg(JExpr.invoke(method.listParams()[0], "getObject"));
         body._return(decl);
     }
-    
+
     private void createFieldReferenceUseGetValueFrom(JFieldVar field, JMethod method) {
         JBlock body = method.body();
-        JVar object = body.decl(CLASS_MAP.get(PrismObject.class), "object", 
+        JVar object = body.decl(CLASS_MAP.get(PrismObject.class), "object",
                 JExpr.invoke(method.listParams()[0], METHOD_AS_PRISM_OBJECT));
-        JVar reference = body.decl(CLASS_MAP.get(PrismReference.class), "reference", 
+        JVar reference = body.decl(CLASS_MAP.get(PrismReference.class), "reference",
                 JExpr.invoke(METHOD_GET_REFERENCE));
-        JForEach forEach = body.forEach(CLASS_MAP.get(PrismReferenceValue.class), "refValue", 
+        JForEach forEach = body.forEach(CLASS_MAP.get(PrismReferenceValue.class), "refValue",
                 JExpr.invoke(reference, "getValues"));
         JBlock forBody = forEach.body();
         JBlock then = forBody._if(object.eq(JExpr.invoke(forEach.var(), "getObject")))._then();
@@ -942,7 +996,7 @@ public class SchemaProcessor implements Processor {
             JDefinedClass anonymous = createFieldReferenceGetterListAnon(field, classOutline);
             createFieldReferenceUseCreateItemBody(field, findMethod(anonymous, "createItem"));
             createFieldReferenceUseGetValueFrom(field, findMethod(anonymous, "getValueFrom"));
-            
+
             JInvocation newList = JExpr._new(anonymous);
             newList.arg(ref);
             body._return(newList);
