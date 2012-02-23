@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.testing.sanity;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import org.testng.annotations.Test;
 import org.testng.Assert;
 import static org.testng.AssertJUnit.assertTrue;
@@ -99,7 +100,7 @@ public class TestSamples {
 			}
 
 			@Override
-			public EventResult postMarshall(ObjectType object, Element objectElement,
+			public <T extends ObjectType> EventResult postMarshall(PrismObject<T> object, Element objectElement,
 					OperationResult objectResult) {
 				
 				// Try to marshall it back. This may detect some JAXB miscofiguration problems.

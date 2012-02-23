@@ -254,7 +254,7 @@ public class TestSanity extends AbstractIntegrationTest {
                 null, result);
 
         assertNotNull("Administrator user is null", object.asObjectable());
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(authUser, null));
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(object.asObjectable(), null));
 
         LOGGER.info("BEFORE METHOD END");
     }
@@ -447,7 +447,7 @@ public class TestSanity extends AbstractIntegrationTest {
      * @throws SchemaException
      */
     private void checkOpenDjSchema(ResourceType resource, String source) throws SchemaException {
-        PrismSchema schema = RefinedResourceSchema.getResourceSchema(resource);
+        PrismSchema schema = RefinedResourceSchema.getResourceSchema(resource, schemaRegistry.getPrismContext());
         ResourceAttributeContainerDefinition accountDefinition = schema.findAccountDefinition();
         assertNotNull("Schema does not define any account (resource from " + source + ")", accountDefinition);
         Collection<ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
@@ -920,7 +920,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // GIVEN
         OperationResult result = new OperationResult(TestSanity.class.getName() + ".test016ProvisioningSearchAccountsIterative");
 
-        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceOpenDj, schemaRegistry);
+        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceOpenDj, schemaRegistry.getPrismContext());
         RefinedAccountDefinition refinedAccountDefinition = refinedSchema.getDefaultAccountDefinition();
 
         QName objectClass = refinedAccountDefinition.getObjectClassDefinition().getTypeName();
@@ -928,11 +928,11 @@ public class TestSanity extends AbstractIntegrationTest {
 
         final Collection<ObjectType> objects = new HashSet<ObjectType>();
 
-        ResultHandler handler = new ResultHandler() {
+        ResultHandler handler = new ResultHandler<ObjectType>() {
 
             @Override
-            public boolean handle(ObjectType object, OperationResult parentResult) {
-
+            public boolean handle(PrismObject<ObjectType> prismObject, OperationResult parentResult) {
+                ObjectType object = prismObject.asObjectable();
                 objects.add(object);
 
                 display("Found object", object);
@@ -2677,13 +2677,14 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // Listing of shadows is not supported by the provisioning. So we need
         // to look directly into repository
-        List<AccountShadowType> sobjects = repositoryService.listObjects(AccountShadowType.class, null,
+        List<PrismObject<AccountShadowType>> sobjects = repositoryService.listObjects(AccountShadowType.class, null,
                 result);
         result.computeStatus();
         assertSuccess("listObjects has failed", result);
         AssertJUnit.assertFalse("No shadows created", sobjects.isEmpty());
 
-        for (AccountShadowType shadow : sobjects) {
+        for (PrismObject<AccountShadowType> aObject : sobjects) {
+            AccountShadowType shadow = aObject.asObjectable();
             display("Shadow object after import (repo)", shadow);
             assertNotEmpty("No OID in shadow", shadow.getOid()); // This would be really strange ;-)
             assertNotEmpty("No name in shadow", shadow.getName());

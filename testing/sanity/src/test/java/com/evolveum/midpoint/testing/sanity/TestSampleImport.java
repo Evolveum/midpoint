@@ -19,44 +19,33 @@
  */
 package com.evolveum.midpoint.testing.sanity;
 
-import static org.testng.AssertJUnit.assertTrue;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.util.List;
-
-import javax.xml.bind.JAXBException;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
+import javax.xml.bind.JAXBException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.List;
+
+import static com.evolveum.midpoint.test.IntegrationTestTools.*;
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * Try to import selected samples to a real repository in an initialized system.
@@ -129,8 +118,9 @@ public class TestSampleImport extends AbstractIntegrationTest {
 
 		QueryType query = QueryUtil.createNameQuery(objectName);
 		
-		List<T> objects = repositoryService.searchObjects(type, query, null, result);
-		for (T object : objects) {
+		List<PrismObject<T>> objects = repositoryService.searchObjects(type, query, null, result);
+		for (PrismObject<T> o : objects) {
+            T object = o.asObjectable();
 			display("Found object",object);
 		}
 		assertEquals("Unexpected search result: "+objects,1,objects.size());
