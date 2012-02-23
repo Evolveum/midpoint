@@ -37,8 +37,8 @@ public class SqlRepositoryConfiguration {
     //connection for hibernate
     private String driverClassName = "org.h2.Driver";
     private String jdbcUrl = "jdbc:h2:file:~/midpoint";
-    private String jdbcUsername = "midpoint";
-    private String jdbcPassword = "midpoint";
+    private String jdbcUsername = "sa";
+    private String jdbcPassword = "";
     private String hibernateDialect = "org.hibernate.dialect.H2Dialect";
     private String hibernateHbm2ddl = "update";
 

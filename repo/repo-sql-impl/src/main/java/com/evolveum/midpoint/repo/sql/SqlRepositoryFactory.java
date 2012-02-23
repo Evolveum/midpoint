@@ -48,10 +48,10 @@ import java.sql.Statement;
 public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryFactory.class);
-    @Autowired(required = true)
-    SchemaRegistry schemaRegistry;
-    @Autowired(required = true)
-    SessionFactory sessionFactory;
+//    @Autowired(required = true)
+//    SchemaRegistry schemaRegistry;
+//    @Autowired(required = true)
+//    SessionFactory sessionFactory;
 
     private SqlRepositoryConfiguration sqlConfiguration;
     private Server server;
@@ -167,8 +167,8 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {
         SqlRepositoryServiceImpl service =  new SqlRepositoryServiceImpl();
         //todo maybe not necessary, maybe can be autowired
-        service.schemaRegistry = schemaRegistry;
-        service.sessionFactory = sessionFactory;
+//        service.schemaRegistry = schemaRegistry;
+//        service.sessionFactory = sessionFactory;
 
         return service;
     }

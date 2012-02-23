@@ -63,9 +63,9 @@ import java.util.List;
 public class SqlRepositoryServiceImpl implements RepositoryService {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
-    //    @Autowired(required = true)//todo maybe not necessary, maybe can be autowired
+        @Autowired(required = true)//todo maybe not necessary, maybe can be autowired
     SchemaRegistry schemaRegistry;
-    //    @Autowired(required = true)//todo maybe not necessary, maybe can be autowired
+        @Autowired(required = true)//todo maybe not necessary, maybe can be autowired
     SessionFactory sessionFactory;
 
     @Override
