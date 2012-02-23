@@ -2744,7 +2744,8 @@ public class TestSanity extends AbstractIntegrationTest {
             ObjectReferenceType accountRef = accountRefs.get(0);
 
             boolean found = false;
-            for (AccountShadowType acc : sobjects) {
+            for (PrismObject<AccountShadowType> aObject : sobjects) {
+                AccountShadowType acc = aObject.asObjectable();
                 if (accountRef.getOid().equals(acc.getOid())) {
                     found = true;
                     break;
