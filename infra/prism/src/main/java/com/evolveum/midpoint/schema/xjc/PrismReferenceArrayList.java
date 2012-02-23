@@ -47,13 +47,9 @@ public abstract class PrismReferenceArrayList<T> extends AbstractList<T> {
 
     @Override
     public T get(int i) {
-        List<PrismReferenceValue> values = reference.getValues();
-        if (i < 0 || i >= values.size()) {
-            throw new IndexOutOfBoundsException("Can't get index '" + i
-                    + "', values size is '" + values.size() + "'.");
-        }
+        testIndex(i);
 
-        return createItem(values.get(i));
+        return createItem(getReference().getValues().get(i));
     }
 
     @Override
@@ -65,8 +61,17 @@ public abstract class PrismReferenceArrayList<T> extends AbstractList<T> {
 
     protected abstract PrismReferenceValue getValueFrom(T t);
 
+    private void testIndex(int i) {
+        if (i < 0 || i >= getReference().getValues().size()) {
+            throw new IndexOutOfBoundsException("Can't get index '" + i
+                    + "', values size is '" + getReference().getValues().size() + "'.");
+        }
+    }
+
     @Override
     public T remove(int i) {
+        testIndex(i);
+
         PrismReferenceValue value = reference.getValues().get(i);
         reference.getValues().remove(i);
 
