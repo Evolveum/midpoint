@@ -49,7 +49,14 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -97,54 +104,56 @@ public class TestCommonSchemaSanity {
 
 		assertEquals("Wrong compile-time class in user definition", UserType.class, userDefinition.getCompileTimeClass());
 		PrismAsserts.assertPropertyDefinition(userDefinition, ObjectType.F_NAME, DOMUtil.XSD_STRING, 0, 1);
-//		PrismAsserts.assertPropertyDefinition(userDefinition, USER_DESCRIPTION_QNAME, DOMUtil.XSD_STRING, 0, 1);
-//		PrismAsserts.assertPropertyDefinition(userDefinition, USER_FULLNAME_QNAME, DOMUtil.XSD_STRING, 1, 1);
-//		PrismAsserts.assertPropertyDefinition(userDefinition, USER_GIVENNAME_QNAME, DOMUtil.XSD_STRING, 1, 1);
-//		PrismAsserts.assertPropertyDefinition(userDefinition, USER_FAMILYNAME_QNAME, DOMUtil.XSD_STRING, 1, 1);
-//		PrismAsserts.assertPropertyDefinition(userDefinition, USER_ADDITIONALNAMES_QNAME, DOMUtil.XSD_STRING, 0, -1);
+		PrismAsserts.assertPropertyDefinition(userDefinition, ObjectType.F_DESCRIPTION, DOMUtil.XSD_STRING, 0, 1);
+		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_FULL_NAME, DOMUtil.XSD_STRING, 1, 1);
+		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_GIVEN_NAME, DOMUtil.XSD_STRING, 1, 1);
+		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_FAMILY_NAME, DOMUtil.XSD_STRING, 1, 1);
+		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_ADDITIONAL_NAMES, DOMUtil.XSD_STRING, 0, -1);
 		assertFalse("User definition is marked as runtime", userDefinition.isRuntimeSchema());
 		
-//		PrismContainerDefinition extensionContainer = userDefinition.findContainerDefinition(USER_EXTENSION_QNAME);
-//		assertDefinition(extensionContainer, USER_EXTENSION_QNAME, DOMUtil.XSD_ANY, 0, 1);
-//		assertTrue("Extension is not runtime", extensionContainer.isRuntimeSchema());
-//		assertTrue("Extension is not empty", extensionContainer.getDefinitions().isEmpty());
-//		
-//		PrismContainerDefinition activationContainer = userDefinition.findContainerDefinition(USER_ACTIVATION_QNAME);
-//		assertDefinition(activationContainer, USER_ACTIVATION_QNAME, ACTIVATION_TYPE_QNAME, 0, 1);
-//		assertFalse("Activation is runtime", activationContainer.isRuntimeSchema());
-//		assertEquals("Activation size", 1, activationContainer.getDefinitions().size());
-//		assertPropertyDefinition(activationContainer, USER_ENABLED_QNAME, DOMUtil.XSD_BOOLEAN, 1, 1);
-//		
-//		PrismContainerDefinition assignmentContainer = userDefinition.findContainerDefinition(USER_ASSIGNMENT_QNAME);
-//		assertDefinition(assignmentContainer, USER_ASSIGNMENT_QNAME, ASSIGNMENT_TYPE_QNAME, 0, -1);
-//		assertFalse("Assignment is runtime", assignmentContainer.isRuntimeSchema());
-//		assertEquals("Assignment size", 1, assignmentContainer.getDefinitions().size());
-//		assertPropertyDefinition(assignmentContainer, USER_DESCRIPTION_QNAME, DOMUtil.XSD_STRING, 0, 1);
-//		
-//		PrismReferenceDefinition accountRefDef = userDefinition.findItemDefinition(USER_ACCOUNTREF_QNAME, PrismReferenceDefinition.class);
-//		assertDefinition(accountRefDef, USER_ACCOUNTREF_QNAME, OBJECT_REFERENCE_TYPE_QNAME, 0, -1);
-//		assertEquals("Wrong target type in accountRef", ACCOUNT_TYPE_QNAME, accountRefDef.getTargetTypeName());
-//		assertEquals("Wrong composite object element name in accountRef", USER_ACCOUNT_QNAME, accountRefDef.getCompositeObjectElementName());
-//		
-//		
-//		
-//		// Assert ACCOUNT definition
-//		PrismObjectDefinition<AccountType> accountDefinition = objectSchema.findObjectDefinitionByElementName(new QName(NS_FOO,"account"));
-//		assertNotNull("No user definition", accountDefinition);
-//		System.out.println("User definition:");
-//		System.out.println(accountDefinition.dump());
-//		
-//		PrismObjectDefinition<AccountType> accountDefinitionByClass = schemaRegistry.findObjectDefinitionByCompileTimeClass(AccountType.class);
-//		assertTrue("Different user def", accountDefinition == accountDefinitionByClass);
-//
-//		assertEquals("Wrong compile-time class in account definition", AccountType.class, accountDefinition.getCompileTimeClass());
-//		assertPropertyDefinition(accountDefinition, ACCOUNT_NAME_QNAME, DOMUtil.XSD_STRING, 0, 1);
-//		assertPropertyDefinition(accountDefinition, ACCOUNT_DESCRIPTION_QNAME, DOMUtil.XSD_STRING, 0, 1);
-//		assertFalse("Account definition is marked as runtime", accountDefinition.isRuntimeSchema());
-//		
-//		PrismContainerDefinition attributesContainer = accountDefinition.findContainerDefinition(ACCOUNT_ATTRIBUTES_QNAME);
-//		assertDefinition(attributesContainer, ACCOUNT_ATTRIBUTES_QNAME, ATTRIBUTES_TYPE_QNAME, 0, 1);
-//		assertTrue("Attributes is NOT runtime", attributesContainer.isRuntimeSchema());
+		PrismContainerDefinition extensionContainer = userDefinition.findContainerDefinition(ExtensibleObjectType.F_EXTENSION);
+		PrismAsserts.assertDefinition(extensionContainer, ExtensibleObjectType.F_EXTENSION, DOMUtil.XSD_ANY, 0, 1);
+		assertTrue("Extension is not runtime", extensionContainer.isRuntimeSchema());
+		assertTrue("Extension is not empty", extensionContainer.getDefinitions().isEmpty());
+		
+		PrismContainerDefinition activationContainer = userDefinition.findContainerDefinition(UserType.F_ACTIVATION);
+		PrismAsserts.assertDefinition(activationContainer, UserType.F_ACTIVATION, ActivationType.COMPLEX_TYPE, 0, 1);
+		assertFalse("Activation is runtime", activationContainer.isRuntimeSchema());
+		assertEquals("Activation size", 3, activationContainer.getDefinitions().size());
+		PrismAsserts.assertPropertyDefinition(activationContainer, ActivationType.F_ENABLED, DOMUtil.XSD_BOOLEAN, 0, 1);
+		
+		PrismContainerDefinition assignmentContainer = userDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
+		PrismAsserts.assertDefinition(assignmentContainer, UserType.F_ASSIGNMENT, AssignmentType.COMPLEX_TYPE, 0, -1);
+		assertFalse("Assignment is runtime", assignmentContainer.isRuntimeSchema());
+		assertEquals("Assignment size", 4, assignmentContainer.getDefinitions().size());
+		PrismAsserts.assertPropertyDefinition(assignmentContainer, AssignmentType.F_ACCOUNT_CONSTRUCTION, AccountConstructionType.COMPLEX_TYPE, 0, 1);
+		
+		PrismReferenceDefinition accountRefDef = userDefinition.findItemDefinition(UserType.F_ACCOUNT_REF, PrismReferenceDefinition.class);
+		PrismAsserts.assertDefinition(accountRefDef, UserType.F_ACCOUNT_REF, ObjectReferenceType.COMPLEX_TYPE, 0, -1);
+		assertEquals("Wrong target type in accountRef", AccountShadowType.COMPLEX_TYPE, accountRefDef.getTargetTypeName());
+		assertEquals("Wrong composite object element name in accountRef", UserType.F_ACCOUNT, accountRefDef.getCompositeObjectElementName());
+		
+		
+		
+		// Assert ACCOUNT definition
+		PrismObjectDefinition<AccountShadowType> accountDefinition = objectSchema.findObjectDefinitionByElementName(
+				new QName(SchemaConstants.NS_COMMON,"account"));
+		assertNotNull("No user definition", accountDefinition);
+		System.out.println("User definition:");
+		System.out.println(accountDefinition.dump());
+		
+		PrismObjectDefinition<AccountShadowType> accountDefinitionByClass = 
+			schemaRegistry.findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
+		assertTrue("Different user def", accountDefinition == accountDefinitionByClass);
+
+		assertEquals("Wrong compile-time class in account definition", AccountShadowType.class, accountDefinition.getCompileTimeClass());
+		PrismAsserts.assertPropertyDefinition(accountDefinition, AccountShadowType.F_NAME, DOMUtil.XSD_STRING, 0, 1);
+		PrismAsserts.assertPropertyDefinition(accountDefinition, AccountShadowType.F_DESCRIPTION, DOMUtil.XSD_STRING, 0, 1);
+		assertFalse("Account definition is marked as runtime", accountDefinition.isRuntimeSchema());
+		
+		PrismContainerDefinition attributesContainer = accountDefinition.findContainerDefinition(AccountShadowType.F_ATTRIBUTES);
+		PrismAsserts.assertDefinition(attributesContainer, AccountShadowType.F_ATTRIBUTES, ResourceObjectShadowAttributesType.COMPLEX_TYPE, 0, 1);
+		assertTrue("Attributes is NOT runtime", attributesContainer.isRuntimeSchema());
 		
 	}
 

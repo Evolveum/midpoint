@@ -2380,7 +2380,7 @@
         
             <xsd:choice>
 
-                <xsd:element name="target" type="tns:ObjectType">
+                <xsd:element name="target" type="tns:ObjectType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             TODO: target
@@ -2391,7 +2391,7 @@
                     </xsd:annotation>
                 </xsd:element>
 
-                <xsd:element name="targetRef" type="c:ObjectReferenceType">
+                <xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             TODO: target ref
@@ -2399,7 +2399,7 @@
                     </xsd:annotation>
                 </xsd:element>
 
-                <xsd:element name="accountConstruction" type="tns:AccountConstructionType">
+                <xsd:element name="accountConstruction" type="tns:AccountConstructionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             TODO
