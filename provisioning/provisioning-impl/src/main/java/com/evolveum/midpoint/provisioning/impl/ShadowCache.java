@@ -21,6 +21,9 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
+import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
+import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
+import com.evolveum.midpoint.provisioning.consistency.impl.ErrorHandlerFactory;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -32,6 +35,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -91,6 +95,8 @@ public class ShadowCache {
 	private RepositoryService repositoryService;
 	@Autowired
 	private ShadowConverter shadowConverter;
+	@Autowired
+	private ErrorHandlerFactory errorHandlerFactory;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCache.class);
 
@@ -235,20 +241,33 @@ public class ShadowCache {
 		}
 		addExecuteScriptOperation(additionalOperations, OperationTypeType.ADD, scripts, parentResult);
 
+		OperationResult shadowConverterResult = parentResult.createSubresult(ShadowConverter.class.getName() +".addShadow");
+		
 		try {
-			shadow = shadowConverter.addShadow(resource, shadow, additionalOperations, parentResult);
-		} catch (CommunicationException ex) {
-			parentResult.recordFatalError("Error communicating with connector. Reason: " + ex.getMessage(),
-					ex);
-			throw ex;
-		} catch (SchemaException ex) {
-			parentResult.recordFatalError(ex.getMessage(), ex);
-			throw ex;
-		} catch (ObjectAlreadyExistsException ex) {
-			parentResult.recordFatalError(
-					"Object " + ObjectTypeUtil.toShortString(shadow) + "already exist.", ex);
-			throw ex;
+			shadow = shadowConverter.addShadow(resource, shadow, additionalOperations, shadowConverterResult);
+		} catch (Exception ex) {
+			
+			ErrorHandler handler = errorHandlerFactory.createErrorHandler(ex);
+			shadow.setFailedOperationType(FailedOperationTypeType.ADD);
+			shadow.setResult(shadowConverterResult.createOperationResultType());
+			shadow.setResource(resource);
+			handler.handleError(shadow, ex);
+			
 		}
+		// } catch (CommunicationException ex) {
+		// parentResult.recordFatalError("Error communicating with connector. Reason: "
+		// + ex.getMessage(),
+		// ex);
+		// throw ex;
+		// } catch (SchemaException ex) {
+		// parentResult.recordFatalError(ex.getMessage(), ex);
+		// throw ex;
+		// } catch (ObjectAlreadyExistsException ex) {
+		// parentResult.recordFatalError(
+		// "Object " + ObjectTypeUtil.toShortString(shadow) + "already exist.",
+		// ex);
+		// throw ex;
+		// }
 
 		if (shadow == null) {
 			parentResult
@@ -292,19 +311,34 @@ public class ShadowCache {
 
 			try {
 				shadowConverter.deleteShadow(resource, accountShadow, additionalOperations, parentResult);
-			} catch (CommunicationException ex) {
-				parentResult.recordFatalError(
-						"Error communicating with connector. Reason: " + ex.getMessage(), ex);
-				throw ex;
-			} catch (SchemaException ex) {
-				parentResult.recordFatalError(ex.getMessage(), ex);
-				throw ex;
-			} catch (ObjectNotFoundException ex) {
-				parentResult.recordFatalError(
-						"Object with identifiers " + ObjectTypeUtil.toShortString(accountShadow)
-								+ " can't be deleted. Reason: " + ex.getMessage(), ex);
-				throw ex;
+			} catch (Exception ex) {
+				ErrorHandler handler = errorHandlerFactory.createErrorHandler(ex);
+				accountShadow.setFailedOperationType(FailedOperationTypeType.DELETE);
+				accountShadow.setResult(parentResult.createOperationResultType());
+				accountShadow.setResource(resource);
+				try {
+					handler.handleError(accountShadow, ex);
+				} catch (ObjectAlreadyExistsException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				return;
 			}
+			// } catch (CommunicationException ex) {
+			// parentResult.recordFatalError(
+			// "Error communicating with connector. Reason: " + ex.getMessage(),
+			// ex);
+			// throw ex;
+			// } catch (SchemaException ex) {
+			// parentResult.recordFatalError(ex.getMessage(), ex);
+			// throw ex;
+			// } catch (ObjectNotFoundException ex) {
+			// parentResult.recordFatalError(
+			// "Object with identifiers " +
+			// ObjectTypeUtil.toShortString(accountShadow)
+			// + " can't be deleted. Reason: " + ex.getMessage(), ex);
+			// throw ex;
+			// }
 
 			LOGGER.trace("Detele object with oid {} form repository.", accountShadow.getOid());
 			try {
@@ -372,12 +406,31 @@ public class ShadowCache {
 			try {
 				sideEffectChanges = shadowConverter.modifyShadow(resource, shadow, changes, oid, modifications,
 						parentResult);
-			} catch (ObjectNotFoundException ex) {
-				parentResult.recordFatalError(
-						"Object with identifiers " + ObjectTypeUtil.toShortString(shadow)
-								+ " can't be modified. Reason: " + ex.getMessage(), ex);
-				throw ex;
+			} catch (Exception ex) {
+				ErrorHandler handler = errorHandlerFactory.createErrorHandler(ex);
+				shadow.setFailedOperationType(FailedOperationTypeType.MODIFY);
+				shadow.setResult(parentResult.createOperationResultType());
+				shadow.setResource(resource);
+				ObjectChangeModificationType objectChangeType = new ObjectChangeModificationType();
+				ObjectModificationType omt = new ObjectModificationType();
+				omt.setOid(shadow.getOid());
+				for (ItemDelta itemDelta : modifications){
+					omt.getPropertyModification().addAll(DeltaConvertor.toPropertyModificationTypes(itemDelta));
+				}
+				objectChangeType.setObjectModification(omt);	
+				shadow.setObjectChange(objectChangeType);
+				try {
+					handler.handleError(shadow, ex);
+				} catch (ObjectAlreadyExistsException e) {
+				}
+				return;
 			}
+			// } catch (ObjectNotFoundException ex) {
+			// parentResult.recordFatalError(
+			// "Object with identifiers " + ObjectTypeUtil.toShortString(shadow)
+			// + " can't be modified. Reason: " + ex.getMessage(), ex);
+			// throw ex;
+			// }
 			if (!sideEffectChanges.isEmpty()) {
 				// TODO: implement
 				throw new UnsupportedOperationException(
@@ -428,14 +481,14 @@ public class ShadowCache {
 				ResourceObjectShadowType newShadow = findOrCreateShadowFromChange(resourceType, change,
 						parentResult);
 
-//				 if (change.getObjectDelta() != null &&
-//				 change.getObjectDelta().getChangeType()==ChangeType.DELETE &&
-//				 newShadow == null){
-//				
+				// if (change.getObjectDelta() != null &&
+				// change.getObjectDelta().getChangeType()==ChangeType.DELETE &&
+				// newShadow == null){
+				//
 
 				change.setOldShadow(newShadow.asPrismObject());
-				
-				//skip setting other attribute when shadow is null
+
+				// skip setting other attribute when shadow is null
 				if (newShadow == null) {
 					continue;
 				}
