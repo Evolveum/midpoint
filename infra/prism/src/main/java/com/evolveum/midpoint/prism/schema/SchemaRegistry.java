@@ -121,6 +121,14 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	public void setPrismContext(PrismContext prismContext) {
 		this.prismContext = prismContext;
 	}
+	
+	public EntityResolver getBuiltinSchemaResolver() {
+		return builtinSchemaResolver;
+	}
+
+	public void setBuiltinSchemaResolver(EntityResolver builtinSchemaResolver) {
+		this.builtinSchemaResolver = builtinSchemaResolver;
+	}
 
 	/**
 	 * Must be called before call to initialize()
@@ -181,6 +189,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		if (desc.getUsualPrefix() != null) {
 			namespacePrefixMapper.registerPrefix(desc.getNamespace(), desc.getUsualPrefix());
 		}
+		parsedSchemas.put(desc.getNamespace(), desc);
 		schemaDescriptions.add(desc);
 	}
 	
@@ -212,7 +221,6 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		}
 		try {
 			initResolver();
-			preParseSchemas();
 			parseMidPointSchema();
 			parseJavaxSchema();
 			initialized = true;
@@ -226,13 +234,6 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		}
 	}
 	
-	private void preParseSchemas() {
-		for (SchemaDescription schemaDescription : schemaDescriptions) {	
-			String namespace = schemaDescription.getNamespace();
-			parsedSchemas.put(namespace, schemaDescription);
-		}		
-	}
-
 	private void parseJavaxSchema() throws SAXException, IOException {
 		schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 		Source[] sources = new Source[schemaDescriptions.size()];

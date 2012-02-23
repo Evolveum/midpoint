@@ -41,6 +41,7 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -57,114 +58,108 @@ public class TestJaxbWithDynamicSchema {
 	
 	private static final String SCHEMA_NS = "http://foo.com/xml/ns/schema";
 
-//	@Test
-//	public void testJaxbRoundTripWithDynamicSchema() throws SchemaException, JAXBException {
-//		System.out.println("\n===[ testJaxbRoundTripWithDynamicSchema ]=====");
-//		// GIVEN
-//		Schema schema = new Schema(SCHEMA_NS);
-//		
-//		// Property container
-//		ResourceAttributeContainerDefinition containerDefinition = schema.createResourceObjectDefinition("AccountObjectClass");
-//		containerDefinition.setAccountType(true);
-//		containerDefinition.setDefaultAccountType(true);
-//		containerDefinition.setNativeObjectClass("ACCOUNT");
-//		// ... in it ordinary attribute - an identifier
-//		ResourceAttributeDefinition xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
-//		containerDefinition.getIdentifiers().add(xloginDef);
-//		xloginDef.setNativeAttributeName("LOGIN");
-//		containerDefinition.setDisplayNameAttribute(xloginDef.getName());
-//		// ... and local property with a type from another schema
-//		ResourceAttributeDefinition xpasswdDef = containerDefinition.createAttributeDefinition("password", SchemaConstants.R_PROTECTED_STRING_TYPE);
-//		xpasswdDef.setNativeAttributeName("PASSWORD");
-//		// ... property reference
-//		containerDefinition.createAttributeDefinition(SchemaConstants.I_CREDENTIALS, SchemaConstants.I_CREDENTIALS_TYPE);
-//
-//		System.out.println("Resource schema before serializing to XSD: ");
-//		System.out.println(schema.dump());
-//		System.out.println();
-//
-//		Document xsd = schema.serializeToXsd();
-//
-//		ResourceType resource = new ResourceType();
-//		resource.setName("JAXB With Dynamic Schemas Test");
-//		XmlSchemaType xmlSchemaType = new XmlSchemaType();
-//		xmlSchemaType.getAny().add(DOMUtil.getFirstChildElement(xsd));
-//		resource.setSchema(xmlSchemaType);
-//		
-//		// WHEN
-//		
-//		JAXBElement<ResourceType> resourceElement = new JAXBElement<ResourceType>(SchemaConstants.I_RESOURCE, ResourceType.class, resource);
-//		String marshalledResource = JAXBUtil.marshal(resourceElement);
-//		
-//		System.out.println("Marshalled resource");
-//		System.out.println(marshalledResource);
-//		
-//		JAXBElement<ResourceType> unmarshalledResourceElement = (JAXBElement<ResourceType>) JAXBUtil.unmarshal(marshalledResource);
-//		
-//		ResourceType unmarshalledResource = unmarshalledResourceElement.getValue();
-//		
-//		System.out.println("unmarshalled resource");
-//		System.out.println(ObjectTypeUtil.dump(unmarshalledResource));
-//		XmlSchemaType unXmlSchemaType = unmarshalledResource.getSchema();
-//		Element unXsd = unXmlSchemaType.getAny().get(0);
-//		Schema unSchema = Schema.parse(unXsd);
-//		
-//		System.out.println("unmarshalled schema");
-//		System.out.println(unSchema.dump());
-//		
-//		// THEN
-//		
-//		PrismContainerDefinition newContainerDef = unSchema.findContainerDefinitionByType(new QName(SCHEMA_NS,"AccountObjectClass"));
-//		assertEquals(new QName(SCHEMA_NS,"AccountObjectClass"),newContainerDef.getTypeName());
-//		assertTrue(newContainerDef instanceof ResourceAttributeContainerDefinition);
-//		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) newContainerDef;
-//		assertTrue(rod.isAccountType());
-//		assertTrue(rod.isDefaultAccountType());
-//		
-//		PrismPropertyDefinition loginDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"login"));
-//		assertEquals(new QName(SCHEMA_NS,"login"), loginDef.getName());
-//		assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
-//
-//		PrismPropertyDefinition passwdDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"password"));
-//		assertEquals(new QName(SCHEMA_NS,"password"), passwdDef.getName());
-//		assertEquals(SchemaConstants.R_PROTECTED_STRING_TYPE, passwdDef.getTypeName());
-//
-//		PrismContainerDefinition credDef = newContainerDef.findContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
-//		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
-//		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
-//	}
-//	
-//	@Test
-//	public void testUnmarshallResource() throws JAXBException {
-//		// WHEN
-//		Object element = JAXBUtil.unmarshal(new File("src/test/resources/schema/resource-opendj.xml"));
-//		
-//		// THEN
-//		assertTrue(element instanceof JAXBElement);
-//		Object object = ((JAXBElement)element).getValue();
-//		assertTrue(object instanceof ResourceType);
-//		ResourceType resource = (ResourceType)object;
-//		
-//		if (resource.getNativeCapabilities() != null) {
-//			for (Object capability : resource.getNativeCapabilities().getAny()) {
-//	        	System.out.println("Native Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
-//	        }
-//		}
-//
-//        if (resource.getCapabilities() != null) {
-//	        for (Object capability : resource.getCapabilities().getAny()) {
-//	        	System.out.println("Configured Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
-//	        }
-//        }
-//        
-//        List<Object> effectiveCapabilities = ResourceTypeUtil.listEffectiveCapabilities(resource);
-//        for (Object capability : effectiveCapabilities) {
-//        	System.out.println("Efective Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
-//        }
-//
-//        assertNotNull(resource.getCapabilities());
-//        assertFalse(resource.getCapabilities().getAny().isEmpty());
-//        
-//	}
+	@Test
+	public void testJaxbRoundTripWithDynamicSchema() throws SchemaException, JAXBException {
+		System.out.println("\n===[ testJaxbRoundTripWithDynamicSchema ]=====");
+		// GIVEN
+		ResourceSchema schema = new ResourceSchema(SCHEMA_NS, JaxbTestUtil.getPrismContext());
+		
+		// Property container
+		ResourceAttributeContainerDefinition containerDefinition = schema.createResourceObjectDefinition("AccountObjectClass");
+		containerDefinition.setAccountType(true);
+		containerDefinition.setDefaultAccountType(true);
+		containerDefinition.setNativeObjectClass("ACCOUNT");
+		// ... in it ordinary attribute - an identifier
+		ResourceAttributeDefinition xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
+		containerDefinition.getIdentifiers().add(xloginDef);
+		xloginDef.setNativeAttributeName("LOGIN");
+		containerDefinition.setDisplayNameAttribute(xloginDef.getName());
+		// ... and local property with a type from another schema
+		ResourceAttributeDefinition xpasswdDef = containerDefinition.createAttributeDefinition("password", SchemaConstants.R_PROTECTED_STRING_TYPE);
+		xpasswdDef.setNativeAttributeName("PASSWORD");
+		// ... property reference
+		containerDefinition.createAttributeDefinition(SchemaConstants.I_CREDENTIALS, SchemaConstants.I_CREDENTIALS_TYPE);
+
+		System.out.println("Resource schema before serializing to XSD: ");
+		System.out.println(schema.dump());
+		System.out.println();
+
+		Document xsd = schema.serializeToXsd();
+
+		ResourceType resource = new ResourceType();
+		resource.setName("JAXB With Dynamic Schemas Test");
+		XmlSchemaType xmlSchemaType = new XmlSchemaType();
+		xmlSchemaType.getAny().add(DOMUtil.getFirstChildElement(xsd));
+		resource.setSchema(xmlSchemaType);
+		
+		// WHEN
+		
+		JAXBElement<ResourceType> resourceElement = new JAXBElement<ResourceType>(SchemaConstants.I_RESOURCE, ResourceType.class, resource);
+		String marshalledResource = JaxbTestUtil.marshalElementToString(resourceElement);
+		
+		System.out.println("Marshalled resource");
+		System.out.println(marshalledResource); 
+		
+		ResourceType unmarshalledResource = JaxbTestUtil.unmarshalObject(marshalledResource, ResourceType.class);
+		
+		System.out.println("unmarshalled resource");
+		System.out.println(ObjectTypeUtil.dump(unmarshalledResource));
+		XmlSchemaType unXmlSchemaType = unmarshalledResource.getSchema();
+		Element unXsd = unXmlSchemaType.getAny().get(0);
+		PrismSchema unSchema = PrismSchema.parse(unXsd, JaxbTestUtil.getPrismContext());
+		
+		System.out.println("unmarshalled schema");
+		System.out.println(unSchema.dump());
+		
+		// THEN
+		
+		PrismContainerDefinition newContainerDef = unSchema.findContainerDefinitionByType(new QName(SCHEMA_NS,"AccountObjectClass"));
+		assertEquals(new QName(SCHEMA_NS,"AccountObjectClass"),newContainerDef.getTypeName());
+		assertTrue(newContainerDef instanceof ResourceAttributeContainerDefinition);
+		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) newContainerDef;
+		assertTrue(rod.isAccountType());
+		assertTrue(rod.isDefaultAccountType());
+		
+		PrismPropertyDefinition loginDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"login"));
+		assertEquals(new QName(SCHEMA_NS,"login"), loginDef.getName());
+		assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
+
+		PrismPropertyDefinition passwdDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"password"));
+		assertEquals(new QName(SCHEMA_NS,"password"), passwdDef.getName());
+		assertEquals(SchemaConstants.R_PROTECTED_STRING_TYPE, passwdDef.getTypeName());
+
+		PrismContainerDefinition credDef = newContainerDef.findContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
+		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
+		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
+	}
+	
+	@Test
+	public void testUnmarshallResource() throws JAXBException {
+		// WHEN
+		ResourceType resource = JaxbTestUtil.unmarshalObject(new File("src/test/resources/schema/resource-opendj.xml"), ResourceType.class);
+		
+		// THEN
+		
+		if (resource.getNativeCapabilities() != null) {
+			for (Object capability : resource.getNativeCapabilities().getAny()) {
+	        	System.out.println("Native Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
+	        }
+		}
+
+        if (resource.getCapabilities() != null) {
+	        for (Object capability : resource.getCapabilities().getAny()) {
+	        	System.out.println("Configured Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
+	        }
+        }
+        
+        List<Object> effectiveCapabilities = ResourceTypeUtil.listEffectiveCapabilities(resource);
+        for (Object capability : effectiveCapabilities) {
+        	System.out.println("Efective Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
+        }
+
+        assertNotNull(resource.getCapabilities());
+        assertFalse(resource.getCapabilities().getAny().isEmpty());
+        
+	}
 	
 }

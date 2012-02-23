@@ -185,6 +185,9 @@ class DomToSchemaProcessor {
 	
 	private XSOMParser createSchemaParser() {
 		XSOMParser parser = new XSOMParser();
+		if (entityResolver == null) {
+			throw new IllegalStateException("Entity resolver is not set");
+		}
 		SchemaHandler errorHandler = new SchemaHandler(entityResolver);
 		parser.setErrorHandler(errorHandler);
 		parser.setAnnotationParser(new DomAnnotationParserFactory());

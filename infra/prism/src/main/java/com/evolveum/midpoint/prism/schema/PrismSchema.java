@@ -126,7 +126,7 @@ public class PrismSchema implements Dumpable, DebugDumpable, Serializable {
 	}
 	
 	public static PrismSchema parse(Element element, PrismContext prismContext) throws SchemaException {
-		return parse(element, null, prismContext);
+		return parse(element, prismContext.getSchemaRegistry().getBuiltinSchemaResolver(), prismContext);
 	}
 	
 	public static PrismSchema parse(Element element, EntityResolver resolver, PrismContext prismContext) throws SchemaException {
@@ -141,16 +141,9 @@ public class PrismSchema implements Dumpable, DebugDumpable, Serializable {
 	}
 
 	public Document serializeToXsd() throws SchemaException {
-		return serializeToXsd(this);
-	}
-
-	public static Document serializeToXsd(PrismSchema schema) throws SchemaException {
-		if (schema == null) {
-			throw new IllegalArgumentException("Schema can't be null.");
-		}
-
 		SchemaToDomProcessor processor = new SchemaToDomProcessor();
-		return processor.parseSchema(schema);
+		processor.setPrismContext(prismContext);
+		return processor.parseSchema(this);
 	}
 
 	// TODO: Methods for searching the schema, such as findDefinitionByName(),

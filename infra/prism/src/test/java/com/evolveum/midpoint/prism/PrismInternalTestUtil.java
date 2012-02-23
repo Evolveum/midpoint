@@ -138,6 +138,7 @@ public class PrismInternalTestUtil {
 		// Set default namespace?
 		schemaRegistry.setNamespacePrefixMapper(prefixMapper);
 		schemaRegistry.registerPrismSchemaResource("xml/ns/test/foo-1.xsd", "foo", ObjectFactory.class.getPackage());
+		schemaRegistry.registerSchemaResource("xml/ns/standard/XMLSchema.xsd", "xsd");
 		schemaRegistry.setObjectSchemaNamespace(NS_FOO);
 		PrismContext context = PrismContext.create(schemaRegistry);
 		return context;

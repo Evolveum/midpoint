@@ -54,6 +54,14 @@ public class JaxbTestUtil {
     public static <T> JAXBElement<T> unmarshalElement(File xmlFile, Class<T> type) throws JAXBException {
         return prismContext.getPrismJaxbProcessor().unmarshalElement(xmlFile, type);
     }
+    
+    public static <T> T unmarshalObject(String stringXml, Class<T> type) throws JAXBException {
+    	return prismContext.getPrismJaxbProcessor().unmarshalObject(stringXml, type);
+    }
+    
+    public static <T> T unmarshalObject(File file, Class<T> type) throws JAXBException {
+    	return prismContext.getPrismJaxbProcessor().unmarshalObject(file, type);
+    }
 
     public static String marshalToString(Objectable objectable) throws JAXBException {
         return prismContext.getPrismJaxbProcessor().marshalToString(objectable);
@@ -67,6 +75,10 @@ public class JaxbTestUtil {
     public static String marshalWrap(Object jaxbObject) throws JAXBException {
         JAXBElement<Object> jaxbElement = new JAXBElement<Object>(DEFAULT_ELEMENT_NAME, (Class) jaxbObject.getClass(), jaxbObject);
         return marshalElementToString(jaxbElement);
+    }
+    
+    public static PrismContext getPrismContext() {
+    	return prismContext;
     }
 
     public static void initialize() {

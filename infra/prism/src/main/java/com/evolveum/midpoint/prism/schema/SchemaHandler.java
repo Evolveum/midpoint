@@ -90,6 +90,9 @@ public class SchemaHandler implements ErrorHandler, EntityResolver {
 	 */
 	@Override
 	public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
+		if (entityResolver == null) {
+			throw new IllegalStateException("Entity resolver is not set");
+		}
 		try {
 			InputSource source = entityResolver.resolveEntity(publicId, systemId);
 			LOGGER.trace("Resolved entity '{}', '{}': '{}'", new Object[] { publicId, systemId, source });

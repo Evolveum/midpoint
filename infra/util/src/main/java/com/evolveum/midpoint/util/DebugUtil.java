@@ -61,16 +61,42 @@ public class DebugUtil implements ObjectFormatter {
 		defaultNamespacePrefix = prefix;
 	}
 	
-	public static String debugDump(Collection<? extends DebugDumpable> dumpables) {
+	public static String dump(Object object) {
+		if (object == null) {
+			return "null";
+		}
+		if (object instanceof Dumpable) {
+			return ((Dumpable)object).dump();
+		}
+		if (object instanceof Collection) {
+			return debugDump((Collection)object);
+		}
+		if (object instanceof Map) {
+			StringBuilder sb = new StringBuilder();
+			debugDumpMapMultiLine(sb, (Map)object, 0);
+			return sb.toString();
+		}
+		return object.toString();
+	}
+	
+	public static String debugDump(Collection<?> dumpables) {
 		return debugDump(dumpables,0);
 	}
 	
-	public static String debugDump(Collection<? extends DebugDumpable> dumpables, int indent) {
+	public static String debugDump(Collection<?> dumpables, int indent) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getCollectionOpeningSymbol(dumpables));
 		sb.append("\n");
-		for (DebugDumpable dd : dumpables) {
-			sb.append(dd.debugDump(indent + 1));
+		for (Object item : dumpables) {
+			if (item == null) {
+				indentDebugDump(sb, indent + 1);
+				sb.append("null");
+			} else if (item instanceof DebugDumpable) {
+				sb.append(((DebugDumpable)item).debugDump(indent + 1));
+			} else {
+				indentDebugDump(sb, indent + 1);
+				sb.append(item.toString());
+			}
 		}
 		sb.append("\n");
 		sb.append(getCollectionClosingSymbol(dumpables));
@@ -136,7 +162,7 @@ public class DebugUtil implements ObjectFormatter {
 		}
 	}
 	
-	public static <K, V extends DebugDumpable> void debugDumpMapMultiLine(StringBuilder sb, Map<K, V> map, int indent) {
+	public static <K, V> void debugDumpMapMultiLine(StringBuilder sb, Map<K, V> map, int indent) {
 		Iterator<Entry<K, V>> i = map.entrySet().iterator();
 		while (i.hasNext()) {
 			Entry<K,V> entry = i.next();
@@ -146,9 +172,11 @@ public class DebugUtil implements ObjectFormatter {
 			V value = entry.getValue();
 			if (value == null) {
 				sb.append("null");
-			} else {
+			} else if (value instanceof DebugDumpable) {
 				sb.append("\n");
-				sb.append(value.debugDump(indent+1));
+				sb.append(((DebugDumpable)value).debugDump(indent+1));
+			} else {
+				sb.append(value);
 			}
 			if (i.hasNext()) {
 				sb.append("\n");

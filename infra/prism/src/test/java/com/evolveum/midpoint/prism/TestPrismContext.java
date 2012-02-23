@@ -28,10 +28,12 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.IOException;
 
+import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.foo.AccountType;
@@ -39,6 +41,7 @@ import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -57,8 +60,30 @@ public class TestPrismContext {
 	}
 
 	@Test
-	public void testPrismContextConstruction() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testPrismContextConstruction ]===");
+	public void testPrefixMapper() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testPrefixMapper ]===");
+		
+		// WHEN
+		PrismContext prismContext = constructInitializedPrismContext();
+		
+		// THEN
+		assertNotNull("No prism context", prismContext);
+		
+		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
+		assertNotNull("No schema registry in context", schemaRegistry);
+		
+		DynamicNamespacePrefixMapper prefixMapper = schemaRegistry.getNamespacePrefixMapper();
+		System.out.println("Prefix mapper:");
+		System.out.println(DebugUtil.dump(prefixMapper));
+		
+		assertEquals("Wrong foo prefix", "foo", prefixMapper.getPrefix(NS_FOO));
+		assertEquals("Wrong xsd prefix", DOMUtil.NS_W3C_XML_SCHEMA_PREFIX, prefixMapper.getPrefix(XMLConstants.W3C_XML_SCHEMA_NS_URI));
+		
+	}
+	
+	@Test
+	public void testBasicSchemas() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testBasicSchemas ]===");
 		
 		// WHEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -135,6 +160,44 @@ public class TestPrismContext {
 		PrismContainerDefinition attributesContainer = accountDefinition.findContainerDefinition(ACCOUNT_ATTRIBUTES_QNAME);
 		assertDefinition(attributesContainer, ACCOUNT_ATTRIBUTES_QNAME, ATTRIBUTES_TYPE_QNAME, 0, 1);
 		assertTrue("Attributes is NOT runtime", attributesContainer.isRuntimeSchema());
+	}
+	
+	@Test
+	public void testSchemaToDom() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testSchemaToDom ]===");
+		
+		// GIVEN
+		PrismContext prismContext = constructInitializedPrismContext();
+		PrismSchema fooSchema = prismContext.getSchemaRegistry().findSchemaByNamespace(NS_FOO);
+		
+		// WHEN
+		Document fooXsd = fooSchema.serializeToXsd();
+		
+		// THEN
+		assertNotNull("No foo XSD DOM", fooXsd);
+	}
+	
+	@Test
+	public void testSchemaParsingRoundTrip() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testSchemaParsingRoundTrip ]===");
+		
+		// GIVEN
+		PrismContext prismContext = constructInitializedPrismContext();
+		PrismSchema fooSchema = prismContext.getSchemaRegistry().findSchemaByNamespace(NS_FOO);
+		
+		// WHEN
+		Document fooXsd = fooSchema.serializeToXsd();
+		
+		// THEN
+		assertNotNull("No foo XSD DOM", fooXsd);
+		System.out.println("Serialized schema");
+		System.out.println(DOMUtil.serializeDOMToString(fooXsd));
+		
+		// WHEN
+		PrismSchema parsedSchema = PrismSchema.parse(DOMUtil.getFirstChildElement(fooXsd), prismContext);
+		
+		// THEN
+		assertNotNull("No parsed schema", parsedSchema);
 	}
 
 }

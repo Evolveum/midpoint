@@ -46,9 +46,12 @@ import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -73,6 +76,7 @@ class SchemaToDomProcessor {
 	public static final String RESOURCE_OBJECT_CLASS = "ResourceObjectClass";
 	private static final String MAX_OCCURS_UNBOUNDED = "unbounded";
 	private boolean attributeQualified = false;
+	private PrismContext prismContext;
 	private DynamicNamespacePrefixMapper namespacePrefixMapper;
 	private PrismSchema schema;
 	private Element rootXsdElement;
@@ -81,6 +85,14 @@ class SchemaToDomProcessor {
 
 	SchemaToDomProcessor() {
 		importNamespaces = new HashSet<String>();
+	}
+	
+	public PrismContext getPrismContext() {
+		return prismContext;
+	}
+
+	public void setPrismContext(PrismContext prismContext) {
+		this.prismContext = prismContext;
 	}
 
 	void setAttributeQualified(boolean attributeQualified) {
@@ -118,7 +130,7 @@ class SchemaToDomProcessor {
 				if (definition instanceof PrismContainerDefinition) {
 					// Add property container definition. This will add <complexType> and <element> definitions to XSD
 					addPropertyContainerDefinition((PrismContainerDefinition) definition,
-							document.getDocumentElement());
+							document.getDocumentElement(), document.getDocumentElement());
 					
 				} else if (definition instanceof PrismPropertyDefinition) {
 					// Add top-level property definition. It will create <element> XSD definition
@@ -156,12 +168,12 @@ class SchemaToDomProcessor {
 	 * @param parent element under which the XSD definition will be added
 	 */
 	private void addPropertyContainerDefinition(PrismContainerDefinition definition,
-			Element parent) {
+			Element elementParent, Element complexTypeParent) {
 		
 		ComplexTypeDefinition complexTypeDefinition = definition.getComplexTypeDefinition();
-		Element complexType = addComplexTypeDefinition(complexTypeDefinition,parent);
+		Element complexType = addComplexTypeDefinition(complexTypeDefinition,complexTypeParent);
 		
-		addElementDefinition(definition.getName(),definition.getTypeName(),parent);
+		addElementDefinition(definition.getName(),definition.getTypeName(),elementParent);
 	}
 
 	/**
@@ -198,6 +210,39 @@ class SchemaToDomProcessor {
 	}
 	
 	/**
+	 * Adds XSD element definition created from the PrismReferenceDefinition.
+	 * TODO: need to finish
+	 */
+	private void addReferenceDefinition(PrismReferenceDefinition definition, Element parent) {
+		Element property = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "element"));
+		// Add to document first, so following methods will be able to resolve namespaces
+		parent.appendChild(property);
+
+		String attrNamespace = definition.getName().getNamespaceURI();
+		if (attrNamespace != null && attrNamespace.equals(schema.getNamespace())) {
+			setAttribute(property, "name", definition.getName().getLocalPart());
+			setQNameAttribute(property, "type", definition.getTypeName());
+		} else {
+			setQNameAttribute(property, "ref", definition.getName());
+		}
+
+		if (definition.getMinOccurs() != 1) {
+			setAttribute(property, "minOccurs", Integer.toString(definition.getMinOccurs()));
+		}
+
+		if (definition.getMaxOccurs() != 1) {
+			String maxOccurs = definition.getMaxOccurs() == XSParticle.UNBOUNDED ? MAX_OCCURS_UNBOUNDED
+					: Integer.toString(definition.getMaxOccurs());
+			setAttribute(property, "maxOccurs", maxOccurs);
+		}
+
+//		// TODO
+//		addReferenceAnnotation(definition, property);
+
+		parent.appendChild(property);
+	}
+	
+	/**
 	 * Adds XSD element definition.
 	 * @param name element QName
 	 * @param typeName element type QName
@@ -221,7 +266,15 @@ class SchemaToDomProcessor {
 	 */
 	private Element addComplexTypeDefinition(ComplexTypeDefinition definition,
 			Element parent) {
-		Document document = parent.getOwnerDocument();
+
+		if (definition == null) {
+			// Nothing to do
+			return null;
+		}
+		if (definition.getTypeName() == null) {
+			throw new UnsupportedOperationException("Anonymous complex types as containers are not supported yet");
+		}
+
 		Element complexType = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "complexType"));
 		parent.appendChild(complexType);
 		// "typeName" should be used instead of "name" when defining a XSD type
@@ -235,8 +288,10 @@ class SchemaToDomProcessor {
 			if (def instanceof PrismPropertyDefinition) {
 				addPropertyDefinition((PrismPropertyDefinition) def, sequence);
 			} else if (def instanceof PrismContainerDefinition) {
-				// TODO
-				throw new UnsupportedOperationException("Inner propertyContainers are not supported yet");
+				PrismContainerDefinition contDef = (PrismContainerDefinition)def;
+				addPropertyContainerDefinition(contDef, sequence, parent);
+			} else if (def instanceof PrismReferenceDefinition) { 
+				addReferenceDefinition((PrismReferenceDefinition) def, sequence);
 			} else {
 				throw new IllegalArgumentException("Uknown definition "+def+"("+def.getClass().getName()+") in complex type definition "+def);
 			}
@@ -427,8 +482,18 @@ class SchemaToDomProcessor {
 	 * Create schema XSD DOM document.
 	 */
 	private void init() throws ParserConfigurationException {
-		namespacePrefixMapper.registerPrefix(schema.getNamespace(), "tns");
 
+		if (namespacePrefixMapper == null) {
+			// TODO: clone?
+			namespacePrefixMapper = prismContext.getSchemaRegistry().getNamespacePrefixMapper();
+		}
+		
+		namespacePrefixMapper.registerPrefix(schema.getNamespace(), "tns");
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Using namespace prefix mapper to serialize schema:\n{}",DebugUtil.dump(namespacePrefixMapper));
+		}
+		
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		dbf.setNamespaceAware(true);
 		dbf.setValidating(false);
