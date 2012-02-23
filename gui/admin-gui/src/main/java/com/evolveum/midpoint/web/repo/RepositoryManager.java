@@ -44,7 +44,7 @@ public interface RepositoryManager {
 
 	<T extends ObjectType> List<PrismObject<T>>  listObjects(Class<T> objectType, int offset, int count);
 
-    <T extends ObjectType> ResultList<PrismObject<T>> searchObjects(String name);
+    ResultList<PrismObject<ObjectType>> searchObjects(String name);
 
 	PrismObject<?> getObject(String oid);
 

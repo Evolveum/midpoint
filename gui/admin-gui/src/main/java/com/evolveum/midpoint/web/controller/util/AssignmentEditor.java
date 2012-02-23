@@ -20,25 +20,11 @@
  */
 package com.evolveum.midpoint.web.controller.util;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.faces.event.ValueChangeEvent;
-import javax.faces.model.SelectItem;
-import javax.xml.bind.JAXBElement;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Controller;
-
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
+import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -51,11 +37,22 @@ import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.dto.ObjectDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import javax.faces.event.ValueChangeEvent;
+import javax.faces.model.SelectItem;
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 //TODO: make this a composite component
 /**
@@ -75,6 +72,8 @@ public class AssignmentEditor<T extends ContainsAssignment> implements Serializa
 	private transient ModelService model;
 	@Autowired(required = true)
 	private transient ObjectTypeCatalog catalog;
+    @Autowired(required = true)
+    private transient PrismContext prismContext;
 	private BrowserBean<AssignmentBean> browser;
 	private XmlEditorBean<AssignmentBean> editor;
 	private ContainsAssignment containsAssignment;
@@ -202,7 +201,8 @@ public class AssignmentEditor<T extends ContainsAssignment> implements Serializa
 					AccountConstructionType construction = bean.getAccountConstruction();
 					String xml = null;
 					if (construction != null) {
-						xml = JAXBUtil.marshalWrap(construction);
+                        prismContext.getPrismJaxbProcessor().marshalElementToString(construction,
+                                new QName(SchemaConstants.NS_COMMON, "accountConstruction"));
 					}
 					getEditor().setText(xml);
 					getEditor().setObject(bean);
@@ -308,8 +308,8 @@ public class AssignmentEditor<T extends ContainsAssignment> implements Serializa
 
 		AccountConstructionType construction = null;
 		try {
-			JAXBElement<AccountConstructionType> element = (JAXBElement<AccountConstructionType>) JAXBUtil
-					.unmarshal(text);
+            PrismJaxbProcessor jaxbProcessor= prismContext.getPrismJaxbProcessor();            
+            JAXBElement<AccountConstructionType> element = jaxbProcessor.unmarshalElement(text, AccountConstructionType.class); 			
 			construction = element.getValue();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't parser account construction", ex);

@@ -31,6 +31,7 @@ import javax.faces.event.ActionEvent;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -335,11 +336,12 @@ public class EndUserDetailsController implements Serializable {
 					LOGGER.trace("Creating element: \\{{}\\}{}: {}",
 							new Object[] { namespace, name, object.toString() });
 
-					Element element = null;
-
+					Element element;
 					if (AttributeType.PASSWORD.equals(definition.getType())) {
 						ProtectedStringType protectedString = protector.encryptString(object.toString());
-						element = JAXBUtil.jaxbToDom(protectedString, definition.getElementName(), doc);
+                        PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+                        Document document = DOMUtil.getDocument();
+                        element = jaxbProcessor.marshalObjectToDom(protectedString, definition.getElementName(), document);
 						element.setPrefix(MidPointNamespacePrefixMapper.getPreferredPrefix(namespace));
 					} else {
 						element = doc.createElementNS(namespace, name);

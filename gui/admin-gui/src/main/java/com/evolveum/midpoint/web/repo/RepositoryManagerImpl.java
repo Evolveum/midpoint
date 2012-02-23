@@ -98,7 +98,7 @@ public class RepositoryManagerImpl implements RepositoryManager {
     }
 
     @Override
-    public <T extends ObjectType> ResultList<PrismObject<T>> searchObjects(String name) {
+    public ResultList<PrismObject<ObjectType>> searchObjects(String name) {
         Validate.notEmpty(name, "Name must not be null.");
         LOGGER.debug("Searching objects with name {}.", new Object[]{name});
 
@@ -123,7 +123,7 @@ public class RepositoryManagerImpl implements RepositoryManager {
             list = new ResultArrayList<PrismObject<ObjectType>>();
         }
 
-        return (ResultList<PrismObject<T>>) list;
+        return list;
     }
 
     @Override

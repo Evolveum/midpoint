@@ -20,34 +20,16 @@
  */
 package com.evolveum.midpoint.web.controller.role;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import javax.faces.event.ActionEvent;
-import javax.faces.model.SelectItem;
-import javax.xml.bind.JAXBException;
-
-import com.evolveum.midpoint.prism.PrismObject;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Controller;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -62,9 +44,25 @@ import com.evolveum.midpoint.web.repo.RepositoryManager;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
+import javax.faces.event.ActionEvent;
+import javax.faces.model.SelectItem;
+import javax.xml.bind.JAXBException;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 
@@ -89,6 +87,8 @@ public class RoleEditController implements Serializable {
 	private transient TaskManager taskManager;
 	@Autowired(required = true)
 	private transient RepositoryManager repositoryManager;
+    @Autowired(required = true)
+    private transient PrismContext prismContext;
 	private boolean newRole = true;
 	private RoleDto role;
 	private String xml;
@@ -204,7 +204,8 @@ public class RoleEditController implements Serializable {
 			}
 
 			// role = new ObjectBean(objectType.getOid(), objectType.getName());
-			xml = JAXBUtil.marshal(new ObjectFactory().createObject(objectType.asObjectable()));
+            PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+            xml = jaxbProcessor.marshalToString(objectType.asObjectable());
 		} catch (JAXBException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't show role {} in editor", ex, role.getName());
 			FacesUtils.addErrorMessage("Couldn't show role '" + role.getName() + "' in editor.", ex);

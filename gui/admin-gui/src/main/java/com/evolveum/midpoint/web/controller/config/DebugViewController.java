@@ -150,14 +150,14 @@ public class DebugViewController implements Serializable {
 		return DebugListController.PAGE_NAVIGATION;
 	}
 
-	public String editOtherObject() {
+	public <T extends ObjectType> String editOtherObject() {
 		if (StringUtils.isEmpty(editOtherName)) {
 			FacesUtils.addErrorMessage("Object name must not be null.");
 			return null;
 		}
 
 		try {
-			List<PrismObject<? extends ObjectType>> list = repositoryManager.searchObjects(editOtherName);
+			List<PrismObject<ObjectType>> list = repositoryManager.searchObjects(editOtherName);
 
 			if (list.isEmpty()) {
 				FacesUtils.addErrorMessage("Couldn't find object that matches name '" + editOtherName + "'.");
@@ -168,16 +168,16 @@ public class DebugViewController implements Serializable {
 						+ "'.");
 				return null;
 			}
-			PrismObject prismObject = list.get(0);
-            ObjectType objectType = (ObjectType) prismObject.asObjectable();
+			PrismObject<ObjectType> prismObject = list.get(0);
+            ObjectType objectType = prismObject.asObjectable();
 			object = new ObjectBean(objectType.getOid(), objectType.getName());
             
             PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
             xml = jaxbProcessor.marshalElementToString(objectType);
 		} catch (Exception ex) {
-			LoggingUtils.logException(TRACE, "Unknown error occured while searching objects by name {}", ex,
+			LoggingUtils.logException(TRACE, "Unknown error occurred while searching objects by name {}", ex,
 					editOtherName);
-			FacesUtils.addErrorMessage("Unknown error occured.", ex);
+			FacesUtils.addErrorMessage("Unknown error occurred.", ex);
 
 			return DebugListController.PAGE_NAVIGATION;
 		}
