@@ -23,7 +23,7 @@ package com.evolveum.midpoint.common.valueconstruction;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertFalse;
 
-import static com.evolveum.midpoint.test.util.PrismAsserts.*;
+import static com.evolveum.midpoint.prism.util.PrismAsserts.*;
 
 import com.evolveum.midpoint.common.crypto.AESProtector;
 import com.evolveum.midpoint.common.crypto.Protector;
@@ -36,13 +36,13 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.test.util.DirectoryFileObjectResolver;
-import com.evolveum.midpoint.test.util.PrismTestUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -142,7 +142,7 @@ public class TestValueConstruction {
         expected.add("12345");
         expected.add("67890");
 //		assertEquals(expected,result.getValues());
-        assertPropertyValues(expected, result.getValues());
+        assertPropertyValues("Wrong result", expected, result.getValues());
     }
 
     @Test
@@ -321,7 +321,7 @@ public class TestValueConstruction {
         Set<String> expected = new HashSet<String>();
         expected.add("Black Pearl");
 //		assertEquals(expected,result.getValues());
-        assertPropertyValues(expected, result.getValues());
+        assertPropertyValues("Wrong result", expected, result.getValues());
     }
 
     @Test
@@ -346,7 +346,7 @@ public class TestValueConstruction {
         expected.add("Leaders");
         expected.add("Followers");
 //		assertEquals(expected,result.getValues());
-        assertPropertyValues(expected, result.getValues());
+        assertPropertyValues("Wrong result", expected, result.getValues());
     }
 
     /*
@@ -375,7 +375,7 @@ public class TestValueConstruction {
         Set<String> expected = new HashSet<String>();
         expected.add("Pirates");
 //		assertEquals(expected,result.getValues());
-        assertPropertyValues(expected, result.getValues());
+        assertPropertyValues("Wrong result", expected, result.getValues());
     }
     
     @Test

@@ -25,6 +25,8 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
+import java.io.IOException;
+
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -33,15 +35,20 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.schema.JaxbTestUtil;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.testng.AssertJUnit;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
@@ -58,9 +65,6 @@ public class TestResourceSchema {
     private static final String RESOURCE_SCHEMA_SIMPLE_FILENAME = TEST_DIR + "resource-schema-simple.xsd";
     private static final String RESOURCE_OBJECT_SIMPLE_FILENAME = TEST_DIR + "object1.xml";
     
-    private static final String SCHEMA2_FILENAME = TEST_DIR + "schema2.xsd";
-    private static final String OBJECT2_FILENAME = TEST_DIR + "object2.xml";
-    
     private static final String SCHEMA_NAMESPACE = "http://schema.foo.com/bar";
     
     private static final QName FIRST_QNAME = new QName(SCHEMA_NAMESPACE, "first");
@@ -68,14 +72,12 @@ public class TestResourceSchema {
     public TestResourceSchema() {
     }
 
-    @BeforeMethod
-    public void setUp() {
-    }
-
-    @AfterMethod
-    public void tearDown() {
-    }
-
+    @BeforeSuite
+	public void setup() throws SchemaException, SAXException, IOException {
+		DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+		PrismTestUtil.resetPrismContext(new MidPointPrismContextFactory());
+	}
+    
     @Test
     public void parseSchemaTest() throws SchemaException {
         System.out.println("===[ parseSchemaTest ]===");
@@ -85,7 +87,7 @@ public class TestResourceSchema {
 
         // WHEN
 
-        ResourceSchema schema = ResourceSchema.parse(DOMUtil.getFirstChildElement(schemaDom), JaxbTestUtil.getPrismContext());
+        ResourceSchema schema = ResourceSchema.parse(DOMUtil.getFirstChildElement(schemaDom), PrismTestUtil.getPrismContext());
 
         // THEN
 
@@ -120,7 +122,7 @@ public class TestResourceSchema {
         // GIVEN
 
         Document schemaDom = DOMUtil.parseFile(RESOURCE_SCHEMA_SIMPLE_FILENAME);
-        ResourceSchema schema = ResourceSchema.parse(DOMUtil.getFirstChildElement(schemaDom), JaxbTestUtil.getPrismContext());
+        ResourceSchema schema = ResourceSchema.parse(DOMUtil.getFirstChildElement(schemaDom), PrismTestUtil.getPrismContext());
         assertNotNull(schema);
         System.out.println("Parsed schema:");
         System.out.println(schema.dump());
@@ -156,9 +158,11 @@ public class TestResourceSchema {
         accInst.getValue().getItems().add(groupInst);
 
 
-        System.out.println("AccountObjectClass INST: " + accInst);
-        // Serialize to DOM
+        System.out.println("AccountObjectClass INST");
+        System.out.println(accInst.dump());
 
+        // Serialize to DOM - TODO
+        
 //        Document doc = DOMUtil.getDocument();
 //        accInst.serializeToDom(doc);
 //
@@ -207,38 +211,6 @@ public class TestResourceSchema {
 //        }
 //    }
 //
-//    /**
-//     * Take prepared XSD schema, parse it and use it to parse property container instance.
-//     */
-//    @Test
-//    public void testParsePropertyContainer() throws SchemaException, SchemaException {
-//        System.out.println("===[ testParsePropertyContainer ]===");
-//        // GIVEN
-//
-//        Document schemaDom = DOMUtil.parseFile(SCHEMA2_FILENAME);
-//        ResourceSchema schema = ResourceSchema.parse(DOMUtil.getFirstChildElement(schemaDom));
-//        assertNotNull(schema);
-//        System.out.println(SchemaProcessorBasicTest.class.getSimpleName() + ".testParsePropertyContainer parsed schema: ");
-//        System.out.println(schema.dump());
-//        PrismContainerDefinition type1Def = schema.findContainerDefinitionByType(new QName(SCHEMA_NAMESPACE, "PropertyContainerType"));
-//        assertEquals(new QName(SCHEMA_NAMESPACE, "PropertyContainerType"), type1Def.getTypeName());
-//        PrismPropertyDefinition prop1Def = type1Def.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "prop1"));
-//        assertEquals(new QName(SCHEMA_NAMESPACE, "prop1"), prop1Def.getName());
-//
-//        // WHEN
-//
-//        Document dataDom = DOMUtil.parseFile(OBJECT2_FILENAME);
-//        PrismContainer propertyContainer = schema.parsePropertyContainer(DOMUtil.getFirstChildElement(dataDom));
-//
-//        // THEN
-//        assertNotNull(propertyContainer);
-//        System.out.println(SchemaProcessorBasicTest.class.getSimpleName() + ".testParsePropertyContainer parsed container: ");
-//        System.out.println(propertyContainer.dump());
-//        assertEquals(new QName(SCHEMA_NAMESPACE, "propertyContainer"), propertyContainer.getName());
-//        assertEquals(new QName(SCHEMA_NAMESPACE, "propertyContainer"), propertyContainer.getDefinition().getName());
-//        assertEquals(new QName(SCHEMA_NAMESPACE, "PropertyContainerType"), propertyContainer.getDefinition().getTypeName());
-//
-//    }
 
 
 }

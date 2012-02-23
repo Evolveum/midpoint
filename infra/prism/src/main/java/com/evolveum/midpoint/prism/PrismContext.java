@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.prism;
 
+import java.io.File;
 import java.io.IOException;
 
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -109,6 +110,22 @@ public class PrismContext {
 	 */
 	public <T extends Objectable> PrismObject<T> parseObject(Element objectElement) throws SchemaException {
 		return prismDomProcessor.parseObject(objectElement);
+	}
+	
+	/**
+	 * Parses a file and creates a prism from it.  
+	 */
+	public <T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException {
+		// Use DOM now. We will switch to StAX later.
+		return prismDomProcessor.parseObject(file);
+	}
+	
+	/**
+	 * Parses a string and creates a prism from it.  
+	 */
+	public <T extends Objectable> PrismObject<T> parseObject(String xmlString) throws SchemaException {
+		// Use DOM now. We will switch to StAX later.
+		return prismDomProcessor.parseObject(xmlString);
 	}
 
     /**

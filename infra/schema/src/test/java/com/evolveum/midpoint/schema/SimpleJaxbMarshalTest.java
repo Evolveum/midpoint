@@ -22,16 +22,24 @@
 package com.evolveum.midpoint.schema;
 
 import static org.testng.AssertJUnit.assertEquals;
+
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBElement;
 import java.io.File;
+import java.io.IOException;
 
 /**
  * @author lazyman
@@ -41,14 +49,20 @@ public class SimpleJaxbMarshalTest {
     public static final String TEST_DIR = "src/test/resources/schema";
     public static final String USER_BARBOSSA_FILENAME = TEST_DIR + "/user-barbossa.xml";
     private static final Trace LOGGER = TraceManager.getTrace(SimpleJaxbMarshalTest.class);
+    
+    @BeforeSuite
+	public void setup() throws SchemaException, SAXException, IOException {
+		DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+		PrismTestUtil.resetPrismContext(new MidPointPrismContextFactory());
+	}
 
     @Test
     public void unmarshalMarshalUser() throws Exception {
-        JAXBElement<UserType> element = JaxbTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),
+        JAXBElement<UserType> element = PrismTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),
                 UserType.class);
         UserType user1 = element.getValue();
         
-        element = JaxbTestUtil.unmarshalElement(JaxbTestUtil.marshalToString(user1), UserType.class);
+        element = PrismTestUtil.unmarshalElement(PrismTestUtil.marshalToString(user1), UserType.class);
         UserType user2 = element.getValue();
 
         assertEquals("Users not same (UserType)", user1, user2);
@@ -67,7 +81,7 @@ public class SimpleJaxbMarshalTest {
         ref.setType(AccountShadowType.COMPLEX_TYPE);
         user.getAccountRef().add(ref);
 
-        JAXBElement<UserType> element = JaxbTestUtil.unmarshalElement(JaxbTestUtil.marshalToString(user), UserType.class);
+        JAXBElement<UserType> element = PrismTestUtil.unmarshalElement(PrismTestUtil.marshalToString(user), UserType.class);
         UserType user1 = element.getValue();
         assertEquals(user.getOid(), user1.getOid());
         assertEquals(user.getGivenName(), user1.getGivenName());

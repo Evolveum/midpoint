@@ -22,13 +22,19 @@ package com.evolveum.midpoint.schema.util;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.schema.JaxbTestUtil;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -38,12 +44,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  *
  */
 public class JAXBUtilTest {
+	
+	@BeforeSuite
+	public void setup() throws SchemaException, SAXException, IOException {
+		DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+		PrismTestUtil.resetPrismContext(new MidPointPrismContextFactory());
+	}
 
 	@Test
 	public void testUnmarshallerUtf() throws JAXBException, SchemaException {
 		// GIVEN
 		
-		UserType user = JaxbTestUtil.unmarshalElement(new File("src/test/resources/util/user-utf8.xml"), UserType.class)
+		UserType user = PrismTestUtil.unmarshalElement(new File("src/test/resources/util/user-utf8.xml"), UserType.class)
 				.getValue();
 		
 		// WHEN
@@ -59,7 +71,7 @@ public class JAXBUtilTest {
 	public void testUnmarshallerIso88592() throws JAXBException, SchemaException {
 		// GIVEN
 		
-		UserType user = JaxbTestUtil.unmarshalElement(new File("src/test/resources/util/user-8859-2.xml"),UserType.class)
+		UserType user = PrismTestUtil.unmarshalElement(new File("src/test/resources/util/user-8859-2.xml"),UserType.class)
 				.getValue();
 		
 		// WHEN
@@ -81,7 +93,7 @@ public class JAXBUtilTest {
 				"	<fullName>Jožko Nováčik</fullName>" +
 				"</user>";
 
-		UserType user = JaxbTestUtil.unmarshalElement(s, UserType.class).getValue();
+		UserType user = PrismTestUtil.unmarshalElement(s, UserType.class).getValue();
 		
 		// WHEN
 
@@ -102,7 +114,7 @@ public class JAXBUtilTest {
 				"	<fullName>Jožko Nováčik</fullName>" +
 				"</user>";
 
-		UserType user = JaxbTestUtil.unmarshalElement(s,UserType.class).getValue();
+		UserType user = PrismTestUtil.unmarshalElement(s,UserType.class).getValue();
 		
 		// WHEN
 

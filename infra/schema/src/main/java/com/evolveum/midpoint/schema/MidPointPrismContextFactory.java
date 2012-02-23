@@ -29,6 +29,7 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.PrismContextFactory;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
@@ -42,8 +43,9 @@ import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
  * @author semancik
  *
  */
-public class MidPointPrismContextFactory {
+public class MidPointPrismContextFactory implements PrismContextFactory {
 	
+	@Override
 	public PrismContext createPrismContext() throws SchemaException {
 		SchemaRegistry schemaRegistry = createSchemaRegistry();
 		PrismContext context = PrismContext.create(schemaRegistry);

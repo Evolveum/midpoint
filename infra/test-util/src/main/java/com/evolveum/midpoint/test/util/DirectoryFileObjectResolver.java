@@ -26,6 +26,7 @@ import javax.xml.bind.JAXBException;
 
 import org.opends.server.types.ObjectClass;
 
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.JAXBUtil;

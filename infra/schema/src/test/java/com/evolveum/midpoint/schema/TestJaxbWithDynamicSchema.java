@@ -25,19 +25,24 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
@@ -45,6 +50,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -57,12 +63,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 public class TestJaxbWithDynamicSchema {
 	
 	private static final String SCHEMA_NS = "http://foo.com/xml/ns/schema";
+	
+	@BeforeSuite
+	public void setup() throws SchemaException, SAXException, IOException {
+		DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+		PrismTestUtil.resetPrismContext(new MidPointPrismContextFactory());
+	}
 
 	@Test
 	public void testJaxbRoundTripWithDynamicSchema() throws SchemaException, JAXBException {
 		System.out.println("\n===[ testJaxbRoundTripWithDynamicSchema ]=====");
 		// GIVEN
-		ResourceSchema schema = new ResourceSchema(SCHEMA_NS, JaxbTestUtil.getPrismContext());
+		ResourceSchema schema = new ResourceSchema(SCHEMA_NS, PrismTestUtil.getPrismContext());
 		
 		// Property container
 		ResourceAttributeContainerDefinition containerDefinition = schema.createResourceObjectDefinition("AccountObjectClass");
@@ -95,18 +107,18 @@ public class TestJaxbWithDynamicSchema {
 		// WHEN
 		
 		JAXBElement<ResourceType> resourceElement = new JAXBElement<ResourceType>(SchemaConstants.I_RESOURCE, ResourceType.class, resource);
-		String marshalledResource = JaxbTestUtil.marshalElementToString(resourceElement);
+		String marshalledResource = PrismTestUtil.marshalElementToString(resourceElement);
 		
 		System.out.println("Marshalled resource");
 		System.out.println(marshalledResource); 
 		
-		ResourceType unmarshalledResource = JaxbTestUtil.unmarshalObject(marshalledResource, ResourceType.class);
+		ResourceType unmarshalledResource = PrismTestUtil.unmarshalObject(marshalledResource, ResourceType.class);
 		
 		System.out.println("unmarshalled resource");
 		System.out.println(ObjectTypeUtil.dump(unmarshalledResource));
 		XmlSchemaType unXmlSchemaType = unmarshalledResource.getSchema();
 		Element unXsd = unXmlSchemaType.getAny().get(0);
-		PrismSchema unSchema = PrismSchema.parse(unXsd, JaxbTestUtil.getPrismContext());
+		PrismSchema unSchema = PrismSchema.parse(unXsd, PrismTestUtil.getPrismContext());
 		
 		System.out.println("unmarshalled schema");
 		System.out.println(unSchema.dump());
@@ -136,7 +148,7 @@ public class TestJaxbWithDynamicSchema {
 	@Test
 	public void testUnmarshallResource() throws JAXBException {
 		// WHEN
-		ResourceType resource = JaxbTestUtil.unmarshalObject(new File("src/test/resources/schema/resource-opendj.xml"), ResourceType.class);
+		ResourceType resource = PrismTestUtil.unmarshalObject(new File("src/test/resources/schema/resource-opendj.xml"), ResourceType.class);
 		
 		// THEN
 		

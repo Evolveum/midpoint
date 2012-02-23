@@ -33,6 +33,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.PrismContextFactory;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -41,7 +42,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
-public class PrismInternalTestUtil {
+public class PrismInternalTestUtil implements PrismContextFactory {
 
 	// TODO: Globalize
 	private static final String NS_TYPE = "http://midpoint.evolveum.com/xml/ns/public/common/types-1.xsd";
@@ -97,33 +98,6 @@ public class PrismInternalTestUtil {
 	public static final QName ACCOUNT_ATTRIBUTES_QNAME = new QName(NS_FOO,"attributes");
 	
 	public static final QName ATTRIBUTES_TYPE_QNAME = new QName(NS_FOO,"AttributesType");
-	
-	
-	public static void assertDefinition(Item item, QName type, int minOccurs, int maxOccurs) {
-		ItemDefinition definition = item.getDefinition();
-		assertDefinition(definition, item.getName(), type, minOccurs, maxOccurs);
-	}
-		
-	public static void assertPropertyDefinition(PrismContainerDefinition containerDef, QName propertyName, QName type, int minOccurs, int maxOccurs) {
-		PrismPropertyDefinition definition = containerDef.findPropertyDefinition(propertyName);
-		assertDefinition(definition, propertyName, type, minOccurs, maxOccurs);
-	}
-	
-	public static void assertDefinition(ItemDefinition definition, QName itemName, QName type, int minOccurs, int maxOccurs) {
-		assertNotNull("No definition for "+itemName, definition);
-		assertEquals("Wrong definition type for "+itemName, type, definition.getTypeName());
-		assertEquals("Wrong definition minOccurs for "+itemName, minOccurs, definition.getMinOccurs());
-		assertEquals("Wrong definition maxOccurs for "+itemName, maxOccurs, definition.getMaxOccurs());
-	}
-	
-	public static void assertReferenceValue(PrismReference ref, String oid) {
-		for (PrismReferenceValue val: ref.getValues()) {
-			if (oid.equals(val.getOid())) {
-				return;
-			}
-		}
-		AssertJUnit.fail("Oid "+oid+" not found in reference "+ref);
-	}
 
 	
 	public static PrismContext constructInitializedPrismContext() throws SchemaException, SAXException, IOException {
@@ -142,6 +116,14 @@ public class PrismInternalTestUtil {
 		schemaRegistry.setObjectSchemaNamespace(NS_FOO);
 		PrismContext context = PrismContext.create(schemaRegistry);
 		return context;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.prism.PrismContextFactory#createPrismContext()
+	 */
+	@Override
+	public PrismContext createPrismContext() throws SchemaException {
+		return constructPrismContext();
 	}
 
 }

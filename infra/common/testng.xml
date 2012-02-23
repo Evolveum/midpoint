@@ -29,11 +29,6 @@
 			<class name="com.evolveum.midpoint.common.test.PasswordPolicyValidatorTest" />
 		</classes>
 	</test>
-	<test name="Patch XML" preserve-order="false">
-		<classes>
-			<class name="com.evolveum.midpoint.common.patch.PatchXmlTest" />
-		</classes>
-	</test>
 	<test name="Basic Validator" preserve-order="false">
 		<classes>
 			<class name="com.evolveum.midpoint.validator.test.BasicValidatorTest" />
@@ -42,12 +37,6 @@
 	<test name="Utils" preserve-order="false">
 		<classes>
 			<class name="com.evolveum.midpoint.common.test.UtilsTest" />
-		</classes>
-	</test>
-	<test name="Diff Patch" preserve-order="false">
-		<classes>
-			<class name="com.evolveum.midpoint.common.test.DiffPatchTest" />
-			<class name="com.evolveum.midpoint.common.test.DiffPatchRegressionTest" />
 		</classes>
 	</test>
 	<test name="JAXB Util" preserve-order="false">

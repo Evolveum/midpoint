@@ -36,6 +36,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -144,7 +145,7 @@ public class TestPrismConstruction {
 		PrismProperty fullNameProperty = user.findOrCreateProperty(USER_FULLNAME_QNAME);
 		assertEquals(USER_FULLNAME_QNAME, fullNameProperty.getName());
 		assertParentConsistency(user);
-		if (assertDefinitions) assertDefinition(fullNameProperty, DOMUtil.XSD_STRING, 1, 1);
+		if (assertDefinitions) PrismAsserts.assertDefinition(fullNameProperty, DOMUtil.XSD_STRING, 1, 1);
 		fullNameProperty.setValue(new PrismPropertyValue<String>("Sir Fancis Drake"));
 		PrismProperty fullNamePropertyAgain = user.findOrCreateProperty(USER_FULLNAME_QNAME);
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
@@ -154,7 +155,7 @@ public class TestPrismConstruction {
 		PrismContainer activationContainer = user.findOrCreateContainer(USER_ACTIVATION_QNAME);
 		assertEquals(USER_ACTIVATION_QNAME, activationContainer.getName());
 		assertParentConsistency(user);
-		if (assertDefinitions) assertDefinition(activationContainer, ACTIVATION_TYPE_QNAME, 0, 1);
+		if (assertDefinitions) PrismAsserts.assertDefinition(activationContainer, ACTIVATION_TYPE_QNAME, 0, 1);
 		PrismContainer activationContainerAgain = user.findOrCreateContainer(USER_ACTIVATION_QNAME);
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
 		assertTrue("Property not the same", activationContainer == activationContainerAgain);
@@ -163,7 +164,7 @@ public class TestPrismConstruction {
 		PrismProperty enabledProperty = user.findOrCreateProperty(USER_ENABLED_PATH);
 		assertEquals(USER_ENABLED_QNAME, enabledProperty.getName());
 		assertParentConsistency(user);
-		if (assertDefinitions) assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 1, 1);
+		if (assertDefinitions) PrismAsserts.assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 1, 1);
 		enabledProperty.setValue(new PrismPropertyValue<Boolean>(true));
 		PrismProperty enabledPropertyAgain = activationContainer.findOrCreateProperty(USER_ENABLED_QNAME);
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
@@ -174,7 +175,7 @@ public class TestPrismConstruction {
 		PrismContainer assignmentContainer = user.getValue().findOrCreateContainer(USER_ASSIGNMENT_QNAME);
 		assertEquals(USER_ASSIGNMENT_QNAME, assignmentContainer.getName());
 		assertParentConsistency(user);
-		if (assertDefinitions) assertDefinition(assignmentContainer, ASSIGNMENT_TYPE_QNAME, 0, -1);
+		if (assertDefinitions) PrismAsserts.assertDefinition(assignmentContainer, ASSIGNMENT_TYPE_QNAME, 0, -1);
 		PrismContainer assignmentContainerAgain = user.findOrCreateContainer(USER_ASSIGNMENT_QNAME);
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
 		assertTrue("Property not the same", assignmentContainer == assignmentContainerAgain);
@@ -207,7 +208,7 @@ public class TestPrismConstruction {
 		// accountRef
 		PrismReference accountRef = user.findOrCreateReference(USER_ACCOUNTREF_QNAME);
 		assertEquals(USER_ACCOUNTREF_QNAME, accountRef.getName());
-		if (assertDefinitions) assertDefinition(accountRef, OBJECT_REFERENCE_TYPE_QNAME, 0, -1);
+		if (assertDefinitions) PrismAsserts.assertDefinition(accountRef, OBJECT_REFERENCE_TYPE_QNAME, 0, -1);
 		accountRef.addValue(new PrismReferenceValue(ACCOUNT1_OID));
 		accountRef.addValue(new PrismReferenceValue(ACCOUNT2_OID));
 		PrismReference accountRefAgain = user.findOrCreateReference(USER_ACCOUNTREF_QNAME);
@@ -238,44 +239,44 @@ public class TestPrismConstruction {
 		assertEquals("Wrong compileTimeClass", UserType.class, user.getCompileTimeClass());
 		// fullName
 		PrismProperty fullNameProperty = user.findProperty(USER_FULLNAME_QNAME);
-		if (assertDefinitions) assertDefinition(fullNameProperty, DOMUtil.XSD_STRING, 1, 1);
+		if (assertDefinitions) PrismAsserts.assertDefinition(fullNameProperty, DOMUtil.XSD_STRING, 1, 1);
 		assertEquals("Wrong fullname", "Sir Fancis Drake", fullNameProperty.getValue().getValue());
 		// activation
 		PrismContainer activationContainer = user.findContainer(USER_ACTIVATION_QNAME);
 		assertEquals(USER_ACTIVATION_QNAME, activationContainer.getName());
-		if (assertDefinitions) assertDefinition(activationContainer, ACTIVATION_TYPE_QNAME, 0, 1);
+		if (assertDefinitions) PrismAsserts.assertDefinition(activationContainer, ACTIVATION_TYPE_QNAME, 0, 1);
 		// activation/enabled
 		PrismProperty enabledProperty = user.findProperty(USER_ENABLED_PATH);
 		assertEquals(USER_ENABLED_QNAME, enabledProperty.getName());
-		if (assertDefinitions) assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 1, 1);
+		if (assertDefinitions) PrismAsserts.assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 1, 1);
 		assertEquals("Wrong enabled", true, enabledProperty.getValue().getValue());
 		// assignment
 		PrismContainer assignmentContainer = user.findContainer(USER_ASSIGNMENT_QNAME);
 		assertEquals(USER_ASSIGNMENT_QNAME, assignmentContainer.getName());
-		if (assertDefinitions) assertDefinition(assignmentContainer, ASSIGNMENT_TYPE_QNAME, 0, -1);
+		if (assertDefinitions) PrismAsserts.assertDefinition(assignmentContainer, ASSIGNMENT_TYPE_QNAME, 0, -1);
 		// assignment values
 		List<PrismContainerValue> assValues = assignmentContainer.getValues();
 		assertEquals("Wrong number of assignment values", 3, assValues.size());
 		// assignment values: blue
 		PrismContainerValue assBlueValue = assValues.get(0);
 		PrismProperty assBlueDescriptionProperty = assBlueValue.findProperty(USER_DESCRIPTION_QNAME);
-		if (assertDefinitions) assertDefinition(assBlueDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
+		if (assertDefinitions) PrismAsserts.assertDefinition(assBlueDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
 		assertEquals("Wrong blue assignment description", "Assignment created out of the blue", assBlueDescriptionProperty.getValue().getValue());
 		// assignment values: cyan
 		PrismContainerValue assCyanValue = assValues.get(1);
 		PrismProperty assCyanDescriptionProperty = assCyanValue.findProperty(USER_DESCRIPTION_QNAME);
-		if (assertDefinitions) assertDefinition(assCyanDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
+		if (assertDefinitions) PrismAsserts.assertDefinition(assCyanDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
 		assertEquals("Wrong cyan assignment description", "Assignment created out of the cyan", assCyanDescriptionProperty.getValue().getValue());
 		// assignment values: red
 		PrismContainerValue assRedValue = assValues.get(2);
 		PrismProperty assRedDescriptionProperty = assRedValue.findProperty(USER_DESCRIPTION_QNAME);
-		if (assertDefinitions) assertDefinition(assRedDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
+		if (assertDefinitions) PrismAsserts.assertDefinition(assRedDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
 		assertEquals("Wrong red assignment description", "Assignment created out of the red", assRedDescriptionProperty.getValue().getValue());
 		// accountRef
 		PrismReference accountRef = user.findReference(USER_ACCOUNTREF_QNAME);
-		if (assertDefinitions) assertDefinition(accountRef, OBJECT_REFERENCE_TYPE_QNAME, 0, -1);
-		assertReferenceValue(accountRef, ACCOUNT1_OID);
-		assertReferenceValue(accountRef, ACCOUNT2_OID);
+		if (assertDefinitions) PrismAsserts.assertDefinition(accountRef, OBJECT_REFERENCE_TYPE_QNAME, 0, -1);
+		PrismAsserts.assertReferenceValue(accountRef, ACCOUNT1_OID);
+		PrismAsserts.assertReferenceValue(accountRef, ACCOUNT2_OID);
 		assertEquals("accountRef size", 2, accountRef.getValues().size());
 		assertParentConsistency(user);
 	}

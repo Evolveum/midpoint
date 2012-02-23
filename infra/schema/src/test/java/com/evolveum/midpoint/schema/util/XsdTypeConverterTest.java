@@ -22,9 +22,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.schema.JaxbTestUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -88,7 +88,7 @@ public class XsdTypeConverterTest {
 	@Test(enabled=false)
 	public void testAccountMarshall() throws JAXBException, SchemaException {
 		System.out.println("===[ testAccountMarshall ]===");
-		JAXBElement<AccountShadowType> jaxbElement = JaxbTestUtil.unmarshalElement(new File("src/test/resources/converter/account-jack.xml"), AccountShadowType.class);
+		JAXBElement<AccountShadowType> jaxbElement = PrismTestUtil.unmarshalElement(new File("src/test/resources/converter/account-jack.xml"), AccountShadowType.class);
 		System.out.println("Object: "+jaxbElement.getValue());
 		AccountShadowType shadow = jaxbElement.getValue();
 		
@@ -101,7 +101,7 @@ public class XsdTypeConverterTest {
 		
 		Document doc = DOMUtil.getDocument();
 		JAXBElement<AccountShadowType> accountElement = new JAXBElement<AccountShadowType>(ObjectTypes.ACCOUNT.getQName(),AccountShadowType.class,shadow);
-		JaxbTestUtil.marshalElementToDom(accountElement, doc);
+		PrismTestUtil.marshalElementToDom(accountElement, doc);
 		
 		System.out.println("marshalled shadow: "+DOMUtil.serializeDOMToString(doc));
 		Element rootElement = DOMUtil.getFirstChildElement(doc);

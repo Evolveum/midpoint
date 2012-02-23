@@ -26,6 +26,7 @@
     </listeners>
     <test name="Schema" preserve-order="false" verbose="1">
         <classes>
+        	<class name="com.evolveum.midpoint.schema.TestCommonSchemaSanity"/>
             <class name="com.evolveum.midpoint.schema.SimpleJaxbMarshalTest"/>
             <class name="com.evolveum.midpoint.schema.test.ExpressionCodeHolderTest"/>
             <class name="com.evolveum.midpoint.schema.test.XPathTest"/>
@@ -39,7 +40,6 @@
             <class name="com.evolveum.midpoint.schema.TestJaxbSanity"/>
             <class name="com.evolveum.midpoint.schema.TestJaxbWithDynamicSchema"/>
             <class name="com.evolveum.midpoint.schema.TestParseDiffPatch"/>
-            <class name="com.evolveum.midpoint.schema.JaxbTestUtil"/>
         </classes>
     </test>
 </suite>

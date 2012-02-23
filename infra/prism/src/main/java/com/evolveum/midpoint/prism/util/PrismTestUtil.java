@@ -17,13 +17,12 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.test.util;
+package com.evolveum.midpoint.prism.util;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -39,8 +38,11 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Class that statically instantiates the contexts for JAXB parsing.
- * This is usable for tests. Do not use in ordinary (production) code.
+ * Class that statically instantiates the prism contexts and provides convenient static version of the PrismContext
+ * and processor classes. 
+ * 
+ * This is usable for tests. DO NOT use this in the main code. Although it is placed in "main" for convenience,
+ * is should only be used in tests.
  *
  * @author semancik
  */
@@ -49,15 +51,32 @@ public class PrismTestUtil {
     private static final QName DEFAULT_ELEMENT_NAME = new QName("http://midpoint.evolveum.com/xml/ns/test/whatever-1.xsd", "whatever");
 
     private static PrismContext prismContext;
+    private static PrismContextFactory prismContextFactory;
     
-    public static PrismContext createPrismContext() throws SchemaException {
-    	MidPointPrismContextFactory factory = new MidPointPrismContextFactory();
-        return factory.createPrismContext();
+    public static void resetPrismContext(PrismContextFactory newPrismContextFactory) throws SchemaException, SAXException, IOException {
+    	setFactory(newPrismContextFactory);
+    	resetPrismContext();
+    }
+    
+	public static void setFactory(PrismContextFactory newPrismContextFactory) {
+		PrismTestUtil.prismContextFactory = newPrismContextFactory;
+	}
+
+	public static void resetPrismContext() throws SchemaException, SAXException, IOException {
+		prismContext = createInitializedPrismContext();
+	}
+
+	public static PrismContext createPrismContext() throws SchemaException {
+    	if (prismContextFactory == null) {
+    		throw new IllegalStateException("Cannot create prism context, no prism factory is set");
+    	}
+        return prismContextFactory.createPrismContext();
     }
 
     public static PrismContext createInitializedPrismContext() throws SchemaException, SAXException, IOException {
-    	MidPointPrismContextFactory factory = new MidPointPrismContextFactory();
-        return factory.createInitializedPrismContext();
+    	PrismContext newPrismContext = createPrismContext();
+    	newPrismContext.initialize();
+        return newPrismContext;
     }
     
     public static PrismContext getPrismContext() {
@@ -74,6 +93,14 @@ public class PrismTestUtil {
     
     public static <T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException {
     	return getPrismContext().getPrismDomProcessor().parseObject(file);
+    }
+    
+    public static <T extends Objectable> PrismObject<T> parseObject(String xmlString) throws SchemaException {
+    	return getPrismContext().parseObject(xmlString);
+    }
+    
+    public static <T extends Objectable> PrismObject<T> parseObject(Element element) throws SchemaException {
+    	return getPrismContext().parseObject(element);
     }
     
     // ==========================
@@ -135,15 +162,4 @@ public class PrismTestUtil {
         return marshalElementToString(jaxbElement);
     }
     
-    // ==========================
-    // == init
-    // ==========================
-
-    static {
-        try {
-            prismContext = createInitializedPrismContext();
-        } catch (Exception e) {
-            throw new SystemException(e);
-        }
-    }
 }

@@ -17,10 +17,7 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.test.util;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
+package com.evolveum.midpoint.prism.util;
 
 import java.io.File;
 import java.util.Collection;
@@ -30,14 +27,19 @@ import java.util.Set;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import org.testng.AssertJUnit;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
@@ -45,19 +47,25 @@ import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
- * @author semancik
+ * Set of prism-related asserts.
+ * 
+ * DO NOT use this in the main code. Although it is placed in "main" for convenience, is should only be used in tests.
+ * 
+ * @author Radovan Semancik
  *
  */
 public class PrismAsserts {
 	
-	public static void assertPropertyValues(Collection expected, Collection<PrismPropertyValue<Object>> results) {
-		AssertJUnit.assertEquals(expected.size(), results.size());
+	// VALUE asserts
+	
+	public static void assertPropertyValues(String message, Collection expected, Collection<PrismPropertyValue<Object>> results) {
+		assertEquals(message, expected.size(), results.size());
 
         Set<Object> values = new HashSet<Object>();
         for (PrismPropertyValue result : results) {
             values.add(result.getValue());
         }
-        AssertJUnit.assertEquals(expected, values);
+        assertEquals(message, expected, values);
 
 //        Object[] array = expected.toArray();
 //        PropertyValue[] array1 = new PropertyValue[results.size()];
@@ -68,41 +76,35 @@ public class PrismAsserts {
 //        }
     }
 	
-	public static void assertElementsEquals(Object expected, Object actual) throws SchemaException {
-		assertEquals(elementToPrism(expected), elementToPrism(actual));
-    }
-	
-	public static void assertEquals(File fileNewXml, String objectString) throws SchemaException {
-		assertEquals(toPrism(fileNewXml), toPrism(objectString));
-    }
-	
-	public static void assertEquals(Objectable expected, Objectable actual) throws SchemaException {
-		assertEquals(actual.asPrismObject(), actual.asPrismObject());
-    }
-	
-	public static void assertEquals(File fileNewXml, Objectable objectable) throws SchemaException {
-		assertEquals(toPrism(fileNewXml), objectable.asPrismObject());
-    }
-
-	public static void assertEquals(PrismObject<?> prism1, PrismObject<?> prism2) {
-		if (prism1 == null) {
-			AssertJUnit.fail("Left prism is null");
+	public static void assertReferenceValue(PrismReference ref, String oid) {
+		for (PrismReferenceValue val: ref.getValues()) {
+			if (oid.equals(val.getOid())) {
+				return;
+			}
 		}
-		if (prism2 == null) {
-			AssertJUnit.fail("Right prism is null");
-		}
-		AssertJUnit.assertEquals(prism1, prism2);
+		fail("Oid "+oid+" not found in reference "+ref);
 	}
-
-	public static void assertEquals(String message, PrismObject<?> prism1, PrismObject<?> prism2) {
-		if (prism1 == null) {
-			AssertJUnit.fail(message + ": Left prism is null");
-		}
-		if (prism2 == null) {
-			AssertJUnit.fail(message + ": Right prism is null");
-		}
-		AssertJUnit.assertEquals(message, prism1, prism2);
+	
+	// DEFINITION asserts
+	
+	public static void assertDefinition(Item item, QName type, int minOccurs, int maxOccurs) {
+		ItemDefinition definition = item.getDefinition();
+		assertDefinition(definition, item.getName(), type, minOccurs, maxOccurs);
 	}
+		
+	public static void assertPropertyDefinition(PrismContainerDefinition containerDef, QName propertyName, QName type, int minOccurs, int maxOccurs) {
+		PrismPropertyDefinition definition = containerDef.findPropertyDefinition(propertyName);
+		assertDefinition(definition, propertyName, type, minOccurs, maxOccurs);
+	}
+	
+	public static void assertDefinition(ItemDefinition definition, QName itemName, QName type, int minOccurs, int maxOccurs) {
+		assertNotNull("No definition for "+itemName, definition);
+		assertEquals("Wrong definition type for "+itemName, type, definition.getTypeName());
+		assertEquals("Wrong definition minOccurs for "+itemName, minOccurs, definition.getMinOccurs());
+		assertEquals("Wrong definition maxOccurs for "+itemName, maxOccurs, definition.getMaxOccurs());
+	}
+	
+	// DELTA asserts
 	
 	public static void assertPropertyReplace(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
 		PropertyDelta propertyDelta = userDelta.getPropertyDelta(propertyName);
@@ -139,9 +141,54 @@ public class PrismAsserts {
 		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
 		assertSet(propertyPath.last().getName(), propertyDelta.getValuesToDelete(), expectedValues);
 	}
+	
+	public static ContainerDelta<?> assertContainerAdd(ObjectDelta<?> userDelta, PropertyPath propertyPath) {
+		ContainerDelta<?> delta = userDelta.getContainerDelta(propertyPath);
+		assertNotNull("Container delta for "+propertyPath+" not found",delta);
+		assert !delta.isEmpty() : "Container delta for "+propertyPath+" is empty";
+		return delta;
+	}
+	
+	// OBJECT asserts
+	
+	public static void assertElementsEquals(Object expected, Object actual) throws SchemaException {
+		assertEquals(elementToPrism(expected), elementToPrism(actual));
+    }
+	
+	public static void assertEquals(File fileNewXml, String objectString) throws SchemaException {
+		assertEquals(toPrism(fileNewXml), toPrism(objectString));
+    }
+	
+	public static void assertEquals(Objectable expected, Objectable actual) throws SchemaException {
+		assertEquals(actual.asPrismObject(), actual.asPrismObject());
+    }
+	
+	public static void assertEquals(File fileNewXml, Objectable objectable) throws SchemaException {
+		assertEquals(toPrism(fileNewXml), objectable.asPrismObject());
+    }
+
+	public static void assertEquals(PrismObject<?> prism1, PrismObject<?> prism2) {
+		if (prism1 == null) {
+			fail("Left prism is null");
+		}
+		if (prism2 == null) {
+			fail("Right prism is null");
+		}
+		assertEquals(null, prism1, prism2);
+	}
+	
+	public static void assertEquals(String message, PrismObject<?> prism1, PrismObject<?> prism2) {
+		if (prism1 == null) {
+			fail(message + ": Left prism is null");
+		}
+		if (prism2 == null) {
+			fail(message + ": Right prism is null");
+		}
+		assertEquals(message, prism1, prism2);
+	}
 
 	private static void assertSet(QName propertyName, Collection<PrismPropertyValue<?>> valuesFromDelta, Object[] expectedValues) {
-		AssertJUnit.assertEquals("Wrong number of values",expectedValues.length, valuesFromDelta.size());
+		assertEquals("Wrong number of values",expectedValues.length, valuesFromDelta.size());
 		for (PrismPropertyValue<?> valueToReplace: valuesFromDelta) {
 			boolean found = false;
 			for (Object value: expectedValues) {
@@ -150,7 +197,7 @@ public class PrismAsserts {
 				}
 			}
 			if (!found) {
-				AssertJUnit.fail("Unexpected value "+valueToReplace+" in delta for "+propertyName);
+				fail("Unexpected value "+valueToReplace+" in delta for "+propertyName);
 			}
 		}
 	}
@@ -190,6 +237,20 @@ public class PrismAsserts {
 
 	private static PrismJaxbProcessor getJaxbProcessor() {
 		return PrismTestUtil.getPrismContext().getPrismJaxbProcessor();
+	}
+	
+	// Local version of JUnit assers to avoid pulling JUnit dependecy to main
+	
+	static void assertNotNull(String string, Object object) {
+		assert object != null : string;
+	}
+	
+	static void assertEquals(String message, Object expected, Object actual) {
+		assert expected.equals(actual) : message + ": expected "+expected+", was "+actual;
+	}
+	
+	static void fail(String message) {
+		assert false: message;
 	}
 
 }

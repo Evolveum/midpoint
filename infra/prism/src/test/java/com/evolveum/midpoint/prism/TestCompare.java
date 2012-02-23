@@ -35,6 +35,8 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -46,8 +48,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public class TestCompare {
 	
 	@BeforeSuite
-	public void setupDebug() {
+	public void setupDebug() throws SchemaException, SAXException, IOException {
 		DebugUtil.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
+		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
 	}
 	
 	/**
@@ -109,19 +112,19 @@ public class TestCompare {
 		assertEquals("Wrong delta OID", USER_JACK_OID, jackDelta.getOid());
 		assertEquals("Wrong number of modificaitions", 5, jackDelta.getModifications().size());
 		
-		DeltaAsserts.assertPropertyReplace(jackDelta, USER_FULLNAME_QNAME, "Jack Sparrow");
+		PrismAsserts.assertPropertyReplace(jackDelta, USER_FULLNAME_QNAME, "Jack Sparrow");
 		
-		DeltaAsserts.assertPropertyDelete(jackDelta, new PropertyPath(USER_EXTENSION_QNAME, USER_EXTENSION_MULTI_QNAME), "dva");
-		DeltaAsserts.assertPropertyAdd(jackDelta, new PropertyPath(USER_EXTENSION_QNAME, USER_EXTENSION_MULTI_QNAME), "osem");
+		PrismAsserts.assertPropertyDelete(jackDelta, new PropertyPath(USER_EXTENSION_QNAME, USER_EXTENSION_MULTI_QNAME), "dva");
+		PrismAsserts.assertPropertyAdd(jackDelta, new PropertyPath(USER_EXTENSION_QNAME, USER_EXTENSION_MULTI_QNAME), "osem");
 		// TODO: asser BAR
 		
-		DeltaAsserts.assertPropertyReplace(jackDelta, 
+		PrismAsserts.assertPropertyReplace(jackDelta, 
 				new PropertyPath(
 						new PropertyPathSegment(USER_ASSIGNMENT_QNAME,  USER_ASSIGNMENT_2_ID),
 						new PropertyPathSegment(USER_DESCRIPTION_QNAME, null)), 
 				"Assignment II");
 		
-		ContainerDelta<?> assignment3Delta = DeltaAsserts.assertContainerAdd(jackDelta, new PropertyPath(USER_ASSIGNMENT_QNAME));
+		ContainerDelta<?> assignment3Delta = PrismAsserts.assertContainerAdd(jackDelta, new PropertyPath(USER_ASSIGNMENT_QNAME));
 		PrismContainerValue<?> assignment3DeltaAddValue = assignment3Delta.getValuesToAdd().iterator().next();
 		assertEquals("Assignment 3 wrong ID", USER_ASSIGNMENT_3_ID, assignment3DeltaAddValue.getId());
 	}

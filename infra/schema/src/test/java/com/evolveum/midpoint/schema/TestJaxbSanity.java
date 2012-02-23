@@ -22,14 +22,21 @@ package com.evolveum.midpoint.schema;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
+import java.io.IOException;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -47,16 +54,22 @@ public class TestJaxbSanity {
 	public static final String USER_BARBOSSA_FILENAME = TEST_DIR + "/user-barbossa.xml";
 	public static final String RESOURCE_OPENDJ_FILENAME = TEST_DIR + "/resource-opendj.xml";
 	
+	@BeforeSuite
+	public void setup() throws SchemaException, SAXException, IOException {
+		DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+		PrismTestUtil.resetPrismContext(new MidPointPrismContextFactory());
+	}
+	
 	@Test
 	public void testUnmarshallAndEqualsUser() throws JAXBException {
 		System.out.println("\n\n ===[testUnmarshallAndEqualsUser]===\n");
 		
 		// GIVEN
-		JAXBElement<UserType> userEl1 = JaxbTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),UserType.class);
+		JAXBElement<UserType> userEl1 = PrismTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),UserType.class);
 		UserType user1 = userEl1.getValue();
 		assertNotNull(user1);
 		
-		JAXBElement<UserType> userEl2 = JaxbTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),UserType.class);
+		JAXBElement<UserType> userEl2 = PrismTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),UserType.class);
 		UserType user2 = userEl2.getValue();
 		assertNotNull(user2);
 		
@@ -76,11 +89,11 @@ public class TestJaxbSanity {
 		System.out.println("\n\n ===[testUnmarshallAndEqualsResource]===\n");
 		
 		// GIVEN
-		JAXBElement<ResourceType> resourceEl1 = JaxbTestUtil.unmarshalElement(new File(RESOURCE_OPENDJ_FILENAME),ResourceType.class);
+		JAXBElement<ResourceType> resourceEl1 = PrismTestUtil.unmarshalElement(new File(RESOURCE_OPENDJ_FILENAME),ResourceType.class);
 		ResourceType resource1 = resourceEl1.getValue();
 		assertNotNull(resource1);
 		
-		JAXBElement<ResourceType> resourceEl2 = JaxbTestUtil.unmarshalElement(new File(RESOURCE_OPENDJ_FILENAME),ResourceType.class);
+		JAXBElement<ResourceType> resourceEl2 = PrismTestUtil.unmarshalElement(new File(RESOURCE_OPENDJ_FILENAME),ResourceType.class);
 		ResourceType resource2 = resourceEl2.getValue();
 		assertNotNull(resource2);
 		
@@ -100,7 +113,7 @@ public class TestJaxbSanity {
 		System.out.println("\n\n ===[testAssnignmentEquals]===\n");
 		
 		// GIVEN
-		JAXBElement<UserType> userEl1 = JaxbTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),UserType.class);
+		JAXBElement<UserType> userEl1 = PrismTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),UserType.class);
 		UserType user = userEl1.getValue();
 		assertNotNull(user);
 		
@@ -108,9 +121,9 @@ public class TestJaxbSanity {
 		assertNotNull(userAssignmentType);
 
 		System.out.println("\n*** user assignment");
-		System.out.println(JaxbTestUtil.marshalWrap(userAssignmentType));
+		System.out.println(PrismTestUtil.marshalWrap(userAssignmentType));
 
-		JAXBElement<ObjectModificationType> modEl = JaxbTestUtil.unmarshalElement(new File(TEST_DIR, "user-barbossa-modify-delete-assignment-account-opendj-attr.xml"),ObjectModificationType.class);
+		JAXBElement<ObjectModificationType> modEl = PrismTestUtil.unmarshalElement(new File(TEST_DIR, "user-barbossa-modify-delete-assignment-account-opendj-attr.xml"),ObjectModificationType.class);
 		ObjectModificationType mod = modEl.getValue();
 		assertNotNull(mod);
 		
@@ -119,7 +132,7 @@ public class TestJaxbSanity {
 		assertNotNull(assignmentType);
 		
 		System.out.println("\n*** assignment");
-		System.out.println(JaxbTestUtil.marshalWrap(assignmentType));
+		System.out.println(PrismTestUtil.marshalWrap(assignmentType));
 		
 		// WHEN, THEN
 		
