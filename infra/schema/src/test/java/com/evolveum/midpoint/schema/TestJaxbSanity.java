@@ -31,6 +31,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -61,29 +62,87 @@ public class TestJaxbSanity {
 	}
 	
 	@Test
-	public void testUnmarshallAndEqualsUser() throws JAXBException {
-		System.out.println("\n\n ===[testUnmarshallAndEqualsUser]===\n");
+	public void testUnmarshallAndEqualsUserJaxb() throws JAXBException {
+		System.out.println("\n\n ===[testUnmarshallAndEqualsUserJaxb]===\n");
 		
 		// GIVEN
 		JAXBElement<UserType> userEl1 = PrismTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),UserType.class);
-		UserType user1 = userEl1.getValue();
-		assertNotNull(user1);
+		UserType user1Type = userEl1.getValue();
+		assertNotNull(user1Type);
+		PrismObject<UserType> user1 = user1Type.asPrismObject();
 		
 		JAXBElement<UserType> userEl2 = PrismTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),UserType.class);
-		UserType user2 = userEl2.getValue();
-		assertNotNull(user2);
+		UserType user2Type = userEl2.getValue();
+		assertNotNull(user2Type);
+		PrismObject<UserType> user2 = user2Type.asPrismObject();
 		
 		// Compare plain JAXB objects (not backed by containers)
-		AccountConstructionType ac1 = user1.getAssignment().get(0).getAccountConstruction();
-		AccountConstructionType ac2 = user2.getAssignment().get(0).getAccountConstruction();
+		AccountConstructionType ac1 = user1Type.getAssignment().get(0).getAccountConstruction();
+		AccountConstructionType ac2 = user2Type.getAssignment().get(0).getAccountConstruction();
 		assertTrue("AccountConstructionType not equals", ac1.equals(ac2));
 		
 		// WHEN, THEN
-		assertTrue("User not equals", user1.equals(user2));
+		assertTrue("User not equals (PrismObject)", user1.equals(user2));
+		assertTrue("User not equivalent (PrismObject)", user1.equivalent(user2));
+		assertTrue("User not equals (Objectable)", user1Type.equals(user2Type));
 		
-		assertTrue("HashCode does not match", user1.hashCode() == user2.hashCode());
+		assertTrue("HashCode does not match (PrismObject)", user1.hashCode() == user2.hashCode());
+		assertTrue("HashCode does not match (Objectable)", user1Type.hashCode() == user2Type.hashCode());
+	}
+	
+	@Test
+	public void testUnmarshallAndEqualsUserPrism() throws SchemaException {
+		System.out.println("\n\n ===[testUnmarshallAndEqualsUserPrism]===\n");
+		
+		// GIVEN
+		PrismObject<UserType> user1 = PrismTestUtil.parseObject(new File(USER_BARBOSSA_FILENAME));
+		UserType user1Type = user1.asObjectable();
+		
+		PrismObject<UserType> user2 = PrismTestUtil.parseObject(new File(USER_BARBOSSA_FILENAME));
+		UserType user2Type = user2.asObjectable();
+		
+		// Compare plain JAXB objects (not backed by containers)
+		AccountConstructionType ac1 = user1Type.getAssignment().get(0).getAccountConstruction();
+		AccountConstructionType ac2 = user2Type.getAssignment().get(0).getAccountConstruction();
+		assertTrue("AccountConstructionType not equals", ac1.equals(ac2));
+		
+		// WHEN, THEN
+		assertTrue("User not equals (PrismObject)", user1.equals(user2));
+		assertTrue("User not equivalent (PrismObject)", user1.equivalent(user2));
+		assertTrue("User not equals (Objectable)", user1Type.equals(user2Type));
+		
+		assertTrue("HashCode does not match (PrismObject)", user1.hashCode() == user2.hashCode());
+		assertTrue("HashCode does not match (Objectable)", user1Type.hashCode() == user2Type.hashCode());
 	}
 
+	@Test
+	public void testUnmarshallAndEqualsUserMixed() throws SchemaException, JAXBException {
+		System.out.println("\n\n ===[testUnmarshallAndEqualsUserMixed]===\n");
+		
+		// GIVEN
+		PrismObject<UserType> user1 = PrismTestUtil.parseObject(new File(USER_BARBOSSA_FILENAME));
+		UserType user1Type = user1.asObjectable();
+		
+		JAXBElement<UserType> userEl2 = PrismTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),UserType.class);
+		UserType user2Type = userEl2.getValue();
+		assertNotNull(user2Type);
+		PrismObject<UserType> user2 = user2Type.asPrismObject();
+		
+		// Compare plain JAXB objects (not backed by containers)
+		AccountConstructionType ac1 = user1Type.getAssignment().get(0).getAccountConstruction();
+		AccountConstructionType ac2 = user2Type.getAssignment().get(0).getAccountConstruction();
+		assertTrue("AccountConstructionType not equals", ac1.equals(ac2));
+		
+		// WHEN, THEN
+		assertTrue("User not equals (PrismObject)", user1.equals(user2));
+		assertTrue("User not equivalent (PrismObject)", user1.equivalent(user2));
+		assertTrue("User not equals (Objectable)", user1Type.equals(user2Type));
+		
+		assertTrue("HashCode does not match (PrismObject)", user1.hashCode() == user2.hashCode());
+		assertTrue("HashCode does not match (Objectable)", user1Type.hashCode() == user2Type.hashCode());
+	}
+
+	
 	@Test
 	public void testUnmarshallAndEqualsResource() throws JAXBException {
 		System.out.println("\n\n ===[testUnmarshallAndEqualsResource]===\n");

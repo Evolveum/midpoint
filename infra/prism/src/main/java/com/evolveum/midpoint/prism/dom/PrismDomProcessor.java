@@ -46,6 +46,9 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -128,7 +131,7 @@ public class PrismDomProcessor {
 			throw new SchemaException("No object definition for element "+elementName+" in schema "+schema);
 		}
 		PrismObject<T> object = (PrismObject<T>) parsePrismContainer(objectElement, objectDefinition);
-		String oid = objectElement.getAttribute(PrismConstants.ATTRIBUTE_OID_LOCAL_NAME);
+		String oid = getOid(objectElement);
 		object.setOid(oid);
 		String version = objectElement.getAttribute(PrismConstants.ATTRIBUTE_VERSION_LOCAL_NAME);
 		object.setVersion(version);
@@ -164,6 +167,10 @@ public class PrismDomProcessor {
             container.add(pval);
         }
         return container;
+	}
+	
+	private String getOid(Element element) {
+		return element.getAttribute(PrismConstants.ATTRIBUTE_OID_LOCAL_NAME);
 	}
 	
 	private String getContainerId(Element element) {
@@ -339,16 +346,43 @@ public class PrismDomProcessor {
         }
         return prop;
     }
+    
+    public PrismReference parsePrismReference(List<Element> valueElements, PrismReferenceDefinition referenceDefinition) throws SchemaException {
+        if (valueElements == null || valueElements.isEmpty()) {
+            return null;
+        }
+        QName propName = DOMUtil.getQName(valueElements.get(0));
+        PrismReference ref = referenceDefinition.instantiate(propName);
 
-    /**
+        if (!referenceDefinition.isMultiValue() && valueElements.size() > 1) {
+            throw new SchemaException("Attempt to store multiple values in single-valued property " + propName);
+        }
+
+        for (Element element : valueElements) {
+            ref.getValues().add(parseReferenceValue(element));
+        }
+        return ref;
+    }
+
+	private PrismReferenceValue parseReferenceValue(Element element) {
+		String oid = getOid(element);
+		QName type = DOMUtil.getQNameAttribute(element, PrismConstants.ATTRIBUTE_REF_TYPE_LOCAL_NAME);
+		PrismReferenceValue refVal = new PrismReferenceValue(oid);
+		refVal.setTargetType(type);
+		return refVal;
+	}
+
+	/**
      * This gets definition of an unspecified type. It has to find the right method to call.
      * Value elements have the same element name. They may be elements of a property or a container. 
      */
 	private Item parseItem(List<Element> valueElements, ItemDefinition def) throws SchemaException {
 		if (def instanceof PrismContainerDefinition) {
 			return parsePrismContainer(valueElements, (PrismContainerDefinition)def);
-		} if (def instanceof PrismPropertyDefinition) {
+		} else if (def instanceof PrismPropertyDefinition) {
 			return parsePrismProperty(valueElements, (PrismPropertyDefinition)def);
+		} if (def instanceof PrismReferenceDefinition) {
+			return parsePrismReference(valueElements, (PrismReferenceDefinition)def);
 		} else {
 			throw new IllegalArgumentException("Attempt to parse unknown definition type "+def.getClass().getName());
 		}

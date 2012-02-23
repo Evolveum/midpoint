@@ -33,6 +33,7 @@ public class PrismConstants {
 	public static final String ATTRIBUTE_ID_LOCAL_NAME = "id";
 	public static final String ATTRIBUTE_OID_LOCAL_NAME = "oid";
 	public static final String ATTRIBUTE_VERSION_LOCAL_NAME = "version";
+	public static final String ATTRIBUTE_REF_TYPE_LOCAL_NAME = "type";
 	
 	public static final String NS_PREFIX = "http://midpoint.evolveum.com/xml/ns/public/common/";
 	public static final String NS_ANNOTATION = NS_PREFIX + "annotation-1.xsd";
