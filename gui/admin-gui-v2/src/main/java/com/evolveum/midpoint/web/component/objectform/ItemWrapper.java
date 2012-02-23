@@ -21,13 +21,14 @@
 
 package com.evolveum.midpoint.web.component.objectform;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+
 import java.io.Serializable;
-import com.evolveum.midpoint.schema.delta.ObjectDelta;
 
 /**
  * @author lazyman
  */
-public interface ItemWrapper<T> extends Serializable {
+public interface ItemWrapper extends Serializable {
 
     /**
      * This method reads annotation in property container
@@ -56,5 +57,5 @@ public interface ItemWrapper<T> extends Serializable {
      * Object form remembers changes created by user
      * @return
      */
-    ObjectDelta<T> createObjectDelta();
+    ObjectDelta createObjectDelta();
 }

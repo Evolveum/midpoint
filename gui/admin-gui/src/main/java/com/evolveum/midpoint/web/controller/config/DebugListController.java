@@ -115,7 +115,11 @@ public class DebugListController extends ListController<ObjectBean> {
 	}
 
 	@Override
-	protected String listObjects() {
+    protected  String listObjects() {
+        return listRepoObjects();
+    }
+    
+	private <T extends ObjectType> String listRepoObjects() {
 		if (StringUtils.isEmpty(objectType)) {
 			FacesUtils.addErrorMessage("Object type not defined.");
 			return null;
@@ -123,8 +127,9 @@ public class DebugListController extends ListController<ObjectBean> {
 
 		List<ObjectType> list = new ArrayList<ObjectType>();
 		try {
-			List<PrismObject<? extends ObjectType>> prisms = repositoryManager.listObjects(
-                    ObjectTypes.getObjectTypeClass(objectType), getOffset(), getRowsCount());
+            Class<T> clazz = (Class<T>) ObjectTypes.getObjectTypeClass(objectType);
+			List<PrismObject<T>> prisms = repositoryManager.listObjects(
+                    clazz, getOffset(), getRowsCount());
             for (PrismObject<? extends ObjectType> prism : prisms) {
                 list.add(prism.asObjectable());
             }

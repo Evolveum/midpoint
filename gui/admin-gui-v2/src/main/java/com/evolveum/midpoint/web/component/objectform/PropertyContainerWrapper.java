@@ -21,21 +21,22 @@
 
 package com.evolveum.midpoint.web.component.objectform;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import org.apache.commons.lang.Validate;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
  * @author lazyman
  */
-public class PropertyContainerWrapper<T> implements ItemWrapper<T> {
+public class PropertyContainerWrapper implements ItemWrapper {
 
-    private PropertyContainer container;
+    private PrismContainer container;
     private ItemStatus status;
     private List<ItemWrapper> items;
 
-    public PropertyContainerWrapper(PropertyContainer container, ItemStatus status) {
+    public PropertyContainerWrapper(PrismContainer container, ItemStatus status) {
         Validate.notNull(container, "Property container must not be null.");
         Validate.notNull(status, "Status must not be null.");
 
@@ -63,7 +64,7 @@ public class PropertyContainerWrapper<T> implements ItemWrapper<T> {
     }
 
     @Override
-    public ObjectDelta<T> createObjectDelta() {
+    public ObjectDelta createObjectDelta() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 }
