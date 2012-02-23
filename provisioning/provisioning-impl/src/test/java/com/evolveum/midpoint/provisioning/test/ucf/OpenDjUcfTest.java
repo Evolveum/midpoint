@@ -469,7 +469,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 
 		System.out.println(schema.dump());
 
-		Document xsdSchema = PrismSchema.serializeToXsd(schema);
+		Document xsdSchema = schema.serializeToXsd();
 
 		System.out
 				.println("-------------------------------------------------------------------------------------");
