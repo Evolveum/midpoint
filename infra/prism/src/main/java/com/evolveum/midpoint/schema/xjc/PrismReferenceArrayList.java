@@ -61,9 +61,9 @@ public abstract class PrismReferenceArrayList<T> extends AbstractList<T> {
         return reference.getValues().size();
     }
 
-    public abstract T createItem(PrismReferenceValue value);
+    protected abstract T createItem(PrismReferenceValue value);
 
-    public abstract PrismReferenceValue getValueFrom(T t);
+    protected abstract PrismReferenceValue getValueFrom(T t);
 
     @Override
     public T remove(int i) {
