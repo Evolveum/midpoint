@@ -20,27 +20,13 @@
  */
 package com.evolveum.midpoint.web.controller.config;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.xml.bind.JAXBException;
-
-import com.evolveum.midpoint.prism.PrismObject;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Controller;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -49,8 +35,20 @@ import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.repo.RepositoryManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
+import javax.xml.bind.JAXBException;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 
@@ -69,6 +67,8 @@ public class DebugViewController implements Serializable {
 	private transient RepositoryManager repositoryManager;
 	@Autowired(required = true)
 	private transient TemplateController template;
+    @Autowired(required = true)
+    private transient PrismContext prismContext;
 	private boolean editOther = false;
 	private String editOtherName;
 	private ObjectBean object;
@@ -171,7 +171,9 @@ public class DebugViewController implements Serializable {
 			PrismObject prismObject = list.get(0);
             ObjectType objectType = (ObjectType) prismObject.asObjectable();
 			object = new ObjectBean(objectType.getOid(), objectType.getName());
-			xml = JAXBUtil.marshal(new ObjectFactory().createObject(objectType));
+            
+            PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+            xml = jaxbProcessor.marshalElementToString(objectType);
 		} catch (Exception ex) {
 			LoggingUtils.logException(TRACE, "Unknown error occured while searching objects by name {}", ex,
 					editOtherName);
@@ -195,7 +197,8 @@ public class DebugViewController implements Serializable {
 			}
             ObjectType objectType = (ObjectType) prismObject.asObjectable();
 			object = new ObjectBean(objectType.getOid(), objectType.getName());
-			xml = JAXBUtil.marshal(new ObjectFactory().createObject(objectType));
+            PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+            xml =jaxbProcessor.marshalElementToString(objectType);
 		} catch (JAXBException ex) {
 			LoggingUtils.logException(TRACE, "Couldn't show object {} in editor", ex, object.getName());
 			FacesUtils.addErrorMessage("Couldn't show object '" + object.getName() + "' in editor.", ex);

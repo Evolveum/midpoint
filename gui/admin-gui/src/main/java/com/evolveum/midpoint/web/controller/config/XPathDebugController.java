@@ -21,36 +21,13 @@
  */
 package com.evolveum.midpoint.web.controller.config;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.faces.event.ValueChangeEvent;
-import javax.faces.model.SelectItem;
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-import javax.xml.xpath.XPathConstants;
-
-import com.evolveum.midpoint.prism.PrismObject;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Controller;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import com.evolveum.midpoint.common.xpath.XPathUtil;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.holder.ExpressionCodeHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.Variable;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -60,6 +37,22 @@ import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import javax.faces.event.ValueChangeEvent;
+import javax.faces.model.SelectItem;
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 
@@ -88,6 +81,8 @@ public class XPathDebugController implements Serializable {
 	}
 	@Autowired
 	private transient ModelService modelService;
+    @Autowired(required = true)
+    private transient PrismContext prismContext;
 	private String expression;
 	private List<XPathVariableBean> variables = new ArrayList<XPathVariableBean>();
 	private boolean selectAll;
@@ -146,7 +141,10 @@ public class XPathDebugController implements Serializable {
 								new PropertyReferenceListType(), new OperationResult("Get object"));
 						// Variable only accepts String or Node, but here we
 						// will get a JAXB object. Need to convert it.
-						Element jaxbToDom = JAXBUtil.jaxbToDom(objectType, SchemaConstants.I_OBJECT, null);
+                        PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+                        Document document = DOMUtil.getDocument(); 
+                        jaxbProcessor.marshalToDom(objectType.asObjectable(), document);
+						Element jaxbToDom = document.getDocumentElement(); //JAXBUtil.jaxbToDom(objectType, SchemaConstants.I_OBJECT, null);
 						// TODO: May need to add xsi:type attribute here
 						variableMap.put(getQNameForVariable(variable.getVariableName()), 
 								jaxbToDom);
@@ -174,40 +172,41 @@ public class XPathDebugController implements Serializable {
 			return null;
 		}
 
-		try {
-			ExpressionCodeHolder expressionHolder = getExpressionHolderFromExpresion();
-			if (returnType.equals("Boolean")) {
-				Boolean boolResult = (Boolean) XPathUtil.evaluateExpression(getVariableValue(),
-						expressionHolder, XPathConstants.BOOLEAN);
-				result = String.valueOf(boolResult);
-			}
-			if (returnType.equals("Number")) {
-				Double doubleResult = (Double) XPathUtil.evaluateExpression(getVariableValue(),
-						expressionHolder, XPathConstants.NUMBER);
-				result = String.valueOf(doubleResult);
-			}
-			if (returnType.equals("String") || returnType.equals("DomObjectModel")) {
-				result = (String) XPathUtil.evaluateExpression(getVariableValue(), expressionHolder,
-						XPathConstants.STRING);
-			}
-
-			if (returnType.equals("Node")) {
-				Node nodeResult = (Node) XPathUtil.evaluateExpression(getVariableValue(), expressionHolder,
-						XPathConstants.NODE);
-				result = DOMUtil.printDom(nodeResult).toString();
-			}
-			if (returnType.equals("NodeList")) {
-				NodeList nodeListResult = (NodeList) XPathUtil.evaluateExpression(getVariableValue(),
-						expressionHolder, XPathConstants.NODESET);
-				StringBuffer strBuilder = new StringBuffer();
-				for (int i = 0; i < nodeListResult.getLength(); i++) {
-					strBuilder.append(DOMUtil.printDom(nodeListResult.item(i)));
-				}
-				result = strBuilder.toString();
-			}
-		} catch (JAXBException ex) {
-			FacesUtils.addErrorMessage("JAXB error occured, reason: " + ex.getMessage(), ex);
-		}
+// todo commented out during refactoring, will be fixed later
+//		try {
+//			ExpressionCodeHolder expressionHolder = getExpressionHolderFromExpresion();
+//			if (returnType.equals("Boolean")) {
+//				Boolean boolResult = (Boolean) XPathUtil.evaluateExpression(getVariableValue(),
+//						expressionHolder, XPathConstants.BOOLEAN);
+//				result = String.valueOf(boolResult);
+//			}
+//			if (returnType.equals("Number")) {
+//				Double doubleResult = (Double) XPathUtil.evaluateExpression(getVariableValue(),
+//						expressionHolder, XPathConstants.NUMBER);
+//				result = String.valueOf(doubleResult);
+//			}
+//			if (returnType.equals("String") || returnType.equals("DomObjectModel")) {
+//				result = (String) XPathUtil.evaluateExpression(getVariableValue(), expressionHolder,
+//						XPathConstants.STRING);
+//			}
+//
+//			if (returnType.equals("Node")) {
+//				Node nodeResult = (Node) XPathUtil.evaluateExpression(getVariableValue(), expressionHolder,
+//						XPathConstants.NODE);
+//				result = DOMUtil.printDom(nodeResult).toString();
+//			}
+//			if (returnType.equals("NodeList")) {
+//				NodeList nodeListResult = (NodeList) XPathUtil.evaluateExpression(getVariableValue(),
+//						expressionHolder, XPathConstants.NODESET);
+//				StringBuffer strBuilder = new StringBuffer();
+//				for (int i = 0; i < nodeListResult.getLength(); i++) {
+//					strBuilder.append(DOMUtil.printDom(nodeListResult.item(i)));
+//				}
+//				result = strBuilder.toString();
+//			}
+//		} catch (JAXBException ex) {
+//			FacesUtils.addErrorMessage("JAXB error occured, reason: " + ex.getMessage(), ex);
+//		}
 
 		LOGGER.debug("result is: {}", result);
 		LOGGER.debug("evaluate end");

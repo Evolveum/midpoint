@@ -25,6 +25,7 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -36,7 +37,6 @@ import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -61,6 +61,8 @@ public class RepositoryManagerImpl implements RepositoryManager {
     private static final Trace LOGGER = TraceManager.getTrace(RepositoryManagerImpl.class);
     @Autowired(required = true)
     private transient RepositoryService repositoryService;
+    @Autowired(required = true)
+    private PrismContext prismContext;
     @Autowired(required = true)
     private SchemaRegistry schemaRegistry;
     @Autowired(required = true)
@@ -106,7 +108,7 @@ public class RepositoryManagerImpl implements RepositoryManager {
             QueryType query = new QueryType();
             query.setFilter(ControllerUtil.createQuery(name, null));
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(JAXBUtil.silentMarshalWrap(query));
+                LOGGER.trace(prismContext.silentMarshalObject(query));
             }
             list = repositoryService.searchObjects(ObjectType.class, query, null, result);
             result.recordSuccess();

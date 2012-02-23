@@ -21,35 +21,16 @@
  */
 package com.evolveum.midpoint.web.controller.account;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import javax.faces.event.ActionEvent;
-import javax.faces.event.ValueChangeEvent;
-import javax.faces.model.SelectItem;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.PrismContext;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Controller;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -63,24 +44,27 @@ import com.evolveum.midpoint.web.jsf.form.AttributeType;
 import com.evolveum.midpoint.web.jsf.form.FormAttribute;
 import com.evolveum.midpoint.web.jsf.form.FormAttributeDefinition;
 import com.evolveum.midpoint.web.jsf.form.FormObject;
-import com.evolveum.midpoint.web.model.AccountManager;
-import com.evolveum.midpoint.web.model.ObjectManager;
-import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
-import com.evolveum.midpoint.web.model.ResourceManager;
-import com.evolveum.midpoint.web.model.UserManager;
-import com.evolveum.midpoint.web.model.WebModelException;
-import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
-import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
-import com.evolveum.midpoint.web.model.dto.GuiUserDto;
-import com.evolveum.midpoint.web.model.dto.PropertyChange;
-import com.evolveum.midpoint.web.model.dto.ResourceDto;
-import com.evolveum.midpoint.web.model.dto.UserDto;
+import com.evolveum.midpoint.web.model.*;
+import com.evolveum.midpoint.web.model.dto.*;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SchemaFormParser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import javax.faces.event.ActionEvent;
+import javax.faces.event.ValueChangeEvent;
+import javax.faces.model.SelectItem;
+import javax.xml.namespace.QName;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * 
@@ -502,7 +486,7 @@ public class UserDetailsController implements Serializable {
 
 		List<ResourceDto> resources = listAvailableResources(listResources(), existingAccounts);
 		for (ResourceDto resourceDto : resources) {
-			SelectItem si = new SelectItem((GuiResourceDto) resourceDto);
+			SelectItem si = new SelectItem(resourceDto);
 			list.add(si);
 		}
 
@@ -647,11 +631,12 @@ public class UserDetailsController implements Serializable {
 					LOGGER.trace("Creating element: \\{{}\\}{}: {}",
 							new Object[] { namespace, name, object.toString() });
 
-					Element element = null;
-
+					Element element;
 					if (AttributeType.PASSWORD.equals(definition.getType())) {
 						ProtectedStringType protectedString = protector.encryptString(object.toString());
-						element = JAXBUtil.jaxbToDom(protectedString, definition.getElementName(), doc);
+                        PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+                        Document document = DOMUtil.getDocument();
+                        element = jaxbProcessor.marshalObjectToDom(protectedString, definition.getElementName(), document);
 						element.setPrefix(MidPointNamespacePrefixMapper.getPreferredPrefix(namespace));
 					} else {
 						element = doc.createElementNS(namespace, name);

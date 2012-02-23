@@ -20,88 +20,84 @@
  */
 package com.evolveum.midpoint.web.controller.config;
 
-import java.io.Serializable;
-
-import javax.xml.bind.JAXBElement;
-
+import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
-import com.evolveum.midpoint.common.crypto.Protector;
-import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.web.util.FacesUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
+import javax.xml.bind.JAXBElement;
+import java.io.Serializable;
 
 /**
- * 
  * @author lazyman
- * 
  */
 @Controller("encryption")
 @Scope("session")
 public class EncryptionController implements Serializable {
 
-	public static final String PAGE_NAVIGATION = "/admin/config/encryption?faces-redirect=true";
-	private static final long serialVersionUID = 4415668346210408646L;
-	private static final String OPTION_DECRYPT = "decrypt";
-	private static final String OPTION_ENCRYPT = "encrypt";
-	@Autowired(required = true)
-	private transient Protector protector;
-	private String value;
-	private String encrypt = OPTION_ENCRYPT;
+    public static final String PAGE_NAVIGATION = "/admin/config/encryption?faces-redirect=true";
+    private static final long serialVersionUID = 4415668346210408646L;
+    private static final String OPTION_DECRYPT = "decrypt";
+    private static final String OPTION_ENCRYPT = "encrypt";
+    @Autowired(required = true)
+    private transient Protector protector;
+    @Autowired(required = true)
+    private transient PrismContext prismContext;
+    private String value;
+    private String encrypt = OPTION_ENCRYPT;
 
-	public String getValue() {
-		return value;
-	}
+    public String getValue() {
+        return value;
+    }
 
-	public void setValue(String value) {
-		this.value = value;
-	}
+    public void setValue(String value) {
+        this.value = value;
+    }
 
-	public String getEncrypt() {
-		return encrypt;
-	}
+    public String getEncrypt() {
+        return encrypt;
+    }
 
-	public void setEncrypt(String encrypt) {
-		this.encrypt = encrypt;
-	}
+    public void setEncrypt(String encrypt) {
+        this.encrypt = encrypt;
+    }
 
-	public boolean isEncrypting() {
-		return OPTION_ENCRYPT.equals(getEncrypt());
-	}
-	
-	public String init() {
-		encrypt = OPTION_DECRYPT;
-		value = null;
-		
-		return PAGE_NAVIGATION;
-	}
+    public boolean isEncrypting() {
+        return OPTION_ENCRYPT.equals(getEncrypt());
+    }
 
-	@SuppressWarnings("unchecked")
-	public void runPerformed() {
-		if (StringUtils.isEmpty(value)) {
-			FacesUtils.addWarnMessage("Value must not be empty.");
-		}
+    public String init() {
+        encrypt = OPTION_DECRYPT;
+        value = null;
 
-		try {
-			if (isEncrypting()) {
-				ProtectedStringType protectedString = protector.encryptString(value);
-				value = JAXBUtil.marshalWrap(protectedString);
-			} else {
-				JAXBElement<Object> object = (JAXBElement<Object>) JAXBUtil.unmarshal(value);
-				if (!(object.getValue() instanceof ProtectedStringType)) {
-					throw new IllegalArgumentException("Value is not '"
-							+ ProtectedStringType.class.getSimpleName() + "' but '"
-							+ object.getValue().getClass().getSimpleName() + "'.");
-				}
-				ProtectedStringType protectedString = (ProtectedStringType) object.getValue();
-				value = protector.decryptString(protectedString);
-			}
-		} catch (Exception ex) {
-			String encrypt = isEncrypting() ? "encrypt" : "decrypt";
-			FacesUtils.addErrorMessage("Couldn't " + encrypt + " value.", ex);
-		}
-	}
+        return PAGE_NAVIGATION;
+    }
+
+    @SuppressWarnings("unchecked")
+    public void runPerformed() {
+        if (StringUtils.isEmpty(value)) {
+            FacesUtils.addWarnMessage("Value must not be empty.");
+        }
+
+        try {
+            PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+            if (isEncrypting()) {
+                ProtectedStringType protectedString = protector.encryptString(value);
+                value = jaxbProcessor.marshalElementToString(protectedString, SchemaConstants.R_PROTECTED_STRING);
+            } else {
+                JAXBElement<ProtectedStringType> object = jaxbProcessor.unmarshalElement(value, ProtectedStringType.class);
+                ProtectedStringType protectedString = (ProtectedStringType) object.getValue();
+                value = protector.decryptString(protectedString);
+            }
+        } catch (Exception ex) {
+            String encrypt = isEncrypting() ? "encrypt" : "decrypt";
+            FacesUtils.addErrorMessage("Couldn't " + encrypt + " value.", ex);
+        }
+    }
 }

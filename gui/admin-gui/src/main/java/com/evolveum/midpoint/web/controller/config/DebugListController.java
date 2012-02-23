@@ -20,17 +20,7 @@
  */
 package com.evolveum.midpoint.web.controller.config;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import javax.faces.model.SelectItem;
-
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Controller;
-
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -42,11 +32,20 @@ import com.evolveum.midpoint.web.repo.RepositoryManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import javax.faces.model.SelectItem;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 @Controller("debugList")
 @Scope("session")
@@ -107,11 +106,7 @@ public class DebugListController extends ListController<ObjectBean> {
 	}
 
 	public boolean isShowTable() {
-		if (!getObjects().isEmpty()) {
-			return true;
-		}
-
-		return false;
+        return !getObjects().isEmpty();
 	}
 
 	public String list() {
@@ -126,12 +121,15 @@ public class DebugListController extends ListController<ObjectBean> {
 			return null;
 		}
 
-		List<? extends ObjectType> list = null;
+		List<ObjectType> list = new ArrayList<ObjectType>();
 		try {
-			list = repositoryManager.listObjects(ObjectTypes.getObjectTypeClass(objectType), getOffset(),
-					getRowsCount());
+			List<PrismObject<? extends ObjectType>> prisms = repositoryManager.listObjects(
+                    ObjectTypes.getObjectTypeClass(objectType), getOffset(), getRowsCount());
+            for (PrismObject<? extends ObjectType> prism : prisms) {
+                list.add(prism.asObjectable());
+            }
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Unknown error occured while listing objects of type {}", ex,
+			LoggingUtils.logException(LOGGER, "Unknown error occurred while listing objects of type {}", ex,
 					objectType);
 			FacesUtils.addErrorMessage("List object failed with exception " + ex.getMessage());
 		}
@@ -236,11 +234,8 @@ public class DebugListController extends ListController<ObjectBean> {
 
 		return returnPage;
 	}
-	
-	public boolean isTableFull(){
-		if(getObjects().size() < getRowsCount()){
-			return false;
-		}
-		return true;
-	}
+
+	public boolean isTableFull() {
+        return getObjects().size() >= getRowsCount();
+    }
 }

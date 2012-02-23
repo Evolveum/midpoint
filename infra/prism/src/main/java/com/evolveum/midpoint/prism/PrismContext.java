@@ -21,6 +21,9 @@ package com.evolveum.midpoint.prism;
 
 import java.io.IOException;
 
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
@@ -36,6 +39,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class PrismContext {
 	
+    private static final Trace LOGGER = TraceManager.getTrace(PrismContext.class);
 	private SchemaRegistry schemaRegistry;
 	private PrismJaxbProcessor prismJaxbProcessor;
 	private PrismDomProcessor prismDomProcessor;
@@ -106,6 +110,19 @@ public class PrismContext {
 	public <T extends Objectable> PrismObject<T> parseObject(Element objectElement) throws SchemaException {
 		return prismDomProcessor.parseObject(objectElement);
 	}
-	
 
+    /**
+     * Method used to marshal objects to xml in debug messages.
+     * @param object
+     * @return xml as string
+     */
+    public String silentMarshalObject(Object object) {
+        String xml = null;
+        try {
+            xml = prismJaxbProcessor.marshalElementToString(object);
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't marshal element to string {}", ex, object);
+        }
+        return xml;
+    }
 }

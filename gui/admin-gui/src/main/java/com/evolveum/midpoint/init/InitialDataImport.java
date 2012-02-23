@@ -21,10 +21,11 @@
 package com.evolveum.midpoint.init;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.xml.bind.JAXBElement;
 import java.io.InputStream;
@@ -45,7 +47,9 @@ public class InitialDataImport {
     private static final Trace LOGGER = TraceManager.getTrace(InitialDataImport.class);
 
     private final String[] FILES_FOR_IMPORT = new String[]{"systemConfiguration.xml", "admin.xml"};
-
+    @Autowired(required = true)
+    private transient PrismContext prismContext;
+    
     private ModelService model;
     private TaskManager taskManager;
 
@@ -73,7 +77,8 @@ public class InitialDataImport {
             InputStream stream = null;
             try {
                 stream = getResource(file);
-                JAXBElement<ObjectType> element = (JAXBElement<ObjectType>) JAXBUtil.unmarshal(stream);
+                PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+                JAXBElement<ObjectType> element = jaxbProcessor.unmarshalElement(stream, ObjectType.class);
                 ObjectType object = element.getValue();
 
                 boolean importObject = true;
