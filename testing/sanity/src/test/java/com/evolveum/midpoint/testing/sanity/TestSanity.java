@@ -26,6 +26,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -36,7 +37,8 @@ import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -248,10 +250,10 @@ public class TestSanity extends AbstractIntegrationTest {
     public void beforeMethod() throws Exception {
         LOGGER.info("BEFORE METHOD");
         OperationResult result = new OperationResult("get administrator");
-        UserType authUser = modelService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(),
+        PrismObject<UserType> object = modelService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(),
                 null, result);
 
-        assertNotNull("Administrator user is null", authUser);
+        assertNotNull("Administrator user is null", object.asObjectable());
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(authUser, null));
 
         LOGGER.info("BEFORE METHOD END");
@@ -335,32 +337,34 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // Check if OpenDJ resource was imported correctly
 
-        ResourceType openDjResource = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null,
+        PrismObject<ResourceType> openDjResource = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null,
                 result);
         display("Imported OpenDJ resource (repository)", openDjResource);
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, openDjResource.getOid());
 
         assertCache();
 
-        String ldapConnectorOid = openDjResource.getConnectorRef().getOid();
-        ConnectorType ldapConnector = repositoryService.getObject(ConnectorType.class, ldapConnectorOid, null, result);
+        String ldapConnectorOid = openDjResource.asObjectable().getConnectorRef().getOid();
+        PrismObject<ConnectorType> ldapConnector = repositoryService.getObject(ConnectorType.class, ldapConnectorOid, null, result);
         display("LDAP Connector: ", ldapConnector);
 
         // Check if Derby resource was imported correctly
 
-        ResourceType derbyResource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null,
+        PrismObject<ResourceType> derbyResource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null,
                 result);
         AssertJUnit.assertEquals(RESOURCE_DERBY_OID, derbyResource.getOid());
 
         assertCache();
 
-        String dbConnectorOid = derbyResource.getConnectorRef().getOid();
-        ConnectorType dbConnector = repositoryService.getObject(ConnectorType.class, dbConnectorOid, null, result);
+        String dbConnectorOid = derbyResource.asObjectable().getConnectorRef().getOid();
+        PrismObject<ConnectorType> dbConnector = repositoryService.getObject(ConnectorType.class, dbConnectorOid, null, result);
         display("DB Connector: ", dbConnector);
 
         // Check if password was encrypted during import
-        Object configurationPropertiesElement = JAXBUtil.findElement(derbyResource.getConfiguration().getAny(), new QName(dbConnector.getNamespace(), "configurationProperties"));
-        Object passwordElement = JAXBUtil.findElement(JAXBUtil.listChildElements(configurationPropertiesElement), new QName(dbConnector.getNamespace(), "password"));
+        Object configurationPropertiesElement = JAXBUtil.findElement(derbyResource.asObjectable().getConfiguration().getAny(),
+                new QName(dbConnector.asObjectable().getNamespace(), "configurationProperties"));
+        Object passwordElement = JAXBUtil.findElement(JAXBUtil.listChildElements(configurationPropertiesElement),
+                new QName(dbConnector.asObjectable().getNamespace(), "password"));
         System.out.println("Password element: " + passwordElement);
 
 
@@ -392,7 +396,8 @@ public class TestSanity extends AbstractIntegrationTest {
 
         OperationResult opResult = new OperationResult(TestSanity.class.getName() + ".test001TestConnectionOpenDJ");
 
-        resourceOpenDj = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, opResult);
+        PrismObject<ResourceType> rObject = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, opResult);
+        resourceOpenDj = rObject.asObjectable();
 
         assertCache();
         assertEquals(RESOURCE_OPENDJ_OID, resourceOpenDj.getOid());
@@ -400,17 +405,17 @@ public class TestSanity extends AbstractIntegrationTest {
         assertNotNull("Resource schema was not generated", resourceOpenDj.getSchema());
         assertFalse("Resource schema was not generated", resourceOpenDj.getSchema().getAny().isEmpty());
 
-        ResourceType openDjResourceProvisioninig = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null,
+        PrismObject<ResourceType> openDjResourceProvisioninig = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null,
                 opResult);
         display("Initialized OpenDJ resource resource (provisioning)", openDjResourceProvisioninig);
 
-        ResourceType openDjResourceModel = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null,
+        PrismObject<ResourceType> openDjResourceModel = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null,
                 opResult);
         display("Initialized OpenDJ resource OpenDJ resource (model)", openDjResourceModel);
 
         checkOpenDjResource(resourceOpenDj, "repository");
-        checkOpenDjResource(openDjResourceProvisioninig, "provisioning");
-        checkOpenDjResource(openDjResourceModel, "model");
+        checkOpenDjResource(openDjResourceProvisioninig.asObjectable(), "provisioning");
+        checkOpenDjResource(openDjResourceModel.asObjectable(), "model");
         // TODO: model web
 
     }
@@ -484,7 +489,8 @@ public class TestSanity extends AbstractIntegrationTest {
 
         OperationResult opResult = new OperationResult(TestSanity.class.getName() + ".test002TestConnectionDerby");
 
-        resourceDerby = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, opResult);
+        PrismObject<ResourceType> rObject = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, opResult);
+        resourceDerby = rObject.asObjectable();
 
         assertCache();
         assertEquals(RESOURCE_DERBY_OID, resourceDerby.getOid());
@@ -492,11 +498,11 @@ public class TestSanity extends AbstractIntegrationTest {
         assertNotNull("Resource schema was not generated", resourceDerby.getSchema());
         assertFalse("Resource schema was not generated", resourceDerby.getSchema().getAny().isEmpty());
 
-        ResourceType derbyResourceProvisioninig = provisioningService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null,
+        PrismObject<ResourceType> derbyResourceProvisioninig = provisioningService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null,
                 opResult);
         display("Initialized Derby resource (provisioning)", derbyResourceProvisioninig);
 
-        ResourceType derbyResourceModel = provisioningService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null,
+        PrismObject<ResourceType> derbyResourceModel = provisioningService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null,
                 opResult);
         display("Initialized Derby resource (model)", derbyResourceModel);
 
@@ -604,7 +610,8 @@ public class TestSanity extends AbstractIntegrationTest {
         OperationResult repoResult = new OperationResult("getObject");
         PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-        UserType repoUser = repositoryService.getObject(UserType.class, oidHolder.value, resolve, repoResult);
+        PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, oidHolder.value, resolve, repoResult);
+        UserType repoUser = uObject.asObjectable();
 
         repoResult.computeStatus();
         display("repository.getObject result", repoResult);
@@ -2823,7 +2830,8 @@ public class TestSanity extends AbstractIntegrationTest {
         OperationResult repoResult = new OperationResult("getObject");
         PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-        UserType repoUser = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, resolve, repoResult);
+        PrismObject<UserType> object = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, resolve, repoResult);
+        UserType repoUser = object.asObjectable();
 
         repoResult.computeStatus();
         displayJaxb("User (repository)", repoUser, new QName("user"));
@@ -2838,8 +2846,9 @@ public class TestSanity extends AbstractIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-        AccountShadowType repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
+         PrismObject<AccountShadowType> accObject = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
                 resolve, repoResult);
+        AccountShadowType repoShadow = accObject.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
         displayJaxb("Shadow (repository)", repoShadow, new QName("shadow"));
