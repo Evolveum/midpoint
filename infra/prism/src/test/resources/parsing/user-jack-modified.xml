@@ -37,6 +37,7 @@
     <fullName>Jack Sparrow</fullName>
     <givenName>Jack</givenName>
     <familyName>Sparrow</familyName>
+    <additionalNames>Jackie</additionalNames>
 
 	<assignment id="i1111">
 		<description>Assignment 1</description>

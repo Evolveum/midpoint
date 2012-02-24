@@ -49,6 +49,7 @@ import javax.xml.bind.annotation.XmlType;
     "givenName",
     "familyName",
     "additionalNames",
+    "locality",
     "assignment",
     "activation"
 })
@@ -65,6 +66,7 @@ public class UserType
     @XmlElement(required = true)
     protected String familyName;
     protected List<String> additionalNames;
+    protected String locality;
     protected List<AssignmentType> assignment;
     protected ActivationType activation;
 
@@ -167,6 +169,30 @@ public class UserType
             additionalNames = new ArrayList<String>();
         }
         return this.additionalNames;
+    }
+    
+    /**
+     * Gets the value of the locality property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getLocality() {
+        return locality;
+    }
+
+    /**
+     * Sets the value of the locality property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setLocality(String value) {
+        this.locality = value;
     }
 
     /**

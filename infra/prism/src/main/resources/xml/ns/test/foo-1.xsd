@@ -129,6 +129,7 @@
                     <xsd:element name="familyName" type="xsd:string"/>
                     <!-- Multi-valued property -->
                     <xsd:element name="additionalNames" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="locality" type="xsd:string" minOccurs="0" maxOccurs="1"/>
                     <!-- Multi-valued container -->
                     <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded"/>
                     <!-- Single-valued container -->

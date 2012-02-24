@@ -111,13 +111,17 @@ public class TestCompare {
 		
 		assertEquals("Wrong delta type", ChangeType.MODIFY, jackDelta.getChangeType());
 		assertEquals("Wrong delta OID", USER_JACK_OID, jackDelta.getOid());
-		assertEquals("Wrong number of modificaitions", 8, jackDelta.getModifications().size());
+		assertEquals("Wrong number of modificaitions", 10, jackDelta.getModifications().size());
 		
 		PrismAsserts.assertPropertyReplace(jackDelta, USER_FULLNAME_QNAME, "Jack Sparrow");
 		
 		PrismAsserts.assertPropertyDelete(jackDelta, new PropertyPath(USER_EXTENSION_QNAME, USER_EXTENSION_MULTI_QNAME), "dva");
 		PrismAsserts.assertPropertyAdd(jackDelta, new PropertyPath(USER_EXTENSION_QNAME, USER_EXTENSION_MULTI_QNAME), "osem");
 		// TODO: assert BAR
+		
+		PrismAsserts.assertPropertyDelete(jackDelta, USER_ADDITIONALNAMES_QNAME, "Captain");
+		
+		PrismAsserts.assertPropertyDelete(jackDelta, USER_LOCALITY_QNAME, "Caribbean");
 		
 		PrismAsserts.assertPropertyReplace(jackDelta, USER_ENABLED_PATH, false);
 		PrismAsserts.assertPropertyDelete(jackDelta, USER_VALID_FROM_PATH, USER_JACK_VALID_FROM);
