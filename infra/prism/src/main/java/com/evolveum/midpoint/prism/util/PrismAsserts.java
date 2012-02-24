@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -106,11 +107,24 @@ public class PrismAsserts {
 	
 	// DEFINITION asserts
 	
+	public static <T extends Objectable> void assertObjectDefinition(PrismObjectDefinition<T> objDef, QName elementName,
+			QName typeName, Class<T> compileTimeClass) {
+		assertEquals("Wrong elementName for "+objDef, elementName, objDef.getName());
+		assertEquals("Wrong typeName for "+objDef, typeName, objDef.getTypeName());
+		assertEquals("Wrong compileTimeClass for "+objDef, compileTimeClass, objDef.getCompileTimeClass());
+	}
+	
 	public static void assertDefinition(Item item, QName type, int minOccurs, int maxOccurs) {
 		ItemDefinition definition = item.getDefinition();
 		assertDefinition(definition, item.getName(), type, minOccurs, maxOccurs);
 	}
 		
+	public static void assertPropertyDefinition(PrismContainer container, QName propertyName, QName type, int minOccurs, int maxOccurs) {
+		PrismProperty findProperty = container.findProperty(propertyName);
+		PrismPropertyDefinition definition = findProperty.getDefinition();
+		assertDefinition(definition, propertyName, type, minOccurs, maxOccurs);
+	}
+	
 	public static void assertPropertyDefinition(PrismContainerDefinition containerDef, QName propertyName, QName type, int minOccurs, int maxOccurs) {
 		PrismPropertyDefinition definition = containerDef.findPropertyDefinition(propertyName);
 		assertDefinition(definition, propertyName, type, minOccurs, maxOccurs);

@@ -99,12 +99,19 @@ public class TestPrismParsing {
 		
 		assertEquals("Wrong oid", USER_JACK_OID, user.getOid());
 		assertEquals("Wrong version", "42", user.getVersion());
+		PrismAsserts.assertObjectDefinition(user.getDefinition(), USER_QNAME, USER_TYPE_QNAME, UserType.class);
+		
 		assertPropertyValue(user, "fullName", "cpt. Jack Sparrow");
+		assertPropertyDefinition(user, "fullName", DOMUtil.XSD_STRING, 1, 1);
 		assertPropertyValue(user, "givenName", "Jack");
+		assertPropertyDefinition(user, "givenName", DOMUtil.XSD_STRING, 1, 1);
 		assertPropertyValue(user, "familyName", "Sparrow");
+		assertPropertyDefinition(user, "familyName", DOMUtil.XSD_STRING, 1, 1);
 		assertPropertyValue(user, "name", "jack");
+		assertPropertyDefinition(user, "name", DOMUtil.XSD_STRING, 0, 1);
 		
 		PrismContainer extension = user.getExtension();
+		assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
 		PrismContainerValue extensionValue = extension.getValue();
 		assertTrue("Extension parent", extensionValue.getParent() == extension);
 		assertNull("Extension ID", extensionValue.getId());
@@ -120,6 +127,7 @@ public class TestPrismParsing {
 		
 		PropertyPath enabledPath = USER_ENABLED_PATH;
 		PrismProperty enabledProperty1 = user.findProperty(enabledPath);
+		PrismAsserts.assertDefinition(enabledProperty1.getDefinition(), USER_ENABLED_QNAME, DOMUtil.XSD_BOOLEAN, 1, 1);
 		assertNotNull("Property "+enabledPath+" not found", enabledProperty1);
 		PrismAsserts.assertPropertyValue(enabledProperty1, true);
 		
@@ -131,6 +139,7 @@ public class TestPrismParsing {
 		// Use path
 		PropertyPath actPath = new PropertyPath(actName);
 		PrismContainer actContainer1 = user.findContainer(actPath);
+		assertContainerDefinition(actContainer1, "activation", ACTIVATION_TYPE_QNAME, 0, 1);
 		assertNotNull("Property "+actPath+" not found", actContainer1);
 		assertEquals("Wrong activation name",actName,actContainer1.getName());
 		// Use name
@@ -160,6 +169,18 @@ public class TestPrismParsing {
 
 	}
 	
+	private void assertContainerDefinition(PrismContainer container, String contName, QName xsdType, int minOccurs,
+			int maxOccurs) {
+		QName qName = new QName(NS_FOO, contName);
+		PrismAsserts.assertDefinition(container.getDefinition(), qName, xsdType, minOccurs, maxOccurs);
+	}
+
+	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
+			int maxOccurs) {
+		QName propQName = new QName(NS_FOO, propName);
+		PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
+	}
+
 	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
 		QName propQName = new QName(NS_FOO, propName);
 		PrismAsserts.assertPropertyValue(container, propQName, propValue);

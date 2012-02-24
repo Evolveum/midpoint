@@ -22,10 +22,12 @@ package com.evolveum.midpoint.schema;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
@@ -34,11 +36,18 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.PropertyPathSegment;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -79,7 +88,6 @@ public class TestCommonSchemaSanity {
 		// The context should have parsed common schema and also other midPoint schemas
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
-		// THEN
 		// THEN
 		assertNotNull("No prism context", prismContext);
 		
@@ -155,6 +163,70 @@ public class TestCommonSchemaSanity {
 		PrismAsserts.assertDefinition(attributesContainer, AccountShadowType.F_ATTRIBUTES, ResourceObjectShadowAttributesType.COMPLEX_TYPE, 0, 1);
 		assertTrue("Attributes is NOT runtime", attributesContainer.isRuntimeSchema());
 		
+	}
+	
+	@Test
+	public void testParseUser() throws SchemaException {
+		System.out.println("===[ testParseUser ]===");
+
+		// GIVEN
+		// The context should have parsed common schema and also other midPoint schemas
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		
+		// WHEN
+		PrismObject<UserType> user = prismContext.parseObject(new File("src/test/resources/diff/user-real-before.xml"));
+		
+		// THEN
+		System.out.println("Parsed user:");
+		System.out.println(user.dump());
+		
+		assertEquals("Wrong oid", "2f9b9299-6f45-498f-bc8e-8d17c6b93b20", user.getOid());
+//		assertEquals("Wrong version", "42", user.getVersion());
+		PrismAsserts.assertObjectDefinition(user.getDefinition(), new QName(SchemaConstants.NS_COMMON, "user"), 
+				UserType.COMPLEX_TYPE, UserType.class);
+		
+		assertPropertyValue(user, "fullName", "Jack Sparrow");
+		assertPropertyDefinition(user, "fullName", DOMUtil.XSD_STRING, 1, 1);
+		assertPropertyValue(user, "givenName", "Jack");
+		assertPropertyDefinition(user, "givenName", DOMUtil.XSD_STRING, 1, 1);
+		assertPropertyValue(user, "familyName", "Sparrow");
+		assertPropertyDefinition(user, "familyName", DOMUtil.XSD_STRING, 1, 1);
+		assertPropertyValue(user, "name", "jack");
+		assertPropertyDefinition(user, "name", DOMUtil.XSD_STRING, 0, 1);
+		
+		PrismContainer extension = user.getExtension();
+		assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
+		PrismContainerValue extensionValue = extension.getValue();
+		assertTrue("Extension parent", extensionValue.getParent() == extension);
+		assertNull("Extension ID", extensionValue.getId());
+		
+		PropertyPath enabledPath = new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED);
+		PrismProperty enabledProperty1 = user.findProperty(enabledPath);
+		PrismAsserts.assertDefinition(enabledProperty1.getDefinition(), ActivationType.F_ENABLED, DOMUtil.XSD_BOOLEAN, 0, 1);
+		assertNotNull("Property "+enabledPath+" not found", enabledProperty1);
+		PrismAsserts.assertPropertyValue(enabledProperty1, true);
+		
+//		PrismProperty validFromProperty = user.findProperty(new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_VALID_FROM));
+//		assertNotNull("Property "+ActivationType.F_VALID_FROM+" not found", validFromProperty);
+//		PrismAsserts.assertPropertyValue(validFromProperty, USER_JACK_VALID_FROM);
+				
+	}
+	
+	private void assertContainerDefinition(PrismContainer container, String contName, QName xsdType, int minOccurs,
+			int maxOccurs) {
+		QName qName = new QName(SchemaConstants.NS_COMMON, contName);
+		PrismAsserts.assertDefinition(container.getDefinition(), qName, xsdType, minOccurs, maxOccurs);
+	}
+
+	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
+			int maxOccurs) {
+		QName propQName = new QName(SchemaConstants.NS_COMMON, propName);
+		PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
+	}
+	
+	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
+		QName propQName = new QName(SchemaConstants.NS_COMMON, propName);
+		PrismAsserts.assertPropertyValue(container, propQName, propValue);
 	}
 
 }

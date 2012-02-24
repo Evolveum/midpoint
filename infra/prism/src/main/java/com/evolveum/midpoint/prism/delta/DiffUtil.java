@@ -67,11 +67,11 @@ public class DiffUtil {
 	public static <T extends Objectable> ObjectDelta<T> diff(String oldXml, String newXml, Class<T> type, PrismContext prismContext) throws SchemaException {
 		PrismObject<T> oldObject = null;
 		if (oldXml != null) {
-			oldObject = prismContext.getPrismDomProcessor().parseObject(oldXml);
+			oldObject = prismContext.parseObject(oldXml);
 		}
 		PrismObject<T> newObject = null;
 		if (newXml != null) {
-			newObject = prismContext.getPrismDomProcessor().parseObject(newXml);
+			newObject = prismContext.parseObject(newXml);
 		}
 		return diff(oldObject, newObject);
 	}
