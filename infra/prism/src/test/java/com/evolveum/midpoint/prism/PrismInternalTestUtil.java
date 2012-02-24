@@ -24,8 +24,10 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.GregorianCalendar;
 import java.util.Set;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.testng.AssertJUnit;
@@ -36,6 +38,7 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismContextFactory;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -49,20 +52,21 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final QName OBJECT_REFERENCE_TYPE_QNAME = new QName(NS_TYPE, "ObjectReferenceType");
 	
 	// Files
-	public static String OBJECT_DIR_PATH = "src/test/resources/parsing";
-	
-	public static File USER_JACK_FILE = new File(OBJECT_DIR_PATH, "user-jack.xml");
-	public static File USER_JACK_MODIFIED_FILE = new File(OBJECT_DIR_PATH, "user-jack-modified.xml");
-	public static String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
-	
+	public static final String OBJECT_DIR_PATH = "src/test/resources/parsing";
 	public static File EXTRA_SCHEMA_DIR = new File("src/test/resources/schema");
 	
+	// User: jack
+	public static final File USER_JACK_FILE = new File(OBJECT_DIR_PATH, "user-jack.xml");
+	public static final File USER_JACK_MODIFIED_FILE = new File(OBJECT_DIR_PATH, "user-jack-modified.xml");
+	public static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+	public static final XMLGregorianCalendar USER_JACK_VALID_FROM = XmlTypeConverter.createXMLGregorianCalendar(1975, 5, 30, 21, 30, 0);
+
 	// Namespaces
 	public static final String DEFAULT_NAMESPACE_PREFIX = "http://midpoint.evolveum.com/xml/ns";
 	public static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
 	public static final String NS_USER_EXT = "http://example.com/xml/ns/user-extension";
 	
-	// FOO
+	// FOO schema
 	public static final QName USER_QNAME = new QName(NS_FOO,"user");
 	public static final QName USER_TYPE_QNAME = new QName(NS_FOO,"UserType");
 	
@@ -78,12 +82,17 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final QName USER_ACTIVATION_QNAME = new QName(NS_FOO,"activation");
 	public static final QName USER_ENABLED_QNAME = new QName(NS_FOO,"enabled");
 	public static final PropertyPath USER_ENABLED_PATH = new PropertyPath(USER_ACTIVATION_QNAME, USER_ENABLED_QNAME);
+	public static final QName USER_VALID_FROM_QNAME = new QName(NS_FOO,"validFrom");
+	public static final PropertyPath USER_VALID_FROM_PATH = new PropertyPath(USER_ACTIVATION_QNAME, USER_VALID_FROM_QNAME);
+	public static final QName USER_VALID_TO_QNAME = new QName(NS_FOO,"validTo");
 	public static final QName ACTIVATION_TYPE_QNAME = new QName(NS_FOO,"ActivationType");
 	
 	public static final QName USER_ASSIGNMENT_QNAME = new QName(NS_FOO,"assignment");
 	public static final QName USER_DESCRIPTION_QNAME = new QName(NS_FOO,"description");
 	public static final PropertyPath USER_ASSIGNMENT_DESCRIPTION_PATH = new PropertyPath(USER_ASSIGNMENT_QNAME, USER_DESCRIPTION_QNAME);
 	public static final QName ASSIGNMENT_TYPE_QNAME = new QName(NS_FOO,"AssignmentType");
+	public static final QName USER_ACCOUNT_CONSTRUCTION_QNAME = new QName(NS_FOO,"accountConstruction");
+	public static final QName USER_ACCOUNT_CONSTRUCTION_TYPE_QNAME = new QName(NS_FOO,"AccountConstructionType");
 	public static final String USER_ASSIGNMENT_1_ID = "i1111";
 	public static final String USER_ASSIGNMENT_2_ID = "i1112";
 	public static final String USER_ASSIGNMENT_3_ID = "i1113";

@@ -23,6 +23,7 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 
 import java.io.Serializable;
@@ -61,7 +62,8 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
         StringBuilder builder = new StringBuilder();
         builder.append("PPV[");
         if (getValue() != null) {
-            builder.append(getValue().toString());
+        	builder.append(getValue().getClass().getSimpleName()).append(":");
+            builder.append(DebugUtil.prettyPrint(getValue()));
         } else {
             builder.append("null");
         }

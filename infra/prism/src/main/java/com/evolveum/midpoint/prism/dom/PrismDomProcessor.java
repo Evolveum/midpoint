@@ -327,7 +327,7 @@ public class PrismDomProcessor {
             throw new SchemaException("Attempt to store multiple values in single-valued property " + propName);
         }
 
-        for (Object element : valueElements) {
+        for (Element element : valueElements) {
             Object value = XmlTypeConverter.toJavaValue(element, propertyDefinition.getTypeName());
             prop.getValues().add(new PrismPropertyValue(value));
         }

@@ -24,6 +24,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 
 import java.io.IOException;
+import java.util.GregorianCalendar;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -110,13 +111,16 @@ public class TestCompare {
 		
 		assertEquals("Wrong delta type", ChangeType.MODIFY, jackDelta.getChangeType());
 		assertEquals("Wrong delta OID", USER_JACK_OID, jackDelta.getOid());
-		assertEquals("Wrong number of modificaitions", 5, jackDelta.getModifications().size());
+		assertEquals("Wrong number of modificaitions", 8, jackDelta.getModifications().size());
 		
 		PrismAsserts.assertPropertyReplace(jackDelta, USER_FULLNAME_QNAME, "Jack Sparrow");
 		
 		PrismAsserts.assertPropertyDelete(jackDelta, new PropertyPath(USER_EXTENSION_QNAME, USER_EXTENSION_MULTI_QNAME), "dva");
 		PrismAsserts.assertPropertyAdd(jackDelta, new PropertyPath(USER_EXTENSION_QNAME, USER_EXTENSION_MULTI_QNAME), "osem");
-		// TODO: asser BAR
+		// TODO: assert BAR
+		
+		PrismAsserts.assertPropertyReplace(jackDelta, USER_ENABLED_PATH, false);
+		PrismAsserts.assertPropertyDelete(jackDelta, USER_VALID_FROM_PATH, USER_JACK_VALID_FROM);
 		
 		PrismAsserts.assertPropertyReplace(jackDelta, 
 				new PropertyPath(
@@ -127,6 +131,8 @@ public class TestCompare {
 		ContainerDelta<?> assignment3Delta = PrismAsserts.assertContainerAdd(jackDelta, new PropertyPath(USER_ASSIGNMENT_QNAME));
 		PrismContainerValue<?> assignment3DeltaAddValue = assignment3Delta.getValuesToAdd().iterator().next();
 		assertEquals("Assignment 3 wrong ID", USER_ASSIGNMENT_3_ID, assignment3DeltaAddValue.getId());
+		
+		// TODO assert assignment[i1112]/accountConstruction
 	}
 	
 	@Test

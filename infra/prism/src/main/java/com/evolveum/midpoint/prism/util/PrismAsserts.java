@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Node;
@@ -32,8 +33,10 @@ import org.w3c.dom.Node;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -44,6 +47,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -57,6 +61,21 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public class PrismAsserts {
 	
 	// VALUE asserts
+		
+	public static void assertPropertyValue(PrismContainer<?> container, QName propQName, Object propValue) {
+		PrismProperty<?> property = container.getValue().findProperty(propQName);
+		assertNotNull("Property "+propQName+" not found in "+container, property);
+		assertPropertyValue(property, propValue);
+	}
+	
+	public static void assertPropertyValue(PrismProperty property, Object propValue) {
+		Collection<PrismPropertyValue<Object>> pvals = property.getValues();
+		QName propQName = property.getName();
+		assert pvals != null && !pvals.isEmpty() : "Empty property "+propQName;
+		assertEquals("Numver of values of property "+propQName, 1, pvals.size());
+		PrismPropertyValue<Object> pval = pvals.iterator().next();
+		assertEquals("Values of property "+propQName, propValue, pval.getValue());
+	}
 	
 	public static void assertPropertyValues(String message, Collection expected, Collection<PrismPropertyValue<Object>> results) {
 		assertEquals(message, expected.size(), results.size());
@@ -147,6 +166,17 @@ public class PrismAsserts {
 		assertNotNull("Container delta for "+propertyPath+" not found",delta);
 		assert !delta.isEmpty() : "Container delta for "+propertyPath+" is empty";
 		return delta;
+	}
+	
+	// Calendar asserts
+	
+	public static void assertEquals(String message, XMLGregorianCalendar expected, Object actual) {
+		if (actual instanceof XMLGregorianCalendar) {
+			XMLGregorianCalendar actualXmlCal = (XMLGregorianCalendar)actual;
+			assertEquals(message, XmlTypeConverter.toMillis(expected), XmlTypeConverter.toMillis(actualXmlCal));
+		} else {
+			assert false : message+": expected instance of XMLGregorianCalendar but got "+actual.getClass().getName();
+		}
 	}
 	
 	// OBJECT asserts
@@ -246,7 +276,9 @@ public class PrismAsserts {
 	}
 	
 	static void assertEquals(String message, Object expected, Object actual) {
-		assert expected.equals(actual) : message + ": expected "+expected+", was "+actual;
+		assert expected.equals(actual) : message 
+				+ ": expected ("+expected.getClass().getSimpleName() + ")"  + expected 
+				+ ", was (" + actual.getClass().getSimpleName() + ")" + actual;
 	}
 	
 	static void fail(String message) {

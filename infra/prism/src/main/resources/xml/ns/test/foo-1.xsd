@@ -172,18 +172,39 @@
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="description" type="xsd:string" minOccurs="0"/>
+        	<xsd:element name="accountConstruction" type="tns:AccountConstructionType" minOccurs="0"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:string" use="optional"/>
+    </xsd:complexType>
+    
+    <xsd:complexType name="AccountConstructionType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			Account construction type is NOT a container. It is a complex-type property.
+    			This tests the ability to deal with complex type properties and also with
+    			dateTime fields in them.
+    		</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="howto" type="xsd:string"/>
+        	<xsd:element name="when" type="xsd:dateTime" minOccurs="0"/>
+        </xsd:sequence>
     </xsd:complexType>
 
 	<xsd:complexType name="ActivationType">
     	<xsd:annotation>
+    		<xsd:documentation>
+    			ActivationTyps is a container, therefore the following elements are properties.
+    			This tests the ability to deal with boolean and dateTime properties.
+    		</xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="enabled" type="xsd:boolean"/>
+        	<xsd:element name="validFrom" type="xsd:dateTime" minOccurs="0"/>
+        	<xsd:element name="validTo" type="xsd:dateTime" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
     

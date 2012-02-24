@@ -128,14 +128,17 @@ public class TestPrismContext {
 		PrismContainerDefinition activationContainer = userDefinition.findContainerDefinition(USER_ACTIVATION_QNAME);
 		PrismAsserts.assertDefinition(activationContainer, USER_ACTIVATION_QNAME, ACTIVATION_TYPE_QNAME, 0, 1);
 		assertFalse("Activation is runtime", activationContainer.isRuntimeSchema());
-		assertEquals("Activation size", 1, activationContainer.getDefinitions().size());
+		assertEquals("Activation size", 3, activationContainer.getDefinitions().size());
 		PrismAsserts.assertPropertyDefinition(activationContainer, USER_ENABLED_QNAME, DOMUtil.XSD_BOOLEAN, 1, 1);
+		PrismAsserts.assertPropertyDefinition(activationContainer, USER_VALID_FROM_QNAME, DOMUtil.XSD_DATETIME, 0, 1);
+		PrismAsserts.assertPropertyDefinition(activationContainer, USER_VALID_TO_QNAME, DOMUtil.XSD_DATETIME, 0, 1);
 		
 		PrismContainerDefinition assignmentContainer = userDefinition.findContainerDefinition(USER_ASSIGNMENT_QNAME);
 		PrismAsserts.assertDefinition(assignmentContainer, USER_ASSIGNMENT_QNAME, ASSIGNMENT_TYPE_QNAME, 0, -1);
 		assertFalse("Assignment is runtime", assignmentContainer.isRuntimeSchema());
-		assertEquals("Assignment size", 1, assignmentContainer.getDefinitions().size());
+		assertEquals("Assignment size", 2, assignmentContainer.getDefinitions().size());
 		PrismAsserts.assertPropertyDefinition(assignmentContainer, USER_DESCRIPTION_QNAME, DOMUtil.XSD_STRING, 0, 1);
+		PrismAsserts.assertPropertyDefinition(assignmentContainer, USER_ACCOUNT_CONSTRUCTION_QNAME, USER_ACCOUNT_CONSTRUCTION_TYPE_QNAME, 0, 1);
 		
 		PrismReferenceDefinition accountRefDef = userDefinition.findItemDefinition(USER_ACCOUNTREF_QNAME, PrismReferenceDefinition.class);
 		PrismAsserts.assertDefinition(accountRefDef, USER_ACCOUNTREF_QNAME, OBJECT_REFERENCE_TYPE_QNAME, 0, -1);

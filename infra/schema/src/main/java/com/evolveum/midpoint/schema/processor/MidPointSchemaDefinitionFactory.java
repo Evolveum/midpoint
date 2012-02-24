@@ -47,9 +47,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 	@Override
 	public ComplexTypeDefinition createComplexTypeDefinition(XSComplexType complexType,
 			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
-		System.out.println("Kilroy was here (createComplexTypeDefinition)1");
 		if (isResourceObject(annotation)) {
-			System.out.println("Kilroy was here (createComplexTypeDefinition)2");
 			return createObjectClassDefinition(complexType, prismContext, annotation);
 		}
 		return super.createComplexTypeDefinition(complexType, prismContext, annotation);
@@ -128,11 +126,8 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 
 	@Override
 	public PrismContainerDefinition createExtraDefinitionFromComplexType(XSComplexType complexType,
-			ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
-		
-		System.out.println("Kilroy was here (createExtraDefinitionFromComplexType)1");
+			ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, XSAnnotation annotation) throws SchemaException {		
 		if (complexTypeDefinition instanceof ObjectClassComplexTypeDefinition) {
-			System.out.println("Kilroy was here (createExtraDefinitionFromComplexType)2");
 			return createResourceAttributeContainerDefinition(complexType, (ObjectClassComplexTypeDefinition)complexTypeDefinition, 
 					prismContext, annotation);
 		}
@@ -153,10 +148,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 	public PrismPropertyDefinition createPropertyDefinition(QName elementName, QName typeName,
 			ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, XSAnnotation annotation,
 			XSParticle elementParticle) throws SchemaException {
-		
-		System.out.println("Kilroy was here (createExtraDefinitionFromComplexType)1");
 		if (complexTypeDefinition != null && complexTypeDefinition instanceof ObjectClassComplexTypeDefinition) {
-			System.out.println("Kilroy was here (createExtraDefinitionFromComplexType)2");
 			return createResourceAttributeDefinition(elementName, typeName, prismContext, annotation);
 		}
 

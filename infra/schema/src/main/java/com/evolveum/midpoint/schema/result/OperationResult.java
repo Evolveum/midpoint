@@ -691,8 +691,15 @@ public class OperationResult implements Serializable, Dumpable {
 			Element element = (Element)value;
 			if (SchemaConstants.C_VALUE.equals(DOMUtil.getQName(element))) {
 				try {
-					Object cvalue = XmlTypeConverter.toJavaValue(value);
-					return SchemaDebugUtil.prettyPrint(cvalue);
+					String cvalue = null;
+					if (value == null) {
+						cvalue = "null";
+					} else if (value instanceof Element) {
+						cvalue = SchemaDebugUtil.prettyPrint(XmlTypeConverter.toJavaValue((Element)value));
+					} else {
+						cvalue = SchemaDebugUtil.prettyPrint(value);
+					}
+					return cvalue;
 				} catch (Exception e) {
 					return "value: "+element.getTextContent();
 				}

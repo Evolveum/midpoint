@@ -91,7 +91,7 @@ public class MiscSchemaUtil {
 
 	public static CachingMetadata generateCachingMetadata() {
 		CachingMetadata cmd = new CachingMetadata();
-		XMLGregorianCalendar xmlGregorianCalendarNow = XmlTypeConverter.toXMLGregorianCalendar(System.currentTimeMillis());
+		XMLGregorianCalendar xmlGregorianCalendarNow = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
 		cmd.setRetrievalTimestamp(xmlGregorianCalendarNow);
 		cmd.setSerialNumber(generateSerialNumber());
 		return cmd;

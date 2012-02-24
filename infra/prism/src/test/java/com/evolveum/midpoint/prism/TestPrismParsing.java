@@ -45,6 +45,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -107,20 +108,24 @@ public class TestPrismParsing {
 		PrismContainerValue extensionValue = extension.getValue();
 		assertTrue("Extension parent", extensionValue.getParent() == extension);
 		assertNull("Extension ID", extensionValue.getId());
-		assertPropertyValue(extension, new QName(NS_USER_EXT, "bar"), "BAR");
-		assertPropertyValue(extension, new QName(NS_USER_EXT, "num"), 42);
+		PrismAsserts.assertPropertyValue(extension, new QName(NS_USER_EXT, "bar"), "BAR");
+		PrismAsserts.assertPropertyValue(extension, new QName(NS_USER_EXT, "num"), 42);
 		Collection<PrismPropertyValue<Object>> multiPVals = extension.findProperty(new QName(NS_USER_EXT, "multi")).getValues();
 		assertEquals("Multi",3,multiPVals.size());
 		
 		PropertyPath barPath = new PropertyPath(new QName(NS_FOO,"extension"), new QName(NS_USER_EXT,"bar"));
 		PrismProperty barProperty = user.findProperty(barPath);
 		assertNotNull("Property "+barPath+" not found", barProperty);
-		assertPropertyValue(barProperty, "BAR");
+		PrismAsserts.assertPropertyValue(barProperty, "BAR");
 		
-		PropertyPath enabledPath = new PropertyPath(new QName(NS_FOO,"activation"), new QName(NS_FOO,"enabled"));
+		PropertyPath enabledPath = USER_ENABLED_PATH;
 		PrismProperty enabledProperty1 = user.findProperty(enabledPath);
 		assertNotNull("Property "+enabledPath+" not found", enabledProperty1);
-		assertPropertyValue(enabledProperty1, true);
+		PrismAsserts.assertPropertyValue(enabledProperty1, true);
+		
+		PrismProperty validFromProperty = user.findProperty(USER_VALID_FROM_PATH);
+		assertNotNull("Property "+USER_VALID_FROM_PATH+" not found", validFromProperty);
+		PrismAsserts.assertPropertyValue(validFromProperty, USER_JACK_VALID_FROM);
 				
 		QName actName = new QName(NS_FOO,"activation");
 		// Use path
@@ -137,7 +142,7 @@ public class TestPrismParsing {
 		
 		PrismProperty enabledProperty2 = actContainer1.findProperty(new QName(NS_FOO,"enabled"));
 		assertNotNull("Property enabled not found", enabledProperty2);
-		assertPropertyValue(enabledProperty2, true);
+		PrismAsserts.assertPropertyValue(enabledProperty2, true);
 		assertEquals("Eh?",enabledProperty1,enabledProperty2);
 		
 		QName assName = new QName(NS_FOO,"assignment");
@@ -151,28 +156,13 @@ public class TestPrismParsing {
 				new PropertyPathSegment(descriptionName));
 		PrismProperty a1Property = user.findProperty(a1Path);
 		assertNotNull("Property "+a1Path+" not found", a1Property);
-		assertPropertyValue(a1Property, "Assignment 1");
+		PrismAsserts.assertPropertyValue(a1Property, "Assignment 1");
 
 	}
 	
-	private void assertPropertyValue(PrismContainer container, String propName, Object propValue) {
+	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
 		QName propQName = new QName(NS_FOO, propName);
-		assertPropertyValue(container, propQName, propValue);
-	}
-		
-	private void assertPropertyValue(PrismContainer container, QName propQName, Object propValue) {
-		PrismProperty property = container.getValue().findProperty(propQName);
-		assertNotNull("Property "+propQName+" not found in "+container, property);
-		assertPropertyValue(property, propValue);
-	}
-	
-	private void assertPropertyValue(PrismProperty property, Object propValue) {
-		Collection<PrismPropertyValue<Object>> pvals = property.getValues();
-		QName propQName = property.getName();
-		assertFalse("Empty property "+propQName, pvals == null || pvals.isEmpty());
-		assertEquals("Numver of values of property "+propQName, 1, pvals.size());
-		PrismPropertyValue<Object> pval = pvals.iterator().next();
-		assertEquals("Values of property "+propQName, propValue, pval.getValue());
+		PrismAsserts.assertPropertyValue(container, propQName, propValue);
 	}
 
 //	@Test

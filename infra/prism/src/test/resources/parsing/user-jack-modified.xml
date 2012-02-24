@@ -40,10 +40,15 @@
 
 	<assignment id="i1111">
 		<description>Assignment 1</description>
+		<!-- Presence of comments should not matter in diff -->
 	</assignment>
 
 	<assignment id="i1112">
 		<description>Assignment II</description>
+		<accountConstruction>
+			<howto>Whatever</howto>
+			<when>2012-02-24T10:48:52.000Z</when>
+		</accountConstruction>
 	</assignment>
 	
 	<assignment id="i1113">
@@ -51,7 +56,7 @@
 	</assignment>
 
 	<activation>
-		<enabled>true</enabled>
+		<enabled>false</enabled>
 	</activation>
 <!--     
     <credentials>

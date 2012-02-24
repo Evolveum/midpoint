@@ -70,26 +70,21 @@ public class XmlTypeConverter {
         return datatypeFactory;
     }
     
-    public static <T> T toJavaValue(Object element, Class<T> type) throws SchemaException {
-        if (element instanceof Element) {
-            Element xmlElement = (Element) element;
-            if (type.equals(Element.class)) {
-                return (T) xmlElement;
-            } else if (type.equals(QName.class)) {
-                return (T) DOMUtil.getQNameValue(xmlElement);
-            } else {
-                String stringContent = xmlElement.getTextContent();
-                if (stringContent == null) {
-                    return null;
-                }
-                T javaValue = toJavaValue(stringContent, type);
-                if (javaValue == null) {
-                    throw new IllegalArgumentException("Unknown type for conversion: " + type + "(element " + JAXBUtil.getElementQName(element) + ")");
-                }
-                return javaValue;
-            }
+    public static <T> T toJavaValue(Element xmlElement, Class<T> type) throws SchemaException {
+        if (type.equals(Element.class)) {
+            return (T) xmlElement;
+        } else if (type.equals(QName.class)) {
+            return (T) DOMUtil.getQNameValue(xmlElement);
         } else {
-            throw new IllegalArgumentException("Unsupported element type: " + element.getClass().getName() + ": " + element);
+            String stringContent = xmlElement.getTextContent();
+            if (stringContent == null) {
+                return null;
+            }
+            T javaValue = toJavaValue(stringContent, type);
+            if (javaValue == null) {
+                throw new IllegalArgumentException("Unknown type for conversion: " + type + "(element " + DOMUtil.getQName(xmlElement) + ")");
+            }
+            return javaValue;
         }
     }
 
@@ -124,7 +119,7 @@ public class XmlTypeConverter {
     }
 
 
-    public static Object toJavaValue(Object xmlElement, QName type) throws SchemaException {
+    public static Object toJavaValue(Element xmlElement, QName type) throws SchemaException {
         return toJavaValue(xmlElement, XsdTypeMapper.toJavaType(type));
     }
 
@@ -135,7 +130,7 @@ public class XmlTypeConverter {
      * @return
      * @throws JAXBException
      */
-    public static Object toJavaValue(Object xmlElement) throws SchemaException {
+    public static Object toJavaValue(Element xmlElement) throws SchemaException {
         return toTypedJavaValueWithDefaultType(xmlElement, null).getValue();
     }
 
@@ -149,22 +144,16 @@ public class XmlTypeConverter {
      * @throws JAXBException
      * @throws SchemaException if no xsi:type or default type specified
      */
-    public static TypedValue toTypedJavaValueWithDefaultType(Object element, QName defaultType) throws SchemaException {
-        if (element instanceof Element) {
-            // DOM Element
-            Element xmlElement = (Element) element;
-            QName xsiType = DOMUtil.resolveXsiType(xmlElement, null);
+    public static TypedValue toTypedJavaValueWithDefaultType(Element xmlElement, QName defaultType) throws SchemaException {
+        QName xsiType = DOMUtil.resolveXsiType(xmlElement, null);
+        if (xsiType == null) {
+            xsiType = defaultType;
             if (xsiType == null) {
-                xsiType = defaultType;
-                if (xsiType == null) {
-                    QName elementQName = JAXBUtil.getElementQName(xmlElement);
-                    throw new SchemaException("Cannot convert element " + elementQName + " to java, no type information available", elementQName);
-                }
+                QName elementQName = JAXBUtil.getElementQName(xmlElement);
+                throw new SchemaException("Cannot convert element " + elementQName + " to java, no type information available", elementQName);
             }
-            return new TypedValue(toJavaValue(xmlElement, xsiType), xsiType, DOMUtil.getQName(xmlElement));
-        } else {
-            throw new IllegalArgumentException("Unsupported element type " + element.getClass().getName() + " in " + XmlTypeConverter.class.getSimpleName());
         }
+        return new TypedValue(toJavaValue(xmlElement, xsiType), xsiType, DOMUtil.getQName(xmlElement));
     }
 
     public static Object toXsdElement(Object val, QName typeName, QName elementName, Document doc, boolean recordType) throws SchemaException {
@@ -261,7 +250,7 @@ public class XmlTypeConverter {
                 return XsdTypeMapper.BOOLEAN_XML_VALUE_FALSE;
             }
         } else if (type.equals(GregorianCalendar.class)) {
-            XMLGregorianCalendar xmlCal = toXMLGregorianCalendar((GregorianCalendar) val);
+            XMLGregorianCalendar xmlCal = createXMLGregorianCalendar((GregorianCalendar) val);
             return xmlCal.toXMLFormat();
         } else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
         	return ((XMLGregorianCalendar) val).toXMLFormat();
@@ -383,14 +372,24 @@ public class XmlTypeConverter {
         }
     }
 
-    public static XMLGregorianCalendar toXMLGregorianCalendar(long timeInMillis) {
+    public static XMLGregorianCalendar createXMLGregorianCalendar(long timeInMillis) {
         GregorianCalendar gregorianCalendar = new GregorianCalendar();
         gregorianCalendar.setTimeInMillis(timeInMillis);
-        return toXMLGregorianCalendar(gregorianCalendar);
+        return createXMLGregorianCalendar(gregorianCalendar);
     }
     
-    public static XMLGregorianCalendar toXMLGregorianCalendar(GregorianCalendar cal) {
+    public static XMLGregorianCalendar createXMLGregorianCalendar(GregorianCalendar cal) {
         return getDatatypeFactory().newXMLGregorianCalendar(cal);
+    }
+    
+    public static XMLGregorianCalendar createXMLGregorianCalendar(int year, int month, int day, int hour, int minute,
+    		int second, int millisecond, int timezone) {
+        return getDatatypeFactory().newXMLGregorianCalendar(year, month, day, hour, minute, second, millisecond, timezone);
+    }
+    
+    public static XMLGregorianCalendar createXMLGregorianCalendar(int year, int month, int day, int hour, int minute,
+    		int second) {
+        return getDatatypeFactory().newXMLGregorianCalendar(year, month, day, hour, minute, second, 0, 0);
     }
 
     public static long toMillis(XMLGregorianCalendar xmlCal) {
