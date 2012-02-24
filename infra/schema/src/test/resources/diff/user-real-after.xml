@@ -26,7 +26,7 @@
     <fullName>Jack Sparrow</fullName>
     <givenName>Jack</givenName>
     <familyName>Sparrow</familyName>
-    <eMailAddress>jack@blackpearl.com</eMailAddress>
+    <emailAddress>jack@blackpearl.com</emailAddress>
     <locality>World's End</locality>
     <credentials>
         <password>

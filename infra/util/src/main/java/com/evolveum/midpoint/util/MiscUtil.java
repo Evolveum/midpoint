@@ -24,11 +24,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * @author semancik
@@ -60,6 +63,40 @@ public class MiscUtil {
         }
         reader.close();
         return fileData.toString();
+	}
+
+	/**
+	 * Try to get java property from the object by reflection
+	 */
+	public static <T> T getJavaProperty(Object object, String propertyName, Class<T> propetyClass) {
+		String getterName = "get" + StringUtils.capitalize(propertyName);
+		Method method;
+		try {
+			method = object.getClass().getMethod(getterName);
+		} catch (SecurityException e) {
+			throw new IllegalArgumentException("Security error getting getter for property "+propertyName+": "+e.getMessage(),e);
+		} catch (NoSuchMethodException e) {
+			throw new IllegalArgumentException("No getter for property "+propertyName);
+		}
+		if (method == null) {
+			throw new IllegalArgumentException("No getter for property "+propertyName);
+		}
+		if (method.getReturnType() != propetyClass) {
+			throw new IllegalArgumentException("The getter for property " + propertyName + " returns " + method.getReturnType() +
+					", expected " + propetyClass);
+		}
+		try {
+			return (T) method.invoke(object);
+		} catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException("Error invoking getter for property "+propertyName+": "
+					+e.getClass().getSimpleName()+": "+e.getMessage(),e);
+		} catch (IllegalAccessException e) {
+			throw new IllegalArgumentException("Error invoking getter for property "+propertyName+": "
+					+e.getClass().getSimpleName()+": "+e.getMessage(),e);
+		} catch (InvocationTargetException e) {
+			throw new IllegalArgumentException("Error invoking getter for property "+propertyName+": "
+					+e.getClass().getSimpleName()+": "+e.getMessage(),e);
+		}
 	}
 		
 }

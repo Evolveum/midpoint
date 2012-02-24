@@ -152,7 +152,7 @@ public class TestParseDiffPatch {
         assertEquals("Wrong change type", ChangeType.MODIFY, userDelta.getChangeType());
         Collection<? extends ItemDelta> modifications = userDelta.getModifications();
         assertEquals("Unexpected number of modifications", 3, modifications.size());
-        PrismAsserts.assertPropertyAdd(userDelta, new QName(SchemaConstants.NS_C,"eMailAddress"), "jack@blackpearl.com");
+        PrismAsserts.assertPropertyAdd(userDelta, new QName(SchemaConstants.NS_C,"emailAddress"), "jack@blackpearl.com");
         PrismAsserts.assertPropertyReplace(userDelta, new QName(SchemaConstants.NS_C,"locality"), "World's End");
         PrismAsserts.assertPropertyReplace(userDelta, SchemaConstants.PATH_ACTIVATION_ENABLE, false);
 	}

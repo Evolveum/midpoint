@@ -26,7 +26,7 @@
     <fullName>Jack Sparrow</fullName>
     <givenName>Jack</givenName>
     <familyName>Sparrow</familyName>
-    <eMailAddress></eMailAddress>
+    <emailAddress></emailAddress>
     <locality></locality>
     <credentials>
         <password>
