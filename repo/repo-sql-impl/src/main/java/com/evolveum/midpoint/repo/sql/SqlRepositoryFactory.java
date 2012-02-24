@@ -135,7 +135,8 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
         try {
             String[] array = args.toArray(new String[args.size()]);
-            server = Server.createTcpServer(array).start();
+            server = Server.createTcpServer(array);
+            server.start();
         } catch (Exception ex) {
             throw new RepositoryServiceFactoryException(ex.getMessage(), ex);
         }
@@ -156,7 +157,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             } else {
                 LOGGER.info("H2 prepared to run in local mode (from file).");
             }
-            initScript();
+//            initScript();
         } else {
             LOGGER.info("Repository is not running in embedded mode, initialization complete.");
         }

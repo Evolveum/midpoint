@@ -21,16 +21,27 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import org.testng.annotations.Test;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.*;
+
+import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author lazyman
  */
-public class SpringApplicationContextTest {
+@ContextConfiguration(locations = {"../../../../../application-context-repository.xml",
+        "application-context-configuration-sql-test.xml"})
+public class SpringApplicationContextTest extends AbstractTestNGSpringContextTests {
+
+    @Autowired(required=true)
+    private RepositoryService repositoryService;
 
     @Test
-    public void a() {
-
+    public void initApplicationContext() {
+        assertNotNull(repositoryService);
     }
 
 //    public void initialize() throws Exception {

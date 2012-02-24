@@ -37,12 +37,10 @@
 		destroy-method="destroy" />
 
 	<bean name="repositoryService" factory-bean="repositoryFactory" factory-method="getRepositoryService"
-		class="com.evolveum.midpoint.repo.api.RepositoryService" depends-on="repositoryFactory" init-method="init"
-		destroy-method="close"></bean>
+		class="com.evolveum.midpoint.repo.api.RepositoryService" depends-on="repositoryFactory"/>
 		
 	<bean name="cacheRepositoryService" factory-bean="repositoryFactory" factory-method="getCacheRepositoryService"
-		class="com.evolveum.midpoint.repo.api.RepositoryService" depends-on="repositoryFactory" init-method="init"
-		destroy-method="destroy"></bean>
+		class="com.evolveum.midpoint.repo.api.RepositoryService" depends-on="repositoryFactory" />
 		
 	<bean name="schemaRegistryFactory" class="com.evolveum.midpoint.init.SchemaRegistryFactory" init-method="init">
 		<!-- For tests pull the schema from src/test/resources/schema -->
