@@ -43,9 +43,12 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -124,6 +127,41 @@ public class PrismJaxbProcessor {
 		return false;
 	}
 	
+	public boolean canConvert(Class<?> clazz) {
+		return isJaxbClass(clazz);
+	}
+	
+	public boolean canConvert(QName xsdType) {
+		PrismSchema schema = schemaRegistry.findSchemaByNamespace(xsdType.getNamespaceURI());
+		if (schema == null) {
+			return false;
+		}
+		ComplexTypeDefinition complexTypeDefinition = schema.findComplexTypeDefinition(xsdType);
+		return complexTypeDefinition != null;
+	}
+
+	public Class<?> getCompileTimeClass(QName xsdType) {
+		SchemaDescription desc = schemaRegistry.findSchemaDescriptionByNamespace(xsdType.getNamespaceURI());
+		if (desc == null) {
+			return null;
+		}
+		Map<QName, Class<?>> map = desc.getXsdTypeTocompileTimeClassMap();
+		if (map == null) {
+			return null;
+		}
+		return map.get(xsdType);
+	}
+	
+	/**
+	 * Used to convert property values from DOM 
+	 */
+	public Object toJavaValue(Element element, QName xsdType) throws JAXBException {
+		Class<?> declaredType = getCompileTimeClass(xsdType);
+		JAXBElement<?> jaxbElement = createUnmarshaller().unmarshal(element, declaredType);
+		Object object = jaxbElement.getValue();
+		return object;
+	}
+
 	private Marshaller createMarshaller(Map<String, Object> jaxbProperties) throws JAXBException {
 		Marshaller marshaller = context.createMarshaller();
 		// set default properties

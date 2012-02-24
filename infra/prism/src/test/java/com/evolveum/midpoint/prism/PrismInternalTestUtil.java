@@ -92,10 +92,11 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final PropertyPath USER_ASSIGNMENT_DESCRIPTION_PATH = new PropertyPath(USER_ASSIGNMENT_QNAME, USER_DESCRIPTION_QNAME);
 	public static final QName ASSIGNMENT_TYPE_QNAME = new QName(NS_FOO,"AssignmentType");
 	public static final QName USER_ACCOUNT_CONSTRUCTION_QNAME = new QName(NS_FOO,"accountConstruction");
-	public static final QName USER_ACCOUNT_CONSTRUCTION_TYPE_QNAME = new QName(NS_FOO,"AccountConstructionType");
 	public static final String USER_ASSIGNMENT_1_ID = "i1111";
 	public static final String USER_ASSIGNMENT_2_ID = "i1112";
 	public static final String USER_ASSIGNMENT_3_ID = "i1113";
+	
+	public static final QName ACCOUNT_CONSTRUCTION_TYPE_QNAME = new QName(NS_FOO,"AccountConstructionType");
 	
 	public static final QName USER_ACCOUNTREF_QNAME = new QName(NS_FOO,"accountRef");
 	public static final QName USER_ACCOUNT_QNAME = new QName(NS_FOO,"account");

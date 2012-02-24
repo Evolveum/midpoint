@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
@@ -51,6 +52,7 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -77,6 +79,10 @@ public class PrismDomProcessor {
 
 	public void setPrismContext(PrismContext prismContext) {
 		this.prismContext = prismContext;
+	}
+	
+	private PrismJaxbProcessor getJaxbProcessor() {
+		return getPrismContext().getPrismJaxbProcessor();
 	}
 
 	public <T extends Objectable> PrismObject<T> parseObject(File file, Class<T> type) throws SchemaException {
@@ -328,13 +334,27 @@ public class PrismDomProcessor {
         }
 
         for (Element element : valueElements) {
-            Object value = XmlTypeConverter.toJavaValue(element, propertyDefinition.getTypeName());
+        	Object value = null;
+        	PrismJaxbProcessor jaxbProcessor = getJaxbProcessor();
+        	QName typeName = propertyDefinition.getTypeName();
+        	if (XmlTypeConverter.canConvert(typeName)) {
+            	value = XmlTypeConverter.toJavaValue(element, typeName);
+        	} else if (jaxbProcessor.canConvert(typeName)) {
+        		try {
+					value = jaxbProcessor.toJavaValue(element, typeName);
+				} catch (JAXBException e) {
+					throw new SchemaException("Attempt to unmarshal value of property "+propName+" failed: "+e.getMessage(), e);
+				}
+        	} else {
+        		// fallback to DOM
+        		value = element;
+        	}
             prop.getValues().add(new PrismPropertyValue(value));
         }
         return prop;
     }
     
-    public PrismProperty parsePropertyFromValueElement(Element valueElement, PrismPropertyDefinition propertyDefinition) throws SchemaException {
+	public PrismProperty parsePropertyFromValueElement(Element valueElement, PrismPropertyDefinition propertyDefinition) throws SchemaException {
     	PrismProperty prop = propertyDefinition.instantiate();
         if (propertyDefinition.isSingleValue()) {
             prop.addValue(new PrismPropertyValue(XmlTypeConverter.convertValueElementAsScalar(valueElement, propertyDefinition.getTypeName())));

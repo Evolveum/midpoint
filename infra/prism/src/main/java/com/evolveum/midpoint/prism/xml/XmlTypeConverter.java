@@ -262,6 +262,10 @@ public class XmlTypeConverter {
     public static boolean canConvert(Class<?> clazz) {
         return (XsdTypeMapper.getJavaToXsdMapping(clazz) != null);
     }
+    
+    public static boolean canConvert(QName xsdType) {
+        return (XsdTypeMapper.getXsdToJavaMapping(xsdType) != null);
+    }
 
     public static <T> T convertValueElementAsScalar(Element valueElement, Class<T> type) throws SchemaException {
         return toJavaValue(valueElement, type);

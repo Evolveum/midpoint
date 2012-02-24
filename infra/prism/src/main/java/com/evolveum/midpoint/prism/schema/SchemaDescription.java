@@ -24,7 +24,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
+import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
@@ -47,6 +49,7 @@ public class SchemaDescription implements Dumpable {
 	private boolean isPrismSchema = false;
 	private PrismSchema schema;
 	private Package compileTimeClassesPackage;
+	private Map<QName, Class<?>> xsdTypeTocompileTimeClassMap;
 
 	private SchemaDescription(String sourceDescription) {
 		this.sourceDescription = sourceDescription;
@@ -110,6 +113,14 @@ public class SchemaDescription implements Dumpable {
 
 	public void setCompileTimeClassesPackage(Package compileTimeClassesPackage) {
 		this.compileTimeClassesPackage = compileTimeClassesPackage;
+	}
+	
+	public Map<QName, Class<?>> getXsdTypeTocompileTimeClassMap() {
+		return xsdTypeTocompileTimeClassMap;
+	}
+
+	public void setXsdTypeTocompileTimeClassMap(Map<QName, Class<?>> xsdTypeTocompileTimeClassMap) {
+		this.xsdTypeTocompileTimeClassMap = xsdTypeTocompileTimeClassMap;
 	}
 
 	public static SchemaDescription parseResource(final String resourcePath) throws SchemaException {

@@ -105,6 +105,10 @@ public class XsdTypeMapper {
         }
         return null;
     }
+    
+    public static Class<?> getXsdToJavaMapping(QName xsdType) {
+    	return xsdToJavaTypeMap.get(xsdType);
+    }
 
     /**
      * Returns the class in the type mapping.

@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
@@ -61,6 +62,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
+import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -223,6 +225,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 			initResolver();
 			parseMidPointSchema();
 			parseJavaxSchema();
+			compileCompileTimeClassList();
 			initialized = true;
 			
 		} catch (SAXException ex) {
@@ -233,7 +236,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 			throw ex;
 		}
 	}
-	
+
 	private void parseJavaxSchema() throws SAXException, IOException {
 		schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 		Source[] sources = new Source[schemaDescriptions.size()];
@@ -274,6 +277,16 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 					throw new SchemaException("Duplicate definition of extension for type "+extType+": "+def+" and "+extensionSchemas.get(extType));
 				}
 				extensionSchemas.put(extType, def);
+			}
+		}
+	}
+	
+	private void compileCompileTimeClassList() {
+		for (SchemaDescription schemaDescription : schemaDescriptions) {	
+			Package pkg = schemaDescription.getCompileTimeClassesPackage();
+			if (pkg != null) {
+				Map<QName, Class<?>> map = createXsdTypeMap(pkg);
+				schemaDescription.setXsdTypeTocompileTimeClassMap(map);
 			}
 		}
 	}
@@ -355,6 +368,18 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		}
 		return compileTimePackages;
 	}
+	
+	private Map<QName, Class<?>> createXsdTypeMap(Package pkg) {
+		Map<QName, Class<?>> map = new HashMap<QName, Class<?>>();
+		for (Class clazz: ClassPathUtil.listClasses(pkg)) {
+			QName typeName = JAXBUtil.getTypeQName(clazz);
+			if (typeName != null) {
+				map.put(typeName, clazz);
+			}
+		}
+		return map;
+	}
+
 	
 	private SchemaDescription lookupSchemaDescription(String namespace) {
 		for (SchemaDescription desc : schemaDescriptions) {
@@ -561,11 +586,15 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		return sb.toString();
 	}
 
-	public Class determineCompileTimeClass(QName elementName, ComplexTypeDefinition complexTypeDefinition) {
-		if (elementName.getNamespaceURI() == null) {
-			throw new IllegalArgumentException("Element "+elementName+" has no namespace, cannot determine schema");
+	public Class<?> determineCompileTimeClass(QName elementName, ComplexTypeDefinition complexTypeDefinition) {
+		return determineCompileTimeClass(complexTypeDefinition.getTypeName());
+	}
+		
+	public Class<?> determineCompileTimeClass(QName typeName) {
+		if (typeName.getNamespaceURI() == null) {
+			throw new IllegalArgumentException("XSD type "+typeName+" has no namespace, cannot determine schema");
 		}
-		SchemaDescription desc = findSchemaDescriptionByNamespace(elementName.getNamespaceURI());
+		SchemaDescription desc = findSchemaDescriptionByNamespace(typeName.getNamespaceURI());
 		if (desc == null) {
 			return null;
 		}
@@ -573,7 +602,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		if (pkg == null) {
 			return null;
 		}
-		Class compileTimeClass = JAXBUtil.findClassForType(complexTypeDefinition.getTypeName(), pkg);
+		Class<?> compileTimeClass = JAXBUtil.findClassForType(typeName, pkg);
 		return compileTimeClass;
 	}
 

@@ -27,6 +27,7 @@ import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
@@ -36,10 +37,14 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.foo.AccountConstructionType;
 import com.evolveum.midpoint.prism.foo.AccountType;
+import com.evolveum.midpoint.prism.foo.ActivationType;
+import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
@@ -82,6 +87,35 @@ public class TestPrismContext {
 		
 	}
 	
+	@Test
+	public void testCompileTimeClassmap() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testCompileTimeClassmap ]===");
+		
+		// WHEN
+		PrismContext prismContext = constructInitializedPrismContext();
+		
+		// THEN
+		assertNotNull("No prism context", prismContext);
+		
+		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
+		assertNotNull("No schema registry in context", schemaRegistry);
+		
+		SchemaDescription fooDesc = schemaRegistry.findSchemaDescriptionByNamespace(NS_FOO);
+		Map<QName, Class<?>> map = fooDesc.getXsdTypeTocompileTimeClassMap();
+		assertNotNull("No XsdTypeTocompileTimeClassMap", map);
+		assertFalse("Empty XsdTypeTocompileTimeClassMap", map.isEmpty());
+		assertMapping(map, UserType.class, USER_TYPE_QNAME);
+		assertMapping(map, AccountType.class, ACCOUNT_TYPE_QNAME);
+		assertMapping(map, AssignmentType.class, ASSIGNMENT_TYPE_QNAME);
+		assertMapping(map, ActivationType.class, ACTIVATION_TYPE_QNAME);
+		// This is not a container, but it should be in the map anyway
+		assertMapping(map, AccountConstructionType.class, ACCOUNT_CONSTRUCTION_TYPE_QNAME);
+	}
+	
+	private void assertMapping(Map<QName, Class<?>> map, Class<?> clazz, QName typeName) {
+		assertEquals("Wrong xsdType->class mapping for "+typeName, clazz, map.get(typeName));
+	}
+
 	@Test
 	public void testBasicSchemas() throws SchemaException, SAXException, IOException {
 		System.out.println("===[ testBasicSchemas ]===");
@@ -138,7 +172,7 @@ public class TestPrismContext {
 		assertFalse("Assignment is runtime", assignmentContainer.isRuntimeSchema());
 		assertEquals("Assignment size", 2, assignmentContainer.getDefinitions().size());
 		PrismAsserts.assertPropertyDefinition(assignmentContainer, USER_DESCRIPTION_QNAME, DOMUtil.XSD_STRING, 0, 1);
-		PrismAsserts.assertPropertyDefinition(assignmentContainer, USER_ACCOUNT_CONSTRUCTION_QNAME, USER_ACCOUNT_CONSTRUCTION_TYPE_QNAME, 0, 1);
+		PrismAsserts.assertPropertyDefinition(assignmentContainer, USER_ACCOUNT_CONSTRUCTION_QNAME, ACCOUNT_CONSTRUCTION_TYPE_QNAME, 0, 1);
 		
 		PrismReferenceDefinition accountRefDef = userDefinition.findItemDefinition(USER_ACCOUNTREF_QNAME, PrismReferenceDefinition.class);
 		PrismAsserts.assertDefinition(accountRefDef, USER_ACCOUNTREF_QNAME, OBJECT_REFERENCE_TYPE_QNAME, 0, -1);
