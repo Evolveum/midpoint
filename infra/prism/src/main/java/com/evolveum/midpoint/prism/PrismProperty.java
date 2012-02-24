@@ -295,6 +295,9 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
 	
     @Override
 	public PropertyDelta<V> createDelta(PropertyPath path) {
+    	if (path == null || path.isEmpty()) {
+    		throw new IllegalArgumentException("Attempt to create delta with null or empty path");
+    	}
 		return new PropertyDelta<V>(path, getDefinition());
 	}
     

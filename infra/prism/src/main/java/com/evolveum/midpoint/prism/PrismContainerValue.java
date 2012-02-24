@@ -489,10 +489,10 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 		}
 		
 		for (Item otherItem: other.getItems()) {
-			Item thisItem = other.findItem(otherItem.getName());
+			Item thisItem = this.findItem(otherItem.getName());
 			if (thisItem == null) {
 				// Other has an item that we don't have, this must be an add
-				ItemDelta itemDelta = otherItem.createDelta(getPath(pathPrefix));
+				ItemDelta itemDelta = otherItem.createDelta(otherItem.getPath(pathPrefix));
 				itemDelta.addValuesToAdd(otherItem.getValues());
 				if (!itemDelta.isEmpty()) {
 					((Collection)deltas).add(itemDelta);

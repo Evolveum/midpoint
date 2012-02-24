@@ -121,7 +121,7 @@ public class TestCompare {
 		
 		PrismAsserts.assertPropertyDelete(jackDelta, USER_ADDITIONALNAMES_QNAME, "Captain");
 		
-		PrismAsserts.assertPropertyDelete(jackDelta, USER_LOCALITY_QNAME, "Caribbean");
+		PrismAsserts.assertPropertyAdd(jackDelta, USER_LOCALITY_QNAME, "World's End");
 		
 		PrismAsserts.assertPropertyReplace(jackDelta, USER_ENABLED_PATH, false);
 		PrismAsserts.assertPropertyDelete(jackDelta, USER_VALID_FROM_PATH, USER_JACK_VALID_FROM);

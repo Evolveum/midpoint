@@ -38,6 +38,7 @@
     <givenName>Jack</givenName>
     <familyName>Sparrow</familyName>
     <additionalNames>Jackie</additionalNames>
+    <locality>World's End</locality>
 
 	<assignment id="i1111">
 		<description>Assignment 1</description>

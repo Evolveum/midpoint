@@ -119,18 +119,30 @@ public class PropertyPath {
 	}
 	
 	public PropertyPathSegment first() {
+		if (segments.size() == 0) {
+			return null;
+		}
 		return segments.get(0);
 	}
 
 	public PropertyPath rest() {
+		if (segments.size() == 0) {
+			return EMPTY_PATH;
+		}
 		return new PropertyPath(segments.subList(1, segments.size()));
 	}
 	
 	public PropertyPathSegment last() {
+		if (segments.size() == 0) {
+			return null;
+		}
 		return segments.get(segments.size()-1);
 	}
 
 	public PropertyPath allExceptLast() {
+		if (segments.size() == 0) {
+			return EMPTY_PATH;
+		}
 		return new PropertyPath(segments.subList(0, segments.size()-1));
 	}
 	
