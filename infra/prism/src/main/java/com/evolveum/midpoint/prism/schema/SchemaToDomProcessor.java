@@ -70,7 +70,7 @@ import com.sun.xml.xsom.XSParticle;
  * @author lazyman
  * @author Radovan Semancik
  */
-class SchemaToDomProcessor {
+public class SchemaToDomProcessor {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaToDomProcessor.class);
 	public static final String RESOURCE_OBJECT_CLASS = "ResourceObjectClass";
@@ -217,9 +217,54 @@ class SchemaToDomProcessor {
 			setAttribute(property, "maxOccurs", maxOccurs);
 		}
 
-		addPropertyAnnotation(definition, property);
+		Element annotation = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "annotation"));
+		property.appendChild(annotation);
+		Element appinfo = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "appinfo"));
+		annotation.appendChild(appinfo);
 
-		parent.appendChild(property);
+		// attributeDisplayName
+		if (!StringUtils.isEmpty(definition.getDisplayName())) {
+			addAnnotation(A_DISPLAY_NAME, definition.getDisplayName(), appinfo);
+		}
+
+		// help
+		if (!StringUtils.isEmpty(definition.getHelp())) {
+			addAnnotation(A_HELP, definition.getHelp(),appinfo);
+		}
+
+//		if (definition instanceof ResourceObjectAttributeDefinition) {
+//			ResourceObjectAttributeDefinition attrDefinition = (ResourceObjectAttributeDefinition) definition;
+//			// nativeAttributeName
+//			if (!StringUtils.isEmpty(attrDefinition.getNativeAttributeName())) {
+//				addAnnotation(A_NATIVE_ATTRIBUTE_NAME, attrDefinition.getNativeAttributeName(), appinfo);
+//			}
+//		}
+		
+		if (definition.isIgnored()) {
+			addAnnotation(A_IGNORE, "true", appinfo);
+		}
+		
+		if (!definition.canCreate() || !definition.canRead() || !definition.canUpdate()) {
+			// read-write-create attribute is the default. If any of this flags is missing, we must
+			// add appropriate annotations.
+			if (definition.canCreate()) {
+				addAnnotation(A_ACCESS, A_ACCESS_CREATE, appinfo);
+			}
+			if (definition.canRead()) {
+				addAnnotation(A_ACCESS, A_ACCESS_READ, appinfo);
+			}
+			if (definition.canUpdate()) {
+				addAnnotation(A_ACCESS, A_ACCESS_UPDATE, appinfo);
+			}
+		}
+		
+		if (!appinfo.hasChildNodes()) {
+			// remove unneeded <annotation> element
+			property.removeChild(annotation);
+		}
+				
+		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
+		definitionFactory.addExtraPropertyAnnotations(definition, appinfo, this);
 	}
 	
 	/**
@@ -283,6 +328,9 @@ class SchemaToDomProcessor {
 		annotation.appendChild(appinfo);
 
 		addAnnotation(A_OBJECT_REFERENCE, definition.getName(), appinfo);
+		
+		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
+		definitionFactory.addExtraReferenceAnnotations(definition, appinfo, this);
 
 	}
 	
@@ -347,6 +395,8 @@ class SchemaToDomProcessor {
 		parent.appendChild(complexType);
 		// "typeName" should be used instead of "name" when defining a XSD type
 		setAttribute(complexType, "name", definition.getTypeName().getLocalPart());
+		Element annotation = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "annotation"));
+		complexType.appendChild(annotation);
 		
 		Element containingElement = complexType;
 		if (definition.getSuperType() != null) {
@@ -379,19 +429,6 @@ class SchemaToDomProcessor {
 			addXsdAnyDefinition(sequence);
 		}
 		
-		Element anotationElement = addComplexTypeAnnotation(definition,complexType);
-		
-		return complexType;
-	}
-	
-	/**
-	 * Adds XSD annotations to the XSD element definition. The annotations will be based on the provided PropertyDefinition.
-	 * @param definition
-	 * @param parent element under which the definition will be added (inserted as the first sub-element)
-	 */
-	private Element addComplexTypeAnnotation(ComplexTypeDefinition definition, Element parent) {
-		Element annotation = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "annotation"));
-		parent.insertBefore(annotation, parent.getFirstChild());
 		Element appinfo = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "appinfo"));
 		annotation.appendChild(appinfo);
 		
@@ -403,15 +440,17 @@ class SchemaToDomProcessor {
 			addAnnotation(A_PROPERTY_CONTAINER, definition.getDisplayName(), appinfo);
 		}
 		
+		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
+		definitionFactory.addExtraComplexTypeAnnotations(definition, appinfo, this);
+		
 		if (!appinfo.hasChildNodes()) {
 			// remove unneeded <annotation> element
-			parent.removeChild(annotation);
+			complexType.removeChild(annotation);
 		}
-
-		return annotation;
+		
+		return complexType;
 	}
-
-
+	
 //	/**
 //	 * Adds XSD annotations to the XSD complexType defintion. The annotations will be based on the provided ResourceObjectDefinition.
 //	 * @param parent element under which the definition will be added (inserted as the first sub-element)
@@ -479,61 +518,7 @@ class SchemaToDomProcessor {
 //
 //		return annotation;
 //	}
-
-	/**
-	 * Adds XSD annotations to the XSD element definition. The annotations will be based on the provided PropertyDefinition.
-	 * @param definition
-	 * @param parent element under which the definition will be added (inserted as the first sub-element)
-	 */
-	private void addPropertyAnnotation(PrismPropertyDefinition definition, Element parent) {
-		Element annotation = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "annotation"));
-		parent.insertBefore(annotation, parent.getFirstChild());
-		Element appinfo = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "appinfo"));
-		annotation.appendChild(appinfo);
-
-		// attributeDisplayName
-		if (!StringUtils.isEmpty(definition.getDisplayName())) {
-			addAnnotation(A_DISPLAY_NAME, definition.getDisplayName(), appinfo);
-		}
-
-		// help
-		if (!StringUtils.isEmpty(definition.getHelp())) {
-			addAnnotation(A_HELP, definition.getHelp(),appinfo);
-		}
-
-//		if (definition instanceof ResourceObjectAttributeDefinition) {
-//			ResourceObjectAttributeDefinition attrDefinition = (ResourceObjectAttributeDefinition) definition;
-//			// nativeAttributeName
-//			if (!StringUtils.isEmpty(attrDefinition.getNativeAttributeName())) {
-//				addAnnotation(A_NATIVE_ATTRIBUTE_NAME, attrDefinition.getNativeAttributeName(), appinfo);
-//			}
-//		}
-		
-		if (definition.isIgnored()) {
-			addAnnotation(A_IGNORE, "true", appinfo);
-		}
-		
-		if (!definition.canCreate() || !definition.canRead() || !definition.canUpdate()) {
-			// read-write-create attribute is the default. If any of this flags is missing, we must
-			// add appropriate annotations.
-			if (definition.canCreate()) {
-				addAnnotation(A_ACCESS, A_ACCESS_CREATE, appinfo);
-			}
-			if (definition.canRead()) {
-				addAnnotation(A_ACCESS, A_ACCESS_READ, appinfo);
-			}
-			if (definition.canUpdate()) {
-				addAnnotation(A_ACCESS, A_ACCESS_UPDATE, appinfo);
-			}
-		}
-		
-		if (!appinfo.hasChildNodes()) {
-			// remove unneeded <annotation> element
-			parent.removeChild(annotation);
-		}
-
-	}
-
+	
 	/**
 	 * Add generic annotation element.
 	 * @param qname QName of the element
@@ -541,7 +526,7 @@ class SchemaToDomProcessor {
 	 * @param parent element under which the definition will be added
 	 * @return created XSD element
 	 */
-	private Element addAnnotation(QName qname, String value, Element parent) {
+	public Element addAnnotation(QName qname, String value, Element parent) {
 		Element annotation = createElement(qname);
 		parent.appendChild(annotation);
 		if (value != null) {
@@ -550,13 +535,13 @@ class SchemaToDomProcessor {
 		return annotation;
 	}
 	
-	private Element addAnnotation(QName qname, Element parent) {
+	public Element addAnnotation(QName qname, Element parent) {
 		Element annotation = createElement(qname);
 		parent.appendChild(annotation);
 		return annotation;
 	}
 	
-	private Element addAnnotation(QName qname, QName value, Element parent) {
+	public Element addAnnotation(QName qname, QName value, Element parent) {
 		Element annotation = createElement(qname);
 		parent.appendChild(annotation);
 		if (value != null) {
@@ -572,11 +557,12 @@ class SchemaToDomProcessor {
 	 * @param parent parent element under which the definition will be added
 	 * @return created XSD element
 	 */
-	private Element addRefAnnotation(QName qname, QName value, Element parent) {
-		Element access = createElement(qname);
-		parent.appendChild(access);
-		setQNameAttribute(access, "ref", value);
-		return access;
+	public Element addRefAnnotation(QName qname, QName value, Element parent) {
+		Element element = createElement(qname);
+		parent.appendChild(element);
+		//old way: setQNameAttribute(access, "ref", value);
+		DOMUtil.setQNameValue(element, value);
+		return element;
 	}
 
 	/**

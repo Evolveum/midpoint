@@ -462,9 +462,12 @@ class DomToSchemaProcessor {
 			XSComplexType complexType = (XSComplexType)xsType;
 			XSContentType contentType = complexType.getContentType();
 			if (contentType != null) {
-				XSTerm term = contentType.asParticle().getTerm();
-				if (term != null) {
-					return isAny(term);
+				XSParticle particle = contentType.asParticle();
+				if (particle != null) {
+					XSTerm term = particle.getTerm();
+					if (term != null) {
+						return isAny(term);
+					}
 				}
 			}
 		}		

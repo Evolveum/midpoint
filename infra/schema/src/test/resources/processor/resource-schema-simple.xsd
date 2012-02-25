@@ -12,8 +12,9 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<r:resourceObject/>
-						<r:accountType default="true"/>
-						<r:identifier ref="tns:login"/>
+						<r:account/>
+						<r:default/>
+						<r:identifier>tns:login</r:identifier>
 						<r:nativeObjectClass>account</r:nativeObjectClass>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -40,7 +41,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<r:resourceObject/>
-						<r:identifier ref="tns:groupId"/>
+						<r:identifier>tns:groupId</r:identifier>
 						<r:nativeObjectClass>group</r:nativeObjectClass>
 					</xsd:appinfo>
 				</xsd:annotation>

@@ -21,6 +21,8 @@ package com.evolveum.midpoint.prism.schema;
 
 import javax.xml.namespace.QName;
 
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -84,6 +86,27 @@ public class SchemaDefinitionFactory {
 	 */
 	public void finishComplexTypeDefinition(ComplexTypeDefinition complexTypeDefinition, XSComplexType complexType,
 			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
+		// Nothing to do by default
+	}
+
+	/**
+	 * Add extra annotations to a complexType DOM model. Used when serializing schema to DOM.
+	 */
+	public void addExtraComplexTypeAnnotations(ComplexTypeDefinition definition, Element appinfo, SchemaToDomProcessor schemaToDomProcessor) {
+		// Nothing to do by default
+	}
+
+	/**
+	 * Add extra annotations to a property DOM model. Used when serializing schema to DOM.
+	 */
+	public void addExtraPropertyAnnotations(PrismPropertyDefinition definition, Element appinfo, SchemaToDomProcessor schemaToDomProcessor) {
+		// Nothing to do by default
+	}
+
+	/**
+	 * Add extra annotations to a reference DOM model. Used when serializing schema to DOM.
+	 */
+	public void addExtraReferenceAnnotations(PrismReferenceDefinition definition, Element appinfo, SchemaToDomProcessor schemaToDomProcessor) {
 		// Nothing to do by default
 	}
 	

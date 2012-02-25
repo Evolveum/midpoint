@@ -21,6 +21,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaProcessorUtil;
+import com.evolveum.midpoint.prism.schema.SchemaToDomProcessor;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -67,15 +69,21 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 		// accountType
 		if (isAccountObject(annotation)) {
 			ocDef.setAccountType(true);
-		}
-		
-		// TODO: change
-		// check if it's default account object class...
-		Element accountType = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_ACCOUNT_TYPE);
-		if (accountType != null) {
-			String defaultValue = accountType.getAttribute("default");
-			if (defaultValue != null) {
-				ocDef.setDefaultAccountType(Boolean.parseBoolean(defaultValue));
+			Element account = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_ACCOUNT);
+			if (account != null) {
+				String defaultValue = account.getAttribute("default");
+				// Compatibility (DEPRECATED)
+				if (defaultValue != null) {
+					ocDef.setDefaultAccountType(Boolean.parseBoolean(defaultValue));
+				}
+			}
+			Element defaultAccount = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_DEFAULT);
+			if (defaultAccount != null) {
+				ocDef.setDefaultAccountType(true);
+			}
+			Element accountType = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_ACCOUNT_TYPE);
+			if (accountType != null) {
+				ocDef.setAccountTypeName(accountType.getTextContent());
 			}
 		}
 				
@@ -120,8 +128,51 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 		if (attrDefinition != null) {
 			ocDef.getSecondaryIdentifiers().add(attrDefinition);
 		}
+	}
+	
+	@Override
+	public void addExtraComplexTypeAnnotations(ComplexTypeDefinition definition, Element appinfo, SchemaToDomProcessor schemaToDomProcessor) {
+		super.addExtraComplexTypeAnnotations(definition, appinfo, schemaToDomProcessor);
+		if (definition instanceof ObjectClassComplexTypeDefinition) {
+			addExtraObjectClassAnnotations((ObjectClassComplexTypeDefinition)definition, appinfo, schemaToDomProcessor);
+		}
+	}
 
+	private void addExtraObjectClassAnnotations(ObjectClassComplexTypeDefinition definition, Element appinfo, SchemaToDomProcessor processor) {
+		processor.addAnnotation(MidPointConstants.RA_RESOURCE_OBJECT, appinfo);
 		
+		// displayName, identifier, secondaryIdentifier
+		for (ResourceAttributeDefinition identifier : definition.getIdentifiers()) {
+			processor.addRefAnnotation(MidPointConstants.RA_IDENTIFIER, identifier.getName(), appinfo);
+		}
+		for (ResourceAttributeDefinition identifier : definition.getSecondaryIdentifiers()) {
+			processor.addRefAnnotation(MidPointConstants.RA_SECONDARY_IDENTIFIER,identifier.getName(),appinfo);
+		}
+		if (definition.getDisplayNameAttribute() != null) {
+			processor.addRefAnnotation(MidPointConstants.RA_DISPLAY_NAME_ATTRIBUTE, definition.getDisplayNameAttribute().getName(), appinfo);
+		}
+		if (definition.getDescriptionAttribute() != null) {
+			processor.addRefAnnotation(MidPointConstants.RA_DESCRIPTION_ATTRIBUTE, definition.getDescriptionAttribute().getName(), appinfo);
+		}
+		if (definition.getNamingAttribute() != null) {
+			processor.addRefAnnotation(MidPointConstants.RA_NAMING_ATTRIBUTE, definition.getNamingAttribute().getName(), appinfo);
+		}
+		// TODO: what to do with native object class, composite
+		// // nativeObjectClass
+		if (!StringUtils.isEmpty(definition.getNativeObjectClass())) {
+			processor.addAnnotation(MidPointConstants.RA_NATIVE_OBJECT_CLASS, definition.getNativeObjectClass(), appinfo);
+		}
+		
+		// accountType
+		if (definition.isAccountType()) {
+			processor.addAnnotation(MidPointConstants.RA_ACCOUNT, appinfo);
+			if (definition.isDefaultAccountType()) {
+				processor.addAnnotation(MidPointConstants.RA_DEFAULT, appinfo);
+			}
+			if (definition.getAccountTypeName() != null) {
+				processor.addAnnotation(MidPointConstants.RA_ACCOUNT_TYPE, definition.getAccountTypeName(), appinfo);
+			}
+		}		
 	}
 
 	@Override
@@ -163,11 +214,11 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 
 	private boolean isResourceObject(XSAnnotation annotation) {
 		// annotation: resourceObject
-		if (SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.MA_RESOURCE_OBJECT) != null) {
+		if (SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_RESOURCE_OBJECT) != null) {
 			return true;
 		}
 		// annotation: accountType
-		if (SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.MA_ACCOUNT_TYPE) != null) {
+		if (SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_ACCOUNT) != null) {
 			// <accountType> implies <resourceObject> ... at least for now (compatibility)
 			return true;
 		}
@@ -179,7 +230,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 			return false;
 		}
 	
-		Element accountType = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_ACCOUNT_TYPE);
+		Element accountType = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_ACCOUNT);
 		if (accountType != null) {
 			return true;
 		}
@@ -190,7 +241,11 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 	private ResourceAttributeDefinition getAnnotationReference(XSAnnotation annotation, QName qname, ObjectClassComplexTypeDefinition objectClass) throws SchemaException {
 		Element element = SchemaProcessorUtil.getAnnotationElement(annotation, qname);
 		if (element != null) {
-			String reference = element.getAttribute("ref");
+			String reference = element.getTextContent();
+			if (reference == null || reference.isEmpty()) {
+				// Compatibility
+				reference = element.getAttribute("ref");
+			}
 			if (reference != null && !reference.isEmpty()) {
 				QName referenceItemName = DOMUtil.resolveQName(element, reference);
 				PrismPropertyDefinition definition = objectClass.findPropertyDefinition(referenceItemName);
