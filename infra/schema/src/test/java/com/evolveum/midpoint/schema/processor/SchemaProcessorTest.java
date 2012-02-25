@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
@@ -58,17 +59,18 @@ public class SchemaProcessorTest {
 	
 	@Test
 	public void testAccessList() throws Exception {
-		Document schemaDom = DOMUtil.parseFile("src/test/resources/processor/schema.xsd");
+		Document schemaDom = DOMUtil.parseFile("src/test/resources/processor/resource-schema-complex.xsd");
 		PrismSchema schema = PrismSchema.parse(DOMUtil.getFirstChildElement(schemaDom), PrismTestUtil.getPrismContext());
 		
 		final String defaultNS = "http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
 		final String icfNS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd";
 		ResourceAttributeContainerDefinition objectDef = (ResourceAttributeContainerDefinition) schema.findContainerDefinitionByType(new QName(defaultNS, "AccountObjectClass"));
+		assertNotNull("AccountObjectClass definition not found", objectDef);
 		
 		ResourceAttributeDefinition attrDef = objectDef.findAttributeDefinition(new QName(icfNS, "uid"));
-		AssertJUnit.assertTrue(attrDef.canRead());
-		AssertJUnit.assertFalse(attrDef.canUpdate());
-		AssertJUnit.assertFalse(attrDef.canCreate());
+		AssertJUnit.assertTrue("uid readability", attrDef.canRead());
+		AssertJUnit.assertFalse("uid updateability", attrDef.canUpdate());
+		AssertJUnit.assertFalse("uid createability", attrDef.canCreate());
 		
 		attrDef = objectDef.findAttributeDefinition(new QName(defaultNS, "title"));
 		AssertJUnit.assertTrue(attrDef.canRead());

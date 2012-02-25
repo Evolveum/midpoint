@@ -190,7 +190,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 			ObjectClassComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, XSAnnotation annotation) {
 		
 		ResourceAttributeContainerDefinition attrContDef = new ResourceAttributeContainerDefinition(null, complexTypeDefinition, prismContext);
-		// TODO annotations
+		
 		return attrContDef;
 
 	}
@@ -209,6 +209,13 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 	private PrismPropertyDefinition createResourceAttributeDefinition(QName elementName, QName typeName,
 			PrismContext prismContext, XSAnnotation annotation) {
 		ResourceAttributeDefinition attrDef = new ResourceAttributeDefinition(elementName, elementName, typeName, prismContext);
+		
+		// nativeAttributeName
+		Element nativeAttrElement = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_NATIVE_ATTRIBUTE_NAME);
+		String nativeAttributeName = nativeAttrElement == null ? null : nativeAttrElement.getTextContent();
+		if (!StringUtils.isEmpty(nativeAttributeName)) {
+			attrDef.setNativeAttributeName(nativeAttributeName);
+		}
 		return attrDef;
 	}
 

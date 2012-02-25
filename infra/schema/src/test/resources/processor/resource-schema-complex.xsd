@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2011 lazyman					     -->
+<!--                                                         -->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+	xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+	xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-1"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" 
+	elementFormDefault="qualified"
+	targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" />
+	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" />
+	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" />
+	<xsd:complexType name="AccountObjectClass">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<r:identifier ref="icfs:uid" />
+				<r:account/>
+				<r:default/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element maxOccurs="unbounded" minOccurs="0" name="photo" type="xsd:base64Binary">
+			<xsd:annotation>
+					<xsd:appinfo>
+						<a:access>update</a:access>
+						<a:access>create</a:access>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element maxOccurs="unbounded" minOccurs="0" name="title" type="xsd:string" />
+			<xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string" />
+			<xsd:element maxOccurs="unbounded" minOccurs="0" name="givenName" type="xsd:string" />
+			<xsd:element ref="icfs:uid">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:access>read</a:access>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>					
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="GroupObjectClass">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<r:resourceObject/>
+				<r:identifier ref="icfs:uid" />
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element maxOccurs="unbounded" name="cn" type="xsd:string" />
+			<xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string" />
+			<xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string" />
+			<xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string" />
+			<xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
+			<xsd:element ref="icfs:name" />
+			<xsd:element maxOccurs="unbounded" minOccurs="0" name="uniqueMember" type="xsd:string" />
+			<xsd:element ref="icfs:uid" />
+			<xsd:element maxOccurs="unbounded" minOccurs="0" name="owner" type="xsd:string" />
+			<xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string" />
+			<xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string" />
+		</xsd:sequence>
+	</xsd:complexType>
+</xsd:schema>

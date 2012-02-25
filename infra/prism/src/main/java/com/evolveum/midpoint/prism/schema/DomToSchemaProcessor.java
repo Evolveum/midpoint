@@ -620,19 +620,6 @@ class DomToSchemaProcessor {
 	private PrismPropertyDefinition createPropertyDefinition(XSType xsType, QName elementName, QName typeName, 
 			ComplexTypeDefinition ctd, XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
 		PrismPropertyDefinition prodDef;
-//		if (isResourceObject) {
-//			ResourceObjectAttributeDefinition attrDef = new ResourceObjectAttributeDefinition(elementName, null, typeName);
-//			
-//			// Process Resource-specific annotations
-//			
-//			// nativeAttributeName
-//			Element nativeAttrElement = getAnnotationElement(annotation, A_NATIVE_ATTRIBUTE_NAME);
-//			String nativeAttributeName = nativeAttrElement == null ? null : nativeAttrElement.getTextContent();
-//			if (!StringUtils.isEmpty(nativeAttributeName)) {
-//				attrDef.setNativeAttributeName(nativeAttributeName);
-//			}
-//						
-//			prodDef = attrDef;
 		
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
 		

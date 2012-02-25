@@ -33,6 +33,7 @@ public class MidPointConstants {
 	public static final QName RA_ACCOUNT = new QName(NS_RA, "account");
 	public static final QName RA_RESOURCE_OBJECT = new QName(NS_RA, "resourceObject");
 	public static final QName RA_NATIVE_OBJECT_CLASS = new QName(NS_RA, "nativeObjectClass");
+	public static final QName RA_NATIVE_ATTRIBUTE_NAME = new QName(NS_RA, "nativeAttributeName");
 	public static final QName RA_ACCOUNT_TYPE = new QName(NS_RA, "accountType");
 	public static final QName RA_DISPLAY_NAME_ATTRIBUTE = new QName(NS_RA, "displayNameAttribute");
 	public static final QName RA_NAMING_ATTRIBUTE = new QName(NS_RA, "namingAttribute");
