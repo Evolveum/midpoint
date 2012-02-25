@@ -150,7 +150,7 @@ public class RConnectorType extends RExtensibleObjectType {
         repo.setConnectorVersion(jaxb.getConnectorVersion());
         repo.setFramework(jaxb.getFramework());
         repo.setNamespace(jaxb.getNamespace());
-        repo.setConnectorHostRef(RUtil.jaxbRefToRepo(jaxb.getConnectorHostRef()));
+        repo.setConnectorHostRef(RUtil.jaxbRefToRepo(jaxb.getConnectorHostRef(), jaxb));
 
         if (jaxb.getConnectorHost() != null) {
             LOGGER.warn("Connector host from connector type won't be saved. It should be " +

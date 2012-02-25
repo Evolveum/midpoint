@@ -264,8 +264,8 @@ public class RTaskType extends RExtensibleObjectType {
         repo.setNextRunStartTime(jaxb.getNextRunStartTime());
         repo.setRecurrence(jaxb.getRecurrence());
 
-        repo.setObjectRef(RUtil.jaxbRefToRepo(jaxb.getObjectRef()));
-        repo.setOwnerRef(RUtil.jaxbRefToRepo(jaxb.getOwnerRef()));
+        repo.setObjectRef(RUtil.jaxbRefToRepo(jaxb.getObjectRef(), jaxb));
+        repo.setOwnerRef(RUtil.jaxbRefToRepo(jaxb.getOwnerRef(), jaxb));
         repo.setResult(RUtil.jaxbResultToRepo(repo, jaxb.getResult()));
 
         try {

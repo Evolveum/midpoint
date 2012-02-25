@@ -24,6 +24,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -79,12 +80,20 @@ public final class RUtil {
         return list;
     }
 
-    public static RObjectReferenceType jaxbRefToRepo(ObjectReferenceType ref) {
+    public static RObjectReferenceType jaxbRefToRepo(ObjectReferenceType ref, ObjectType owner) {
+        Validate.notNull(owner, "Owner of reference must not be null.");
+        Validate.notEmpty(owner.getOid(), "Owner oid of reference must not be null.");
+
+        return jaxbRefToRepo(ref, owner.getOid());
+    }
+
+    public static RObjectReferenceType jaxbRefToRepo(ObjectReferenceType ref, String ownerId) {
         if (ref == null) {
             return null;
         }
 
         RObjectReferenceType result = new RObjectReferenceType();
+        result.setOwner(ownerId);
         RObjectReferenceType.copyFromJAXB(ref, result);
 
         return result;

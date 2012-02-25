@@ -158,7 +158,7 @@ public class RResourceObjectShadowType extends RExtensibleObjectType {
         repo.setObjectClass(jaxb.getObjectClass());
         repo.setFailedOperationType(jaxb.getFailedOperationType());
 
-        repo.setResourceRef(RUtil.jaxbRefToRepo(jaxb.getResourceRef()));
+        repo.setResourceRef(RUtil.jaxbRefToRepo(jaxb.getResourceRef(), jaxb));
         repo.setOpResult(RUtil.jaxbResultToRepo(repo, jaxb.getResult()));
 
         try {

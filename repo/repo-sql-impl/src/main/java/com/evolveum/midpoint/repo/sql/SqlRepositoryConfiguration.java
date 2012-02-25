@@ -24,6 +24,8 @@ package com.evolveum.midpoint.repo.sql;
 import org.apache.commons.configuration.Configuration;
 
 /**
+ * This class is used for SQL repository configuration. It reads values from Apache configuration object (xml).
+ *
  * @author lazyman
  */
 public class SqlRepositoryConfiguration {
@@ -41,9 +43,6 @@ public class SqlRepositoryConfiguration {
     private String jdbcPassword = "";
     private String hibernateDialect = "org.hibernate.dialect.H2Dialect";
     private String hibernateHbm2ddl = "update";
-
-    public SqlRepositoryConfiguration() {
-    }
 
     public SqlRepositoryConfiguration(Configuration configuration) {
         setAsServer(configuration.getBoolean("asServer", asServer));
@@ -91,6 +90,14 @@ public class SqlRepositoryConfiguration {
         this.embedded = embedded;
     }
 
+    /**
+     * Value represents hibernate dialect used to communicate with database. You can choose from
+     * <a href="http://docs.jboss.org/hibernate/core/4.0/manual/en-US/html/session-configuration.html#configuration-optional-dialects">dialects</a>
+     * <p/>
+     * It's used in "hibernate.dialect" property
+     *
+     * @return hibernate dialect
+     */
     public String getHibernateDialect() {
         return hibernateDialect;
     }

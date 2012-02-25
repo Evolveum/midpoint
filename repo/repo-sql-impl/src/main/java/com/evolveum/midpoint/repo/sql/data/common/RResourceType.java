@@ -157,7 +157,7 @@ public class RResourceType extends RExtensibleObjectType {
         RExtensibleObjectType.copyFromJAXB(jaxb, repo);
 
         repo.setNamespace(jaxb.getNamespace());
-        repo.setConnectorRef(RUtil.jaxbRefToRepo(jaxb.getConnectorRef()));
+        repo.setConnectorRef(RUtil.jaxbRefToRepo(jaxb.getConnectorRef(), jaxb));
 
         if (jaxb.getConnector() != null) {
             LOGGER.warn("Connector from resource type won't be saved. It should be translated to connector reference.");

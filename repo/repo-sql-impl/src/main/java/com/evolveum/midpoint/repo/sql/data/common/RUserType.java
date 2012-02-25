@@ -248,7 +248,7 @@ public class RUserType extends RExtensibleObjectType {
             repo.setAccountRef(new HashSet<RObjectReferenceType>());
         }
         for (ObjectReferenceType accountRef : jaxb.getAccountRef()) {
-            repo.getAccountRef().add(RUtil.jaxbRefToRepo(accountRef));
+            repo.getAccountRef().add(RUtil.jaxbRefToRepo(accountRef, jaxb));
         }
 
         for (AssignmentType assignment : jaxb.getAssignment()) {

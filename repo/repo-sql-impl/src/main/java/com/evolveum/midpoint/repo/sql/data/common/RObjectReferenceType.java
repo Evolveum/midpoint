@@ -38,9 +38,9 @@ import javax.xml.namespace.QName;
  */
 @Entity
 @Table(name = "object_reference")
-public class RObjectReferenceType implements Identifiable {
+public class RObjectReferenceType {
 
-    private long id;
+    private String owner;
     private String oid;
     private String description;
     private String filter;
@@ -48,14 +48,13 @@ public class RObjectReferenceType implements Identifiable {
 
     @Id
     @GeneratedValue
-    @Override
-    public long getId() {
-        return id;
+    @Column(length = 32)
+    public String getOwner() {
+        return owner;
     }
 
-    @Override
-    public void setId(long id) {
-        this.id = id;
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 
     public String getDescription() {
@@ -107,8 +106,6 @@ public class RObjectReferenceType implements Identifiable {
         jaxb.setType(repo.getType());
         jaxb.setOid(repo.getOid());
         jaxb.setDescription(repo.getDescription());
-
-//        jaxb.setOid(repo.getId());
     }
 
     public static void copyFromJAXB(ObjectReferenceType jaxb, RObjectReferenceType repo) {
@@ -122,8 +119,6 @@ public class RObjectReferenceType implements Identifiable {
         if (jaxb.getFilter() != null) {
             repo.setFilter(DOMUtil.printDom(jaxb.getFilter()).toString());
         }
-
-//        repo.setId(jaxb.getOid());
     }
 
     public ObjectReferenceType toJAXB() {

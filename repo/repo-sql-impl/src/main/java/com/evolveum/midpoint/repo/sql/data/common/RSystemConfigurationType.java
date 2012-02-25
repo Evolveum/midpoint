@@ -124,7 +124,7 @@ public class RSystemConfigurationType extends RExtensibleObjectType {
                     "translated to user template reference.");
         }
 
-        repo.setDefaultUserTemplateRef(RUtil.jaxbRefToRepo(jaxb.getDefaultUserTemplateRef()));
+        repo.setDefaultUserTemplateRef(RUtil.jaxbRefToRepo(jaxb.getDefaultUserTemplateRef(), jaxb));
 
         try {
             repo.setConnectorFramework(RUtil.toRepo(jaxb.getConnectorFramework()));

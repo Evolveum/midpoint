@@ -148,7 +148,7 @@ public class RAssignmentType implements Identifiable {
             LOGGER.warn("Target from assignment type won't be saved. It should be translated to target reference.");
         }
 
-        repo.setTargetRef(RUtil.jaxbRefToRepo(jaxb.getTargetRef()));
+        repo.setTargetRef(RUtil.jaxbRefToRepo(jaxb.getTargetRef(), jaxb.getId()));
     }
 
     public AssignmentType toJAXB() throws DtoTranslationException {
