@@ -66,8 +66,8 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_GET_REFERENCE = "getReference";
     private static final String METHOD_SET_REFERENCE = "setReference";
     //annotations for schema processor
-    private static final QName PROPERTY_CONTAINER = new QName(PrefixMapper.A.getNamespace(), "container");
-    private static final QName MIDPOINT_CONTAINER = new QName(PrefixMapper.A.getNamespace(), "object");
+    private static final QName PRISM_CONTAINER = new QName(PrefixMapper.A.getNamespace(), "container");
+    private static final QName PRISM_OBJECT = new QName(PrefixMapper.A.getNamespace(), "object");
     //fields and methods for prism containers/prism objects
     private static final String COMPLEX_TYPE_FIELD = "COMPLEX_TYPE";
     private static final String CONTAINER_FIELD_NAME = "container";
@@ -237,11 +237,11 @@ public class SchemaProcessor implements Processor {
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
             QName qname = getCClassInfoQName(entry.getValue());
-            if (qname == null || !hasAnnotation(classOutline, PROPERTY_CONTAINER)) {
+            if (qname == null || !hasAnnotation(classOutline, PRISM_CONTAINER)) {
                 continue;
             }
 
-            if (hasAnnotation(classOutline, MIDPOINT_CONTAINER) && hasAnnotation(classOutline, PROPERTY_CONTAINER)) {
+            if (hasAnnotation(classOutline, PRISM_OBJECT) && hasAnnotation(classOutline, PRISM_CONTAINER)) {
                 continue;
             }
 
@@ -261,7 +261,7 @@ public class SchemaProcessor implements Processor {
             System.out.println("Creating toString, equals, hashCode methods.");
             //create toString, equals, hashCode
             createToStringMethod(definedClass);
-            createEqualsMethod(definedClass);
+            createEqualsMethod(classOutline);
             createHashCodeMethod(definedClass);
         }
 
@@ -294,7 +294,7 @@ public class SchemaProcessor implements Processor {
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
             QName qname = getCClassInfoQName(entry.getValue());
-            if (qname == null || !hasAnnotation(classOutline, MIDPOINT_CONTAINER)) {
+            if (qname == null || !hasAnnotation(classOutline, PRISM_OBJECT)) {
                 continue;
             }
 
@@ -315,7 +315,7 @@ public class SchemaProcessor implements Processor {
             System.out.println("Creating toString, equals, hashCode methods.");
             //create toString, equals, hashCode
             createToStringMethod(definedClass);
-            createEqualsMethod(definedClass);
+            createEqualsMethod(classOutline);
             createHashCodeMethod(definedClass);
             //create toDebugName, toDebugType
             createToDebugName(definedClass);
@@ -426,8 +426,8 @@ public class SchemaProcessor implements Processor {
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
             QName qname = getCClassInfoQName(entry.getValue());
-            if (qname == null || (!hasParentAnnotation(classOutline, MIDPOINT_CONTAINER)
-                    && !hasParentAnnotation(classOutline, PROPERTY_CONTAINER))) {
+            if (qname == null || (!hasParentAnnotation(classOutline, PRISM_OBJECT)
+                    && !hasParentAnnotation(classOutline, PRISM_CONTAINER))) {
                 continue;
             }            
 
@@ -439,21 +439,31 @@ public class SchemaProcessor implements Processor {
                 }
             }
             //todo remove Equals interface from defined class
-            removeOldEqualsMethods(definedClass);
+            
+            boolean isMidpointContainer = hasParentAnnotation(classOutline, PRISM_OBJECT);
+            removeOldEqualsMethods(classOutline.implClass, isMidpointContainer);
         }
     }
 
-    private void removeOldEqualsMethods(JDefinedClass definedClass) {
+    private void removeOldEqualsMethods(JDefinedClass definedClass, boolean isPrismObject) {
         Iterator<JMethod> methods = definedClass.methods().iterator();
         while (methods.hasNext()) {
-            if (methods.next().name().equals(METHOD_EQUALS)) {
-                methods.remove();
-                break;
+            JMethod method = methods.next();
+            if (isPrismObject) {
+                if (method.name().equals(METHOD_EQUALS)) {
+                    methods.remove();
+                }
+            } else {
+                if (method.name().equals(METHOD_EQUALS) && method.listParams().length != 1) {
+                    methods.remove();
+                }
             }
         }
     }
 
-    private void createEqualsMethod(JDefinedClass definedClass) {
+    private void createEqualsMethod(ClassOutline classOutline) {
+        JDefinedClass definedClass = classOutline.implClass;
+
         JMethod equals = null;
         for (JMethod method : definedClass.methods()) {
             if (method.name().equals(METHOD_EQUALS) && method.listParamTypes().length == 1
@@ -464,7 +474,7 @@ public class SchemaProcessor implements Processor {
         }
 
         if (equals != null) {
-            removeOldEqualsMethods(definedClass);
+            removeOldEqualsMethods(definedClass, hasParentAnnotation(classOutline, PRISM_OBJECT));
             equals = recreateMethod(equals, definedClass);
         } else {
             equals = definedClass.method(JMod.PUBLIC, boolean.class, METHOD_EQUALS);
@@ -583,7 +593,7 @@ public class SchemaProcessor implements Processor {
             }
 
             QName qname = getCClassInfoQName(classInfo);
-            if (qname == null || !hasParentAnnotation(classOutline, MIDPOINT_CONTAINER)) {
+            if (qname == null || !hasParentAnnotation(classOutline, PRISM_OBJECT)) {
                 continue;
             }
 
@@ -1081,8 +1091,8 @@ public class SchemaProcessor implements Processor {
             return false;
         }
 
-        boolean isContainer = hasAnnotation(classOutline, PROPERTY_CONTAINER)
-                || hasAnnotation(classOutline, MIDPOINT_CONTAINER);
+        boolean isContainer = hasAnnotation(classOutline, PRISM_CONTAINER)
+                || hasAnnotation(classOutline, PRISM_OBJECT);
 
         if (isContainer) {
             return true;
@@ -1281,7 +1291,7 @@ public class SchemaProcessor implements Processor {
             return false;
         }
 
-        return hasParentAnnotation(classOutline, MIDPOINT_CONTAINER);
+        return hasParentAnnotation(classOutline, PRISM_OBJECT);
     }
 
     private boolean isList(JType type) {
