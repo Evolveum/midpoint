@@ -37,6 +37,10 @@ import javax.xml.namespace.QName;
 public class ComplexTypeDefinition extends Definition {
 	private static final long serialVersionUID = 2655797837209175037L;
 	private Set<ItemDefinition> itemDefinitions;
+	private QName superType;
+	private boolean containerMarker;
+	private boolean objectMarker;
+	private boolean xsdAnyMarker;
 	private QName extensionForType;
 
 	public ComplexTypeDefinition(QName defaultName, QName typeName, PrismContext prismContext) {
@@ -71,6 +75,52 @@ public class ComplexTypeDefinition extends Definition {
 		this.extensionForType = extensionForType;
 	}
 	
+	/**
+	 * Flag indicating whether this type was marked as "container"
+	 * in the original schema. Does not provide any information to
+	 * schema processing logic, just conveys the marker from oginal
+	 * schema so we can serialized and deserialize the schema without
+	 * loss of information.
+	 */
+	public boolean isContainerMarker() {
+		return containerMarker;
+	}
+
+	public void setContainerMarker(boolean containerMarker) {
+		this.containerMarker = containerMarker;
+	}
+
+	/**
+	 * Flag indicating whether this type was marked as "object"
+	 * in the original schema. Does not provide any information to
+	 * schema processing logic, just conveys the marker from original
+	 * schema so we can serialized and deserialize the schema without
+	 * loss of information.
+	 */
+	public boolean isObjectMarker() {
+		return objectMarker;
+	}
+	
+	public boolean isXsdAnyMarker() {
+		return xsdAnyMarker;
+	}
+
+	public void setXsdAnyMarker(boolean xsdAnyMarker) {
+		this.xsdAnyMarker = xsdAnyMarker;
+	}
+
+	public QName getSuperType() {
+		return superType;
+	}
+
+	public void setSuperType(QName superType) {
+		this.superType = superType;
+	}
+
+	public void setObjectMarker(boolean objectMarker) {
+		this.objectMarker = objectMarker;
+	}
+
 	public void add(ItemDefinition definition) {
 		itemDefinitions.add(definition);
 	}

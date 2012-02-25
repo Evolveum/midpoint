@@ -106,6 +106,10 @@ class SchemaToDomProcessor {
 	public void setNamespacePrefixMapper(DynamicNamespacePrefixMapper namespacePrefixMapper) {
 		this.namespacePrefixMapper = namespacePrefixMapper;
 	}
+	
+	private SchemaDefinitionFactory getDefinitionFactory() {
+		return prismContext.getDefinitionFactory();
+	}
 
 	/**
 	 * Main entry point.
@@ -124,6 +128,12 @@ class SchemaToDomProcessor {
 			
 			init();
 			
+			// Process complex types first. 
+			Collection<ComplexTypeDefinition> complexTypes = schema.getDefinitions(ComplexTypeDefinition.class);
+			for (ComplexTypeDefinition complexTypeDefinition: complexTypes) {
+				addComplexTypeDefinition(complexTypeDefinition, document.getDocumentElement());
+			}
+			
 			Collection<Definition> definitions = schema.getDefinitions();
 			for (Definition definition : definitions) {
 				
@@ -138,8 +148,7 @@ class SchemaToDomProcessor {
 							document.getDocumentElement());
 					
 				} else if (definition instanceof ComplexTypeDefinition){
-					// Ignore for now. Some the these will be processed inside
-					// processing of PropertyContainerDefinition
+					// Skip this. Already processed above.
 					
 				} else {
 					throw new IllegalArgumentException("Encountered unsupported definition in schema: "
@@ -171,9 +180,13 @@ class SchemaToDomProcessor {
 			Element elementParent, Element complexTypeParent) {
 		
 		ComplexTypeDefinition complexTypeDefinition = definition.getComplexTypeDefinition();
-		Element complexType = addComplexTypeDefinition(complexTypeDefinition,complexTypeParent);
-		
-		addElementDefinition(definition.getName(),definition.getTypeName(),elementParent);
+		// Check if the complex type is a top-level complex type. If it is then it was already processed and we can skip it
+		if (complexTypeDefinition != null && schema.findComplexTypeDefinition(complexTypeDefinition.getTypeName()) == null) {
+			addComplexTypeDefinition(complexTypeDefinition,complexTypeParent);
+		}
+
+		addElementDefinition(definition.getName(), definition.getTypeName(), definition.getMinOccurs(), definition.getMaxOccurs(),
+				elementParent);
 	}
 
 	/**
@@ -226,20 +239,51 @@ class SchemaToDomProcessor {
 			setQNameAttribute(property, "ref", definition.getName());
 		}
 
-		if (definition.getMinOccurs() != 1) {
-			setAttribute(property, "minOccurs", Integer.toString(definition.getMinOccurs()));
+		if (definition.getCompositeObjectElementName() == null) {
+			setMultiplicityAttribute(property, "minOccurs", 0);
 		}
+		setMultiplicityAttribute(property, "maxOccurs", definition.getMaxOccurs());
 
-		if (definition.getMaxOccurs() != 1) {
-			String maxOccurs = definition.getMaxOccurs() == XSParticle.UNBOUNDED ? MAX_OCCURS_UNBOUNDED
-					: Integer.toString(definition.getMaxOccurs());
-			setAttribute(property, "maxOccurs", maxOccurs);
+		// Add annotations
+		Element annotation = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "annotation"));
+		property.appendChild(annotation);
+		Element appinfo = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "appinfo"));
+		annotation.appendChild(appinfo);
+
+		addAnnotation(A_OBJECT_REFERENCE, appinfo);
+
+		if (definition.getTargetTypeName() != null) {
+			addAnnotation(A_OBJECT_REFERENCE_TARGET_TYPE, definition.getTargetTypeName(), appinfo);
 		}
-
-//		// TODO
-//		addReferenceAnnotation(definition, property);
-
+		
+		if (definition.getCompositeObjectElementName() == null) {
+			return;
+		}
+		
+		property = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "element"));
+		// Add to document first, so following methods will be able to resolve namespaces
 		parent.appendChild(property);
+
+		QName elementName = definition.getCompositeObjectElementName();
+		attrNamespace = elementName.getNamespaceURI();
+		if (attrNamespace != null && attrNamespace.equals(schema.getNamespace())) {
+			setAttribute(property, "name", elementName.getLocalPart());
+			setQNameAttribute(property, "type", definition.getTargetTypeName());
+		} else {
+			setQNameAttribute(property, "ref", elementName);
+		}
+
+		setMultiplicityAttribute(property, "minOccurs", 0);
+		setMultiplicityAttribute(property, "maxOccurs", definition.getMaxOccurs());
+
+		// Add annotations
+		annotation = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "annotation"));
+		property.appendChild(annotation);
+		appinfo = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "appinfo"));
+		annotation.appendChild(appinfo);
+
+		addAnnotation(A_OBJECT_REFERENCE, definition.getName(), appinfo);
+
 	}
 	
 	/**
@@ -248,14 +292,38 @@ class SchemaToDomProcessor {
 	 * @param typeName element type QName
 	 * @param parent element under which the definition will be added
 	 */
-	private void addElementDefinition(QName name, QName typeName, Element parent) {
-		// TODO Auto-generated method stub
+	private void addElementDefinition(QName name, QName typeName, int minOccurs, int maxOccurs, Element parent) {
 		Document document = parent.getOwnerDocument();
 		Element elementDef = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "element"));
 		parent.appendChild(elementDef);
 		// "typeName" should be used instead of "name" when defining a XSD type
 		setAttribute(elementDef, "name", name.getLocalPart());
-		setQNameAttribute(elementDef, "type", typeName);
+		
+		if (typeName.equals(DOMUtil.XSD_ANY)) {
+			addSequenceXsdAnyDefinition(elementDef);
+		} else {
+			setQNameAttribute(elementDef, "type", typeName);
+		}
+		
+		setMultiplicityAttribute(elementDef, "minOccurs", minOccurs);
+		setMultiplicityAttribute(elementDef, "maxOccurs", maxOccurs);
+	}
+
+	private void addSequenceXsdAnyDefinition(Element elementDef) {
+		Element complexContextElement = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "complexType"));
+		elementDef.appendChild(complexContextElement);
+		Element sequenceElement = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "sequence"));
+		complexContextElement.appendChild(sequenceElement);
+		addXsdAnyDefinition(sequenceElement);
+	}
+	
+	private void addXsdAnyDefinition(Element elementDef) {
+		Element anyElement = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "any"));
+		elementDef.appendChild(anyElement);
+		setAttribute(anyElement, "namespace", "##other");
+		setAttribute(anyElement, "minOccurs", "0");
+		setAttribute(anyElement, "maxOccurs", "unbounded");
+		setAttribute(anyElement, "processContents", "lax");
 	}
 
 	/**
@@ -279,9 +347,19 @@ class SchemaToDomProcessor {
 		parent.appendChild(complexType);
 		// "typeName" should be used instead of "name" when defining a XSD type
 		setAttribute(complexType, "name", definition.getTypeName().getLocalPart());
+		
+		Element containingElement = complexType;
+		if (definition.getSuperType() != null) {
+			Element complexContent = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "complexContent"));
+			complexType.appendChild(complexContent);
+			Element extension = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "extension"));
+			complexContent.appendChild(extension);
+			setQNameAttribute(extension, "base", definition.getSuperType());
+			containingElement = extension;
+		}
 
 		Element sequence = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "sequence"));
-		complexType.appendChild(sequence);
+		containingElement.appendChild(sequence);
 
 		Set<ItemDefinition> definitions = definition.getDefinitions();
 		for (ItemDefinition def : definitions) {
@@ -297,7 +375,11 @@ class SchemaToDomProcessor {
 			}
 		}
 		
-		addComplexTypeAnnotation(definition,complexType);
+		if (definition.isXsdAnyMarker()) {
+			addXsdAnyDefinition(sequence);
+		}
+		
+		Element anotationElement = addComplexTypeAnnotation(definition,complexType);
 		
 		return complexType;
 	}
@@ -307,22 +389,26 @@ class SchemaToDomProcessor {
 	 * @param definition
 	 * @param parent element under which the definition will be added (inserted as the first sub-element)
 	 */
-	private void addComplexTypeAnnotation(ComplexTypeDefinition definition, Element parent) {
+	private Element addComplexTypeAnnotation(ComplexTypeDefinition definition, Element parent) {
 		Element annotation = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "annotation"));
 		parent.insertBefore(annotation, parent.getFirstChild());
 		Element appinfo = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "appinfo"));
 		annotation.appendChild(appinfo);
-
-		// A top-level complex type is implicitly a property container now. It may change in the future
 		
-		// annotation: propertyContainer
-		addAnnotation(A_PROPERTY_CONTAINER, definition.getDisplayName(), appinfo);
+		if (definition.isObjectMarker()) {
+			// annotation: propertyContainer
+			addAnnotation(A_OBJECT, definition.getDisplayName(), appinfo);
+		} else if (definition.isContainerMarker()) {
+			// annotation: propertyContainer
+			addAnnotation(A_PROPERTY_CONTAINER, definition.getDisplayName(), appinfo);
+		}
 		
 		if (!appinfo.hasChildNodes()) {
 			// remove unneeded <annotation> element
 			parent.removeChild(annotation);
 		}
 
+		return annotation;
 	}
 
 
@@ -463,6 +549,21 @@ class SchemaToDomProcessor {
 		}
 		return annotation;
 	}
+	
+	private Element addAnnotation(QName qname, Element parent) {
+		Element annotation = createElement(qname);
+		parent.appendChild(annotation);
+		return annotation;
+	}
+	
+	private Element addAnnotation(QName qname, QName value, Element parent) {
+		Element annotation = createElement(qname);
+		parent.appendChild(annotation);
+		if (value != null) {
+			DOMUtil.setQNameValue(annotation, value);
+		}
+		return annotation;
+	}
 
 	/**
 	 * Adds annotation that points to another element (ususaly a property).
@@ -543,6 +644,17 @@ class SchemaToDomProcessor {
 	 */
 	private void setAttribute(Element element, String attrName, String attrValue) {
 		setAttribute(element, new QName(W3C_XML_SCHEMA_NS_URI, attrName), attrValue);
+	}
+	
+	private void setMultiplicityAttribute(Element element, String attrName, int attrValue) {
+		if (attrValue == 1) {
+			return;
+		}
+		if (attrValue < 0) {
+			setAttribute(element, attrName, "unbounded");
+		} else {
+			setAttribute(element, attrName, Integer.toString(attrValue));
+		}
 	}
 
 	/**

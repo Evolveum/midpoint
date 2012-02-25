@@ -144,6 +144,22 @@ public class TestPrismContext {
 		
 		PrismObjectDefinition<UserType> userDefinitionByClass = schemaRegistry.findObjectDefinitionByCompileTimeClass(UserType.class);
 		assertTrue("Different user def", userDefinition == userDefinitionByClass);
+		
+		assertUserDefinition(userDefinition);
+		
+		// Assert ACCOUNT definition
+		PrismObjectDefinition<AccountType> accountDefinition = objectSchema.findObjectDefinitionByElementName(new QName(NS_FOO,"account"));
+		assertNotNull("No account definition", accountDefinition);
+		System.out.println("Account definition:");
+		System.out.println(accountDefinition.dump());
+		
+		PrismObjectDefinition<AccountType> accountDefinitionByClass = schemaRegistry.findObjectDefinitionByCompileTimeClass(AccountType.class);
+		assertTrue("Different user def", accountDefinition == accountDefinitionByClass);
+
+		assertAccountDefinition(accountDefinition);
+	}
+		
+	private void assertUserDefinition(PrismObjectDefinition<UserType> userDefinition) {
 
 		assertEquals("Wrong compile-time class in user definition", UserType.class, userDefinition.getCompileTimeClass());
 		PrismAsserts.assertPropertyDefinition(userDefinition, USER_NAME_QNAME, DOMUtil.XSD_STRING, 0, 1);
@@ -179,17 +195,10 @@ public class TestPrismContext {
 		assertEquals("Wrong target type in accountRef", ACCOUNT_TYPE_QNAME, accountRefDef.getTargetTypeName());
 		assertEquals("Wrong composite object element name in accountRef", USER_ACCOUNT_QNAME, accountRefDef.getCompositeObjectElementName());
 		
+	}
+	
+	private void assertAccountDefinition(PrismObjectDefinition<AccountType> accountDefinition) {
 		
-		
-		// Assert ACCOUNT definition
-		PrismObjectDefinition<AccountType> accountDefinition = objectSchema.findObjectDefinitionByElementName(new QName(NS_FOO,"account"));
-		assertNotNull("No user definition", accountDefinition);
-		System.out.println("User definition:");
-		System.out.println(accountDefinition.dump());
-		
-		PrismObjectDefinition<AccountType> accountDefinitionByClass = schemaRegistry.findObjectDefinitionByCompileTimeClass(AccountType.class);
-		assertTrue("Different user def", accountDefinition == accountDefinitionByClass);
-
 		assertEquals("Wrong compile-time class in account definition", AccountType.class, accountDefinition.getCompileTimeClass());
 		PrismAsserts.assertPropertyDefinition(accountDefinition, ACCOUNT_NAME_QNAME, DOMUtil.XSD_STRING, 0, 1);
 		PrismAsserts.assertPropertyDefinition(accountDefinition, ACCOUNT_DESCRIPTION_QNAME, DOMUtil.XSD_STRING, 0, 1);
@@ -215,7 +224,7 @@ public class TestPrismContext {
 		assertNotNull("No foo XSD DOM", fooXsd);
 	}
 	
-	@Test(enabled=false)
+	@Test
 	public void testSchemaParsingRoundTrip() throws SchemaException, SAXException, IOException {
 		System.out.println("===[ testSchemaParsingRoundTrip ]===");
 		
@@ -236,6 +245,24 @@ public class TestPrismContext {
 		
 		// THEN
 		assertNotNull("No parsed schema", parsedSchema);
+		System.out.println("Parsed schema");
+		System.out.println(parsedSchema.dump());
+		
+		// Assert USER definition
+		PrismObjectDefinition<UserType> userDefinition = parsedSchema.findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+		assertNotNull("No user definition", userDefinition);
+		System.out.println("User definition:");
+		System.out.println(userDefinition.dump());
+				
+		assertUserDefinition(userDefinition);
+		
+		// Assert ACCOUNT definition
+		PrismObjectDefinition<AccountType> accountDefinition = parsedSchema.findObjectDefinitionByElementName(new QName(NS_FOO,"account"));
+		assertNotNull("No account definition", accountDefinition);
+		System.out.println("Account definition:");
+		System.out.println(accountDefinition.dump());
+		
+		assertAccountDefinition(accountDefinition);
 	}
 
 }

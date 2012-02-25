@@ -31,8 +31,11 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -82,6 +85,11 @@ public class TestJaxbSanity {
 		assertTrue("AccountConstructionType not equals", ac1.equals(ac2));
 		
 		// WHEN, THEN
+		ObjectDelta<UserType> objectDelta = user1.diff(user1);
+		System.out.println("User delta:");
+		System.out.println(objectDelta.dump());
+		assertTrue("User delta is not empty", objectDelta.isEmpty());
+		
 		assertTrue("User not equals (PrismObject)", user1.equals(user2));
 		assertTrue("User not equivalent (PrismObject)", user1.equivalent(user2));
 		assertTrue("User not equals (Objectable)", user1Type.equals(user2Type));
@@ -104,9 +112,28 @@ public class TestJaxbSanity {
 		// Compare plain JAXB objects (not backed by containers)
 		AccountConstructionType ac1 = user1Type.getAssignment().get(0).getAccountConstruction();
 		AccountConstructionType ac2 = user2Type.getAssignment().get(0).getAccountConstruction();
-		assertTrue("AccountConstructionType not equals", ac1.equals(ac2));
+		assertTrue("AccountConstructionType not equals (JAXB)", ac1.equals(ac2));
+		
+		AssignmentType as1Type = user1Type.getAssignment().get(0);
+		PrismContainer as1Cont = as1Type.asPrismContainer();
+		PrismContainerValue as1ContVal = as1Type.asPrismContainerValue();
+		AssignmentType as2Type = user2Type.getAssignment().get(0);
+		PrismContainer as2Cont = as2Type.asPrismContainer();
+		PrismContainerValue as2ContVal = as2Type.asPrismContainerValue();
+		assertTrue("Assignment not equals (ContainerValue)", as1ContVal.equals(as2ContVal));
+		assertTrue("Assignment not equals (ContainerValue, ignoreMetadata)", as1ContVal.equals(as2ContVal,true));
+		assertTrue("Assignment not equals (ContainerValue, not ignoreMetadata)", as1ContVal.equals(as2ContVal,false));
+		assertTrue("Assignment not equivalent (ContainerValue)", as1ContVal.equivalent(as2ContVal));
+		assertTrue("Assignment not equals (Container)", as1Cont.equals(as2Cont));
+		assertTrue("Assignment not equivalent (Container)", as1Cont.equivalent(as2Cont));
+		assertTrue("AssignmentType not equals (JAXB)", as1Type.equals(as2Type));
 		
 		// WHEN, THEN
+		ObjectDelta<UserType> objectDelta = user1.diff(user1);
+		System.out.println("User delta:");
+		System.out.println(objectDelta.dump());
+		assertTrue("User delta is not empty", objectDelta.isEmpty());
+		
 		assertTrue("User not equals (PrismObject)", user1.equals(user2));
 		assertTrue("User not equivalent (PrismObject)", user1.equivalent(user2));
 		assertTrue("User not equals (Objectable)", user1Type.equals(user2Type));

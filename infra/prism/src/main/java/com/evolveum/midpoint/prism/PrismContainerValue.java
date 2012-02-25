@@ -102,7 +102,11 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 	}
 	
 	public PropertyPath getPath(PropertyPath pathPrefix) {
-		PropertyPath parentPath = getParent().getPath(pathPrefix);
+		PrismContainer<T> parent = getParent();
+		PropertyPath parentPath = PropertyPath.EMPTY_PATH;
+		if (parent != null) {
+			parentPath = getParent().getPath(pathPrefix);
+		}
 		if (parentPath == null || parentPath.isEmpty()) {
 			return parentPath;
 		}
@@ -412,7 +416,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
     
 	@Override
 	public boolean equalsRealValue(PrismValue value) {
-		if (value instanceof PrismPropertyValue) {
+		if (value instanceof PrismContainerValue) {
 			return equalsRealValue((PrismContainerValue<T>)value);
 		} else {
 			return false;

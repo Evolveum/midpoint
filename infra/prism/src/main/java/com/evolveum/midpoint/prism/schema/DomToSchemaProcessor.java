@@ -263,6 +263,22 @@ class DomToSchemaProcessor {
 			}
 		}
 		
+		QName superType = determineSupertype(complexType);
+		if (superType != null) {
+			ctd.setSuperType(superType);
+		}
+		
+		if (isObjectDefinition(complexType)) {
+			ctd.setObjectMarker(true);
+		}
+		if (isPropertyContainer(complexType)) {
+			ctd.setContainerMarker(true);
+		}
+		
+		if (isAny(complexType)) {
+			ctd.setXsdAnyMarker(true);
+		}
+		
 		definitionFactory.finishComplexTypeDefinition(ctd, complexType, prismContext, complexType.getAnnotation());
 		
 		return ctd;
@@ -414,7 +430,7 @@ class DomToSchemaProcessor {
 				QName typeQName = new QName (xsType.getTargetNamespace(),xsType.getName());
 				XSAnnotation annotation = xsType.getAnnotation();
 				
-				if (isPropertyContainer(xsType)) {
+				if (isPropertyContainer(xsType) || isObjectDefinition(xsType)) {
 					
 					ComplexTypeDefinition complexTypeDefinition = schema.findComplexTypeDefinition(typeQName);
 					PrismContainerDefinition propertyContainerDefinition = createPropertyContainerDefinition(xsType, xsElementDecl,
@@ -453,6 +469,17 @@ class DomToSchemaProcessor {
 			}
 		}		
 		return false;
+	}
+	
+	private QName determineSupertype(XSComplexType complexType) {
+		XSType baseType = complexType.getBaseType();
+		if (baseType == null) {
+			return null;
+		}
+		if (baseType.getName().equals("anyType")) {
+			return null;
+		}
+		return new QName(baseType.getTargetNamespace(),baseType.getName());
 	}
 
 	/**

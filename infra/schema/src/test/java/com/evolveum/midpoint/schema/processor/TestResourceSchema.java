@@ -25,7 +25,9 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -38,9 +40,14 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
 import org.testng.AssertJUnit;
 import org.testng.annotations.AfterMethod;
@@ -48,8 +55,10 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
@@ -115,6 +124,82 @@ public class TestResourceSchema {
         assertEquals(new QName(SCHEMA_NAMESPACE, "ufo"), ufoDef.getName());
         assertTrue("Not ignored as it should be", ufoDef.isIgnored());
     }
+    
+	@Test
+	public void testResourceSchemaRoundTrip() throws SchemaException, JAXBException {
+		System.out.println("\n===[ testResourceSchemaRoundTrip ]=====");
+		// GIVEN
+		ResourceSchema schema = new ResourceSchema(SCHEMA_NAMESPACE, PrismTestUtil.getPrismContext());
+		
+		// Property container
+		ResourceAttributeContainerDefinition containerDefinition = schema.createResourceObjectDefinition("AccountObjectClass");
+		containerDefinition.setAccountType(true);
+		containerDefinition.setDefaultAccountType(true);
+		containerDefinition.setNativeObjectClass("ACCOUNT");
+		// ... in it ordinary attribute - an identifier
+		ResourceAttributeDefinition xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
+		containerDefinition.getIdentifiers().add(xloginDef);
+		xloginDef.setNativeAttributeName("LOGIN");
+		containerDefinition.setDisplayNameAttribute(xloginDef.getName());
+		// ... and local property with a type from another schema
+		ResourceAttributeDefinition xpasswdDef = containerDefinition.createAttributeDefinition("password", SchemaConstants.R_PROTECTED_STRING_TYPE);
+		xpasswdDef.setNativeAttributeName("PASSWORD");
+		// ... property reference
+		containerDefinition.createAttributeDefinition(SchemaConstants.I_CREDENTIALS, SchemaConstants.I_CREDENTIALS_TYPE);
+
+		System.out.println("Resource schema before serializing to XSD: ");
+		System.out.println(schema.dump());
+		System.out.println();
+
+		Document xsd = schema.serializeToXsd();
+
+		ResourceType resource = new ResourceType();
+		resource.setName("JAXB With Dynamic Schemas Test");
+		XmlSchemaType xmlSchemaType = new XmlSchemaType();
+		xmlSchemaType.getAny().add(DOMUtil.getFirstChildElement(xsd));
+		resource.setSchema(xmlSchemaType);
+		
+		// WHEN
+		
+		JAXBElement<ResourceType> resourceElement = new JAXBElement<ResourceType>(SchemaConstants.I_RESOURCE, ResourceType.class, resource);
+		String marshalledResource = PrismTestUtil.marshalElementToString(resourceElement);
+		
+		System.out.println("Marshalled resource");
+		System.out.println(marshalledResource); 
+		
+		ResourceType unmarshalledResource = PrismTestUtil.unmarshalObject(marshalledResource, ResourceType.class);
+		
+		System.out.println("unmarshalled resource");
+		System.out.println(ObjectTypeUtil.dump(unmarshalledResource));
+		XmlSchemaType unXmlSchemaType = unmarshalledResource.getSchema();
+		Element unXsd = unXmlSchemaType.getAny().get(0);
+		ResourceSchema unSchema = ResourceSchema.parse(unXsd, PrismTestUtil.getPrismContext());
+		
+		System.out.println("unmarshalled schema");
+		System.out.println(unSchema.dump());
+		
+		// THEN
+		
+		PrismContainerDefinition newContainerDef = unSchema.findContainerDefinitionByType(new QName(SCHEMA_NAMESPACE,"AccountObjectClass"));
+		assertEquals(new QName(SCHEMA_NAMESPACE,"AccountObjectClass"),newContainerDef.getTypeName());
+		assertTrue("AccountObjectClass class not a ResourceAttributeContainerDefinition", newContainerDef instanceof ResourceAttributeContainerDefinition);
+		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) newContainerDef;
+		assertTrue("AccountObjectClass class not an account", rod.isAccountType());
+		assertTrue("AccountObjectClass class not a DEFAULT account", rod.isDefaultAccountType());
+		
+		PrismPropertyDefinition loginDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE,"login"));
+		assertEquals(new QName(SCHEMA_NAMESPACE,"login"), loginDef.getName());
+		assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
+
+		PrismPropertyDefinition passwdDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE,"password"));
+		assertEquals(new QName(SCHEMA_NAMESPACE,"password"), passwdDef.getName());
+		assertEquals(SchemaConstants.R_PROTECTED_STRING_TYPE, passwdDef.getTypeName());
+
+		PrismContainerDefinition credDef = newContainerDef.findContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
+		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
+		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
+	}
+
 
     @Test
     public void instantiationTest() throws SchemaException, JAXBException {
@@ -171,6 +256,36 @@ public class TestResourceSchema {
 //        System.out.println("Serialized: ");
 //        System.out.println(DOMUtil.serializeDOMToString(doc));
     }
+    
+	@Test
+	public void testUnmarshallResource() throws JAXBException {
+		System.out.println("===[ testUnmarshallResource ]===");
+		// WHEN
+		ResourceType resource = PrismTestUtil.unmarshalObject(new File("src/test/resources/schema/resource-opendj.xml"), ResourceType.class);
+		
+		// THEN
+		
+		if (resource.getNativeCapabilities() != null) {
+			for (Object capability : resource.getNativeCapabilities().getAny()) {
+	        	System.out.println("Native Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
+	        }
+		}
+
+        if (resource.getCapabilities() != null) {
+	        for (Object capability : resource.getCapabilities().getAny()) {
+	        	System.out.println("Configured Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
+	        }
+        }
+        
+        List<Object> effectiveCapabilities = ResourceTypeUtil.listEffectiveCapabilities(resource);
+        for (Object capability : effectiveCapabilities) {
+        	System.out.println("Efective Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
+        }
+
+        assertNotNull(resource.getCapabilities());
+        assertFalse(resource.getCapabilities().getAny().isEmpty());
+        
+	}
 
 //    @Test
 //    public void valueParseTest() throws SchemaException, SchemaException {
