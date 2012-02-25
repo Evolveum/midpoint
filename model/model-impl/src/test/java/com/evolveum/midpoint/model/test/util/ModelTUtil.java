@@ -61,7 +61,7 @@ public class ModelTUtil {
 
 	@SuppressWarnings("unchecked")
 	public static <T extends ObjectType> T patchXml(ObjectModificationType changes, T object,
-			Class<T> clazz) throws PatchException, JAXBException {
+			Class<T> clazz) throws SchemaException {
 
 		ObjectDelta<T> objectDelta = DeltaConvertor.createObjectDelta(changes, clazz, PrismTestUtil.getPrismContext());
 		objectDelta.applyTo(object.asPrismObject());
