@@ -32,16 +32,7 @@ import org.w3c.dom.Element;
  */
 public class QueryProcessor {
 
-    public Criteria createFilterCriteria(Criteria criteria1, Element filter) {
-        Session session = null;
-        
-        Criteria criteria = session.createCriteria(RUserType.class);
-        criteria.add(Restrictions.eq("givenName", "LDAP"));
-
-        
-        //todo create criteria from query filter
-
-//        JAXBUtil.unmarshal(filter);
+    public Criteria createFilterCriteria(Criteria criteria, Element filter) {
 
         return criteria;
     }

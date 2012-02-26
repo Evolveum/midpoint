@@ -50,14 +50,19 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
     private ApplicationContext applicationContext;
     @Autowired
     MidpointConfiguration midpointConfiguration;
+    //Repository factory
+    private RepositoryServiceFactory factory;
+    private RepositoryServiceFactory cacheFactory;
     //Repository services
-    RepositoryService repositoryService;
-    RepositoryService cacheRepositoryService;
+    private RepositoryService repositoryService;
+    private RepositoryService cacheRepositoryService;
 
     public void init() {
         Configuration config = midpointConfiguration.getConfiguration(REPOSITORY_CONFIGURATION);
         try {
-            RepositoryServiceFactory factory = getFactory(config);
+            String className = getFactoryClassName(config);
+            Class<RepositoryServiceFactory> clazz = (Class<RepositoryServiceFactory>) Class.forName(className);
+            factory = getFactory(clazz);
             factory.init(config);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "RepositoryServiceFactory implementation class {} failed to " +
@@ -81,24 +86,15 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
 
     private RepositoryServiceFactory getFactory(Class<RepositoryServiceFactory> clazz) throws
             RepositoryServiceFactoryException {
+        LOGGER.info("Getting factory '{}'", new Object[]{clazz.getName()});
         return applicationContext.getBean(clazz);
-    }
-
-    private RepositoryServiceFactory getFactory(Configuration config) throws RepositoryServiceFactoryException {
-        try {
-            String className = getFactoryClassName(config);
-            Class<RepositoryServiceFactory> clazz = (Class<RepositoryServiceFactory>) Class.forName(className);
-            return getFactory(clazz);
-        } catch (Exception ex) {
-            throw new RepositoryServiceFactoryException(ex.getMessage(), ex);
-        }
     }
 
     public void destroy() {
         try {
-            Configuration config = midpointConfiguration.getConfiguration(REPOSITORY_CONFIGURATION);
-            RepositoryServiceFactory factory = getFactory(config);
-            factory.destroy();
+            if (factory != null) {
+                factory.destroy();
+            }
         } catch (RepositoryServiceFactoryException ex) {
             LoggingUtils.logException(LOGGER, "Failed to destroy RepositoryServiceFactory", ex);
             throw new SystemException("Failed to destroy RepositoryServiceFactory", ex);
@@ -118,8 +114,6 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
     public synchronized RepositoryService getRepositoryService() {
         if (repositoryService == null) {
             try {
-                Configuration config = midpointConfiguration.getConfiguration(REPOSITORY_CONFIGURATION);
-                RepositoryServiceFactory factory = getFactory(config);
                 repositoryService = factory.getRepositoryService();
             } catch (RepositoryServiceFactoryException ex) {
                 LoggingUtils.logException(LOGGER, "Failed to get repository service from factory", ex);
@@ -133,10 +127,12 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
         if (cacheRepositoryService == null) {
             try {
                 Class<RepositoryServiceFactory> clazz = (Class<RepositoryServiceFactory>) Class.forName(REPOSITORY_FACTORY_CACHE_CLASS);
-                RepositoryServiceFactory cacheFactory = getFactory(clazz);
+                cacheFactory = getFactory(clazz);
                 //TODO decompose this dependency, remove class casting !!!
-                RepositoryCache cacheService = (RepositoryCache) cacheFactory.getRepositoryService();
-                cacheService.setRepository(getRepositoryService());
+                RepositoryCache repositoryCache = (RepositoryCache) cacheFactory.getRepositoryService();
+                repositoryCache.setRepository(getRepositoryService());
+
+                cacheRepositoryService = repositoryCache;
             } catch (Exception ex) {
                 LoggingUtils.logException(LOGGER, "Failed to get cache repository service. ExceptionClass = {}",
                         ex, ex.getClass().getName());

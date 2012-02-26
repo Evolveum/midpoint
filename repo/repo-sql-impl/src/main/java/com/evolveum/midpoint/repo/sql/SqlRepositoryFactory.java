@@ -144,6 +144,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             } else {
                 LOGGER.info("H2 prepared to run in local mode (from file).");
             }
+            LOGGER.info("H2 files are in '{}'.", new Object[]{sqlConfiguration.getBaseDir()});
 //            initScript();
         } else {
             LOGGER.info("Repository is not running in embedded mode, initialization complete.");
