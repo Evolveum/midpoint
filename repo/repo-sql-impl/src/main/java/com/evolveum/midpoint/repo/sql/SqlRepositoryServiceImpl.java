@@ -21,10 +21,10 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -63,9 +63,9 @@ import java.util.List;
 public class SqlRepositoryServiceImpl implements RepositoryService {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
-        @Autowired(required = true)//todo maybe not necessary, maybe can be autowired
-    SchemaRegistry schemaRegistry;
-        @Autowired(required = true)//todo maybe not necessary, maybe can be autowired
+    @Autowired(required = true)
+    PrismContext prismContext;
+    @Autowired(required = true)
     SessionFactory sessionFactory;
 
     @Override
@@ -366,6 +366,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         try {
             PrismObject<T> prismObject = getObject(type, oid, null, subResult);
 
+            SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
             PrismSchema schema = schemaRegistry.getObjectSchema();
             PrismObjectDefinition<T> objectDef = schema.findObjectDefinitionByCompileTimeClass(type);
 

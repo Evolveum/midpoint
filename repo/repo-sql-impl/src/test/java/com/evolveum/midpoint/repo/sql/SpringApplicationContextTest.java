@@ -66,7 +66,7 @@ public class SpringApplicationContextTest extends AbstractTestNGSpringContextTes
 //        for (int i = 0; i < elements.size(); i++) {
 //            JAXBElement<? extends ObjectType> element = elements.get(i);
 //            ObjectType object = element.getValue();
-//            object.setOid(oids.get(i));
+//            object.setTarget(oids.get(i));
 //
 //            ObjectType type = service.getObject(ObjectType.class, oids.get(i), null, new OperationResult("R"));
 //            ObjectModificationType changes = CalculateXmlDiff.calculateChanges(type, object);

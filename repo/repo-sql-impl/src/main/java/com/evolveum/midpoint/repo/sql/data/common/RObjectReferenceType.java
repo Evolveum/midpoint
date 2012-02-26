@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.repo.sql.Identifiable;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import org.apache.commons.lang.StringUtils;
@@ -41,7 +40,7 @@ import javax.xml.namespace.QName;
 public class RObjectReferenceType {
 
     private String owner;
-    private String oid;
+    private String target;
     private String description;
     private String filter;
     private QName type;
@@ -74,12 +73,12 @@ public class RObjectReferenceType {
         this.filter = filter;
     }
 
-    public String getOid() {
-        return oid;
+    public String getTarget() {
+        return target;
     }
 
-    public void setOid(String oid) {
-        this.oid = oid;
+    public void setTarget(String oid) {
+        this.target = oid;
     }
 
     @Columns(columns = {
@@ -104,7 +103,7 @@ public class RObjectReferenceType {
             jaxb.setFilter(element);
         }
         jaxb.setType(repo.getType());
-        jaxb.setOid(repo.getOid());
+        jaxb.setOid(repo.getTarget());
         jaxb.setDescription(repo.getDescription());
     }
 
@@ -113,7 +112,7 @@ public class RObjectReferenceType {
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
         repo.setDescription(jaxb.getDescription());
-        repo.setOid(jaxb.getOid());
+        repo.setTarget(jaxb.getOid());
         repo.setType(jaxb.getType());
 
         if (jaxb.getFilter() != null) {

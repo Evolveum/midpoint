@@ -48,23 +48,10 @@ import java.util.List;
 public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryFactory.class);
-//    @Autowired(required = true)
-//    SchemaRegistry schemaRegistry;
-//    @Autowired(required = true)
-//    SessionFactory sessionFactory;
-
     private SqlRepositoryConfiguration sqlConfiguration;
     private Server server;
 
-    public Server getServer() {
-        return server;
-    }
-
-    public void setServer(Server server) {
-        this.server = server;
-    }
-
-    private SqlRepositoryConfiguration getSqlConfiguration() {
+    public SqlRepositoryConfiguration getSqlConfiguration() {
         Validate.notNull(sqlConfiguration, "Sql repository configuration not available (null).");
         return sqlConfiguration;
     }
@@ -118,13 +105,13 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         checkPort(getSqlConfiguration().getPort());
 
         SqlRepositoryConfiguration config = getSqlConfiguration();
-        List<String> args = new ArrayList<String>();        
+        List<String> args = new ArrayList<String>();
         if (StringUtils.isNotEmpty(config.getBaseDir())) {
             args.add("-baseDir");
             args.add("\"" + config.getBaseDir() + "\"");
         }
         if (config.isTcpSSL()) {
-            args.add("-tcpSSL"); 
+            args.add("-tcpSSL");
         }
         if (config.getPort() > 0) {
             args.add("-tcpPort");
@@ -168,12 +155,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
     @Override
     public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {
-        SqlRepositoryServiceImpl service =  new SqlRepositoryServiceImpl();
-        //todo maybe not necessary, maybe can be autowired
-//        service.schemaRegistry = schemaRegistry;
-//        service.sessionFactory = sessionFactory;
-
-        return service;
+        return new SqlRepositoryServiceImpl();
     }
 
     private void initScript() throws RepositoryServiceFactoryException {
@@ -199,7 +181,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             }
             jdbcUrl.append(baseDir.getAbsolutePath());
             jdbcUrl.append("/midpoint");
-            jdbc:h2:tcp://127.0.0.1:5437/home/lazyman/Work/evolveum/midpoint-configuration/
+
             LOGGER.debug("Connecting to created JDBC uri '{}'.", new Object[]{jdbcUrl.toString()});
 
             connection = DriverManager.getConnection(jdbcUrl.toString(), "sa", "");
