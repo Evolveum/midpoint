@@ -26,8 +26,4 @@
      http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
 	default-autowire="byName">
 
-    <bean id="midPointPrismContextFactory" class="com.evolveum.midpoint.schema.MidPointPrismContextFactory" />
-    
-    <bean id="prismContext" class="com.evolveum.midpoint.prism.PrismContext"
-          factory-bean="midPointPrismContextFactory" factory-method="createInitializedPrismContext" />
 </beans>

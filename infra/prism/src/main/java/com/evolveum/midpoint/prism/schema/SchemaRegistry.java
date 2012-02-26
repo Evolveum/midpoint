@@ -47,6 +47,7 @@ import javax.xml.validation.SchemaFactory;
 import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.ls.LSInput;
@@ -89,6 +90,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	private boolean initialized = false;
 	private String objectSchemaNamespace;
 	private DynamicNamespacePrefixMapper namespacePrefixMapper;
+    @Autowired(required = true)
 	private PrismContext prismContext;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaRegistry.class);

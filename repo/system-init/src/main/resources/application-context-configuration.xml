@@ -39,15 +39,24 @@
 	<bean name="cacheRepositoryService" factory-bean="repositoryFactory" factory-method="getCacheRepositoryService"
 		class="com.evolveum.midpoint.repo.api.RepositoryService" depends-on="repositoryFactory" />
 
-	<bean name="schemaRegistryFactory" class="com.evolveum.midpoint.init.SchemaRegistryFactory" init-method="init">
-		<property name="midpointConfiguration">
+    <bean id="midPointPrismContextFactory" class="com.evolveum.midpoint.init.ConfigurablePrismContextFactory">
+        <property name="configuration">
             <ref bean="midpointConfiguration"/>
         </property>
-	</bean>
+    </bean>
 
-	<bean name="schemaRegistry" factory-bean="schemaRegistryFactory" factory-method="getSchemaRegistry"
-		class="com.evolveum.midpoint.schema.SchemaRegistry" depends-on="schemaRegistryFactory">
-	</bean>
+    <bean id="prismContext" class="com.evolveum.midpoint.prism.PrismContext"
+          factory-bean="midPointPrismContextFactory" factory-method="createInitializedPrismContext" />
+
+	<!--<bean name="schemaRegistryFactory" class="com.evolveum.midpoint.init.SchemaRegistryFactory" init-method="init">-->
+		<!--<property name="midpointConfiguration">-->
+            <!--<ref bean="midpointConfiguration"/>-->
+        <!--</property>-->
+	<!--</bean>-->
+
+	<!--<bean name="schemaRegistry" factory-bean="schemaRegistryFactory" factory-method="getSchemaRegistry"-->
+		<!--class="com.evolveum.midpoint.schema.SchemaRegistry" depends-on="schemaRegistryFactory">-->
+	<!--</bean>-->
 
 
 	<!--  Scan for components:
