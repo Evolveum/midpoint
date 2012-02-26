@@ -39,11 +39,6 @@
 			<class name="com.evolveum.midpoint.common.test.UtilsTest" />
 		</classes>
 	</test>
-	<test name="JAXB Util" preserve-order="false">
-		<classes>
-			<class name="com.evolveum.midpoint.common.test.JAXBUtilTest" />
-		</classes>
-	</test>
 	<test name="ExpressionConstruction" preserve-order="false">
 		<classes>
 			<class name="com.evolveum.midpoint.common.expression.TestXPathExpressions" />
