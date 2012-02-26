@@ -285,7 +285,7 @@ public class TestValueConstruction {
         // WHEN
         ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "system variables expression construction");
 
-        construction.addVariableDefinition(ExpressionConstants.VAR_USER, userDef.parseObjectType(userType));
+        construction.addVariableDefinition(ExpressionConstants.VAR_USER, userType.asPrismObject());
 
         construction.evaluate(opResult);
         PrismProperty result = construction.getOutput();

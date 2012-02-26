@@ -25,6 +25,7 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -74,20 +75,15 @@ public class TestSchemaProcessorWithRegistry {
     @Test
     public void testParseUserFromJaxb() throws SchemaException, SAXException, IOException, JAXBException {
 
-        SchemaRegistry reg = new SchemaRegistry();
-        reg.initialize();
-        PrismSchema commonSchema = reg.getObjectSchema();
-        assertNotNull(commonSchema);
+    	PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // Try to use the schema to validate Jack
         UserType userType = PrismTestUtil.unmarshalObject(new File(TEST_DIR, "user-jack.xml"), UserType.class);
 
-        PrismObjectDefinition<UserType> userDefinition = commonSchema.findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
-        assertNotNull("UserType definition not found in parsed schema", userDefinition);
-
         // WHEN
 
-        PrismObject<UserType> user = userDefinition.parseObjectType(userType);
+        PrismObject<UserType> user = userType.asPrismObject();
+        user.revive(prismContext);
 
         // THEN
         System.out.println("Parsed user:");
@@ -98,7 +94,7 @@ public class TestSchemaProcessorWithRegistry {
         assertProperty(user, new QName(SchemaConstants.NS_C, "givenName"), "Jack");
         assertProperty(user, new QName(SchemaConstants.NS_C, "familyName"), "Sparrow");
         assertProperty(user, new QName(SchemaConstants.NS_C, "honorificPrefix"), "Cpt.");
-        assertProperty(user.findOrCreateContainer(SchemaConstants.C_EXTENSION),
+        assertProperty(user.findContainer(SchemaConstants.C_EXTENSION),
                 new QName(NS_FOO, "bar"), "BAR");
         PrismProperty password = user.findOrCreateContainer(SchemaConstants.C_EXTENSION).findProperty(new QName(NS_FOO, "password"));
         assertNotNull(password);
@@ -125,21 +121,21 @@ public class TestSchemaProcessorWithRegistry {
     @Test(enabled = true)
     public void testParseAccountFromJaxb() throws SchemaException, SAXException, IOException, JAXBException {
 
-        SchemaRegistry reg = new SchemaRegistry();
-        reg.initialize();
-        PrismSchema commonSchema = reg.getObjectSchema();
-        assertNotNull(commonSchema);
+    	PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // Try to use the schema to validate Jack
         AccountShadowType accType = PrismTestUtil.unmarshalObject(new File(TEST_DIR, "account-jack.xml"), AccountShadowType.class);
 
-        PrismObjectDefinition<AccountShadowType> accDefinition = commonSchema.findObjectDefinitionByType(ObjectTypes.ACCOUNT.getTypeQName());
-        assertNotNull("account definition not found in parsed schema", accDefinition);
-
-        PrismObject<AccountShadowType> account = accDefinition.parseObjectType(accType);
+        PrismObject<AccountShadowType> account = accType.asPrismObject();
+        account.revive(prismContext);
 
         System.out.println("Parsed account:");
         System.out.println(account.dump());
+        
+        assertProperty(account, SchemaConstants.C_NAME, "jack");
+        assertProperty(account, AccountShadowType.F_ACCOUNT_TYPE, "user");
+        
+        // TODO: more asserts
     }
 
     private void assertProperty(PrismContainer cont, QName propName, Object value) {

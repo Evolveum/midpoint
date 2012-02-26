@@ -239,8 +239,7 @@ public class ConsolidationProcessor {
                     throw new IllegalStateException("Definition for account type " + accCtx.getResourceAccountType() + " not found in the context, but it should be there");
                 }
                 AccountShadowType newAccountType = rAccount.createBlankShadow();
-                PrismObjectDefinition<AccountShadowType> accountTypeDefinition = rAccount.getObjectDefinition();
-                PrismObject<AccountShadowType> newAccount = accountTypeDefinition.parseObjectType(newAccountType);
+                PrismObject<AccountShadowType> newAccount = newAccountType.asPrismObject();
                 addDelta.setObjectToAdd(newAccount);
 
                 addDelta.merge(modifyDelta);

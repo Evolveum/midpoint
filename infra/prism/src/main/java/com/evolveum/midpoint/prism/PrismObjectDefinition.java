@@ -65,17 +65,6 @@ public class PrismObjectDefinition<T extends Objectable> extends PrismContainerD
 	public void setCompileTimeClass(Class<T> compileTimeClass) {
 		this.compileTimeClass = compileTimeClass;
 	}
-
-	public PrismObject<T> parseObjectType(T objectType) throws SchemaException {
-		// TODO
-		throw new UnsupportedOperationException();
-		
-		// Parent is null, objects do not have parents
-//		PrismObject<T> object = parseItemFromJaxbObject(objectType, PrismObject.class, null);
-//		object.setOid(objectType.getOid());
-//		object.setObjectType(objectType);
-//		return object;
-	}
 	
 	@Override
 	public PrismObject<T> instantiate() {

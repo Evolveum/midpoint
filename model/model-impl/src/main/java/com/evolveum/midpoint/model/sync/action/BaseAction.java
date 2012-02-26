@@ -266,7 +266,7 @@ public abstract class BaseAction implements Action {
         PrismObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(
                 change.getResource().asObjectable(), getPrismContext()).getObjectDefinition(account);
 
-        return definition.parseObjectType(account);
+        return account.asPrismObject();
     }
 
     protected AccountShadowType getAccountShadowFromChange(ResourceObjectShadowChangeDescription change) {

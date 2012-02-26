@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.web.model.impl;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -59,7 +60,7 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
     private static final Trace LOGGER = TraceManager.getTrace(AccountManagerImpl.class);
 
     @Autowired(required = true)
-    private SchemaRegistry schemaRegistry;
+    private PrismContext prismContext;
 
     @Override
     public Collection<AccountShadowDto> list(PagingType paging) {
@@ -155,7 +156,7 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
                 LOGGER.trace("New account:\n{}", accountOld.toString());
             }
             ObjectDelta<AccountShadowType> accountDelta = DiffUtil.diff(accountOld, accountNew,
-                    AccountShadowType.class, schemaRegistry.getObjectSchema());
+                    AccountShadowType.class, prismContext);
 
             LOGGER.trace("Account delta:\n{}", accountDelta.dump());
 

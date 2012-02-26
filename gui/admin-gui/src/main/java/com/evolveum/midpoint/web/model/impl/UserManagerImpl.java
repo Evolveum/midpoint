@@ -22,6 +22,7 @@ package com.evolveum.midpoint.web.model.impl;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -61,7 +62,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
     @Autowired(required = true)
     private transient Protector protector;
     @Autowired(required = true)
-    private SchemaRegistry schemaRegistry;
+    private PrismContext prismContext;
 
     @Override
     protected Class<? extends ObjectType> getSupportedObjectClass() {
@@ -128,7 +129,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 
             ObjectDelta<UserType> userDelta = DiffUtil.diff(
                     oldUser.getXmlObject(), changedObject.getXmlObject(),
-                    UserType.class, schemaRegistry.getObjectSchema());
+                    UserType.class, prismContext);
 
             LOGGER.trace("USER FORM delta:\n{}", userDelta.dump());
 

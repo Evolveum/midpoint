@@ -132,7 +132,7 @@ public class TestRefinedSchema {
         System.out.println("Refined account definition:");
         System.out.println(objectDefinition.dump());
 
-        PrismObject<AccountShadowType> accObject = objectDefinition.parseObjectType(accType);
+        PrismObject<AccountShadowType> accObject = accType.asPrismObject();
 
         // THEN
 
