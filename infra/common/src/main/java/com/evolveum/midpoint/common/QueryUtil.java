@@ -100,13 +100,30 @@ public class QueryUtil {
      * @return "equal" filter segment (as DOM)
      * @throws JAXBException
      */
-    public static Element createEqualFilter(Document doc, XPathHolder xpath, Object value) throws SchemaException {
+    public static Element createEqualFilter(Document doc, XPathHolder xpath, Object object) throws SchemaException {
         Validate.notNull(doc);
-        Validate.notNull(value);
+        Validate.notNull(object);
 
-        List<Object> values = new ArrayList<Object>();
-        values.add(value);
-        return createEqualFilter(doc, xpath, values);
+        //todo this was bad recursion
+//        List<Object> values = new ArrayList<Object>();
+//        values.add(value);
+//        return createEqualFilter(doc, xpath, values);
+        
+        //todo bad quick fix HACK
+        Element equal = doc.createElementNS(SchemaConstants.C_FILTER_EQUAL.getNamespaceURI(), SchemaConstants.C_FILTER_EQUAL.getLocalPart());
+        Element value = doc.createElementNS(SchemaConstants.C_FILTER_VALUE.getNamespaceURI(), SchemaConstants.C_FILTER_VALUE.getLocalPart());
+
+        Element domElement=doc.createElementNS(SchemaConstants.C_FILTER_VALUE.getNamespaceURI(), "fixMe");
+        domElement.setTextContent(object.toString());
+        value.appendChild(doc.importNode(domElement, true));
+        
+        if (xpath != null) {
+            Element path = xpath.toElement(SchemaConstants.C_FILTER_PATH, doc);
+            equal.appendChild(doc.importNode(path, true));
+        }
+        equal.appendChild(doc.importNode(value, true));
+        
+        return equal;
     }
 
     /**
