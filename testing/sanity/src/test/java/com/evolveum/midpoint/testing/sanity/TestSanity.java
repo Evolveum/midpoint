@@ -27,18 +27,23 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -447,8 +452,8 @@ public class TestSanity extends AbstractIntegrationTest {
      * @throws SchemaException
      */
     private void checkOpenDjSchema(ResourceType resource, String source) throws SchemaException {
-        PrismSchema schema = RefinedResourceSchema.getResourceSchema(resource, schemaRegistry.getPrismContext());
-        ResourceAttributeContainerDefinition accountDefinition = schema.findAccountDefinition();
+        ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, schemaRegistry.getPrismContext());
+        ResourceAttributeContainerDefinition accountDefinition = schema.findDefaultAccountDefinition();
         assertNotNull("Schema does not define any account (resource from " + source + ")", accountDefinition);
         Collection<ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
         assertFalse("No account identifiers (resource from " + source + ")", identifiers == null || identifiers.isEmpty());
@@ -2258,7 +2263,7 @@ public class TestSanity extends AbstractIntegrationTest {
         PrismProperty shipStateProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever",
                 "shipState"));
         AssertJUnit.assertEquals("capsized", shipStateProp.getValue(String.class).getValue());
-        PrismProperty deadProp = taskExtension
+        PrismProperty<Integer> deadProp = taskExtension
                 .findProperty(new QName("http://myself.me/schemas/whatever", "dead"));
         AssertJUnit.assertEquals(Integer.class, deadProp.getValues().iterator().next().getValue().getClass());
         AssertJUnit.assertEquals(Integer.valueOf(42), deadProp.getValue(Integer.class).getValue());
@@ -2780,7 +2785,8 @@ public class TestSanity extends AbstractIntegrationTest {
         // The role assignment will not be executed and this created an inconsistent state.
         ObjectModificationType changeAddRoleCaptain = unmarshallJaxbFromFile(
                 REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_1_FILENAME, ObjectModificationType.class);
-        repositoryService.modifyObject(UserType.class, changeAddRoleCaptain, result);
+        Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(changeAddRoleCaptain);
+        repositoryService.modifyObject(UserType.class, changeAddRoleCaptain.getOid(), modifications, result);
 
 
         // TODO: setup more "inconsistent" state
@@ -3221,20 +3227,20 @@ public class TestSanity extends AbstractIntegrationTest {
 
     private void applySyncSettings(AccountSynchronizationSettingsType syncSettings) throws ObjectNotFoundException,
             SchemaException {
-        ObjectModificationType objectChange = new ObjectModificationType();
-        objectChange.setOid(SystemObjectsType.SYSTEM_CONFIGURATION.value());
-        PropertyModificationType propMod = new PropertyModificationType();
-        propMod.setModificationType(PropertyModificationTypeType.replace);
-        Value value = new Value();
-        JAXBElement<AccountSynchronizationSettingsType> syncSettingsElement = new JAXBElement<AccountSynchronizationSettingsType>(
-                SchemaConstants.C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS, AccountSynchronizationSettingsType.class,
-                syncSettings);
-        value.getAny().add(syncSettingsElement);
-        propMod.setValue(value);
-        objectChange.getPropertyModification().add(propMod);
+        
+        PrismObjectDefinition<SystemConfigurationType> objectDefinition = 
+        	prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
+        
+        Collection<? extends ItemDelta> modifications = 
+        	PropertyDelta.createModificationReplacePropertyCollection(
+        			SchemaConstants.C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS, 
+        			objectDefinition, 
+        			syncSettings);
 
         OperationResult result = new OperationResult("Aplying sync settings");
-        repositoryService.modifyObject(SystemConfigurationType.class, objectChange, result);
+        
+		repositoryService.modifyObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), 
+        		modifications, result);
         display("Aplying sync settings result", result);
         result.computeStatus();
         assertSuccess("Aplying sync settings failed (result)", result);

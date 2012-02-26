@@ -20,6 +20,8 @@
 package com.evolveum.midpoint.testing.sanity;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+
 import org.testng.annotations.Test;
 import org.testng.Assert;
 import static org.testng.AssertJUnit.assertTrue;
@@ -105,7 +107,7 @@ public class TestSamples {
 				
 				// Try to marshall it back. This may detect some JAXB miscofiguration problems.
 				try {
-					String marshalledString = JAXBUtil.marshal(object);
+					String marshalledString = PrismTestUtil.marshalToString(object.asObjectable());
 				} catch (JAXBException e) {
 					objectResult.recordFatalError("Object marshalling failed", e);
 				}
