@@ -25,14 +25,9 @@ import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
@@ -72,6 +67,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsC
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
+import org.opends.server.types.ModificationType;
 import org.opends.server.util.ChangeRecordEntry;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ModifyChangeRecordEntry;
@@ -243,7 +239,7 @@ public class TestSanity extends AbstractIntegrationTest {
     @Autowired(required = true)
     private ProvisioningService provisioningService;
     @Autowired(required = true)
-    private SchemaRegistry schemaRegistry;
+    private PrismContext prismContext;
 
     public TestSanity() throws JAXBException {
         super();
@@ -452,7 +448,7 @@ public class TestSanity extends AbstractIntegrationTest {
      * @throws SchemaException
      */
     private void checkOpenDjSchema(ResourceType resource, String source) throws SchemaException {
-        ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, schemaRegistry.getPrismContext());
+        ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
         ResourceAttributeContainerDefinition accountDefinition = schema.findDefaultAccountDefinition();
         assertNotNull("Schema does not define any account (resource from " + source + ")", accountDefinition);
         Collection<ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
@@ -925,7 +921,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // GIVEN
         OperationResult result = new OperationResult(TestSanity.class.getName() + ".test016ProvisioningSearchAccountsIterative");
 
-        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceOpenDj, schemaRegistry.getPrismContext());
+        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceOpenDj, prismContext);
         RefinedAccountDefinition refinedAccountDefinition = refinedSchema.getDefaultAccountDefinition();
 
         QName objectClass = refinedAccountDefinition.getObjectClassDefinition().getTypeName();

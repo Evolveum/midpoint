@@ -22,6 +22,7 @@ package com.evolveum.midpoint.provisioning.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 
@@ -45,13 +46,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 public class ResourceSchemaCache {
 
 	private Map<String,ResourceSchemaCacheEntry> cache;
+    @Autowired(required = true)
 	private PrismContext prismContext;
-	
-	private ResourceSchemaCache(PrismContext prismContext) {
-		super();
-		cache = new HashMap<String, ResourceSchemaCache.ResourceSchemaCacheEntry>();
-		this.prismContext = prismContext;
-	}
+
+    ResourceSchemaCache() {
+        cache = new HashMap<String, ResourceSchemaCache.ResourceSchemaCacheEntry>();
+    }
 	
 	public synchronized ResourceType put(ResourceType resourceType) throws SchemaException {
 		if (resourceType.getSchema() == null) {

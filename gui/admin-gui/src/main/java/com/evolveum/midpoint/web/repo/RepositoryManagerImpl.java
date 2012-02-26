@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.ResultArrayList;
@@ -63,8 +62,6 @@ public class RepositoryManagerImpl implements RepositoryManager {
     private transient RepositoryService repositoryService;
     @Autowired(required = true)
     private PrismContext prismContext;
-    @Autowired(required = true)
-    private SchemaRegistry schemaRegistry;
     @Autowired(required = true)
     private TaskManager taskManager;
     @Autowired(required = true)

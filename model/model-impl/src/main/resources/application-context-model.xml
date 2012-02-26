@@ -113,8 +113,8 @@
         <property name="changeExecutor">
             <ref bean="changeExecutor"/>
         </property>
-        <property name="schemaRegistry">
-            <ref bean="schemaRegistry"/>
+        <property name="prismContext">
+            <ref bean="prismContext"/>
         </property>
         <property name="auditService">
             <ref bean="auditService"/>
