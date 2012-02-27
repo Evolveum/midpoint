@@ -132,9 +132,9 @@ public class PrismContainer<V> extends Item<PrismContainerValue<V>> {
     	return null;
     }
     
-    public void add(PrismContainerValue<V> pValue) {
+    public boolean add(PrismContainerValue<V> pValue) {
     	pValue.setParent(this);
-    	getValues().add(pValue);
+    	return getValues().add(pValue);
     }
     
     /**

@@ -187,6 +187,10 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
 		return values;
 	}
     
+    public V getValue(int index) {
+		return values.get(index);
+	}
+    
     public boolean hasValue(PrismValue value, boolean ignoreMetadata) {
     	return (findValue(value, ignoreMetadata) != null);
     }
@@ -249,20 +253,24 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
     }
 
     
-    public void addAll(Collection<V> newValues) {
-    	values.addAll(newValues);
+    public boolean addAll(Collection<V> newValues) {
+    	return values.addAll(newValues);
     }
     
-    public void add(V newValue) {
-    	values.add(newValue);
+    public boolean add(V newValue) {
+    	return values.add(newValue);
     }
     
-    public void removeAll(Collection<V> newValues) {
-    	values.removeAll(newValues);
+    public boolean removeAll(Collection<V> newValues) {
+    	return values.removeAll(newValues);
     }
 
-    public void remove(V newValue) {
-    	values.remove(newValue);
+    public boolean remove(V newValue) {
+    	return values.remove(newValue);
+    }
+    
+    public V remove(int index) {
+    	return values.remove(index);
     }
 
     public void replaceAll(Collection<V> newValues) {

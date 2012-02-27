@@ -216,8 +216,6 @@ public final class PrismForJAXBUtil {
     }
     
     public static <T> List<T> getAny(PrismContainerValue value, Class<T> clazz) {
-        //todo implement
-        //T is Object (if lax is true) or Element
-        return new ArrayList<T>();
+    	return new AnyArrayList(value);
     }
 }

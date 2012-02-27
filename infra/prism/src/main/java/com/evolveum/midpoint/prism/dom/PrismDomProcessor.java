@@ -50,6 +50,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
@@ -480,6 +481,7 @@ public class PrismDomProcessor {
 			throw new IllegalArgumentException("Attempt to parse unknown definition type "+def.getClass().getName());
 		}
 	}
+	
 
 	// Property:
 	
@@ -500,4 +502,41 @@ public class PrismDomProcessor {
 		throw new UnsupportedOperationException();
 	}
 
+	/**
+	 * Parse the provided JAXB/DOM element and add it as a new value of the specified item. 
+	 */
+	public boolean addItemValue(Item item, Object element, PrismContainer container) throws SchemaException {
+		ItemDefinition itemDefinition = item.getDefinition();
+		List<Object> itemValueElements = new ArrayList<Object>();
+		itemValueElements.add(element);
+		if (itemDefinition == null) {
+			itemDefinition = locateItemDefinition(container.getDefinition(), item.getName(), itemValueElements);
+		}
+		if (itemDefinition == null) {
+			throw new SchemaException("Definition of item "+item+" in "+container+" cannot be determined");
+		}
+		// Kind of hack now. Just to reuse existing code.
+		Item<?> fauxItem = parseItem(itemValueElements, item.getName(), itemDefinition);
+		PrismValue itemValue = fauxItem.getValues().get(0);
+		return item.add(itemValue);
+	}
+
+	/**
+	 * Parse the provided JAXB/DOM element and delete it from the specified item. 
+	 */
+	public boolean deleteItemValue(Item item, Object element, PrismContainer container) throws SchemaException {
+		ItemDefinition itemDefinition = item.getDefinition();
+		List<Object> itemValueElements = new ArrayList<Object>();
+		itemValueElements.add(element);
+		if (itemDefinition == null) {
+			itemDefinition = locateItemDefinition(container.getDefinition(), item.getName(), itemValueElements);
+		}
+		if (itemDefinition == null) {
+			throw new SchemaException("Definition of item "+item+" in "+container+" cannot be determined");
+		}
+		// Kind of hack now. Just to reuse existing code.
+		Item<?> fauxItem = parseItem(itemValueElements, item.getName(), itemDefinition);
+		PrismValue itemValue = fauxItem.getValues().get(0);
+		return item.remove(itemValue);
+	}
 }

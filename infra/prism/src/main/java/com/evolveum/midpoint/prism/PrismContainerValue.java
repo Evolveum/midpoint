@@ -30,6 +30,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.dom.ElementPrismContainerImpl;
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
@@ -48,6 +49,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
     // output in DOM and other ordering-sensitive representations
     private List<Item<?>> items = new ArrayList<Item<?>>();
     private String id;
+    private List<Object> elements = null;
     
     public PrismContainerValue() {
     	super();
@@ -127,6 +129,17 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 		return asCompileTimeObject();
 	}
 	
+	public List<Object> getElements() {
+		if (elements == null) {
+			elements = createElement();
+		}
+		return elements;
+	}
+	
+	private List<Object> createElement() {
+		return new ArrayList<Object>();
+	}
+
 	public T asCompileTimeObject() {
     	// TODO
     	throw new UnsupportedOperationException();
@@ -358,6 +371,10 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
     public PrismContainer<?> findOrCreateContainer(QName containerName) {
     	return findCreateItem(containerName, PrismContainer.class, true);
     }
+    
+    public Item<?> findOrCreateItem(QName containerName) {
+    	return findCreateItem(containerName, Item.class, true);
+    }
 
     public PrismProperty findOrCreateProperty(QName propertyQName) {
         PrismProperty property = findItem(propertyQName, PrismProperty.class);
@@ -517,6 +534,10 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 	
 
 	public void applyDefinition(PrismContainerDefinition definition) throws SchemaException {
+		if (elements != null) {
+			// There are DOM/JAXB elements that needs to be parsed while the schema is being applied
+			parseElement(definition);
+		}
 		for (Item<?> item: items) {
 			ItemDefinition itemDefinition = definition.findItemDefinition(item.getName());
 			if (itemDefinition == null) {
@@ -530,7 +551,14 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 		}
 	}
 
-    public void revive(PrismContext prismContext) {
+	private void parseElement(PrismContainerDefinition definition) throws SchemaException {
+		PrismDomProcessor domProcessor = definition.getPrismContext().getPrismDomProcessor();
+		Collection<? extends Item> parsedItems = domProcessor.parseContainerItems(definition, elements);
+		addAll((Collection)parsedItems);
+		elements = null;
+	}
+
+	public void revive(PrismContext prismContext) {
 		for (Item<?> item: items) {
 			item.revive(prismContext);
 		}
