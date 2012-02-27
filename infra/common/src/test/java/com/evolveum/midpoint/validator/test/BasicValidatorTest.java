@@ -29,20 +29,28 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
@@ -56,6 +64,12 @@ public class BasicValidatorTest {
 
     public BasicValidatorTest() {
     }
+    
+    @BeforeSuite
+	public void setup() throws SchemaException, SAXException, IOException {
+		DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+		PrismTestUtil.resetPrismContext(new MidPointPrismContextFactory());
+	}
 
     @Test
     public void resource1Valid() throws Exception {
@@ -169,7 +183,7 @@ public class BasicValidatorTest {
     	
         OperationResult result = new OperationResult(this.getClass().getName()+".testStopOnErrors");
         
-        Validator validator = new Validator();
+        Validator validator = new Validator(PrismTestUtil.getPrismContext());
         validator.setVerbose(false);
         validator.setStopAfterErrors(2);
         
@@ -200,7 +214,7 @@ public class BasicValidatorTest {
     }
 
     private void validateFile(String filename,EventHandler handler, OperationResult result) throws FileNotFoundException {
-        Validator validator = new Validator();
+        Validator validator = new Validator(PrismTestUtil.getPrismContext());
         if (handler!=null) {
             validator.setHandler(handler);
         }

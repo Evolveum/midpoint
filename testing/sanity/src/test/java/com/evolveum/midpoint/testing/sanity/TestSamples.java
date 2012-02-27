@@ -122,7 +122,7 @@ public class TestSamples {
 			
 		};
 		
-		Validator validator = new Validator();
+		Validator validator = new Validator(PrismTestUtil.getPrismContext());
 		validator.setVerbose(false);
 		validator.setAllowAnyType(true);
 		validator.setHandler(handler);

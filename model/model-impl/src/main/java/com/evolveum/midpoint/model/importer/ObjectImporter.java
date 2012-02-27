@@ -162,7 +162,7 @@ public class ObjectImporter {
 
         };
 
-        Validator validator = new Validator(handler);
+        Validator validator = new Validator(prismContext, handler);
         validator.setVerbose(true);
         validator.setValidateSchema(BooleanUtils.isTrue(options.isValidateStaticSchema()));
         if (options.getStopAfterErrors() != null) {

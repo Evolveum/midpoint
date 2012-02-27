@@ -223,7 +223,7 @@ public class RoleEditController implements Serializable {
 
 	private ObjectType getObjectFromXml(String xml, OperationResult parentResult) {
 		final List<ObjectType> objects = new ArrayList<ObjectType>();
-		Validator validator = new Validator(new EventHandler() {
+		Validator validator = new Validator(prismContext, new EventHandler() {
 
 			@Override
 			public <T extends ObjectType> EventResult postMarshall(PrismObject<T> object, Element objectElement,

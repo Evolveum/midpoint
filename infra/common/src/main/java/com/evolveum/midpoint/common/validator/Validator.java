@@ -93,17 +93,22 @@ public class Validator {
 	long errors = 0;
 	long stopAfterErrors = 0;
 
-	public Validator() {
-		handler = null;
+	public Validator(PrismContext prismContext) {
+		this.prismContext = prismContext;
+		this.handler = null;
 		initialize();
 	}
 
-	public Validator(EventHandler handler) {
+	public Validator(PrismContext prismContext, EventHandler handler) {
+		this.prismContext = prismContext;
 		this.handler = handler;
 		initialize();
 	}
 
 	private void initialize() {
+		if (prismContext == null) {
+			throw new IllegalStateException("No prism context set during validator initialization");
+		}
 		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
 		midPointJavaxSchema = schemaRegistry.getJavaxSchema();
 		xsdValidator = midPointJavaxSchema.newValidator();
@@ -116,6 +121,10 @@ public class Validator {
 
 	public void setHandler(EventHandler handler) {
 		this.handler = handler;
+	}
+	
+	public PrismContext getPrismContext() {
+		return prismContext;
 	}
 
 	public boolean getVerbose() {

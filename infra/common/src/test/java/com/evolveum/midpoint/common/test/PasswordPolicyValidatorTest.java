@@ -22,10 +22,12 @@
 
 package com.evolveum.midpoint.common.test;
 
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 import static org.testng.AssertJUnit.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,10 +40,14 @@ import com.evolveum.midpoint.common.string.StringPolicyUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordPolicyType;
 
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -52,6 +58,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 public class PasswordPolicyValidatorTest {
 
@@ -63,19 +70,18 @@ public class PasswordPolicyValidatorTest {
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(PasswordPolicyValidatorTest.class);
 
+	@BeforeSuite
+	public void setup() throws SchemaException, SAXException, IOException {
+		DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+		PrismTestUtil.resetPrismContext(new MidPointPrismContextFactory());
+	}
+	
 	@Test
-	public void stringPolicyUtilsMinimalTest() {
+	public void stringPolicyUtilsMinimalTest() throws JAXBException {
 		String filename = "password-policy-minimal.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
-		JAXBElement<PasswordPolicyType> jbe = null;
-		try {
-			jbe = PrismTestUtil.unmarshalElement(file, PasswordPolicyType.class);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		PasswordPolicyType pp = jbe.getValue();
+		PasswordPolicyType pp = PrismTestUtil.unmarshalObject(file, PasswordPolicyType.class);
 		StringPolicyType sp = pp.getStringPolicy();
 		StringPolicyUtils.normalize(sp);
 		AssertJUnit.assertNotNull(sp.getCharacterClass());
@@ -104,20 +110,15 @@ public class PasswordPolicyValidatorTest {
 		StringPolicyUtils.normalize(sp);
 	}
 
-	/*******************************************************************************************/
+	/** 
+	 *  *****************************************************************************************/
 	@Test
-	public void passwordGeneratorComplexTest() {
+	public void passwordGeneratorComplexTest() throws JAXBException {
 		String filename = "password-policy-complex.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
-		JAXBElement<PasswordPolicyType> jbe = null;
-		try {
-			jbe = PrismTestUtil.unmarshalElement(file, PasswordPolicyType.class);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 		LOGGER.error("Positive testing: passwordGeneratorComplexTest");
-		PasswordPolicyType pp = jbe.getValue();
+		PasswordPolicyType pp = PrismTestUtil.unmarshalObject(file, PasswordPolicyType.class);
 		OperationResult op = new OperationResult("passwordGeneratorComplexTest");
 		String psswd;
 		// generate minimal size passwd
@@ -166,20 +167,16 @@ public class PasswordPolicyValidatorTest {
 		AssertJUnit.assertTrue(op.getStatus() == OperationResultStatus.FATAL_ERROR);
 	}
 
-	/*******************************************************************************************/
+	/**
+	 * *****************************************************************************************/
 	@Test
-	public void passwordValidationTest() {
+	public void passwordValidationTest() throws JAXBException {
 		String filename = "password-policy-complex.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
-		JAXBElement<PasswordPolicyType> jbe = null;
-		try {
-			jbe = PrismTestUtil.unmarshalElement(file, PasswordPolicyType.class);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+
 		LOGGER.error("Positive testing: passwordGeneratorComplexTest");
-		PasswordPolicyType pp = jbe.getValue();
+		PasswordPolicyType pp = PrismTestUtil.unmarshalObject(file, PasswordPolicyType.class);
 
 		// Test on all cases
 		AssertJUnit.assertTrue(pwdValidHelper("582a**A", pp));
@@ -196,20 +193,16 @@ public class PasswordPolicyValidatorTest {
 		return (op.isSuccess());
 	}
 
-	/*******************************************************************************************/
+	/**
+	 * *****************************************************************************************/
 	@Test
-	public void passwordValidationMultipleTest() {
+	public void passwordValidationMultipleTest() throws JAXBException {
 		String filename = "password-policy-complex.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
-		JAXBElement<PasswordPolicyType> jbe = null;
-		try {
-			jbe = PrismTestUtil.unmarshalElement(file, PasswordPolicyType.class);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		
 		LOGGER.error("Positive testing: passwordGeneratorComplexTest");
-		PasswordPolicyType pp = jbe.getValue();
+		PasswordPolicyType pp = PrismTestUtil.unmarshalObject(file, PasswordPolicyType.class); 
 
 		String password = "582a**A";
 		
@@ -226,21 +219,16 @@ public class PasswordPolicyValidatorTest {
 		
 	}
 
-	/*******************************************************************************************/
+	/**
+	 ** ****************************************************************************************/
 	@Test
-	public void XMLPasswordPolicy() {
+	public void XMLPasswordPolicy() throws JAXBException {
 
 		String filename = "password-policy-complex.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
-		JAXBElement<PasswordPolicyType> jbe = null;
-		try {
-			jbe = PrismTestUtil.unmarshalElement(file, PasswordPolicyType.class);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 
-		PasswordPolicyType pp = jbe.getValue();
+		PasswordPolicyType pp = PrismTestUtil.unmarshalObject(file, PasswordPolicyType.class); 
 
 		OperationResult op = new OperationResult("Generator testing");
 

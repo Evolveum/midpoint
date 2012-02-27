@@ -27,6 +27,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,20 +39,26 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -86,6 +93,12 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 	}
 
 	public RepositorySearchPagingTest() {
+	}
+	
+	@BeforeSuite
+	public void setup() throws SchemaException, SAXException, IOException {
+		DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+		PrismTestUtil.resetPrismContext(new MidPointPrismContextFactory());
 	}
 
 	@BeforeClass
@@ -242,7 +255,7 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 		File file = new File(filepath);
 		fis = new FileInputStream(file);
 
-		Validator validator = new Validator();
+		Validator validator = new Validator(PrismTestUtil.getPrismContext());
 		if (handler != null) {
 			validator.setHandler(handler);
 		}
