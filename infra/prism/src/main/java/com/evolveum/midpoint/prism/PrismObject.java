@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.prism;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -107,7 +108,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Returns true if this object can represent specified compile-time class.
 	 * I.e. this object can be presented in the compile-time form that is an
@@ -123,6 +124,9 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
             if (clazz == null) {
                 throw new SystemException("Unknown compile time class of this prism object '" + getName() + "'.");
             }
+            if (Modifier.isAbstract(clazz.getModifiers())) {
+                throw new SystemException("Can't create instance of class '" + clazz.getSimpleName() + "', it's abstract.");
+            }
             T object = clazz.newInstance();
             object.setContainer(this);
 
@@ -137,7 +141,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	public PrismContainer<?> getExtension() {
 		return (PrismContainer<?>) getValue().findItem(new QName(getName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME), PrismContainer.class);
 	}
-	
+
 	@Override
 	public void applyDefinition(ItemDefinition definition) {
     	if (!(definition instanceof PrismObjectDefinition)) {
@@ -150,7 +154,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	public <I extends Item<?>> I findItem(PropertyPath path, Class<I> type) {
 		return findCreateItem(path, type, false);
 	}
-	
+
 	@Override
 	public Item<?> findItem(PropertyPath path) {
 		return findCreateItem(path, Item.class, false);
@@ -177,7 +181,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 			return null;
 		}
 	}
-	
+
 	public void addReplaceExisting(Item<?> item) {
 		getValue().addReplaceExisting(item);
 	}
@@ -193,7 +197,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 		super.copyValues(clone);
 		clone.oid = this.oid;
 	}
-	
+
 	public ObjectDelta<T> diff(PrismObject<T> other) {
 		return diff(other, true);
 	}
@@ -211,17 +215,17 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 		Collection<? extends ItemDelta> itemDeltas = new ArrayList<ItemDelta>();
 		diffInternal(other, null, itemDeltas, ignoreMetadata);
 		objectDelta.addModifications(itemDeltas);
-		
+
 		return objectDelta;
 	}
-	
-	
+
+
 
 	@Override
 	public void setParent(PrismValue parentValue) {
 		throw new IllegalStateException("Cannot set parent for an object");
 	}
-	
+
 	@Override
 	public PrismValue getParent() {
 		return null;

@@ -99,6 +99,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             session.getTransaction().commit();
 
             validateObjectType(objectType, type);
+        } catch (ObjectNotFoundException ex) {
+            throw ex;
         } catch (NonUniqueResultException ex) {
             rollbackTransaction(session);
             throw new SystemException("There are more objects of type '"
