@@ -63,6 +63,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -132,7 +133,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test011AddAssignmentAddAccountDirect() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException {
+    public void test011AddAssignmentAddAccountDirect() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException {
         displayTestTile(this, "test011AddAssignmentAddAccountDirect");
 
         // GIVEN
@@ -188,7 +189,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test012AddAssignmentAddAccountDirectWithAttrs() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException {
+    public void test012AddAssignmentAddAccountDirectWithAttrs() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException {
         displayTestTile(this, "test012AddAssignmentAddAccountDirectWithAttrs");
 
         // GIVEN
@@ -259,7 +260,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test021AddAssignmentModifyAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException {
+    public void test021AddAssignmentModifyAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException {
         displayTestTile(this, "test021AddAssignmentModifyAccount");
 
         // GIVEN
@@ -331,7 +332,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
 
 
     @Test
-    public void test031DeleteAssignmentModifyAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException {
+    public void test031DeleteAssignmentModifyAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException {
         displayTestTile(this, "test031DeleteAssignmentModifyAccount");
 
         // GIVEN
@@ -395,7 +396,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
     }
 
 
-    private ObjectDelta<UserType> addModification(SyncContext context, String filename) throws JAXBException, SchemaException {
+    private ObjectDelta<UserType> addModification(SyncContext context, String filename) throws JAXBException, SchemaException, FileNotFoundException {
         ObjectModificationType modElement = PrismTestUtil.unmarshalObject(new File(filename), ObjectModificationType.class);
         ObjectDelta<UserType> userDelta = DeltaConvertor.createObjectDelta(modElement, UserType.class, prismContext);
         context.addPrimaryUserDelta(userDelta);

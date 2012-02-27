@@ -61,6 +61,7 @@ import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.ClassPathUtil;
@@ -626,6 +627,14 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		return schema.findObjectDefinitionByCompileTimeClass(compileTimeClass);
 	}
 	
+	/**
+	 * This method will try to locate the appropriate object definition and apply it.
+	 */
+	public void applyDefinition(PrismObject<? extends Objectable> prismObject, Class<? extends Objectable> type) throws SchemaException {
+		PrismObjectDefinition<? extends Objectable> objectDefinition = determineDefinitionFromClass(type);
+		prismObject.applyDefinition(objectDefinition);
+	}
+		
 	public <T extends Objectable> PrismObjectDefinition<T> findObjectDefinitionByType(QName typeName) {
 		PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
 		if (schema == null) {
@@ -654,5 +663,18 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		}
 		return null;
 	}
+	
+	public PrismObjectDefinition determineDefinitionFromClass(Class type) {
+		PrismObjectDefinition def = findObjectDefinitionByCompileTimeClass(type);
+		if (def != null) {
+			return def;
+		}
+		Class<?> superclass = type.getSuperclass();
+		if (superclass == Object.class) {
+			return null;
+		}
+		return determineDefinitionFromClass(superclass);
+	}
+
 	
 }

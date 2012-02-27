@@ -109,6 +109,7 @@ public class PrismAsserts {
 	
 	public static <T extends Objectable> void assertObjectDefinition(PrismObjectDefinition<T> objDef, QName elementName,
 			QName typeName, Class<T> compileTimeClass) {
+		assertNotNull("No definition", objDef);
 		assertEquals("Wrong elementName for "+objDef, elementName, objDef.getName());
 		assertEquals("Wrong typeName for "+objDef, typeName, objDef.getTypeName());
 		assertEquals("Wrong compileTimeClass for "+objDef, compileTimeClass, objDef.getCompileTimeClass());

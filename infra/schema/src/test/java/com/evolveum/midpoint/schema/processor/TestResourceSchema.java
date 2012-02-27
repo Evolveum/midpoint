@@ -26,6 +26,7 @@
 package com.evolveum.midpoint.schema.processor;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
@@ -258,7 +259,7 @@ public class TestResourceSchema {
     }
     
 	@Test
-	public void testUnmarshallResource() throws JAXBException {
+	public void testUnmarshallResource() throws JAXBException, SchemaException, FileNotFoundException {
 		System.out.println("===[ testUnmarshallResource ]===");
 		// WHEN
 		ResourceType resource = PrismTestUtil.unmarshalObject(new File("src/test/resources/schema/resource-opendj.xml"), ResourceType.class);

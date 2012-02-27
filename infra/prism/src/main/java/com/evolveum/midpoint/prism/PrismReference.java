@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Object Reference is a property that describes reference to an object. It is
@@ -109,7 +110,7 @@ public class PrismReference extends Item {
     	return new ReferenceDelta(path, getDefinition());
 	}
 
-	void applyDefinition(ItemDefinition definition) {
+	void applyDefinition(ItemDefinition definition) throws SchemaException {
 		if (!(definition instanceof PrismReferenceDefinition)) {
 			throw new IllegalArgumentException("Cannot apply "+definition+" to reference");
 		}

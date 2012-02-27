@@ -55,7 +55,7 @@ public class PrismContext {
 		prismContext.schemaRegistry = schemaRegistry;
 		schemaRegistry.setPrismContext(prismContext);
 
-		PrismJaxbProcessor prismJaxbProcessor = new PrismJaxbProcessor(schemaRegistry);
+		PrismJaxbProcessor prismJaxbProcessor = new PrismJaxbProcessor(prismContext);
 		prismJaxbProcessor.initialize();
 		prismContext.prismJaxbProcessor = prismJaxbProcessor;
 		

@@ -22,6 +22,7 @@ package com.evolveum.midpoint.schema;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
@@ -92,7 +93,7 @@ public class TestJaxbSanity {
 	}
 
 	@Test
-	public void testUnmarshallAndEqualsUserJaxb() throws JAXBException {
+	public void testUnmarshallAndEqualsUserJaxb() throws JAXBException, SchemaException, FileNotFoundException {
 		System.out.println("\n\n ===[ testUnmarshallAndEqualsUserJaxb ]===\n");
 		
 		// GIVEN
@@ -173,7 +174,7 @@ public class TestJaxbSanity {
 	}
 
 	@Test
-	public void testUnmarshallAndEqualsUserMixed() throws SchemaException, JAXBException {
+	public void testUnmarshallAndEqualsUserMixed() throws SchemaException, JAXBException, FileNotFoundException {
 		System.out.println("\n\n ===[testUnmarshallAndEqualsUserMixed]===\n");
 		
 		// GIVEN
@@ -201,7 +202,7 @@ public class TestJaxbSanity {
 
 	
 	@Test
-	public void testUnmarshallAndEqualsResource() throws JAXBException {
+	public void testUnmarshallAndEqualsResource() throws JAXBException, SchemaException, FileNotFoundException {
 		System.out.println("\n\n ===[testUnmarshallAndEqualsResource]===\n");
 		
 		// GIVEN
@@ -225,7 +226,7 @@ public class TestJaxbSanity {
 	}
 
 	@Test
-	public void testAssignmentEquals() throws JAXBException {
+	public void testAssignmentEquals() throws JAXBException, SchemaException, FileNotFoundException {
 		System.out.println("\n\n ===[testAssnignmentEquals]===\n");
 		
 		// GIVEN

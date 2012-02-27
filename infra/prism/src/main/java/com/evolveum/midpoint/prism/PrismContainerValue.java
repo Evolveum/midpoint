@@ -33,6 +33,8 @@ import com.evolveum.midpoint.prism.dom.ElementPrismContainerImpl;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
@@ -514,9 +516,16 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 	
 	
 
-	public void applyDefinition(PrismContainerDefinition definition) {
+	public void applyDefinition(PrismContainerDefinition definition) throws SchemaException {
 		for (Item<?> item: items) {
 			ItemDefinition itemDefinition = definition.findItemDefinition(item.getName());
+			if (itemDefinition == null) {
+				if (definition.isRuntimeSchema) {
+					// This is OK, there may not be a complete definition for runtime schema
+				} else {
+					throw new SchemaException("No definition for item "+item.getName()+" in "+getParent());
+				}
+			}
 			item.applyDefinition(itemDefinition);
 		}
 	}

@@ -25,6 +25,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -70,7 +71,7 @@ public class ModelTUtil {
 
 	@SuppressWarnings("unchecked")
 	public static void mockGetSystemConfiguration(RepositoryService repository, File file)
-			throws JAXBException, ObjectNotFoundException, SchemaException {
+			throws JAXBException, ObjectNotFoundException, SchemaException, FileNotFoundException {
 		SystemConfigurationType systemConfiguration = PrismTestUtil.unmarshalObject(file, SystemConfigurationType.class);
 
 		when(

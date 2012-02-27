@@ -31,6 +31,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -113,7 +114,7 @@ public class ControllerGetObjectTest extends AbstractTestNGSpringContextTests  {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void getUserCorrect() throws JAXBException, FaultMessage, ObjectNotFoundException, SchemaException {
+	public void getUserCorrect() throws JAXBException, FaultMessage, ObjectNotFoundException, SchemaException, FileNotFoundException {
 		final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
 				"get-user-correct.xml"), UserType.class);
 

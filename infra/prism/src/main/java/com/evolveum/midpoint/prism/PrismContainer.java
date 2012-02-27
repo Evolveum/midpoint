@@ -157,17 +157,17 @@ public class PrismContainer<V> extends Item<PrismContainerValue<V>> {
     	return pValue;
     }
     
-    public void mergeValues(PrismContainer<V> other) {
+    public void mergeValues(PrismContainer<V> other) throws SchemaException {
     	mergeValues(other.getValues());
     }
     
-    public void mergeValues(Collection<PrismContainerValue<V>> otherValues) {
+    public void mergeValues(Collection<PrismContainerValue<V>> otherValues) throws SchemaException {
     	for (PrismContainerValue<V> otherValue : otherValues) {
     		mergeValue(otherValue);
     	}
     }
     
-	public void mergeValue(PrismContainerValue<V> otherValue) {
+	public void mergeValue(PrismContainerValue<V> otherValue) throws SchemaException {
 		Iterator<PrismContainerValue<V>> iterator = getValues().iterator();
 		while (iterator.hasNext()) {
 			PrismContainerValue<V> thisValue = iterator.next();
@@ -222,7 +222,7 @@ public class PrismContainer<V> extends Item<PrismContainerValue<V>> {
     }
     
     @Override
-	public void applyDefinition(ItemDefinition definition) {
+	public void applyDefinition(ItemDefinition definition) throws SchemaException {
     	if (!(definition instanceof PrismContainerDefinition)) {
     		throw new IllegalArgumentException("Cannot apply "+definition+" to container");
     	}

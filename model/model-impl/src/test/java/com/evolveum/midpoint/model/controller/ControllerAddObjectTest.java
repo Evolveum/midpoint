@@ -33,6 +33,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -284,7 +285,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void addResourceCorrect() throws JAXBException, FaultMessage, ObjectAlreadyExistsException,
-			SchemaException, CommunicationException, ObjectNotFoundException, ExpressionEvaluationException {
+			SchemaException, CommunicationException, ObjectNotFoundException, ExpressionEvaluationException, FileNotFoundException {
 		displayTestTile("addResourceCorrect");
 		
 		

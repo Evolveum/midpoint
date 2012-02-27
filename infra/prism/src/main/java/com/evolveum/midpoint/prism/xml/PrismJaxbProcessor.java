@@ -21,6 +21,7 @@ package com.evolveum.midpoint.prism.xml;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -45,6 +46,7 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -65,16 +67,24 @@ public class PrismJaxbProcessor {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(PrismJaxbProcessor.class);
 	
-	private SchemaRegistry schemaRegistry;
+	private PrismContext prismContext;
 	private JAXBContext context;
 
-	public PrismJaxbProcessor(SchemaRegistry schemaRegistry) {
-		this.schemaRegistry = schemaRegistry;
+	public PrismJaxbProcessor(PrismContext prismContext) {
+		this.prismContext = prismContext;
+	}
+	
+	public PrismContext getPrismContext() {
+		return prismContext;
+	}
+
+	private SchemaRegistry getSchemaRegistry() {
+		return prismContext.getSchemaRegistry();
 	}
 	
 	public void initialize() {
 		StringBuilder sb = new StringBuilder();
-		Iterator<Package> iterator = schemaRegistry.getCompileTimePackages().iterator();
+		Iterator<Package> iterator = getSchemaRegistry().getCompileTimePackages().iterator();
 		while (iterator.hasNext()) {
 			Package jaxbPackage = iterator.next();
 			sb.append(jaxbPackage.getName());
@@ -94,14 +104,6 @@ public class PrismJaxbProcessor {
 		}
 	}
 
-	public SchemaRegistry getSchemaRegistry() {
-		return schemaRegistry;
-	}
-
-	public void setSchemaRegistry(SchemaRegistry schemaRegistry) {
-		this.schemaRegistry = schemaRegistry;
-	}
-
 	public JAXBContext getContext() {
 		return context;
 	}
@@ -119,7 +121,7 @@ public class PrismJaxbProcessor {
 			// not a JAXB class
 			return false;
 		}
-		for (Package jaxbPackage: schemaRegistry.getCompileTimePackages()) {
+		for (Package jaxbPackage: getSchemaRegistry().getCompileTimePackages()) {
 			if (jaxbPackage.equals(clazz.getPackage())) {
 				return true;
 			}
@@ -132,7 +134,7 @@ public class PrismJaxbProcessor {
 	}
 	
 	public boolean canConvert(QName xsdType) {
-		PrismSchema schema = schemaRegistry.findSchemaByNamespace(xsdType.getNamespaceURI());
+		PrismSchema schema = getSchemaRegistry().findSchemaByNamespace(xsdType.getNamespaceURI());
 		if (schema == null) {
 			return false;
 		}
@@ -141,7 +143,7 @@ public class PrismJaxbProcessor {
 	}
 
 	public Class<?> getCompileTimeClass(QName xsdType) {
-		SchemaDescription desc = schemaRegistry.findSchemaDescriptionByNamespace(xsdType.getNamespaceURI());
+		SchemaDescription desc = getSchemaRegistry().findSchemaDescriptionByNamespace(xsdType.getNamespaceURI());
 		if (desc == null) {
 			return null;
 		}
@@ -167,7 +169,7 @@ public class PrismJaxbProcessor {
 		// set default properties
 		marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-		marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", schemaRegistry.getNamespacePrefixMapper());
+		marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", getSchemaRegistry().getNamespacePrefixMapper());
 		// set custom properties
 		if (jaxbProperties != null) {
 			for (Entry<String, Object> property : jaxbProperties.entrySet()) {
@@ -310,7 +312,7 @@ public class PrismJaxbProcessor {
 	}
 
 
-	public <T> JAXBElement<T> unmarshalElement(String xmlString, Class<T> type) throws JAXBException {
+	public <T> JAXBElement<T> unmarshalElement(String xmlString, Class<T> type) throws JAXBException, SchemaException {
 		if (xmlString == null) {
 			return null;
 		}
@@ -323,7 +325,9 @@ public class PrismJaxbProcessor {
 		StringReader reader = null;
 		try {
 			reader = new StringReader(xmlString); 
-			return unmarshalElement(reader, type);
+			JAXBElement<T> element = unmarshalElement(reader, type);
+			revive(element);
+			return element;
 		} finally {
 			if (reader != null) {
 				IOUtils.closeQuietly(reader);
@@ -331,49 +335,57 @@ public class PrismJaxbProcessor {
 		}
 	}
 	
-	public <T> JAXBElement<T> unmarshalElement(InputStream input, Class<T> type) throws JAXBException {
+	public <T> JAXBElement<T> unmarshalElement(InputStream input, Class<T> type) throws JAXBException, SchemaException {
 		Object object = getUnmarshaller().unmarshal(input);
 		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
+		revive(jaxbElement);
 		return jaxbElement;
 	}
 	
-	public <T> JAXBElement<T> unmarshalElement(Reader reader, Class<T> type) throws JAXBException {
+	public <T> JAXBElement<T> unmarshalElement(Reader reader, Class<T> type) throws JAXBException, SchemaException {
 		Object object = getUnmarshaller().unmarshal(reader);
 		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
+		revive(jaxbElement);
 		return jaxbElement;
 	}
 	
-	public <T> T unmarshalToObject(Node node, Class<T> type) throws JAXBException {
+	public <T> T unmarshalToObject(Node node, Class<T> type) throws JAXBException, SchemaException {
 		JAXBElement<T> element = unmarshalElement(node, type);
 		if (element == null) {
 			return null;
 		}
+		revive(element);
 		return element.getValue();
 	}
 	
-	public <T> JAXBElement<T> unmarshalElement(Node node, Class<T> type) throws JAXBException {
+	public <T> JAXBElement<T> unmarshalElement(Node node, Class<T> type) throws JAXBException, SchemaException {
 		Object object = createUnmarshaller().unmarshal(node);
 		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
+		revive(jaxbElement);
 		return jaxbElement;
 	}
 	
-	public <T> T unmarshalObject(File file, Class<T> type) throws JAXBException {
+	public <T> T unmarshalObject(File file, Class<T> type) throws JAXBException, SchemaException, FileNotFoundException {
 		JAXBElement<T> element = unmarshalElement(file, type);
 		if (element == null) {
 			return null;
 		}
-		return element.getValue();
+		T value = element.getValue();
+		revive(value, type);
+		return value;
 	}
 	
-	public <T> T unmarshalObject(String stringXml, Class<T> type) throws JAXBException {
+	public <T> T unmarshalObject(String stringXml, Class<T> type) throws JAXBException, SchemaException {
 		JAXBElement<T> element = unmarshalElement(stringXml, type);
 		if (element == null) {
 			return null;
 		}
-		return element.getValue();
+		T value = element.getValue();
+		revive(value, type);
+		return value;
 	}
 	
-	public <T> JAXBElement<T> unmarshalElement(File file, Class<T> type) throws JAXBException {
+	public <T> JAXBElement<T> unmarshalElement(File file, Class<T> type) throws SchemaException, FileNotFoundException, JAXBException {
 		if (file == null) {
 			throw new IllegalArgumentException("File argument must not be null.");
 		}
@@ -381,9 +393,9 @@ public class PrismJaxbProcessor {
 		InputStream is = null;
 		try {
 			is = new FileInputStream(file);
-			return (JAXBElement<T>) getUnmarshaller().unmarshal(is);
-		} catch (IOException ex) {
-			throw new JAXBException("Couldn't parse file: " + file.getAbsolutePath(), ex);
+			JAXBElement<T> element = (JAXBElement<T>) getUnmarshaller().unmarshal(is);
+			revive(element);
+			return element;
 		} finally {
 			if (is != null) {
 				IOUtils.closeQuietly(is);
@@ -461,7 +473,7 @@ public class PrismJaxbProcessor {
 	}
 
 	
-	public <T> T fromElement(Object element, Class<T> type) {
+	public <T> T fromElement(Object element, Class<T> type) throws SchemaException {
 		
 		if (element == null) {
 			return null;
@@ -575,6 +587,33 @@ public class PrismJaxbProcessor {
 			}
 		}
 		throw new IllegalStateException("Cannot determine element name of "+objectable);
+	}
+	
+	private boolean isObjectable(Class type) {
+		return Objectable.class.isAssignableFrom(type);
+	}
+	
+	private <T> void revive(T object, Class<T> type) throws SchemaException {
+		if (isObjectable(type)) {
+			revive((Objectable)object);
+		}
+	}
+	
+	private void revive(JAXBElement<?> element) throws SchemaException {
+		if (isObjectable(element.getDeclaredType())) {
+			revive((Objectable)element.getValue());
+		}
+	}
+	
+	private void revive(Objectable obj) throws SchemaException {
+		if (obj != null) {
+			revive(obj.asPrismObject(), obj.getClass());
+		}
+	}
+
+	private void revive(PrismObject prismObject, Class type) throws SchemaException {
+		prismObject.revive(getPrismContext());
+		getSchemaRegistry().applyDefinition(prismObject, type);
 	}
 
 

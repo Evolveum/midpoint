@@ -22,6 +22,7 @@ package com.evolveum.midpoint.schema.util;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import javax.xml.bind.JAXBElement;
@@ -52,7 +53,7 @@ public class JAXBUtilTest {
 	}
 
 	@Test
-	public void testUnmarshallerUtf() throws JAXBException, SchemaException {
+	public void testUnmarshallerUtf() throws JAXBException, SchemaException, FileNotFoundException {
 		// GIVEN
 		
 		UserType user = PrismTestUtil.unmarshalElement(new File("src/test/resources/util/user-utf8.xml"), UserType.class)
@@ -68,7 +69,7 @@ public class JAXBUtilTest {
 	}
 
 	@Test
-	public void testUnmarshallerIso88592() throws JAXBException, SchemaException {
+	public void testUnmarshallerIso88592() throws JAXBException, SchemaException, FileNotFoundException {
 		// GIVEN
 		
 		UserType user = PrismTestUtil.unmarshalElement(new File("src/test/resources/util/user-8859-2.xml"),UserType.class)

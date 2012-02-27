@@ -8,6 +8,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Set;
 
@@ -86,7 +87,7 @@ public class XsdTypeConverterTest {
 	}
 	
 	@Test(enabled=false)
-	public void testAccountMarshall() throws JAXBException, SchemaException {
+	public void testAccountMarshall() throws JAXBException, SchemaException, FileNotFoundException {
 		System.out.println("===[ testAccountMarshall ]===");
 		JAXBElement<AccountShadowType> jaxbElement = PrismTestUtil.unmarshalElement(new File("src/test/resources/converter/account-jack.xml"), AccountShadowType.class);
 		System.out.println("Object: "+jaxbElement.getValue());

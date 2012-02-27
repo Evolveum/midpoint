@@ -27,6 +27,7 @@ import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 import static org.testng.AssertJUnit.*;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +78,7 @@ public class PasswordPolicyValidatorTest {
 	}
 	
 	@Test
-	public void stringPolicyUtilsMinimalTest() throws JAXBException {
+	public void stringPolicyUtilsMinimalTest() throws JAXBException, SchemaException, FileNotFoundException {
 		String filename = "password-policy-minimal.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
@@ -110,10 +111,12 @@ public class PasswordPolicyValidatorTest {
 		StringPolicyUtils.normalize(sp);
 	}
 
-	/** 
+	/**
+	 * @throws FileNotFoundException 
+	 * @throws SchemaException  
 	 *  *****************************************************************************************/
 	@Test
-	public void passwordGeneratorComplexTest() throws JAXBException {
+	public void passwordGeneratorComplexTest() throws JAXBException, SchemaException, FileNotFoundException {
 		String filename = "password-policy-complex.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
@@ -168,9 +171,11 @@ public class PasswordPolicyValidatorTest {
 	}
 
 	/**
+	 * @throws FileNotFoundException 
+	 * @throws SchemaException 
 	 * *****************************************************************************************/
 	@Test
-	public void passwordValidationTest() throws JAXBException {
+	public void passwordValidationTest() throws JAXBException, SchemaException, FileNotFoundException {
 		String filename = "password-policy-complex.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
@@ -194,9 +199,11 @@ public class PasswordPolicyValidatorTest {
 	}
 
 	/**
+	 * @throws FileNotFoundException 
+	 * @throws SchemaException 
 	 * *****************************************************************************************/
 	@Test
-	public void passwordValidationMultipleTest() throws JAXBException {
+	public void passwordValidationMultipleTest() throws JAXBException, SchemaException, FileNotFoundException {
 		String filename = "password-policy-complex.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
@@ -220,9 +227,11 @@ public class PasswordPolicyValidatorTest {
 	}
 
 	/**
+	 * @throws FileNotFoundException 
+	 * @throws SchemaException 
 	 ** ****************************************************************************************/
 	@Test
-	public void XMLPasswordPolicy() throws JAXBException {
+	public void XMLPasswordPolicy() throws JAXBException, SchemaException, FileNotFoundException {
 
 		String filename = "password-policy-complex.xml";
 		String pathname = BASE_PATH + filename;

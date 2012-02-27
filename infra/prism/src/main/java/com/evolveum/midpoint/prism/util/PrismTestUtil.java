@@ -35,6 +35,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 /**
@@ -111,19 +112,19 @@ public class PrismTestUtil {
         prismContext.getPrismJaxbProcessor().marshalElementToDom(jaxbElement, parentNode);
     }
 
-    public static <T> JAXBElement<T> unmarshalElement(String xmlString, Class<T> type) throws JAXBException {
+    public static <T> JAXBElement<T> unmarshalElement(String xmlString, Class<T> type) throws JAXBException, SchemaException {
         return prismContext.getPrismJaxbProcessor().unmarshalElement(xmlString, type);
     }
     
-    public static <T> T unmarshalObject(File file, Class<T> type) throws JAXBException {
+    public static <T> T unmarshalObject(File file, Class<T> type) throws JAXBException, SchemaException, FileNotFoundException {
     	return prismContext.getPrismJaxbProcessor().unmarshalObject(file, type);
     }
     
-    public static <T> T unmarshalObject(String stringXml, Class<T> type) throws JAXBException {
+    public static <T> T unmarshalObject(String stringXml, Class<T> type) throws JAXBException, SchemaException {
     	return prismContext.getPrismJaxbProcessor().unmarshalObject(stringXml, type);
     }
     
-    public static <T> JAXBElement<T> unmarshalElement(File xmlFile, Class<T> type) throws JAXBException {
+    public static <T> JAXBElement<T> unmarshalElement(File xmlFile, Class<T> type) throws JAXBException, SchemaException, FileNotFoundException {
         return prismContext.getPrismJaxbProcessor().unmarshalElement(xmlFile, type);
     }
     

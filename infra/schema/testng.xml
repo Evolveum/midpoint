@@ -27,6 +27,7 @@
     <test name="Schema" preserve-order="false" verbose="1">
         <classes>
         	<class name="com.evolveum.midpoint.schema.TestCommonSchemaSanity"/>
+            <class name="com.evolveum.midpoint.schema.TestObjectParsing"/>
             <class name="com.evolveum.midpoint.schema.SimpleJaxbMarshalTest"/>
             <class name="com.evolveum.midpoint.schema.test.ExpressionCodeHolderTest"/>
             <class name="com.evolveum.midpoint.schema.test.XPathTest"/>

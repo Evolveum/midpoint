@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.testng.annotations.BeforeSuite;
@@ -46,6 +47,7 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -96,6 +98,15 @@ public class TestPrismParsing {
 		System.out.println("User:");
 		System.out.println(user.dump());
 		assertNotNull(user);
+		
+		assertUser(user);
+	}
+	
+//  Cannot be tested here, as the JAXB classes are not properly generated. It is tested in "schema" component now.
+//	public void testPrismParseJaxb() throws JAXBException, SchemaException, SAXException, IOException {
+//	}
+	
+	private void assertUser(PrismObject<UserType> user) {
 		
 		assertEquals("Wrong oid", USER_JACK_OID, user.getOid());
 		assertEquals("Wrong version", "42", user.getVersion());

@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -102,7 +103,7 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testDeleteCorrectRepo() throws FaultMessage, JAXBException, ObjectNotFoundException, SchemaException,
-			ConsistencyViolationException, CommunicationException {
+			ConsistencyViolationException, CommunicationException, FileNotFoundException {
 		final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
 				"delete-user.xml"), UserType.class);
 
@@ -122,7 +123,7 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testDeleteCorrectProvisioning() throws FaultMessage, JAXBException, ObjectNotFoundException,
-			SchemaException, CommunicationException, ConsistencyViolationException {
+			SchemaException, CommunicationException, ConsistencyViolationException, FileNotFoundException {
 		final ResourceType expectedResource = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON,
 				"resource.xml"), ResourceType.class);
 

@@ -30,6 +30,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -47,6 +48,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -110,7 +112,7 @@ public class ControllerListAccountShadowOwnerTest extends AbstractTestNGSpringCo
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void correctListAccountShadowOwner() throws FaultMessage, JAXBException, ObjectNotFoundException {
+	public void correctListAccountShadowOwner() throws FaultMessage, JAXBException, ObjectNotFoundException, SchemaException, FileNotFoundException {
 		final String accountOid = "acc11111-76e0-48e2-86d6-3d4f02d3e1a2";
 		UserType expected = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
 				"list-account-shadow-owner.xml"), UserType.class);

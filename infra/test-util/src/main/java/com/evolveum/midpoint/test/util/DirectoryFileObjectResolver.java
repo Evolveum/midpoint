@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.test.util;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -54,7 +55,11 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
 		File file = new File( directory, oidToFilename(ref.getOid()));
 		if (file.exists()) {
 			try {
-				return PrismTestUtil.unmarshalObject(file, ObjectType.class);
+				try {
+					return PrismTestUtil.unmarshalObject(file, ObjectType.class);
+				} catch (FileNotFoundException e) {
+					throw new ObjectNotFoundException(e);
+				}
 			} catch (JAXBException e) {
 				throw new SchemaException(e.getMessage(),e);
 			}

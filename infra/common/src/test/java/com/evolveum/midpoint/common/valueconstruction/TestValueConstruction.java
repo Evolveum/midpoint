@@ -63,6 +63,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -107,7 +108,7 @@ public class TestValueConstruction {
     }
 
     @Test
-    public void testConstructionValue() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void testConstructionValue() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // GIVEN
         JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-value.xml"), ValueConstructionType.class);
@@ -128,7 +129,7 @@ public class TestValueConstruction {
     }
 
     @Test
-    public void testConstructionValueMulti() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void testConstructionValueMulti() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // GIVEN
         JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-value-multi.xml"), ValueConstructionType.class);
@@ -153,7 +154,7 @@ public class TestValueConstruction {
     }
 
     @Test
-    public void testConstructionAsIs() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void testConstructionAsIs() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // GIVEN
         JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-asis.xml"), ValueConstructionType.class);
@@ -178,7 +179,7 @@ public class TestValueConstruction {
     }
 
     @Test
-    public void testConstructionExpressionSimple() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void testConstructionExpressionSimple() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // GIVEN
         JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-simple.xml"), ValueConstructionType.class);
@@ -198,7 +199,7 @@ public class TestValueConstruction {
     }
 
     @Test
-    public void testConstructionExpressionVariables() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void testConstructionExpressionVariables() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // GIVEN
         JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-variables.xml"), ValueConstructionType.class);
@@ -219,7 +220,7 @@ public class TestValueConstruction {
     }
 
     @Test
-    public void testConstructionExpressionSystemVariablesRef() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void testConstructionExpressionSystemVariablesRef() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // GIVEN
         JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-system-variables.xml"), ValueConstructionType.class);
@@ -246,7 +247,7 @@ public class TestValueConstruction {
     }
 
     @Test
-    public void testConstructionExpressionSystemVariablesValueJaxb() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void testConstructionExpressionSystemVariablesValueJaxb() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // GIVEN
         JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-system-variables.xml"), ValueConstructionType.class);
@@ -274,7 +275,7 @@ public class TestValueConstruction {
     }
 
     @Test
-    public void testConstructionExpressionSystemVariablesValueMidPointObject() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void testConstructionExpressionSystemVariablesValueMidPointObject() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // GIVEN
         JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-system-variables.xml"), ValueConstructionType.class);
@@ -302,7 +303,7 @@ public class TestValueConstruction {
     }
 
     @Test
-    public void testConstructionRootNode() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void testConstructionRootNode() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // GIVEN
         JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-root-node.xml"), ValueConstructionType.class);
@@ -332,7 +333,7 @@ public class TestValueConstruction {
     }
 
     @Test
-    public void testConstructionExpressionList() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void testConstructionExpressionList() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // GIVEN
         JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-list.xml"), ValueConstructionType.class);
@@ -362,7 +363,7 @@ public class TestValueConstruction {
       * net.sf.saxon.trans.XPathException: Cannot convert XPath value to Java object: required class is org.w3c.dom.NodeList; supplied value has type xs:string
       */
     @Test(enabled = false)
-    public void testConstructionExpressionScalarList() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void testConstructionExpressionScalarList() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // GIVEN
         JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-expression-scalar-list.xml"), ValueConstructionType.class);
@@ -386,7 +387,7 @@ public class TestValueConstruction {
     }
     
     @Test
-    public void testConstructionGenerate() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void testConstructionGenerate() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // GIVEN
         JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-generate.xml"), ValueConstructionType.class);
@@ -424,7 +425,7 @@ public class TestValueConstruction {
     }
 
     @Test
-    public void testConstructionGenerateProtectedString() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void testConstructionGenerateProtectedString() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // GIVEN
         JAXBElement<ValueConstructionType> valueConstructionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "construction-generate.xml"), ValueConstructionType.class);

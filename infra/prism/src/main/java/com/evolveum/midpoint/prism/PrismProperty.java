@@ -296,7 +296,11 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
     	return PrismConstants.DEFAULT_VALUE_CLASS;
     }
     
-	void applyDefinition(ItemDefinition definition) {
+	@Override
+	void applyDefinition(ItemDefinition definition) throws SchemaException {
+		if (definition == null) {
+			throw new SchemaException("No definition for property "+getName());
+		}
 		if (!(definition instanceof PrismPropertyDefinition)) {
 			throw new IllegalArgumentException("Cannot apply "+definition+" to property");
 		}

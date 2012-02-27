@@ -138,7 +138,7 @@ public class TestPrismConstruction {
 	}
 
 	
-	private void fillInUserDrake(PrismObject<UserType> user, boolean assertDefinitions) {
+	private void fillInUserDrake(PrismObject<UserType> user, boolean assertDefinitions) throws SchemaException {
 		user.setOid(USER_OID);
 		
 		// fullName

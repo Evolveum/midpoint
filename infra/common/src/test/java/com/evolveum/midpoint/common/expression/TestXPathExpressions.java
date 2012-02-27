@@ -44,6 +44,7 @@ import org.xml.sax.SAXException;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,7 +77,7 @@ public class TestXPathExpressions {
     }
 
     @Test
-    public void testExpressionSimple() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void testExpressionSimple() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // GIVEN
         JAXBElement<ExpressionType> expressionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "expression-simple.xml"), ExpressionType.class);
@@ -93,7 +94,7 @@ public class TestXPathExpressions {
     }
 
     @Test
-    public void testExpressionStringVariables() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void testExpressionStringVariables() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // GIVEN
         JAXBElement<ExpressionType> expressionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "expression-string-variables.xml"), ExpressionType.class);
@@ -111,7 +112,7 @@ public class TestXPathExpressions {
 
 
     @Test
-    public void testExpressionObjectRefVariables() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void testExpressionObjectRefVariables() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // GIVEN
         JAXBElement<ExpressionType> expressionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "expression-objectref-variables.xml"), ExpressionType.class);
@@ -129,7 +130,7 @@ public class TestXPathExpressions {
 
 
     @Test
-    public void testSystemVariables() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void testSystemVariables() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // GIVEN
         JAXBElement<ExpressionType> expressionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "expression-system-variables.xml"), ExpressionType.class);
@@ -152,7 +153,7 @@ public class TestXPathExpressions {
     }
 
     @Test
-    public void testRootNode() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void testRootNode() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // GIVEN
         JAXBElement<ExpressionType> expressionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "expression-root-node.xml"), ExpressionType.class);
@@ -175,7 +176,7 @@ public class TestXPathExpressions {
     }
 
     @Test
-    public void testExpressionList() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void testExpressionList() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
         // GIVEN
         JAXBElement<ExpressionType> expressionTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, "expression-list.xml"), ExpressionType.class);

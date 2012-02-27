@@ -145,10 +145,11 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	}
 
 	@Override
-	public void applyDefinition(ItemDefinition definition) {
+	public void applyDefinition(ItemDefinition definition) throws SchemaException {
     	if (!(definition instanceof PrismObjectDefinition)) {
     		throw new IllegalArgumentException("Cannot apply "+definition+" to object");
     	}
+    	this.compileTimeClass = ((PrismObjectDefinition)definition).getCompileTimeClass();
     	super.applyDefinition(definition);
 	}
 

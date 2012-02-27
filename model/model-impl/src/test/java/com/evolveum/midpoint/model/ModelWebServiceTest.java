@@ -52,6 +52,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 import java.io.File;
+import java.io.FileNotFoundException;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -196,7 +197,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test(expectedExceptions = FaultMessage.class)
-    public void testDeleteNonExisting() throws FaultMessage, ObjectNotFoundException, SchemaException, JAXBException {
+    public void testDeleteNonExisting() throws FaultMessage, ObjectNotFoundException, SchemaException, JAXBException, FileNotFoundException {
         try {
             final String oid = "abababab-abab-abab-abab-000000000001";
             when(
@@ -337,7 +338,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test(expectedExceptions = FaultMessage.class)
-    public void nonExistingUidModify() throws FaultMessage, ObjectNotFoundException, SchemaException, JAXBException {
+    public void nonExistingUidModify() throws FaultMessage, ObjectNotFoundException, SchemaException, JAXBException, FileNotFoundException {
         final String oid = "1";
         ObjectModificationType modification = new ObjectModificationType();
         PropertyModificationType mod1 = new PropertyModificationType();

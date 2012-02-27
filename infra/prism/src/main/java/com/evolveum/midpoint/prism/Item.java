@@ -361,7 +361,7 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
      */
 //    abstract public void serializeToDom(Node parentNode) throws SchemaException;
     
-	void applyDefinition(ItemDefinition definition) {
+	void applyDefinition(ItemDefinition definition) throws SchemaException {
 		this.definition = definition;
 	}
     
