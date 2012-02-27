@@ -29,6 +29,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.exception.SystemException;
+
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -237,6 +239,11 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 			throw new IllegalStateException("It makes no sense to use pathPrefix for an object");
 		}
 		return new PropertyPath();
+	}
+	
+	public Element asDomElement() {
+		// TODO: OID
+		return getValue().asDomElement();
 	}
 
 	private Collection<PropertyPath> listItemPaths() {
