@@ -432,7 +432,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 		if (this.getId() != null || other.getId() != null) {
 			return false;
 		}
-		return diffItems(other, true);
+		return equalsItems(other, true);
 	}
 	
 	@Override
@@ -477,7 +477,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 		diffItems(otherValue, pathPrefix, deltas, ignoreMetadata);
 	}
 	
-	boolean diffItems(PrismContainerValue<T> other, boolean ignoreMetadata) {
+	boolean equalsItems(PrismContainerValue<T> other, boolean ignoreMetadata) {
 		Collection<? extends ItemDelta> deltas = new ArrayList<ItemDelta>();
 		diffItems(other, null, deltas, ignoreMetadata);
 		return deltas.isEmpty();
@@ -558,8 +558,9 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 		if (items == null) {
 			if (other.items != null)
 				return false;
-		} else if (!items.equals(other.items))
+		} else if (!this.equalsItems((PrismContainerValue<T>) other, false)) {
 			return false;
+		}
 		return true;
 	}
 

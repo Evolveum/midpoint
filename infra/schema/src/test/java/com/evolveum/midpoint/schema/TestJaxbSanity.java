@@ -23,10 +23,12 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
+import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -42,11 +44,14 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
 
 /**
  * @author semancik
@@ -65,8 +70,30 @@ public class TestJaxbSanity {
 	}
 	
 	@Test
+	public void testGeneratedEquals() throws JAXBException {
+		System.out.println("\n\n ===[ testGeneratedEquals ]===\n");
+		
+		assertHasEquals(UserType.class);
+		assertHasEquals(AccountShadowType.class);
+		assertHasEquals(AssignmentType.class);
+		assertHasEquals(ValueConstructionType.class);
+		assertHasEquals(ProtectedStringType.class);
+	}
+	
+	private void assertHasEquals(Class<?> clazz) {
+		try {
+			Method method = clazz.getDeclaredMethod("equals", Object.class);
+			assertNotNull("No equals method in "+clazz.getSimpleName(), method);
+		} catch (SecurityException e) {
+			AssertJUnit.fail("No equals method in "+clazz.getSimpleName());
+		} catch (NoSuchMethodException e) {
+			AssertJUnit.fail("No equals method in "+clazz.getSimpleName());
+		}
+	}
+
+	@Test
 	public void testUnmarshallAndEqualsUserJaxb() throws JAXBException {
-		System.out.println("\n\n ===[testUnmarshallAndEqualsUserJaxb]===\n");
+		System.out.println("\n\n ===[ testUnmarshallAndEqualsUserJaxb ]===\n");
 		
 		// GIVEN
 		JAXBElement<UserType> userEl1 = PrismTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),UserType.class);
@@ -127,6 +154,9 @@ public class TestJaxbSanity {
 		assertTrue("Assignment not equals (Container)", as1Cont.equals(as2Cont));
 		assertTrue("Assignment not equivalent (Container)", as1Cont.equivalent(as2Cont));
 		assertTrue("AssignmentType not equals (JAXB)", as1Type.equals(as2Type));
+		
+		// Compare object inner value
+		assertTrue("User prism values do not match", user1.getValue().equals(user2.getValue()));
 		
 		// WHEN, THEN
 		ObjectDelta<UserType> objectDelta = user1.diff(user1);
