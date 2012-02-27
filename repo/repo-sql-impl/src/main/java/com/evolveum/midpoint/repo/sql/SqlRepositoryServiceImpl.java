@@ -266,9 +266,16 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             query.setString("oid", oid);
 
             int count = query.executeUpdate();
+            if (count == 0) {
+                throw new ObjectNotFoundException("Object of type '" + type.getSimpleName()
+                        + "' with oid '" + oid + "' was not found.");
+            }
             session.getTransaction().commit();
 
             LOGGER.debug("Deleted was {} object(s).", new Object[]{count});
+        } catch (ObjectNotFoundException ex) {
+            rollbackTransaction(session);
+            throw ex;
         } catch (SystemException ex) {
             rollbackTransaction(session);
             throw ex;
@@ -373,14 +380,14 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             PrismObjectDefinition<T> objectDef = schema.findObjectDefinitionByCompileTimeClass(type);
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("OBJECT before:\n{}MODS:\n{}", new Object[]{prismObject.dump(), DebugUtil.prettyPrint(modifications)});
+                LOGGER.trace("OBJECT before:\n{}MODS:\n{}", new Object[]{prismObject.dump(),
+                        DebugUtil.prettyPrint(modifications)});
             }
             PropertyDelta.applyTo(modifications, prismObject);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT after:\n{}", prismObject.dump());
             }
 
-            //todo problem because long id identifiers are lost, or maybe not...
             LOGGER.debug("Translating JAXB to data type.");
             RObjectType rObject = createDataObjectFromJAXB(prismObject.asObjectable());
 

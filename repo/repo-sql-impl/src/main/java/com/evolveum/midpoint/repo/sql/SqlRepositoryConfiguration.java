@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * This class is used for SQL repository configuration. It reads values from Apache configuration object (xml).
@@ -34,16 +35,16 @@ public class SqlRepositoryConfiguration {
     //embedded configuration
     private boolean embedded = true;
     private boolean asServer = false;
-    private String baseDir = "~/";
+    private String baseDir;
     private boolean tcpSSL = false;
     private int port = 5437;
     //connection for hibernate
-    private String driverClassName = "org.h2.Driver";
-    private String jdbcUrl = "jdbc:h2:file:~/midpoint";
-    private String jdbcUsername = "sa";
-    private String jdbcPassword = "";
-    private String hibernateDialect = "org.hibernate.dialect.H2Dialect";
-    private String hibernateHbm2ddl = "update";
+    private String driverClassName;
+    private String jdbcUrl;
+    private String jdbcUsername;
+    private String jdbcPassword;
+    private String hibernateDialect;
+    private String hibernateHbm2ddl;
 
     public SqlRepositoryConfiguration(Configuration configuration) {
         setAsServer(configuration.getBoolean("asServer", asServer));
@@ -58,9 +59,37 @@ public class SqlRepositoryConfiguration {
         setPort(configuration.getInt("port", port));
         setTcpSSL(configuration.getBoolean("tcpSSL", tcpSSL));
     }
-    
+
     public void validate() throws RepositoryServiceFactoryException {
-        //todo implement validation
+        notEmpty(getJdbcUrl(), "JDBC Url is empty or not defined.");
+        notEmpty(getJdbcUsername(), "JDBC user name is empty or not defined.");
+        notNull(getJdbcPassword(), "JDBC password is not defined.");
+
+        notEmpty(getDriverClassName(), "Driver class name is empty or not defined.");
+
+        notEmpty(getHibernateDialect(), "Hibernate dialect is empty or not defined.");
+        notEmpty(getHibernateHbm2ddl(), "Hibernate hbm2ddl option is empty or not defined.");
+
+        if (isEmbedded()) {
+            notEmpty(getBaseDir(), "Base dir is empty or not defined.");
+            if (isAsServer()) {
+                if (getPort() < 0 || getPort() > 65535) {
+                    throw new RepositoryServiceFactoryException("Port must be in interval (0-65535)");
+                }
+            }
+        }
+    }
+
+    private void notNull(String value, String message) throws RepositoryServiceFactoryException {
+        if (value == null) {
+            throw new RepositoryServiceFactoryException(message);
+        }
+    }
+
+    private void notEmpty(String value, String message) throws RepositoryServiceFactoryException {
+        if (StringUtils.isEmpty(value)) {
+            throw new RepositoryServiceFactoryException(message);
+        }
     }
 
     public boolean isAsServer() {

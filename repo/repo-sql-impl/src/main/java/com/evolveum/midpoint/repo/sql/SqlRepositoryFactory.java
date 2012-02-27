@@ -79,9 +79,10 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         Validate.notNull(configuration, "Configuration must not be null.");
 
         LOGGER.info("Initializing SQL repository factory");
-        sqlConfiguration = new SqlRepositoryConfiguration(configuration);
-        normalizeConfiguration(sqlConfiguration);
-        sqlConfiguration.validate();
+        SqlRepositoryConfiguration config = new SqlRepositoryConfiguration(configuration);
+        normalizeConfiguration(config);
+        config.validate();
+        sqlConfiguration = config;
 
         if (getSqlConfiguration().isEmbedded()) {
             if (getSqlConfiguration().isAsServer()) {
@@ -110,15 +111,15 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
         File baseDir = new File(config.getBaseDir());
         if (!baseDir.exists() || !baseDir.isDirectory()) {
-            throw new RepositoryServiceFactoryException("File '" + getSqlConfiguration().getBaseDir()
+            throw new RepositoryServiceFactoryException("File '" + config.getBaseDir()
                     + "' defined as baseDir doesn't exist or is not directory.");
         }
 
         StringBuilder jdbcUrl = new StringBuilder("jdbc:h2:");
-        if (getSqlConfiguration().isAsServer()) {
+        if (config.isAsServer()) {
             //jdbc:h2:tcp://<server>[:<port>]/[<path>]<databaseName>
             jdbcUrl.append("tcp://127.0.0.1:");
-            jdbcUrl.append(getSqlConfiguration().getPort());
+            jdbcUrl.append(config.getPort());
         } else {
             //jdbc:h2:[file:][<path>]<databaseName>
             jdbcUrl.append("file:");
@@ -126,6 +127,13 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         jdbcUrl.append(baseDir.getAbsolutePath());
         jdbcUrl.append("/midpoint");
         config.setJdbcUrl(jdbcUrl.toString());
+        
+        config.setJdbcUsername("sa");
+        config.setJdbcPassword("");
+
+        config.setDriverClassName("org.h2.Driver");
+        config.setHibernateDialect("org.hibernate.dialect.H2Dialect");
+        config.setHibernateHbm2ddl("update");
     }
 
     private void checkPort(int port) throws RepositoryServiceFactoryException {
