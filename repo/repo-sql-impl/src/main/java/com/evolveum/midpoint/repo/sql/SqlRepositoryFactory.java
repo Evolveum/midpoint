@@ -36,9 +36,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.SocketAddress;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -77,65 +74,14 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         //we don't need destroying service objects, they will be GC correctly
     }
 
-    private void startServer() throws RepositoryServiceFactoryException {
-//        [-help] or [-?]         Print the list of options
-//        [-web]                  Start the web server with the H2 Console
-//        [-webAllowOthers]       Allow other computers to connect - see below
-//        [-webDaemon]            Use a daemon thread
-//        [-webPort <port>]       The port (default: 8082)
-//        [-webSSL]               Use encrypted (HTTPS) connections
-//        [-browser]              Start a browser connecting to the web server
-//        [-tcp]                  Start the TCP server
-//        [-tcpAllowOthers]       Allow other computers to connect - see below
-//        [-tcpDaemon]            Use a daemon thread
-//        [-tcpPort <port>]       The port (default: 9092)
-//        [-tcpSSL]               Use encrypted (SSL) connections
-//        [-tcpPassword <pwd>]    The password for shutting down a TCP server
-//        [-tcpShutdown "<url>"]  Stop the TCP server; example: tcp://localhost
-//        [-tcpShutdownForce]     Do not wait until all connections are closed
-//        [-pg]                   Start the PG server
-//        [-pgAllowOthers]        Allow other computers to connect - see below
-//        [-pgDaemon]             Use a daemon thread
-//        [-pgPort <port>]        The port (default: 5435)
-//        [-properties "<dir>"]   Server properties (default: ~, disable: null)
-//        [-baseDir <dir>]        The base directory for H2 databases (all servers)
-//        [-ifExists]             Only existing databases may be opened (all servers)
-//        [-trace]                Print additional trace information (all servers)
-
-        checkPort(getSqlConfiguration().getPort());
-
-        SqlRepositoryConfiguration config = getSqlConfiguration();
-        List<String> args = new ArrayList<String>();
-        if (StringUtils.isNotEmpty(config.getBaseDir())) {
-            args.add("-baseDir");
-            args.add("\"" + config.getBaseDir() + "\"");
-        }
-        if (config.isTcpSSL()) {
-            args.add("-tcpSSL");
-        }
-        if (config.getPort() > 0) {
-            args.add("-tcpPort");
-            args.add(Integer.toString(config.getPort()));
-        }
-        // todo with this we can't create database on first start..
-        // args.add("-ifExists");
-
-        try {
-            String[] array = args.toArray(new String[args.size()]);
-            server = Server.createTcpServer(array);
-            server.start();
-        } catch (Exception ex) {
-            throw new RepositoryServiceFactoryException(ex.getMessage(), ex);
-        }
-    }
-
     @Override
     public void init(Configuration configuration) throws RepositoryServiceFactoryException {
+        Validate.notNull(configuration, "Configuration must not be null.");
+
         LOGGER.info("Initializing SQL repository factory");
-        if (configuration == null) {
-            throw new IllegalStateException("Configuration has to be injected prior the initialization.");
-        }
         sqlConfiguration = new SqlRepositoryConfiguration(configuration);
+        normalizeConfiguration(sqlConfiguration);
+        sqlConfiguration.validate();
 
         if (getSqlConfiguration().isEmbedded()) {
             if (getSqlConfiguration().isAsServer()) {
@@ -145,11 +91,9 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
                 LOGGER.info("H2 prepared to run in local mode (from file).");
             }
             LOGGER.info("H2 files are in '{}'.", new Object[]{sqlConfiguration.getBaseDir()});
-//            initScript();
         } else {
-            LOGGER.info("Repository is not running in embedded mode, initialization complete.");
+            LOGGER.info("Repository is not running in embedded mode.");
         }
-        //todo fix spring configuration somehow :)
 
         LOGGER.info("Repository initialization finished.");
     }
@@ -159,53 +103,29 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         return new SqlRepositoryServiceImpl();
     }
 
-    private void initScript() throws RepositoryServiceFactoryException {
-        LOGGER.info("Running init script.");
-
-        Connection connection = null;
-        try {
-            File baseDir = new File(getSqlConfiguration().getBaseDir());
-            if (!baseDir.exists() || !baseDir.isDirectory()) {
-                throw new RepositoryServiceFactoryException("File '" + getSqlConfiguration().getBaseDir()
-                        + "' defined as baseDir doesn't exist or is not directory.");
-            }
-
-            Class.forName(org.h2.Driver.class.getName());
-            StringBuilder jdbcUrl = new StringBuilder("jdbc:h2:");
-            if (getSqlConfiguration().isAsServer()) {
-                //jdbc:h2:tcp://<server>[:<port>]/[<path>]<databaseName>
-                jdbcUrl.append("tcp://127.0.0.1:");
-                jdbcUrl.append(getSqlConfiguration().getPort());
-            } else {
-                //jdbc:h2:[file:][<path>]<databaseName>
-                jdbcUrl.append("file:");
-            }
-            jdbcUrl.append(baseDir.getAbsolutePath());
-            jdbcUrl.append("/midpoint");
-
-            LOGGER.debug("Connecting to created JDBC uri '{}'.", new Object[]{jdbcUrl.toString()});
-
-            connection = DriverManager.getConnection(jdbcUrl.toString(), "sa", "");
-            Statement statement = connection.createStatement();
-            statement.execute("create database midpoint if not exists");
-        } catch (Exception ex) {
-            LOGGER.error("Error occurred during repository initialization script loading, reason:\n{}",
-                    new Object[]{ex.getMessage()});
-
-            if (ex instanceof RepositoryServiceFactoryException) {
-                throw (RepositoryServiceFactoryException) ex;
-            } else {
-                throw new RepositoryServiceFactoryException(ex.getMessage(), ex);
-            }
-        } finally {
-            try {
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (Exception ex) {
-                LOGGER.error("Couldn't close JDBC conection, reason:\n{}", new Object[]{ex.getMessage()});
-            }
+    private void normalizeConfiguration(SqlRepositoryConfiguration config) throws RepositoryServiceFactoryException {
+        if (!config.isEmbedded()) {
+            return;
         }
+
+        File baseDir = new File(config.getBaseDir());
+        if (!baseDir.exists() || !baseDir.isDirectory()) {
+            throw new RepositoryServiceFactoryException("File '" + getSqlConfiguration().getBaseDir()
+                    + "' defined as baseDir doesn't exist or is not directory.");
+        }
+
+        StringBuilder jdbcUrl = new StringBuilder("jdbc:h2:");
+        if (getSqlConfiguration().isAsServer()) {
+            //jdbc:h2:tcp://<server>[:<port>]/[<path>]<databaseName>
+            jdbcUrl.append("tcp://127.0.0.1:");
+            jdbcUrl.append(getSqlConfiguration().getPort());
+        } else {
+            //jdbc:h2:[file:][<path>]<databaseName>
+            jdbcUrl.append("file:");
+        }
+        jdbcUrl.append(baseDir.getAbsolutePath());
+        jdbcUrl.append("/midpoint");
+        config.setJdbcUrl(jdbcUrl.toString());
     }
 
     private void checkPort(int port) throws RepositoryServiceFactoryException {
@@ -231,5 +151,60 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
                         "of port for H2 Server", ex);
             }
         }
+    }
+
+    private void startServer() throws RepositoryServiceFactoryException {
+        SqlRepositoryConfiguration config = getSqlConfiguration();
+        checkPort(config.getPort());
+
+        try {
+            server = Server.createTcpServer(createArguments(config));
+            server.start();
+        } catch (Exception ex) {
+            throw new RepositoryServiceFactoryException(ex.getMessage(), ex);
+        }
+    }
+
+    private String[] createArguments(SqlRepositoryConfiguration config) {
+//        [-help] or [-?]         Print the list of options
+//        [-web]                  Start the web server with the H2 Console
+//        [-webAllowOthers]       Allow other computers to connect - see below
+//        [-webDaemon]            Use a daemon thread
+//        [-webPort <port>]       The port (default: 8082)
+//        [-webSSL]               Use encrypted (HTTPS) connections
+//        [-browser]              Start a browser connecting to the web server
+//        [-tcp]                  Start the TCP server
+//        [-tcpAllowOthers]       Allow other computers to connect - see below
+//        [-tcpDaemon]            Use a daemon thread
+//        [-tcpPort <port>]       The port (default: 9092)
+//        [-tcpSSL]               Use encrypted (SSL) connections
+//        [-tcpPassword <pwd>]    The password for shutting down a TCP server
+//        [-tcpShutdown "<url>"]  Stop the TCP server; example: tcp://localhost
+//        [-tcpShutdownForce]     Do not wait until all connections are closed
+//        [-pg]                   Start the PG server
+//        [-pgAllowOthers]        Allow other computers to connect - see below
+//        [-pgDaemon]             Use a daemon thread
+//        [-pgPort <port>]        The port (default: 5435)
+//        [-properties "<dir>"]   Server properties (default: ~, disable: null)
+//        [-baseDir <dir>]        The base directory for H2 databases (all servers)
+//        [-ifExists]             Only existing databases may be opened (all servers)
+//        [-trace]                Print additional trace information (all servers)
+
+        List<String> args = new ArrayList<String>();
+        if (StringUtils.isNotEmpty(config.getBaseDir())) {
+            args.add("-baseDir");
+            args.add("\"" + config.getBaseDir() + "\"");
+        }
+        if (config.isTcpSSL()) {
+            args.add("-tcpSSL");
+        }
+        if (config.getPort() > 0) {
+            args.add("-tcpPort");
+            args.add(Integer.toString(config.getPort()));
+        }
+        // todo with this we can't create database on first start..
+        // args.add("-ifExists");
+
+        return args.toArray(new String[args.size()]);
     }
 }

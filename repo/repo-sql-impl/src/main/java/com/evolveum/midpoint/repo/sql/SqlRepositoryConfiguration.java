@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import org.apache.commons.configuration.Configuration;
 
 /**
@@ -56,6 +57,10 @@ public class SqlRepositoryConfiguration {
         setJdbcUsername(configuration.getString("jdbcUsername", jdbcUsername));
         setPort(configuration.getInt("port", port));
         setTcpSSL(configuration.getBoolean("tcpSSL", tcpSSL));
+    }
+    
+    public void validate() throws RepositoryServiceFactoryException {
+        //todo implement validation
     }
 
     public boolean isAsServer() {
