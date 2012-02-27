@@ -441,15 +441,16 @@ public class SchemaProcessor implements Processor {
             //todo remove Equals interface from defined class
             
             boolean isMidpointContainer = hasParentAnnotation(classOutline, PRISM_OBJECT);
-            removeOldEqualsMethods(classOutline.implClass, isMidpointContainer);
+            removeOldEqualsMethods(classOutline, isMidpointContainer);
         }
     }
 
-    private void removeOldEqualsMethods(JDefinedClass definedClass, boolean isPrismObject) {
+    private void removeOldEqualsMethods(ClassOutline classOutline, boolean isPrismObject) {
+        JDefinedClass definedClass = classOutline.implClass;
         Iterator<JMethod> methods = definedClass.methods().iterator();
         while (methods.hasNext()) {
             JMethod method = methods.next();
-            if (isPrismObject) {
+            if (isPrismObject && !hasAnnotation(classOutline, PRISM_OBJECT)) {
                 if (method.name().equals(METHOD_EQUALS)) {
                     methods.remove();
                 }
@@ -474,7 +475,7 @@ public class SchemaProcessor implements Processor {
         }
 
         if (equals != null) {
-            removeOldEqualsMethods(definedClass, hasParentAnnotation(classOutline, PRISM_OBJECT));
+            removeOldEqualsMethods(classOutline, hasParentAnnotation(classOutline, PRISM_OBJECT));
             equals = recreateMethod(equals, definedClass);
         } else {
             equals = definedClass.method(JMod.PUBLIC, boolean.class, METHOD_EQUALS);
