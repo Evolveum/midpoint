@@ -84,8 +84,7 @@ public abstract class PrismValue {
 		return domElement;
 	}
 
-	//protected abstract Element createDomElement();
-	protected Element createDomElement() {return null;};
+	protected abstract Element createDomElement();
 	
 	/**
 	 * Returns true if this and other value represent the same value.

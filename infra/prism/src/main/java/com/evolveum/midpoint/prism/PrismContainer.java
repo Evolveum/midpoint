@@ -100,6 +100,16 @@ public class PrismContainer<V> extends Item<PrismContainerValue<V>> {
 		}
     }
     
+	@Override
+	public PrismContainerValue<V> getPreviousValue(PrismValue value) {
+		return (PrismContainerValue<V>) super.getPreviousValue(value);
+	}
+
+	@Override
+	public PrismContainerValue<V> getNextValue(PrismValue value) {
+		return (PrismContainerValue<V>) super.getNextValue(value);
+	}
+
 	private boolean canAssumeSingleValue() {
 		if (getDefinition() != null) {
 			return getDefinition().isSingleValue();

@@ -269,7 +269,17 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
         return false;
     }
     
-    public Class<V> getValueClass() {
+    @Override
+	public PrismPropertyValue<V> getPreviousValue(PrismValue value) {
+		return (PrismPropertyValue<V>) super.getPreviousValue(value);
+	}
+
+	@Override
+	public PrismPropertyValue<V> getNextValue(PrismValue value) {
+		return (PrismPropertyValue<V>) super.getNextValue(value);
+	}
+
+	public Class<V> getValueClass() {
     	if (getDefinition() != null) {
     		return getDefinition().getTypeClass();
     	}

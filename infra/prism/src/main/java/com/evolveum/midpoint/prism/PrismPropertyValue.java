@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.dom.ElementPrismPropertyImpl;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -57,8 +58,13 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
     public T getValue() {
         return value;
     }
+    
+    @Override
+	protected Element createDomElement() {
+		return new ElementPrismPropertyImpl<T>(this);
+	}
 
-    public String toString() {
+	public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("PPV[");
         if (getValue() != null) {

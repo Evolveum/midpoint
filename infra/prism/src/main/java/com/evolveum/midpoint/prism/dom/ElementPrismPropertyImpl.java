@@ -14,15 +14,13 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
-public class ElementPrismPropertyImpl extends ElementPrismAbstractImpl {
+public class ElementPrismPropertyImpl<T> extends ElementPrismAbstractImpl {
 	
 	private NodeList valueNodeList;
-	private int index;
 	
-	ElementPrismPropertyImpl(PrismPropertyValue value, int index) {
+	public ElementPrismPropertyImpl(PrismPropertyValue value) {
 		super(value);
-		valueNodeList = new NodeListPrismPropertyImpl(this);
-		this.index = index;
+		this.valueNodeList = new NodeListPrismPropertyImpl(this);
 	}
 	
 	protected PrismPropertyValue getValue() {
@@ -60,26 +58,6 @@ public class ElementPrismPropertyImpl extends ElementPrismAbstractImpl {
 	@Override
 	public NodeList getElementsByTagName(String name) {
 		return NodeListEmptyImpl.IMMUTABLE_EMPTY_NODELIST;
-	}
-
-	@Override
-	public Node getPreviousSibling() {
-		if (index == 0) {
-			return null;
-		}
-		PrismProperty<?> property = getProperty();
-		PrismPropertyValue<?> previousPVal = property.getValues().get(index-1);
-		return previousPVal.asDomElement();
-	}
-
-	@Override
-	public Node getNextSibling() {
-		List<PrismPropertyValue<Object>> pvals = getProperty().getValues();
-		if (index >= pvals.size()-1) {
-			return null;
-		}
-		PrismPropertyValue<Object> nextPVal = pvals.get(index+1);
-		return nextPVal.asDomElement();
 	}
 
 	@Override

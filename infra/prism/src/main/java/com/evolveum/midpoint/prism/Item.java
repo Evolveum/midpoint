@@ -213,6 +213,42 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
         return null;
     }
     
+    /**
+     * Returns value that is previous to the specified value.
+     * Note that the order is semantically insignificant and this is used only
+     * for presentation consistency in order-sensitive formats such as XML or JSON.
+     */
+    public PrismValue getPreviousValue(PrismValue value) {
+    	PrismValue previousValue = null;
+    	for (PrismValue myVal : getValues()) {
+    		if (myVal == value) {
+    			return previousValue;
+    		}
+    	}
+    	throw new IllegalStateException("The value "+value+" is not any of "+this+" values, therefore cannot determine previous value");
+    }
+
+    /**
+     * Returns values that is following the specified value.
+     * Note that the order is semantically insignificant and this is used only
+     * for presentation consistency in order-sensitive formats such as XML or JSON.
+     */
+    public PrismValue getNextValue(PrismValue value) {
+    	Iterator<V> iterator = getValues().iterator();
+    	while (iterator.hasNext()) {
+    		PrismValue myVal = iterator.next();
+    		if (myVal == value) {
+    			if (iterator.hasNext()) {
+    				return iterator.next();
+    			} else {
+    				return null;
+    			}
+    		}
+    	}
+    	throw new IllegalStateException("The value "+value+" is not any of "+this+" values, therefore cannot determine next value");
+    }
+
+    
     public void addAll(Collection<V> newValues) {
     	values.addAll(newValues);
     }
@@ -239,9 +275,12 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
     	values.add(newValue);
     }
 
-    public Element asDomElement() {
-    	// TODO
-    	throw new UnsupportedOperationException();
+    public List<Element> asDomElements() {
+    	List<Element> elements = new ArrayList<Element>();
+    	for (PrismValue pval: getValues()) {
+    		elements.add(pval.asDomElement());
+    	}
+    	return elements;
     }
         
     protected void diffInternal(Item<V> other, PropertyPath pathPrefix, Collection<? extends ItemDelta> deltas, boolean ignoreMetadata) {

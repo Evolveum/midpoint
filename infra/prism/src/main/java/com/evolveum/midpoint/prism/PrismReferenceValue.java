@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.dom.ElementPrismContainerImpl;
+import com.evolveum.midpoint.prism.dom.ElementPrismReferenceImpl;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -28,6 +30,8 @@ import com.evolveum.midpoint.util.Dumpable;
 import java.io.Serializable;
 
 import javax.xml.namespace.QName;
+
+import org.w3c.dom.Element;
 
 /**
  * @author Radovan Semancik
@@ -98,6 +102,11 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 	}
 
     @Override
+	protected Element createDomElement() {
+		return new ElementPrismReferenceImpl(this);
+	}
+
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();

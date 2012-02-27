@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.prism.dom;
 
+import java.util.Map;
+
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Attr;
@@ -15,6 +17,7 @@ import org.w3c.dom.UserDataHandler;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 
 /**
@@ -141,13 +144,27 @@ public abstract class ElementPrismAbstractImpl implements Element {
 	}
 
 	@Override
-	public abstract Node getPreviousSibling();
+	public Node getPreviousSibling() {
+		PrismValue previousPVal = getItem().getPreviousValue(value);
+		if (previousPVal == null) {
+			return null;
+		}
+		return previousPVal.asDomElement();
+	}
 
 	@Override
-	public abstract Node getNextSibling();
+	public Node getNextSibling() {
+		PrismValue nextPVal = getItem().getNextValue(value);
+		if (nextPVal == null) {
+			return null;
+		}
+		return nextPVal.asDomElement();
+	}
 
 	@Override
-	public abstract NamedNodeMap getAttributes();
+	public NamedNodeMap getAttributes() {
+		return new AttributeNamedNodeMapImpl(getAttributeMap(), getNamespaceURI(), this);
+	}
 
 	@Override
 	public Document getOwnerDocument() {
@@ -172,6 +189,12 @@ public abstract class ElementPrismAbstractImpl implements Element {
 
 	@Override
 	public abstract Node cloneNode(boolean deep);
+	
+	@Override
+	public abstract NodeList getElementsByTagName(String name);
+
+	@Override
+	public abstract NodeList getElementsByTagNameNS(String namespaceURI, String localName) throws DOMException;
 
 	@Override
 	public void normalize() {
@@ -249,64 +272,97 @@ public abstract class ElementPrismAbstractImpl implements Element {
 		throw new UnsupportedOperationException();
 	}
 
-	@Override
-	public abstract String getAttribute(String name);
-
-	@Override
-	public abstract void setAttribute(String name, String value) throws DOMException;
-
-	@Override
-	public abstract void removeAttribute(String name) throws DOMException;
+	// ATTRIBUTES
+	
+	protected Map<String,String> getAttributeMap() {
+		return null;
+	}
 	
 	@Override
-	public abstract Attr getAttributeNode(String name);
+	public String getAttribute(String name) {
+		return getAttributeMap().get(name);
+	}
 
 	@Override
-	public abstract Attr setAttributeNode(Attr newAttr) throws DOMException;
+	public void setAttribute(String name, String value) throws DOMException {
+		throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, "This kind of modification is not supported (yet)");
+	}
 
 	@Override
-	public abstract Attr removeAttributeNode(Attr oldAttr) throws DOMException;
+	public void removeAttribute(String name) throws DOMException {
+		throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, "This kind of modification is not supported (yet)");
+	}
 
 	@Override
-	public abstract NodeList getElementsByTagName(String name);
+	public Attr getAttributeNode(String name) {
+		return (Attr) getAttributes().getNamedItem(name);
+	}
 
 	@Override
-	public abstract String getAttributeNS(String namespaceURI, String localName) throws DOMException;
+	public Attr setAttributeNode(Attr newAttr) throws DOMException {
+		throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, "This kind of modification is not supported (yet)");
+	}
 
 	@Override
-	public abstract void setAttributeNS(String namespaceURI, String qualifiedName, String value) throws DOMException;
-	
-	@Override
-	public abstract void removeAttributeNS(String namespaceURI, String localName) throws DOMException;
-	
-	@Override
-	public abstract Attr getAttributeNodeNS(String namespaceURI, String localName) throws DOMException;
+	public Attr removeAttributeNode(Attr oldAttr) throws DOMException {
+		throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, "This kind of modification is not supported (yet)");
+	}
 
 	@Override
-	public abstract Attr setAttributeNodeNS(Attr newAttr) throws DOMException;
+	public String getAttributeNS(String namespaceURI, String localName) throws DOMException {
+		return getAttributeNodeNS(namespaceURI, localName).getValue();
+	}
 
 	@Override
-	public abstract NodeList getElementsByTagNameNS(String namespaceURI, String localName) throws DOMException;
+	public void setAttributeNS(String namespaceURI, String qualifiedName, String value) throws DOMException {
+		throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, "This kind of modification is not supported (yet)");
+	}
 
 	@Override
-	public abstract boolean hasAttribute(String name);
+	public void removeAttributeNS(String namespaceURI, String localName) throws DOMException {
+		throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, "This kind of modification is not supported (yet)");
+	}
 
 	@Override
-	public abstract boolean hasAttributeNS(String namespaceURI, String localName) throws DOMException;
+	public Attr getAttributeNodeNS(String namespaceURI, String localName) throws DOMException {
+		return (Attr) getAttributes().getNamedItemNS(namespaceURI, localName);
+	}
+
+	@Override
+	public Attr setAttributeNodeNS(Attr newAttr) throws DOMException {
+		throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, "This kind of modification is not supported (yet)");
+	}
+
+
+	@Override
+	public boolean hasAttribute(String name) {
+		return getAttributes().getLength() != 0;
+	}
+
+	@Override
+	public boolean hasAttributeNS(String namespaceURI, String localName) throws DOMException {
+		return getAttributeNodeNS(namespaceURI, localName) != null;
+	}
+
+	@Override
+	public void setIdAttribute(String name, boolean isId) throws DOMException {
+		throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, "This kind of modification is not supported (yet)");
+	}
+
+	@Override
+	public void setIdAttributeNS(String namespaceURI, String localName, boolean isId) throws DOMException {
+		throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, "This kind of modification is not supported (yet)");
+	}
+
+	@Override
+	public void setIdAttributeNode(Attr idAttr, boolean isId) throws DOMException {
+		throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, "This kind of modification is not supported (yet)");
+	}
 
 	@Override
 	public TypeInfo getSchemaTypeInfo() {
 		// TODO Auto-generated method stub
 		throw new UnsupportedOperationException();
 	}
-
-	@Override
-	public abstract void setIdAttribute(String name, boolean isId) throws DOMException;
-	
-	@Override
-	public abstract void setIdAttributeNS(String namespaceURI, String localName, boolean isId) throws DOMException;
-
-	@Override
-	public abstract void setIdAttributeNode(Attr idAttr, boolean isId) throws DOMException;
 	
 }

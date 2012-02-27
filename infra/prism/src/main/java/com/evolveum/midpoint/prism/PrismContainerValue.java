@@ -29,10 +29,12 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.dom.ElementPrismContainerImpl;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import org.apache.commons.lang.Validate;
+import org.w3c.dom.Element;
 
 /**
  * @author semancik
@@ -65,7 +67,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
      *
      * @return set of items that the property container contains.
      */
-    public Collection<Item<?>> getItems() {
+    public List<Item<?>> getItems() {
     	return items;
     }
     
@@ -410,7 +412,12 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
         return property;
     }
     
-    public boolean equivalent(PrismContainerValue<?> other) {
+    @Override
+	protected Element createDomElement() {
+		return new ElementPrismContainerImpl(this);
+	}
+
+	public boolean equivalent(PrismContainerValue<?> other) {
         return equalsRealValue(other);
     }
     
