@@ -41,14 +41,7 @@
 	<bean name="repositoryService" class="com.evolveum.midpoint.model.test.util.mock.MockFactory" factory-method="createRepositoryPortType" />
 	<bean name="cacheRepositoryService" class="com.evolveum.midpoint.model.test.util.mock.MockFactory" factory-method="createRepositoryPortType" />
 	<bean name="changeNotificationDispatcher" class="com.evolveum.midpoint.model.test.util.mock.MockFactory" factory-method="createChangeNotificationDispatcher" />
-	
-	<bean name="schemaRegistryFactory" class="com.evolveum.midpoint.init.SchemaRegistryFactory" init-method="init">
-		<!-- For tests pull the schema from src/test/resources/schema -->
-		<constructor-arg value="src/test/resources/schema" />
-	</bean>
 
-	<bean name="schemaRegistry" factory-bean="schemaRegistryFactory" factory-method="getSchemaRegistry"
-		class="com.evolveum.midpoint.schema.SchemaRegistry" depends-on="schemaRegistryFactory">
-	</bean>
-	
+    <!-- todo prism context -->
+
 </beans>

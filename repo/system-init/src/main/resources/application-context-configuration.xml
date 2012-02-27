@@ -17,6 +17,7 @@
 <!-- your own identifying information: -->
 <!-- -->
 <!-- Portions Copyrighted 2010 Peter Prochazka -->
+<!-- Portions Copyrighted 2012 Viliam Repan -->
 <!-- -->
 
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -30,6 +31,13 @@
 	
 	<bean name="midpointConfiguration" class="com.evolveum.midpoint.init.StartupConfiguration" init-method="init" />
 
+    <!-- protector initialization -->
+    <bean name="keyStoreFactory" class="com.evolveum.midpoint.init.ConfigurableProtectorFactory" init-method="init" />
+
+    <bean name="protector" class="com.evolveum.midpoint.common.crypto.Protector" factory-bean="keyStoreFactory"
+          factory-method="getProtector" />
+
+    <!-- repository initialization -->
 	<bean name="repositoryFactory" class="com.evolveum.midpoint.init.RepositoryFactory" init-method="init"
 		destroy-method="destroy" />
 
@@ -39,6 +47,7 @@
 	<bean name="cacheRepositoryService" factory-bean="repositoryFactory" factory-method="getCacheRepositoryService"
 		class="com.evolveum.midpoint.repo.api.RepositoryService" depends-on="repositoryFactory" />
 
+    <!-- prism context initialization -->
     <bean id="midPointPrismContextFactory" class="com.evolveum.midpoint.init.ConfigurablePrismContextFactory">
         <property name="configuration">
             <ref bean="midpointConfiguration"/>
@@ -48,20 +57,7 @@
     <bean id="prismContext" class="com.evolveum.midpoint.prism.PrismContext"
           factory-bean="midPointPrismContextFactory" factory-method="createInitializedPrismContext" />
 
-	<!--<bean name="schemaRegistryFactory" class="com.evolveum.midpoint.init.SchemaRegistryFactory" init-method="init">-->
-		<!--<property name="midpointConfiguration">-->
-            <!--<ref bean="midpointConfiguration"/>-->
-        <!--</property>-->
-	<!--</bean>-->
-
-	<!--<bean name="schemaRegistry" factory-bean="schemaRegistryFactory" factory-method="getSchemaRegistry"-->
-		<!--class="com.evolveum.midpoint.schema.SchemaRegistry" depends-on="schemaRegistryFactory">-->
-	<!--</bean>-->
-
-
-	<!--  Scan for components:
-		 	- protector (KeyStoreConfigurator)
-	 -->
+	<!--  Scan for components: ??? what components? -->
 	<context:component-scan base-package="com.evolveum.midpoint.init" />
 	<context:annotation-config />
 

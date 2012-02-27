@@ -41,16 +41,8 @@
 		
 	<bean name="cacheRepositoryService" factory-bean="repositoryFactory" factory-method="getCacheRepositoryService"
 		class="com.evolveum.midpoint.repo.api.RepositoryService" depends-on="repositoryFactory" />
-		
-	<bean name="schemaRegistryFactory" class="com.evolveum.midpoint.init.SchemaRegistryFactory" init-method="init">
-		<!-- For tests pull the schema from src/test/resources/schema -->
-		<constructor-arg value="src/test/resources/schema" />
-	</bean>
 
-	<bean name="schemaRegistry" factory-bean="schemaRegistryFactory" factory-method="getSchemaRegistry"
-		class="com.evolveum.midpoint.schema.SchemaRegistry" depends-on="schemaRegistryFactory">
-	</bean>
-		
+    <!-- todo prism context and other changes from configuration -->
 
 	<!--  Scan for components:
 		 	- protector (KeyStoreConfigurator)

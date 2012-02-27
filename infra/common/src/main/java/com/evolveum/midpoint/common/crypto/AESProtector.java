@@ -43,6 +43,7 @@ import org.apache.xml.security.Init;
 import org.apache.xml.security.encryption.XMLCipher;
 import org.apache.xml.security.keys.KeyInfo;
 import org.apache.xml.security.utils.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3._2000._09.xmldsig.KeyInfoType;
 import org.w3._2001._04.xmlenc.EncryptedDataType;
 import org.w3c.dom.Document;
@@ -85,6 +86,7 @@ public class AESProtector implements Protector {
 
 	private static final KeyStore keyStore;
 
+    @Autowired(required = true)
 	private PrismContext prismContext;
 	
 	static {
@@ -101,6 +103,7 @@ public class AESProtector implements Protector {
 	 *             if jceks keystore is not available on {@link getKeyStorePath}
 	 */
 	public void init() {
+        LOGGER.info(">>>>> initializing protector <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 		InputStream stream = null;
 		try {
 			// Test if use file or classpath resource
