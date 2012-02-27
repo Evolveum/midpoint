@@ -45,6 +45,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.Map.Entry;
@@ -88,6 +89,7 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_PRISM_GET_REFERENCE_VALUE = "getReferenceValue";
     private static final String METHOD_PRISM_SET_REFERENCE_VALUE = "setReferenceValue";
     private static final String METHOD_PRISM_SET_REFERENCE_OBJECT = "setReferenceObject";
+    private static final String METHOD_PRISM_GET_ANY = "getAny";
     //equals, toString, hashCode methods
     private static final String METHOD_TO_STRING = "toString";
     private static final String METHOD_DEBUG_DUMP = "debugDump";
@@ -1356,10 +1358,32 @@ public class SchemaProcessor implements Processor {
         invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
         invocation.arg(method.listParams()[0]);
     }
+    
+    private <T> boolean hasAnnotationClass(JMethod method, Class<T> annotationType) {
+        List<JAnnotationUse> annotations = getAnnotations(method);
+        for (JAnnotationUse annotation : annotations) {
+            if (isAnnotationTypeOf(annotation, annotationType)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     private void createFieldGetterBody(JMethod method, JFieldVar field, boolean isList) {
         JBlock body = method.body();
         JInvocation invocation;
+        if (hasAnnotationClass(method, XmlAnyElement.class)) {
+            //handling xsd any
+            invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_GET_ANY);
+            invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
+
+            JClass clazz = (JClass) field.type();
+            invocation.arg(JExpr.dotclass(clazz.getTypeParameters().get(0)));
+            body._return(invocation);
+            return;
+        }
+        
         if (isList) {
             invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_GET_PROPERTY_VALUES);
         } else {

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.*;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -212,5 +213,11 @@ public final class PrismForJAXBUtil {
         
         PrismContainer container = parent.findOrCreateContainer(name);
         return container.getValues();
+    }
+    
+    public static <T> List<T> getAny(PrismContainerValue value, Class<T> clazz) {
+        //todo implement
+        //T is Object (if lax is true) or Element
+        return new ArrayList<T>();
     }
 }
