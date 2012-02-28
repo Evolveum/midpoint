@@ -711,12 +711,17 @@ public class SchemaProcessor implements Processor {
             }
 
             List<FieldBox<QName>> boxes = new ArrayList<FieldBox<QName>>();
-            for (String field : fields.keySet()) {
-                if ("serialVersionUID".equals(field) || "oid".equals(field)
+            for (Entry<String, JFieldVar> fieldEntry : fields.entrySet()) {
+                String field = fieldEntry.getKey(); 
+                if ("serialVersionUID".equals(field) || "oid".equals(field) || "version".equals(field)
                         || "id".equals(field) || COMPLEX_TYPE_FIELD.equals(field)) {
                     continue;
                 }
 
+                if (hasAnnotationClass(fieldEntry.getValue(), XmlAnyElement.class)) {
+                    continue;
+                }
+                
                 String fieldName = fieldFPrefixUnderscoredUpperCase(field);
                 boxes.add(new FieldBox<QName>(fieldName, new QName(qname.getNamespaceURI(), field)));
             }
@@ -767,7 +772,10 @@ public class SchemaProcessor implements Processor {
                 remove = false;
                 if ("oid".equals(field)) {
                     System.out.println("Updating oid field: " + fieldVar.name());
-                    remove = updateOidField(fieldVar, classOutline);
+                    remove = updateSimpleField(fieldVar, classOutline);
+                } else if ("version".equals(field)) {
+                    System.out.println("Updating version field: " + fieldVar.name());
+                    remove = updateSimpleField(fieldVar, classOutline);
                 } else if ("id".equals(field)) {
                     System.out.println("Updating container id field: " + fieldVar.name());
                     remove = updateIdField(fieldVar, classOutline);
@@ -1124,15 +1132,15 @@ public class SchemaProcessor implements Processor {
         return false;
     }
 
-    private boolean updateOidField(JFieldVar field, ClassOutline classOutline) {
+    private boolean updateSimpleField(JFieldVar field, ClassOutline classOutline) {
         //getter method update
         JMethod method = recreateGetter(field, classOutline);
         JBlock body = method.body();
-        body._return(JExpr.invoke(METHOD_GET_CONTAINER).invoke("getOid"));
+        body._return(JExpr.invoke(METHOD_GET_CONTAINER).invoke(getGetterMethod(classOutline, field)));
         //setter method update
         method = recreateSetter(field, classOutline);
         body = method.body();
-        JInvocation invocation = body.invoke(JExpr.invoke(METHOD_GET_CONTAINER), method.name());
+        JInvocation invocation = body.invoke(JExpr.invoke(METHOD_GET_CONTAINER), getSetterMethod(classOutline, field));
         invocation.arg(method.listParams()[0]);
 
         return true;
@@ -1359,7 +1367,7 @@ public class SchemaProcessor implements Processor {
         invocation.arg(method.listParams()[0]);
     }
     
-    private <T> boolean hasAnnotationClass(JMethod method, Class<T> annotationType) {
+    private <T> boolean hasAnnotationClass(JAnnotatable method, Class<T> annotationType) {
         List<JAnnotationUse> annotations = getAnnotations(method);
         for (JAnnotationUse annotation : annotations) {
             if (isAnnotationTypeOf(annotation, annotationType)) {
