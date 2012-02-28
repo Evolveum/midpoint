@@ -791,11 +791,8 @@ public class SchemaProcessor implements Processor {
                 }
 
                 remove = false;
-                if ("oid".equals(field)) {
-                    System.out.println("Updating oid field: " + fieldVar.name());
-                    remove = updateSimpleField(fieldVar, classOutline);
-                } else if ("version".equals(field)) {
-                    System.out.println("Updating version field: " + fieldVar.name());
+                if ("oid".equals(field) || "version".equals(field)) {
+                    System.out.println("Updating simple field: " + fieldVar.name());
                     remove = updateSimpleField(fieldVar, classOutline);
                 } else if ("id".equals(field)) {
                     System.out.println("Updating container id field: " + fieldVar.name());
@@ -1028,7 +1025,8 @@ public class SchemaProcessor implements Processor {
 
     private void createFieldReferenceUseGetterBody(JFieldVar field, ClassOutline classOutline, JBlock body,
             boolean isList) {
-        JFieldRef qnameRef = JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name()));
+        JFieldVar refField = getReferencedField(field, classOutline);
+        JFieldRef qnameRef = JExpr.ref(fieldFPrefixUnderscoredUpperCase(refField.name()));
 
         if (isList) {
             JInvocation invoke = JExpr.invoke(JExpr.invoke(METHOD_GET_CONTAINER), "findOrCreateReference");
