@@ -5142,52 +5142,64 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="connectorFramework" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="connectorFramework" minOccurs="0" maxOccurs="1" type="tns:ConnectorFrameworkType">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Global configuration of connectors and connector frameworks.
                             </xsd:documentation>
                         </xsd:annotation>
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:element name="configuration" minOccurs="0" maxOccurs="unbounded">
-                                    <xsd:annotation>
-                                        <xsd:documentation>
-                                            Global configuration properties of a connector framework.
-                                        </xsd:documentation>
-                                    </xsd:annotation>
-                                    <xsd:complexType>
-                                        <xsd:sequence>
-                                            <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1">
-                                                <xsd:annotation>
-                                                    <xsd:documentation>
-                                                        This element may contain any framework-specific global
-                                                        configuration.
-                                                    </xsd:documentation>
-                                                </xsd:annotation>
-                                            </xsd:element>
-                                            <xsd:element name="connectorPath" type="xsd:string" minOccurs="0"
-                                                         maxOccurs="unbounded">
-                                                <xsd:annotation>
-                                                    <xsd:documentation>
-                                                        The path to the connector artifacts such as JAR files or
-                                                        directories containing the connector
-                                                        code. The specific meaning may vary slightly for each connector
-                                                        framework. The connector framework may also
-                                                        provide a default path in case nothing is specified here (or
-                                                        addition to what is specified here).
-                                                    </xsd:documentation>
-                                                </xsd:annotation>
-                                            </xsd:element>
-                                        </xsd:sequence>
-                                    </xsd:complexType>
-                                </xsd:element>
-                            </xsd:sequence>
-                        </xsd:complexType>
                     </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnectorFrameworkType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="configuration" type="tns:ConnectorFrameworkConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Global configuration properties of a connector framework.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnectorFrameworkConfigurationType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This element may contain any framework-specific global
+                        configuration.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="connectorPath" type="xsd:string" minOccurs="0"
+                         maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The path to the connector artifacts such as JAR files or
+                        directories containing the connector
+                        code. The specific meaning may vary slightly for each connector
+                        framework. The connector framework may also
+                        provide a default path in case nothing is specified here (or
+                        addition to what is specified here).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="AccountSynchronizationSettingsType">

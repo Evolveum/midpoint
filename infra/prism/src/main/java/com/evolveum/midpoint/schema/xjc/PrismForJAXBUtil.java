@@ -207,6 +207,10 @@ public final class PrismForJAXBUtil {
         setReferenceObject(parent.getValue(), name, value);
     }
 
+    public static <T> List<PrismContainerValue<T>> getContainerValues(PrismContainerValue<T> parent, QName name, Class<T> clazz) {
+        return getContainerValues(parent.getParent(), name, clazz);
+    }
+
     public static <T> List<PrismContainerValue<T>> getContainerValues(PrismContainer<T> parent, QName name, Class<T> clazz) {
         Validate.notNull(parent, "Container must not be null.");
         Validate.notNull(name, "QName must not be null.");

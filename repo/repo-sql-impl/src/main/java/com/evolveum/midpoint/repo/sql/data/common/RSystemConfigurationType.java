@@ -25,10 +25,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountSynchronizationSettingsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ModelHooksType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Type;
 
@@ -105,8 +102,7 @@ public class RSystemConfigurationType extends RExtensibleObjectType {
         }
 
         try {
-            jaxb.setConnectorFramework(RUtil.toJAXB(repo.getConnectorFramework(),
-                    SystemConfigurationType.ConnectorFramework.class, prismContext));
+            jaxb.setConnectorFramework(RUtil.toJAXB(repo.getConnectorFramework(), ConnectorFrameworkType.class, prismContext));
             jaxb.setGlobalAccountSynchronizationSettings(RUtil.toJAXB(repo.getGlobalAccountSynchronizationSettings(),
                     AccountSynchronizationSettingsType.class, prismContext));
             jaxb.setLogging(RUtil.toJAXB(repo.getLogging(), LoggingConfigurationType.class, prismContext));
