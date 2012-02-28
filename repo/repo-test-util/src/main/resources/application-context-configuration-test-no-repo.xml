@@ -38,6 +38,16 @@
 
     <bean name="protector" class="com.evolveum.midpoint.common.crypto.Protector" factory-bean="keyStoreFactory"
           factory-method="getProtector" />
+          
+    <!-- prism context initialization -->
+    <bean id="midPointPrismContextFactory" class="com.evolveum.midpoint.init.ConfigurablePrismContextFactory">
+        <property name="configuration">
+            <ref bean="midpointConfiguration"/>
+        </property>
+    </bean>
+
+    <bean id="prismContext" class="com.evolveum.midpoint.prism.PrismContext"
+          factory-bean="midPointPrismContextFactory" factory-method="createInitializedPrismContext" />
 
 	<!--  Scan for components: ?? what??
 	 -->
