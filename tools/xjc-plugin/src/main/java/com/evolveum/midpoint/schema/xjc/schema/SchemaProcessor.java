@@ -39,13 +39,13 @@ import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSType;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.apache.commons.lang.Validate;
+import org.jvnet.jaxb2_commons.lang.HashCode;
 import org.w3c.dom.Element;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.Map.Entry;
@@ -116,7 +116,7 @@ public class SchemaProcessor implements Processor {
                     QName.class, PrismForJAXBUtil.class, PrismReferenceArrayList.class, PrismContainerValue.class,
                     List.class, Objectable.class, StringBuilder.class, XmlAccessorType.class, XmlElement.class,
                     XmlAttribute.class, XmlAnyAttribute.class, XmlAnyElement.class, PrismContainer.class, Equals.class,
-                    PrismContainerArrayList.class);
+                    PrismContainerArrayList.class, HashCode.class);
 
             StepSchemaConstants stepSchemaConstants = new StepSchemaConstants();
             stepSchemaConstants.run(outline, options, errorHandler);
@@ -267,7 +267,7 @@ public class SchemaProcessor implements Processor {
             createHashCodeMethod(definedClass);
         }
 
-        removeGeneratedEquals(outline);
+        removeCustomGeneratedMethod(outline);
 
         return containers;
     }
@@ -324,7 +324,7 @@ public class SchemaProcessor implements Processor {
             createToDebugType(definedClass);
         }
 
-        removeGeneratedEquals(outline);
+        removeCustomGeneratedMethod(outline);
 
         return containers;
     }
@@ -414,7 +414,12 @@ public class SchemaProcessor implements Processor {
     }
 
     private void createHashCodeMethod(JDefinedClass definedClass) {
-        JMethod hashCode = definedClass.method(JMod.PUBLIC, int.class, METHOD_HASH_CODE);
+        JMethod hashCode = definedClass.getMethod(METHOD_HASH_CODE, new JType[]{});
+        if (hashCode == null) {
+            hashCode = definedClass.method(JMod.PUBLIC, int.class, METHOD_HASH_CODE);
+        } else {
+            hashCode = recreateMethod(hashCode, definedClass);
+        }
         hashCode.annotate(CLASS_MAP.get(Override.class));
         JBlock body = hashCode.body();
         body._return(JExpr.invoke(METHOD_GET_CONTAINER).invoke(METHOD_HASH_CODE));
@@ -423,7 +428,7 @@ public class SchemaProcessor implements Processor {
     /**
      * remove generated equals methods from classes which extends from prism containers/objects
      */
-    private void removeGeneratedEquals(Outline outline) {
+    private void removeCustomGeneratedMethod(Outline outline) {
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
@@ -431,23 +436,42 @@ public class SchemaProcessor implements Processor {
             if (qname == null || (!hasParentAnnotation(classOutline, PRISM_OBJECT)
                     && !hasParentAnnotation(classOutline, PRISM_CONTAINER))) {
                 continue;
-            }            
+            }
 
             JDefinedClass definedClass = classOutline.implClass;
             Iterator<JClass> iterator = definedClass._implements();
-            while(iterator.hasNext()) {
-                if (iterator.next().equals(CLASS_MAP.get(Equals.class))) {
+            while (iterator.hasNext()) {
+                JClass clazz = iterator.next();
+                if (clazz.equals(CLASS_MAP.get(Equals.class)) || clazz.equals(CLASS_MAP.get(HashCode.class))) {
                     iterator.remove();
                 }
             }
-            //todo remove Equals interface from defined class
-            
+
             boolean isMidpointContainer = hasParentAnnotation(classOutline, PRISM_OBJECT);
-            removeOldEqualsMethods(classOutline, isMidpointContainer);
+            removeOldCustomGeneratedEquals(classOutline, isMidpointContainer);
+            removeOldCustomGenerated(classOutline, isMidpointContainer, METHOD_HASH_CODE);
+            removeOldCustomGenerated(classOutline, isMidpointContainer, METHOD_TO_STRING);
         }
     }
 
-    private void removeOldEqualsMethods(ClassOutline classOutline, boolean isPrismObject) {
+    private void removeOldCustomGenerated(ClassOutline classOutline, boolean isPrismObject, String methodName) {
+        JDefinedClass definedClass = classOutline.implClass;
+        Iterator<JMethod> methods = definedClass.methods().iterator();
+        while (methods.hasNext()) {
+            JMethod method = methods.next();
+            if (isPrismObject && !hasAnnotation(classOutline, PRISM_OBJECT)) {
+                if (method.name().equals(methodName)) {
+                    methods.remove();
+                }
+            } else {
+                if (method.name().equals(methodName) && method.listParams().length != 0) {
+                    methods.remove();
+                }
+            }
+        }
+    }
+
+    private void removeOldCustomGeneratedEquals(ClassOutline classOutline, boolean isPrismObject) {
         JDefinedClass definedClass = classOutline.implClass;
         Iterator<JMethod> methods = definedClass.methods().iterator();
         while (methods.hasNext()) {
@@ -466,18 +490,10 @@ public class SchemaProcessor implements Processor {
 
     private void createEqualsMethod(ClassOutline classOutline) {
         JDefinedClass definedClass = classOutline.implClass;
-
-        JMethod equals = null;
-        for (JMethod method : definedClass.methods()) {
-            if (method.name().equals(METHOD_EQUALS) && method.listParamTypes().length == 1
-                    && method.listParamTypes()[0].equals(CLASS_MAP.get(Object.class))) {
-                equals = method;
-                break;
-            }
-        }
+        JMethod equals = definedClass.getMethod(METHOD_EQUALS, new JType[]{CLASS_MAP.get(Object.class)});
 
         if (equals != null) {
-            removeOldEqualsMethods(classOutline, hasParentAnnotation(classOutline, PRISM_OBJECT));
+//            removeOldCustomGeneratedEquals(classOutline, hasParentAnnotation(classOutline, PRISM_OBJECT));  todo can this be removed?
             equals = recreateMethod(equals, definedClass);
         } else {
             equals = definedClass.method(JMod.PUBLIC, boolean.class, METHOD_EQUALS);
@@ -497,7 +513,12 @@ public class SchemaProcessor implements Processor {
     }
 
     private void createToStringMethod(JDefinedClass definedClass) {
-        JMethod toString = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(String.class), METHOD_TO_STRING);
+        JMethod toString = definedClass.getMethod("toString", new JType[]{});
+        if (toString == null) {
+            toString = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(String.class), METHOD_TO_STRING);
+        } else {
+            toString = recreateMethod(toString, definedClass);
+        }
         toString.annotate(CLASS_MAP.get(Override.class));
 
         JBlock body = toString.body();
@@ -712,7 +733,7 @@ public class SchemaProcessor implements Processor {
 
             List<FieldBox<QName>> boxes = new ArrayList<FieldBox<QName>>();
             for (Entry<String, JFieldVar> fieldEntry : fields.entrySet()) {
-                String field = fieldEntry.getKey(); 
+                String field = fieldEntry.getKey();
                 if ("serialVersionUID".equals(field) || "oid".equals(field) || "version".equals(field)
                         || "id".equals(field) || COMPLEX_TYPE_FIELD.equals(field)) {
                     continue;
@@ -721,7 +742,7 @@ public class SchemaProcessor implements Processor {
                 if (hasAnnotationClass(fieldEntry.getValue(), XmlAnyElement.class)) {
                     continue;
                 }
-                
+
                 String fieldName = fieldFPrefixUnderscoredUpperCase(field);
                 boxes.add(new FieldBox<QName>(fieldName, new QName(qname.getNamespaceURI(), field)));
             }
@@ -1120,8 +1141,8 @@ public class SchemaProcessor implements Processor {
         JType type = field.type();
         return isFieldTypeContainer(type, classOutline);
     }
-    
-    private boolean isFieldTypeContainer(JType type, ClassOutline classOutline) {        
+
+    private boolean isFieldTypeContainer(JType type, ClassOutline classOutline) {
         if (type instanceof JDefinedClass) {
             return isContainer((JDefinedClass) type, classOutline.parent());
         } else if (isList(type)) {
@@ -1221,7 +1242,7 @@ public class SchemaProcessor implements Processor {
 
         return anonymous;
     }
-    
+
     private void createFieldContainerCreateItemBody(JFieldVar field, JMethod method) {
         JClass list = (JClass) field.type();
         JClass listType = list.getTypeParameters().get(0);
@@ -1240,7 +1261,7 @@ public class SchemaProcessor implements Processor {
 
     private void createContainerFieldGetterBody(JFieldVar field, ClassOutline classOutline, JMethod method) {
         JBlock body = method.body();
-        
+
         if (isList(field.type())) {
             JClass list = (JClass) field.type();
             JClass listType = list.getTypeParameters().get(0);
@@ -1249,9 +1270,9 @@ public class SchemaProcessor implements Processor {
             invocation.arg(JExpr.invoke(METHOD_GET_CONTAINER));
             invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
             invocation.arg(JExpr.dotclass(listType));
-            
+
             JClass containerValue = CLASS_MAP.get(PrismContainerValue.class);
-            containerValue = containerValue.narrow(listType);            
+            containerValue = containerValue.narrow(listType);
             JClass valueList = CLASS_MAP.get(List.class);
             valueList = valueList.narrow(containerValue);
             JVar values = body.decl(valueList, "values", invocation);
@@ -1259,14 +1280,14 @@ public class SchemaProcessor implements Processor {
             JDefinedClass anonymous = createFieldContainerGetterListAnon(field, classOutline);
             createFieldContainerCreateItemBody(field, findMethod(anonymous, "createItem"));
             createFieldContainerGetValueFrom(field, findMethod(anonymous, "getValueFrom"));
-            
+
             JInvocation newList = JExpr._new(anonymous);
             newList.arg(values);
             body._return(newList);
-            
+
             return;
         }
-        
+
         JVar container;
         if (isPrismContainer(method.type(), classOutline.parent())) {
             //handle PrismObject
@@ -1366,7 +1387,7 @@ public class SchemaProcessor implements Processor {
         invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
         invocation.arg(method.listParams()[0]);
     }
-    
+
     private <T> boolean hasAnnotationClass(JAnnotatable method, Class<T> annotationType) {
         List<JAnnotationUse> annotations = getAnnotations(method);
         for (JAnnotationUse annotation : annotations) {
@@ -1391,7 +1412,7 @@ public class SchemaProcessor implements Processor {
             body._return(invocation);
             return;
         }
-        
+
         if (isList) {
             invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_GET_PROPERTY_VALUES);
         } else {
