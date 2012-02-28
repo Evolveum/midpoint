@@ -60,6 +60,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
  * @author Igor Farinic
  */
 @ContextConfiguration(locations = { "../../../../../application-context-repository.xml",
+        "classpath:application-context-repo-cache.xml",
 		"classpath:application-context-configuration-test.xml" })
 public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 

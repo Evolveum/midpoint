@@ -56,7 +56,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
  *
  * @author Igor Farinic
  */
-@ContextConfiguration(locations = {"../../../../../application-context-repository.xml", 
+@ContextConfiguration(locations = {"../../../../../application-context-repository.xml",
+        "classpath:application-context-repo-cache.xml",
 		"classpath:application-context-configuration-test.xml"})
 public class RepositoryUserTemplateTest extends AbstractTestNGSpringContextTests {
 

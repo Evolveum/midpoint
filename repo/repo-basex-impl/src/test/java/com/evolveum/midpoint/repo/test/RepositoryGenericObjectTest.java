@@ -58,6 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
  */
 
 @ContextConfiguration(locations = { "../../../../../application-context-repository.xml",
+        "classpath:application-context-repo-cache.xml",
 		"classpath:application-context-configuration-test.xml" })
 public class RepositoryGenericObjectTest extends AbstractTestNGSpringContextTests {
 
