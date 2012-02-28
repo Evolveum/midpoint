@@ -188,6 +188,9 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
 	}
     
     public V getValue(int index) {
+    	if (index < 0) {
+    		index = values.size() + index;
+    	}
 		return values.get(index);
 	}
     
@@ -228,6 +231,7 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
     		if (myVal == value) {
     			return previousValue;
     		}
+    		previousValue = myVal;
     	}
     	throw new IllegalStateException("The value "+value+" is not any of "+this+" values, therefore cannot determine previous value");
     }
@@ -254,10 +258,17 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
 
     
     public boolean addAll(Collection<V> newValues) {
-    	return values.addAll(newValues);
+    	boolean changed = false;
+    	for (V val: newValues) {
+    		if (add(val)) {
+    			changed = true;
+    		}
+    	}
+    	return changed;
     }
     
     public boolean add(V newValue) {
+    	newValue.setParent(this);
     	return values.add(newValue);
     }
     

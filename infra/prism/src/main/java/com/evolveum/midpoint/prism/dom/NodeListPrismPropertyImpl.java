@@ -5,23 +5,24 @@ import org.w3c.dom.NodeList;
 
 public class NodeListPrismPropertyImpl implements NodeList {
 	
-	ElementPrismPropertyImpl elementImpl;
+	TextPrismPropertyImpl textNode;
 	
 	NodeListPrismPropertyImpl(ElementPrismPropertyImpl elementImpl) {
 		super();
-		this.elementImpl = elementImpl;
+		this.textNode = new TextPrismPropertyImpl(elementImpl);
 	}
 
 	@Override
 	public Node item(int index) {
-		// TODO Auto-generated method stub
-		return null;
+		if (index != 0) {
+			return null;
+		}
+		return textNode;
 	}
 
 	@Override
 	public int getLength() {
-		// TODO Auto-generated method stub
-		return 0;
+		return 1;
 	}
 
 }

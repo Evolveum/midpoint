@@ -71,24 +71,6 @@ public class TestPrismParsing {
 		Document document = DOMUtil.parseFile(USER_JACK_FILE);
 		Element userElement = DOMUtil.getFirstChildElement(document);
 		
-		// FOOOOOOOOOOO
-		System.out.println("FOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
-		NodeList childNodes = userElement.getChildNodes();
-		System.out.println("childNodes");
-		System.out.println(childNodes);
-		for (int i=0; i<childNodes.getLength(); i++) {
-			Node item = childNodes.item(i);
-			System.out.println("> "+item.getClass()+": "+item);
-		}
-		NamedNodeMap attributes = userElement.getAttributes();
-		System.out.println("attributes");
-		System.out.println(attributes);
-		for (int i=0; i<attributes.getLength(); i++) {
-			Node item = attributes.item(i);
-			System.out.println("> "+item.getClass()+": "+item);
-		}
-
-		
 		PrismContext prismContext = constructInitializedPrismContext();
 		
 		// WHEN
@@ -111,6 +93,7 @@ public class TestPrismParsing {
 		assertEquals("Wrong oid", USER_JACK_OID, user.getOid());
 		assertEquals("Wrong version", "42", user.getVersion());
 		PrismAsserts.assertObjectDefinition(user.getDefinition(), USER_QNAME, USER_TYPE_QNAME, UserType.class);
+		PrismAsserts.assertParentConsistency(user);
 		
 		assertPropertyValue(user, "fullName", "cpt. Jack Sparrow");
 		assertPropertyDefinition(user, "fullName", DOMUtil.XSD_STRING, 1, 1);

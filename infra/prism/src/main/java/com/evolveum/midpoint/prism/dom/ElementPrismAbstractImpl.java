@@ -15,6 +15,7 @@ import org.w3c.dom.TypeInfo;
 import org.w3c.dom.UserDataHandler;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -145,7 +146,19 @@ public abstract class ElementPrismAbstractImpl implements Element {
 
 	@Override
 	public Node getPreviousSibling() {
-		PrismValue previousPVal = getItem().getPreviousValue(value);
+		Item item = getItem();
+		PrismValue previousPVal = item.getPreviousValue(value);
+		if (previousPVal == null) {
+			PrismValue parentValue = getItem().getParent();
+			if (parentValue instanceof PrismContainerValue) {
+				PrismContainerValue parentContainerValue = (PrismContainerValue)parentValue;
+				Item prevItem = parentContainerValue.getPreviousItem(getItem());
+				if (prevItem == null || prevItem.isEmpty()) {
+					return null;
+				}
+				previousPVal = prevItem.getValue(-1);
+			}
+		}
 		if (previousPVal == null) {
 			return null;
 		}
@@ -154,7 +167,19 @@ public abstract class ElementPrismAbstractImpl implements Element {
 
 	@Override
 	public Node getNextSibling() {
+		Item item = getItem();
 		PrismValue nextPVal = getItem().getNextValue(value);
+		if (nextPVal == null) {
+			PrismValue parentValue = getItem().getParent();
+			if (parentValue instanceof PrismContainerValue) {
+				PrismContainerValue parentContainerValue = (PrismContainerValue)parentValue;
+				Item nextItem = parentContainerValue.getNextItem(getItem());
+				if (nextItem == null || nextItem.isEmpty()) {
+					return null;
+				}
+				nextPVal = nextItem.getValue(0);
+			}
+		}
 		if (nextPVal == null) {
 			return null;
 		}
@@ -363,6 +388,11 @@ public abstract class ElementPrismAbstractImpl implements Element {
 	public TypeInfo getSchemaTypeInfo() {
 		// TODO Auto-generated method stub
 		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public String toString() {
+		return "Element/Prism(" + value + ")";
 	}
 	
 }

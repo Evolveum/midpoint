@@ -55,7 +55,16 @@ public class NodeListPrismContainerImpl<T> implements NodeList {
 	 */
 	@Override
 	public Node item(int index) {
-		return (Node) getValueList().get(index).asDomElements();
+		for (Item<?> item: getContainerValue().getItems()) {
+			if (selected(item)) {
+	    		if (index < item.getValues().size()) {
+	    			return item.getValue(index).asDomElement();
+	    		} else {
+	    			index -= item.getValues().size(); 
+	    		}
+			}
+    	}
+		return null;
 	}
 
 	/* (non-Javadoc)
@@ -63,28 +72,35 @@ public class NodeListPrismContainerImpl<T> implements NodeList {
 	 */
 	@Override
 	public int getLength() {
-		return getValueList().size();
+		// Each item and each value are presented as one list entry
+    	int size = 0;
+    	for (Item<?> item: getContainerValue().getItems()) {
+    		if (selected(item)) {
+    			size += item.getValues().size();
+    		}
+    	}
+        return size;
 	}
 	
 	boolean isEmpty() {
-		return getValueList().isEmpty();
+		return getLength() == 0;
 	}
 	
-	private List<Item<?>> getValueList() {
-		PrismContainerValue<T> pvalue = elementPrismContainerImpl.getValue();
+	private PrismContainerValue<T> getContainerValue() {
+		return elementPrismContainerImpl.getValue();
+	}
+	
+	private boolean selected(Item item) {
 		if (selectionLocalName == null) {
-			return pvalue.getItems();
+			return true;
 		} else {
-			List<Item<?>> list = new ArrayList<Item<?>>();
-			for (Item<?> item: pvalue.getItems()) {
-				if (selectionLocalName.equals(item.getName().getLocalPart())) {
-					if (selectionNamespace == null || selectionNamespace.equals(item.getName().getNamespaceURI())) {
-						list.add(item);	
-					}
+			if (selectionLocalName.equals(item.getName().getLocalPart())) {
+				if (selectionNamespace == null || selectionNamespace.equals(item.getName().getNamespaceURI())) {
+					return true;	
 				}
 			}
-			return list;
 		}
+		return false;
 	}
 
 }

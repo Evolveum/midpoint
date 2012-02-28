@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -42,6 +43,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -63,10 +65,13 @@ public class PrismAsserts {
 	
 	// VALUE asserts
 		
-	public static void assertPropertyValue(PrismContainer<?> container, QName propQName, Object propValue) {
-		PrismProperty<?> property = container.getValue().findProperty(propQName);
+	public static void assertPropertyValue(PrismContainer<?> container, QName propQName, Object realPropValue) {
+		PrismContainerValue<?> containerValue = container.getValue();
+		assertSame("Wrong parent for value of container "+container, container, containerValue.getParent());
+		PrismProperty<?> property = containerValue.findProperty(propQName);
 		assertNotNull("Property "+propQName+" not found in "+container, property);
-		assertPropertyValue(property, propValue);
+		assertSame("Wrong parent for property "+property, containerValue, property.getParent());
+		assertPropertyValue(property, realPropValue);
 	}
 	
 	public static void assertPropertyValue(PrismProperty property, Object propValue) {
@@ -76,6 +81,7 @@ public class PrismAsserts {
 		assertEquals("Numver of values of property "+propQName, 1, pvals.size());
 		PrismPropertyValue<Object> pval = pvals.iterator().next();
 		assertEquals("Values of property "+propQName, propValue, pval.getValue());
+		assertSame("Wrong parent for value of property "+property, property, pval.getParent());
 	}
 	
 	public static void assertPropertyValues(String message, Collection expected, Collection<PrismPropertyValue<Object>> results) {
@@ -136,6 +142,24 @@ public class PrismAsserts {
 		assertEquals("Wrong definition type for "+itemName, type, definition.getTypeName());
 		assertEquals("Wrong definition minOccurs for "+itemName, minOccurs, definition.getMinOccurs());
 		assertEquals("Wrong definition maxOccurs for "+itemName, maxOccurs, definition.getMaxOccurs());
+	}
+	
+	// MISC asserts
+	
+	public static void assertParentConsistency(PrismContainerValue<?> pval) {
+		for (Item<?> item: pval.getItems()) {
+			assert item.getParent() == pval : "Wrong parent in "+item;
+			assertParentConsistency(item);
+		}
+	}
+
+	public static void assertParentConsistency(Item<?> item) {
+		for (PrismValue pval: item.getValues()) {
+			assert pval.getParent() == item : "Wrong parent in "+pval;
+			if (pval instanceof PrismContainerValue) {
+				assertParentConsistency((PrismContainerValue)pval);
+			}
+		}
 	}
 	
 	// DELTA asserts
@@ -292,6 +316,12 @@ public class PrismAsserts {
 	
 	static void assertEquals(String message, Object expected, Object actual) {
 		assert expected.equals(actual) : message 
+				+ ": expected ("+expected.getClass().getSimpleName() + ")"  + expected 
+				+ ", was (" + actual.getClass().getSimpleName() + ")" + actual;
+	}
+	
+	static void assertSame(String message, Object expected, Object actual) {
+		assert expected == actual : message 
 				+ ": expected ("+expected.getClass().getSimpleName() + ")"  + expected 
 				+ ", was (" + actual.getClass().getSimpleName() + ")" + actual;
 	}

@@ -361,7 +361,7 @@ public class PrismDomProcessor {
         		// The values is already in java form, just store it directly
         		value = valueElement;
         	}
-            prop.getValues().add(new PrismPropertyValue(value));
+            prop.add(new PrismPropertyValue(value));
         }
         return prop;
     }
@@ -373,7 +373,7 @@ public class PrismDomProcessor {
         } else {
             List list = XmlTypeConverter.convertValueElementAsList(valueElement, propertyDefinition.getTypeName());
             for (Object object : list) {
-                prop.getValues().add(new PrismPropertyValue(object));
+                prop.add(new PrismPropertyValue(object));
             }
         }
         return prop;
@@ -437,9 +437,9 @@ public class PrismDomProcessor {
 
         for (Object valueElement : valueElements) {
         	if (valueElement instanceof Element) {
-        		ref.getValues().add(parseReferenceValue((Element)valueElement));
+        		ref.add(parseReferenceValue((Element)valueElement));
         	} else {
-        		ref.getValues().add(parseReferenceValueFromObject(valueElement));
+        		ref.add(parseReferenceValueFromObject(valueElement));
         	}
         }
         return ref;
@@ -488,11 +488,11 @@ public class PrismDomProcessor {
 //    public Property parseFromValueElement(Element valueElement, PropertyPath parentPath) throws SchemaException {
 //        Property prop = this.instantiate(parentPath);
 //        if (isSingleValue()) {
-//            prop.getValues().add(new PropertyValue(XsdTypeConverter.convertValueElementAsScalar(valueElement, getTypeName())));
+//            prop.add(new PropertyValue(XsdTypeConverter.convertValueElementAsScalar(valueElement, getTypeName())));
 //        } else {
 //            List list = XsdTypeConverter.convertValueElementAsList(valueElement, getTypeName());
 //            for (Object object : list) {
-//                prop.getValues().add(new PropertyValue(object));
+//                prop.add(new PropertyValue(object));
 //            }
 //        }
 //        return prop;

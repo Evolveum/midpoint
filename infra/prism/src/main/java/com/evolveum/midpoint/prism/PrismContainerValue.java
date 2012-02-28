@@ -75,6 +75,35 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
     	return items;
     }
     
+    public Item<?> getNextItem(Item<?> referenceItem) {
+    	Iterator<Item<?>> iterator = items.iterator();
+    	while (iterator.hasNext()) {
+    		Item<?> item = iterator.next();
+    		if (item == referenceItem) {
+    			if (iterator.hasNext()) {
+    				return iterator.next();
+    			} else {
+    				return null;
+    			}
+    		}
+    	}
+    	throw new IllegalArgumentException("Item "+referenceItem+" is not part of "+this);
+    }
+
+    public Item<?> getPreviousItem(Item<?> referenceItem) {
+    	Item<?> lastItem = null;
+    	Iterator<Item<?>> iterator = items.iterator();
+    	while (iterator.hasNext()) {
+    		Item<?> item = iterator.next();
+    		if (item == referenceItem) {
+    			return lastItem;
+    		}
+    		lastItem = item;
+    	}
+    	throw new IllegalArgumentException("Item "+referenceItem+" is not part of "+this);
+    }
+
+    
     /**
      * Returns a set of properties that the property container contains.
      * <p/>
@@ -107,6 +136,10 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 		return (PrismContainer<T>)super.getParent();
 	}
 	
+	void setParent(PrismContainer<T> container) {
+		super.setParent(container);
+	}
+	
 	public PropertyPath getPath(PropertyPath pathPrefix) {
 		PrismContainer<T> parent = getParent();
 		PropertyPath parentPath = PropertyPath.EMPTY_PATH;
@@ -118,10 +151,6 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 		}
 		PropertyPathSegment mySegment = new PropertyPathSegment(getParent().getName(), getId());
 		return parentPath.allExceptLast().subPath(mySegment);
-	}
-
-	void setParent(PrismContainer<T> container) {
-		super.setParent(container);
 	}
 	
 	// For compatibility with other PrismValue types

@@ -33,6 +33,7 @@
 			<class name="com.evolveum.midpoint.prism.TestCompare"/>
 			<class name="com.evolveum.midpoint.prism.TestPrismConstruction"/>
 			<class name="com.evolveum.midpoint.prism.TestExtraSchema"/>
+			<class name="com.evolveum.midpoint.prism.TestDom"/>
         </classes>
     </test>
 </suite>

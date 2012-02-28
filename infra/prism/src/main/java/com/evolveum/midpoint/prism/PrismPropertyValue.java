@@ -53,6 +53,8 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 
     public void setValue(T value) {
         this.value = value;
+        // To make sure there is no stale value
+        clearDomElement();
     }
 
     public T getValue() {

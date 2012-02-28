@@ -2,25 +2,66 @@ package com.evolveum.midpoint.prism.dom;
 
 import java.util.List;
 
+import javax.xml.bind.JAXBException;
+
 import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;
+import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 public class ElementPrismPropertyImpl<T> extends ElementPrismAbstractImpl {
 	
+	private PrismPropertyValue value;
 	private NodeList valueNodeList;
+	private Element delegateElement;
 	
 	public ElementPrismPropertyImpl(PrismPropertyValue value) {
 		super(value);
-		this.valueNodeList = new NodeListPrismPropertyImpl(this);
+		this.value = value;
+		
+	}
+	
+	private void lazyInit() {
+		if (valueNodeList != null || delegateElement != null) {
+			// Nothing to do, already initialized
+			return;
+		}
+		
+		Class<? extends Object> type = value.getValue().getClass();
+		if (XmlTypeConverter.canConvert(type)) {
+			// Primitive value
+			this.valueNodeList = new NodeListPrismPropertyImpl(this);
+		
+		} else {
+			// JAXB value
+			PrismContext prismContext = getItem().getPrismContext();
+			PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+			if (jaxbProcessor.canConvert(type)) {
+				try {
+					delegateElement = jaxbProcessor.marshalObjectToDom(value.getValue(), getItem().getName(), null);
+				} catch (JAXBException e) {
+					DOMException domException = new DOMException(DOMException.INVALID_STATE_ERR, "Error converting the value of type "+type+": "+e.getMessage());
+					domException.initCause(e);
+					throw domException;
+				}
+			} else {
+				throw new DOMException(DOMException.INVALID_STATE_ERR, "The value of type "+type+" cannot be converted to DOM");
+			}
+		}
+	}
+	
+	private boolean isDelegate() {
+		return delegateElement != null;
 	}
 	
 	protected PrismPropertyValue getValue() {
@@ -39,7 +80,7 @@ public class ElementPrismPropertyImpl<T> extends ElementPrismAbstractImpl {
 	String getXmlValue() {
 		// TODO: Special handling for QNames
 		PrismPropertyValue propertyValue = getValue();
-		String xmlStringValue = XmlTypeConverter.toXmlTextContent(propertyValue, getElementName());
+		String xmlStringValue = XmlTypeConverter.toXmlTextContent(propertyValue.getValue(), getElementName());
 		return xmlStringValue;
 	}
 	
@@ -52,6 +93,10 @@ public class ElementPrismPropertyImpl<T> extends ElementPrismAbstractImpl {
 	}
 	
 	protected NodeList getValueNodeList() {
+		lazyInit();
+		if (isDelegate()) {
+			return delegateElement.getChildNodes();
+		}
 		return valueNodeList;
 	}
 
@@ -87,6 +132,10 @@ public class ElementPrismPropertyImpl<T> extends ElementPrismAbstractImpl {
 
 	@Override
 	public boolean hasChildNodes() {
+		lazyInit();
+		if (isDelegate()) {
+			return delegateElement.hasChildNodes();
+		}
 		return (getValue().getValue() != null);
 	}
 
@@ -163,19 +212,16 @@ public class ElementPrismPropertyImpl<T> extends ElementPrismAbstractImpl {
 
 	@Override
 	public boolean hasAttribute(String name) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean hasAttributeNS(String namespaceURI, String localName) throws DOMException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public void setIdAttribute(String name, boolean isId) throws DOMException {
-		// TODO Auto-generated method stub
 
 	}
 

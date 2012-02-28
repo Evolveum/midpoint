@@ -43,6 +43,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -57,6 +59,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
+
+import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
  * 
@@ -197,18 +201,23 @@ public class DOMUtil {
 
 	public static StringBuffer printDom(Node node) {
 		StringWriter writer = new StringWriter();
+		TransformerFactory transfac = TransformerFactory.newInstance();
+		Transformer trans;
 		try {
-			TransformerFactory transfac = TransformerFactory.newInstance();
-			Transformer trans = transfac.newTransformer();
-			trans.setOutputProperty(OutputKeys.INDENT, "yes");
-			trans.setParameter(OutputKeys.ENCODING, "utf-8");
-			// Note: serialized XML does not contain xml declaration
-			trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+			trans = transfac.newTransformer();
+		} catch (TransformerConfigurationException e) {
+			throw new SystemException("Error in XML configuration: "+e.getMessage(),e);
+		}
+		trans.setOutputProperty(OutputKeys.INDENT, "yes");
+		trans.setParameter(OutputKeys.ENCODING, "utf-8");
+		// Note: serialized XML does not contain xml declaration
+		trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
 
-			DOMSource source = new DOMSource(node);
+		DOMSource source = new DOMSource(node);
+		try {
 			trans.transform(source, new StreamResult(writer));
-		} catch (Exception ex) {
-			ex.printStackTrace();
+		} catch (TransformerException e) {
+			throw new SystemException("Error in XML transformation: "+e.getMessage(),e);
 		}
 
 		return writer.getBuffer();
@@ -553,14 +562,14 @@ public class DOMUtil {
 		}
 	}
 
-	public static QName getQName(Element element) {
-		if (element.getLocalName() == null) {
+	public static QName getQName(Node node) {
+		if (node.getLocalName() == null) {
 			return null;
 		}
-		if (element.getPrefix() == null) {
-			return new QName(element.getNamespaceURI(), element.getLocalName());
+		if (node.getPrefix() == null) {
+			return new QName(node.getNamespaceURI(), node.getLocalName());
 		}
-		return new QName(element.getNamespaceURI(), element.getLocalName(), element.getPrefix());
+		return new QName(node.getNamespaceURI(), node.getLocalName(), node.getPrefix());
 	}
 
 	public static QName getQNameValue(Element element) {

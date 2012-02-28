@@ -86,6 +86,10 @@ public abstract class PrismValue {
 
 	protected abstract Element createDomElement();
 	
+	protected void clearDomElement() {
+		domElement = null;
+	}
+	
 	/**
 	 * Returns true if this and other value represent the same value.
 	 * E.g. if they have the same IDs, OIDs or it is otherwise know
