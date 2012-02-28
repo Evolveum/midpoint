@@ -544,6 +544,11 @@ public class PrismDomProcessor {
 	// =   SERIALIZATION
 	// ================================================
 	
+	/**
+	 * Returns "dead" DOM representation of the PrismObject. The representation is a copy
+	 * of the object and does not change with the object. But the representation is fully
+	 * DOM-compliant.
+	 */
 	public Element serializeToDom(PrismObject<?> object) throws SchemaException {
 		DomSerializer domSerializer = new DomSerializer(getPrismContext());
 		return domSerializer.serialize(object);

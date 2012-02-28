@@ -51,6 +51,15 @@ public class MiscUtil {
 		return resultSet;
 	}
 	
+	public static int unorderedCollectionHashcode(Collection collection) {
+		// Stupid implmentation, just add all the hashcodes
+		int hashcode = 0;
+		for (Object item: collection) {
+			hashcode += item.hashCode();
+		}
+		return hashcode;
+	}
+	
 	public static String readFile(File file) throws IOException {
 		StringBuffer fileData = new StringBuffer(BUFFER_SIZE);
         BufferedReader reader = new BufferedReader(new FileReader(file));

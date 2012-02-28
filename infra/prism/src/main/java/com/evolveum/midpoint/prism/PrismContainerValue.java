@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.commons.lang.Validate;
@@ -611,7 +612,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((items == null) ? 0 : items.hashCode());
+		result = prime * result + ((items == null) ? 0 : MiscUtil.unorderedCollectionHashcode(items));
 		return result;
 	}
 

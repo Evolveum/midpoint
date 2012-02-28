@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -421,9 +422,8 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((definition == null) ? 0 : definition.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((values == null) ? 0 : values.hashCode());
+		result = prime * result + ((values == null) ? 0 : MiscUtil.unorderedCollectionHashcode(values));
 		return result;
 	}
 

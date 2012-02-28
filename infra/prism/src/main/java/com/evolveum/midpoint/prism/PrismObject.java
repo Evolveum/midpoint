@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -242,6 +243,15 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 		return new PropertyPath();
 	}
 	
+	/**
+	 * Returns a live DOM representation of the object.
+	 * 
+	 * Although the representation should be DOM-compliant, current implementation is only somehow compliant.
+	 * E.g. it cannot provide owner document and the parent links may be broken in JAXB objects. But it may be
+	 * good for some uses.
+	 * 
+	 * For a full DOM representation see {@link PrismJaxbProcessor} (serializeToDom).
+	 */
 	public Element asDomElement() {
 		// TODO: OID
 		return getValue().asDomElement();
