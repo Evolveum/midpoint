@@ -27,11 +27,7 @@ import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -127,8 +123,10 @@ public class AssignmentProcessor {
         LOGGER.trace("Old assignments {}", SchemaDebugUtil.prettyPrint(assignmentsOld));
         LOGGER.trace("Changed assignments {}", SchemaDebugUtil.prettyPrint(changedAssignments));
 
-        ObjectType source = context.getUserOld().asObjectable();
-        if (source == null) {
+        ObjectType source = null;
+        if (context.getUserOld() != null) {
+            source = context.getUserOld().asObjectable();
+        } else if (context.getUserNew() != null){
             source = context.getUserNew().asObjectable();
         }
 
