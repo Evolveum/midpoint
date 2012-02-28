@@ -141,6 +141,7 @@ public class TestJaxbSanity {
 		AccountConstructionType ac1 = user1Type.getAssignment().get(0).getAccountConstruction();
 		AccountConstructionType ac2 = user2Type.getAssignment().get(0).getAccountConstruction();
 		assertTrue("AccountConstructionType not equals (JAXB)", ac1.equals(ac2));
+		assertTrue("AccountConstructionType hashcode does not match (JAXB)", ac1.hashCode() == ac2.hashCode());
 		
 		AssignmentType as1Type = user1Type.getAssignment().get(0);
 		PrismContainer as1Cont = as1Type.asPrismContainer();
@@ -155,6 +156,8 @@ public class TestJaxbSanity {
 		assertTrue("Assignment not equals (Container)", as1Cont.equals(as2Cont));
 		assertTrue("Assignment not equivalent (Container)", as1Cont.equivalent(as2Cont));
 		assertTrue("AssignmentType not equals (JAXB)", as1Type.equals(as2Type));
+		assertTrue("Assignment hashcode does not match (Container)", as1Cont.hashCode() == as2Cont.hashCode());
+		assertTrue("Assignment hashcode does not match (Objectable)", as1Type.hashCode() == as2Type.hashCode());
 		
 		// Compare object inner value
 		assertTrue("User prism values do not match", user1.getValue().equals(user2.getValue()));
@@ -169,8 +172,8 @@ public class TestJaxbSanity {
 		assertTrue("User not equivalent (PrismObject)", user1.equivalent(user2));
 		assertTrue("User not equals (Objectable)", user1Type.equals(user2Type));
 		
-		assertTrue("HashCode does not match (PrismObject)", user1.hashCode() == user2.hashCode());
-		assertTrue("HashCode does not match (Objectable)", user1Type.hashCode() == user2Type.hashCode());
+		assertTrue("User hashcode does not match (PrismObject)", user1.hashCode() == user2.hashCode());
+		assertTrue("User hashcode does not match (Objectable)", user1Type.hashCode() == user2Type.hashCode());
 	}
 
 	@Test
