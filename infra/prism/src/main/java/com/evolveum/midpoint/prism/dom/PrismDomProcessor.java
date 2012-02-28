@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
@@ -311,7 +312,7 @@ public class PrismDomProcessor {
 		PrismPropertyDefinition propDef = new PrismPropertyDefinition(elementName, elementName, typeName, prismContext);
 		// Set it to multi-value to be on the safe side
 		propDef.setMaxOccurs(-1);
-		// TODO: set "dynamic" flag
+		propDef.setDynamic(true);
 		return propDef;
 	}
 	
@@ -323,7 +324,7 @@ public class PrismDomProcessor {
 		PrismPropertyDefinition propDef = new PrismPropertyDefinition(itemName, itemName, DEFAULT_XSD_TYPE, prismContext);
 		// Set it to multi-value to be on the safe side
 		propDef.setMaxOccurs(-1);
-		// TODO: set "dynamic" flag
+		propDef.setDynamic(true);
 		return propDef;
 	}
     
@@ -357,6 +358,9 @@ public class PrismDomProcessor {
 	        		// fallback to storing DOM in value
 	        		value = element;
 	        	}
+        	} else if (valueElement instanceof JAXBElement) {
+        		JAXBElement jaxbElement = (JAXBElement)valueElement;
+        		value = jaxbElement.getValue();
         	} else {
         		// The values is already in java form, just store it directly
         		value = valueElement;

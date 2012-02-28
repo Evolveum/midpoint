@@ -50,6 +50,9 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
     // output in DOM and other ordering-sensitive representations
     private List<Item<?>> items = new ArrayList<Item<?>>();
     private String id;
+    // The elements are set during a schema-less parsing, e.g. during a dumb JAXB parsing of the object
+    // We can't do anything smarter, as we don't have definition nor prism context. So we store the raw
+    // elements here and process them later (e.g. during applyDefinition).
     private List<Object> elements = null;
     
     public PrismContainerValue() {
@@ -566,7 +569,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 	public void applyDefinition(PrismContainerDefinition definition) throws SchemaException {
 		if (elements != null) {
 			// There are DOM/JAXB elements that needs to be parsed while the schema is being applied
-			parseElement(definition);
+			parseElements(definition);
 		}
 		for (Item<?> item: items) {
 			ItemDefinition itemDefinition = definition.findItemDefinition(item.getName());
@@ -576,13 +579,12 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 				} else {
 					throw new SchemaException("No definition for item "+item.getName()+" in "+getParent());
 				}
-			} else {
-				item.applyDefinition(itemDefinition);
 			}
+			item.applyDefinition(itemDefinition);
 		}
 	}
 
-	private void parseElement(PrismContainerDefinition definition) throws SchemaException {
+	private void parseElements(PrismContainerDefinition definition) throws SchemaException {
 		PrismDomProcessor domProcessor = definition.getPrismContext().getPrismDomProcessor();
 		Collection<? extends Item> parsedItems = domProcessor.parseContainerItems(definition, elements);
 		addAll((Collection)parsedItems);

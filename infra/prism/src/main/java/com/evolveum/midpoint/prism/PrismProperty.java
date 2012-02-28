@@ -298,10 +298,8 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
     
 	@Override
 	void applyDefinition(ItemDefinition definition) throws SchemaException {
-		if (definition == null) {
-			throw new SchemaException("No definition for property "+getName());
-		}
-		if (!(definition instanceof PrismPropertyDefinition)) {
+		// null definition is OK here. It means "runtime", or "determine your own definition".
+		if (definition != null && !(definition instanceof PrismPropertyDefinition)) {
 			throw new IllegalArgumentException("Cannot apply "+definition+" to property");
 		}
 		super.applyDefinition(definition);

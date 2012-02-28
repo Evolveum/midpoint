@@ -129,7 +129,7 @@ public class TestJaxbSanity {
 		assertTrue("AccountConstructionType not equals", ac1.equals(ac2));
 		
 		// WHEN, THEN
-		ObjectDelta<UserType> objectDelta = user1.diff(user1);
+		ObjectDelta<UserType> objectDelta = user1.diff(user2);
 		System.out.println("User delta:");
 		System.out.println(objectDelta.dump());
 		assertTrue("User delta is not empty", objectDelta.isEmpty());
@@ -225,21 +225,26 @@ public class TestJaxbSanity {
 		System.out.println("\n\n ===[testUnmarshallAndEqualsResource]===\n");
 		
 		// GIVEN
-		JAXBElement<ResourceType> resourceEl1 = PrismTestUtil.unmarshalElement(new File(RESOURCE_OPENDJ_FILENAME),ResourceType.class);
-		ResourceType resource1 = resourceEl1.getValue();
-		assertNotNull(resource1);
+		ResourceType resource1Type = PrismTestUtil.unmarshalObject(new File(RESOURCE_OPENDJ_FILENAME), ResourceType.class);
+		assertNotNull(resource1Type);
+		PrismObject resource1 = resource1Type.asPrismObject();
 		
-		JAXBElement<ResourceType> resourceEl2 = PrismTestUtil.unmarshalElement(new File(RESOURCE_OPENDJ_FILENAME),ResourceType.class);
-		ResourceType resource2 = resourceEl2.getValue();
-		assertNotNull(resource2);
+		ResourceType resource2Type = PrismTestUtil.unmarshalObject(new File(RESOURCE_OPENDJ_FILENAME),ResourceType.class);
+		assertNotNull(resource2Type);
+		PrismObject resource2 = resource2Type.asPrismObject();
 		
 		// WHEN, THEN
-		assertTrue("Resource not equal", resource1.equals(resource2));
+		ObjectDelta<ResourceType> objectDelta = resource1.diff(resource2);
+		System.out.println("Resource delta:");
+		System.out.println(objectDelta.dump());
+		assertTrue("Resource delta is not empty", objectDelta.isEmpty());
 		
-		assertTrue("HashCode does not match", resource1.hashCode() == resource2.hashCode());
+		assertTrue("Resource not equal", resource1Type.equals(resource2Type));
 		
-		PrismPropertyValue<Object> pv1 = new PrismPropertyValue<Object>(resource1.getConfiguration());
-		PrismPropertyValue<Object> pv2 = new PrismPropertyValue<Object>(resource2.getConfiguration());
+		assertTrue("Resource hashcode does not match", resource1Type.hashCode() == resource2Type.hashCode());
+		
+		PrismPropertyValue<Object> pv1 = new PrismPropertyValue<Object>(resource1Type.getConfiguration());
+		PrismPropertyValue<Object> pv2 = new PrismPropertyValue<Object>(resource2Type.getConfiguration());
 		
 		assertTrue("Real property values not equal",pv1.equalsRealValue(pv2));
 	}
