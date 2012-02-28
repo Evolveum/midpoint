@@ -48,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionT
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -74,11 +75,15 @@ public class TestJaxbSanity {
 	public void testGeneratedEquals() throws JAXBException {
 		System.out.println("\n\n ===[ testGeneratedEquals ]===\n");
 		
-		assertHasEquals(UserType.class);
-		assertHasEquals(AccountShadowType.class);
+		assertHasEquals(ObjectType.class);
 		assertHasEquals(AssignmentType.class);
 		assertHasEquals(ValueConstructionType.class);
 		assertHasEquals(ProtectedStringType.class);
+		
+		assertHasHashcode(ObjectType.class);
+		assertHasHashcode(AssignmentType.class);
+		assertHasHashcode(ValueConstructionType.class);
+		assertHasHashcode(ProtectedStringType.class);
 	}
 	
 	private void assertHasEquals(Class<?> clazz) {
@@ -89,6 +94,17 @@ public class TestJaxbSanity {
 			AssertJUnit.fail("No equals method in "+clazz.getSimpleName());
 		} catch (NoSuchMethodException e) {
 			AssertJUnit.fail("No equals method in "+clazz.getSimpleName());
+		}
+	}
+	
+	private void assertHasHashcode(Class<?> clazz) {
+		try {
+			Method method = clazz.getDeclaredMethod("hashcode", Object.class);
+			assertNotNull("No hashcode method in "+clazz.getSimpleName(), method);
+		} catch (SecurityException e) {
+			AssertJUnit.fail("No hashcode method in "+clazz.getSimpleName());
+		} catch (NoSuchMethodException e) {
+			AssertJUnit.fail("No hashcode method in "+clazz.getSimpleName());
 		}
 	}
 
