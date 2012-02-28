@@ -546,8 +546,9 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 				} else {
 					throw new SchemaException("No definition for item "+item.getName()+" in "+getParent());
 				}
+			} else {
+				item.applyDefinition(itemDefinition);
 			}
-			item.applyDefinition(itemDefinition);
 		}
 	}
 
