@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
@@ -157,6 +158,44 @@ public class TestObjectParsing {
 		assertUser(userType.asPrismObject());
 	}
 	
+	/**
+	 * Parsing in form of JAXBELement
+	 */
+	@Test
+	public void testPrismParseJaxbElement() throws JAXBException, SchemaException, SAXException, IOException {
+		System.out.println("===[ testPrismParseJaxbElement ]===");
+		
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+		
+		// WHEN
+		JAXBElement<UserType> jaxbElement = jaxbProcessor.unmarshalElement(USER_FILE, UserType.class);
+		UserType userType = jaxbElement.getValue();
+		
+		// THEN
+		assertUser(userType.asPrismObject());
+	}
+
+	/**
+	 * Parsing in form of JAXBELement, with declared ObjectType
+	 */
+	@Test
+	public void testPrismParseJaxbElementObjectType() throws JAXBException, SchemaException, SAXException, IOException {
+		System.out.println("===[ testPrismParseJaxbElementObjectType ]===");
+		
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+		
+		// WHEN
+		JAXBElement<ObjectType> jaxbElement = jaxbProcessor.unmarshalElement(USER_FILE, ObjectType.class);
+		ObjectType userType = jaxbElement.getValue();
+		
+		// THEN
+		assertUser(userType.asPrismObject());
+	}
+
 	
 	private void assertUser(PrismObject<UserType> user) {
 		
