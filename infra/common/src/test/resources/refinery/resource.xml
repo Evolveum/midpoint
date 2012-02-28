@@ -23,7 +23,7 @@
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-	xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+	xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-1" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
 	<name>Localhost OpenDJ</name>
 	<connectorRef oid="14e63399-8869-4787-9369-93f9d1311671" type="ConnectorType">
@@ -114,7 +114,6 @@
 			<xsd:complexType name="GroupObjectClass">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<a:propertyContainer />
 						<r:resourceObject />
 						<r:identifier ref="icfs:uid" />
 						<r:displayName ref="icfs:name" />
@@ -139,13 +138,13 @@
 			<xsd:complexType name="AccountObjectClass">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<a:propertyContainer />
+						<r:account />
 						<r:resourceObject />
 						<r:identifier ref="icfs:uid" />
 						<r:displayName ref="icfs:name" />
 						<r:namingAttribute ref="icfs:name" />
 						<r:nativeObjectClass>__ACCOUNT__</r:nativeObjectClass>
-						<r:accountType default="true" />
+						<r:default/>
 					</xsd:appinfo>
 				</xsd:annotation>
 				<xsd:sequence>

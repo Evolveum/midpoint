@@ -143,6 +143,7 @@ public class TestRefinedSchema {
         System.out.println(objectDefinition.dump());
 
         PrismObject<AccountShadowType> accObject = accType.asPrismObject();
+        accObject.applyDefinition(objectDefinition);
 
         // THEN
 
@@ -165,32 +166,6 @@ public class TestRefinedSchema {
 
         assertEquals("JAXB class name doesn't match (1)", AccountShadowType.class, accObject.getCompileTimeClass());
 
-        // WHEN
-        AccountShadowType storedObjectType = accObject.asObjectable();
-        //AccountShadowType storedObjectType = accObject.getOrParseObjectType();
-
-        // THEN
-        System.out.println("storedObjectType:");
-        System.out.println(PrismTestUtil.marshalWrap(storedObjectType));
-        //assertTrue(accType.equals(storedObjectType));
-        assertTrue(accType == storedObjectType);
-        assertEquals("JAXB class name doesn't match (2)", AccountShadowType.class, accObject.getCompileTimeClass());
-
-        // GIVEN
-        // FIXME
-//        accObject.setObjectType(null);
-//        assertEquals("JAXB class name doesn't match (3)", AccountShadowType.class, accObject.getCompileTimeClass());
-
-        // WHEN
-        AccountShadowType convertedObjectType = accObject.asObjectable();
-        //AccountShadowType convertedObjectType = accObject.getOrParseObjectType();
-
-        // THEN
-        assertEquals("JAXB class name doesn't match (4)", AccountShadowType.class, accObject.getCompileTimeClass());
-        System.out.println("convertedObjectType:");
-        System.out.println(PrismTestUtil.marshalWrap(convertedObjectType));
-        assertFalse(accType == convertedObjectType);
-//		assertTrue(accType.equals(convertedObjectType));
 
     }
 
