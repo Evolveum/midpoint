@@ -206,6 +206,8 @@ public class TestObjectParsing {
 		PrismAsserts.assertObjectDefinition(usedDefinition, new QName(SchemaConstants.NS_COMMON, "user"), 
 				UserType.COMPLEX_TYPE, UserType.class);
 		assertEquals("Wrong class in user", UserType.class, user.getCompileTimeClass());
+		UserType userType = user.asObjectable();
+		assertNotNull("asObjectable resulted in null", userType);
 		
 		assertPropertyValue(user, "fullName", "Jack Sparrow");
 		assertPropertyDefinition(user, "fullName", DOMUtil.XSD_STRING, 1, 1);
