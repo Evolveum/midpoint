@@ -23,11 +23,8 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.RResourceObjectShadowType;
@@ -75,11 +72,15 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         Validate.notEmpty(oid, "Oid must not be null or empty.");
         Validate.notNull(result, "Operation result must not be null.");
 
+        LOGGER.debug("Getting object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Resolving\n{}", new Object[]{prismContext.silentMarshalObject(resolve)});
+        }
+
         ObjectType objectType = null;
         OperationResult subResult = result.createSubresult(GET_OBJECT);
         Session session = null;
         try {
-            LOGGER.debug("Getting object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
             session = beginTransaction();
             Query query = session.createQuery("from " + ClassMapper.getHQLType(type) + " o where o.oid = :oid");
             query.setString("oid", oid);
@@ -126,6 +127,12 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             OperationResult result) {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
+
+        LOGGER.debug("Listing objects of type '{}', offset {}, count {}", new Object[]{type.getSimpleName(),
+                (paging == null ? "undefined" : paging.getOffset()), (paging == null ? "undefined" : paging.getMaxSize())});
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Full paging\n{}", new Object[]{(paging == null ? "undefined" : prismContext.silentMarshalObject(paging))});
+        }
 
         ResultList<PrismObject<T>> results = new ResultArrayList<PrismObject<T>>();
         OperationResult subResult = result.createSubresult(LIST_OBJECTS);
@@ -317,8 +324,15 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         Validate.notNull(query.getFilter(), "Query filter must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
-        OperationResult subResult = result.createSubresult(SEARCH_OBJECTS);
+        LOGGER.debug("Searching objects of type '{}', query (on trace level), offset {}, count {}.", new Object[]{
+                type.getSimpleName(), (paging == null ? "undefined" : paging.getOffset()),
+                (paging == null ? "undefined" : paging.getMaxSize())});
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Full query\n{}\nFull paging\n{}", new Object[]{prismContext.silentMarshalObject(query),
+                    (paging == null ? "undefined" : prismContext.silentMarshalObject(paging))});
+        }
 
+        OperationResult subResult = result.createSubresult(SEARCH_OBJECTS);
         ResultList<PrismObject<T>> list = new ResultArrayList<PrismObject<T>>();
         Session session = null;
         try {
@@ -369,21 +383,17 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         Validate.notEmpty(oid, "Oid must not null or empty.");
         Validate.notNull(result, "Operation result must not be null.");
 
-        LOGGER.debug("Modifying object '{}' with oid '{}'.",
-                new Object[]{type.getSimpleName(), oid});
+        LOGGER.debug("Modifying object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Modifications: {}", new Object[]{DebugUtil.prettyPrint(modifications)});
+        }
 
         OperationResult subResult = result.createSubresult(MODIFY_OBJECT);
         Session session = null;
         try {
             PrismObject<T> prismObject = getObject(type, oid, null, subResult);
-
-            SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
-            PrismSchema schema = schemaRegistry.getObjectSchema();
-            PrismObjectDefinition<T> objectDef = schema.findObjectDefinitionByCompileTimeClass(type);
-
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("OBJECT before:\n{}MODS:\n{}", new Object[]{prismObject.dump(),
-                        DebugUtil.prettyPrint(modifications)});
+                LOGGER.trace("OBJECT before:\n{}", new Object[]{prismObject.dump()});
             }
             PropertyDelta.applyTo(modifications, prismObject);
             if (LOGGER.isTraceEnabled()) {
