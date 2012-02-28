@@ -33,6 +33,7 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -121,7 +122,12 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
         
         if (variableValue instanceof PrismObject) {
         	PrismObject mObject = (PrismObject)variableValue;
-        	variableValue = mObject.asDomElement();
+        	PrismDomProcessor domProcessor = mObject.getPrismContext().getPrismDomProcessor();
+        	try {
+				variableValue = domProcessor.serializeToDom(mObject);
+			} catch (SchemaException e) {
+				new TunnelException(e);
+			}
 //        	try {
 //				Node domNode = mObject.serializeToDom();
 //				variableValue = DOMUtil.getFirstChildElement(domNode);
