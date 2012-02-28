@@ -204,8 +204,8 @@
                                         <extraarg>-impl</extraarg>
                                         <extraarg>-verbose</extraarg>
                                         <extraarg>-validate</extraarg>
-                                        <!--<extraarg>-xjc-Xts</extraarg>-->
-                                        <!--<extraarg>-xjc-XhashCode</extraarg>-->
+                                        <extraarg>-xjc-Xts</extraarg>
+                                        <extraarg>-xjc-XhashCode</extraarg>
                                         <extraarg>-xjc-Xequals</extraarg>
                                         <extraarg>
                                             -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.schema.DomAwareEqualsStrategy
@@ -225,11 +225,11 @@
                                         <extraarg>-impl</extraarg>
                                         <extraarg>-verbose</extraarg>
                                         <extraarg>-validate</extraarg>
-                                        <!--<extraarg>-xjc-Xts</extraarg>-->
-                                        <!--<extraarg>-xjc-XhashCode</extraarg>-->
-                                        <!--<extraarg>-->
-                                            <!---xjc-XhashCode-hashCodeStrategyClass=com.evolveum.midpoint.schema.DomAwareHashCodeStrategy-->
-                                        <!--</extraarg>-->
+                                        <extraarg>-xjc-Xts</extraarg>
+                                        <extraarg>-xjc-XhashCode</extraarg>
+                                        <extraarg>
+                                            -xjc-XhashCode-hashCodeStrategyClass=com.evolveum.midpoint.schema.DomAwareHashCodeStrategy
+                                        </extraarg>
                                         <extraarg>-xjc-Xequals</extraarg>
                                         <extraarg>
                                             -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.schema.DomAwareEqualsStrategy

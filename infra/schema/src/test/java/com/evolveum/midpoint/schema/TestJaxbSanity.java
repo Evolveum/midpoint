@@ -79,11 +79,11 @@ public class TestJaxbSanity {
 		assertHasEquals(AssignmentType.class);
 		assertHasEquals(ValueConstructionType.class);
 		assertHasEquals(ProtectedStringType.class);
-		
-		assertHasHashcode(ObjectType.class);
-		assertHasHashcode(AssignmentType.class);
-		assertHasHashcode(ValueConstructionType.class);
-		assertHasHashcode(ProtectedStringType.class);
+
+        assertHasHashCode(ObjectType.class);
+        assertHasHashCode(AssignmentType.class);
+        assertHasHashCode(ValueConstructionType.class);
+        assertHasHashCode(ProtectedStringType.class);
 	}
 	
 	private void assertHasEquals(Class<?> clazz) {
@@ -97,14 +97,14 @@ public class TestJaxbSanity {
 		}
 	}
 	
-	private void assertHasHashcode(Class<?> clazz) {
+	private void assertHasHashCode(Class<?> clazz) {
 		try {
-			Method method = clazz.getDeclaredMethod("hashcode", Object.class);
-			assertNotNull("No hashcode method in "+clazz.getSimpleName(), method);
+			Method method = clazz.getDeclaredMethod("hashCode");
+			assertNotNull("No hashCode method in "+clazz.getSimpleName(), method);
 		} catch (SecurityException e) {
-			AssertJUnit.fail("No hashcode method in "+clazz.getSimpleName());
+			AssertJUnit.fail("No hashCode method in "+clazz.getSimpleName());
 		} catch (NoSuchMethodException e) {
-			AssertJUnit.fail("No hashcode method in "+clazz.getSimpleName());
+			AssertJUnit.fail("No hashCode method in "+clazz.getSimpleName());
 		}
 	}
 
