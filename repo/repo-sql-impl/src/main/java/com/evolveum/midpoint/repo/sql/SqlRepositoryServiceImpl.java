@@ -218,10 +218,12 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     @Override
     public <T extends ObjectType> String addObject(PrismObject<T> object, OperationResult result) throws
             ObjectAlreadyExistsException, SchemaException {
-
         Validate.notNull(object, "Object must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
         LOGGER.debug("Adding object type '{}'", new Object[]{object.getClass().getSimpleName()});
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Object\n{}", new Object[]{prismContext.silentMarshalObject(object.asObjectable())});
+        }
 
         String oid = null;
         OperationResult subResult = result.createSubresult(ADD_OBJECT);

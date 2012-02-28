@@ -55,8 +55,7 @@ public final class RUtil {
             throws DtoTranslationException {
         try {
             object.revive(prismContext);
-            SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
-            schemaRegistry.applyDefinition(object, clazz);
+            prismContext.adopt(object, clazz);
         } catch (SchemaException ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
@@ -112,8 +111,10 @@ public final class RUtil {
 
     public static RObjectReferenceType jaxbRefToRepo(ObjectReferenceType ref, ObjectType owner,
             PrismContext prismContext) {
+        if (ref == null) {
+            return null;
+        }
         Validate.notNull(owner, "Owner of reference must not be null.");
-        Validate.notEmpty(owner.getOid(), "Owner oid of reference must not be null.");
 
         return jaxbRefToRepo(ref, owner.getOid(), prismContext);
     }
@@ -123,6 +124,7 @@ public final class RUtil {
         if (ref == null) {
             return null;
         }
+        Validate.notEmpty(ownerId, "Owner oid of reference must not be null.");
 
         RObjectReferenceType result = new RObjectReferenceType();
         result.setOwner(ownerId);

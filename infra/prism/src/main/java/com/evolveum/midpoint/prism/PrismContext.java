@@ -34,6 +34,9 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
+
 /**
  * @author semancik
  *
@@ -148,7 +151,12 @@ public class PrismContext {
     public String silentMarshalObject(Object object) {
         String xml = null;
         try {
-            xml = prismJaxbProcessor.marshalElementToString(object);
+            if (object instanceof Objectable) {
+                xml = prismJaxbProcessor.marshalToString((Objectable) object);
+            } else {
+                xml = prismJaxbProcessor.marshalElementToString(new JAXBElement<Object>(
+                    new QName(PrismConstants.NS_PREFIX + "debug", "debugPrintObject"), Object.class, object));
+            }
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't marshal element to string {}", ex, object);
         }

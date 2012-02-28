@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -79,6 +80,8 @@ public class ConnectorTypeManager {
 	private RepositoryService repositoryService;
 	@Autowired
 	private ConnectorFactory connectorFactory;
+    @Autowired(required = true)
+    private PrismContext prismContext;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ConnectorTypeManager.class);
 
@@ -283,6 +286,7 @@ public class ConnectorTypeManager {
 				// Store the connector object
 				String oid;
 				try {
+                    prismContext.adopt(foundConnector);
 					oid = repositoryService.addObject(foundConnector.asPrismObject(), result);
 				} catch (ObjectAlreadyExistsException e) {
 					// We don't specify the OID, therefore this should never happen
