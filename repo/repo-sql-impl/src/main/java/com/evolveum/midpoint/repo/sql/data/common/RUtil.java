@@ -21,9 +21,13 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -45,6 +49,17 @@ import java.util.*;
 public final class RUtil {
 
     private RUtil() {
+    }
+
+    public static <T extends Objectable> void revive(PrismObject<T> object, Class<T> clazz, PrismContext prismContext)
+            throws DtoTranslationException {
+        try {
+            object.revive(prismContext);
+            SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
+            schemaRegistry.applyDefinition(object, clazz);
+        } catch (SchemaException ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
     }
 
     public static <T> T toJAXB(String value, Class<T> clazz, PrismContext prismContext)
@@ -69,7 +84,12 @@ public final class RUtil {
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put(Marshaller.JAXB_FORMATTED_OUTPUT, false);
 
-        return jaxbProcessor.marshalElementToString(value, properties);
+        if (value instanceof Objectable) {
+            return jaxbProcessor.marshalToString((Objectable) value, properties);
+        }
+
+        return jaxbProcessor.marshalElementToString(new JAXBElement<Object>(new QName(SchemaConstants.NS_COMMON,
+                "rUtilObject"), Object.class, value), properties);
     }
 
     public static <T> Set<T> listToSet(List<T> list) {

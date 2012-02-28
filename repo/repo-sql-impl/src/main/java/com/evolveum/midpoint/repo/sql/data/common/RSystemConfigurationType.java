@@ -141,6 +141,9 @@ public class RSystemConfigurationType extends RExtensibleObjectType {
     public SystemConfigurationType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         SystemConfigurationType object = new SystemConfigurationType();
         RSystemConfigurationType.copyToJAXB(this, object, prismContext);
+
+        RUtil.revive(object.asPrismObject(), SystemConfigurationType.class, prismContext);
+
         return object;
     }
 }

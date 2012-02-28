@@ -198,11 +198,15 @@ public class PrismJaxbProcessor {
 	private Unmarshaller getUnmarshaller() throws JAXBException {
 		return createUnmarshaller();
 	}
+
+    public String marshalToString(Objectable objectable) throws JAXBException {
+        return marshalToString(objectable, new HashMap<String, Object>());
+    }
 	
-	public String marshalToString(Objectable objectable) throws JAXBException {
+	public String marshalToString(Objectable objectable, Map<String, Object> properties) throws JAXBException {
 		QName elementQName = determineElementQName(objectable);
 		JAXBElement<Object> jaxbElement = new JAXBElement<Object>(elementQName, (Class) objectable.getClass(), objectable);
-		return marshalElementToString(jaxbElement);
+		return marshalElementToString(jaxbElement, properties);
 	}
 
     public String marshalElementToString(JAXBElement<?> jaxbElement) throws JAXBException {

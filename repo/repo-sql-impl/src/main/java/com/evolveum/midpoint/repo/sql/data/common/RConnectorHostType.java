@@ -123,6 +123,7 @@ public class RConnectorHostType extends RExtensibleObjectType {
     public ConnectorHostType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         ConnectorHostType object = new ConnectorHostType();
         RConnectorHostType.copyToJAXB(this, object, prismContext);
+        RUtil.revive(object.asPrismObject(), ConnectorHostType.class, prismContext);
         return object;
     }
 }

@@ -284,6 +284,8 @@ public class RTaskType extends RExtensibleObjectType {
     public TaskType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         TaskType object = new TaskType();
         RTaskType.copyToJAXB(this, object, prismContext);
+        RUtil.revive(object.asPrismObject(),TaskType.class, prismContext);
+
         return object;
     }
 }

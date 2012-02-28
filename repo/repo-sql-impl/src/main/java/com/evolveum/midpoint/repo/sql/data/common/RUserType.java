@@ -308,6 +308,7 @@ public class RUserType extends RExtensibleObjectType {
     public UserType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         UserType object = new UserType();
         RUserType.copyToJAXB(this, object, prismContext);
+        RUtil.revive(object.asPrismObject(), UserType.class, prismContext);
         return object;
     }
 }

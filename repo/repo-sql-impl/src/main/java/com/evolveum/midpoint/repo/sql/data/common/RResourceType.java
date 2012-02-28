@@ -183,6 +183,7 @@ public class RResourceType extends RExtensibleObjectType {
     public ResourceType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         ResourceType object = new ResourceType();
         RResourceType.copyToJAXB(this, object, prismContext);
+        RUtil.revive(object.asPrismObject(), ResourceType.class, prismContext);
         return object;
     }
 }

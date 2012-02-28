@@ -85,6 +85,7 @@ public class RRoleType extends RExtensibleObjectType {
     public RoleType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         RoleType object = new RoleType();
         RRoleType.copyToJAXB(this, object, prismContext);
+        RUtil.revive(object.asPrismObject(), RoleType.class, prismContext);
         return object;
     }
 }

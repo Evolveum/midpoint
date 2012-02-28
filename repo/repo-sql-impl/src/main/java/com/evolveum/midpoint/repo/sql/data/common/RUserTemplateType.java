@@ -106,6 +106,8 @@ public class RUserTemplateType extends RExtensibleObjectType {
     public UserTemplateType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         UserTemplateType object = new UserTemplateType();
         RUserTemplateType.copyToJAXB(this, object, prismContext);
+        RUtil.revive(object.asPrismObject(), UserTemplateType.class, prismContext);
+
         return object;
     }
 }

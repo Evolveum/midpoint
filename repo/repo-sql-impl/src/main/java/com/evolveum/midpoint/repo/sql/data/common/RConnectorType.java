@@ -172,6 +172,7 @@ public class RConnectorType extends RExtensibleObjectType {
     public ConnectorType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         ConnectorType object = new ConnectorType();
         RConnectorType.copyToJAXB(this, object, prismContext);
+        RUtil.revive(object.asPrismObject(), ConnectorType.class, prismContext);
         return object;
     }
 }

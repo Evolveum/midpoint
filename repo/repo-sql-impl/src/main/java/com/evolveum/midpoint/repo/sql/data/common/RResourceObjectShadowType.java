@@ -175,6 +175,7 @@ public class RResourceObjectShadowType extends RExtensibleObjectType {
     public ResourceObjectShadowType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         ResourceObjectShadowType object = new ResourceObjectShadowType();
         RResourceObjectShadowType.copyToJAXB(this, object, prismContext);
+        RUtil.revive(object.asPrismObject(), ResourceObjectShadowType.class, prismContext);
         return object;
     }
 }
