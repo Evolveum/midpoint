@@ -127,6 +127,18 @@ public class PrismContext {
 		// Use DOM now. We will switch to StAX later.
 		return prismDomProcessor.parseObject(xmlString);
 	}
+	
+	/**
+	 * Set up the specified object with prism context instance and schema definition.
+	 */
+	public <T extends Objectable> void adopt(PrismObject<T> object, Class<T> declaredType) throws SchemaException {
+		object.revive(this);
+		getSchemaRegistry().applyDefinition(object, declaredType);
+	}
+	
+	public void adopt(Objectable objectable) throws SchemaException {
+		adopt(objectable.asPrismObject(), objectable.getClass());
+	}
 
     /**
      * Method used to marshal objects to xml in debug messages.

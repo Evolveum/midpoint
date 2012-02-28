@@ -349,7 +349,7 @@ public class PrismJaxbProcessor {
 		try {
 			reader = new StringReader(xmlString); 
 			JAXBElement<T> element = unmarshalElement(reader, type);
-			revive(element);
+			adopt(element);
 			return element;
 		} finally {
 			if (reader != null) {
@@ -361,14 +361,14 @@ public class PrismJaxbProcessor {
 	public <T> JAXBElement<T> unmarshalElement(InputStream input, Class<T> type) throws JAXBException, SchemaException {
 		Object object = getUnmarshaller().unmarshal(input);
 		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
-		revive(jaxbElement);
+		adopt(jaxbElement);
 		return jaxbElement;
 	}
 	
 	public <T> JAXBElement<T> unmarshalElement(Reader reader, Class<T> type) throws JAXBException, SchemaException {
 		Object object = getUnmarshaller().unmarshal(reader);
 		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
-		revive(jaxbElement);
+		adopt(jaxbElement);
 		return jaxbElement;
 	}
 	
@@ -377,14 +377,14 @@ public class PrismJaxbProcessor {
 		if (element == null) {
 			return null;
 		}
-		revive(element);
+		adopt(element);
 		return element.getValue();
 	}
 	
 	public <T> JAXBElement<T> unmarshalElement(Node node, Class<T> type) throws JAXBException, SchemaException {
 		Object object = createUnmarshaller().unmarshal(node);
 		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
-		revive(jaxbElement);
+		adopt(jaxbElement);
 		return jaxbElement;
 	}
 	
@@ -394,7 +394,7 @@ public class PrismJaxbProcessor {
 			return null;
 		}
 		T value = element.getValue();
-		revive(value, type);
+		adopt(value, type);
 		return value;
 	}
 	
@@ -404,7 +404,7 @@ public class PrismJaxbProcessor {
 			return null;
 		}
 		T value = element.getValue();
-		revive(value, type);
+		adopt(value, type);
 		return value;
 	}
 	
@@ -417,7 +417,7 @@ public class PrismJaxbProcessor {
 		try {
 			is = new FileInputStream(file);
 			JAXBElement<T> element = (JAXBElement<T>) getUnmarshaller().unmarshal(is);
-			revive(element);
+			adopt(element);
 			return element;
 		} finally {
 			if (is != null) {
@@ -616,28 +616,17 @@ public class PrismJaxbProcessor {
 		return Objectable.class.isAssignableFrom(type);
 	}
 	
-	private <T> void revive(T object, Class<T> type) throws SchemaException {
+	private <T> void adopt(T object, Class<T> type) throws SchemaException {
 		if (isObjectable(type)) {
-			revive((Objectable)object);
+			getPrismContext().adopt(((Objectable)object));
 		}
 	}
 	
-	private void revive(JAXBElement<?> element) throws SchemaException {
+	private void adopt(JAXBElement<?> element) throws SchemaException {
 		if (isObjectable(element.getDeclaredType())) {
-			revive((Objectable)element.getValue());
+			getPrismContext().adopt(((Objectable)element.getValue()));
 		}
 	}
 	
-	private void revive(Objectable obj) throws SchemaException {
-		if (obj != null) {
-			revive(obj.asPrismObject(), obj.getClass());
-		}
-	}
-
-	private void revive(PrismObject prismObject, Class type) throws SchemaException {
-		prismObject.revive(getPrismContext());
-		getSchemaRegistry().applyDefinition(prismObject, type);
-	}
-
 
 }
