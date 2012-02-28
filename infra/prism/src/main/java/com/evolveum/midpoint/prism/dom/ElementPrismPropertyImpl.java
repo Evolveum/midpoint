@@ -6,6 +6,7 @@ import javax.xml.bind.JAXBException;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -48,7 +49,7 @@ public class ElementPrismPropertyImpl<T> extends ElementPrismAbstractImpl {
 			PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
 			if (jaxbProcessor.canConvert(type)) {
 				try {
-					delegateElement = jaxbProcessor.marshalObjectToDom(value.getValue(), getItem().getName(), null);
+					delegateElement = jaxbProcessor.marshalObjectToDom(value.getValue(), getItem().getName(), (Document)null);
 				} catch (JAXBException e) {
 					DOMException domException = new DOMException(DOMException.INVALID_STATE_ERR, "Error converting the value of type "+type+": "+e.getMessage());
 					domException.initCause(e);

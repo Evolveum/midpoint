@@ -290,6 +290,13 @@ public class PrismJaxbProcessor {
 		return (Element) element.getFirstChild();
 	}
 	
+	public <T> void marshalObjectToDom(T jaxbObject, QName elementQName, Element parentElement) throws JAXBException {
+
+		JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
+				jaxbObject);
+		marshalElementToDom(jaxbElement, parentElement);
+	}
+	
 	public Element toDomElement(Object element) throws JAXBException {
 		return toDomElement(element, DOMUtil.getDocument());
 	}

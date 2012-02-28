@@ -40,6 +40,7 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -51,30 +52,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public class TestDom {
 	
 	@Test
-	public void testPrismParseDom() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testPrismParseDom ]===");
+	public void testAsDom() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testAsDom ]===");
 		
 		// GIVEN
 		Document document = DOMUtil.parseFile(USER_JACK_FILE);
 		Element userElement = DOMUtil.getFirstChildElement(document);
-		
-		// FOOOOOOOOOOO
-		System.out.println("FOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
-		NodeList childNodes = userElement.getChildNodes();
-		System.out.println("childNodes");
-		System.out.println(childNodes);
-		for (int i=0; i<childNodes.getLength(); i++) {
-			Node item = childNodes.item(i);
-			System.out.println("> "+item.getClass()+": "+item);
-		}
-		NamedNodeMap attributes = userElement.getAttributes();
-		System.out.println("attributes");
-		System.out.println(attributes);
-		for (int i=0; i<attributes.getLength(); i++) {
-			Node item = attributes.item(i);
-			System.out.println("> "+item.getClass()+": "+item);
-		}
-		
+				
 		PrismContext prismContext = constructInitializedPrismContext();
 		
 		PrismObject<UserType> user = prismContext.parseObject(userElement);
@@ -89,6 +73,36 @@ public class TestDom {
 		// THEN
 		assertNotNull(userDom);
 		
+		assertUser(userDom);
+	}
+
+	@Test
+	public void testSerializeToDom() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testSerializeToDom ]===");
+		
+		// GIVEN
+		Document document = DOMUtil.parseFile(USER_JACK_FILE);
+		Element userElement = DOMUtil.getFirstChildElement(document);
+				
+		PrismContext prismContext = constructInitializedPrismContext();
+		PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+		
+		PrismObject<UserType> user = prismContext.parseObject(userElement);
+		
+		System.out.println("User:");
+		System.out.println(user.dump());
+		assertNotNull(user);
+		
+		// WHEN
+		Element userDom = domProcessor.serializeToDom(user);
+		
+		// THEN
+		assertNotNull(userDom);
+		
+		assertUser(userDom);
+	}	
+	
+	private void assertUser(Element userDom) {
 		assertElementName(USER_QNAME, userDom);
 //		String oid = userDom.getAttribute("oid");
 //		assertEquals("Wrong oid (getAttribute)", USER_JACK_OID, oid);

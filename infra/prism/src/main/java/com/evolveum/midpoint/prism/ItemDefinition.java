@@ -59,6 +59,7 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	protected QName name;
 	private int minOccurs = 1;
     private int maxOccurs = 1;
+    private boolean dynamic;
 
 	// TODO: annotations
 	
@@ -180,7 +181,18 @@ public abstract class ItemDefinition extends Definition implements Serializable 
         return getMinOccurs() == 0;
     }
 
-		
+	/**
+	 * Returns true if definition was created during the runtime based on a dynamic information
+	 * such as xsi:type attributes in XML.
+	 */
+	public boolean isDynamic() {
+		return dynamic;
+	}
+	
+	public void setDynamic(boolean dynamic) {
+		this.dynamic = dynamic;
+	}
+
 	/**
 	 * Create an item instance. Definition name or default name will
 	 * used as an element name for the instance. The instance will otherwise be empty.

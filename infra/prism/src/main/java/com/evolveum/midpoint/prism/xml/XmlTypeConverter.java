@@ -204,20 +204,23 @@ public class XmlTypeConverter {
             Element element = doc.createElementNS(elementName.getNamespaceURI(), elementName.getLocalPart());
             //TODO: switch to global namespace prefixes map
 //            element.setPrefix(MidPointNamespacePrefixMapper.getPreferredPrefix(elementName.getNamespaceURI()));
-            if (type.equals(Element.class)) {
-                return val;
-            } else if (type.equals(QName.class)) {
-                QName qname = (QName) val;
-                DOMUtil.setQNameValue(element, qname);
-            } else {
-                element.setTextContent(toXmlTextContent(val, elementName));
-            }
-            if (recordType) {
-                QName xsdType = XsdTypeMapper.toXsdType(val.getClass());
-                DOMUtil.setXsiType(element, xsdType);
-            }
+            toXsdElement(val, element, recordType);
             return element;
-//        }
+    }
+    
+    public static void toXsdElement(Object val, Element element, boolean recordType) throws SchemaException {
+        if (val instanceof Element) {
+            return;
+        } else if (val instanceof QName) {
+            QName qname = (QName) val;
+            DOMUtil.setQNameValue(element, qname);
+        } else {
+            element.setTextContent(toXmlTextContent(val, DOMUtil.getQName(element)));
+        }
+        if (recordType) {
+            QName xsdType = XsdTypeMapper.toXsdType(val.getClass());
+            DOMUtil.setXsiType(element, xsdType);
+        }
     }
     
     public static String toXmlTextContent(Object val, QName elementName) {

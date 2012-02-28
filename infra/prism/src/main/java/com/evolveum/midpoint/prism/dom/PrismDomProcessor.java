@@ -539,4 +539,14 @@ public class PrismDomProcessor {
 		PrismValue itemValue = fauxItem.getValues().get(0);
 		return item.remove(itemValue);
 	}
+	
+	// ================================================
+	// =   SERIALIZATION
+	// ================================================
+	
+	public Element serializeToDom(PrismObject<?> object) throws SchemaException {
+		DomSerializer domSerializer = new DomSerializer(getPrismContext());
+		return domSerializer.serialize(object);
+	}
+
 }
