@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 
@@ -65,36 +66,38 @@ public class RAccountShadowType extends RResourceObjectShadowType {
         this.credentials = credentials;
     }
 
-    public static void copyToJAXB(RAccountShadowType repo, AccountShadowType jaxb) throws DtoTranslationException {
-        RResourceObjectShadowType.copyToJAXB(repo, jaxb);
+    public static void copyToJAXB(RAccountShadowType repo, AccountShadowType jaxb, PrismContext prismContext) throws
+            DtoTranslationException {
+        RResourceObjectShadowType.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setAccountType(repo.getAccountType());
 
-        jaxb.setActivation(repo.getActivation().toJAXB());
-        jaxb.setCredentials(repo.getCredentials().toJAXB());
+        jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
+        jaxb.setCredentials(repo.getCredentials().toJAXB(prismContext));
     }
 
-    public static void copyFromJAXB(AccountShadowType jaxb, RAccountShadowType repo) throws DtoTranslationException {
-        RResourceObjectShadowType.copyFromJAXB(jaxb, repo);
+    public static void copyFromJAXB(AccountShadowType jaxb, RAccountShadowType repo, PrismContext prismContext) throws
+            DtoTranslationException {
+        RResourceObjectShadowType.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setAccountType(jaxb.getAccountType());
 
         RActivationType activation = new RActivationType();
         if (jaxb.getActivation() != null) {
-            RActivationType.copyFromJAXB(jaxb.getActivation(), activation);
+            RActivationType.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
         }
         repo.setActivation(activation);
 
         RCredentialsType credentials = new RCredentialsType();
         if (jaxb.getCredentials() != null) {
-            RCredentialsType.copyFromJAXB(jaxb.getCredentials(), credentials);
+            RCredentialsType.copyFromJAXB(jaxb.getCredentials(), credentials, prismContext);
         }
         repo.setCredentials(credentials);
     }
 
-    public AccountShadowType toJAXB() throws DtoTranslationException {
+    public AccountShadowType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         AccountShadowType shadow = new AccountShadowType();
-        RAccountShadowType.copyToJAXB(this, shadow);
+        RAccountShadowType.copyToJAXB(this, shadow, prismContext);
         return shadow;
     }
 }

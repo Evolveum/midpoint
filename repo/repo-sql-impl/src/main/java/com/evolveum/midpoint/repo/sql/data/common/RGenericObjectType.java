@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
 
@@ -44,22 +45,24 @@ public class RGenericObjectType extends RExtensibleObjectType {
         this.objectType = objectType;
     }
 
-    public static void copyToJAXB(RGenericObjectType repo, GenericObjectType jaxb) throws DtoTranslationException {
-        RExtensibleObjectType.copyToJAXB(repo, jaxb);
+    public static void copyToJAXB(RGenericObjectType repo, GenericObjectType jaxb, PrismContext prismContext) throws
+            DtoTranslationException {
+        RExtensibleObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setObjectType(repo.getObjectType());
     }
 
-    public static void copyFromJAXB(GenericObjectType jaxb, RGenericObjectType repo) throws DtoTranslationException {
-        RExtensibleObjectType.copyFromJAXB(jaxb, repo);
+    public static void copyFromJAXB(GenericObjectType jaxb, RGenericObjectType repo, PrismContext prismContext) throws
+            DtoTranslationException {
+        RExtensibleObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setObjectType(jaxb.getObjectType());
     }
 
     @Override
-    public GenericObjectType toJAXB() throws DtoTranslationException {
+    public GenericObjectType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         GenericObjectType object = new GenericObjectType();
-        RGenericObjectType.copyToJAXB(this, object);
+        RGenericObjectType.copyToJAXB(this, object, prismContext);
         return object;
     }
 }

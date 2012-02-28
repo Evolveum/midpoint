@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
@@ -58,23 +59,21 @@ public class RCredentialsType {
         this.password = password;
     }
 
-    public static void copyToJAXB(RCredentialsType repo, CredentialsType jaxb) throws DtoTranslationException {
+    public static void copyToJAXB(RCredentialsType repo, CredentialsType jaxb, PrismContext prismContext) throws
+            DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
         try {
             jaxb.setAllowedIdmAdminGuiAccess(repo.isAllowedIdmAdminGuiAccess());
-
-//            if (StringUtils.isNotEmpty(repo.getPassword())) {
-//                JAXBElement<PasswordType> password = (JAXBElement<PasswordType>) JAXBUtil.unmarshal(repo.getPassword());
-//                jaxb.setPassword(password.getValue());
-//            }
+            jaxb.setPassword(RUtil.toJAXB(repo.getPassword(), PasswordType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
     }
 
-    public static void copyFromJAXB(CredentialsType jaxb, RCredentialsType repo) throws DtoTranslationException {
+    public static void copyFromJAXB(CredentialsType jaxb, RCredentialsType repo, PrismContext prismContext) throws
+            DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
@@ -82,24 +81,15 @@ public class RCredentialsType {
         repo.setAllowedIdmAdminGuiAccess(allowed);
 
         try {
-            jaxb.setAllowedIdmAdminGuiAccess(repo.isAllowedIdmAdminGuiAccess());
-
-            if (jaxb.getPassword() != null) {
-                PasswordType password = jaxb.getPassword();
-
-                Map<String, Object> properties = new HashMap<String, Object>();
-                properties.put(Marshaller.JAXB_FORMATTED_OUTPUT, false);
-
-//                repo.setPassword(JAXBUtil.marshalWrap(password, properties));
-            }
+            repo.setPassword(RUtil.toRepo(jaxb.getPassword(), prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
     }
 
-    public CredentialsType toJAXB() throws DtoTranslationException {
+    public CredentialsType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         CredentialsType credentials = new CredentialsType();
-        RCredentialsType.copyToJAXB(this, credentials);
+        RCredentialsType.copyToJAXB(this, credentials, prismContext);
         return credentials;
     }
 }

@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -95,51 +96,51 @@ public class RSystemConfigurationType extends RExtensibleObjectType {
         this.modelHooks = modelHooks;
     }
 
-    public static void copyToJAXB(RSystemConfigurationType repo, SystemConfigurationType jaxb) throws
-            DtoTranslationException {
-        RExtensibleObjectType.copyToJAXB(repo, jaxb);
+    public static void copyToJAXB(RSystemConfigurationType repo, SystemConfigurationType jaxb,
+            PrismContext prismContext) throws DtoTranslationException {
+        RExtensibleObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         if (repo.getDefaultUserTemplateRef() != null) {
-            jaxb.setDefaultUserTemplateRef(repo.getDefaultUserTemplateRef().toJAXB());
+            jaxb.setDefaultUserTemplateRef(repo.getDefaultUserTemplateRef().toJAXB(prismContext));
         }
 
         try {
             jaxb.setConnectorFramework(RUtil.toJAXB(repo.getConnectorFramework(),
-                    SystemConfigurationType.ConnectorFramework.class));
+                    SystemConfigurationType.ConnectorFramework.class, prismContext));
             jaxb.setGlobalAccountSynchronizationSettings(RUtil.toJAXB(repo.getGlobalAccountSynchronizationSettings(),
-                    AccountSynchronizationSettingsType.class));
-            jaxb.setLogging(RUtil.toJAXB(repo.getLogging(), LoggingConfigurationType.class));
-            jaxb.setModelHooks(RUtil.toJAXB(repo.getModelHooks(), ModelHooksType.class));
+                    AccountSynchronizationSettingsType.class, prismContext));
+            jaxb.setLogging(RUtil.toJAXB(repo.getLogging(), LoggingConfigurationType.class, prismContext));
+            jaxb.setModelHooks(RUtil.toJAXB(repo.getModelHooks(), ModelHooksType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
     }
 
-    public static void copyFromJAXB(SystemConfigurationType jaxb, RSystemConfigurationType repo) throws
-            DtoTranslationException {
-        RExtensibleObjectType.copyFromJAXB(jaxb, repo);
+    public static void copyFromJAXB(SystemConfigurationType jaxb, RSystemConfigurationType repo,
+            PrismContext prismContext) throws DtoTranslationException {
+        RExtensibleObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         if (jaxb.getDefaultUserTemplate() != null) {
             LOGGER.warn("Default user template from system configuration type won't be saved. It should be " +
                     "translated to user template reference.");
         }
 
-        repo.setDefaultUserTemplateRef(RUtil.jaxbRefToRepo(jaxb.getDefaultUserTemplateRef(), jaxb));
+        repo.setDefaultUserTemplateRef(RUtil.jaxbRefToRepo(jaxb.getDefaultUserTemplateRef(), jaxb, prismContext));
 
         try {
-            repo.setConnectorFramework(RUtil.toRepo(jaxb.getConnectorFramework()));
-            repo.setGlobalAccountSynchronizationSettings(RUtil.toRepo(jaxb.getGlobalAccountSynchronizationSettings()));
-            repo.setLogging(RUtil.toRepo(jaxb.getLogging()));
-            repo.setModelHooks(RUtil.toRepo(jaxb.getModelHooks()));
+            repo.setConnectorFramework(RUtil.toRepo(jaxb.getConnectorFramework(), prismContext));
+            repo.setGlobalAccountSynchronizationSettings(RUtil.toRepo(jaxb.getGlobalAccountSynchronizationSettings(), prismContext));
+            repo.setLogging(RUtil.toRepo(jaxb.getLogging(), prismContext));
+            repo.setModelHooks(RUtil.toRepo(jaxb.getModelHooks(), prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
     }
 
     @Override
-    public SystemConfigurationType toJAXB() throws DtoTranslationException {
+    public SystemConfigurationType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         SystemConfigurationType object = new SystemConfigurationType();
-        RSystemConfigurationType.copyToJAXB(this, object);
+        RSystemConfigurationType.copyToJAXB(this, object, prismContext);
         return object;
     }
 }

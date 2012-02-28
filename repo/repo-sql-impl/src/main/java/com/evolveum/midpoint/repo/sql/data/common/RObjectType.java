@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.query.QueryContainer;
@@ -90,7 +91,8 @@ public abstract class RObjectType {
         this.version = version;
     }
 
-    public static void copyToJAXB(RObjectType repo, ObjectType jaxb) throws DtoTranslationException {
+    public static void copyToJAXB(RObjectType repo, ObjectType jaxb, PrismContext prismContext) throws
+            DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
@@ -100,7 +102,8 @@ public abstract class RObjectType {
         jaxb.setVersion(Long.toString(repo.getVersion()));
     }
 
-    public static void copyFromJAXB(ObjectType jaxb, RObjectType repo) throws DtoTranslationException {
+    public static void copyFromJAXB(ObjectType jaxb, RObjectType repo, PrismContext prismContext) throws
+            DtoTranslationException {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
 
@@ -114,5 +117,5 @@ public abstract class RObjectType {
         repo.setVersion(version);
     }
 
-    public abstract <T extends ObjectType> T toJAXB() throws DtoTranslationException;
+    public abstract <T extends ObjectType> T toJAXB(PrismContext prismContext) throws DtoTranslationException;
 }

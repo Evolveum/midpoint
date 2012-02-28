@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 import org.hibernate.annotations.Type;
@@ -59,8 +60,9 @@ public class RUserTemplateType extends RExtensibleObjectType {
         this.propertyConstruction = propertyConstruction;
     }
 
-    public static void copyToJAXB(RUserTemplateType repo, UserTemplateType jaxb) throws DtoTranslationException {
-        RExtensibleObjectType.copyToJAXB(repo, jaxb);
+    public static void copyToJAXB(RUserTemplateType repo, UserTemplateType jaxb, PrismContext prismContext) throws
+            DtoTranslationException {
+        RExtensibleObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         try {
 //            if (StringUtils.isNotEmpty(repo.getAccountConstruction())) {
@@ -79,20 +81,21 @@ public class RUserTemplateType extends RExtensibleObjectType {
         }
     }
 
-    public static void copyFromJAXB(UserTemplateType jaxb, RUserTemplateType repo) throws DtoTranslationException {
-        RExtensibleObjectType.copyFromJAXB(jaxb, repo);
+    public static void copyFromJAXB(UserTemplateType jaxb, RUserTemplateType repo, PrismContext prismContext) throws
+            DtoTranslationException {
+        RExtensibleObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         try {
             if (!jaxb.getAccountConstruction().isEmpty()) {
                 UserTemplateType template = new UserTemplateType();
                 template.getAccountConstruction().addAll(jaxb.getAccountConstruction());
-                repo.setAccountConstruction(RUtil.toRepo(template));
+                repo.setAccountConstruction(RUtil.toRepo(template, prismContext));
             }
 
             if (!jaxb.getPropertyConstruction().isEmpty()) {
                 UserTemplateType template = new UserTemplateType();
                 template.getPropertyConstruction().addAll(jaxb.getPropertyConstruction());
-                repo.setPropertyConstruction(RUtil.toRepo(template));
+                repo.setPropertyConstruction(RUtil.toRepo(template, prismContext));
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
@@ -100,9 +103,9 @@ public class RUserTemplateType extends RExtensibleObjectType {
     }
 
     @Override
-    public UserTemplateType toJAXB() throws DtoTranslationException {
+    public UserTemplateType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         UserTemplateType object = new UserTemplateType();
-        RUserTemplateType.copyToJAXB(this, object);
+        RUserTemplateType.copyToJAXB(this, object, prismContext);
         return object;
     }
 }

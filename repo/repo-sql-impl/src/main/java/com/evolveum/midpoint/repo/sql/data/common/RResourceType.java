@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -131,55 +132,57 @@ public class RResourceType extends RExtensibleObjectType {
         this.scripts = scripts;
     }
 
-    public static void copyToJAXB(RResourceType repo, ResourceType jaxb) throws DtoTranslationException {
-        RExtensibleObjectType.copyToJAXB(repo, jaxb);
+    public static void copyToJAXB(RResourceType repo, ResourceType jaxb, PrismContext prismContext) throws
+            DtoTranslationException {
+        RExtensibleObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setNamespace(repo.getNamespace());
 
         if (repo.getConnectorRef() != null) {
-            jaxb.setConnectorRef(repo.getConnectorRef().toJAXB());
+            jaxb.setConnectorRef(repo.getConnectorRef().toJAXB(prismContext));
         }
 
         try {
-            jaxb.setConfiguration(RUtil.toJAXB(repo.getConfiguration(), ResourceConfigurationType.class));
-            jaxb.setSchema(RUtil.toJAXB(repo.getXmlSchema(), XmlSchemaType.class));
-            jaxb.setSchemaHandling(RUtil.toJAXB(repo.getSchemaHandling(), SchemaHandlingType.class));
-            jaxb.setSynchronization(RUtil.toJAXB(repo.getSynchronization(), SynchronizationType.class));
-            jaxb.setCapabilities(RUtil.toJAXB(repo.getCapabilities(), CapabilitiesType.class));
-            jaxb.setNativeCapabilities(RUtil.toJAXB(repo.getNativeCapabilities(), CapabilitiesType.class));
-            jaxb.setScripts(RUtil.toJAXB(repo.getScripts(), ScriptsType.class));
+            jaxb.setConfiguration(RUtil.toJAXB(repo.getConfiguration(), ResourceConfigurationType.class, prismContext));
+            jaxb.setSchema(RUtil.toJAXB(repo.getXmlSchema(), XmlSchemaType.class, prismContext));
+            jaxb.setSchemaHandling(RUtil.toJAXB(repo.getSchemaHandling(), SchemaHandlingType.class, prismContext));
+            jaxb.setSynchronization(RUtil.toJAXB(repo.getSynchronization(), SynchronizationType.class, prismContext));
+            jaxb.setCapabilities(RUtil.toJAXB(repo.getCapabilities(), CapabilitiesType.class, prismContext));
+            jaxb.setNativeCapabilities(RUtil.toJAXB(repo.getNativeCapabilities(), CapabilitiesType.class, prismContext));
+            jaxb.setScripts(RUtil.toJAXB(repo.getScripts(), ScriptsType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
     }
 
-    public static void copyFromJAXB(ResourceType jaxb, RResourceType repo) throws DtoTranslationException {
-        RExtensibleObjectType.copyFromJAXB(jaxb, repo);
+    public static void copyFromJAXB(ResourceType jaxb, RResourceType repo, PrismContext prismContext) throws
+            DtoTranslationException {
+        RExtensibleObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setNamespace(jaxb.getNamespace());
-        repo.setConnectorRef(RUtil.jaxbRefToRepo(jaxb.getConnectorRef(), jaxb));
+        repo.setConnectorRef(RUtil.jaxbRefToRepo(jaxb.getConnectorRef(), jaxb, prismContext));
 
         if (jaxb.getConnector() != null) {
             LOGGER.warn("Connector from resource type won't be saved. It should be translated to connector reference.");
         }
 
         try {
-            repo.setConfiguration(RUtil.toRepo(jaxb.getConfiguration()));
-            repo.setXmlSchema(RUtil.toRepo(jaxb.getSchema()));
-            repo.setSchemaHandling(RUtil.toRepo(jaxb.getSchemaHandling()));
-            repo.setSynchronization(RUtil.toRepo(jaxb.getSynchronization()));
-            repo.setCapabilities(RUtil.toRepo(jaxb.getCapabilities()));
-            repo.setNativeCapabilities(RUtil.toRepo(jaxb.getNativeCapabilities()));
-            repo.setScripts(RUtil.toRepo(jaxb.getScripts()));
+            repo.setConfiguration(RUtil.toRepo(jaxb.getConfiguration(), prismContext));
+            repo.setXmlSchema(RUtil.toRepo(jaxb.getSchema(), prismContext));
+            repo.setSchemaHandling(RUtil.toRepo(jaxb.getSchemaHandling(), prismContext));
+            repo.setSynchronization(RUtil.toRepo(jaxb.getSynchronization(), prismContext));
+            repo.setCapabilities(RUtil.toRepo(jaxb.getCapabilities(), prismContext));
+            repo.setNativeCapabilities(RUtil.toRepo(jaxb.getNativeCapabilities(), prismContext));
+            repo.setScripts(RUtil.toRepo(jaxb.getScripts(), prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
     }
 
     @Override
-    public ResourceType toJAXB() throws DtoTranslationException {
+    public ResourceType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         ResourceType object = new ResourceType();
-        RResourceType.copyToJAXB(this, object);
+        RResourceType.copyToJAXB(this, object, prismContext);
         return object;
     }
 }

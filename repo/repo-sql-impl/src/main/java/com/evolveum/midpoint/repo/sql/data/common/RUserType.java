@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.hibernate.annotations.Cascade;
@@ -215,8 +216,9 @@ public class RUserType extends RExtensibleObjectType {
         this.telephoneNumber = telephoneNumber;
     }
 
-    public static void copyFromJAXB(UserType jaxb, RUserType repo) throws DtoTranslationException {
-        RExtensibleObjectType.copyFromJAXB(jaxb, repo);
+    public static void copyFromJAXB(UserType jaxb, RUserType repo, PrismContext prismContext) throws
+            DtoTranslationException {
+        RExtensibleObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setFullName(jaxb.getFullName());
         repo.setGivenName(jaxb.getGivenName());
@@ -228,12 +230,12 @@ public class RUserType extends RExtensibleObjectType {
 
         RActivationType activation = new RActivationType();
         if (jaxb.getActivation() != null) {
-            RActivationType.copyFromJAXB(jaxb.getActivation(), activation);
+            RActivationType.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
         }
         repo.setActivation(activation);
         RCredentialsType credentials = new RCredentialsType();
         if (jaxb.getCredentials() != null) {
-            RCredentialsType.copyFromJAXB(jaxb.getCredentials(), credentials);
+            RCredentialsType.copyFromJAXB(jaxb.getCredentials(), credentials, prismContext);
         }
         repo.setCredentials(credentials);
 
@@ -248,19 +250,20 @@ public class RUserType extends RExtensibleObjectType {
             repo.setAccountRef(new HashSet<RObjectReferenceType>());
         }
         for (ObjectReferenceType accountRef : jaxb.getAccountRef()) {
-            repo.getAccountRef().add(RUtil.jaxbRefToRepo(accountRef, jaxb));
+            repo.getAccountRef().add(RUtil.jaxbRefToRepo(accountRef, jaxb, prismContext));
         }
 
         for (AssignmentType assignment : jaxb.getAssignment()) {
             RAssignmentType rAssignment = new RAssignmentType();
-            RAssignmentType.copyFromJAXB(assignment, rAssignment);
+            RAssignmentType.copyFromJAXB(assignment, rAssignment, prismContext);
 
             repo.getAssignment().add(rAssignment);
         }
     }
 
-    public static void copyToJAXB(RUserType repo, UserType jaxb) throws DtoTranslationException {
-        RExtensibleObjectType.copyToJAXB(repo, jaxb);
+    public static void copyToJAXB(RUserType repo, UserType jaxb, PrismContext prismContext) throws
+            DtoTranslationException {
+        RExtensibleObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setFullName(repo.getFullName());
         jaxb.setGivenName(repo.getGivenName());
@@ -272,13 +275,13 @@ public class RUserType extends RExtensibleObjectType {
 
         if (repo.getActivation() != null) {
             ActivationType activation = new ActivationType();
-            RActivationType.copyToJAXB(repo.getActivation(), activation);
+            RActivationType.copyToJAXB(repo.getActivation(), activation, prismContext);
             jaxb.setActivation(activation);
         }
 
         if (repo.getCredentials() != null) {
             CredentialsType credentials = new CredentialsType();
-            RCredentialsType.copyToJAXB(repo.getCredentials(), credentials);
+            RCredentialsType.copyToJAXB(repo.getCredentials(), credentials, prismContext);
             jaxb.setCredentials(credentials);
         }
 
@@ -290,21 +293,21 @@ public class RUserType extends RExtensibleObjectType {
 
         if (repo.getAccountRef() != null) {
             for (RObjectReferenceType repoRef : repo.getAccountRef()) {
-                jaxb.getAccountRef().add(repoRef.toJAXB());
+                jaxb.getAccountRef().add(repoRef.toJAXB(prismContext));
             }
         }
 
         if (repo.getAssignment() != null) {
             for (RAssignmentType rAssignment : repo.getAssignment()) {
-                jaxb.getAssignment().add(rAssignment.toJAXB());
+                jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
             }
         }
     }
 
     @Override
-    public UserType toJAXB() throws DtoTranslationException {
+    public UserType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         UserType object = new UserType();
-        RUserType.copyToJAXB(this, object);
+        RUserType.copyToJAXB(this, object, prismContext);
         return object;
     }
 }

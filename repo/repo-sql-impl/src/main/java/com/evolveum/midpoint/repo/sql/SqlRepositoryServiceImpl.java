@@ -91,7 +91,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             }
 
             LOGGER.debug("Transforming data to JAXB type.");
-            objectType = object.toJAXB();
+            objectType = object.toJAXB(prismContext);
 
             if (resolve != null && !resolve.getProperty().isEmpty()) {
                 //todo we have to resolve something...
@@ -146,7 +146,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             List<? extends RObjectType> objects = query.list();
             if (objects != null) {
                 for (RObjectType object : objects) {
-                    ObjectType objectType = object.toJAXB();
+                    ObjectType objectType = object.toJAXB(prismContext);
                     validateObjectType(objectType, type);
                     results.add(objectType.asPrismObject());
                 }
@@ -196,7 +196,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             }
 
             RUserType user = users.get(0);
-            userType = user.toJAXB();
+            userType = user.toJAXB(prismContext);
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
@@ -339,7 +339,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                     new Object[]{(objects != null ? objects.size() : 0)});
 
             for (RObjectType object : objects) {
-                ObjectType objectType = object.toJAXB();
+                ObjectType objectType = object.toJAXB(prismContext);
                 validateObjectType(objectType, type);
                 list.add(objectType.asPrismObject());
             }
@@ -437,10 +437,10 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             if (shadows != null) {
                 list.setTotalResultCount(shadows.size());
                 for (RResourceObjectShadowType shadow : shadows) {
-                    ResourceObjectShadowType jaxb = shadow.toJAXB();
+                    ResourceObjectShadowType jaxb = shadow.toJAXB(prismContext);
                     validateObjectType(jaxb, resourceObjectShadowType);
 
-                    list.add(shadow.toJAXB().asPrismObject());
+                    list.add(jaxb.asPrismObject());
                 }
             }
             session.getTransaction().commit();
@@ -524,8 +524,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         RObjectType rObject;
         Class<? extends RObjectType> clazz = ClassMapper.getHQLTypeClass(object.getClass());
         rObject = clazz.newInstance();
-        Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz);
-        method.invoke(clazz, object, rObject);
+        Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz, PrismContext.class);
+        method.invoke(clazz, object, rObject, prismContext);
 
         return rObject;
     }

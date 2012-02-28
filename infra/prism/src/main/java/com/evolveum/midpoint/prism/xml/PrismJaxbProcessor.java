@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -203,25 +204,36 @@ public class PrismJaxbProcessor {
 		JAXBElement<Object> jaxbElement = new JAXBElement<Object>(elementQName, (Class) objectable.getClass(), objectable);
 		return marshalElementToString(jaxbElement);
 	}
+
+    public String marshalElementToString(JAXBElement<?> jaxbElement) throws JAXBException {
+        return marshalElementToString(jaxbElement, new HashMap<String, Object>());
+    }
 	
-	public String marshalElementToString(JAXBElement<?> jaxbElement) throws JAXBException {
+	public String marshalElementToString(JAXBElement<?> jaxbElement, Map<String, Object> properties) throws JAXBException {
 		StringWriter writer = new StringWriter();
 		Marshaller marshaller = getMarshaller();
+        for (Entry<String, Object> entry : properties.entrySet()) {
+            marshaller.setProperty(entry.getKey(), entry.getValue());
+        }
 		marshaller.marshal(jaxbElement, writer);
 		return writer.getBuffer().toString();
 	}
+
+    public String marshalElementToString(Object element) throws JAXBException {
+        return marshalElementToString(element, new HashMap<String, Object>());
+    }
 	
 	/**
 	 * Serializes DOM or JAXB element to string
 	 */
-	public String marshalElementToString(Object element) throws JAXBException {
+	public String marshalElementToString(Object element, Map<String, Object> properties) throws JAXBException {
 		if (element == null) {
 			return null;
 		}
 		if (element instanceof Element) {
 			return DOMUtil.serializeDOMToString((Element) element);
 		} else if (element instanceof JAXBElement) {
-			return marshalElementToString((JAXBElement<?>)element);
+			return marshalElementToString((JAXBElement<?>)element, properties);
 		} else {
 			throw new IllegalArgumentException("Unsupported element type "+element.getClass().getName());
 		}

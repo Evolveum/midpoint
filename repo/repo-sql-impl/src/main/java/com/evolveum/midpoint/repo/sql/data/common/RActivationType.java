@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import org.apache.commons.lang.Validate;
@@ -64,7 +65,8 @@ public class RActivationType {
         this.validTo = validTo;
     }
 
-    public static void copyFromJAXB(ActivationType jaxb, RActivationType repo) throws DtoTranslationException {
+    public static void copyFromJAXB(ActivationType jaxb, RActivationType repo, PrismContext prismContext) throws
+            DtoTranslationException {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
 
@@ -75,7 +77,7 @@ public class RActivationType {
         repo.setValidTo(repo.getValidTo());
     }
 
-    public static void copyToJAXB(RActivationType repo, ActivationType jaxb) {
+    public static void copyToJAXB(RActivationType repo, ActivationType jaxb, PrismContext prismContext) {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
 
@@ -84,9 +86,9 @@ public class RActivationType {
         jaxb.setValidTo(repo.getValidTo());
     }
 
-    public ActivationType toJAXB() throws DtoTranslationException {
+    public ActivationType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         ActivationType activation = new ActivationType();
-        RActivationType.copyToJAXB(this, activation);
+        RActivationType.copyToJAXB(this, activation, prismContext);
         return activation;
     }
 }

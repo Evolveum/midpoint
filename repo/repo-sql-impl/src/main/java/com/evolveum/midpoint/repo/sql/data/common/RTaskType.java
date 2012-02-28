@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.hibernate.annotations.Cascade;
@@ -213,8 +214,9 @@ public class RTaskType extends RExtensibleObjectType {
         this.schedule = schedule;
     }
 
-    public static void copyToJAXB(RTaskType repo, TaskType jaxb) throws DtoTranslationException {
-        RExtensibleObjectType.copyToJAXB(repo, jaxb);
+    public static void copyToJAXB(RTaskType repo, TaskType jaxb, PrismContext prismContext) throws
+            DtoTranslationException {
+        RExtensibleObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setTaskIdentifier(repo.getTaskIdentifier());
         jaxb.setClaimExpirationTimestamp(repo.getClaimExpirationTimestamp());
@@ -230,26 +232,27 @@ public class RTaskType extends RExtensibleObjectType {
         jaxb.setRecurrence(repo.getRecurrence());
 
         if (repo.getObjectRef() != null) {
-            jaxb.setObjectRef(repo.getObjectRef().toJAXB());
+            jaxb.setObjectRef(repo.getObjectRef().toJAXB(prismContext));
         }
         if (repo.getOwnerRef() != null) {
-            jaxb.setOwnerRef(repo.getOwnerRef().toJAXB());
+            jaxb.setOwnerRef(repo.getOwnerRef().toJAXB(prismContext));
         }
         if (repo.getResult() != null) {
-            jaxb.setResult(repo.getResult().toJAXB());
+            jaxb.setResult(repo.getResult().toJAXB(prismContext));
         }
 
         try {
-            jaxb.setModelOperationState(RUtil.toJAXB(repo.getModelOperationState(), ModelOperationStateType.class));
-            jaxb.setOtherHandlersUriStack(RUtil.toJAXB(repo.getOtherHandlersUriStack(), UriStack.class));
-            jaxb.setSchedule(RUtil.toJAXB(repo.getSchedule(), ScheduleType.class));
+            jaxb.setModelOperationState(RUtil.toJAXB(repo.getModelOperationState(), ModelOperationStateType.class, prismContext));
+            jaxb.setOtherHandlersUriStack(RUtil.toJAXB(repo.getOtherHandlersUriStack(), UriStack.class, prismContext));
+            jaxb.setSchedule(RUtil.toJAXB(repo.getSchedule(), ScheduleType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
     }
 
-    public static void copyFromJAXB(TaskType jaxb, RTaskType repo) throws DtoTranslationException {
-        RExtensibleObjectType.copyFromJAXB(jaxb, repo);
+    public static void copyFromJAXB(TaskType jaxb, RTaskType repo, PrismContext prismContext) throws
+            DtoTranslationException {
+        RExtensibleObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setTaskIdentifier(jaxb.getTaskIdentifier());
         repo.setClaimExpirationTimestamp(jaxb.getClaimExpirationTimestamp());
@@ -264,23 +267,23 @@ public class RTaskType extends RExtensibleObjectType {
         repo.setNextRunStartTime(jaxb.getNextRunStartTime());
         repo.setRecurrence(jaxb.getRecurrence());
 
-        repo.setObjectRef(RUtil.jaxbRefToRepo(jaxb.getObjectRef(), jaxb));
-        repo.setOwnerRef(RUtil.jaxbRefToRepo(jaxb.getOwnerRef(), jaxb));
-        repo.setResult(RUtil.jaxbResultToRepo(repo, jaxb.getResult()));
+        repo.setObjectRef(RUtil.jaxbRefToRepo(jaxb.getObjectRef(), jaxb, prismContext));
+        repo.setOwnerRef(RUtil.jaxbRefToRepo(jaxb.getOwnerRef(), jaxb, prismContext));
+        repo.setResult(RUtil.jaxbResultToRepo(repo, jaxb.getResult(), prismContext));
 
         try {
-            repo.setModelOperationState(RUtil.toRepo(jaxb.getModelOperationState()));
-            repo.setOtherHandlersUriStack(RUtil.toRepo(jaxb.getOtherHandlersUriStack()));
-            repo.setSchedule(RUtil.toRepo(jaxb.getSchedule()));
+            repo.setModelOperationState(RUtil.toRepo(jaxb.getModelOperationState(), prismContext));
+            repo.setOtherHandlersUriStack(RUtil.toRepo(jaxb.getOtherHandlersUriStack(), prismContext));
+            repo.setSchedule(RUtil.toRepo(jaxb.getSchedule(), prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
     }
 
     @Override
-    public TaskType toJAXB() throws DtoTranslationException {
+    public TaskType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         TaskType object = new TaskType();
-        RTaskType.copyToJAXB(this, object);
+        RTaskType.copyToJAXB(this, object, prismContext);
         return object;
     }
 }

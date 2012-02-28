@@ -21,17 +21,16 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LocalizedMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ParamsType;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
-import javax.xml.bind.JAXBElement;
 
 /**
  * @author lazyman
@@ -152,7 +151,8 @@ public class ROperationResultType {
         this.token = token;
     }
 
-    public static void copyToJAXB(ROperationResultType repo, OperationResultType jaxb) throws DtoTranslationException {
+    public static void copyToJAXB(ROperationResultType repo, OperationResultType jaxb, PrismContext prismContext) throws
+            DtoTranslationException {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
 
@@ -164,8 +164,8 @@ public class ROperationResultType {
         jaxb.setToken(repo.getToken());
 
         try {
-            jaxb.setLocalizedMessage(RUtil.toJAXB(repo.getLocalizedMessage(), LocalizedMessageType.class));
-            jaxb.setParams(RUtil.toJAXB(repo.getParams(), ParamsType.class));
+            jaxb.setLocalizedMessage(RUtil.toJAXB(repo.getLocalizedMessage(), LocalizedMessageType.class, prismContext));
+            jaxb.setParams(RUtil.toJAXB(repo.getParams(), ParamsType.class, prismContext));
 
 //            if (StringUtils.isNotEmpty(repo.getPartialResults())) {
 //                JAXBElement<OperationResultType> result = (JAXBElement<OperationResultType>)
@@ -177,7 +177,8 @@ public class ROperationResultType {
         }
     }
 
-    public static void copyFromJAXB(OperationResultType jaxb, ROperationResultType repo) throws
+    public static void copyFromJAXB(OperationResultType jaxb, ROperationResultType repo,
+            PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
@@ -190,22 +191,22 @@ public class ROperationResultType {
         repo.setToken(jaxb.getToken());
 
         try {
-            repo.setLocalizedMessage(RUtil.toRepo(jaxb.getLocalizedMessage()));
-            repo.setParams(RUtil.toRepo(jaxb.getParams()));
+            repo.setLocalizedMessage(RUtil.toRepo(jaxb.getLocalizedMessage(), prismContext));
+            repo.setParams(RUtil.toRepo(jaxb.getParams(), prismContext));
 
             if (!jaxb.getPartialResults().isEmpty()) {
                 OperationResultType result = new OperationResultType();
                 result.getPartialResults().addAll(jaxb.getPartialResults());
-                repo.setPartialResults(RUtil.toRepo(result));
+                repo.setPartialResults(RUtil.toRepo(result, prismContext));
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
     }
 
-    public OperationResultType toJAXB() throws DtoTranslationException {
+    public OperationResultType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         OperationResultType result = new OperationResultType();
-        ROperationResultType.copyToJAXB(this, result);
+        ROperationResultType.copyToJAXB(this, result, prismContext);
         return result;
     }
 }

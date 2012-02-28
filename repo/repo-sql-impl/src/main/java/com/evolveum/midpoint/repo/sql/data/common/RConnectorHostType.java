@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
@@ -86,8 +87,9 @@ public class RConnectorHostType extends RExtensibleObjectType {
         this.sharedSecret = sharedSecret;
     }
 
-    public static void copyToJAXB(RConnectorHostType repo, ConnectorHostType jaxb) throws DtoTranslationException {
-        RExtensibleObjectType.copyToJAXB(repo, jaxb);
+    public static void copyToJAXB(RConnectorHostType repo, ConnectorHostType jaxb, PrismContext prismContext) throws
+            DtoTranslationException {
+        RExtensibleObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setHostname(repo.getHostname());
         jaxb.setPort(repo.getPort());
@@ -95,14 +97,15 @@ public class RConnectorHostType extends RExtensibleObjectType {
         jaxb.setTimeout(repo.getTimeout());
 
         try {
-            jaxb.setSharedSecret(RUtil.toJAXB(repo.getSharedSecret(), ProtectedStringType.class));
+            jaxb.setSharedSecret(RUtil.toJAXB(repo.getSharedSecret(), ProtectedStringType.class, prismContext));
         } catch (Exception ex) {
             new DtoTranslationException(ex.getMessage(), ex);
         }
     }
 
-    public static void copyFromJAXB(ConnectorHostType jaxb, RConnectorHostType repo) throws DtoTranslationException {
-        RExtensibleObjectType.copyFromJAXB(jaxb, repo);
+    public static void copyFromJAXB(ConnectorHostType jaxb, RConnectorHostType repo, PrismContext prismContext) throws
+            DtoTranslationException {
+        RExtensibleObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setHostname(jaxb.getHostname());
         repo.setPort(jaxb.getPort());
@@ -110,16 +113,16 @@ public class RConnectorHostType extends RExtensibleObjectType {
         repo.setProtectConnection(jaxb.isProtectConnection());
 
         try {
-            repo.setSharedSecret(RUtil.toRepo(jaxb.getSharedSecret()));
+            repo.setSharedSecret(RUtil.toRepo(jaxb.getSharedSecret(), prismContext));
         } catch (Exception ex) {
             new DtoTranslationException(ex.getMessage(), ex);
         }
     }
 
     @Override
-    public ConnectorHostType toJAXB() throws DtoTranslationException {
+    public ConnectorHostType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         ConnectorHostType object = new ConnectorHostType();
-        RConnectorHostType.copyToJAXB(this, object);
+        RConnectorHostType.copyToJAXB(this, object, prismContext);
         return object;
     }
 }

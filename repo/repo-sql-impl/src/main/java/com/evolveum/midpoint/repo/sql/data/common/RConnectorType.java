@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -120,8 +121,9 @@ public class RConnectorType extends RExtensibleObjectType {
         this.xmlSchema = xmlSchema;
     }
 
-    public static void copyToJAXB(RConnectorType repo, ConnectorType jaxb) throws DtoTranslationException {
-        RExtensibleObjectType.copyToJAXB(repo, jaxb);
+    public static void copyToJAXB(RConnectorType repo, ConnectorType jaxb, PrismContext prismContext) throws
+            DtoTranslationException {
+        RExtensibleObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setConnectorBundle(repo.getConnectorBundle());
         jaxb.setConnectorType(repo.getConnectorType());
@@ -130,10 +132,10 @@ public class RConnectorType extends RExtensibleObjectType {
         jaxb.setNamespace(repo.getNamespace());
 
         try {
-            jaxb.setSchema(RUtil.toJAXB(repo.getXmlSchema(), XmlSchemaType.class));
+            jaxb.setSchema(RUtil.toJAXB(repo.getXmlSchema(), XmlSchemaType.class, prismContext));
 
             if (repo.getConnectorHostRef() != null) {
-                jaxb.setConnectorHostRef(repo.getConnectorHostRef().toJAXB());
+                jaxb.setConnectorHostRef(repo.getConnectorHostRef().toJAXB(prismContext));
             }
 
             jaxb.getTargetSystemType().addAll(RUtil.safeSetToList(repo.getTargetSystemType()));
@@ -142,15 +144,16 @@ public class RConnectorType extends RExtensibleObjectType {
         }
     }
 
-    public static void copyFromJAXB(ConnectorType jaxb, RConnectorType repo) throws DtoTranslationException {
-        RExtensibleObjectType.copyFromJAXB(jaxb, repo);
+    public static void copyFromJAXB(ConnectorType jaxb, RConnectorType repo, PrismContext prismContext) throws
+            DtoTranslationException {
+        RExtensibleObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setConnectorBundle(jaxb.getConnectorBundle());
         repo.setConnectorType(jaxb.getConnectorType());
         repo.setConnectorVersion(jaxb.getConnectorVersion());
         repo.setFramework(jaxb.getFramework());
         repo.setNamespace(jaxb.getNamespace());
-        repo.setConnectorHostRef(RUtil.jaxbRefToRepo(jaxb.getConnectorHostRef(), jaxb));
+        repo.setConnectorHostRef(RUtil.jaxbRefToRepo(jaxb.getConnectorHostRef(), jaxb, prismContext));
 
         if (jaxb.getConnectorHost() != null) {
             LOGGER.warn("Connector host from connector type won't be saved. It should be " +
@@ -158,7 +161,7 @@ public class RConnectorType extends RExtensibleObjectType {
         }
 
         try {
-            repo.setXmlSchema(RUtil.toRepo(jaxb.getSchema()));
+            repo.setXmlSchema(RUtil.toRepo(jaxb.getSchema(), prismContext));
             repo.setTargetSystemType(RUtil.listToSet(jaxb.getTargetSystemType()));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
@@ -166,9 +169,9 @@ public class RConnectorType extends RExtensibleObjectType {
     }
 
     @Override
-    public ConnectorType toJAXB() throws DtoTranslationException {
+    public ConnectorType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         ConnectorType object = new ConnectorType();
-        RConnectorType.copyToJAXB(this, object);
+        RConnectorType.copyToJAXB(this, object, prismContext);
         return object;
     }
 }

@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
@@ -51,20 +52,22 @@ public class RRoleType extends RExtensibleObjectType {
         this.assignment = assignment;
     }
 
-    public static void copyToJAXB(RRoleType repo, RoleType jaxb) throws DtoTranslationException {
-        RExtensibleObjectType.copyToJAXB(repo, jaxb);
+    public static void copyToJAXB(RRoleType repo, RoleType jaxb, PrismContext prismContext) throws
+            DtoTranslationException {
+        RExtensibleObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         if (repo.getAssignment() == null) {
             return;
         }
 
         for (RAssignmentType rAssignment : repo.getAssignment()) {
-            jaxb.getAssignment().add(rAssignment.toJAXB());
+            jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
         }
     }
 
-    public static void copyFromJAXB(RoleType jaxb, RRoleType repo) throws DtoTranslationException {
-        RExtensibleObjectType.copyFromJAXB(jaxb, repo);
+    public static void copyFromJAXB(RoleType jaxb, RRoleType repo, PrismContext prismContext) throws
+            DtoTranslationException {
+        RExtensibleObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         if (!jaxb.getAssignment().isEmpty()) {
             repo.setAssignment(new ArrayList<RAssignmentType>());
@@ -72,16 +75,16 @@ public class RRoleType extends RExtensibleObjectType {
 
         for (AssignmentType assignment : jaxb.getAssignment()) {
             RAssignmentType rAssignment = new RAssignmentType();
-            RAssignmentType.copyFromJAXB(assignment, rAssignment);
+            RAssignmentType.copyFromJAXB(assignment, rAssignment, prismContext);
 
             repo.getAssignment().add(rAssignment);
         }
     }
 
     @Override
-    public RoleType toJAXB() throws DtoTranslationException {
+    public RoleType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         RoleType object = new RoleType();
-        RRoleType.copyToJAXB(this, object);
+        RRoleType.copyToJAXB(this, object, prismContext);
         return object;
     }
 }

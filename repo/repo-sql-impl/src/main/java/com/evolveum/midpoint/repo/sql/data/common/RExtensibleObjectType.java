@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
@@ -51,27 +52,27 @@ public abstract class RExtensibleObjectType extends RObjectType {
         this.extension = extension;
     }
 
-    public static void copyToJAXB(RExtensibleObjectType repo, ExtensibleObjectType jaxb) throws
-            DtoTranslationException {
-        RObjectType.copyToJAXB(repo, jaxb);
+    public static void copyToJAXB(RExtensibleObjectType repo, ExtensibleObjectType jaxb,
+            PrismContext prismContext) throws DtoTranslationException {
+        RObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         if (repo.getExtension() != null) {
             Extension extension = new Extension();
             jaxb.setExtension(extension);
 
-            RExtension.copyToJAXB(repo.getExtension(), extension);
+            RExtension.copyToJAXB(repo.getExtension(), extension, prismContext);
         }
     }
 
-    public static void copyFromJAXB(ExtensibleObjectType jaxb, RExtensibleObjectType repo) throws
-            DtoTranslationException {
-        RObjectType.copyFromJAXB(jaxb, repo);
+    public static void copyFromJAXB(ExtensibleObjectType jaxb, RExtensibleObjectType repo,
+            PrismContext prismContext) throws DtoTranslationException {
+        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         if (jaxb.getExtension() != null) {
             RExtension extension = new RExtension();
             repo.setExtension(extension);
 
-            RExtension.copyFromJAXB(jaxb.getExtension(), extension);
+            RExtension.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
         }
     }
 }

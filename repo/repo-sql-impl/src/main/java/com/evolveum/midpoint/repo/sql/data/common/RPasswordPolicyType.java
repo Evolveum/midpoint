@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordLifeTimeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordPolicyType;
@@ -59,34 +60,36 @@ public class RPasswordPolicyType extends RObjectType {
         this.stringPolicy = stringPolicy;
     }
 
-    public static void copyToJAXB(RPasswordPolicyType repo, PasswordPolicyType jaxb) throws DtoTranslationException {
+    public static void copyToJAXB(RPasswordPolicyType repo, PasswordPolicyType jaxb, PrismContext prismContext) throws
+            DtoTranslationException {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
 
         try {
-            jaxb.setLifetime(RUtil.toJAXB(repo.getLifetime(), PasswordLifeTimeType.class));
-            jaxb.setStringPolicy(RUtil.toJAXB(repo.getStringPolicy(), StringPolicyType.class));
+            jaxb.setLifetime(RUtil.toJAXB(repo.getLifetime(), PasswordLifeTimeType.class, prismContext));
+            jaxb.setStringPolicy(RUtil.toJAXB(repo.getStringPolicy(), StringPolicyType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
     }
 
-    public static void copyFromJAXB(PasswordPolicyType jaxb, RPasswordPolicyType repo) throws DtoTranslationException {
+    public static void copyFromJAXB(PasswordPolicyType jaxb, RPasswordPolicyType repo, PrismContext prismContext) throws
+            DtoTranslationException {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
 
         try {
-            repo.setLifetime(RUtil.toRepo(jaxb.getLifetime()));
-            repo.setStringPolicy(RUtil.toRepo(jaxb.getStringPolicy()));
+            repo.setLifetime(RUtil.toRepo(jaxb.getLifetime(), prismContext));
+            repo.setStringPolicy(RUtil.toRepo(jaxb.getStringPolicy(), prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
     }
 
     @Override
-    public PasswordPolicyType toJAXB() throws DtoTranslationException {
+    public PasswordPolicyType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         PasswordPolicyType policy = new PasswordPolicyType();
-        RPasswordPolicyType.copyToJAXB(this, policy);
+        RPasswordPolicyType.copyToJAXB(this, policy, prismContext);
         return policy;
     }
 }

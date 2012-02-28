@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.Identifiable;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -94,53 +95,55 @@ public class RAssignmentType implements Identifiable {
         this.targetRef = targetRef;
     }
 
-    public static void copyToJAXB(RAssignmentType repo, AssignmentType jaxb) throws DtoTranslationException {
+    public static void copyToJAXB(RAssignmentType repo, AssignmentType jaxb, PrismContext prismContext) throws
+            DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
         jaxb.setId(Long.toString(repo.getId()));
         try {
-            jaxb.setAccountConstruction(RUtil.toJAXB(repo.getAccountConstruction(), AccountConstructionType.class));
+            jaxb.setAccountConstruction(RUtil.toJAXB(repo.getAccountConstruction(), AccountConstructionType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
 
         RActivationType activation = repo.getActivation();
         if (activation != null) {
-            jaxb.setActivation(activation.toJAXB());
+            jaxb.setActivation(activation.toJAXB(prismContext));
         }
 
         RExtension extension = repo.getExtension();
         if (extension != null) {
-            jaxb.setExtension(extension.toJAXB());
+            jaxb.setExtension(extension.toJAXB(prismContext));
         }
 
         if (repo.getTargetRef() != null) {
-            jaxb.setTargetRef(repo.getTargetRef().toJAXB());
+            jaxb.setTargetRef(repo.getTargetRef().toJAXB(prismContext));
         }
     }
 
-    public static void copyFromJAXB(AssignmentType jaxb, RAssignmentType repo) throws DtoTranslationException {
+    public static void copyFromJAXB(AssignmentType jaxb, RAssignmentType repo, PrismContext prismContext) throws
+            DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
-        
+
         repo.setId(RUtil.getLongFromString(jaxb.getId()));
 
         try {
-            repo.setAccountConstruction(RUtil.toRepo(jaxb.getAccountConstruction()));
+            repo.setAccountConstruction(RUtil.toRepo(jaxb.getAccountConstruction(), prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
 
         if (jaxb.getActivation() != null) {
             RActivationType activation = new RActivationType();
-            RActivationType.copyFromJAXB(jaxb.getActivation(), activation);
+            RActivationType.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
             repo.setActivation(activation);
         }
 
         if (jaxb.getExtension() != null) {
             RExtension extension = new RExtension();
-            RExtension.copyFromJAXB(jaxb.getExtension(), extension);
+            RExtension.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
             repo.setExtension(extension);
         }
 
@@ -148,12 +151,12 @@ public class RAssignmentType implements Identifiable {
             LOGGER.warn("Target from assignment type won't be saved. It should be translated to target reference.");
         }
 
-        repo.setTargetRef(RUtil.jaxbRefToRepo(jaxb.getTargetRef(), jaxb.getId()));
+        repo.setTargetRef(RUtil.jaxbRefToRepo(jaxb.getTargetRef(), jaxb.getId(), prismContext));
     }
 
-    public AssignmentType toJAXB() throws DtoTranslationException {
+    public AssignmentType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         AssignmentType object = new AssignmentType();
-        RAssignmentType.copyToJAXB(this, object);
+        RAssignmentType.copyToJAXB(this, object, prismContext);
         return object;
     }
 }

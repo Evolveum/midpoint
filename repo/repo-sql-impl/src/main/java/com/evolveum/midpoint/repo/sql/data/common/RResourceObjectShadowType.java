@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -121,23 +122,23 @@ public class RResourceObjectShadowType extends RExtensibleObjectType {
         this.objectChange = objectChange;
     }
 
-    public static void copyToJAXB(RResourceObjectShadowType repo, ResourceObjectShadowType jaxb) throws
-            DtoTranslationException {
-        RExtensibleObjectType.copyToJAXB(repo, jaxb);
+    public static void copyToJAXB(RResourceObjectShadowType repo, ResourceObjectShadowType jaxb,
+            PrismContext prismContext) throws DtoTranslationException {
+        RExtensibleObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setAttemptNumber(repo.getAttemptNumber());
         jaxb.setObjectClass(repo.getObjectClass());
         jaxb.setFailedOperationType(repo.getFailedOperationType());
 
         if (repo.getOpResult() != null) {
-            jaxb.setResult(repo.getOpResult().toJAXB());
+            jaxb.setResult(repo.getOpResult().toJAXB(prismContext));
         }
         if (repo.getResourceRef() != null) {
-            jaxb.setResourceRef(repo.getResourceRef().toJAXB());
+            jaxb.setResourceRef(repo.getResourceRef().toJAXB(prismContext));
         }
 
         try {
-            jaxb.setObjectChange(RUtil.toJAXB(repo.getObjectChange(), ObjectChangeType.class));
+            jaxb.setObjectChange(RUtil.toJAXB(repo.getObjectChange(), ObjectChangeType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
@@ -145,9 +146,9 @@ public class RResourceObjectShadowType extends RExtensibleObjectType {
         //todo implement attributes
     }
 
-    public static void copyFromJAXB(ResourceObjectShadowType jaxb, RResourceObjectShadowType repo) throws
-            DtoTranslationException {
-        RExtensibleObjectType.copyFromJAXB(jaxb, repo);
+    public static void copyFromJAXB(ResourceObjectShadowType jaxb, RResourceObjectShadowType repo,
+            PrismContext prismContext) throws DtoTranslationException {
+        RExtensibleObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         if (jaxb.getResource() != null) {
             LOGGER.warn("Resource from resource object shadow type won't be saved. It should be " +
@@ -158,11 +159,11 @@ public class RResourceObjectShadowType extends RExtensibleObjectType {
         repo.setObjectClass(jaxb.getObjectClass());
         repo.setFailedOperationType(jaxb.getFailedOperationType());
 
-        repo.setResourceRef(RUtil.jaxbRefToRepo(jaxb.getResourceRef(), jaxb));
-        repo.setOpResult(RUtil.jaxbResultToRepo(repo, jaxb.getResult()));
+        repo.setResourceRef(RUtil.jaxbRefToRepo(jaxb.getResourceRef(), jaxb, prismContext));
+        repo.setOpResult(RUtil.jaxbResultToRepo(repo, jaxb.getResult(), prismContext));
 
         try {
-            repo.setObjectChange(RUtil.toRepo(jaxb.getObjectChange()));
+            repo.setObjectChange(RUtil.toRepo(jaxb.getObjectChange(), prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
@@ -171,9 +172,9 @@ public class RResourceObjectShadowType extends RExtensibleObjectType {
     }
 
     @Override
-    public ResourceObjectShadowType toJAXB() throws DtoTranslationException {
+    public ResourceObjectShadowType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         ResourceObjectShadowType object = new ResourceObjectShadowType();
-        RResourceObjectShadowType.copyToJAXB(this, object);
+        RResourceObjectShadowType.copyToJAXB(this, object, prismContext);
         return object;
     }
 }

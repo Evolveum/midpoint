@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import org.apache.commons.lang.StringUtils;
@@ -93,7 +94,7 @@ public class RObjectReferenceType {
         this.type = type;
     }
 
-    public static void copyToJAXB(RObjectReferenceType repo, ObjectReferenceType jaxb) {
+    public static void copyToJAXB(RObjectReferenceType repo, ObjectReferenceType jaxb, PrismContext prismContext) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
@@ -107,7 +108,7 @@ public class RObjectReferenceType {
         jaxb.setDescription(repo.getDescription());
     }
 
-    public static void copyFromJAXB(ObjectReferenceType jaxb, RObjectReferenceType repo) {
+    public static void copyFromJAXB(ObjectReferenceType jaxb, RObjectReferenceType repo, PrismContext prismContext) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
@@ -120,9 +121,9 @@ public class RObjectReferenceType {
         }
     }
 
-    public ObjectReferenceType toJAXB() {
+    public ObjectReferenceType toJAXB(PrismContext prismContext) {
         ObjectReferenceType ref = new ObjectReferenceType();
-        copyToJAXB(this, ref);
+        copyToJAXB(this, ref, prismContext);
 
         return ref;
     }
