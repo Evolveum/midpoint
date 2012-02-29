@@ -98,6 +98,11 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	public void setName(QName name) {
 		this.name = name;
 	}
+	
+	@Override
+	public QName getDefaultName() {
+		return getName();
+	}
 
 	/**
 	 * Returns either name (if specified) or default name.
@@ -261,7 +266,28 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 
 	@Override
 	public String toString() {
-		return getDebugDumpClassName() + ":" + DebugUtil.prettyPrint(getName()) + " ("+DebugUtil.prettyPrint(getTypeName())+")";
+		StringBuilder sb = new StringBuilder();
+		sb.append(getDebugDumpClassName());
+		sb.append(":");
+		sb.append(DebugUtil.prettyPrint(getName()));
+		sb.append(" (");
+		sb.append(DebugUtil.prettyPrint(getTypeName()));
+		sb.append(")[");
+		sb.append(minOccurs);
+		sb.append(",");
+		sb.append(maxOccurs);
+		sb.append("]");
+		if (isIgnored()) {
+			sb.append(",ignored");
+		}
+		if (isDynamic()) {
+			sb.append(",dyn");
+		}
+		return sb.toString();
+	}
+	
+	protected void extendToString(StringBuilder sb) {
+		// Nothing to do here
 	}
 	
 }

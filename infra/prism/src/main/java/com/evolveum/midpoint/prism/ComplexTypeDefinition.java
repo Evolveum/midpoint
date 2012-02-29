@@ -235,8 +235,20 @@ public class ComplexTypeDefinition extends Definition {
 		}
 		sb.append(toString());
 		if (extensionForType != null) {
-			sb.append(" ext:");
+			sb.append(",ext:");
 			sb.append(DebugUtil.prettyPrint(extensionForType));
+		}
+		if (ignored) {
+			sb.append(",ignored");
+		}
+		if (containerMarker) {
+			sb.append(",Mc");
+		}
+		if (objectMarker) {
+			sb.append(",Mo");
+		}
+		if (xsdAnyMarker) {
+			sb.append(",Ma");
 		}
 		sb.append("\n");
 		for (ItemDefinition def : getDefinitions()) {

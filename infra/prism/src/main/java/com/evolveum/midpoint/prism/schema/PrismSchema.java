@@ -219,6 +219,10 @@ public class PrismSchema implements Dumpable, DebugDumpable, Serializable {
 		}
 		return null;
 	}
+	
+	public PrismContainerDefinition findContainerDefinitionByElementName(QName elementName) {
+		return findContainerDefinitionByElementName(elementName, PrismContainerDefinition.class);
+	}
 
 	private <T extends PrismContainerDefinition> T findContainerDefinitionByElementName(QName elementName, Class<T> type) {
 		if (elementName == null) {

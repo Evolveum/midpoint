@@ -23,6 +23,7 @@
     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"
     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"
     xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+    xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
     elementFormDefault="qualified">
 
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
@@ -44,6 +45,21 @@
             Recommended namespace prefix: icfc
         </xsd:documentation>
     </xsd:annotation>
+
+    <xsd:complexType name="ConfigurationPropertiesType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:any namespace="##any" minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="configurationProperties" type="tns:ConfigurationPropertiesType"/>
     
     <xsd:complexType name="ConnectorPoolConfigurationType">
 		<xsd:annotation>
@@ -51,6 +67,9 @@
 				Type that contains configuration of ICF connector pools. This configuration is common for all
 				ICF connectors, therefore it may be part of a static schema.
 			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:element name="minEvictableIdleTimeMillis" type="xsd:integer" minOccurs="0">
@@ -121,6 +140,9 @@
 			<xsd:documentation>
 				Type that contains configuration of ICF operation timeouts.
 			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:element name="create" type="xsd:integer" minOccurs="0">

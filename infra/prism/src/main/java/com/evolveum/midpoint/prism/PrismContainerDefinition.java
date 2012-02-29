@@ -52,7 +52,6 @@ import java.util.*;
 public class PrismContainerDefinition extends ItemDefinition {
 
     private static final long serialVersionUID = -5068923696147960699L;
-    private static final String ANY_GETTER_NAME = "getAny";
     protected ComplexTypeDefinition complexTypeDefinition;
  
     /**
@@ -72,7 +71,7 @@ public class PrismContainerDefinition extends ItemDefinition {
         if (complexTypeDefinition == null) {
             isRuntimeSchema = true;
         } else {
-            isRuntimeSchema = false;
+            isRuntimeSchema = complexTypeDefinition.isXsdAnyMarker();
         }
     }
 
@@ -419,5 +418,15 @@ public class PrismContainerDefinition extends ItemDefinition {
     protected String getDebugDumpClassName() {
         return "PCD";
     }
+
+	@Override
+	protected void extendToString(StringBuilder sb) {
+		super.extendToString(sb);
+		if (isRuntimeSchema) {
+			sb.append(",runtime");
+		}
+	}
+    
+    
 
 }

@@ -25,6 +25,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import static com.evolveum.midpoint.schema.util.SchemaTestConstants.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -73,7 +75,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * @author semancik
  *
  */
-public class TestCommonSchemaSanity {
+public class TestSchemaSanity {
 	
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -164,6 +166,32 @@ public class TestCommonSchemaSanity {
 		PrismAsserts.assertDefinition(attributesContainer, AccountShadowType.F_ATTRIBUTES, ResourceObjectShadowAttributesType.COMPLEX_TYPE, 0, 1);
 		assertTrue("Attributes is NOT runtime", attributesContainer.isRuntimeSchema());
 		
+	}
+	
+	@Test
+	public void testIcfSchema() {
+		System.out.println("===[ testIcfSchema ]===");
+
+		// WHEN
+		// The context should have parsed common schema and also other midPoint schemas
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		assertNotNull("No prism context", prismContext);
+		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
+		assertNotNull("No schema registry in context", schemaRegistry);
+		
+		System.out.println("Schema registry:");
+		System.out.println(schemaRegistry.dump());
+
+		PrismSchema icfSchema = schemaRegistry.findSchemaByNamespace(NS_ICFC);
+		assertNotNull("No ICF schema", icfSchema);
+		System.out.println("ICF schema:");
+		System.out.println(icfSchema.dump());
+		
+		
+		PrismContainerDefinition configurationPropertiesContainer = icfSchema.findContainerDefinitionByElementName(ICFC_CONFIGURATION_PROPERTIES);
+		PrismAsserts.assertDefinition(configurationPropertiesContainer, ICFC_CONFIGURATION_PROPERTIES, ICFC_CONFIGURATION_PROPERTIES_TYPE, 1, 1);
+		assertTrue("configurationPropertiesContainer definition is NOT marked as runtime", configurationPropertiesContainer.isRuntimeSchema());
+				
 	}
 		
 	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {

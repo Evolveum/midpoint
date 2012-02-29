@@ -157,20 +157,27 @@ public class PrismPropertyDefinition extends ItemDefinition {
     }
 
     @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getDebugDumpClassName()).append(":").append(DebugUtil.prettyPrint(getName()));
-        sb.append(" (").append(DebugUtil.prettyPrint(getTypeName())).append(")");
-        if (isMultiValue()) {
-            sb.append(" multi");
-        }
-        if (isOptional()) {
-            sb.append(" opt");
-        }
-        return sb.toString();
-    }
+	protected void extendToString(StringBuilder sb) {
+		super.extendToString(sb);
+		sb.append(",");
+		if (canRead()) {
+			sb.append("R");
+		} else {
+			sb.append("-");
+		}
+		if (canCreate()) {
+			sb.append("C");
+		} else {
+			sb.append("-");
+		}
+		if (canUpdate()) {
+			sb.append("U");
+		} else {
+			sb.append("-");
+		}
+	}
 
-    @Override
+	@Override
     public int hashCode() {
         final int prime = 31;
         int result = super.hashCode();
