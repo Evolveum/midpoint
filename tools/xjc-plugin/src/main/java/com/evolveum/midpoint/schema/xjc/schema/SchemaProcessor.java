@@ -116,7 +116,7 @@ public class SchemaProcessor implements Processor {
                     QName.class, PrismForJAXBUtil.class, PrismReferenceArrayList.class, PrismContainerValue.class,
                     List.class, Objectable.class, StringBuilder.class, XmlAccessorType.class, XmlElement.class,
                     XmlAttribute.class, XmlAnyAttribute.class, XmlAnyElement.class, PrismContainer.class, Equals.class,
-                    PrismContainerArrayList.class, HashCode.class);
+                    PrismContainerArrayList.class, HashCode.class, PrismContainerDefinition.class);
 
             StepSchemaConstants stepSchemaConstants = new StepSchemaConstants();
             stepSchemaConstants.run(outline, options, errorHandler);
@@ -546,10 +546,6 @@ public class SchemaProcessor implements Processor {
         JVar methodContainer = setContainer.param(PrismContainerValue.class, "container");
         //create method body
         JBlock body = setContainer.body();
-        JBlock then = body._if(methodContainer.eq(JExpr._null()))._then();
-        then.assign(JExpr._this().ref(container), JExpr._null());
-        then._return();
-
         body.assign(JExpr._this().ref(container), methodContainer);
     }
 
@@ -580,15 +576,17 @@ public class SchemaProcessor implements Processor {
         JBlock then = body._if(methodContainer.eq(JExpr._null()))._then();
         then.assign(JExpr._this().ref(container), JExpr._null());
         then._return();
+        
+        JVar definition = body.decl(CLASS_MAP.get(PrismContainerDefinition.class), "definition", 
+                JExpr.invoke(container, "getDefinition"));
 
-        JInvocation equals = JExpr.invoke(JExpr.invoke(METHOD_GET_CONTAINER_NAME), "equals");
-        equals.arg(methodContainer.invoke("getName"));
-
-        then = body._if(equals.not())._then();
+        JInvocation equals = JExpr.invoke(JExpr.ref(COMPLEX_TYPE_FIELD), "equals");
+        equals.arg(definition.invoke("getTypeName"));
+        then = body._if(definition.ne(JExpr._null()).cand(equals.not()))._then();
         JInvocation exception = JExpr._new(CLASS_MAP.get(IllegalArgumentException.class));
 
-        JExpression message = JExpr.lit("Container qname '").plus(JExpr.invoke(methodContainer, "getName"))
-                .plus(JExpr.lit("' doesn't equals to '")).plus(JExpr.invoke(METHOD_GET_CONTAINER_NAME))
+        JExpression message = JExpr.lit("Container definition type qname '").plus(JExpr.invoke(definition, "getTypeName"))
+                .plus(JExpr.lit("' doesn't equals to '")).plus(JExpr.ref(COMPLEX_TYPE_FIELD))
                 .plus(JExpr.lit("'."));
         exception.arg(message);
         then._throw(exception);
