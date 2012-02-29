@@ -72,6 +72,9 @@ public class DomSerializer {
 		if (object.getVersion() != null) {
 			topElement.setAttribute(PrismConstants.ATTRIBUTE_VERSION_LOCAL_NAME, object.getVersion());
 		}
+		if (!prismContext.getSchemaRegistry().hasImplicitTypeDefinition(object.getName(), object.getDefinition().getTypeName())) {
+			DOMUtil.setXsiType(topElement, object.getDefinition().getTypeName());
+		}
 		return topElement;
 	}
 

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!--                                                         -->
+<object xsi:type="UserType" oid="c0c010c0-d34d-b33f-f00d-111111111111" version="42"
+		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+		xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
+		xmlns:ext="http://example.com/xml/ns/user-extension">
+    <name>jack</name>
+    <extension>
+		<ext:bar xsi:type="xsd:string">BAR</ext:bar>
+		<ext:num xsi:type="xsd:integer">42</ext:num>
+		<ext:multi xsi:type="xsd:string">raz</ext:multi>
+		<ext:multi xsi:type="xsd:string">dva</ext:multi>
+		<ext:multi xsi:type="xsd:string">tri</ext:multi>
+	<!--	<foo:password xsi:type="ProtectedStringType">
+			<clearValue>openS3zam3</clearValue>
+		</foo:password>  -->
+	</extension>
+    <fullName>cpt. Jack Sparrow</fullName>
+    <givenName>Jack</givenName>
+    <familyName>Sparrow</familyName>
+    <additionalNames>Captain</additionalNames>
+    <additionalNames>Jackie</additionalNames>
+
+	<assignment id="i1111">
+		<description>Assignment 1</description>
+	</assignment>
+
+	<assignment id="i1112">
+		<description>Assignment 2</description>
+		<accountConstruction>
+			<howto>Just do it</howto>
+			<when>2012-02-24T10:48:52.000Z</when>
+		</accountConstruction>
+	</assignment>
+
+	<activation>
+		<enabled>true</enabled>
+		<validFrom>1975-05-30T21:30:00.000Z</validFrom>
+	</activation>
+<!--     
+    <credentials>
+        <password>
+        	<protectedString>
+	            <clearValue>deadjacktellnotales</clearValue>
+            </protectedString>
+        </password>
+    </credentials>
+        
+    <accountRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="AccountShadowType"/>
+     -->
+</object>

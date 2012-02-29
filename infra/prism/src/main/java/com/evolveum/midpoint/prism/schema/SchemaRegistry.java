@@ -59,6 +59,7 @@ import org.xml.sax.SAXParseException;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Definition;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -674,6 +675,19 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 			return null;
 		}
 		return determineDefinitionFromClass(superclass);
+	}
+
+	/**
+	 * Returns true if specified element has a definition that matches specified type
+	 * in the known schemas.
+	 */
+	public boolean hasImplicitTypeDefinition(QName elementName, QName typeName) {
+		PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
+		ItemDefinition itemDefinition = schema.findItemDefinition(elementName, ItemDefinition.class);
+		if (itemDefinition == null) {
+			return false;
+		}
+		return typeName.equals(itemDefinition.getTypeName());
 	}
 
 	

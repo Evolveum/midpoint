@@ -57,6 +57,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	
 	// User: jack
 	public static final File USER_JACK_FILE = new File(OBJECT_DIR_PATH, "user-jack.xml");
+	public static final File USER_JACK_OBJECT_FILE = new File(OBJECT_DIR_PATH, "user-jack-object.xml");
 	public static final File USER_JACK_MODIFIED_FILE = new File(OBJECT_DIR_PATH, "user-jack-modified.xml");
 	public static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	public static final XMLGregorianCalendar USER_JACK_VALID_FROM = XmlTypeConverter.createXMLGregorianCalendar(1975, 5, 30, 21, 30, 0);

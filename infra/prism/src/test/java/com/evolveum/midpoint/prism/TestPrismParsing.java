@@ -82,6 +82,24 @@ public class TestPrismParsing {
 	}
 	
 	@Test
+	public void testPrismParseFileObject() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testPrismParseFileObject ]===");
+		
+		// GIVEN
+		PrismContext prismContext = constructInitializedPrismContext();
+		
+		// WHEN
+		PrismObject<UserType> user = prismContext.parseObject(USER_JACK_OBJECT_FILE);
+		
+		// THEN
+		System.out.println("User:");
+		System.out.println(user.dump());
+		assertNotNull(user);
+		
+		assertUser(user);
+	}
+	
+	@Test
 	public void testPrismParseDom() throws SchemaException, SAXException, IOException {
 		System.out.println("===[ testPrismParseDom ]===");
 		
@@ -107,9 +125,20 @@ public class TestPrismParsing {
 	public void testRoundTrip() throws SchemaException, SAXException, IOException {
 		System.out.println("===[ testRoundTrip ]===");
 		
+		roundTrip(USER_JACK_FILE);
+	}
+
+	@Test
+	public void testRoundTripObject() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testRoundTripObject ]===");
+		
+		roundTrip(USER_JACK_OBJECT_FILE);
+	}
+
+	private void roundTrip(File file) throws SchemaException, SAXException, IOException {
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
-		PrismObject<UserType> user = prismContext.parseObject(USER_JACK_FILE);
+		PrismObject<UserType> user = prismContext.parseObject(file);
 	
 		System.out.println("Input parsed user:");
 		System.out.println(user.dump());
