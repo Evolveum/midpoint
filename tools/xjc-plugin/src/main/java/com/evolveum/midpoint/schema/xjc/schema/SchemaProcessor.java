@@ -75,6 +75,7 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_GET_CONTAINER = "getContainer";
     private static final String METHOD_SET_CONTAINER = "setContainer";
     private static final String METHOD_GET_CONTAINER_NAME = "getContainerName";
+    private static final String METHOD_GET_CONTAINER_TYPE = "getContainerType";
     private static final String METHOD_AS_PRISM_OBJECT = "asPrismObject";
     private static final String METHOD_AS_PRISM_CONTAINER_VALUE = "asPrismContainerValue";
     private static final String METHOD_AS_PRISM_CONTAINER = "asPrismContainer";
@@ -265,6 +266,12 @@ public class SchemaProcessor implements Processor {
             createToStringMethod(definedClass);
             createEqualsMethod(classOutline);
             createHashCodeMethod(definedClass);
+
+            //get container type
+            JMethod getContainerType = definedClass.method(JMod.NONE, QName.class, METHOD_GET_CONTAINER_TYPE);
+            getContainerType.annotate(CLASS_MAP.get(XmlTransient.class));
+            JBlock body = getContainerType.body();
+            body._return(definedClass.staticRef(COMPLEX_TYPE_FIELD));
         }
 
         removeCustomGeneratedMethod(outline);
@@ -557,13 +564,13 @@ public class SchemaProcessor implements Processor {
         JVar definition = body.decl(CLASS_MAP.get(PrismContainerDefinition.class), "definition",
                 JExpr.invoke(JExpr.invoke(methodContainer, "getParent"), "getDefinition"));
 
-        JInvocation equals = JExpr.invoke(JExpr.ref(COMPLEX_TYPE_FIELD), "equals");
+        JInvocation equals = JExpr.invoke(JExpr.invoke(METHOD_GET_CONTAINER_TYPE), "equals");
         equals.arg(definition.invoke("getTypeName"));
         then = body._if(definition.ne(JExpr._null()).cand(equals.not()))._then();
         JInvocation exception = JExpr._new(CLASS_MAP.get(IllegalArgumentException.class));
 
         JExpression message = JExpr.lit("Container definition type qname '").plus(JExpr.invoke(definition, "getTypeName"))
-                .plus(JExpr.lit("' doesn't equals to '")).plus(JExpr.ref(COMPLEX_TYPE_FIELD))
+                .plus(JExpr.lit("' doesn't equals to '")).plus(JExpr.invoke(METHOD_GET_CONTAINER_TYPE))
                 .plus(JExpr.lit("'."));
         exception.arg(message);
         then._throw(exception);
@@ -603,13 +610,13 @@ public class SchemaProcessor implements Processor {
         JVar definition = body.decl(CLASS_MAP.get(PrismContainerDefinition.class), "definition", 
                 JExpr.invoke(methodContainer, "getDefinition"));
 
-        JInvocation equals = JExpr.invoke(JExpr.ref(COMPLEX_TYPE_FIELD), "equals");
+        JInvocation equals = JExpr.invoke(JExpr.invoke(METHOD_GET_CONTAINER_TYPE), "equals");
         equals.arg(definition.invoke("getTypeName"));
         then = body._if(definition.ne(JExpr._null()).cand(equals.not()))._then();
         JInvocation exception = JExpr._new(CLASS_MAP.get(IllegalArgumentException.class));
 
         JExpression message = JExpr.lit("Container definition type qname '").plus(JExpr.invoke(definition, "getTypeName"))
-                .plus(JExpr.lit("' doesn't equals to '")).plus(JExpr.ref(COMPLEX_TYPE_FIELD))
+                .plus(JExpr.lit("' doesn't equals to '")).plus(JExpr.invoke(METHOD_GET_CONTAINER_TYPE))
                 .plus(JExpr.lit("'."));
         exception.arg(message);
         then._throw(exception);
@@ -668,6 +675,12 @@ public class SchemaProcessor implements Processor {
 
             }
             body._return(invocation);
+
+            //get container type
+            JMethod getContainerType = definedClass.method(JMod.NONE, QName.class, METHOD_GET_CONTAINER_TYPE);
+            getContainerType.annotate(CLASS_MAP.get(XmlTransient.class));
+            body = getContainerType.body();
+            body._return(definedClass.staticRef(COMPLEX_TYPE_FIELD));
         }
     }
 
