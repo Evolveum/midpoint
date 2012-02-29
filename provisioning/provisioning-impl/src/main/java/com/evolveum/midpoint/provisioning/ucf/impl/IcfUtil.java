@@ -81,6 +81,11 @@ class IcfUtil {
 		
 		LOGGER.error("ICF Exception {}: {}",new Object[]{ex.getClass().getName(),ex.getMessage(),ex});
 		
+		if (ex.getClass().getPackage().equals(NullPointerException.class.getPackage())) {
+			// There are java.lang exceptions, they are safe to pass throug
+			return ex;
+		}
+		
 		if (parentResult == null) {
 			throw new IllegalArgumentException(createMessage("Null parent result while processing ICF exception",ex));
 		}

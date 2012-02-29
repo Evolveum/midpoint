@@ -124,6 +124,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsC
 		"classpath:application-context-provisioning-test.xml",
 		"classpath:application-context-task.xml",
 		"classpath:application-context-repository.xml",
+		"classpath:application-context-repo-cache.xml",
 		"classpath:application-context-configuration-test.xml" })
 @DirtiesContext
 public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {

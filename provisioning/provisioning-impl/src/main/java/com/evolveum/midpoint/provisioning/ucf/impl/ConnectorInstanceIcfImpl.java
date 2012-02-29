@@ -1915,6 +1915,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private int transformConnectorConfiguration(ConfigurationProperties configProps,
 			PrismContainer<?> configurationPropertiesContainer, String connectorConfNs) {
 
+		if (configurationPropertiesContainer == null || configurationPropertiesContainer.getValue() == null) {
+			LOGGER.warn("No configuration properties in connectorType.getOid()");
+		}
 		int numConfingProperties = 0;
 		
 		for (PrismProperty prismProperty: configurationPropertiesContainer.getValue().getProperties()) {

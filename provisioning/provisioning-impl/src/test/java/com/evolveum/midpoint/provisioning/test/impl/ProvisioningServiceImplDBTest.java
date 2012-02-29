@@ -50,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 		"classpath:application-context-provisioning-test.xml",
 		"classpath:application-context-task.xml",
 		"classpath:application-context-repository.xml",
+		"classpath:application-context-repo-cache.xml",
 		"classpath:application-context-configuration-test.xml" })
 @DirtiesContext
 public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
