@@ -24,7 +24,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.Identifiable;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 
@@ -66,7 +66,7 @@ public class RExtension implements Identifiable {
         this.objects = objects;
     }
 
-    public static void copyToJAXB(RExtension repo, Extension jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RExtension repo, ExtensionType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
@@ -88,7 +88,7 @@ public class RExtension implements Identifiable {
         }
     }
 
-    public static void copyFromJAXB(Extension jaxb, RExtension repo, PrismContext prismContext) throws
+    public static void copyFromJAXB(ExtensionType jaxb, RExtension repo, PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
@@ -110,8 +110,8 @@ public class RExtension implements Identifiable {
         }
     }
 
-    public Extension toJAXB(PrismContext prismContext) throws DtoTranslationException {
-        Extension extension = new Extension();
+    public ExtensionType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+        ExtensionType extension = new ExtensionType();
         RExtension.copyToJAXB(this, extension, prismContext);
 
         return extension;

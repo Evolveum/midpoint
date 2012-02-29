@@ -402,7 +402,9 @@
     </xsd:element>
 
 
-    <xsd:element name="extension">
+    <xsd:element name="extension" type="tns:ExtensionType" />
+
+    <xsd:complexType name="ExtensionType">
         <xsd:annotation>
             <xsd:documentation>
                 Place for non-standard object properties. The
@@ -415,15 +417,12 @@
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:complexType>
-            <xsd:sequence>
-                <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
-                </xsd:any>
-            </xsd:sequence>
-            <xsd:attribute name="id" type="xsd:string" use="optional"/>
-        </xsd:complexType>
-    </xsd:element>
-
+        <xsd:sequence>
+            <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
+            </xsd:any>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:string" use="optional"/>
+    </xsd:complexType>
 
     <xsd:complexType name="ExtensibleObjectType" abstract="true">
         <xsd:annotation>

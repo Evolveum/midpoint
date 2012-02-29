@@ -211,7 +211,7 @@ public class TaskItem extends SelectableBean {
             taskType.setResult(getResult().createOperationResultType());
         }
         if (getExtension() != null) {
-            Extension extension = new Extension();
+            ExtensionType extension = new ExtensionType();
             List<PrismContainerValue> values = getExtension().getValues();
             for (PrismContainerValue value :values) {
                 extension.asPrismContainer().add(value);
