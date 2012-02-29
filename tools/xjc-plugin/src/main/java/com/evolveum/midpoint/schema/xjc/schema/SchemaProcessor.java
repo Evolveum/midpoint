@@ -117,7 +117,7 @@ public class SchemaProcessor implements Processor {
                     QName.class, PrismForJAXBUtil.class, PrismReferenceArrayList.class, PrismContainerValue.class,
                     List.class, Objectable.class, StringBuilder.class, XmlAccessorType.class, XmlElement.class,
                     XmlAttribute.class, XmlAnyAttribute.class, XmlAnyElement.class, PrismContainer.class, Equals.class,
-                    PrismContainerArrayList.class, HashCode.class, PrismContainerDefinition.class);
+                    PrismContainerArrayList.class, HashCode.class, PrismContainerDefinition.class, Containerable.class);
 
             StepSchemaConstants stepSchemaConstants = new StepSchemaConstants();
             stepSchemaConstants.run(outline, options, errorHandler);
@@ -249,6 +249,7 @@ public class SchemaProcessor implements Processor {
             }
 
             JDefinedClass definedClass = classOutline.implClass;
+            definedClass._implements(CLASS_MAP.get(Containerable.class));
             containers.add(definedClass);
 
             //inserting MidPointObject field into ObjectType class
@@ -291,6 +292,7 @@ public class SchemaProcessor implements Processor {
     private void createAsPrismContainerValue(JDefinedClass definedClass) {
         JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismContainerValue.class),
                 METHOD_AS_PRISM_CONTAINER_VALUE);
+        getContainer.annotate(CLASS_MAP.get(Override.class));
 
         //create method body
         JBlock body = getContainer.body();
