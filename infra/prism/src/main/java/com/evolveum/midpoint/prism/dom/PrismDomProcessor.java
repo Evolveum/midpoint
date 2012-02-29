@@ -105,7 +105,11 @@ public class PrismDomProcessor {
 		if (element == null) {
 			return null;
 		}
-		return parseObject(element);
+		try {
+			return parseObject(element);
+		} catch (SchemaException e) {
+			throw new SchemaException(e.getMessage()+" while parsing file "+file, e);
+		}
 	}
 	
 	public <T extends Objectable> PrismObject<T> parseObject(String objectString, Class<T> type) throws SchemaException {

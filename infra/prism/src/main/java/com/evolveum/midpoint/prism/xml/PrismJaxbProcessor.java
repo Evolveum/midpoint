@@ -394,7 +394,7 @@ public class PrismJaxbProcessor {
 			return null;
 		}
 		T value = element.getValue();
-		adopt(value, type);
+		// adopt not needed, already adopted in unmarshalElement call above
 		return value;
 	}
 	
@@ -617,14 +617,14 @@ public class PrismJaxbProcessor {
 	}
 	
 	private <T> void adopt(T object, Class<T> type) throws SchemaException {
-		if (isObjectable(type)) {
+		if (object instanceof Objectable) {
 			getPrismContext().adopt(((Objectable)object));
 		}
 	}
 	
 	private void adopt(JAXBElement<?> element) throws SchemaException {
-		if (isObjectable(element.getDeclaredType())) {
-			getPrismContext().adopt(((Objectable)element.getValue()));
+		if (element.getValue() instanceof Objectable) {
+			getPrismContext().adopt(((Objectable)(element.getValue())));
 		}
 	}
 	

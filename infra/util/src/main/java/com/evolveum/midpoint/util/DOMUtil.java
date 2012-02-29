@@ -99,6 +99,7 @@ public class DOMUtil {
 	public static final QName XSD_DATETIME = new QName(W3C_XML_SCHEMA_NS_URI, "dateTime",
 			NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_QNAME = new QName(W3C_XML_SCHEMA_NS_URI, "QName", NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_ANYURI = new QName(W3C_XML_SCHEMA_NS_URI, "anyURI", NS_W3C_XML_SCHEMA_PREFIX);
 	
 	public static final QName XSD_ANY = new QName(W3C_XML_SCHEMA_NS_URI, "any", NS_W3C_XML_SCHEMA_PREFIX);
 

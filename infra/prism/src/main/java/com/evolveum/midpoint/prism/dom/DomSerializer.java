@@ -123,13 +123,17 @@ public class DomSerializer {
 		}
 	}
 	
-	private void serialize(PrismReferenceValue value, Element parentElement) {
+	private void serialize(PrismReferenceValue value, Element parentElement) throws SchemaException {
 		Item parent = value.getParent();
 		Element element = createElement(parent.getName());
 		parentElement.appendChild(element);
 		element.setAttribute(PrismConstants.ATTRIBUTE_OID_LOCAL_NAME, value.getOid());
 		if (value.getTargetType() != null) {
-			DOMUtil.setQNameAttribute(element, PrismConstants.ATTRIBUTE_REF_TYPE_LOCAL_NAME, value.getTargetType());
+			try {
+				DOMUtil.setQNameAttribute(element, PrismConstants.ATTRIBUTE_REF_TYPE_LOCAL_NAME, value.getTargetType());
+			} catch (IllegalArgumentException e) {
+				throw new SchemaException(e.getMessage()+" in type field of reference "+parent.getName());
+			}
 		}
 	}
 	

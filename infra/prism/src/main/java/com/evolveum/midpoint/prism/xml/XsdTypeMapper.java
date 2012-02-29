@@ -76,6 +76,7 @@ public class XsdTypeMapper {
         addMapping(XMLGregorianCalendar.class, DOMUtil.XSD_DATETIME, true);
         addMapping(QName.class, DOMUtil.XSD_QNAME, true);
 
+        xsdToJavaTypeMap.put(DOMUtil.XSD_ANYURI, String.class);
     }
 
     private static void addMapping(Class javaClass, QName xsdType, boolean both) {

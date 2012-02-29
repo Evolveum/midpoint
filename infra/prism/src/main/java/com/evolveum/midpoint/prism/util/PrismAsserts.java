@@ -253,7 +253,7 @@ public class PrismAsserts {
 		if (prism2 == null) {
 			fail(message + ": Right prism is null");
 		}
-		assertEquals(message, prism1, prism2);
+		assert prism1.equals(prism2): message;
 	}
 
 	private static void assertSet(QName propertyName, Collection<PrismPropertyValue<?>> valuesFromDelta, Object[] expectedValues) {
