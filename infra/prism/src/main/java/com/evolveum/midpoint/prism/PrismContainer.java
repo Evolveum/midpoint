@@ -223,8 +223,11 @@ public class PrismContainer<V> extends Item<PrismContainerValue<V>> {
     
     @Override
 	public void applyDefinition(ItemDefinition definition) throws SchemaException {
+    	if (definition == null) {
+    		return;
+    	}
     	if (!(definition instanceof PrismContainerDefinition)) {
-    		throw new IllegalArgumentException("Cannot apply "+definition+" to container");
+    		throw new IllegalArgumentException("Cannot apply "+definition+" to container " + this);
     	}
     	this.definition = definition;
 		for (PrismContainerValue<V> pval: getValues()) {

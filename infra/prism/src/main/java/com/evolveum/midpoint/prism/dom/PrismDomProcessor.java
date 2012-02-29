@@ -35,6 +35,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
@@ -192,16 +193,31 @@ public class PrismDomProcessor {
 	            List<Element> childElements = DOMUtil.listChildElements(element);
 	            pval.addAll(parsePrismContainerItems(childElements, containerDefinition));
 	            container.add(pval);
+        	} else if (value instanceof JAXBElement) {
+        		PrismContainerValue pval = parsePrismContainerFromValueObject(((JAXBElement)value).getValue(), container.getDefinition());
+        		if (pval != null) {
+        			container.add(pval);
+        		}
         	} else {
-        		// The value is JAXB (or whatever), it needs no conversion
-//        		String id = getContainerIdFromObjectValue(value);
-//        		PrismContainerValue pval = new PrismContainerValue(null, null, container, id);
-        		throw new UnsupportedOperationException("JAXB values for containers are not supported yet");
+        		PrismContainerValue pval = parsePrismContainerFromValueObject(value, container.getDefinition());
+        		if (pval != null) {
+        			container.add(pval);
+        		}
         	}
         }
         return container;
 	}
 	
+	private PrismContainerValue parsePrismContainerFromValueObject(Object value, PrismContainerDefinition def) throws SchemaException {
+		if (value instanceof Containerable) {
+			PrismContainerValue containerValue = ((Containerable)value).asPrismContainerValue();
+			containerValue.applyDefinition(def);
+			return containerValue;
+		}
+		throw new SchemaException("Cannot process value of class "+value.getClass()+" as a container "+def);
+
+	}
+
 	private String getOid(Element element) {
 		return element.getAttribute(PrismConstants.ATTRIBUTE_OID_LOCAL_NAME);
 	}
@@ -427,10 +443,30 @@ public class PrismDomProcessor {
         }
         
         if (def == null && containerDefinition.isRuntimeSchema()) {
-        	// Kindof hack. Create default definition for this.
-        	def = createDefaultItemDefinition(containerDefinition, elementQName, valueElements, prismContext);
+        	// Try to locate global definition in any of the schemas
+        	def = resolveGlobalItemDefinition(containerDefinition, valueElements);
+        	if (def == null) {
+	        	// Kindof hack. Create default definition for this.
+	        	def = createDefaultItemDefinition(containerDefinition, elementQName, valueElements, prismContext);
+        	}
         }
         return def;
+	}
+
+	private ItemDefinition resolveGlobalItemDefinition(PrismContainerDefinition containerDefinition,
+			List<? extends Object> valueElements) {
+		Object firstElement = valueElements.get(0);
+		QName elementQName = JAXBUtil.getElementQName(firstElement);
+		String elementNamespace = elementQName.getNamespaceURI();
+		if (elementNamespace == null) {
+			return null;
+		}
+		PrismSchema schema = getPrismContext().getSchemaRegistry().findSchemaByNamespace(elementNamespace);
+		if (schema == null) {
+			return null;
+		}
+		ItemDefinition itemDefinition = schema.findItemDefinition(elementQName, ItemDefinition.class);
+		return itemDefinition;
 	}
 
 	public PrismReference parsePrismReference(List<? extends Object> valueElements, QName propName, PrismReferenceDefinition referenceDefinition) throws SchemaException {
