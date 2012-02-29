@@ -456,6 +456,9 @@ public class PrismDomProcessor {
 	private PrismReferenceValue parseReferenceValue(Element element) {
 		String oid = getOid(element);
 		QName type = DOMUtil.getQNameAttribute(element, PrismConstants.ATTRIBUTE_REF_TYPE_LOCAL_NAME);
+		if (type != null) {
+			DOMUtil.validateNonEmptyQName(type, " in reference type in "+DOMUtil.getQName(element));
+		}
 		PrismReferenceValue refVal = new PrismReferenceValue(oid);
 		refVal.setTargetType(type);
 		return refVal;

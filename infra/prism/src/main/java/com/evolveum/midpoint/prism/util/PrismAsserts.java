@@ -246,14 +246,18 @@ public class PrismAsserts {
 		assertEquals(null, prism1, prism2);
 	}
 	
-	public static void assertEquals(String message, PrismObject<?> prism1, PrismObject<?> prism2) {
-		if (prism1 == null) {
+	public static void assertEquals(String message, PrismObject<?> expected, PrismObject<?> actual) {
+		if (expected == null) {
 			fail(message + ": Left prism is null");
 		}
-		if (prism2 == null) {
+		if (actual == null) {
 			fail(message + ": Right prism is null");
 		}
-		assert prism1.equals(prism2): message;
+		if (message == null) {
+			message = "Not equals:";
+		}
+		String suffix = "expected: "+expected+", was: "+actual;
+		assert expected.equals(actual): message + ": " + suffix;
 	}
 
 	private static void assertSet(QName propertyName, Collection<PrismPropertyValue<?>> valuesFromDelta, Object[] expectedValues) {

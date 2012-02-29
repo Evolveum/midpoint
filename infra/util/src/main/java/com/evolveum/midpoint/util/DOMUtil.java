@@ -347,7 +347,7 @@ public class DOMUtil {
 	}
 
 	public static QName resolveQName(Node domNode, String prefixNotation, String defaultNamespacePrefix) {
-		if (prefixNotation == null) {
+		if (StringUtils.isBlank(prefixNotation)) {
 			// No QName
 			return null;
 		}
@@ -579,7 +579,7 @@ public class DOMUtil {
 	
 	public static QName getQNameAttribute(Element element, String attributeName) {
 		String attrContent = element.getAttribute(attributeName);
-		if (attrContent == null) {
+		if (StringUtils.isBlank(attrContent)) {
 			return null;
 		}
 		return resolveQName(element, attrContent);
@@ -587,7 +587,7 @@ public class DOMUtil {
 	
 	public static QName getQNameAttribute(Element element, QName attributeName) {
 		String attrContent = element.getAttributeNS(attributeName.getNamespaceURI(), attributeName.getLocalPart());
-		if (attrContent == null) {
+		if (StringUtils.isBlank(attrContent)) {
 			return null;
 		}
 		return resolveQName(element, attrContent);
@@ -763,6 +763,18 @@ public class DOMUtil {
 			return false;
 		}
 		return false;
+	}
+
+	public static void validateNonEmptyQName(QName qname, String shortDescription) {
+		if (qname == null) {
+			throw new IllegalArgumentException("null" + shortDescription);
+		}
+		if (StringUtils.isEmpty(qname.getNamespaceURI())) {
+			throw new IllegalArgumentException("Missing namespace"+shortDescription);
+		}
+		if (StringUtils.isEmpty(qname.getLocalPart())) {
+			throw new IllegalArgumentException("Missing local part"+shortDescription);
+		}
 	}
 
 }

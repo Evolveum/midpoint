@@ -98,6 +98,12 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 	}
 
 	public void setTargetType(QName targetType) {
+		// Null value is OK
+		if (targetType != null) {
+			// But non-empty is not ..
+			Item item = getParent();
+			DOMUtil.validateNonEmptyQName(targetType, ", target type in reference "+ (item == null ? "(unknown)" : getParent().getName()));
+		}
 		this.targetType = targetType;
 	}
 
