@@ -85,7 +85,7 @@ public class TestResourceSchema {
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		PrismTestUtil.resetPrismContext(new MidPointPrismContextFactory());
+		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
     
     @Test

@@ -34,7 +34,7 @@
     <i:honorificPrefix>Cpt.</i:honorificPrefix>
     
     <i:honorificSuffix>PhD.</i:honorificSuffix>
-    <i:eMailAddress>jack.sparrow@evolveum.com</i:eMailAddress>
+    <i:emailAddress>jack.sparrow@evolveum.com</i:emailAddress>
     <i:telephoneNumber>555-1234</i:telephoneNumber>
     <i:employeeNumber>emp1234</i:employeeNumber>
     <i:employeeType>CAPTAIN</i:employeeType>

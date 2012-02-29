@@ -86,7 +86,7 @@ public class TestValueConstruction {
     @BeforeClass
     public void setupFactory() throws SAXException, IOException, SchemaException {
     	DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		PrismTestUtil.resetPrismContext(new MidPointPrismContextFactory());
+		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 		
     	prismContext = PrismTestUtil.createInitializedPrismContext();
     	

@@ -45,6 +45,8 @@ import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
  */
 public class MidPointPrismContextFactory implements PrismContextFactory {
 	
+	public static final MidPointPrismContextFactory FACTORY = new MidPointPrismContextFactory();
+	
 	@Override
 	public PrismContext createPrismContext() throws SchemaException {
 		SchemaRegistry schemaRegistry = createSchemaRegistry();

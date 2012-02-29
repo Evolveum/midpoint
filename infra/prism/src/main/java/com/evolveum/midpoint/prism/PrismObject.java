@@ -137,7 +137,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
         } catch (SystemException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw new SystemException("Couldn't create jaxb object instance of '" + getCompileTimeClass() + "'.", ex);
+            throw new SystemException("Couldn't create jaxb object instance of '" + getCompileTimeClass() + "': "+ex.getMessage(), ex);
         }
 	}
 

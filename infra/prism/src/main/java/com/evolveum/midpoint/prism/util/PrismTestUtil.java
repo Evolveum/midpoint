@@ -55,6 +55,10 @@ public class PrismTestUtil {
     private static PrismContextFactory prismContextFactory;
     
     public static void resetPrismContext(PrismContextFactory newPrismContextFactory) throws SchemaException, SAXException, IOException {
+    	if (prismContextFactory == newPrismContextFactory) {
+    		// Exactly the same factory instance, nothing to do.
+    		return;
+    	}
     	setFactory(newPrismContextFactory);
     	resetPrismContext();
     }
@@ -81,6 +85,9 @@ public class PrismTestUtil {
     }
     
     public static PrismContext getPrismContext() {
+    	if (prismContext == null) {
+    		throw new IllegalStateException("Prism context is not set in PrismTestUtil. Maybe a missing call to resetPrismContext(..) in test initialization?");
+    	}
     	return prismContext;
     }
     
