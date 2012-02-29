@@ -134,6 +134,8 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 			// add account
 			PrismObject<AccountShadowType> accountShadow = PrismTestUtil.parseObject(new File(
 					"src/test/resources/account.xml"));
+			accountShadow.setName(accountShadow.getDefinition().getName());
+			
 			repositoryService.addObject(accountShadow, new OperationResult("test"));
 
 			// get account object

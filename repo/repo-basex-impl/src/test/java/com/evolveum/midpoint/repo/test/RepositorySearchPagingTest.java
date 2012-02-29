@@ -62,11 +62,13 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.Objects;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+
 
 /**
  * 
@@ -118,6 +120,8 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 					+ ".setupPagingTests");
 
 			EventHandler handler = new MyEventHandler(repositoryService);
+			
+//			PrismTestUtil.getPrismContext().getPrismJaxbProcessor().unmarshalObject(BASE_PATH+"users.xml", Objects.class);
 			processFile("users.xml", handler, result);
 
 			initialized = true;
@@ -240,8 +244,8 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 
 		// THEN
 		assertEquals(5, users.size());
-		assertEquals("testuser0005", users.get(0).getName());
-		assertEquals("testuser0001", users.get(4).getName());
+		assertEquals("testuser0005", users.get(0).findProperty(ObjectType.F_NAME).getRealValue());
+		assertEquals("testuser0001", users.get(4).findProperty(ObjectType.F_NAME).getRealValue());
 	}
 
 	private static void processFile(String filename, EventHandler handler, OperationResult result)

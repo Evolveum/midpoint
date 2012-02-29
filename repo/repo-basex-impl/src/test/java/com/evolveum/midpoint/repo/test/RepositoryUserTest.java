@@ -72,6 +72,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -192,9 +193,14 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 					new PropertyReferenceListType(), new OperationResult("test"));
 			PrismAsserts.assertEquals(user, retrievedObject);
 			
-			ObjectModificationType objectModificationType = PrismTestUtil.unmarshalObject(new File(
-			"src/test/resources/request/user-modify-add-extension.xml"), ObjectModificationType.class);
-			ObjectDelta<UserType> delta = DeltaConvertor.createObjectDelta(objectModificationType, UserType.class, PrismTestUtil.getPrismContext());
+			PrismObject<UserType> userAddedExtension = PrismTestUtil.parseObject(new File(
+			"src/test/resources/user-added-extension.xml"));
+			
+			ObjectDelta<UserType> delta = user.diff(userAddedExtension);
+			
+//			ObjectModificationType objectModificationType = PrismTestUtil.unmarshalObject(new File(
+//			"src/test/resources/request/user-modify-add-extension.xml"), ObjectModificationType.class);
+//			ObjectDelta<UserType> delta = DeltaConvertor.createObjectDelta(objectModificationType, UserType.class, PrismTestUtil.getPrismContext());
 //			//modify user add extension
 //			ObjectModificationType objectModificationType = CalculateXmlDiff.calculateChanges(new File(
 //					"src/test/resources/user-without-extension.xml"), new File(
@@ -204,7 +210,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 
 			//check the extension in the object
 			retrievedObject = repositoryService.getObject(UserType.class, oid, new PropertyReferenceListType(), new OperationResult("test"));
-			PrismAsserts.assertEquals(user, retrievedObject);
+			PrismAsserts.assertEquals(userAddedExtension, retrievedObject);
 
 		} finally {
 			// to be sure try to delete the object as part of cleanup
@@ -263,21 +269,25 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			assertEquals(1, user.asObjectable().getAccountRef().size());
 			repositoryService.addObject(user, new OperationResult("test"));
 
+			PrismObject<UserType> oldUser = user.clone();
+			
+			user.remove(user.findItem(UserType.F_ACCOUNT_REF));
 			// modify user - delete it's accountRef
-			ObjectModificationType modifications = new ObjectModificationType();
-			modifications.setOid(oid);
-			PropertyModificationType modification = new PropertyModificationType();
-			modification.setModificationType(PropertyModificationTypeType.delete);
-			modification.setPath(null);
-			PropertyModificationType.Value value = new PropertyModificationType.Value();
-			value.getAny()
-					.add((Element) DOMUtil
-							.parseDocument(
-									"<i:accountRef xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd' type=\"account\" oid=\"8254880d-6584-425a-af2e-58f8ca394bbb\"/>")
-							.getFirstChild());
-			modification.setValue(value);
-			modifications.getPropertyModification().add(modification);
-			ObjectDelta<UserType> delta = DeltaConvertor.createObjectDelta(modifications, UserType.class, PrismTestUtil.getPrismContext());
+//			ObjectModificationType modifications = new ObjectModificationType();
+//			modifications.setOid(oid);
+//			PropertyModificationType modification = new PropertyModificationType();
+//			modification.setModificationType(PropertyModificationTypeType.delete);
+//			modification.setPath(null);
+//			PropertyModificationType.Value value = new PropertyModificationType.Value();
+//			value.getAny()
+//					.add((Element) DOMUtil
+//							.parseDocument(
+//									"<i:accountRef xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd' type=\"i:AccountShadowType\" oid=\"8254880d-6584-425a-af2e-58f8ca394bbb\"/>")
+//							.getFirstChild());
+//			modification.setValue(value);
+//			modifications.getPropertyModification().add(modification);
+//			ObjectDelta<UserType> delta = DeltaConvertor.createObjectDelta(modifications, UserType.class, PrismTestUtil.getPrismContext());
+			ObjectDelta<UserType> delta = oldUser.diff(user);
 			repositoryService.modifyObject(UserType.class, delta.getOid(), delta.getModifications(), new OperationResult("test"));
 
 			//check if account ref was removed from the object

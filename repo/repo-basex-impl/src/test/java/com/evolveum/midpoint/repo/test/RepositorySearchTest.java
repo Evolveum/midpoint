@@ -54,6 +54,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -71,7 +72,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * @author Igor Farinic
  */
 @ContextConfiguration(locations = { "../../../../../application-context-repository.xml",
-        "classpath:application-context-repo-cache.xml",
+		"classpath:application-context-repo-cache.xml",
 		"classpath:application-context-configuration-test.xml" })
 public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 
@@ -88,7 +89,7 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 
 	public RepositorySearchTest() {
 	}
-	
+
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -116,13 +117,13 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 	public void searchUserByName() throws Exception {
 		String userOid = "c0c010c0-d34d-b33f-f00d-111111111111";
 		try {
-			PrismObject<UserType> user = PrismTestUtil.parseObject(new File(
-					"src/test/resources/user.xml"));
+			PrismObject<UserType> user = PrismTestUtil.parseObject(new File("src/test/resources/user.xml"));
 			repositoryService.addObject(user, new OperationResult("test"));
 
 			QueryType query = PrismTestUtil.unmarshalObject(new File(
 					"src/test/resources/query-user-by-name.xml"), QueryType.class);
-			List<PrismObject<UserType>> objectList = repositoryService.searchObjects(UserType.class, query, new PagingType(), new OperationResult("test"));
+			List<PrismObject<UserType>> objectList = repositoryService.searchObjects(UserType.class, query,
+					new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
 			assertEquals(1, objectList.size());
 
@@ -142,13 +143,13 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 	public void searchByNameAllObjectsTest() throws Exception {
 		String userOid = "c0c010c0-d34d-b33f-f00d-111111111111";
 		try {
-			PrismObject<UserType> user = PrismTestUtil.parseObject(new File(
-					"src/test/resources/user.xml"));
+			PrismObject<UserType> user = PrismTestUtil.parseObject(new File("src/test/resources/user.xml"));
 			repositoryService.addObject(user, new OperationResult("test"));
 
 			QueryType query = PrismTestUtil.unmarshalObject(new File(
 					"src/test/resources/query-all-by-name.xml"), QueryType.class);
-			List<PrismObject<ObjectType>> objectList = repositoryService.searchObjects(ObjectType.class, query, new PagingType(), new OperationResult("test"));
+			List<PrismObject<ObjectType>> objectList = repositoryService.searchObjects(ObjectType.class,
+					query, new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
 			assertEquals(1, objectList.size());
 
@@ -163,7 +164,7 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			}
 		}
 	}
-	
+
 	@Test
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void searchAccountByAttributes() throws Exception {
@@ -176,21 +177,23 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 
 			QueryType query = PrismTestUtil.unmarshalObject(new File(
 					"src/test/resources/query-account-by-attributes.xml"), QueryType.class);
-			List<PrismObject<AccountShadowType>> objectList = repositoryService.searchObjects(AccountShadowType.class, query, new PagingType(), new OperationResult("test"));
+			List<PrismObject<AccountShadowType>> objectList = repositoryService.searchObjects(
+					AccountShadowType.class, query, new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
 			assertEquals(1, objectList.size());
 
 			accountShadow = objectList.get(0);
 			AccountShadowType accountShadowType = accountShadow.asObjectable();
 			assertNotNull(accountShadowType.getAttributes().getAny());
-			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", ((Element)accountShadowType.getAttributes().getAny()
-					.get(0)).getTextContent());
-			assertEquals("uid=jbond,ou=People,dc=example,dc=com",
-					((Element)accountShadowType.getAttributes().getAny().get(1)).getTextContent());
+			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", ((Element) accountShadowType.getAttributes()
+					.getAny().get(0)).getTextContent());
+			assertEquals("uid=jbond,ou=People,dc=example,dc=com", ((Element) accountShadowType
+					.getAttributes().getAny().get(1)).getTextContent());
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(AccountShadowType.class, accountOid, new OperationResult("test"));
+				repositoryService.deleteObject(AccountShadowType.class, accountOid, new OperationResult(
+						"test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
@@ -209,27 +212,28 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 
 			QueryType query = PrismTestUtil.unmarshalObject(new File(
 					"src/test/resources/query-account-by-attributes-and-resource-ref.xml"), QueryType.class);
-			List<PrismObject<AccountShadowType>> objectList = repositoryService.searchObjects(AccountShadowType.class, query, new PagingType(), new OperationResult("test"));
+			List<PrismObject<AccountShadowType>> objectList = repositoryService.searchObjects(
+					AccountShadowType.class, query, new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
 			assertEquals(1, objectList.size());
 
 			accountShadow = objectList.get(0);
 			AccountShadowType accountShadowType = accountShadow.asObjectable();
 			assertNotNull(accountShadowType.getAttributes().getAny());
-			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", ((Element)accountShadowType.getAttributes().getAny()
-					.get(0)).getTextContent());
-			assertEquals("uid=jbond,ou=People,dc=example,dc=com",
-					((Element)accountShadowType.getAttributes().getAny().get(1)).getTextContent());
+			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", ((Element) accountShadowType.getAttributes()
+					.getAny().get(0)).getTextContent());
+			assertEquals("uid=jbond,ou=People,dc=example,dc=com", ((Element) accountShadowType
+					.getAttributes().getAny().get(1)).getTextContent());
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(AccountShadowType.class, accountOid, new OperationResult("test"));
+				repositoryService.deleteObject(AccountShadowType.class, accountOid, new OperationResult(
+						"test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
 		}
 	}
-
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void searchAccountByNoAttributesUseQueryUtil() throws Exception {
@@ -241,13 +245,14 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 
 		List<Element> values = new ArrayList<Element>();
 
-		Element filter = QueryUtil.createAndFilter(doc,
-				QueryUtil.createEqualFilter(doc, xpath, values));
+		Element filter = QueryUtil.createAndFilter(doc, QueryUtil.createEqualFilter(doc, xpath, values));
 
-		QueryType query = new QueryType();
-		query.setFilter(filter);
+		QueryType query = QueryUtil.createQuery(filter);
+		System.out.println("Query: "+ QueryUtil.dump(query));
+		// query.setFilter(filter);
 
-		repositoryService.searchObjects(AccountShadowType.class, query, new PagingType(), new OperationResult("test"));
+		repositoryService.searchObjects(AccountShadowType.class, query, new PagingType(),
+				new OperationResult("test"));
 
 	}
 
@@ -262,26 +267,29 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			repositoryService.addObject(accountShadow, new OperationResult("test"));
 
 			// prepare query's filter value
-			XPathSegment xpathSegment = new XPathSegment(SchemaConstants.I_ATTRIBUTES);
-			Document doc = DOMUtil.getDocument();
-			List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
-			xpathSegments.add(xpathSegment);
-			XPathHolder xpath = new XPathHolder(xpathSegments);
-			List<Object> values = new ArrayList<Object>();
-			values.add((Element) DOMUtil
-					.parseDocument(
-							"<s:__NAME__ xmlns:s=\"http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd\">uid=jbond,ou=People,dc=example,dc=com</s:__NAME__>")
-					.getFirstChild());
-
-			// prepare query
-			Element filter = QueryUtil.createAndFilter(doc,
-					QueryUtil.createEqualFilter(doc, xpath, values));
-
-			QueryType query = new QueryType();
-			query.setFilter(filter);
+			// XPathSegment xpathSegment = new
+			// XPathSegment(SchemaConstants.I_ATTRIBUTES);
+			// Document doc = DOMUtil.getDocument();
+			// List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
+			// xpathSegments.add(xpathSegment);
+			// XPathHolder xpath = new XPathHolder(xpathSegments);
+			// List<Object> values = new ArrayList<Object>();
+			// values.add((Element) DOMUtil
+			// .parseDocument(
+			// "<s:__NAME__ xmlns:s=\"http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd\">uid=jbond,ou=People,dc=example,dc=com</s:__NAME__>")
+			// .getFirstChild());
+			//
+			// // prepare query
+			// Element filter = QueryUtil.createAndFilter(doc,
+			// QueryUtil.createEqualFilter(doc, xpath, values));
+			QueryType query = PrismTestUtil.unmarshalObject(new File(
+					"src/test/resources/query-account-by-attributes.xml"), QueryType.class);
+			// QueryType query = new QueryType();
+			// query.setFilter(filter);
 
 			// search objects
-			List<PrismObject<AccountShadowType>> objectList = repositoryService.searchObjects(AccountShadowType.class, query, new PagingType(), new OperationResult("test"));
+			List<PrismObject<AccountShadowType>> objectList = repositoryService.searchObjects(
+					AccountShadowType.class, query, new PagingType(), new OperationResult("test"));
 
 			assertNotNull(objectList);
 			assertEquals(1, objectList.size());
@@ -289,21 +297,22 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			accountShadow = objectList.get(0);
 			AccountShadowType accountShadowType = accountShadow.asObjectable();
 			assertNotNull(accountShadowType.getAttributes().getAny());
-			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", ((Element)accountShadowType.getAttributes().getAny()
-					.get(0)).getTextContent());
-			assertEquals("uid=jbond,ou=People,dc=example,dc=com",
-					((Element)accountShadowType.getAttributes().getAny().get(1)).getTextContent());
+			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", ((Element) accountShadowType.getAttributes()
+					.getAny().get(0)).getTextContent());
+			assertEquals("uid=jbond,ou=People,dc=example,dc=com", ((Element) accountShadowType
+					.getAttributes().getAny().get(1)).getTextContent());
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(AccountShadowType.class, accountOid, new OperationResult("test"));
+				repositoryService.deleteObject(AccountShadowType.class, accountOid, new OperationResult(
+						"test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
 		}
 
 	}
-	
+
 	@Test
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void searchConnectorByType() throws Exception {
@@ -315,12 +324,14 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 
 			QueryType query = PrismTestUtil.unmarshalObject(new File(
 					"src/test/resources/query-connector-by-type.xml"), QueryType.class);
-			List<PrismObject<ConnectorType>> objectList = repositoryService.searchObjects(ConnectorType.class, query, new PagingType(), new OperationResult("test"));
+			List<PrismObject<ConnectorType>> objectList = repositoryService.searchObjects(
+					ConnectorType.class, query, new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
 			assertEquals(1, objectList.size());
 
 			PrismObject<ConnectorType> foundConnector = objectList.get(0);
-			assertEquals("ICF org.identityconnectors.ldap.LdapConnector", foundConnector.getName());
+			assertEquals("ICF org.identityconnectors.ldap.LdapConnector",
+					foundConnector.findProperty(ObjectType.F_NAME).getRealValue());
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {

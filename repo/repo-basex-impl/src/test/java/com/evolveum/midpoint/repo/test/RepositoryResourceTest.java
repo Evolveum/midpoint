@@ -169,6 +169,8 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 			// modify object
 			PrismObject<ResourceType> modifiedResource = PrismTestUtil.parseObject(new File(
 					"src/test/resources/resource-modified-removed-tags.xml"));
+			modifiedResource.setName(modifiedResource.getDefinition().getName());
+			
 			ObjectDelta<ResourceType> objectModificationType = DiffUtil.diff(new File(
 					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"), new File(
 					"src/test/resources/resource-modified-removed-tags.xml"), 
@@ -178,6 +180,7 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 					objectModificationType.getModifications(), new OperationResult("test"));
 			retrievedObject = repositoryService.getObject(ResourceType.class, resourceOid,
 					new PropertyReferenceListType(), new OperationResult("test"));
+			System.out.println("retrieved: "+PrismTestUtil.getPrismContext().getPrismDomProcessor().serializeObjectToString(retrievedObject));
 			
 			PrismAsserts.assertEquals(modifiedResource, retrievedObject);
 

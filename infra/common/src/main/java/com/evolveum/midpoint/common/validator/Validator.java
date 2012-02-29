@@ -122,7 +122,7 @@ public class Validator {
 	public void setHandler(EventHandler handler) {
 		this.handler = handler;
 	}
-	
+
 	public PrismContext getPrismContext() {
 		return prismContext;
 	}
@@ -203,10 +203,10 @@ public class Validator {
 					OperationResult objectResult = validatorResult.createSubresult(objectResultOperationName);
 					progress++;
 					objectResult.addContext(OperationResult.CONTEXT_PROGRESS, progress);
-					
+
 					EventResult cont = readFromStreamAndValidate(stream, objectResult,
 							rootNamespaceDeclarations, validatorResult);
-					
+
 					if (!cont.isCont()) {
 						if (cont.getReason() != null) {
 							validatorResult.recordFatalError(cont.getReason());
@@ -226,26 +226,27 @@ public class Validator {
 			} else {
 				throw new SystemException("StAX Malfunction?");
 			}
-			
+
 			while (stream.hasNext()) {
 				eventType = stream.next();
 				if (eventType == XMLStreamConstants.START_ELEMENT) {
-					
+
 					OperationResult objectResult = validatorResult.createSubresult(objectResultOperationName);
 					progress++;
 					objectResult.addContext(OperationResult.CONTEXT_PROGRESS, progress);
-					
+
 					// Read and validate individual object from the stream
 					EventResult cont = readFromStreamAndValidate(stream, objectResult,
 							rootNamespaceDeclarations, validatorResult);
-					
+
 					if (objectResult.isError()) {
 						errors++;
 					}
-					
+
 					if (cont.isStop()) {
 						if (cont.getReason() != null) {
-							validatorResult.recordFatalError("Processing has been stopped: "+cont.getReason());
+							validatorResult.recordFatalError("Processing has been stopped: "
+									+ cont.getReason());
 						} else {
 							validatorResult.recordFatalError("Processing has been stopped");
 						}
@@ -271,9 +272,9 @@ public class Validator {
 			}
 			return;
 		}
-		
+
 		// Error count is sufficient. Detailed messages are in subresults
-		validatorResult.computeStatus(errors + " errors, " + (progress - errors) +" passed");
+		validatorResult.computeStatus(errors + " errors, " + (progress - errors) + " passed");
 
 	}
 
@@ -314,13 +315,18 @@ public class Validator {
 				return EventResult.skipObject();
 			}
 
-			JAXBElement<?> jaxbElement = (JAXBElement<?>) createUnmarshaller(validatorResult).unmarshal(objectDoc);
+			JAXBElement<?> jaxbElement = (JAXBElement<?>) createUnmarshaller(validatorResult).unmarshal(
+					objectDoc);
 			Object jaxbValue = jaxbElement.getValue();
 			ObjectType objectType = null;
 
 			if (jaxbValue instanceof ObjectType) {
 				objectType = (ObjectType) jaxbElement.getValue();
+				try {
+					prismContext.adopt(objectType);
+				} catch (SchemaException ex) {
 
+				}
 				if (verbose) {
 					LOGGER.debug("Processing OID " + objectType.getOid());
 				}
@@ -328,8 +334,9 @@ public class Validator {
 				objectResult.addContext(OperationResult.CONTEXT_OBJECT, objectType);
 
 				validateObject(objectType, objectResult);
-				
+
 				PrismObject object = objectType.asPrismObject();
+
 				object.revive(prismContext);
 
 				if (handler != null) {

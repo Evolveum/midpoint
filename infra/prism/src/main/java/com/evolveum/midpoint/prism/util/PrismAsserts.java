@@ -260,7 +260,7 @@ public class PrismAsserts {
 			return;
 		}
 		if (message == null) {
-			message = "Prism objest not equal";
+			message = "Prism object not equal";
 		}
 		ObjectDelta delta = expected.diff(actual);
 		String suffix = "the difference: "+delta;
