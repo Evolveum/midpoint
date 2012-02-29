@@ -64,6 +64,24 @@ public class TestPrismParsing {
 	}
 	
 	@Test
+	public void testPrismParseFile() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testPrismParseFile ]===");
+		
+		// GIVEN
+		PrismContext prismContext = constructInitializedPrismContext();
+		
+		// WHEN
+		PrismObject<UserType> user = prismContext.parseObject(USER_JACK_FILE);
+		
+		// THEN
+		System.out.println("User:");
+		System.out.println(user.dump());
+		assertNotNull(user);
+		
+		assertUser(user);
+	}
+	
+	@Test
 	public void testPrismParseDom() throws SchemaException, SAXException, IOException {
 		System.out.println("===[ testPrismParseDom ]===");
 		
@@ -83,6 +101,42 @@ public class TestPrismParsing {
 		
 		assertUser(user);
 	}
+
+	
+	@Test
+	public void testRoundTrip() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testRoundTrip ]===");
+		
+		// GIVEN
+		PrismContext prismContext = constructInitializedPrismContext();
+		PrismObject<UserType> user = prismContext.parseObject(USER_JACK_FILE);
+	
+		System.out.println("Input parsed user:");
+		System.out.println(user.dump());
+		assertNotNull(user);
+		
+		// precondition
+		assertUser(user);
+		
+		// WHEN
+		String userXml = prismContext.getPrismDomProcessor().serializeObjectToString(user);
+	
+		// THEN
+		System.out.println("Serialized user:");
+		System.out.println(userXml);
+		assertNotNull(userXml);
+		
+		// WHEN
+		PrismObject<UserType> user2 = prismContext.parseObject(userXml);
+		System.out.println("Re-parsed user:");
+		System.out.println(user2.dump());
+		assertNotNull(user2);
+
+		assertUser(user2);
+		
+		assertTrue("Users not equal", user.equals(user2));
+	}
+
 	
 //  Cannot be tested here, as the JAXB classes are not properly generated. It is tested in "schema" component now.
 //	public void testPrismParseJaxb() throws JAXBException, SchemaException, SAXException, IOException {
@@ -179,22 +233,6 @@ public class TestPrismParsing {
 		QName propQName = new QName(NS_FOO, propName);
 		PrismAsserts.assertPropertyValue(container, propQName, propValue);
 	}
-
-//	@Test
-//	public void testParseFromJaxb() throws SchemaException, SAXException, IOException {
-//		PrismContext prismContext = constructPrismContext();
-//		
-//		UserType userType = new UserType();
-//		userType.setOid("01d");
-//		userType.setName("jack");
-//		userType.setGivenName("Jack");
-//		userType.setFamilyName("Sparrow");
-//		userType.setFullName("Cpt. Jack Sparrow");
-//		
-//		PrismObject<UserType> user = prismContext.parseJaxb(userType);
-//		assertNotNull(user);
-//		
-//	}
 
 	
 }

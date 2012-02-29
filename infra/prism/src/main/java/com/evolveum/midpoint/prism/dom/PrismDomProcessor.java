@@ -502,10 +502,6 @@ public class PrismDomProcessor {
 //        return prop;
 //    }
 
-	public <T extends Objectable> String serializeObjectToString(PrismObject<T> object) {
-		throw new UnsupportedOperationException();
-	}
-
 	/**
 	 * Parse the provided JAXB/DOM element and add it as a new value of the specified item. 
 	 */
@@ -558,4 +554,8 @@ public class PrismDomProcessor {
 		return domSerializer.serialize(object);
 	}
 
+	public <T extends Objectable> String serializeObjectToString(PrismObject<T> object) throws SchemaException {
+		Element element = serializeToDom(object);
+		return DOMUtil.serializeDOMToString(element);
+	}
 }
