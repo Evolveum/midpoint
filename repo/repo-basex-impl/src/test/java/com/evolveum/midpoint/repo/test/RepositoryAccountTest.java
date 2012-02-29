@@ -195,7 +195,7 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 
 			PrismObject<UserType> accountOwner = repositoryService.listAccountShadowOwner(accountRefOid,
 					new OperationResult("test"));
-			assertNotNull(accountOwner);
+			assertNotNull("No owner for account "+accountRefOid, accountOwner);
 			assertEquals(userOid, accountOwner.getOid());
 		} finally {
 			// to be sure try to delete the object as part of cleanup

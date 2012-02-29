@@ -159,7 +159,7 @@ public class PropertyPath {
 		StringBuilder sb = new StringBuilder();
 		Iterator<PropertyPathSegment> iterator = segments.iterator();
 		while (iterator.hasNext()) {
-			sb.append(DebugUtil.prettyPrint(iterator.next()));
+			sb.append(iterator.next());
 			if (iterator.hasNext()) {
 				sb.append("/");
 			}

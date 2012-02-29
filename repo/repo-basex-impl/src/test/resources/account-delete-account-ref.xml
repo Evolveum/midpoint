@@ -25,7 +25,9 @@
     <c:objectClass xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">dj:Account</c:objectClass>
     <c:credentials>
         <c:password>
-            <c:base64>Yi===</c:base64>
+            <c:protectedString>
+            	<c:clearValue>foo</c:clearValue>
+            </c:protectedString>
         </c:password>
     </c:credentials>
     <c:attributes>

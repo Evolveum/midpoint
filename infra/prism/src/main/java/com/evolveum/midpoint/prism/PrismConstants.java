@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 public class PrismConstants {
 
 	public static final String EXTENSION_LOCAL_NAME = "extension";
+	public static final String NAME_LOCAL_NAME = "name";
 	
 	public static final String ATTRIBUTE_ID_LOCAL_NAME = "id";
 	public static final String ATTRIBUTE_OID_LOCAL_NAME = "oid";

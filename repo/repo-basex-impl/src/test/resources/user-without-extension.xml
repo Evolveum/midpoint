@@ -30,7 +30,9 @@
     <i:honorificPrefix>Cpt.</i:honorificPrefix>
     <i:credentials>
         <i:password>
-            <i:cleartextPassword>deadmentellnotales</i:cleartextPassword>
+            <c:protectedString>
+            	<c:clearValue>deadmentellnotales</c:clearValue>
+            </c:protectedString>
         </i:password>
     </i:credentials>
 </i:user>

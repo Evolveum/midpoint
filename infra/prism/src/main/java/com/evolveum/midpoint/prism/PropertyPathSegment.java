@@ -21,6 +21,8 @@ package com.evolveum.midpoint.prism;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.DebugUtil;
+
 /**
  * @author semancik
  *
@@ -51,9 +53,9 @@ public class PropertyPathSegment {
 	@Override
 	public String toString() {
 		if (id == null) {
-			return name.toString();
+			return DebugUtil.prettyPrint(name);
 		} else {
-			return name.toString() + "[" + id + "]";
+			return DebugUtil.prettyPrint(name) + "[" + id + "]";
 		}
 	}
 

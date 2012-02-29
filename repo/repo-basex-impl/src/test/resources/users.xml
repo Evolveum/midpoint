@@ -26,7 +26,7 @@
     <fullName>Test User0001</fullName>
     <givenName>Test</givenName>
     <familyName>User0001</familyName>
-    <emailAddress>testuser0001@example.com</eMmilAddress>
+    <emailAddress>testuser0001@example.com</emailAddress>
     <locality>Area 0001</locality>
     <credentials>
         <password>

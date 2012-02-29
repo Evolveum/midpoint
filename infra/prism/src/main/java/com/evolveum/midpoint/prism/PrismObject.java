@@ -316,6 +316,50 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 		ObjectDelta<T> delta = diff(other, true);
 		return delta.isEmpty();
 	}
+	
+	@Override
+	public String toString() {
+		return toDebugName();
+	}
+	
+	/**
+	 * Returns short string representing identity of this object.
+	 * It should container object type, OID and name. It should be presented
+	 * in a form suitable for log and diagnostic messages (understandable for
+	 * system administrator).
+	 */
+	public String toDebugName() {
+		return toDebugType()+": "+getOid()+"("+getNamePropertyValue()+")";
+	}
+	
+	private PrismProperty<String> getNameProperty() {
+		QName elementName = getName();
+		String myNamespace = elementName.getNamespaceURI();
+		return (PrismProperty<String>) findProperty(new QName(myNamespace, PrismConstants.NAME_LOCAL_NAME));
+	}
+	
+	private String getNamePropertyValue() {
+		PrismProperty<String> nameProperty = getNameProperty();
+		if (nameProperty == null) {
+			return null;
+		}
+		return nameProperty.getRealValue();
+	}
+
+	/**
+	 * Returns short string identification of object type. It should be in a form
+	 * suitable for log messages. There is no requirement for the type name to be unique,
+	 * but it rather has to be compact. E.g. short element names are preferred to long
+	 * QNames or URIs.
+	 * @return
+	 */
+	public String toDebugType() {
+		QName elementName = getName();
+		if (elementName == null) {
+			return "(unknown)";
+		}
+		return elementName.getLocalPart();
+	}
 
 	/**
 	 * Return a human readable name of this class suitable for logs.
