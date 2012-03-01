@@ -22,12 +22,16 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.dom.ElementPrismPropertyImpl;
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 import org.w3c.dom.Element;
 
@@ -37,6 +41,11 @@ import org.w3c.dom.Element;
 public class PrismPropertyValue<T> extends PrismValue implements Dumpable, DebugDumpable, Serializable {
 
     private T value;
+    // The rawElement is set during a schema-less parsing, e.g. during a dumb JAXB parsing or XML parsing without a
+    // definition.
+    // We can't do anything smarter, as we don't have definition nor prism context. So we store the raw
+    // elements here and process them later (e.g. during applyDefinition or getting a value with explicit type).
+    private Object rawElement;
 
     public PrismPropertyValue(T value) {
         this(value, null, null);
@@ -58,10 +67,57 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
     }
 
     public T getValue() {
+    	if (rawElement != null) {
+    		ItemDefinition def = null;
+    		Item parent = getParent();
+    		if (parent != null && parent.getDefinition() != null) {
+    			def = getParent().getDefinition();
+    		}
+    		if (def == null) {
+        		// We are weak now. If there is no better definition for this we assume a default definitio and process
+        		// the attribute now. But we should rather do this: TODO:
+        		// throw new IllegalStateException("Attempt to get value withot a type from raw value of property "+getParent());
+    			if (parent != null && parent.getPrismContext() != null) {
+    				def = SchemaRegistry.createDefaultItemDefinition(parent.getName(), parent.getPrismContext());
+    			} else {
+    				if (rawElement instanceof Element) {
+        				// Do the most stupid thing possible. Assume string value. And there will be no definition.
+    					value = (T) ((Element)rawElement).getTextContent();
+    				} else {
+    					throw new IllegalStateException("No parent or prism context in property value "+this+", cannot create default definition." +
+    							"The element is also not a DOM element but it is "+rawElement.getClass()+". Epic fail.");
+    				}
+    			}
+    		}
+    		if (def != null) {
+				try {
+					applyDefinition(def);
+				} catch (SchemaException e) {
+					throw new IllegalStateException(e.getMessage(),e);
+				}
+    		}
+    	}
         return value;
     }
     
-    @Override
+    public Object getRawElement() {
+		return rawElement;
+	}
+
+	public void setRawElement(Object rawElement) {
+		this.rawElement = rawElement;
+	}
+	
+	@Override
+	public void applyDefinition(ItemDefinition definition) throws SchemaException {
+		if (definition != null && rawElement !=null) {
+			PrismDomProcessor domProcessor = definition.getPrismContext().getPrismDomProcessor();
+			value = (T) domProcessor.parsePrismPropertyRealValue(rawElement, (PrismPropertyDefinition) definition);
+			rawElement = null;
+		}
+	}
+
+	@Override
 	protected Element createDomElement() {
 		return new ElementPrismPropertyImpl<T>(this);
 	}
@@ -69,9 +125,10 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("PPV[");
-        if (getValue() != null) {
-        	builder.append(getValue().getClass().getSimpleName()).append(":");
-            builder.append(DebugUtil.prettyPrint(getValue()));
+        // getValue() must not be here. getValue() contains exception that in turn causes a call to toString()
+        if (value != null) {
+        	builder.append(value.getClass().getSimpleName()).append(":");
+            builder.append(DebugUtil.prettyPrint(value));
         } else {
             builder.append("null");
         }
@@ -118,22 +175,29 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		}
 	}
 	
-	public boolean equalsRealValue(PrismPropertyValue<T> pValueToCompare) {
-        if (pValueToCompare == null) {
+	public boolean equalsRealValue(PrismPropertyValue<T> other) {
+        if (other == null) {
             return false;
         }
         
-        T valueToCompare = pValueToCompare.getValue();
-        if (valueToCompare == null && getValue() == null) {
+        if (this.rawElement != null && other.rawElement != null) {
+        	return equalsRawElements(other);
+        }
+        if (this.rawElement != null || other.rawElement != null) {
+        	return false;
+        }
+        
+        T otherRealValue = other.getValue();
+        if (otherRealValue == null && getValue() == null) {
         	return true;
         }
-        if (valueToCompare == null || getValue() == null) {
+        if (otherRealValue == null || getValue() == null) {
         	return false;
         }
 
         // DOM elements cannot be compared directly. Use utility method instead.
-        if (valueToCompare instanceof Element && getValue() instanceof Element) {
-        	return DOMUtil.compareElement((Element)getValue(), (Element)valueToCompare, true);
+        if (otherRealValue instanceof Element && getValue() instanceof Element) {
+        	return DOMUtil.compareElement((Element)getValue(), (Element)otherRealValue, true);
         }
         
         // FIXME!! HACK!!
@@ -141,10 +205,17 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 //        	return ((ObjectReferenceType)valueToCompare).getOid().equals(((ObjectReferenceType)getValue()).getOid());
 //        }
         
-        return getValue().equals(pValueToCompare.getValue());
+        return getValue().equals(other.getValue());
     }
 
-    @Override
+	private boolean equalsRawElements(PrismPropertyValue<T> other) {
+		if (this.rawElement instanceof Element && other.rawElement instanceof Element) {
+			return DOMUtil.compareElement((Element)this.rawElement, (Element)other.rawElement, false);
+		}
+		return this.rawElement.equals(other.rawElement);
+	}
+
+	@Override
     public String debugDump() {
         return toString();
     }

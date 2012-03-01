@@ -229,10 +229,7 @@ public class PrismContainer<V> extends Item<PrismContainerValue<V>> {
     	if (!(definition instanceof PrismContainerDefinition)) {
     		throw new IllegalArgumentException("Cannot apply "+definition+" to container " + this);
     	}
-    	this.definition = definition;
-		for (PrismContainerValue<V> pval: getValues()) {
-			pval.applyDefinition((PrismContainerDefinition)definition);
-		}
+    	super.applyDefinition(definition);
 	}
 
 	public <I extends Item<?>> I findItem(QName itemQName, Class<I> type) {

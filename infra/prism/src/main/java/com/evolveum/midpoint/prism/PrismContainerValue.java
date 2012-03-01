@@ -53,7 +53,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
     // The elements are set during a schema-less parsing, e.g. during a dumb JAXB parsing of the object
     // We can't do anything smarter, as we don't have definition nor prism context. So we store the raw
     // elements here and process them later (e.g. during applyDefinition).
-    private List<Object> elements = null;
+    private List<Object> rawElements = null;
     
     public PrismContainerValue() {
     	super();
@@ -162,11 +162,11 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 		return asCompileTimeObject();
 	}
 	
-	public List<Object> getElements() {
-		if (elements == null) {
-			elements = createElement();
+	public List<Object> getRawElements() {
+		if (rawElements == null) {
+			rawElements = createElement();
 		}
-		return elements;
+		return rawElements;
 	}
 	
 	private List<Object> createElement() {
@@ -565,9 +565,17 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 	}
 	
 	
+	
+	@Override
+	public void applyDefinition(ItemDefinition definition) throws SchemaException {
+		if (!(definition instanceof PrismContainerDefinition)) {
+    		throw new IllegalArgumentException("Cannot apply "+definition+" to container " + this);
+    	}
+		applyDefinition((PrismContainerDefinition)definition);
+	}
 
 	public void applyDefinition(PrismContainerDefinition definition) throws SchemaException {
-		if (elements != null) {
+		if (rawElements != null) {
 			// There are DOM/JAXB elements that needs to be parsed while the schema is being applied
 			parseElements(definition);
 		}
@@ -586,9 +594,9 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 
 	private void parseElements(PrismContainerDefinition definition) throws SchemaException {
 		PrismDomProcessor domProcessor = definition.getPrismContext().getPrismDomProcessor();
-		Collection<? extends Item> parsedItems = domProcessor.parseContainerItems(definition, elements);
+		Collection<? extends Item> parsedItems = domProcessor.parseContainerItems(definition, rawElements);
 		addAll((Collection)parsedItems);
-		elements = null;
+		rawElements = null;
 	}
 
 	public void revive(PrismContext prismContext) {

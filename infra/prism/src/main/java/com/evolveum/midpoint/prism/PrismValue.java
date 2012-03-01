@@ -24,6 +24,7 @@ import java.util.Collection;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
@@ -75,6 +76,10 @@ public abstract class PrismValue {
 
 	public void setParent(Item parent) {
 		this.parent = parent;
+	}
+	
+	public void applyDefinition(ItemDefinition definition) throws SchemaException {
+		// Do nothing by default
 	}
 	
 	public Element asDomElement() {

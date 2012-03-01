@@ -383,6 +383,9 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
     
 	void applyDefinition(ItemDefinition definition) throws SchemaException {
 		this.definition = definition;
+		for (PrismValue pval: getValues()) {
+			pval.applyDefinition(definition);
+		}
 	}
     
     public void revive(PrismContext prismContext) {

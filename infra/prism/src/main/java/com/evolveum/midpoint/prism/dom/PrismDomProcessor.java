@@ -67,8 +67,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  *
  */
 public class PrismDomProcessor {
-	
-	private static final QName DEFAULT_XSD_TYPE = DOMUtil.XSD_STRING;
 
 	private static final String JAVA_PROPERTY_OID = "oid";
 	private static final String JAVA_PROPERTY_TYPE = "type";
@@ -294,7 +292,12 @@ public class PrismDomProcessor {
             ItemDefinition def = locateItemDefinition(containerDefinition, elementQName, valueElements);
                         
             if (def == null) {
-                throw new SchemaException("Item " + elementQName + " has no definition", elementQName);
+            	if (containerDefinition.isRuntimeSchema()) {
+            		// No definition for item, but the schema is runtime. the definition may come later.
+            		// Null is OK here.
+            	} else {
+            		throw new SchemaException("Item " + elementQName + " has no definition", elementQName);
+            	}
             }
             
             Item item = parseItem(valueElements, elementQName, def);
@@ -335,18 +338,19 @@ public class PrismDomProcessor {
 		propDef.setDynamic(true);
 		return propDef;
 	}
-	
-	/**
-	 * Create default ItemDefinition. Used as a last attempt to provide some useful definition. Kind of a hack.
-	 */
-	private ItemDefinition createDefaultItemDefinition(ItemDefinition parentDefinition, QName itemName, List<? extends Object> valueElements,
-			PrismContext prismContext) {
-		PrismPropertyDefinition propDef = new PrismPropertyDefinition(itemName, itemName, DEFAULT_XSD_TYPE, prismContext);
-		// Set it to multi-value to be on the safe side
-		propDef.setMaxOccurs(-1);
-		propDef.setDynamic(true);
-		return propDef;
+		
+	private PrismProperty parsePrismPropertyRaw(List<? extends Object> valueElements, QName itemName) {
+		Object firstElement = valueElements.get(0);
+		QName propertyName = JAXBUtil.getElementQName(firstElement);
+		PrismProperty property = new PrismProperty(propertyName);
+		for (Object valueElement: valueElements) {
+			PrismPropertyValue pval = new PrismPropertyValue(null);
+			pval.setRawElement(valueElement);
+			property.add(pval);
+		}
+		return property;
 	}
+
     
     public PrismProperty parsePrismProperty(List<? extends Object> valueElements, QName propName, PrismPropertyDefinition propertyDefinition) throws SchemaException {
         if (valueElements == null || valueElements.isEmpty()) {
@@ -358,38 +362,42 @@ public class PrismDomProcessor {
             throw new SchemaException("Attempt to store multiple values in single-valued property " + propName);
         }
 
-    	PrismJaxbProcessor jaxbProcessor = getJaxbProcessor();
-    	QName typeName = propertyDefinition.getTypeName();
-
         for (Object valueElement : valueElements) {
-        	Object value = null;
-        	if (valueElement instanceof Element) {
-        		// Need to convert the DOM representation to something more java-like
-        		Element element = (Element)valueElement;
-	        	if (XmlTypeConverter.canConvert(typeName)) {
-	            	value = XmlTypeConverter.toJavaValue(element, typeName);
-	        	} else if (jaxbProcessor.canConvert(typeName)) {
-	        		try {
-						value = jaxbProcessor.toJavaValue(element, typeName);
-					} catch (JAXBException e) {
-						throw new SchemaException("Attempt to unmarshal value of property "+propName+" failed: "+e.getMessage(), e);
-					}
-	        	} else {
-	        		// fallback to storing DOM in value
-	        		value = element;
-	        	}
-        	} else if (valueElement instanceof JAXBElement) {
-        		JAXBElement jaxbElement = (JAXBElement)valueElement;
-        		value = jaxbElement.getValue();
-        	} else {
-        		// The values is already in java form, just store it directly
-        		value = valueElement;
-        	}
-            prop.add(new PrismPropertyValue(value));
+        	Object realValue = parsePrismPropertyRealValue(valueElement, propertyDefinition);
+            prop.add(new PrismPropertyValue(realValue));
         }
         return prop;
     }
     
+	public Object parsePrismPropertyRealValue(Object valueElement, PrismPropertyDefinition propertyDefinition) throws SchemaException {
+		QName typeName = propertyDefinition.getTypeName();
+		PrismJaxbProcessor jaxbProcessor = getJaxbProcessor();
+    	Object realValue = null;
+    	if (valueElement instanceof Element) {
+    		// Need to convert the DOM representation to something more java-like
+    		Element element = (Element)valueElement;
+        	if (XmlTypeConverter.canConvert(typeName)) {
+            	realValue = XmlTypeConverter.toJavaValue(element, typeName);
+        	} else if (jaxbProcessor.canConvert(typeName)) {
+        		try {
+					realValue = jaxbProcessor.toJavaValue(element, typeName);
+				} catch (JAXBException e) {
+					throw new SchemaException("Attempt to unmarshal value of property "+propertyDefinition.getName()+" failed: "+e.getMessage(), e);
+				}
+        	} else {
+        		// fallback to storing DOM in value
+        		realValue = element;
+        	}
+    	} else if (valueElement instanceof JAXBElement) {
+    		JAXBElement jaxbElement = (JAXBElement)valueElement;
+    		realValue = jaxbElement.getValue();
+    	} else {
+    		// The values is already in java form, just store it directly
+    		realValue = valueElement;
+    	}
+    	return realValue;
+	}
+
 	public PrismProperty parsePropertyFromValueElement(Element valueElement, PrismPropertyDefinition propertyDefinition) throws SchemaException {
     	PrismProperty prop = propertyDefinition.instantiate();
         if (propertyDefinition.isSingleValue()) {
@@ -426,7 +434,11 @@ public class PrismDomProcessor {
             }
             ItemDefinition itemDefinition = locateItemDefinition(containingPcd, elementQName, itemValueElements);
 			if (itemDefinition == null) {
-				throw new SchemaException("Definition of item "+elementQName+" cannot be found in "+containingPcd);
+				if (containingPcd.isRuntimeSchema()) {
+					// Definition may come later. Null is OK.
+				} else {
+					throw new SchemaException("Definition of item "+elementQName+" cannot be found in "+containingPcd);
+				}
 			}
 			Item<?> item = parseItem(itemValueElements, elementQName, itemDefinition);
 			items.add(item);
@@ -445,10 +457,6 @@ public class PrismDomProcessor {
         if (def == null && containerDefinition.isRuntimeSchema()) {
         	// Try to locate global definition in any of the schemas
         	def = resolveGlobalItemDefinition(containerDefinition, valueElements);
-        	if (def == null) {
-	        	// Kindof hack. Create default definition for this.
-	        	def = createDefaultItemDefinition(containerDefinition, elementQName, valueElements, prismContext);
-        	}
         }
         return def;
 	}
@@ -518,6 +526,10 @@ public class PrismDomProcessor {
      * Value elements have the same element name. They may be elements of a property or a container. 
      */
 	private Item parseItem(List<? extends Object> valueElements, QName itemName, ItemDefinition def) throws SchemaException {
+		if (def == null) {
+			// Assume property in a container with runtime definition
+			return parsePrismPropertyRaw(valueElements, itemName);
+		}
 		if (def instanceof PrismContainerDefinition) {
 			return parsePrismContainer(valueElements, itemName, (PrismContainerDefinition)def);
 		} else if (def instanceof PrismPropertyDefinition) {
@@ -556,7 +568,11 @@ public class PrismDomProcessor {
 			itemDefinition = locateItemDefinition(container.getDefinition(), item.getName(), itemValueElements);
 		}
 		if (itemDefinition == null) {
-			throw new SchemaException("Definition of item "+item+" in "+container+" cannot be determined");
+			if (container.getDefinition() != null && container.getDefinition().isRuntimeSchema()) {
+				// Null is OK, definition may come later
+			} else {
+				throw new SchemaException("Definition of item "+item+" in "+container+" cannot be determined");
+			}
 		}
 		// Kind of hack now. Just to reuse existing code.
 		Item<?> fauxItem = parseItem(itemValueElements, item.getName(), itemDefinition);
@@ -575,7 +591,11 @@ public class PrismDomProcessor {
 			itemDefinition = locateItemDefinition(container.getDefinition(), item.getName(), itemValueElements);
 		}
 		if (itemDefinition == null) {
-			throw new SchemaException("Definition of item "+item+" in "+container+" cannot be determined");
+			if (container.getDefinition() != null && container.getDefinition().isRuntimeSchema()) {
+				// Null is OK, definition may come later
+			} else {
+				throw new SchemaException("Definition of item "+item+" in "+container+" cannot be determined");
+			}
 		}
 		// Kind of hack now. Just to reuse existing code.
 		Item<?> fauxItem = parseItem(itemValueElements, item.getName(), itemDefinition);

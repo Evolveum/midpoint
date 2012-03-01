@@ -64,8 +64,10 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.ClassPathUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -81,6 +83,8 @@ import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
  *
  */
 public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpable {
+	
+	private static final QName DEFAULT_XSD_TYPE = DOMUtil.XSD_STRING;
 	
 	private javax.xml.validation.SchemaFactory schemaFactory;
 	private javax.xml.validation.Schema javaxSchema;
@@ -688,6 +692,14 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 			return false;
 		}
 		return typeName.equals(itemDefinition.getTypeName());
+	}
+
+	public static ItemDefinition createDefaultItemDefinition(QName itemName, PrismContext prismContext) {
+		PrismPropertyDefinition propDef = new PrismPropertyDefinition(itemName, itemName, DEFAULT_XSD_TYPE, prismContext);
+		// Set it to multi-value to be on the safe side
+		propDef.setMaxOccurs(-1);
+		propDef.setDynamic(true);
+		return propDef;
 	}
 
 	

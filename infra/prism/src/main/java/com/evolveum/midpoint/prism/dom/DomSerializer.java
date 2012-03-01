@@ -21,11 +21,13 @@ package com.evolveum.midpoint.prism.dom;
 
 import java.util.List;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -98,6 +100,11 @@ public class DomSerializer {
 	private void serialize(PrismPropertyValue<?> value, Element parentElement) throws SchemaException {
 		Item parent = value.getParent();
 		QName elementName = parent.getName();
+		if (value.getRawElement() != null) {
+			// This element was not yet touched by the schema, but we still can serialize it
+			serializeRawElement(value.getRawElement(), parentElement);
+			return;
+		}
 		Class<? extends Object> type = value.getValue().getClass();
 		boolean recordType = false;
 		ItemDefinition definition = parent.getDefinition();
@@ -124,6 +131,23 @@ public class DomSerializer {
 		}
 	}
 	
+	private void serializeRawElement(Object rawElement, Element parentElement) throws SchemaException {
+		if (rawElement instanceof Element) {
+			Document ownerDocument = parentElement.getOwnerDocument();
+			Element adoptedElement = (Element) ownerDocument.adoptNode((Element)rawElement);
+			parentElement.appendChild(adoptedElement);
+		} else if (rawElement instanceof JAXBElement){
+			PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+			try {
+				jaxbProcessor.marshalElementToDom((JAXBElement)rawElement, parentElement);
+			} catch (JAXBException e) {
+				throw new SchemaException("Error processing element "+rawElement+": "+e.getMessage(),e);
+			}
+		} else {
+			throw new IllegalArgumentException("Cannot process raw element "+rawElement+" of type "+rawElement.getClass());
+		}
+	}
+
 	private void serialize(PrismReferenceValue value, Element parentElement) throws SchemaException {
 		Item parent = value.getParent();
 		Element element = createElement(parent.getName());

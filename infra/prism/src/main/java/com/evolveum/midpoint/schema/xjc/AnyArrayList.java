@@ -182,7 +182,7 @@ public class AnyArrayList<T> extends AbstractList<Object> {
     }
     
     private List<Object> getElements() {
-    	return containerValue.getElements();
+    	return containerValue.getRawElements();
     }
     
     private PrismContainer<T> getContainer() {
