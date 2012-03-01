@@ -22,10 +22,16 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.testng.annotations.*;
+import org.testng.annotations.Test;
+
+import java.io.File;
+import java.lang.reflect.Field;
 
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -37,12 +43,37 @@ import static org.testng.AssertJUnit.assertNotNull;
         "../../../../../application-context-configuration-sql-test.xml"})
 public class SpringApplicationContextTest extends AbstractTestNGSpringContextTests {
 
-    @Autowired(required=true)
+    @Autowired(required = true)
     private RepositoryService repositoryService;
+    @Autowired
+    private LocalSessionFactoryBean sessionFactory;
 
     @Test
-    public void initApplicationContext() {
+    public void initApplicationContext() throws Exception {
         assertNotNull(repositoryService);
+
+        assertNotNull(sessionFactory);
+
+        org.hibernate.cfg.Configuration configuration = new Configuration();
+        configuration.setProperties(sessionFactory.getHibernateProperties());
+
+        File dir = new File("./src/main/java/com/evolveum/midpoint/repo/sql/data/common");
+        File[] files = dir.listFiles();
+        for (File file : files) {
+            if (file.isDirectory() || !file.getName().endsWith("java")) {
+                continue;
+            }
+            String className = "com.evolveum.midpoint.repo.sql.data.common." + file.getName().substring(0, file.getName().length() - 5);
+            System.out.println(className);
+            configuration.addAnnotatedClass(Class.forName(className));
+        }
+
+        configuration.addPackage("com.evolveum.midpoint.repo.sql.type");
+
+        SchemaExport export = new SchemaExport(configuration);
+        export.setOutputFile("./target/schema.sql");
+        export.setDelimiter(";");
+        export.execute(true, false, false, true);
     }
 
 //    public void initialize() throws Exception {
