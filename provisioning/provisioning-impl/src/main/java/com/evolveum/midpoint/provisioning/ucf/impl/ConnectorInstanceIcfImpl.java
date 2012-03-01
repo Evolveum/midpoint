@@ -1915,10 +1915,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private int transformConnectorConfiguration(ConfigurationProperties configProps,
 			PrismContainer<?> configurationPropertiesContainer, String connectorConfNs) {
 
+		int numConfingProperties = 0;
+		
 		if (configurationPropertiesContainer == null || configurationPropertiesContainer.getValue() == null) {
 			LOGGER.warn("No configuration properties in connectorType.getOid()");
+			return numConfingProperties;
 		}
-		int numConfingProperties = 0;
 		
 		for (PrismProperty prismProperty: configurationPropertiesContainer.getValue().getProperties()) {
 			QName propertyQName = prismProperty.getName();
@@ -1954,6 +1956,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	
 	private void transformConnectorPoolConfiguration(ObjectPoolConfiguration connectorPoolConfiguration,
 			PrismContainer<?> connectorPoolContainer) throws SchemaException {
+		
+		if (connectorPoolContainer == null || connectorPoolContainer.getValue() == null) {
+			return;
+		}
 
 		for (PrismProperty prismProperty: connectorPoolContainer.getValue().getProperties()) {
 			QName propertyQName = prismProperty.getName();
@@ -1989,6 +1995,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	
 	private void transformConnectorTimeoutsConfiguration(APIConfiguration apiConfig,
 			PrismContainer<?> connectorTimeoutsContainer) throws SchemaException {
+		
+		if (connectorTimeoutsContainer == null || connectorTimeoutsContainer.getValue() == null) {
+			return;
+		}
 
 		for (PrismProperty prismProperty: connectorTimeoutsContainer.getValue().getProperties()) {
 			QName propertQName = prismProperty.getName();
