@@ -721,12 +721,22 @@ public class DOMUtil {
 					return false;
 				}
 			} else if (aItem.getNodeType() == Node.TEXT_NODE) {
-				if (!StringUtils.equals(aItem.getTextContent(),bItem.getTextContent())) {
+				if (!compareTextNodeValues(aItem.getTextContent(),bItem.getTextContent())) {
 					return false;
 				}
 			}
 		}
 		return true;
+	}
+
+	private static boolean compareTextNodeValues(String a, String b) {
+		if (StringUtils.equals(a,b)) {
+			return true;
+		}
+		if (StringUtils.isBlank(a) && StringUtils.isBlank(b)) {
+			return true;
+		}
+		return false;
 	}
 
 	/**
