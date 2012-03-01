@@ -24,11 +24,11 @@ import org.identityconnectors.framework.common.exceptions.OperationTimeoutExcept
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -92,7 +92,7 @@ class IcfUtil {
 		}
 		
 		if (parentResult == null) {
-			throw new IllegalArgumentException(createMessage("Null parent result while processing ICF exception",ex));
+			throw new IllegalArgumentException(createMessageFromAllExceptions("Null parent result while processing ICF exception",ex));
 		}
 
 		// Introspect the inner exceptions and look for known causes
@@ -109,47 +109,47 @@ class IcfUtil {
 		// Otherwise try few obvious things
 		if (ex instanceof IllegalArgumentException) {
 			// This is most likely missing attribute or similar schema thing
-			Exception newEx = new SchemaException(createMessage("Schema violation (most likely)", ex));
+			Exception newEx = new SchemaException(createMessageFromAllExceptions("Schema violation (most likely)", ex));
 			parentResult.recordFatalError("Schema violation: "+ex.getMessage(), newEx);
 			return newEx;
 			
 		} else if (ex instanceof ConfigurationException) {
-			Exception newEx = new SchemaException(createMessage("Configuration error", ex));
+			Exception newEx = new com.evolveum.midpoint.util.exception.ConfigurationException(createMessageFromInnermostException("Configuration error", ex));
 			parentResult.recordFatalError("Configuration error: "+ex.getMessage(), newEx);
 			return newEx;
 
 		} else if (ex instanceof AlreadyExistsException) {
-			Exception newEx = new ObjectAlreadyExistsException(createMessage(null, ex));
+			Exception newEx = new ObjectAlreadyExistsException(createMessageFromAllExceptions(null, ex));
 			parentResult.recordFatalError("Object already exists: "+ex.getMessage(), newEx);
 			return newEx;
 
 		} else if (ex instanceof ConnectionBrokenException) {
-			Exception newEx = new CommunicationException(createMessage("Connection broken", ex));
+			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connection broken", ex));
 			parentResult.recordFatalError("Connection broken: "+ex.getMessage(), newEx);
 			return newEx;
 
 		} else if (ex instanceof ConnectionFailedException) {
-			Exception newEx = new CommunicationException(createMessage("Connection failed", ex));
+			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connection failed", ex));
 			parentResult.recordFatalError("Connection failed: "+ex.getMessage(), newEx);
 			return newEx;
 
 		} else if (ex instanceof ConnectorIOException) {
-			Exception newEx = new CommunicationException(createMessage("IO error", ex));
+			Exception newEx = new CommunicationException(createMessageFromAllExceptions("IO error", ex));
 			parentResult.recordFatalError("IO error: "+ex.getMessage(), newEx);
 			return newEx;
 
 		} else if (ex instanceof InvalidCredentialException) {
-			Exception newEx = new GenericFrameworkException(createMessage("Invalid credentials", ex));
+			Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions("Invalid credentials", ex));
 			parentResult.recordFatalError("Invalid credentials: "+ex.getMessage(), newEx);
 			return newEx;
 
 		} else if (ex instanceof OperationTimeoutException) {
-			Exception newEx = new CommunicationException(createMessage("Operation timed out", ex));
+			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Operation timed out", ex));
 			parentResult.recordFatalError("Operation timed out: "+ex.getMessage(), newEx);
 			return newEx;
 
 		} else if (ex instanceof UnknownUidException) {
-			Exception newEx = new ObjectNotFoundException(createMessage(null, ex));
+			Exception newEx = new ObjectNotFoundException(createMessageFromAllExceptions(null, ex));
 			parentResult.recordFatalError("Unknown UID: "+ex.getMessage(), newEx);
 			return newEx;
 
@@ -159,7 +159,7 @@ class IcfUtil {
 			// lookForKnownCause(..) before
 			
 			// Maybe we need special exception for security?
-			Exception newEx =  new SystemException(createMessage("Security violation",ex));
+			Exception newEx =  new SystemException(createMessageFromAllExceptions("Security violation",ex));
 			parentResult.recordFatalError(
 					"Security violation: " + ex.getMessage(), newEx);
 			return newEx;
@@ -167,13 +167,13 @@ class IcfUtil {
 		} else if (ex instanceof NullPointerException && ex.getMessage() != null) {
 			// NPE with a message text is in fact not a NPE but an application exception
 			// this usually means that some parameter is missing
-			Exception newEx = new SchemaException(createMessage("Required attribute is missing",ex));  
+			Exception newEx = new SchemaException(createMessageFromAllExceptions("Required attribute is missing",ex));  
 			parentResult.recordFatalError("Required attribute is missing: "+ex.getMessage(),newEx);
 			return newEx;
 		}
 		
 		// Fallback
-		Exception newEx = new GenericFrameworkException(createMessage(null,ex)); 
+		Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions(null,ex)); 
 		parentResult.recordFatalError(newEx);
 		return newEx;
 	}
@@ -181,31 +181,31 @@ class IcfUtil {
 	private static Exception lookForKnownCause(Throwable ex,
 			Throwable originalException, OperationResult parentResult) {
 		if (ex instanceof FileNotFoundException) {
-			Exception newEx = new GenericFrameworkException(createMessage(null, ex));
+			Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions(null, ex));
 			parentResult.recordFatalError("File not found: "+ex.getMessage(), newEx);
 			return newEx;
 		} else if (ex instanceof NameAlreadyBoundException) {
 			// This is thrown by LDAP connector and may be also throw by similar
 			// connectors
-			Exception newEx = new ObjectAlreadyExistsException(createMessage(null, ex));
+			Exception newEx = new ObjectAlreadyExistsException(createMessageFromAllExceptions(null, ex));
 			parentResult.recordFatalError("Object already exists: "+ex.getMessage(), newEx);
 			return newEx;		
 		} else if (ex instanceof javax.naming.CommunicationException) {
 			// This is thrown by LDAP connector and may be also throw by similar
 			// connectors
-			Exception newEx = new CommunicationException(createMessage("Communication error", ex));
+			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Communication error", ex));
 			parentResult.recordFatalError("Commnucation error: "+ex.getMessage(), newEx);
 			return newEx;
 		} else if (ex instanceof SchemaViolationException) {
 			// This is thrown by LDAP connector and may be also throw by similar
 			// connectors
-			Exception newEx = new SchemaException(createMessage("Schema violation", ex)); 
+			Exception newEx = new SchemaException(createMessageFromAllExceptions("Schema violation", ex)); 
 			parentResult.recordFatalError("Schema violation: "+ex.getMessage(), newEx);
 			return newEx;
 		} else if (ex instanceof InvalidAttributeValueException) {
 			// This is thrown by LDAP connector and may be also throw by similar
 			// connectors
-			Exception newEx = new SchemaException(createMessage("Invalid attribute", ex)); 
+			Exception newEx = new SchemaException(createMessageFromAllExceptions("Invalid attribute", ex)); 
 			parentResult.recordFatalError("Invalid attribute: "+ex.getMessage(), newEx);
 			return newEx;
 		} else if (ex instanceof ConnectException) {
@@ -213,23 +213,23 @@ class IcfUtil {
 			// similar errors
 			// Note: needs to be after javax.naming.CommunicationException as the
 			//   javax.naming exception has more info (e.g. hostname)
-			Exception newEx = new CommunicationException(createMessage("Connect error", ex));
+			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connect error", ex));
 			parentResult.recordFatalError("Connect error: " + ex.getMessage(), newEx);
 			return newEx;
 		} else if (ex instanceof SQLSyntaxErrorException) {
 			// Buried deep in many exceptions, usually DB schema problems of
 			// DB-based connectors
-			Exception newEx = new SchemaException(createMessage("DB syntax error", ex));
+			Exception newEx = new SchemaException(createMessageFromAllExceptions("DB syntax error", ex));
 			parentResult.recordFatalError("DB syntax error: " + ex.getMessage(), newEx);
 			return newEx;
 		} else if (ex instanceof SQLException) {
 			// Buried deep in many exceptions, usually DB connection problems
-			Exception newEx = new GenericFrameworkException(createMessage("DB error", ex));
+			Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions("DB error", ex));
 			parentResult.recordFatalError("DB error: " + ex.getMessage(), newEx);
 			return newEx;		
 		} else if (ex instanceof UnknownUidException) {
 			// Object not found
-			Exception newEx = new ObjectNotFoundException(createMessage(null,ex));
+			Exception newEx = new ObjectNotFoundException(createMessageFromAllExceptions(null,ex));
 			parentResult.recordFatalError("Object not found: "+ex.getMessage(), newEx);
 			return newEx;
 		}
@@ -253,25 +253,44 @@ class IcfUtil {
 	}
 
 	
-	private static String createMessage(String prefix, Throwable ex) {
+	private static String createMessageFromAllExceptions(String prefix, Throwable ex) {
 		StringBuilder sb = new StringBuilder();
 		if (prefix != null) {
 			sb.append(prefix);
 			sb.append(": ");
 		}
-		addExceptionToMessage(sb,ex);
+		addAllExceptionsToMessage(sb,ex);
 		return sb.toString();
 	}
-	
-	private static void addExceptionToMessage(StringBuilder sb, Throwable ex) {
+
+	private static void addAllExceptionsToMessage(StringBuilder sb, Throwable ex) {
 		sb.append(ex.getClass().getName());
 		sb.append("(");
 		sb.append(ex.getMessage());
 		sb.append(")");
 		if (ex.getCause() != null) {
 			sb.append("->");
-			addExceptionToMessage(sb, ex.getCause());
+			addAllExceptionsToMessage(sb, ex.getCause());
 		}
 	}
+	
+	private static String createMessageFromInnermostException(String prefix, Throwable ex) {
+		StringBuilder sb = new StringBuilder();
+		if (prefix != null) {
+			sb.append(prefix);
+			sb.append(": ");
+		}
+		addInnermostExceptionsToMessage(sb,ex);
+		return sb.toString();
+	}
+
+	private static void addInnermostExceptionsToMessage(StringBuilder sb, Throwable ex) {
+		if (ex.getCause() != null) {
+			addInnermostExceptionsToMessage(sb, ex.getCause());
+		} else {
+			sb.append(ex.getMessage());
+		}
+	}
+
 
 }

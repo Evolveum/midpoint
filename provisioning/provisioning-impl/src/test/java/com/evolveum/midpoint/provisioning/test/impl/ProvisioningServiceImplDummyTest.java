@@ -65,6 +65,7 @@ import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -641,7 +642,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 	
 	@Test
-	public void test100LiveSyncDryRun() throws ObjectNotFoundException, CommunicationException, SchemaException {
+	public void test100LiveSyncDryRun() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 		displayTestTile("test100LiveSyncDryRun");
 		// GIVEN
 		Task task = taskManager.createTaskInstance(ProvisioningServiceImplDummyTest.class.getName() + ".test100LiveSyncDryRun");
@@ -659,7 +660,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test101LiveSyncAdd() throws ObjectNotFoundException, CommunicationException, SchemaException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException {
+	public void test101LiveSyncAdd() throws ObjectNotFoundException, CommunicationException, SchemaException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ConfigurationException {
 		displayTestTile("test101LiveSyncAdd");
 		// GIVEN
 		Task task = taskManager.createTaskInstance(ProvisioningServiceImplDummyTest.class.getName() + ".test101LiveSyncAdd");

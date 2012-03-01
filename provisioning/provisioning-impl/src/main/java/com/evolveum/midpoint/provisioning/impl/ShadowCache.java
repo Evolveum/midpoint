@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -464,7 +465,7 @@ public class ShadowCache {
 
 	public List<Change> fetchChanges(ResourceType resourceType, PrismProperty lastToken,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
-			GenericFrameworkException, SchemaException {
+			GenericFrameworkException, SchemaException, ConfigurationException {
 
 		List<Change> changes = null;
 		try {
@@ -524,14 +525,16 @@ public class ShadowCache {
 
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError("Schema error: " + ex.getMessage(), ex);
-			throw new SchemaException("Schema error: " + ex.getMessage(), ex);
+			throw ex;
 		} catch (CommunicationException ex) {
 			parentResult.recordFatalError("Communication error: " + ex.getMessage(), ex);
-			throw new CommunicationException("Communication error: " + ex.getMessage(), ex);
-
+			throw ex;
 		} catch (GenericFrameworkException ex) {
 			parentResult.recordFatalError("Generic error: " + ex.getMessage(), ex);
-			throw new GenericFrameworkException("Generic error: " + ex.getMessage(), ex);
+			throw ex;
+		} catch (ConfigurationException ex) {
+			parentResult.recordFatalError("Configuration error: " + ex.getMessage(), ex);
+			throw ex;
 		}
 		parentResult.recordSuccess();
 		return changes;

@@ -48,6 +48,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -162,11 +163,13 @@ public class ResourceTypeManager {
 					// necessary annotations
 					resourceSchema = connector.getResourceSchema(result);
 
-				} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+				} catch (CommunicationException ex) {
 					throw new CommunicationException("Cannot fetch resource schema: " + ex.getMessage(), ex);
 				} catch (GenericFrameworkException ex) {
 					throw new GenericConnectorException("Generic error in connector " + connector + ": "
 							+ ex.getMessage(), ex);
+				} catch (ConfigurationException ex) {
+					throw new CommunicationException("Cannot fetch resource schema: " + ex.getMessage(), ex);
 				}
 			}
 			LOGGER.debug("Generated resource schema for " + ObjectTypeUtil.toShortString(resource) + ": "
@@ -248,7 +251,7 @@ public class ResourceTypeManager {
 		try {
 			connector.configure(resourceType.getConfiguration().asPrismContainer(), configResult);
 			configResult.recordSuccess();
-		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
+		} catch (CommunicationException e) {
 			configResult.recordFatalError("Communication error", e);
 			return;
 		} catch (GenericFrameworkException e) {
@@ -286,11 +289,14 @@ public class ResourceTypeManager {
 			// to Schema Processor
 			// format, so it is already structured
 			schema = connector.getResourceSchema(schemaResult);
-		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
+		} catch (CommunicationException e) {
 			schemaResult.recordFatalError("Communication error: " + e.getMessage(), e);
 			return;
 		} catch (GenericFrameworkException e) {
 			schemaResult.recordFatalError("Generic error: " + e.getMessage(), e);
+			return;
+		} catch (ConfigurationException e) {
+			schemaResult.recordFatalError("Configuration error: " + e.getMessage(), e);
 			return;
 		}
 
@@ -598,7 +604,7 @@ public class ResourceTypeManager {
 			parentResult.recordFatalError("Generic error in the connector: " + e.getMessage(), e);
 			throw new CommunicationException("Generic error in the connector: " + e.getMessage(), e);
 
-		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+		} catch (CommunicationException ex) {
 			parentResult.recordFatalError(
 					"Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
 			throw new CommunicationException("Error communicating with the connector " + connector + ": "
@@ -677,10 +683,13 @@ public class ResourceTypeManager {
 
 			capabilities = connector.getCapabilities(result);
 
-		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+		} catch (CommunicationException ex) {
 			throw new CommunicationException("Cannot fetch resource schema: " + ex.getMessage(), ex);
 		} catch (GenericFrameworkException ex) {
 			throw new GenericConnectorException("Generic error in connector " + connector + ": "
+					+ ex.getMessage(), ex);
+		} catch (ConfigurationException ex) {
+			throw new GenericConnectorException("Configuration error in connector " + connector + ": "
 					+ ex.getMessage(), ex);
 		}
 

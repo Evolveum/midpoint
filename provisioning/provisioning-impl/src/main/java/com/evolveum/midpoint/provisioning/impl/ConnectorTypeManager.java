@@ -134,7 +134,7 @@ public class ConnectorTypeManager {
 
 			connector = connectorFactory.createConnectorInstance(connectorType, resource.getNamespace());
 
-		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException e) {
+		} catch (ObjectNotFoundException e) {
 			result.recordFatalError(e.getMessage(), e);
 			throw new ObjectNotFoundException(e.getMessage(), e);
 		}
@@ -144,8 +144,8 @@ public class ConnectorTypeManager {
 			// Not expected. Transform to system exception
 			result.recordFatalError("Generic provisioning framework error", e);
 			throw new SystemException("Generic provisioning framework error: " + e.getMessage(), e);
-		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
-			throw new CommunicationException(e.getMessage(), e);
+		} catch (CommunicationException e) {
+			throw e;
 		}
 
 		return connector;
@@ -204,7 +204,7 @@ public class ConnectorTypeManager {
 		Set<ConnectorType> foundConnectors;
 		try {
 			foundConnectors = connectorFactory.listConnectors(hostType, result);
-		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+		} catch (CommunicationException ex) {
 			result.recordFatalError("Discovery failed: " + ex.getMessage(), ex);
 			throw new CommunicationException("Discovery failed: " + ex.getMessage(), ex);
 		}
@@ -258,7 +258,7 @@ public class ConnectorTypeManager {
 						}
 						foundConnector.getSchema().getAny().add(xsdElement);
 					}
-				} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException ex) {
+				} catch (ObjectNotFoundException ex) {
 					LOGGER.error(
 							"Cannot instantiate discovered connector " + ObjectTypeUtil.toShortString(foundConnector),
 							ex);

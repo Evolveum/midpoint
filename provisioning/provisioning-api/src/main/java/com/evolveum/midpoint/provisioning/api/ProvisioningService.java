@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -203,10 +204,11 @@ public interface ProvisioningService {
 	 *             error communicating with the resource
 	 * @throws SchemaException
 	 *             error dealing with resource schema
+	 * @throws ConfigurationException 
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public int synchronize(String resourceOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException;
+	public int synchronize(String resourceOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException;
 
 	/**
 	 * Returns all objects of specified type that are available to the

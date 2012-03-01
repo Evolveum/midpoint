@@ -40,6 +40,7 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -178,7 +179,7 @@ public class ShadowConverter {
 			}
 
 			applyAfterOperationAttributes(shadow, resourceAttributesAfterAdd);
-		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+		} catch (CommunicationException ex) {
 			parentResult.recordFatalError(
 					"Error communitacing with the connector " + connector + ": " + ex.getMessage(), ex);
 			throw new CommunicationException("Error communitacing with the connector " + connector + ": "
@@ -221,12 +222,12 @@ public class ShadowConverter {
 			LOGGER.debug("Connector DELETE successful");
 			parentResult.recordSuccess();
 
-		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException ex) {
+		} catch (ObjectNotFoundException ex) {
 			parentResult.recordFatalError("Can't delete object " + ObjectTypeUtil.toShortString(shadow)
 					+ ". Reason: " + ex.getMessage(), ex);
 			throw new ObjectNotFoundException("An error occured while deleting resource object " + shadow
 					+ "whith identifiers " + identifiers + ": " + ex.getMessage(), ex);
-		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+		} catch (CommunicationException ex) {
 			parentResult.recordFatalError(
 					"Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
 			throw new CommunicationException("Error communitacing with the connector " + connector + ": "
@@ -269,10 +270,10 @@ public class ShadowConverter {
 			LOGGER.debug("Connector MODIFY successful, side-effect changes {}",
 					SchemaDebugUtil.debugDump(sideEffectChanges));
 
-		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException ex) {
+		} catch (ObjectNotFoundException ex) {
 			parentResult.recordFatalError("Object to modify not found. Reason: " + ex.getMessage(), ex);
 			throw new ObjectNotFoundException("Object to modify not found. " + ex.getMessage(), ex);
-		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+		} catch (CommunicationException ex) {
 			parentResult.recordFatalError(
 					"Error communicationg with the connector " + connector + ": " + ex.getMessage(), ex);
 			throw new CommunicationException("Error comminicationg with connector " + connector + ": "
@@ -305,7 +306,7 @@ public class ShadowConverter {
 			parentResult.recordFatalError("Generic error in the connector: " + e.getMessage(), e);
 			throw new CommunicationException("Generic error in the connector: " + e.getMessage(), e);
 
-		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+		} catch (CommunicationException ex) {
 			parentResult.recordFatalError(
 					"Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
 			throw new CommunicationException("Error communicating with the connector " + connector + ": "
@@ -318,7 +319,7 @@ public class ShadowConverter {
 	}
 
 	public List<Change> fetchChanges(ResourceType resource, PrismProperty lastToken, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		Validate.notNull(resource, "Resource must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 		Validate.notNull(lastToken, "Token property must not be null.");
@@ -337,14 +338,17 @@ public class ShadowConverter {
 
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError("Schema error: " + ex.getMessage(), ex);
-			throw new SchemaException("Schema error: " + ex.getMessage(), ex);
-		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+			throw ex;
+		} catch (CommunicationException ex) {
 			parentResult.recordFatalError("Communication error: " + ex.getMessage(), ex);
-			throw new CommunicationException("Communication error: " + ex.getMessage(), ex);
+			throw ex;
 
 		} catch (GenericFrameworkException ex) {
 			parentResult.recordFatalError("Generic error: " + ex.getMessage(), ex);
-			throw new CommunicationException("Generic error: " + ex.getMessage(), ex);
+			throw new GenericConnectorException(ex.getMessage(), ex);
+		} catch (ConfigurationException ex) {
+			parentResult.recordFatalError("Configuration error: " + ex.getMessage(), ex);
+			throw ex;
 		}
 		parentResult.recordSuccess();
 		return changes;
@@ -405,12 +409,12 @@ public class ShadowConverter {
 		try {
 			PrismObject<T> resourceObject = connector.fetchObject(type, objectClassDefinition, identifiers, true, null, parentResult);
 			return resourceObject.asObjectable();
-		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException e) {
+		} catch (ObjectNotFoundException e) {
 			parentResult.recordFatalError(
 					"Object not found. Identifiers: " + identifiers + ". Reason: " + e.getMessage(), e);
 			throw new ObjectNotFoundException("Object not found. Identifiers: " + identifiers + ". Reason: "
 					+ e.getMessage(), e);
-		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
+		} catch (CommunicationException e) {
 			parentResult.recordFatalError("Error communication with the connector " + connector
 					+ ". Reason: " + e.getMessage(), e);
 			throw new CommunicationException("Error communication with the connector " + connector
@@ -418,7 +422,7 @@ public class ShadowConverter {
 		} catch (GenericFrameworkException e) {
 			parentResult.recordFatalError(
 					"Generic error in the connector " + connector + ". Reason: " + e.getMessage(), e);
-			throw new CommunicationException("Generic error in the connector " + connector + ". Reason: "
+			throw new GenericConnectorException("Generic error in the connector " + connector + ". Reason: "
 					+ e.getMessage(), e);
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError("Can't get resource schema. Reason: " + ex.getMessage(), ex);

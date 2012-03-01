@@ -52,7 +52,10 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -304,12 +307,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * Transforms native ICF schema to the midPoint representation.
 	 * 
 	 * @return midPoint resource schema.
-	 * @throws CommunicationException
 	 * @see com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance#initialize(com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
 	public void initialize(OperationResult parentResult) throws CommunicationException,
-			GenericFrameworkException {
+			GenericFrameworkException, ConfigurationException {
 
 		// Result type for this operation
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
@@ -348,6 +350,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (midpointEx instanceof CommunicationException) {
 				result.recordFatalError("ICF communication error: " + midpointEx.getMessage(), midpointEx);
 				throw (CommunicationException) midpointEx;
+			} else if (midpointEx instanceof ConfigurationException) {
+					result.recordFatalError("ICF configuration error: " + midpointEx.getMessage(), midpointEx);
+					throw (ConfigurationException) midpointEx;
 			} else if (midpointEx instanceof GenericFrameworkException) {
 				result.recordFatalError("ICF error: " + midpointEx.getMessage(), midpointEx);
 				throw (GenericFrameworkException) midpointEx;
@@ -367,7 +372,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public ResourceSchema getResourceSchema(OperationResult parentResult) throws CommunicationException,
-			GenericFrameworkException {
+			GenericFrameworkException, ConfigurationException {
 
 		// Result type for this operation
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
@@ -379,6 +384,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			try {
 				initialize(result);
 			} catch (CommunicationException ex) {
+				result.recordFatalError(ex);
+				throw ex;
+			} catch (ConfigurationException ex) {
 				result.recordFatalError(ex);
 				throw ex;
 			} catch (GenericFrameworkException ex) {
@@ -565,7 +573,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public Set<Object> getCapabilities(OperationResult parentResult) throws CommunicationException,
-			GenericFrameworkException {
+			GenericFrameworkException, ConfigurationException {
 
 		// Result type for this operation
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
@@ -577,6 +585,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			try {
 				initialize(result);
 			} catch (CommunicationException ex) {
+				result.recordFatalError(ex);
+				throw ex;
+			} catch (ConfigurationException ex) {
 				result.recordFatalError(ex);
 				throw ex;
 			} catch (GenericFrameworkException ex) {
@@ -1157,7 +1168,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	@Override
 	public List<Change> fetchChanges(ResourceAttributeContainerDefinition objectClass, PrismProperty lastToken,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
-			SchemaException {
+			SchemaException, ConfigurationException {
 
 		OperationResult subresult = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".fetchChanges");

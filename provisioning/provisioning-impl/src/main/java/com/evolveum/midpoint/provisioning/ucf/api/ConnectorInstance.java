@@ -30,7 +30,10 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -90,8 +93,9 @@ public interface ConnectorInstance {
 	 * @param parentResult
 	 * @throws CommunicationException
 	 * @throws GenericFrameworkException
+	 * @throws ConfigurationException 
 	 */
-	public void initialize(OperationResult parentResult)  throws CommunicationException, GenericFrameworkException;
+	public void initialize(OperationResult parentResult)  throws CommunicationException, GenericFrameworkException, ConfigurationException;
 	
 	/**
 	 * Retrieves native connector capabilities.
@@ -107,9 +111,10 @@ public interface ConnectorInstance {
 	 * @return
 	 * @throws CommunicationException
 	 * @throws GenericFrameworkException
+	 * @throws ConfigurationException 
 	 */
 	public Set<Object> getCapabilities(OperationResult parentResult) throws CommunicationException,
-			GenericFrameworkException;
+			GenericFrameworkException, ConfigurationException;
 	
     /**
 	 * Retrieves the schema from the resource.
@@ -126,8 +131,9 @@ public interface ConnectorInstance {
 	 * @return Up-to-date resource schema.
 	 * @throws CommunicationException error in communication to the resource 
 	 *				- nothing was fetched.
+     * @throws ConfigurationException 
 	 */
-	public ResourceSchema getResourceSchema(OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	public ResourceSchema getResourceSchema(OperationResult parentResult) throws CommunicationException, GenericFrameworkException, ConfigurationException;
 	
 	/**
 	 * Retrieves a specific object from the resource.
@@ -273,7 +279,7 @@ public interface ConnectorInstance {
 	 * @param lastToken
 	 * @return
 	 */
-	public List<Change> fetchChanges(ResourceAttributeContainerDefinition objectClass, PrismProperty lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException;
+	public List<Change> fetchChanges(ResourceAttributeContainerDefinition objectClass, PrismProperty lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
 	
 	//public ValidationResult validateConfiguration(ResourceConfiguration newConfiguration);
 	

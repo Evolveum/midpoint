@@ -48,6 +48,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
@@ -66,6 +67,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -303,7 +305,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public int synchronize(String resourceOid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, SchemaException {
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 
 		Validate.notNull(resourceOid, "Resource oid must not be null.");
 		Validate.notNull(task, "Task must not be null.");
@@ -433,19 +435,23 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		} catch (ObjectNotFoundException e) {
 			LOGGER.error("Synchronization error: object not found: {}", e.getMessage(), e);
 			result.recordFatalError(e.getMessage(), e);
-			throw new ObjectNotFoundException(e.getMessage(), e);
+			throw e;
 		} catch (CommunicationException e) {
 			LOGGER.error("Synchronization error: communication problem: {}", e.getMessage(), e);
 			result.recordFatalError("Error communicating with connector: " + e.getMessage(), e);
-			throw new CommunicationException(e.getMessage(), e);
+			throw e;
 		} catch (GenericFrameworkException e) {
 			LOGGER.error("Synchronization error: generic connector framework error: {}", e.getMessage(), e);
 			result.recordFatalError(e.getMessage(), e);
-			throw new CommunicationException(e.getMessage(), e);
+			throw new GenericConnectorException(e.getMessage(), e);
 		} catch (SchemaException e) {
 			LOGGER.error("Synchronization error: schema problem: {}", e.getMessage(), e);
 			result.recordFatalError(e.getMessage(), e);
-			throw new SchemaException(e.getMessage(), e);
+			throw e;
+		} catch (ConfigurationException e) {
+			LOGGER.error("Synchronization error: configuration problem: {}", e.getMessage(), e);
+			result.recordFatalError(e.getMessage(), e);
+			throw e;
 		}
 
 		result.recordSuccess();
