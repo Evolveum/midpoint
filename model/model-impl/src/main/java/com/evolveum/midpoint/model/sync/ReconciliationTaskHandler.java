@@ -53,6 +53,7 @@ import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -173,6 +174,14 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
+		} catch (ConfigurationException ex) {
+			LOGGER.error("Reconciliation: Configuration error: {}",ex.getMessage(),ex);
+			// Not sure about this. But most likely it is a misconfigured resource or connector
+			// It may be worth to retry. Error is fatal, but may not be permanent.
+			opResult.recordFatalError("Error dealing with schema: "+ex.getMessage(),ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
 		}
 		
 		opResult.computeStatus("Reconciliation run has failed");
@@ -183,7 +192,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		return runResult;
 	}
 
-	private void performResourceReconciliation(String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException {
+	private void performResourceReconciliation(String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		
 		ResourceType resource = repositoryService.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
 

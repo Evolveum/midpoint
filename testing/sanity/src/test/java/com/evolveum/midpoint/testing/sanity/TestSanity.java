@@ -54,6 +54,7 @@ import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -377,7 +378,7 @@ public class TestSanity extends AbstractIntegrationTest {
      */
     @Test
     public void test001TestConnectionOpenDJ() throws FaultMessage, JAXBException, ObjectNotFoundException,
-            SchemaException, CommunicationException {
+            SchemaException, CommunicationException, ConfigurationException {
         displayTestTile("test001TestConnectionOpenDJ");
 
         // GIVEN
@@ -471,7 +472,7 @@ public class TestSanity extends AbstractIntegrationTest {
      */
     @Test
     public void test002TestConnectionDerby() throws FaultMessage, JAXBException, ObjectNotFoundException,
-            SchemaException, CommunicationException {
+            SchemaException, CommunicationException, ConfigurationException {
         displayTestTile("test002TestConnectionDerby");
 
         // GIVEN
@@ -915,7 +916,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
     @Test
     public void test016ProvisioningSearchAccountsIterative() throws SchemaException, ObjectNotFoundException,
-            CommunicationException {
+            CommunicationException, ConfigurationException {
         displayTestTile("test016ProvisioningSearchAccountsIterative");
 
         // GIVEN

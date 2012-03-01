@@ -76,8 +76,9 @@ public interface ConnectorInstance {
 	 * a parameter to this method.
 	 * 
 	 * @param configuration
+	 * @throws ConfigurationException 
 	 */
-	public void configure(PrismContainer configuration, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException;
+	public void configure(PrismContainer configuration, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
 
 	
 	public PrismSchema generateConnectorSchema();

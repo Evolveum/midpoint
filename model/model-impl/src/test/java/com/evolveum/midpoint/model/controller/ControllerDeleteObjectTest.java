@@ -45,6 +45,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -103,7 +104,7 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testDeleteCorrectRepo() throws FaultMessage, JAXBException, ObjectNotFoundException, SchemaException,
-			ConsistencyViolationException, CommunicationException, FileNotFoundException {
+			ConsistencyViolationException, CommunicationException, FileNotFoundException, ConfigurationException {
 		final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
 				"delete-user.xml"), UserType.class);
 
@@ -123,7 +124,7 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testDeleteCorrectProvisioning() throws FaultMessage, JAXBException, ObjectNotFoundException,
-			SchemaException, CommunicationException, ConsistencyViolationException, FileNotFoundException {
+			SchemaException, CommunicationException, ConsistencyViolationException, FileNotFoundException, ConfigurationException {
 		final ResourceType expectedResource = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON,
 				"resource.xml"), ResourceType.class);
 

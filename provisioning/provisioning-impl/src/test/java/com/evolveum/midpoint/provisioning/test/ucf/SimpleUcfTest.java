@@ -58,6 +58,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -177,7 +178,7 @@ public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
 	@Test
 	public void testCreateConfiguredConnector() throws FileNotFoundException, JAXBException,
 			ObjectNotFoundException, CommunicationException,
-			GenericFrameworkException, SchemaException {
+			GenericFrameworkException, SchemaException, ConfigurationException {
 		displayTestTile("testCreateConfiguredConnector");
 		
 		ConnectorInstance cc = manager.createConnectorInstance(connectorType, resourceType.getNamespace());

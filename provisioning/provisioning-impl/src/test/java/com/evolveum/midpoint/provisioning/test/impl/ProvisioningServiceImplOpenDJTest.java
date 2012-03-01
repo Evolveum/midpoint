@@ -81,6 +81,7 @@ import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -315,7 +316,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	}
 	
 	@Test
-	public void test005Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException {
+	public void test005Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 		displayTestTile("test005Capabilities");
 
 		// GIVEN

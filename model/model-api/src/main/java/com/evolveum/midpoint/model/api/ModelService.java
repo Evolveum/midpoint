@@ -34,6 +34,7 @@ import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -178,6 +179,7 @@ public interface ModelService {
 	 * @throws ExpressionEvaluationException 
 	 * 				evaluation of expression associated with the object has failed
 	 * @throws CommunicationException 
+	 * @throws ConfigurationException 
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 * @throws SystemException
@@ -185,7 +187,7 @@ public interface ModelService {
 	 *             state
 	 */
 	<T extends ObjectType> String addObject(PrismObject<T> object, Task task, OperationResult parentResult) throws ObjectAlreadyExistsException,
-			ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException;
+			ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
 	/**
 	 * <p>
@@ -225,7 +227,8 @@ public interface ModelService {
 	 *             state
 	 */
 	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, Task task,
-			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException;
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
+			CommunicationException, ConfigurationException;
 
 	/**
 	 * <p>
@@ -247,12 +250,13 @@ public interface ModelService {
 	 *             sub-operation failed, cannot delete objects as its deletion
 	 *             would lead to inconsistent state
 	 * @throws CommunicationException 
+	 * @throws ConfigurationException 
 	 * @throws SystemException
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
 	<T extends ObjectType> void deleteObject(Class<T> type, String oid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, ConsistencyViolationException, CommunicationException, SchemaException;
+			throws ObjectNotFoundException, ConsistencyViolationException, CommunicationException, SchemaException, ConfigurationException;
 
 	/**
 	 * <p>

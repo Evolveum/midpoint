@@ -150,10 +150,11 @@ public class ShadowCache {
 	 *             problem communicating with the resource
 	 * @throws SchemaException
 	 *             problem processing schema or schema violation
+	 * @throws ConfigurationException 
 	 */
 	public <T extends ResourceObjectShadowType> T getShadow(Class<T> type, String oid, T repositoryShadow,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
-			SchemaException {
+			SchemaException, ConfigurationException {
 
 		Validate.notNull(oid, "Object id must not be null.");
 
@@ -204,6 +205,10 @@ public class ShadowCache {
 			// CommunicationException("Error communicating with the connector",
 			// ex);
 			throw ex;
+		} catch (ConfigurationException ex) {
+			parentResult.recordFatalError(
+					"Configuration error. Reason: " + ex.getMessage(), ex);
+			throw ex;
 		}
 		parentResult.recordSuccess();
 		return resultShadow;
@@ -212,7 +217,7 @@ public class ShadowCache {
 
 	public String addShadow(ResourceObjectShadowType shadow, ScriptsType scripts, ResourceType resource,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
-			ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+			ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, ConfigurationException {
 
 		Validate.notNull(shadow, "Object to add must not be null.");
 
@@ -290,7 +295,7 @@ public class ShadowCache {
 
 	public void deleteShadow(ObjectType objectType, ScriptsType scripts, ResourceType resource,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
-			ObjectNotFoundException, SchemaException {
+			ObjectNotFoundException, SchemaException, ConfigurationException {
 
 		Validate.notNull(objectType, "Object to delete must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -361,7 +366,7 @@ public class ShadowCache {
 	public void modifyShadow(ObjectType objectType, ResourceType resource, String oid,
 			Collection<? extends ItemDelta> modifications, ScriptsType scripts, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
-			SchemaException {
+			SchemaException, ConfigurationException {
 
 		Validate.notNull(objectType, "Object to modify must not be null.");
 		Validate.notNull(oid, "OID must not be null.");
@@ -443,7 +448,7 @@ public class ShadowCache {
 	}
 
 	public PrismProperty fetchCurrentToken(ResourceType resourceType, OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, SchemaException {
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 
 		Validate.notNull(resourceType, "Resource must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -455,7 +460,9 @@ public class ShadowCache {
 		} catch (CommunicationException e) {
 			parentResult.recordFatalError(e.getMessage(), e);
 			throw e;
-
+		} catch (ConfigurationException e) {
+			parentResult.recordFatalError(e.getMessage(), e);
+			throw e;
 		}
 
 		LOGGER.trace("Got last token: {}", SchemaDebugUtil.prettyPrint(lastToken));
@@ -694,7 +701,7 @@ public class ShadowCache {
 
 	private ResourceObjectShadowType findOrCreateShadowFromChange(ResourceType resource, Change change,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-			CommunicationException, GenericFrameworkException {
+			CommunicationException, GenericFrameworkException, ConfigurationException {
 
 		// Try to locate existing shadow in the repository
 		List<PrismObject<AccountShadowType>> accountList = searchAccountByIdenifiers(change, parentResult);
@@ -777,7 +784,7 @@ public class ShadowCache {
 	}
 
 	private ResourceType getResource(String oid, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		// TODO: add some caching
 		PrismObject<ResourceType> resource = getRepositoryService().getObject(ResourceType.class, oid, null, parentResult);
 		// return resource;

@@ -135,7 +135,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 */
 	@Override
 	public void configure(PrismContainer configuration, OperationResult parentResult)
-			throws CommunicationException, GenericFrameworkException, SchemaException {
+			throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".configure");
@@ -183,6 +183,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (GenericFrameworkException) midpointEx;
 			} else if (midpointEx instanceof SchemaException) {
 				throw (SchemaException) midpointEx;
+			} else if (midpointEx instanceof ConfigurationException) {
+				throw (ConfigurationException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
 			} else {
@@ -1885,9 +1887,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * @param resourceType
 	 *            midPoint XML configuration
 	 * @throws SchemaException
+	 * @throws ConfigurationException 
 	 */
 	private void transformConnectorConfiguration(APIConfiguration apiConfig,
-			PrismContainer configuration) throws SchemaException {
+			PrismContainer configuration) throws SchemaException, ConfigurationException {
 
 		ConfigurationProperties configProps = apiConfig.getConfigurationProperties();
 
@@ -1930,7 +1933,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 		
 	private int transformConnectorConfiguration(ConfigurationProperties configProps,
-			PrismContainer<?> configurationPropertiesContainer, String connectorConfNs) {
+			PrismContainer<?> configurationPropertiesContainer, String connectorConfNs) throws ConfigurationException {
 
 		int numConfingProperties = 0;
 		
@@ -1961,10 +1964,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				// behave accordingly
 				Class<?> type = property.getType();
 				if (type.isArray()) {
-					property.setValue(prismProperty.getRealValuesArray(type.getComponentType()));
+					property.setValue(convertToIcfArray(prismProperty, type.getComponentType()));
+					//property.setValue(prismProperty.getRealValuesArray(type.getComponentType()));
 				} else {
 					// Single-valued property are easy to convert
-					property.setValue(prismProperty.getRealValue(type));
+					property.setValue(convertToIcfSingle(prismProperty, type));
+					//property.setValue(prismProperty.getRealValue(type));
 				}
 			}	
 		}	
@@ -2049,29 +2054,44 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private Object convertToJava(Element configElement, Class type) throws SchemaException {
-		Object value = null;
-		Class midPointClass = type;
-		if (type.equals(GuardedString.class)) {
-			// Guarded string is a special ICF beast
-			midPointClass = ProtectedStringType.class;
-		} else if (type.equals(GuardedByteArray.class)) {
-			// Guarded byte array is a special ICF beast
-			// TODO
+	private Object convertToIcfSingle(PrismProperty configProperty, Class expectedType) throws ConfigurationException {
+		if (configProperty == null) {
+			return null;
 		}
-		value = XmlTypeConverter.toJavaValue(configElement, midPointClass);
-		if (type.equals(GuardedString.class)) {
+		PrismPropertyValue pval = configProperty.getValue();
+		return convertToIcf(pval, expectedType);
+	}
+	
+	private Object[] convertToIcfArray(PrismProperty prismProperty, Class<?> componentType) throws ConfigurationException {
+		List<PrismPropertyValue> values = prismProperty.getValues();
+		Object valuesArrary = Array.newInstance(componentType, values.size());
+		for (int j = 0; j < values.size(); ++j) {
+			Object icfValue = convertToIcf(values.get(j), componentType);
+			Array.set(valuesArrary, j, icfValue);
+		}
+		return (Object[]) valuesArrary;
+	}
+
+	
+	private Object convertToIcf(PrismPropertyValue pval, Class expectedType) throws ConfigurationException  {
+		if (expectedType.equals(GuardedString.class)) {
 			// Guarded string is a special ICF beast
 			// The value must be ProtectedStringType
-			ProtectedStringType ps = (ProtectedStringType) value;
-			return toGuardedString(ps, DOMUtil.getQName(configElement).toString());
-		} else if (type.equals(GuardedByteArray.class)) {
+			Object midPointValue = pval.getValue();
+			if (midPointValue instanceof ProtectedStringType) {
+				ProtectedStringType ps = (ProtectedStringType) pval.getValue();
+				return toGuardedString(ps, pval.getParent().getName().getLocalPart());
+			} else {
+				throw new ConfigurationException("Expected protected string as value of configuration property "+
+						pval.getParent().getName().getLocalPart()+" but got "+midPointValue.getClass());
+			}
+			
+		} else if (expectedType.equals(GuardedByteArray.class)) {
 			// Guarded string is a special ICF beast
 			// TODO
-			return new GuardedByteArray(Base64.decodeBase64(configElement.getTextContent()));
+			return new GuardedByteArray(Base64.decodeBase64((String)pval.getValue()));
 		}
-		return value;
+		return pval.getValue();
 	}
 
 	private GuardedString toGuardedString(ProtectedStringType ps, String propertyName) {

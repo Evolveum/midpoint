@@ -86,6 +86,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -284,7 +285,7 @@ public class ModelController implements ModelService {
 	@Override
 	public <T extends ObjectType> String addObject(PrismObject<T> object, Task task, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException,
-			ExpressionEvaluationException, CommunicationException {
+			ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		Validate.notNull(object, "Object must not be null.");
 		Validate.notNull(parentResult, "Result type must not be null.");
 		
@@ -373,6 +374,10 @@ public class ModelController implements ModelService {
 			LOGGER.error("model.addObject failed: {}", ex.getMessage(), ex);
 			throw ex;
 		} catch (ObjectAlreadyExistsException ex) {
+			result.recordFatalError(ex);
+			LOGGER.error("model.addObject failed: {}", ex.getMessage(), ex);
+			throw ex;
+		} catch (ConfigurationException ex) {
 			result.recordFatalError(ex);
 			LOGGER.error("model.addObject failed: {}", ex.getMessage(), ex);
 			throw ex;
@@ -468,7 +473,7 @@ public class ModelController implements ModelService {
 	}
 
 	private SyncContext userTypeAddToContext(PrismObject<UserType> user, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, CommunicationException {
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 
 		UserType userType = user.asObjectable();
 		SyncContext syncContext = new SyncContext(prismContext);
@@ -623,7 +628,7 @@ public class ModelController implements ModelService {
 	@Override
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, Task task,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-			CommunicationException {
+			CommunicationException, ConfigurationException {
 
 		Validate.notNull(modifications, "Object modification must not be null.");
 		Validate.notEmpty(oid, "Change oid must not be null or empty.");
@@ -737,6 +742,11 @@ public class ModelController implements ModelService {
 			logDebugChange(type, oid, modifications);
 			result.recordFatalError(ex);
 			throw ex;
+		} catch (ConfigurationException ex) {
+			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
+			logDebugChange(type, oid, modifications);
+			result.recordFatalError(ex);
+			throw ex;
 		} catch (RuntimeException ex) {
 			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
 			logDebugChange(type, oid, modifications);
@@ -775,7 +785,7 @@ public class ModelController implements ModelService {
 
 	private void addAccountToContext(SyncContext syncContext, AccountShadowType accountType,
 			ChangeType changeType, OperationResult result) throws SchemaException,
-			ObjectNotFoundException, CommunicationException {
+			ObjectNotFoundException, CommunicationException, ConfigurationException {
 
 		String resourceOid = ResourceObjectShadowUtil.getResourceOid(accountType);
 		if (resourceOid == null) {
@@ -804,7 +814,7 @@ public class ModelController implements ModelService {
 	@Override
 	public <T extends ObjectType> void deleteObject(Class<T> clazz, String oid, Task task,
 			OperationResult parentResult) throws ObjectNotFoundException, ConsistencyViolationException,
-			CommunicationException, SchemaException {
+			CommunicationException, SchemaException, ConfigurationException {
 		Validate.notNull(clazz, "Class must not be null.");
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(parentResult, "Result type must not be null.");
@@ -859,6 +869,9 @@ public class ModelController implements ModelService {
 				} catch (ExpressionEvaluationException e) {
 					// TODO Better handling
 					throw new SystemException(e.getMessage(), e);
+				} catch (ConfigurationException e) {
+					// TODO Better handling
+					throw e;
 				}
 
 				changes = syncContext.getAllChanges();

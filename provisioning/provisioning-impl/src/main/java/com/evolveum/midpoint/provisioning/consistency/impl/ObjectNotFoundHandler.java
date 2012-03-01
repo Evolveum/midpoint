@@ -19,6 +19,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -70,7 +71,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 	@Override
 	public void handleError(ResourceObjectShadowType shadow, Exception ex) throws SchemaException,
 			GenericFrameworkException, CommunicationException, ObjectNotFoundException,
-			ObjectAlreadyExistsException {
+			ObjectAlreadyExistsException, ConfigurationException {
 
 		if (shadow.getFailedOperationType() == FailedOperationTypeType.DELETE) {
 //

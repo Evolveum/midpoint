@@ -91,7 +91,7 @@ public class ShadowConverter {
 
 	public <T extends ResourceObjectShadowType> T getShadow(Class<T> type, ResourceType resource, T repoShadow,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
-			SchemaException {
+			SchemaException, ConfigurationException {
 
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
@@ -144,7 +144,7 @@ public class ShadowConverter {
 	}
 
 	public ResourceType completeResource(ResourceType resource, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 
 		return resourceTypeManager.completeResource(resource, null, parentResult);
 	}
@@ -152,7 +152,7 @@ public class ShadowConverter {
 	public ResourceObjectShadowType addShadow(ResourceType resource, ResourceObjectShadowType shadow,
 			Set<Operation> additionalOperations, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException,
-			ObjectAlreadyExistsException {
+			ObjectAlreadyExistsException, ConfigurationException {
 
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 		PrismSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
@@ -197,7 +197,7 @@ public class ShadowConverter {
 
 	public void deleteShadow(ResourceType resource, ResourceObjectShadowType shadow,
 			Set<Operation> additionalOperations, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
 		PrismSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
@@ -241,7 +241,7 @@ public class ShadowConverter {
 	public Set<PropertyModificationOperation> modifyShadow(ResourceType resource,
 			ResourceObjectShadowType shadow, Set<Operation> operations, String oid, Collection<? extends ItemDelta> objectChanges,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
-			CommunicationException {
+			CommunicationException, ConfigurationException {
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
 		PrismSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
@@ -289,7 +289,7 @@ public class ShadowConverter {
 	}
 
 	public PrismProperty fetchCurrentToken(ResourceType resourceType, OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, SchemaException {
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 
 		Validate.notNull(resourceType, "Resource must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -356,7 +356,7 @@ public class ShadowConverter {
 
 	public ResourceObjectShadowType createNewAccountFromChange(Change change, ResourceType resource,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-			CommunicationException, GenericFrameworkException {
+			CommunicationException, GenericFrameworkException, ConfigurationException {
 
 		ResourceAttributeContainer resourceObject = null;
 
@@ -444,7 +444,7 @@ public class ShadowConverter {
 	}
 	
 	private ConnectorInstance getConnectorInstance(ResourceType resource, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		return connectorTypeManager.getConfiguredConnectorInstance(resource, parentResult);
 	}
 

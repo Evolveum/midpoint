@@ -68,14 +68,14 @@ public class ChangeExecutor {
     private ProvisioningService provisioning;
 
     public void executeChanges(Collection<ObjectDelta<? extends ObjectType>> changes, OperationResult result) throws
-            ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException {
+            ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
         for (ObjectDelta<? extends ObjectType> change : changes) {
             executeChange(change, result);
         }
     }
 
     public void executeChanges(SyncContext syncContext, OperationResult result) throws ObjectAlreadyExistsException,
-            ObjectNotFoundException, SchemaException, CommunicationException {
+            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
         ObjectDelta<UserType> userDelta = syncContext.getUserDelta();
         if (userDelta != null) {
             LOGGER.trace("Executing USER change " + userDelta);
@@ -193,7 +193,7 @@ public class ChangeExecutor {
     }
 
     public <T extends ObjectType> void executeChange(ObjectDelta<T> change, OperationResult result) throws ObjectAlreadyExistsException,
-            ObjectNotFoundException, SchemaException, CommunicationException {
+            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 
         if (change == null) {
             throw new IllegalArgumentException("Null change");
@@ -211,7 +211,7 @@ public class ChangeExecutor {
     }
 
     private <T extends ObjectType> void executeAddition(ObjectDelta<T> change, OperationResult result) throws ObjectAlreadyExistsException,
-            ObjectNotFoundException, SchemaException, CommunicationException {
+            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 
         PrismObject<T> objectToAdd = change.getObjectToAdd();
 
@@ -283,7 +283,7 @@ public class ChangeExecutor {
 
     private String addProvisioningObject(ObjectType object, OperationResult result)
             throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException,
-            CommunicationException {
+            CommunicationException, ConfigurationException {
 
         if (object instanceof ResourceObjectShadowType) {
             ResourceObjectShadowType shadow = (ResourceObjectShadowType) object;
@@ -303,9 +303,11 @@ public class ChangeExecutor {
             throw ex;
         } catch (CommunicationException ex) {
             throw ex;
+        } catch (ConfigurationException e) {
+			throw e;
         } catch (RuntimeException ex) {
             throw new SystemException(ex.getMessage(), ex);
-        }
+		}
     }
 
     private void deleteProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid,
@@ -336,7 +338,7 @@ public class ChangeExecutor {
     }
 
     private ScriptsType getScripts(ObjectType object, OperationResult result) throws ObjectNotFoundException,
-            SchemaException, CommunicationException {
+            SchemaException, CommunicationException, ConfigurationException {
         ScriptsType scripts = null;
         if (object instanceof ResourceType) {
             ResourceType resource = (ResourceType) object;

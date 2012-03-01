@@ -133,13 +133,14 @@ public interface ProvisioningService {
 	 *             error communicating with the resource
 	 * @throws SchemaException
 	 *             error dealing with resource schema
+	 * @throws ConfigurationException 
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, PropertyReferenceListType resolve, OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, SchemaException;
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException;
 	
 	/**
 	 * Add new object.
@@ -177,13 +178,14 @@ public interface ProvisioningService {
 	 * @throws CommunicationException
 	 *             error communicating with the resource
 	 * @throws ObjectNotFoundException appropriate connector object was not found
+	 * @throws ConfigurationException 
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
 	public <T extends ObjectType> String addObject(PrismObject<T> object, ScriptsType scripts, OperationResult parentResult)
-			throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException;
+			throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException;
 
 	/**
 	 * Collect external changes on a resource and call the business logic with
@@ -261,9 +263,10 @@ public interface ProvisioningService {
 	 *             unknown connector framework error
 	 * @throws SchemaException
 	 *             unknown property used in search query
+	 * @throws ConfigurationException 
 	 */
 	public <T extends ObjectType> ResultList<PrismObject<T>> searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, CommunicationException;
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 	
 	/**
 	 * Search for objects iteratively. Searches through all object types. Calls a
@@ -290,10 +293,11 @@ public interface ProvisioningService {
 	 * @throws SchemaException
 	 *             unknown property used in search query
 	 * @throws ObjectNotFoundException appropriate connector object was not found
+	 * @throws ConfigurationException 
 	 */
 	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, QueryType query, PagingType paging, 
 			final ResultHandler<T> handler, final OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, CommunicationException;
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 
 	/**
 	 * Modifies object using relative change description. Must fail if user with
@@ -328,7 +332,8 @@ public interface ProvisioningService {
 	 *             unknown connector framework error
 	 */
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
-			ScriptsType scripts, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException;
+			ScriptsType scripts, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, 
+			CommunicationException, ConfigurationException;
 
 	/**
 	 * <p>Deletes object with specified OID.</p>
@@ -346,13 +351,14 @@ public interface ProvisioningService {
 	 * 
 	 * @throws ObjectNotFoundException
 	 *             specified object does not exist
+	 * @throws ConfigurationException 
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
 	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ScriptsType scripts, OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, SchemaException;
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException;
 
 	/**
 	 * Returns list of available values for specified properties.

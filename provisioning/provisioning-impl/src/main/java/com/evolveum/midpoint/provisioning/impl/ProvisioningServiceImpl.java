@@ -166,7 +166,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
-			SchemaException {
+			SchemaException, ConfigurationException {
 
 		Validate.notNull(oid, "Oid of object to get must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -225,6 +225,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				LOGGER.error("Can't get obejct with oid {}. Reason {}", oid, e);
 				result.recordFatalError(e);
 				throw e;
+			} catch (ConfigurationException e) {
+				LOGGER.error("Can't get obejct with oid {}. Reason {}", oid, e);
+				result.recordFatalError(e);
+				throw e;
 			}
 
 			// TODO: object resolving
@@ -261,7 +265,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public <T extends ObjectType> String addObject(PrismObject<T> object, ScriptsType scripts, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException, CommunicationException,
-			ObjectNotFoundException {
+			ObjectNotFoundException, ConfigurationException {
 		// TODO
 
 		Validate.notNull(object, "Object to add must not be null.");
@@ -294,6 +298,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				result.recordFatalError("Could't add object. Object already exist, " + ex.getMessage(), ex);
 				throw new ObjectAlreadyExistsException("Could't add object. Object already exist, "
 						+ ex.getMessage(), ex);
+			} catch (ConfigurationException ex) {
+				result.recordFatalError("Could't add object. Configuration error, " + ex.getMessage(), ex);
+				throw ex;
 			}
 		} else {
 			oid = cacheRepositoryService.addObject(object, result);
@@ -551,6 +558,15 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					result.addSubresult(objResult);
 					result.recordPartialError(e);
 
+				} catch (ConfigurationException e) {
+					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
+							resource, e.getMessage(), e });
+					objResult.recordFatalError(e);
+					obj.asObjectable().setFetchResult(objResult.createOperationResultType());
+					newObjListType.add(obj);
+					result.addSubresult(objResult);
+					result.recordPartialError(e);
+					
 				} catch (RuntimeException e) {
 					// FIXME: Strictly speaking, the runtime exception should
 					// not be handled here.
@@ -581,7 +597,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public <T extends ObjectType> ResultList<PrismObject<T>> searchObjects(Class<T> type, QueryType query,
 			PagingType paging, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-			CommunicationException {
+			CommunicationException, ConfigurationException {
 
 		final ResultList<PrismObject<T>> objListType = new ResultArrayList<PrismObject<T>>();
 
@@ -601,7 +617,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
 			ScriptsType scripts, OperationResult parentResult) throws ObjectNotFoundException,
-			SchemaException, CommunicationException {
+			SchemaException, CommunicationException, ConfigurationException {
 
 		Validate.notNull(oid, "OID must not be null.");
 		Validate.notNull(modifications, "Modifications must not be null.");
@@ -649,6 +665,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		} catch (RuntimeException e) {
 			result.recordFatalError(e);
 			throw new SystemException("Internal error: " + e.getMessage(), e);
+		} catch (ConfigurationException e) {
+			result.recordFatalError(e);
+			throw e;
 		}
 
 		LOGGER.trace("Finished modifying of object with oid {}", oid);
@@ -657,7 +676,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ScriptsType scripts,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
-			SchemaException {
+			SchemaException, ConfigurationException {
 		// TODO Auto-generated method stub
 
 		Validate.notNull(oid, "Oid of object to delete must not be null.");
@@ -691,14 +710,17 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				getShadowCache().deleteShadow(object.asObjectable(), scripts, null, parentResult);
 				result.recordSuccess();
 			} catch (CommunicationException e) {
-				result.recordFatalError(e.getMessage());
+				result.recordFatalError(e);
 				throw new CommunicationException(e.getMessage(), e);
 			} catch (GenericFrameworkException e) {
-				result.recordFatalError(e.getMessage());
+				result.recordFatalError(e);
 				throw new CommunicationException(e.getMessage(), e);
 			} catch (SchemaException e) {
-				result.recordFatalError(e.getMessage());
+				result.recordFatalError(e);
 				throw new SchemaException(e.getMessage(), e);
+			} catch (ConfigurationException e) {
+				result.recordFatalError(e);
+				throw e;
 			}
 
 		} else {
@@ -812,7 +834,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, QueryType query, PagingType paging, 
 			final ResultHandler<T> handler, final OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-			CommunicationException {
+			CommunicationException, ConfigurationException {
 
 		Validate.notNull(query, "Search query must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -882,6 +904,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		} catch (ObjectNotFoundException e) {
 			result.recordFatalError("Resource with oid " + resourceOid + "not found. Reason: " + e);
 			throw new ObjectNotFoundException(e.getMessage(), e);
+		} catch (ConfigurationException e) {
+			result.recordFatalError("Configuration error regarding resource with oid " + resourceOid + "not found. Reason: " + e);
+			throw e;
 		}
 
 		final ShadowHandler shadowHandler = new ShadowHandler() {

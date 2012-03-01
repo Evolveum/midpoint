@@ -24,6 +24,7 @@ package com.evolveum.midpoint.model.util;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -40,7 +41,7 @@ public final class Utils {
     }
 
     public static void resolveResource(ResourceObjectShadowType shadow, ProvisioningService provisioning,
-            OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException {
+            OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException, ConfigurationException {
 
         Validate.notNull(shadow, "Resource object shadow must not be null.");
         Validate.notNull(provisioning, "Provisioning service must not be null.");
@@ -51,7 +52,7 @@ public final class Utils {
     }
 
     public static ResourceType getResource(ResourceObjectShadowType shadow, ProvisioningService provisioning,
-            OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException {
+            OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException, ConfigurationException {
 
         if (shadow.getResource() != null) {
             return shadow.getResource();

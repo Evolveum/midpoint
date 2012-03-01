@@ -41,6 +41,7 @@ import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -295,7 +296,15 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             runResult.setProgress(handler.getProgress());
             return runResult;
-        }
+        } catch (ConfigurationException ex) {
+        	LOGGER.error("Import: Configuration error: {}", ex.getMessage(), ex);
+            // Not sure about this. But most likely it is a misconfigured resource or connector
+            // It may be worth to retry. Error is fatal, but may not be permanent.
+            opResult.recordFatalError("Configuration error: " + ex.getMessage(), ex);
+            runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+            runResult.setProgress(handler.getProgress());
+            return runResult;
+		}
 
         // TODO: check last handler status
 

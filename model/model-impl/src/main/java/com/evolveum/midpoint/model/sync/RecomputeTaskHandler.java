@@ -53,6 +53,7 @@ import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -126,21 +127,21 @@ public class RecomputeTaskHandler implements TaskHandler {
 			runResult.setProgress(progress);
 			return runResult;
 		} catch (ObjectAlreadyExistsException ex) {
-			LOGGER.error("Reconciliation: Object already exist: {}",ex.getMessage(),ex);
+			LOGGER.error("Recompute: Object already exist: {}",ex.getMessage(),ex);
 			// This is bad. The resource does not exist. Permanent problem.
 			opResult.recordFatalError("Object already exist: "+ex.getMessage(),ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
 		} catch (CommunicationException ex) {
-			LOGGER.error("Reconciliation: Communication error: {}",ex.getMessage(),ex);
+			LOGGER.error("Recompute: Communication error: {}",ex.getMessage(),ex);
 			// Error, but not critical. Just try later.
 			opResult.recordPartialError("Communication error: "+ex.getMessage(),ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
 		} catch (SchemaException ex) {
-			LOGGER.error("Reconciliation: Error dealing with schema: {}",ex.getMessage(),ex);
+			LOGGER.error("Recompute: Error dealing with schema: {}",ex.getMessage(),ex);
 			// Not sure about this. But most likely it is a misconfigured resource or connector
 			// It may be worth to retry. Error is fatal, but may not be permanent.
 			opResult.recordFatalError("Error dealing with schema: "+ex.getMessage(),ex);
@@ -148,34 +149,43 @@ public class RecomputeTaskHandler implements TaskHandler {
 			runResult.setProgress(progress);
 			return runResult;
 		} catch (ExpressionEvaluationException ex) {
-			LOGGER.error("Reconciliation: Error evaluating expression: {}",ex.getMessage(),ex);
+			LOGGER.error("Recompute: Error evaluating expression: {}",ex.getMessage(),ex);
 			opResult.recordFatalError("Error evaluating expression: "+ex.getMessage(),ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
 		} catch (RuntimeException ex) {
-			LOGGER.error("Reconciliation: Internal Error: {}",ex.getMessage(),ex);
+			LOGGER.error("Recompute: Internal Error: {}",ex.getMessage(),ex);
 			// Can be anything ... but we can't recover from that.
 			// It is most likely a programming error. Does not make much sense to retry.
 			opResult.recordFatalError("Internal Error: "+ex.getMessage(),ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
+		} catch (ConfigurationException ex) {
+			LOGGER.error("Recompute: Configuration error: {}",ex.getMessage(),ex);
+			// Not sure about this. But most likely it is a misconfigured resource or connector
+			// It may be worth to retry. Error is fatal, but may not be permanent.
+			opResult.recordFatalError("Configuration error: "+ex.getMessage(),ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
 		}
 		
-		opResult.computeStatus("Reconciliation run has failed");
+		opResult.computeStatus("Recompute run has failed");
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		runResult.setProgress(progress);
-		LOGGER.trace("Reconciliation.run stopping");
+		LOGGER.trace("Recompute.run stopping");
 		return runResult;
 	}
 
 
 	/**
 	 * Iterate over all the users, trigger a recompute of each of them
+	 * @throws ConfigurationException 
 	 */
-	private void performUserRecompute(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException {
+	private void performUserRecompute(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, ConfigurationException {
 		
 		PagingType paging = new PagingType();
 		
@@ -199,7 +209,7 @@ public class RecomputeTaskHandler implements TaskHandler {
 		
 	}
 
-	private void recomputeUser(PrismObject<UserType> user, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException {
+	private void recomputeUser(PrismObject<UserType> user, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, ConfigurationException {
 		LOGGER.trace("Reconciling user {}", user);
 		
 		SyncContext syncContext = new SyncContext(prismContext);

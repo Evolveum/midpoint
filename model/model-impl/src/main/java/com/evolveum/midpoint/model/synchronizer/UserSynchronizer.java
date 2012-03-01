@@ -40,6 +40,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -94,7 +95,7 @@ public class UserSynchronizer {
     private PrismContext prismContext;
 
     public void synchronizeUser(SyncContext context, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
+            ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 
         loadUser(context, result);
         loadFromSystemConfig(context, result);
@@ -148,7 +149,7 @@ public class UserSynchronizer {
     }
 
     private void checkAccountContextReconciliation(SyncContext context, OperationResult result)
-            throws ObjectNotFoundException, CommunicationException, SchemaException {
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 
         OperationResult subResult = result.createSubresult(UserSynchronizer.class + ".checkAccountContextReconciliation");
         try {
@@ -216,7 +217,7 @@ public class UserSynchronizer {
     }
 
     private void loadAccountRefs(SyncContext context, OperationResult result) throws ObjectNotFoundException,
-            SchemaException, CommunicationException {
+            SchemaException, CommunicationException, ConfigurationException {
         PolicyDecision policyDecision = null;
         if (context.getUserPrimaryDelta() != null && context.getUserPrimaryDelta().getChangeType() == ChangeType.DELETE) {
             // If user is deleted, all accounts should also be deleted
@@ -242,9 +243,10 @@ public class UserSynchronizer {
 
     /**
      * Does not overwrite existing account contexts, just adds new ones.
+     * @throws ConfigurationException 
      */
     private void loadAccountRefsFromUser(SyncContext context, UserType userType, PolicyDecision policyDecision,
-            OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException {
+            OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
         for (ObjectReferenceType accountRef : userType.getAccountRef()) {
             String oid = accountRef.getOid();
             if (accountContextAlreadyExists(oid, context)) {

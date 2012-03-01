@@ -136,9 +136,10 @@ public class ResourceTypeManager {
 	 * @throws SchemaException
 	 * @throws CommunicationException
 	 *             cannot fetch resource schema
+	 * @throws ConfigurationException 
 	 */
 	public ResourceType completeResource(ResourceType resource, PrismSchema resourceSchema, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, CommunicationException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 
 		// Check presence of a schema
 		XmlSchemaType xmlSchemaType = resource.getSchema();
@@ -240,6 +241,9 @@ public class ResourceTypeManager {
 		} catch (CommunicationException e) {
 			initResult.recordFatalError("Communication error", e);
 			return;
+		} catch (ConfigurationException e) {
+			initResult.recordFatalError("Configuration error", e);
+			return;
 		}
 		LOGGER.debug("Testing connection to the resource with oid {}", resourceType.getOid());
 
@@ -259,6 +263,9 @@ public class ResourceTypeManager {
 			return;
 		} catch (SchemaException e) {
 			configResult.recordFatalError("Schema error", e);
+			return;
+		} catch (ConfigurationException e) {
+			configResult.recordFatalError("Configuration error", e);
 			return;
 		} catch (RuntimeException e) {
 			configResult.recordFatalError("Unexpected runtime error", e);
@@ -324,6 +331,9 @@ public class ResourceTypeManager {
 		} catch (CommunicationException e) {
 			schemaResult.recordFatalError("Communication error: " + e.getMessage(), e);
 			return;
+		} catch (ConfigurationException e) {
+			schemaResult.recordFatalError("Configuration error: " + e.getMessage(), e);
+			return;
 		}
 
 		schemaResult.recordSuccess();
@@ -380,7 +390,7 @@ public class ResourceTypeManager {
 	}
 
 	public PrismSchema getResourceSchema(ResourceType resource, ConnectorInstance connector,
-			OperationResult parentResult) throws SchemaException, CommunicationException {
+			OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException {
 
 		PrismSchema schema = null;
 		try {
@@ -398,6 +408,9 @@ public class ResourceTypeManager {
 			// this really should not happen
 			parentResult.recordFatalError("Unexpected ObjectNotFoundException: " + e.getMessage(), e);
 			throw new SystemException("Unexpected ObjectNotFoundException: " + e.getMessage(), e);
+		} catch (ConfigurationException e) {
+			parentResult.recordFatalError("Unable to parse resource schema: " + e.getMessage(), e);
+			throw new ConfigurationException("Unable to parse resource schema: " + e.getMessage(), e);
 		}
 
 		checkSchema(schema);
@@ -500,7 +513,7 @@ public class ResourceTypeManager {
 	public <T extends ResourceObjectShadowType> void searchObjectsIterative(final Class<T> type, final QName objectClass, 
 			final ResourceType resourceType, final ShadowHandler handler, final DiscoveryHandler discoveryHandler,
 			final OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
-			SchemaException {
+			SchemaException, ConfigurationException {
 
 		Validate.notNull(resourceType, "Resource must not be null.");
 		Validate.notNull(objectClass, "Object class must not be null.");
@@ -698,16 +711,8 @@ public class ResourceTypeManager {
 		resource.setNativeCapabilities(capType);
 	}
 
-	/**
-	 * @param resource
-	 * @param parentResult
-	 * @return
-	 * @throws SchemaException
-	 * @throws ObjectNotFoundException
-	 * @throws CommunicationException
-	 */
 	private ConnectorInstance getConnectorInstance(ResourceType resource, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		return connectorTypeManager.getConfiguredConnectorInstance(resource, parentResult);
 	}
 

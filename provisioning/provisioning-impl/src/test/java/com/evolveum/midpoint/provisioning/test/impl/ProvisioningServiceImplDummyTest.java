@@ -280,7 +280,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test004ParsedSchema() throws ObjectNotFoundException, CommunicationException, SchemaException {
+	public void test004ParsedSchema() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 		displayTestTile("test004ParsedSchema");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
@@ -340,7 +340,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test005Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException, JAXBException {
+	public void test005Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException, JAXBException, ConfigurationException {
 		displayTestTile("test005Capabilities");
 
 		// GIVEN
@@ -437,7 +437,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test011GetAccount() throws ObjectNotFoundException, CommunicationException, SchemaException {
+	public void test011GetAccount() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 		displayTestTile("test011GetAccount");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
@@ -458,7 +458,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 	
 	@Test
-	public void test012SeachIterative() throws SchemaException, ObjectNotFoundException, CommunicationException {
+	public void test012SeachIterative() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		displayTestTile("test012SeachIterative");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
@@ -512,7 +512,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 	@Test
 	public void test021EnableAccount() throws FileNotFoundException, JAXBException, ObjectNotFoundException,
-			SchemaException, CommunicationException {
+			SchemaException, CommunicationException, ConfigurationException {
 		displayTestTile("test021EnableAccount");
 		// GIVEN
 
@@ -546,7 +546,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 	@Test
 	public void test022DisableAccount() throws FileNotFoundException, JAXBException, ObjectNotFoundException,
-			SchemaException, CommunicationException {
+			SchemaException, CommunicationException, ConfigurationException {
 		displayTestTile("test022EnableAccount");
 		// GIVEN
 
@@ -581,7 +581,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 	@Test
 	public void test031AddScript() throws FileNotFoundException, JAXBException, ObjectAlreadyExistsException,
-			SchemaException, CommunicationException, ObjectNotFoundException {
+			SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException {
 		displayTestTile("test031AddScript");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()

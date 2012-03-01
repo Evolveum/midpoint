@@ -49,6 +49,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -88,7 +89,7 @@ public class ConnectorTypeManager {
 	private Map<String, ConfiguredConnectorInstanceEntry> connectorInstanceCache = new HashMap<String, ConnectorTypeManager.ConfiguredConnectorInstanceEntry>();
 
 	public ConnectorInstance getConfiguredConnectorInstance(ResourceType resource, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, CommunicationException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		String resourceOid = resource.getOid();
 		String connectorOid = ResourceTypeUtil.getConnectorOid(resource);
 		if (connectorInstanceCache.containsKey(resourceOid)) {
@@ -124,7 +125,7 @@ public class ConnectorTypeManager {
 	}
 
 	private ConnectorInstance createConfiguredConnectorInstance(ResourceType resource, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, CommunicationException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		// This log message should be INFO level. It happens only occasionally. If it happens often, it may be an
 		// indication of a problem. Therefore it is good for admin to see it. 
 		LOGGER.info("Creating new connector instance for {}", ObjectTypeUtil.toShortString(resource));
@@ -145,6 +146,10 @@ public class ConnectorTypeManager {
 			result.recordFatalError("Generic provisioning framework error", e);
 			throw new SystemException("Generic provisioning framework error: " + e.getMessage(), e);
 		} catch (CommunicationException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (ConfigurationException e) {
+			result.recordFatalError(e);
 			throw e;
 		}
 
