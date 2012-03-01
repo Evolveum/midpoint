@@ -32,9 +32,9 @@
 	<configuration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
 					   
-		<icfi:configurationProperties>
+		<icfc:configurationProperties>
 			<icfi:instanceId>foobar</icfi:instanceId>
-		</icfi:configurationProperties>
+		</icfc:configurationProperties>
 
 	</configuration>
 	<c:schema>

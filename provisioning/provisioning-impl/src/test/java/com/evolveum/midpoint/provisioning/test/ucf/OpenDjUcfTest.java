@@ -23,6 +23,7 @@ package com.evolveum.midpoint.provisioning.test.ucf;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.Definition;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -32,8 +33,11 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
@@ -41,6 +45,7 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -57,6 +62,7 @@ import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.annotations.*;
 import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -65,6 +71,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -95,8 +102,8 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	private static final String FILENAME_CONNECTOR_LDAP = "src/test/resources/ucf/ldap-connector.xml";
 
 	private JAXBContext jaxbctx;
-	ResourceType resource;
-	ResourceType badResource;
+	ResourceType resourceType;
+	ResourceType badResourceType;
 	ConnectorType connectorType;
 	private ConnectorFactory factory;
 	private ConnectorInstance cc;
@@ -118,6 +125,12 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
 	}
 
+	@BeforeSuite
+	public void setup() throws SchemaException, SAXException, IOException {
+		DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+	}
+	
 	@BeforeClass
 	public static void startLdap() throws Exception {
 		LOGGER.info("------------------------------------------------------------------------------");
@@ -141,28 +154,24 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		FileInputStream fis = new FileInputStream(file);
 
 		// Resource
-		Unmarshaller u = jaxbctx.createUnmarshaller();
-		Object object = u.unmarshal(fis);
-		resource = (ResourceType) ((JAXBElement) object).getValue();
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(FILENAME_RESOURCE_OPENDJ));
+		resourceType = resource.asObjectable();
 
 		// Resource: Second copy for negative test cases
-		file = new File(FILENAME_RESOURCE_OPENDJ_BAD);
-		fis = new FileInputStream(file);
-		object = u.unmarshal(fis);
-		badResource = (ResourceType) ((JAXBElement) object).getValue();
+		PrismObject<ResourceType> badResource = PrismTestUtil.parseObject(new File(FILENAME_RESOURCE_OPENDJ_BAD));
+		badResourceType = badResource.asObjectable();
 
 		// Connector
-		file = new File(FILENAME_CONNECTOR_LDAP);
-		fis = new FileInputStream(file);
-		object = u.unmarshal(fis);
-		connectorType = (ConnectorType) ((JAXBElement) object).getValue();
+		PrismObject<ConnectorType> connector = PrismTestUtil.parseObject(new File(FILENAME_CONNECTOR_LDAP));
+		connectorType = connector.asObjectable();
 
+		
 		factory = connectorFactoryIcfImpl;
 
-		cc = factory.createConnectorInstance(connectorType, resource.getNamespace());
+		cc = factory.createConnectorInstance(connectorType, resourceType.getNamespace());
 		AssertJUnit.assertNotNull(cc);
 		OperationResult result = new OperationResult("initUcf");
-		cc.configure(resource.getConfiguration().asPrismContainer(), result);
+		cc.configure(resourceType.getConfiguration().asPrismContainer(), result);
 		cc.initialize(result);
 		// TODO: assert something
 
@@ -182,7 +191,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testAdd");
 
 		ResourceAttributeContainerDefinition accountDefinition = (ResourceAttributeContainerDefinition) schema
-				.findContainerDefinitionByType(new QName(resource.getNamespace(), "AccountObjectClass"));
+				.findContainerDefinitionByType(new QName(resourceType.getNamespace(), "AccountObjectClass"));
 		ResourceAttributeContainer resourceObject = accountDefinition.instantiate();
 
 		PrismPropertyDefinition propertyDefinition = accountDefinition
@@ -192,18 +201,18 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		resourceObject.add(property);
 
 		propertyDefinition = accountDefinition
-				.findPropertyDefinition(new QName(resource.getNamespace(), "sn"));
+				.findPropertyDefinition(new QName(resourceType.getNamespace(), "sn"));
 		property = propertyDefinition.instantiate();
 		property.setValue(new PrismPropertyValue(familyName));
 		resourceObject.add(property);
 
 		propertyDefinition = accountDefinition
-				.findPropertyDefinition(new QName(resource.getNamespace(), "cn"));
+				.findPropertyDefinition(new QName(resourceType.getNamespace(), "cn"));
 		property = propertyDefinition.instantiate(null);
 		property.setValue(new PrismPropertyValue(givenName + " " + familyName));
 		resourceObject.add(property);
 
-		propertyDefinition = accountDefinition.findPropertyDefinition(new QName(resource.getNamespace(),
+		propertyDefinition = accountDefinition.findPropertyDefinition(new QName(resourceType.getNamespace(),
 				"givenName"));
 		property = propertyDefinition.instantiate(null);
 		property.setValue(new PrismPropertyValue(givenName));
@@ -280,14 +289,14 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 				identifiers, true, null, result);
 		ResourceAttributeContainer resObj = ResourceObjectShadowUtil.getAttributesContainer(shadow);
 
-		AssertJUnit.assertNull(resObj.findAttribute(new QName(resource.getNamespace(), "givenName")));
+		AssertJUnit.assertNull(resObj.findAttribute(new QName(resourceType.getNamespace(), "givenName")));
 
 		String addedEmployeeNumber = resObj
-				.findAttribute(new QName(resource.getNamespace(), "employeeNumber")).getValue(String.class)
+				.findAttribute(new QName(resourceType.getNamespace(), "employeeNumber")).getValue(String.class)
 				.getValue();
-		String changedSn = resObj.findAttribute(new QName(resource.getNamespace(), "sn"))
+		String changedSn = resObj.findAttribute(new QName(resourceType.getNamespace(), "sn"))
 				.getValue(String.class).getValue();
-		String addedStreet = resObj.findAttribute(new QName(resource.getNamespace(), "street"))
+		String addedStreet = resObj.findAttribute(new QName(resourceType.getNamespace(), "street"))
 				.getValue(String.class).getValue();
 
 		System.out.println("changed employee number: " + addedEmployeeNumber);
@@ -349,9 +358,9 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 
 	private PrismProperty createProperty(String propertyName, String propertyValue) {
 		ResourceAttributeContainerDefinition accountDefinition = (ResourceAttributeContainerDefinition) schema
-				.findContainerDefinitionByType(new QName(resource.getNamespace(), "AccountObjectClass"));
+				.findContainerDefinitionByType(new QName(resourceType.getNamespace(), "AccountObjectClass"));
 		ResourceAttributeDefinition propertyDef = accountDefinition.findAttributeDefinition(new QName(
-				resource.getNamespace(), propertyName));
+				resourceType.getNamespace(), propertyName));
 		ResourceAttribute property = propertyDef.instantiate(null);
 		property.setValue(new PrismPropertyValue(propertyValue));
 		return property;
@@ -429,8 +438,8 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult("testTestConnectionNegative");
 
 		ConnectorInstance badConnector = factory.createConnectorInstance(connectorType,
-				badResource.getNamespace());
-		badConnector.configure(badResource.getConfiguration().asPrismContainer(), result);
+				badResourceType.getNamespace());
+		badConnector.configure(badResourceType.getConfiguration().asPrismContainer(), result);
 
 		// WHEN
 
@@ -478,7 +487,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 				.println("-------------------------------------------------------------------------------------");
 
 		ResourceAttributeContainerDefinition accountDefinition = (ResourceAttributeContainerDefinition) schema
-				.findContainerDefinitionByType(new QName(resource.getNamespace(), "AccountObjectClass"));
+				.findContainerDefinitionByType(new QName(resourceType.getNamespace(), "AccountObjectClass"));
 		AssertJUnit.assertNotNull(accountDefinition);
 
 		AssertJUnit.assertFalse("No identifiers for account object class ", accountDefinition
@@ -671,17 +680,17 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	private ResourceAttributeContainer createResourceObject(String dn, String sn, String cn) {
 		// Account type is hardcoded now
 		ResourceAttributeContainerDefinition accountDefinition = (ResourceAttributeContainerDefinition) schema
-				.findContainerDefinitionByType(new QName(resource.getNamespace(), "AccountObjectClass"));
+				.findContainerDefinitionByType(new QName(resourceType.getNamespace(), "AccountObjectClass"));
 		// Determine identifier from the schema
 		ResourceAttributeContainer resourceObject = accountDefinition.instantiate();
 
-		ResourceAttributeDefinition road = accountDefinition.findAttributeDefinition(new QName(resource
+		ResourceAttributeDefinition road = accountDefinition.findAttributeDefinition(new QName(resourceType
 				.getNamespace(), "sn"));
 		ResourceAttribute roa = road.instantiate(null);
 		roa.setValue(new PrismPropertyValue(sn));
 		resourceObject.add(roa);
 
-		road = accountDefinition.findAttributeDefinition(new QName(resource.getNamespace(), "cn"));
+		road = accountDefinition.findAttributeDefinition(new QName(resourceType.getNamespace(), "cn"));
 		roa = road.instantiate(null);
 		roa.setValue(new PrismPropertyValue(cn));
 		resourceObject.add(roa);

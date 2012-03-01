@@ -32,7 +32,7 @@
 	<configuration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
 					   
-		<icfi:configurationProperties>
+		<icfc:configurationProperties>
 			<icfi:jdbcDriver>org.apache.derby.jdbc.ClientDriver</icfi:jdbcDriver>
 			<icfi:jdbcUrlTemplate>jdbc:derby://%h:%p/%d</icfi:jdbcUrlTemplate>
 			<icfi:keyColumn>login</icfi:keyColumn>
@@ -43,7 +43,7 @@
 			<icfi:database>target/derbyMidPointTest</icfi:database>
 			<icfi:host>localhost</icfi:host>
 			<icfi:port>11527</icfi:port>
-		</icfi:configurationProperties>
+		</icfc:configurationProperties>
 
 	</configuration>
 	<c:schema>

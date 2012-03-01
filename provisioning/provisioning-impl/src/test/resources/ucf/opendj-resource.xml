@@ -34,14 +34,14 @@
 	<configuration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
 					   
-		<icfcldap:configurationProperties>
+		<icfc:configurationProperties>
 			<icfcldap:port>10389</icfcldap:port>
 			<icfcldap:host>localhost</icfcldap:host>
 			<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
 			<icfcldap:principal>cn=directory manager</icfcldap:principal>
 			<icfcldap:credentials><clearValue>secret</clearValue></icfcldap:credentials>
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-		</icfcldap:configurationProperties>
+		</icfc:configurationProperties>
 		
 		<icfc:connectorPoolConfiguration>
 			<icfc:minEvictableIdleTimeMillis>120000</icfc:minEvictableIdleTimeMillis>

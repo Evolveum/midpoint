@@ -216,8 +216,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// element with "ConfigurationPropertiesType" - the dynamic part of
 		// configuration schema
 		configurationContainerDef.createPropertyDefinition(
-				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME,
-				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME);
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
+				new QName(connectorType.getNamespace(), ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME));
 		// Create common ICF configuration property containers as a references
 		// to a static schema
 		configurationContainerDef.createPropertyDefinition(
@@ -1871,7 +1871,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * 
 	 * @param apiConfig
 	 *            ICF connector configuration
-	 * @param resource
+	 * @param resourceType
 	 *            midPoint XML configuration
 	 * @throws SchemaException
 	 */
@@ -1886,7 +1886,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		String connectorConfNs = connectorType.getNamespace();
 
 		PrismContainer configurationPropertiesContainer = configuration.findContainer(
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
+		if (configurationPropertiesContainer == null) {
+			// Also try this. This is an older way.
+			configurationPropertiesContainer = configuration.findContainer(
 				new QName(connectorConfNs, ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME));
+		}
+		
 		int numConfingProperties = transformConnectorConfiguration(configProps, configurationPropertiesContainer, connectorConfNs);
 		
 		PrismContainer connectorPoolContainer = configuration.findContainer(
@@ -2022,7 +2028,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	private long parseLong(PrismProperty<?> prop) {
-		return  prop.getRealValue(Long.class);
+		Object realValue = prop.getRealValue();
+		if (realValue instanceof Long) {
+			return (Long)realValue;
+		} else if (realValue instanceof Integer) {
+			return ((Integer)realValue);
+		} else {
+			throw new IllegalArgumentException("Cannot convert "+realValue.getClass()+" to long");
+		}
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

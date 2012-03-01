@@ -86,6 +86,11 @@ class IcfUtil {
 			return ex;
 		}
 		
+		if (ex.getClass().getPackage().equals(SchemaException.class.getPackage())) {
+			// Common midPoint exceptions, pass through
+			return ex;
+		}
+		
 		if (parentResult == null) {
 			throw new IllegalArgumentException(createMessage("Null parent result while processing ICF exception",ex));
 		}

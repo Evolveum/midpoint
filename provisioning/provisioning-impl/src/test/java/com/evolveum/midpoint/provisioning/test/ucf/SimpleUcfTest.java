@@ -17,14 +17,14 @@
  */
 package com.evolveum.midpoint.provisioning.test.ucf;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
@@ -39,17 +39,26 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -75,7 +84,7 @@ public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
 	private static final String FILENAME_CONNECTOR_LDAP = "src/test/resources/ucf/ldap-connector.xml";
 
 	ConnectorFactory manager;
-	ResourceType resource;
+	ResourceType resourceType;
 	ConnectorType connectorType;
 
 	@Autowired(required = true)
@@ -85,6 +94,12 @@ public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
 
 	public SimpleUcfTest() {
 		System.setProperty("midpoint.home", "target/midPointHome/");
+	}
+	
+	@BeforeSuite
+	public void setup() throws SchemaException, SAXException, IOException {
+		DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
 
 	@BeforeClass
@@ -103,21 +118,14 @@ public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
 	}
 	
 	@BeforeMethod
-	public void setUp() throws FileNotFoundException, JAXBException {
+	public void setUp() throws FileNotFoundException, JAXBException, SchemaException {
 		manager = connectorFactoryIcfImpl;
 
-		File file = new File(FILENAME_RESOURCE_OPENDJ);
-		FileInputStream fis = new FileInputStream(file);
-		Unmarshaller u = null;
-		JAXBContext jc = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
-		u = jc.createUnmarshaller();
-		Object object = u.unmarshal(fis);
-		resource = (ResourceType) ((JAXBElement) object).getValue();
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(FILENAME_RESOURCE_OPENDJ));
+		resourceType = resource.asObjectable();
 
-		file = new File(FILENAME_CONNECTOR_LDAP);
-		fis = new FileInputStream(file);
-		object = u.unmarshal(fis);
-		connectorType = (ConnectorType) ((JAXBElement) object).getValue();
+		PrismObject<ConnectorType> connector = PrismTestUtil.parseObject(new File (FILENAME_CONNECTOR_LDAP));
+		connectorType = connector.asObjectable();
 
 	}
 
@@ -132,6 +140,8 @@ public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
 	 */
 	@Test
 	public void testListConnectors() throws CommunicationException {
+		displayTestTile("testListConnectors");
+		
 		OperationResult result = new OperationResult(SimpleUcfTest.class+".testListConnectors");
 		Set<ConnectorType> listConnectors = manager.listConnectors(null, result);
 
@@ -154,7 +164,9 @@ public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
 
 	@Test
 	public void testConnectorSchema() throws ObjectNotFoundException {
-		ConnectorInstance cc = manager.createConnectorInstance(connectorType, resource.getNamespace());
+		displayTestTile("testConnectorSchema");
+		
+		ConnectorInstance cc = manager.createConnectorInstance(connectorType, resourceType.getNamespace());
 		assertNotNull("Failed to instantiate connector", cc);
 		PrismSchema connectorSchema = cc.generateConnectorSchema();
 		assertNotNull("No connector schema", connectorSchema);
@@ -166,11 +178,14 @@ public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
 	public void testCreateConfiguredConnector() throws FileNotFoundException, JAXBException,
 			com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException, SchemaException {
-
-		ConnectorInstance cc = manager.createConnectorInstance(connectorType, resource.getNamespace());
+		displayTestTile("testCreateConfiguredConnector");
+		
+		ConnectorInstance cc = manager.createConnectorInstance(connectorType, resourceType.getNamespace());
 		assertNotNull("Failed to instantiate connector", cc);
 		OperationResult result = new OperationResult(SimpleUcfTest.class.getName() + ".testCreateConfiguredConnector");
-		cc.configure(resource.getConfiguration().asPrismContainer(), result);
+		PrismContainer configContainer = resourceType.getConfiguration().asPrismContainer();
+		display("Configuration container", configContainer);
+		cc.configure(configContainer, result);
 		result.computeStatus("test failed");
 		assertSuccess("Connector configuration failed", result);
 		// TODO: assert something
