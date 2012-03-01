@@ -729,7 +729,7 @@ public class DOMUtil {
 		return true;
 	}
 
-	private static boolean compareTextNodeValues(String a, String b) {
+	public static boolean compareTextNodeValues(String a, String b) {
 		if (StringUtils.equals(a,b)) {
 			return true;
 		}

@@ -40,7 +40,9 @@ public class DomAwareEqualsStrategy extends JAXBEqualsStrategy {
 	@Override
 	protected boolean equalsInternal(ObjectLocator leftLocator,
 			ObjectLocator rightLocator, Object lhs, Object rhs) {
-		if (lhs instanceof Element && rhs instanceof Element) {
+		if (lhs instanceof String && rhs instanceof String) {
+			return DOMUtil.compareTextNodeValues((String)lhs, (String)rhs);
+		} else if (lhs instanceof Element && rhs instanceof Element) {
 			final Element left = (Element) lhs;
 			final Element right = (Element) rhs;
 			boolean result = DOMUtil.compareElement(left, right, false);
