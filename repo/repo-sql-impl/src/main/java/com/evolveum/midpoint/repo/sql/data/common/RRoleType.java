@@ -41,8 +41,8 @@ public class RRoleType extends RExtensibleObjectType {
     private List<RAssignmentType> assignment;
 
     @OneToMany
-    @JoinTable(name = "role_assignment", joinColumns = @JoinColumn(name = "roleOid"),
-            inverseJoinColumns = @JoinColumn(name = "assignmentId"))
+    @JoinTable(name = "role_assignment", joinColumns = {@JoinColumn(name = "roleOid")},
+            inverseJoinColumns = {@JoinColumn(name = "owner"), @JoinColumn(name = "id")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public List<RAssignmentType> getAssignment() {
         return assignment;

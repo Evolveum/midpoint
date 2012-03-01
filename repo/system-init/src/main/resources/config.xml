@@ -22,10 +22,10 @@
 <configuration>
     <midpoint>
         <!--<repository>-->
-            <!--<repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory-->
-            <!--</repositoryServiceFactoryClass>-->
+            <!--<repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>-->
             <!--<embedded>true</embedded>-->
-            <!--<serverPath>${midpoint.home}</serverPath>-->
+            <!--<asServer>false</asServer>-->
+            <!--<baseDir>${midpoint.home}</baseDir>-->
         <!--</repository>-->
         <repository>
             <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory

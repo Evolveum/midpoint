@@ -30,27 +30,55 @@ import org.hibernate.annotations.Columns;
 import org.hibernate.annotations.Type;
 import org.w3c.dom.Element;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import javax.xml.namespace.QName;
+import java.io.Serializable;
 
 /**
  * @author lazyman
  */
 @Entity
 @Table(name = "object_reference")
-public class RObjectReferenceType {
+public class RObjectReferenceType implements Serializable {
 
     private String owner;
-    private String target;
+    private long containerId;
     private String description;
+    private String target;
     private String filter;
     private QName type;
 
     @Id
-    @GeneratedValue
-    @Column(length = 32)
+    @Column(length = 32, nullable = false)
     public String getOwner() {
         return owner;
+    }
+
+    @Id
+    public long getContainerId() {
+        return containerId;
+    }
+
+    @Id
+    @Column(length = 32)
+    public String getTarget() {
+        return target;
+    }
+
+    @Type(type = "org.hibernate.type.TextType")
+    public String getFilter() {
+        return filter;
+    }
+
+    @Columns(columns = {
+            @Column(name = "namespaceURI"),
+            @Column(name = "localPart")
+    })
+    public QName getType() {
+        return type;
     }
 
     public void setOwner(String owner) {
@@ -65,33 +93,20 @@ public class RObjectReferenceType {
         this.description = description;
     }
 
-    @Type(type = "org.hibernate.type.TextType")
-    public String getFilter() {
-        return filter;
-    }
-
-    public void setFilter(String filter) {
-        this.filter = filter;
-    }
-
-    public String getTarget() {
-        return target;
-    }
-
-    public void setTarget(String oid) {
-        this.target = oid;
-    }
-
-    @Columns(columns = {
-            @Column(name = "namespaceURI"),
-            @Column(name = "localPart")
-    })
-    public QName getType() {
-        return type;
+    public void setContainerId(long containerId) {
+        this.containerId = containerId;
     }
 
     public void setType(QName type) {
         this.type = type;
+    }
+
+    public void setTarget(String target) {
+        this.target = target;
+    }
+
+    public void setFilter(String filter) {
+        this.filter = filter;
     }
 
     public static void copyToJAXB(RObjectReferenceType repo, ObjectReferenceType jaxb, PrismContext prismContext) {

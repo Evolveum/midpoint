@@ -32,5 +32,13 @@
 		</appender>
 		<rootLoggerAppender>IDM_LOG</rootLoggerAppender>
 		<rootLoggerLevel>INFO</rootLoggerLevel>
+        <classLogger>
+            <level>TRACE</level>
+            <package>com.evolveum.midpoint.init</package>
+        </classLogger>
+        <classLogger>
+            <level>TRACE</level>
+            <package>com.evolveum.midpoint.repo</package>
+        </classLogger>
 	</logging>
 </systemConfiguration>

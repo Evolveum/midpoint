@@ -31,15 +31,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import org.apache.commons.lang.Validate;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 /**
  * @author lazyman
  */
 @Entity
 @Table(name = "assignment")
-public class RAssignmentType implements Identifiable {
+public class RAssignmentType implements Serializable, Identifiable {
 
     private static final Trace LOGGER = TraceManager.getTrace(RAssignmentType.class);
+    private String owner;
     private long id;
     private RExtension extension;
     private RObjectReferenceType targetRef;
@@ -47,7 +49,12 @@ public class RAssignmentType implements Identifiable {
     private RActivationType activation;
 
     @Id
-    @GeneratedValue
+    @Column(length = 32, nullable = false)
+    public String getOwner() {
+        return owner;
+    }
+
+    @Id
     @Override
     public long getId() {
         return id;
@@ -68,8 +75,8 @@ public class RAssignmentType implements Identifiable {
     }
 
     @ManyToOne
-    @JoinTable(name = "assignment_target_ref", joinColumns = @JoinColumn(name = "assignment"),
-            inverseJoinColumns = @JoinColumn(name = "objectRef"))
+    @JoinTable(name = "assignment_target_ref", joinColumns = {@JoinColumn(name = "assignment_owner"), @JoinColumn(name = "id")},
+            inverseJoinColumns = {@JoinColumn(name = "owner"), @JoinColumn(name = "containerId"), @JoinColumn(name = "target")})
     public RObjectReferenceType getTargetRef() {
         return targetRef;
     }
@@ -93,6 +100,10 @@ public class RAssignmentType implements Identifiable {
 
     public void setTargetRef(RObjectReferenceType targetRef) {
         this.targetRef = targetRef;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 
     public static void copyToJAXB(RAssignmentType repo, AssignmentType jaxb, PrismContext prismContext) throws

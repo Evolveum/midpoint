@@ -56,7 +56,7 @@ public class RUserType extends RExtensibleObjectType {
 
     @OneToMany
     @JoinTable(name = "user_assignment", joinColumns = @JoinColumn(name = "userOid"),
-            inverseJoinColumns = @JoinColumn(name = "assignmentId"))
+            inverseJoinColumns = {@JoinColumn(name = "owner"), @JoinColumn(name = "assignmentId")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAssignmentType> getAssignment() {
         return assignment;
@@ -64,7 +64,7 @@ public class RUserType extends RExtensibleObjectType {
 
     @OneToMany
     @JoinTable(name = "user_account_ref", joinColumns = @JoinColumn(name = "userOid"),
-            inverseJoinColumns = @JoinColumn(name = "objectRef"))
+            inverseJoinColumns = {@JoinColumn(name = "owner"), @JoinColumn(name = "containerId"), @JoinColumn(name = "target")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RObjectReferenceType> getAccountRef() {
         return accountRef;

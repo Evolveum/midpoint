@@ -28,10 +28,10 @@
         </repository>
         <icf>
             <scanClasspath>true</scanClasspath>
-            <scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>
+            <scanDirectory>icf-connectors</scanDirectory>
         </icf>
         <keystore>
-            <keyStorePath>${midpoint.home}/keystore.jceks</keyStorePath>
+            <keyStorePath>test-keystore.jceks</keyStorePath>
             <keyStorePassword>changeit</keyStorePassword>
             <encryptionKeyAlias>default</encryptionKeyAlias>
         </keystore>

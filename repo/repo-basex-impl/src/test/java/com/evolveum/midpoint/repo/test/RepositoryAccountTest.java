@@ -31,6 +31,9 @@ import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -41,6 +44,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+import org.w3._2001._04.xmlenc.EncryptedDataType;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -77,8 +81,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 		"classpath:application-context-configuration-test.xml" })
 public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 
+    private static final Trace LOGGER = TraceManager.getTrace(RepositoryAccountTest.class);
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
+    @Autowired(required = true)
+    private PrismContext prismContext;
 
 	public RepositoryService getRepositoryService() {
 		return repositoryService;
@@ -124,7 +131,7 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 			PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(
 					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"));
 			PrismProperty<?> namespaceProp = resource.findProperty(ResourceType.F_NAMESPACE);
-			System.out.println("Namespace property:");
+			System.out.println("Names   pace property:");
 			System.out.println(namespaceProp.dump());
 			repositoryService.addObject(resource, new OperationResult("test"));
 			PrismObject<ResourceType> retrievedResource = repositoryService.getObject(ResourceType.class, resourceOid,
@@ -141,6 +148,11 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 			// get account object
 			PrismObject<AccountShadowType> retrievedAccount = repositoryService.getObject(AccountShadowType.class, accountOid,
 					new PropertyReferenceListType(), new OperationResult("test"));
+            LOGGER.debug("A\n{}", prismContext.silentMarshalObject(accountShadow.asObjectable()));
+            LOGGER.debug("B\n{}", prismContext.silentMarshalObject(retrievedAccount.asObjectable()));
+            EncryptedDataType data1 = accountShadow.asObjectable().getCredentials().getPassword().getProtectedString().getEncryptedData();
+            EncryptedDataType data2 = retrievedAccount.asObjectable().getCredentials().getPassword().getProtectedString().getEncryptedData();
+            data1.equals(data2);
 			PrismAsserts.assertEquals(accountShadow, retrievedAccount);
 
 			// list account objects with simple paging

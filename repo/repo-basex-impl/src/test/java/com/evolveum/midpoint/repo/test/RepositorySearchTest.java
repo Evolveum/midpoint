@@ -237,6 +237,7 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void searchAccountByNoAttributesUseQueryUtil() throws Exception {
+        System.out.println("asdfasdf");
 		XPathSegment xpathSegment = new XPathSegment(SchemaConstants.I_ATTRIBUTES);
 		Document doc = DOMUtil.getDocument();
 		List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
