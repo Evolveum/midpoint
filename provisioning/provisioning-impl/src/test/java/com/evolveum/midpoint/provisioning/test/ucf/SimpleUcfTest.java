@@ -164,7 +164,7 @@ public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
 	}
 
 	@Test
-	public void testConnectorSchema() throws ObjectNotFoundException {
+	public void testConnectorSchema() throws ObjectNotFoundException, SchemaException {
 		displayTestTile("testConnectorSchema");
 		
 		ConnectorInstance cc = manager.createConnectorInstance(connectorType, resourceType.getNamespace());

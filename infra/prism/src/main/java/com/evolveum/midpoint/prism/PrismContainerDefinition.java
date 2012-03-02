@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 
@@ -387,6 +388,32 @@ public class PrismContainerDefinition extends ItemDefinition {
         propertyDefinition.setMinOccurs(minOccurs);
         propertyDefinition.setMaxOccurs(maxOccurs);
         return propertyDefinition;
+    }
+    
+    public PrismContainerDefinition createContainerDefinition(QName name, QName typeName) {
+    	return createContainerDefinition(name, typeName, 1, 1);
+    }
+    
+    public PrismContainerDefinition createContainerDefinition(QName name, QName typeName,
+            int minOccurs, int maxOccurs) {
+    	PrismSchema typeSchema = prismContext.getSchemaRegistry().findSchemaByNamespace(typeName.getNamespaceURI());
+    	if (typeSchema == null) {
+    		throw new IllegalArgumentException("Schema for namespace "+typeName.getNamespaceURI()+" is not known in the prism context");
+    	}
+    	ComplexTypeDefinition typeDefinition = typeSchema.findComplexTypeDefinition(typeName);
+    	if (typeDefinition == null) {
+    		throw new IllegalArgumentException("Type "+typeName+" is not known in the schema");
+    	}
+    	return createContainerDefinition(name, typeDefinition, minOccurs, maxOccurs);
+    }
+    
+    public PrismContainerDefinition createContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition,
+            int minOccurs, int maxOccurs) {
+    	PrismContainerDefinition def = new PrismContainerDefinition(name, complexTypeDefinition, prismContext);
+        def.setMinOccurs(minOccurs);
+        def.setMaxOccurs(maxOccurs);
+        getDefinitions().add(def);
+        return def;
     }
 
     @Override

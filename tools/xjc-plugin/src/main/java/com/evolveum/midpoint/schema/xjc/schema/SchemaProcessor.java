@@ -531,8 +531,7 @@ public class SchemaProcessor implements Processor {
         toString.annotate(CLASS_MAP.get(Override.class));
 
         JBlock body = toString.body();
-        JInvocation invocation = JExpr.invoke(METHOD_GET_CONTAINER).invoke(METHOD_DEBUG_DUMP);
-        invocation.arg(JExpr.lit(METHOD_DEBUG_DUMP_INDENT));
+        JInvocation invocation = JExpr.invoke(METHOD_GET_CONTAINER).invoke(METHOD_TO_STRING);
         body._return(invocation);
     }
 

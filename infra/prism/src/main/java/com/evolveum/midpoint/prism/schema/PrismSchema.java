@@ -338,6 +338,22 @@ public class PrismSchema implements Dumpable, DebugDumpable, Serializable {
 		definitions.add(def);
 		return def;
 	}
+	
+	public PrismContainerDefinition createPropertyContainerDefinition(String localElementName, String localTypeName) {
+		QName typeName = new QName(getNamespace(), localTypeName);
+		QName name = new QName(getNamespace(), localElementName);
+		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinition(name, typeName, prismContext);
+		PrismContainerDefinition def = new PrismContainerDefinition(name, cTypeDef, prismContext);
+		definitions.add(cTypeDef);
+		definitions.add(def);
+		return def;
+	}
+	
+	public ComplexTypeDefinition createComplexTypeDefinition(QName typeName) {
+		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinition(toElementQName(typeName), typeName, prismContext);
+		definitions.add(cTypeDef);
+		return cTypeDef;
+	}
 
 	/**
 	 * Creates a top-level property definition and adds it to the schema.
@@ -398,6 +414,10 @@ public class PrismSchema implements Dumpable, DebugDumpable, Serializable {
 			return elementName.substring(0, elementName.length() - 4);
 		}
 		return elementName;
+	}
+	
+	protected QName toElementQName(QName qname) {
+		return new QName(qname.getNamespaceURI(), toElementName(qname.getLocalPart()));
 	}
 	
 	@Override

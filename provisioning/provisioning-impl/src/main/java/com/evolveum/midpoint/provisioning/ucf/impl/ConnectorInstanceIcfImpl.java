@@ -22,6 +22,8 @@ package com.evolveum.midpoint.provisioning.ucf.impl;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -106,24 +108,27 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	ConnectorInfo cinfo;
 	ConnectorType connectorType;
 	ConnectorFacade icfConnectorFacade;
-	String schemaNamespace;
+	String resourceSchemaNamespace;
 	Protector protector;
 	PrismContext prismContext;
 
 	private ResourceSchema resourceSchema = null;
+	private PrismSchema connectorSchema;
 	Set<Object> capabilities = null;
 
 	public ConnectorInstanceIcfImpl(ConnectorInfo connectorInfo, ConnectorType connectorType,
-			String schemaNamespace, Protector protector, PrismContext prismContext) {
+			String schemaNamespace, PrismSchema connectorSchema, 
+			Protector protector, PrismContext prismContext) {
 		this.cinfo = connectorInfo;
 		this.connectorType = connectorType;
-		this.schemaNamespace = schemaNamespace;
+		this.resourceSchemaNamespace = schemaNamespace;
+		this.connectorSchema = connectorSchema;
 		this.protector = protector;
 		this.prismContext = prismContext;
 	}
 
 	public String getSchemaNamespace() {
-		return schemaNamespace;
+		return resourceSchemaNamespace;
 	}
 
 	/*
@@ -143,11 +148,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		try {
 			// Get default configuration for the connector. This is important,
-			// as
-			// it contains types of connector configuration properties.
-			// So we do not need to know the connector configuration schema
-			// here. We are in fact looking at the data that the schema is
-			// generated from.
+			// as it contains types of connector configuration properties.
+			
+			// Make sure that the proper configuration schema is applied. This
+			// will cause that all the "raw" elements are parsed
+			configuration.applyDefinition(getConfigurationContainerDefinition());
+			
 			APIConfiguration apiConfig = cinfo.createDefaultAPIConfiguration();
 
 			// Transform XML configuration from the resource to the ICF
@@ -195,6 +201,18 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	}
 
+	private PrismContainerDefinition getConfigurationContainerDefinition() throws SchemaException {
+		if (connectorSchema == null) {
+			generateConnectorSchema();
+		}
+		QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONFIGURATION.getLocalPart());
+		PrismContainerDefinition configContainerDef = connectorSchema.findContainerDefinitionByElementName(configContainerQName);
+		if (configContainerDef == null) {
+			throw new SchemaException("No definition of container "+configContainerQName+" in configuration schema for connector "+this);
+		}
+		return configContainerDef;
+	}
+
 	/**
 	 * @param cinfo
 	 * @param connectorType
@@ -217,40 +235,24 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// Create configuration type - the type used by the "configuration"
 		// element
 		PrismContainerDefinition configurationContainerDef = mpSchema
-				.createPropertyContainerDefinition(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
+				.createPropertyContainerDefinition(
+						ResourceType.F_CONFIGURATION.getLocalPart(),
+						ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
+		
 		// element with "ConfigurationPropertiesType" - the dynamic part of
 		// configuration schema
-		configurationContainerDef.createPropertyDefinition(
-				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
+		ComplexTypeDefinition configPropertiesTypeDef = mpSchema.createComplexTypeDefinition(
 				new QName(connectorType.getNamespace(), ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME));
-		// Create common ICF configuration property containers as a references
-		// to a static schema
-		configurationContainerDef.createPropertyDefinition(
-				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT,
-				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE, 0, 1);
-		configurationContainerDef.createPropertyDefinition(
-				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT,
-				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE, 0, 1);
-		configurationContainerDef.createPropertyDefinition(
-				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT,
-				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_TIMEOUTS_TYPE, 0, 1);
-
-		// No need to create definition of "configuration" element.
-		// midPoint will look for this element, but it will be generated as part
-		// of the PropertyContainer serialization to schema
 
 		// Create definition of "configurationProperties" type
 		// (CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME)
-		PrismContainerDefinition configDef = mpSchema
-				.createPropertyContainerDefinition(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME);
 		for (String icfPropertyName : icfConfigurationProperties.getPropertyNames()) {
 			ConfigurationProperty icfProperty = icfConfigurationProperties.getProperty(icfPropertyName);
 
-			QName propXsdName = new QName(connectorType.getNamespace(), icfPropertyName);
 			QName propXsdType = icfTypeToXsdType(icfProperty.getType());
 			LOGGER.trace("{}: Mapping ICF config schema property {} from {} to {}", new Object[] { this,
 					icfPropertyName, icfProperty.getType(), propXsdType });
-			PrismPropertyDefinition propertyDefinifion = configDef.createPropertyDefinition(propXsdName,
+			PrismPropertyDefinition propertyDefinifion = configPropertiesTypeDef.createPropertyDefinition(icfPropertyName,
 					propXsdType);
 			propertyDefinifion.setDisplayName(icfProperty.getDisplayName(null));
 			propertyDefinifion.setHelp(icfProperty.getHelpMessage(null));
@@ -266,8 +268,30 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 
 		}
+		
+		// Create common ICF configuration property containers as a references
+		// to a static schema
+		configurationContainerDef.createContainerDefinition(
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT,
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE, 0, 1);
+		configurationContainerDef.createPropertyDefinition(
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT,
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE, 0, 1);
+		configurationContainerDef.createContainerDefinition(
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT,
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_TIMEOUTS_TYPE, 0, 1);
+
+		// No need to create definition of "configuration" element.
+		// midPoint will look for this element, but it will be generated as part
+		// of the PropertyContainer serialization to schema
+		
+		configurationContainerDef.createContainerDefinition(
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
+				configPropertiesTypeDef, 1, 1);
+
 		LOGGER.debug("Generated configuration schema for {}: {} definitions", this, mpSchema.getDefinitions()
 				.size());
+		connectorSchema = mpSchema;
 		return mpSchema;
 	}
 

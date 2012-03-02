@@ -61,11 +61,14 @@ import org.identityconnectors.framework.api.operations.ValidateApiOp;
 import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -74,12 +77,14 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
 /**
  * Currently the only implementation of the UCF Connector Manager API interface.
@@ -201,11 +206,12 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	 * connector instance.
 	 * 
 	 * @throws ObjectNotFoundException
+	 * @throws SchemaException 
 	 * 
 	 */
 	@Override
 	public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace)
-			throws ObjectNotFoundException {
+			throws ObjectNotFoundException, SchemaException {
 
 		ConnectorInfo cinfo = getConnectorInfo(connectorType);
 
@@ -219,12 +225,27 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 					+ " was not found");
 		}
 
+		PrismSchema connectorSchema = getConnectorSchema(connectorType, namespace);
+		
 		// Create new midPoint ConnectorInstance and pass it the ICF connector
 		// facade
 		ConnectorInstanceIcfImpl connectorImpl = new ConnectorInstanceIcfImpl(cinfo, connectorType, namespace,
-				protector, prismContext);
+				connectorSchema, protector, prismContext);
 
 		return connectorImpl;
+	}
+
+	private PrismSchema getConnectorSchema(ConnectorType connectorType, String namespace) throws SchemaException {
+		XmlSchemaType xmlSchema = connectorType.getSchema();
+		if (xmlSchema == null) {
+			return null;
+		}
+		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchema);
+		if (xsdElement == null) {
+			return null;
+		}
+		PrismSchema connectorSchema = PrismSchema.parse(xsdElement, prismContext);
+		return connectorSchema;
 	}
 
 	/**
