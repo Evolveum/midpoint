@@ -337,9 +337,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         Session session = null;
         try {
             session = beginTransaction();
-            Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
             LOGGER.debug("Updating query criteria.");
-            criteria = new QueryProcessor().createFilterCriteria(criteria, query.getFilter());
+            Criteria criteria = new QueryProcessor().createFilterCriteria(session, type, query.getFilter());
             criteria.setProjection(Projections.rowCount());
 
             LOGGER.debug("Selecting total count.");

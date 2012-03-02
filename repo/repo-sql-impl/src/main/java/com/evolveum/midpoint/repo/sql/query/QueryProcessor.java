@@ -21,7 +21,9 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
+import com.evolveum.midpoint.repo.sql.ClassMapper;
 import com.evolveum.midpoint.repo.sql.data.common.RUserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
@@ -32,7 +34,9 @@ import org.w3c.dom.Element;
  */
 public class QueryProcessor {
 
-    public Criteria createFilterCriteria(Criteria criteria, Element filter) {
+    public <T extends ObjectType> Criteria createFilterCriteria(Session session, Class<T> type, Element filter) {
+        Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
+
 
         return criteria;
     }
