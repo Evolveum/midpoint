@@ -41,6 +41,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -425,6 +426,21 @@ public class PrismJaxbProcessor {
 			}
 		}
 	}
+    
+    public <T> T unmarshalRootObject(File file, Class<T> type) throws JAXBException, FileNotFoundException, SchemaException {
+        Validate.notNull(file, "File must not be null.");
+        InputStream is = null;
+        try {
+            is = new FileInputStream(file);
+            T object = (T) getUnmarshaller().unmarshal(is);
+            adopt(object);
+            return object;
+        } finally {
+            if (is != null) {
+                IOUtils.closeQuietly(is);
+            }
+        }
+    }
 	
 	public boolean compareAny(List<Object> a, List<Object> b) {
 		if (a == b) {
@@ -622,11 +638,11 @@ public class PrismJaxbProcessor {
 		}
 	}
 	
-	private void adopt(JAXBElement<?> element) throws SchemaException {
-		if (element.getValue() instanceof Objectable) {
-			getPrismContext().adopt(((Objectable)(element.getValue())));
-		}
-	}
-	
-
+    private void adopt(Object object) throws SchemaException {
+        if (object instanceof JAXBElement) {
+            adopt(((JAXBElement)object).getValue());
+        } else if (object instanceof Objectable) {
+            getPrismContext().adopt(((Objectable)(object)));
+        }
+    }
 }
