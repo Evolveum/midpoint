@@ -182,7 +182,7 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 					new PropertyReferenceListType(), new OperationResult("test"));
 			System.out.println("retrieved: "+PrismTestUtil.getPrismContext().getPrismDomProcessor().serializeObjectToString(retrievedObject));
 			
-			PrismAsserts.assertEquals(modifiedResource, retrievedObject);
+			PrismAsserts.assertEquivalent("Modification result does not match",modifiedResource, retrievedObject);
 
 		} finally {
 			// to be sure try to delete the object as part of cleanup

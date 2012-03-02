@@ -17,64 +17,24 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 
- 
- <!-- Testing resource. File reusable for many tests. -->
-
-<c:object xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ResourceType" oid="aae7be60-df56-11df-8608-0002a5d5c51b">
-    <c:name>Localhost DatabaseTable</c:name>
-    <c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/aae7be60-df56-11df-8608-0002a5d5c51b</c:namespace>
-    <c:configuration
-		xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
-					   
-		<!-- Configuration specific for the LDAP connector -->
-		<icfc:configurationProperties>
-			<icfcldap:port>10389</icfcldap:port>
-			<icfcldap:host>localhost</icfcldap:host>
-			<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
-			<icfcldap:principal>cn=directory manager</icfcldap:principal>
-			<icfcldap:credentials><clearValue>secret</clearValue></icfcldap:credentials>
-			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-		</icfc:configurationProperties>
-		
-		<!-- Generic ICF configuration -->
-
-		<icfc:connectorPoolConfiguration>
-			<icfc:minEvictableIdleTimeMillis>120000</icfc:minEvictableIdleTimeMillis>
-			<icfc:minIdle>1</icfc:minIdle>
-			<icfc:maxIdle>10</icfc:maxIdle>
-			<icfc:maxObjects>10</icfc:maxObjects>
-			<icfc:maxWait>150000</icfc:maxWait>
-		</icfc:connectorPoolConfiguration>
-
-		<icfc:producerBufferSize>100</icfc:producerBufferSize>
-
-		<icfc:timeouts>
-				<icfc:create>-1</icfc:create>
-				<icfc:get>-1</icfc:get>
-				<icfc:update>-1</icfc:update>
-				<icfc:delete>-1</icfc:delete>
-				<icfc:test>-1</icfc:test>
-				<icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
-				<icfc:scriptOnResource>-1</icfc:scriptOnResource>
-				<icfc:authentication>-1</icfc:authentication>
-				<icfc:search>-1</icfc:search>
-				<icfc:validate>-1</icfc:validate>
-				<icfc:sync>-1</icfc:sync>
-				<icfc:schema>-1</icfc:schema>
-		</icfc:timeouts>
-
-	</c:configuration>
-    <c:schema>
-        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
-targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/aae7be60-df56-11df-8608-0002a5d5c51b"
- xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-xmlns:xns0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/aae7be60-df56-11df-8608-0002a5d5c51b"
-xmlns:xns1="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd
+							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
+								  
+	<name>Embedded Test OpenDJ</name>
+	<connectorRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3eedd"/>
+	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace>
+	<schema>
+	  <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
+					targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/aae7be60-df56-11df-8608-0002a5d5c51b"
+					xmlns:xns0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/aae7be60-df56-11df-8608-0002a5d5c51b"
+					xmlns:xns1="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
@@ -179,27 +139,24 @@ xmlns:xns1="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/reso
                 </xsd:complexContent>
             </xsd:complexType>
         </xsd:schema>
-    </c:schema>
-    <c:schemaHandling>
+	</schema>
+	<c:schemaHandling>
         <!-- No need to schemaHandling in this case. Everything is in schema (annotations) -->
-    </c:schemaHandling>
+	</c:schemaHandling>
 	
-		<c:scripts>
-            <c:script>
-                <c:operation>add</c:operation>
-                <c:order>after</c:order>
-                <c:host>connector</c:host>
-                <c:language>sh</c:language>
-                <c:argument>
-                    <c:valueExpression>
-                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                        declare namespace unix="http://midpoint.evolveum.com/xml/ns/public/experiments/unix-1.xsd";
-                        $c:user/c:extension/unix:homedir
-                    </c:valueExpression>
-                    <c:name>HOMEDIR</c:name>
-                </c:argument>
-                <c:code>mkdir $HOMEDIR</c:code>
-            </c:script>
-    </c:scripts>
-
-</c:object>
+	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd">
+		<cap:activation>
+			<cap:enableDisable>
+				<cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
+				<cap:enableValue/>
+				<cap:disableValue>true</cap:disableValue>
+			</cap:enableDisable>
+		</cap:activation>
+		<cap:credentials>
+			<cap:password/>
+		</cap:credentials>
+		<cap:liveSync/>
+		<cap:testConnection/>
+	</capabilities>
+		
+</resource>

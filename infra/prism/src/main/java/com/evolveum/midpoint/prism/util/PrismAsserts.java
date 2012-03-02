@@ -264,6 +264,34 @@ public class PrismAsserts {
 		}
 		ObjectDelta delta = expected.diff(actual);
 		String suffix = "the difference: "+delta;
+		if (delta.isEmpty()) {
+			suffix += ": Empty delta. The difference is most likely in meta-data";
+		}
+		// TODO: log the delta?
+		assert false: message + ": " + suffix;
+	}
+	
+	public static void assertEquivalent(String message, PrismObject expected, PrismObject actual) {
+		if (expected == null && actual == null) {
+			return;
+		}
+		if (expected == null) {
+			fail(message + ": expected null, was "+actual);
+		}
+		if (actual == null) {
+			fail(message + ": expected "+expected+", was null");
+		}
+		if (expected.equivalent(actual)) {
+			return;
+		}
+		if (message == null) {
+			message = "Prism object not equal";
+		}
+		ObjectDelta delta = expected.diff(actual);
+		String suffix = "the difference: "+delta;
+		if (delta.isEmpty()) {
+			suffix += ": Empty delta. This is not expected. Somethig has got quite wrong here.";
+		}
 		// TODO: log the delta?
 		assert false: message + ": " + suffix;
 	}

@@ -161,7 +161,7 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 			List<PrismObject<AccountShadowType>> objects = repositoryService.listObjects(AccountShadowType.class,
 					pagingType, new OperationResult("test"));
 			assertEquals(1, objects.size());
-			PrismAsserts.assertEquals(accountShadow, objects.get(0));
+			PrismAsserts.assertEquivalent("Unexpected result from listObjects", accountShadow, objects.get(0));
 
 			// delete object
 			repositoryService.deleteObject(AccountShadowType.class, accountOid, new OperationResult("test"));

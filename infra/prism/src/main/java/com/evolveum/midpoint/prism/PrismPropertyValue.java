@@ -122,9 +122,10 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		return new ElementPrismPropertyImpl<T>(this);
 	}
 
+	@Override
 	public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("PPV[");
+        builder.append("PPV(");
         // getValue() must not be here. getValue() contains exception that in turn causes a call to toString()
         if (value != null) {
         	builder.append(value.getClass().getSimpleName()).append(":");
@@ -132,11 +133,15 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
         } else {
             builder.append("null");
         }
-        builder.append(", type: ");
-        builder.append(getType());
-        builder.append(", source: ");
-        builder.append(getSource());
-        builder.append("]");
+        if (getType() != null) {
+	        builder.append(", type: ");
+	        builder.append(getType());
+        }
+        if (getSource() != null) {
+	        builder.append(", source: ");
+	        builder.append(getSource());
+        }
+        builder.append(")");
 
         return builder.toString();
     }

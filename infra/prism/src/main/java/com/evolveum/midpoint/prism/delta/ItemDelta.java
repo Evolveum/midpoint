@@ -244,6 +244,9 @@ public abstract class ItemDelta<V extends PrismValue> implements Dumpable, Debug
     public void applyTo(PrismContainer<?> propertyContainer) {
         Item<?> item = propertyContainer.findOrCreateItem(getPath(), getItemClass());
         applyTo(item);
+        if (item.isEmpty()) {
+        	propertyContainer.remove(item);
+        }
     }
     
     public static void applyTo(Collection<? extends ItemDelta> deltas, PrismContainer propertyContainer) {

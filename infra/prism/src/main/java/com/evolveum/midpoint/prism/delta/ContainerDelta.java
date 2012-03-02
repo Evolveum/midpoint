@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.prism.delta;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 import javax.xml.namespace.QName;
 
@@ -45,6 +46,26 @@ public class ContainerDelta<V> extends ItemDelta<PrismContainerValue<V>> {
             return (Collection) valuesToReplace;
         }
         return (Collection) MiscUtil.union(valuesToAdd, valuesToDelete);
+    }
+    
+    @Override
+    protected void dumpValues(StringBuilder sb, String label, Collection<PrismContainerValue<V>> values, int indent) {
+        for (int i = 0; i < indent; i++) {
+            sb.append(INDENT_STRING);
+        }
+        sb.append(label).append(":");
+        if (values == null) {
+            sb.append(" (null)");
+        } else {
+        	sb.append("\n");
+            Iterator<PrismContainerValue<V>> i = values.iterator();
+            while (i.hasNext()) {
+                sb.append(i.next().debugDump(indent+1));
+                if (i.hasNext()) {
+                    sb.append("\n");
+                }
+            }
+        }
     }
 	
 }

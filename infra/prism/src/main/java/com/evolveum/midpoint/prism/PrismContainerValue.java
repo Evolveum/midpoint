@@ -218,7 +218,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
         Validate.notNull(item, "Item must not be null.");
 
         Item existingItem = findItem(item.getName(),  Item.class);
-        if (item != null) {
+        if (existingItem != null) {
             items.remove(existingItem);
             existingItem.setParent(null);
         }

@@ -26,8 +26,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -50,6 +52,36 @@ public class MiscUtil {
 		}
 		return resultSet;
 	}
+	
+	public static boolean unorderedCollectionEquals(Collection a, Collection b) {
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		Collection outstanding = new ArrayList(b.size());
+		outstanding.addAll(b);
+		for (Object ao: a) {
+			boolean found = false;
+			Iterator iterator = outstanding.iterator();
+			while(iterator.hasNext()) {
+				Object oo = iterator.next();
+				if (ao.equals(oo)) {
+					iterator.remove();
+					found = true;
+				}
+			}
+			if (!found) {
+				return false;
+			}
+		}
+		if (!outstanding.isEmpty()) {
+			return false;
+		}
+		return true;
+	}
+	
 	
 	public static int unorderedCollectionHashcode(Collection collection) {
 		// Stupid implmentation, just add all the hashcodes

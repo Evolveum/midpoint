@@ -63,6 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationTy
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -229,6 +230,45 @@ public class TestParseDiffPatch {
         
         assertTrue("Roundtrip delta is not empty",roundTripDelta.isEmpty());
         
+	}
+	
+	@Test
+	public void testResourceRoundTrip() throws SchemaException, SAXException, IOException, JAXBException {
+		System.out.println("===[ testResourceRoundTrip ]===");
+
+        PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-before.xml"));                
+        PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-after.xml"));
+        
+        // sanity
+        assertFalse("Equals does not work", resourceBefore.equals(resourceAfter));
+        
+        // WHEN
+        
+        ObjectDelta<ResourceType> resourceDelta = resourceBefore.diff(resourceAfter);
+        
+        // THEN
+        
+        System.out.println("DELTA:");
+        System.out.println(resourceDelta.dump());
+        
+        // ROUNDTRIP
+        resourceDelta.applyTo(resourceBefore);
+        
+        System.out.println("Resource after roundtrip:");
+        System.out.println(resourceBefore.dump());
+        
+        ObjectDelta<ResourceType> roundTripDelta1 = resourceBefore.diff(resourceAfter);
+        System.out.println("roundtrip DELTA 1:");
+        System.out.println(roundTripDelta1.dump());        
+        assertTrue("Resource roundtrip 1 failed", roundTripDelta1.isEmpty());
+
+        ObjectDelta<ResourceType> roundTripDelta2 = resourceAfter.diff(resourceBefore);
+        System.out.println("roundtrip DELTA 2:");
+        System.out.println(roundTripDelta2.dump());        
+        assertTrue("Resource roundtrip 2 failed", roundTripDelta2.isEmpty());
+
+        
+        PrismAsserts.assertEquivalent("Resources after roundtrip not equivalent", resourceAfter, resourceBefore);
 	}
 
 	private void assertXmlMod(ObjectModificationType objectModificationType, QName propertyName,

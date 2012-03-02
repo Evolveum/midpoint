@@ -453,7 +453,7 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
 		if (values == null) {
 			if (other.values != null)
 				return false;
-		} else if (!values.equals(other.values))
+		} else if (!MiscUtil.unorderedCollectionEquals(this.values, other.values))
 			return false;
 		return true;
 	}
