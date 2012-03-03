@@ -89,7 +89,20 @@ public class PrismReferenceDefinition extends ItemDefinition {
         return new PrismReference(name, this, prismContext);
     }
     
-    /**
+    @Override
+	public PrismReferenceDefinition clone() {
+    	PrismReferenceDefinition clone = new PrismReferenceDefinition(getName(), getDefaultName(), getTypeName(), getPrismContext());
+    	copyDefinitionData(clone);
+    	return clone;
+	}
+    
+    protected void copyDefinitionData(PrismReferenceDefinition clone) {
+    	super.copyDefinitionData(clone);
+    	clone.targetTypeName = this.targetTypeName;
+    	clone.compositeObjectElementName = this.compositeObjectElementName;
+    }
+
+	/**
      * Return a human readable name of this class suitable for logs.
      */
     @Override

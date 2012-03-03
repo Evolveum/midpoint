@@ -106,6 +106,20 @@ public class ResourceAttributeDefinition extends PrismPropertyDefinition {
 		this.nativeAttributeName = nativeAttributeName;
 	}
 	
+	
+	
+	@Override
+	public ResourceAttributeDefinition clone() {
+		ResourceAttributeDefinition clone = new ResourceAttributeDefinition(getName(), getDefaultName(), getTypeName(), getPrismContext());
+		copyDefinitionData(clone);
+		return clone;
+	}
+	
+	protected void copyDefinitionData(ResourceAttributeDefinition clone) {
+		super.copyDefinitionData(clone);
+		clone.nativeAttributeName = this.nativeAttributeName;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

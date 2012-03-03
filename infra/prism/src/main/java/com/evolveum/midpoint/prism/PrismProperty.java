@@ -123,8 +123,8 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
     /**
      * Type override, also for compatibility.
      */
-    public <T> Set<PrismPropertyValue<T>> getValues(Class<T> T) {
-        return (Set) getValues();
+    public <T> List<PrismPropertyValue<T>> getValues(Class<T> T) {
+        return (List) getValues();
     }
 
     public Collection<V> getRealValues() {

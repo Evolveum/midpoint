@@ -24,6 +24,7 @@ import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -74,6 +75,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -178,6 +180,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		// TODO: assert something
 
 		schema = cc.getResourceSchema(result);
+		display("Resource schema", schema);
 
 		AssertJUnit.assertNotNull(schema);
 
@@ -186,39 +189,65 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	@AfterMethod
 	public void shutdownUcf() throws Exception {
 	}
+	
+	@Test
+	public void testResourceSchemaSanity() throws Exception {
+		displayTestTile("testResourceSchemaSanity");
+		
+		QName objectClassQname = new QName(resourceType.getNamespace(), "AccountObjectClass");
+		ResourceAttributeContainerDefinition accountDefinition = schema.findAttributeContainerDefinitionByType(objectClassQname);
+		assertNotNull("No object class definition " + objectClassQname, accountDefinition);
+		assertTrue("Object class " + objectClassQname + " is not account", accountDefinition.isAccountType());
+		assertTrue("Object class " + objectClassQname + " is not default account", accountDefinition.isDefaultAccountType());
+		assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isEmpty());
+		assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isIgnored());
+		
+		Collection<ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
+		assertNotNull("Null identifiers for " + objectClassQname, identifiers);
+		assertFalse("Empty identifiers for " + objectClassQname, identifiers.isEmpty());
+		// TODO
+
+		ResourceAttributeDefinition attributeDefinition = accountDefinition
+				.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+		assertNotNull("No definition for attribute "+ConnectorFactoryIcfImpl.ICFS_UID, attributeDefinition);
+		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_UID+" in not an identifier",attributeDefinition.isIdentifier(accountDefinition));
+		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_UID+" in not in identifiers list",identifiers.contains(attributeDefinition));
+		
+	}
 
 	private Set<ResourceAttribute> addSampleResourceObject(String name, String givenName, String familyName)
 			throws CommunicationException, GenericFrameworkException, SchemaException,
 			ObjectAlreadyExistsException {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testAdd");
 
-		ResourceAttributeContainerDefinition accountDefinition = (ResourceAttributeContainerDefinition) schema
-				.findContainerDefinitionByType(new QName(resourceType.getNamespace(), "AccountObjectClass"));
+		QName objectClassQname = new QName(resourceType.getNamespace(), "AccountObjectClass");
+		ResourceAttributeContainerDefinition accountDefinition = schema.findAttributeContainerDefinitionByType(objectClassQname);
+		assertNotNull("No object class definition "+objectClassQname, accountDefinition);
 		ResourceAttributeContainer resourceObject = accountDefinition.instantiate();
 
-		PrismPropertyDefinition propertyDefinition = accountDefinition
-				.findPropertyDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
-		PrismProperty property = propertyDefinition.instantiate(null);
-		property.setValue(new PrismPropertyValue("uid=" + name + ",ou=people,dc=example,dc=com"));
-		resourceObject.add(property);
+		ResourceAttributeDefinition attributeDefinition = accountDefinition
+				.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
+		ResourceAttribute<String> attribute = attributeDefinition.instantiate();
+		attribute.setValue(new PrismPropertyValue<String>("uid=" + name + ",ou=people,dc=example,dc=com"));
+		resourceObject.add(attribute);
 
-		propertyDefinition = accountDefinition
-				.findPropertyDefinition(new QName(resourceType.getNamespace(), "sn"));
-		property = propertyDefinition.instantiate();
-		property.setValue(new PrismPropertyValue(familyName));
-		resourceObject.add(property);
+		attributeDefinition = accountDefinition
+				.findAttributeDefinition(new QName(resourceType.getNamespace(), "sn"));
+		attribute = attributeDefinition.instantiate();
+		attribute.setValue(new PrismPropertyValue(familyName));
+		resourceObject.add(attribute);
 
-		propertyDefinition = accountDefinition
-				.findPropertyDefinition(new QName(resourceType.getNamespace(), "cn"));
-		property = propertyDefinition.instantiate(null);
-		property.setValue(new PrismPropertyValue(givenName + " " + familyName));
-		resourceObject.add(property);
+		attributeDefinition = accountDefinition
+				.findAttributeDefinition(new QName(resourceType.getNamespace(), "cn"));
+		attribute = attributeDefinition.instantiate();
+		attribute.setValue(new PrismPropertyValue(givenName + " " + familyName));
+		resourceObject.add(attribute);
 
-		propertyDefinition = accountDefinition.findPropertyDefinition(new QName(resourceType.getNamespace(),
+		attributeDefinition = accountDefinition.findAttributeDefinition(new QName(resourceType.getNamespace(),
 				"givenName"));
-		property = propertyDefinition.instantiate(null);
-		property.setValue(new PrismPropertyValue(givenName));
-		resourceObject.add(property);
+		attribute = attributeDefinition.instantiate();
+		attribute.setValue(new PrismPropertyValue(givenName));
+		resourceObject.add(attribute);
 
 		PrismObject<AccountShadowType> shadow = wrapInShadow(AccountShadowType.class, resourceObject);
 
@@ -278,10 +307,10 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 
 		Set<Operation> changes = new HashSet<Operation>();
 
-		changes.add(createAddChange("employeeNumber", "123123123"));
-		changes.add(createReplaceChange("sn", "Smith007"));
-		changes.add(createAddChange("street", "Wall Street"));
-		changes.add(createDeleteChange("givenName", "John"));
+		changes.add(createAddAttributeChange("employeeNumber", "123123123"));
+		changes.add(createReplaceAttributeChange("sn", "Smith007"));
+		changes.add(createAddAttributeChange("street", "Wall Street"));
+		changes.add(createDeleteAttributeChange("givenName", "John"));
 
 		ResourceAttributeContainerDefinition accountDefinition = schema.findDefaultAccountDefinition();
 
@@ -297,9 +326,9 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 				.findAttribute(new QName(resourceType.getNamespace(), "employeeNumber")).getValue(String.class)
 				.getValue();
 		String changedSn = resObj.findAttribute(new QName(resourceType.getNamespace(), "sn"))
-				.getValue(String.class).getValue();
+				.getValues(String.class).iterator().next().getValue();
 		String addedStreet = resObj.findAttribute(new QName(resourceType.getNamespace(), "street"))
-				.getValue(String.class).getValue();
+				.getValues(String.class).iterator().next().getValue();
 
 		System.out.println("changed employee number: " + addedEmployeeNumber);
 		System.out.println("changed sn: " + changedSn);
@@ -359,34 +388,40 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	}
 
 	private PrismProperty createProperty(String propertyName, String propertyValue) {
-		ResourceAttributeContainerDefinition accountDefinition = (ResourceAttributeContainerDefinition) schema
-				.findContainerDefinitionByType(new QName(resourceType.getNamespace(), "AccountObjectClass"));
+		ResourceAttributeContainerDefinition accountDefinition = schema.findAttributeContainerDefinitionByType(
+				new QName(resourceType.getNamespace(), "AccountObjectClass"));
 		ResourceAttributeDefinition propertyDef = accountDefinition.findAttributeDefinition(new QName(
 				resourceType.getNamespace(), propertyName));
-		ResourceAttribute property = propertyDef.instantiate(null);
+		ResourceAttribute property = propertyDef.instantiate();
 		property.setValue(new PrismPropertyValue(propertyValue));
 		return property;
 	}
 
-	private PropertyModificationOperation createReplaceChange(String propertyName, String propertyValue) {
+	private PropertyModificationOperation createReplaceAttributeChange(String propertyName, String propertyValue) {
 		PrismProperty property = createProperty(propertyName, propertyValue);
-		PropertyDelta delta = new PropertyDelta(property.getDefinition());
+		PropertyPath propertyPath = new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, 
+				new QName(resourceType.getNamespace(), propertyName));
+		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition());
 		delta.setValueToReplace(new PrismPropertyValue(propertyValue));
 		PropertyModificationOperation attributeModification = new PropertyModificationOperation(delta);
 		return attributeModification;
 	}
 
-	private PropertyModificationOperation createAddChange(String propertyName, String propertyValue) {
+	private PropertyModificationOperation createAddAttributeChange(String propertyName, String propertyValue) {
 		PrismProperty property = createProperty(propertyName, propertyValue);
-		PropertyDelta delta = new PropertyDelta(property.getDefinition());
+		PropertyPath propertyPath = new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, 
+				new QName(resourceType.getNamespace(), propertyName));
+		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition());
 		delta.addValueToAdd(new PrismPropertyValue(propertyValue));
 		PropertyModificationOperation attributeModification = new PropertyModificationOperation(delta);
 		return attributeModification;
 	}
 
-	private PropertyModificationOperation createDeleteChange(String propertyName, String propertyValue) {
+	private PropertyModificationOperation createDeleteAttributeChange(String propertyName, String propertyValue) {
 		PrismProperty property = createProperty(propertyName, propertyValue);
-		PropertyDelta delta = new PropertyDelta(property.getDefinition());
+		PropertyPath propertyPath = new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, 
+				new QName(resourceType.getNamespace(), propertyName));
+		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition());
 		delta.addValueToDelete(new PrismPropertyValue(propertyValue));
 		PropertyModificationOperation attributeModification = new PropertyModificationOperation(delta);
 		return attributeModification;
@@ -688,17 +723,17 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 
 		ResourceAttributeDefinition road = accountDefinition.findAttributeDefinition(new QName(resourceType
 				.getNamespace(), "sn"));
-		ResourceAttribute roa = road.instantiate(null);
+		ResourceAttribute roa = road.instantiate();
 		roa.setValue(new PrismPropertyValue(sn));
 		resourceObject.add(roa);
 
 		road = accountDefinition.findAttributeDefinition(new QName(resourceType.getNamespace(), "cn"));
-		roa = road.instantiate(null);
+		roa = road.instantiate();
 		roa.setValue(new PrismPropertyValue(cn));
 		resourceObject.add(roa);
 
 		road = accountDefinition.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
-		roa = road.instantiate(null);
+		roa = road.instantiate();
 		roa.setValue(new PrismPropertyValue(dn));
 		resourceObject.add(roa);
 
@@ -708,10 +743,11 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	private <T extends ResourceObjectShadowType> PrismObject<T> wrapInShadow(Class<T> type, ResourceAttributeContainer resourceObject) {
 		PrismObjectDefinition<T> shadowDefinition = getShadowDefinition(type);
 		PrismObject<T> shadow = shadowDefinition.instantiate();
+		resourceObject.setName(ResourceObjectShadowType.F_ATTRIBUTES);
 		shadow.getValue().add(resourceObject);
 		return shadow;
 	}
-
+	
 	private <T extends ResourceObjectShadowType> PrismObjectDefinition<T> getShadowDefinition(Class<T> type) { 
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
 	}

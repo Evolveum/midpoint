@@ -34,10 +34,13 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 
 /**
  * Resource Object Definition (Object Class).
@@ -367,6 +370,20 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 		return attrs;
 	}
 	
+	public <T extends ResourceObjectShadowType> PrismObjectDefinition<T> toShadowDefinition() {
+		PrismObjectDefinition<T> origShadowDef = null;
+		if (isAccountType()) {
+			origShadowDef = (PrismObjectDefinition<T>) prismContext.getSchemaRegistry().
+					findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
+		} else {
+			origShadowDef = (PrismObjectDefinition<T>) prismContext.getSchemaRegistry().
+			findObjectDefinitionByCompileTimeClass(ResourceObjectShadowType.class);
+		}
+		PrismObjectDefinition<T> shadowDefinition = 
+			origShadowDef.cloneWithReplacedDefinition(ResourceObjectShadowType.F_ATTRIBUTES, this);
+		return shadowDefinition;
+	}
+	
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
@@ -407,5 +424,6 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 		}
 		return sb.toString();
 	}
+
 
 }

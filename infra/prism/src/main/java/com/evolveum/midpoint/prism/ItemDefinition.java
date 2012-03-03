@@ -219,6 +219,17 @@ public abstract class ItemDefinition extends Definition implements Serializable 
             throw new IllegalArgumentException("No definition for path " + path + " in " + this);
         }
     }
+    
+    abstract public ItemDefinition clone();
+    	
+	protected void copyDefinitionData(ItemDefinition clone) {
+		super.copyDefinitionData(clone);
+		clone.name = this.name;
+		clone.minOccurs = this.minOccurs;
+		clone.maxOccurs = this.maxOccurs;
+		clone.dynamic = this.dynamic;
+	}
+
 	
 	@Override
 	void revive(PrismContext prismContext) {
@@ -228,10 +239,7 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		this.prismContext = prismContext;
 	}
 	
-	protected void copyDefinitionData(ItemDefinition clone) {
-		super.copyDefinitionData(clone);
-		clone.name = this.name;
-	}
+	
 
 	@Override
 	public int hashCode() {

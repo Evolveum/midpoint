@@ -27,6 +27,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -72,6 +73,10 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	public Set<ResourceAttribute> getAttributes() {
 		// TODO: Iterate over the list to assert correct types
 		return (Set) getValue().getProperties();
+	}
+
+	public void add(ResourceAttribute<?> attribute) {
+		super.add(attribute);
 	}
 
 	/**

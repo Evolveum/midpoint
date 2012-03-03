@@ -138,9 +138,23 @@ public class PrismPropertyDefinition extends ItemDefinition {
         return new PrismProperty(name, this, prismContext);
     }
 
-    // TODO: factory methods for DOM and JAXB elements
+    @Override
+	public PrismPropertyDefinition clone() {
+        	PrismPropertyDefinition clone = new PrismPropertyDefinition(getName(), getDefaultName(), getValueType(), getPrismContext());
+        	copyDefinitionData(clone);
+        	return clone;
+	}
 
-    public void setRead(boolean read) {
+	protected void copyDefinitionData(PrismPropertyDefinition clone) {
+		super.copyDefinitionData(clone);
+		clone.allowedValues = this.allowedValues;
+		clone.valueType = this.valueType;
+		clone.create = this.create;
+		clone.read = this.read;
+		clone.update = this.update;
+	}
+
+	public void setRead(boolean read) {
         this.read = read;
     }
 

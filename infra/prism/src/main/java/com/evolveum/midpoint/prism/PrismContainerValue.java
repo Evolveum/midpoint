@@ -193,6 +193,9 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
      * @throws IllegalArgumentException an attempt to add value that already exists
      */
     public void add(Item<?> item) {
+    	if (item.getName() == null) {
+    		throw new IllegalArgumentException("Cannot add item without a name to value of container "+getParent());
+    	}
         if (findItem(item.getName(), Item.class) != null) {
             throw new IllegalArgumentException("Item " + item.getName() + " is already present in " + this.getClass().getSimpleName());
         }
@@ -387,6 +390,9 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 		Item<?> newItem = null;
 		if (getParent().getDefinition() != null) {
 			ItemDefinition itemDefinition = getParent().getDefinition().findItemDefinition(name);
+			if (itemDefinition == null) {
+				throw new IllegalArgumentException("No definition for item "+name+" in "+getParent());
+			}
 			newItem = itemDefinition.instantiate(name);
 		} else {
 			newItem = Item.createNewDefinitionlessItem(name, type);

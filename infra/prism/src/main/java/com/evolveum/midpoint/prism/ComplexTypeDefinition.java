@@ -220,6 +220,10 @@ public class ComplexTypeDefinition extends Definition {
 					throw new IllegalArgumentException("The provided definition of class "+newDefinition.getClass().getName()+" does not match existing definition of class "+itemDef.getClass().getName());
 				}
 				itemDefinitions.remove(itemDef);
+				if (!itemDef.getName().equals(newDefinition.getName())) {
+					newDefinition = newDefinition.clone();
+					newDefinition.setName(propertyName);
+				}
 				itemDefinitions.add(newDefinition);
 				return;
 			}

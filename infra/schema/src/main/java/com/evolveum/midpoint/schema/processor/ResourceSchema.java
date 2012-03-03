@@ -78,6 +78,11 @@ public class ResourceSchema extends PrismSchema {
 		add(def);
 		return def;
 	}
+	
+	public ResourceAttributeContainerDefinition findAttributeContainerDefinitionByType(QName qName) {
+		return findItemDefinitionByType(qName, ResourceAttributeContainerDefinition.class);
+	}
+
 
 	public ResourceAttributeContainerDefinition findDefaultAccountDefinition() {
 		for (ResourceAttributeContainerDefinition attrContDef: getDefinitions(ResourceAttributeContainerDefinition.class)) {
@@ -87,4 +92,5 @@ public class ResourceSchema extends PrismSchema {
 		}
 		return null;
 	}
+
 }

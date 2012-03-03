@@ -695,7 +695,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					+ ObjectTypeUtil.toShortString(connectorType));
 		}
 
-		PrismObjectDefinition<T> shadowDefinition = constructShadowDefinition(objectClassDefinition, type);
+		PrismObjectDefinition<T> shadowDefinition = objectClassDefinition.toShadowDefinition();
 		PrismObject<T> shadow = convertToResourceObject(co, shadowDefinition, true);
 
 		result.recordSuccess();
@@ -746,6 +746,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	public Set<ResourceAttribute> addObject(PrismObject<? extends ResourceObjectShadowType> object, Set<Operation> additionalOperations,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			SchemaException, ObjectAlreadyExistsException {
+		validateShadow(object, "add", false);
 
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(object);
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
@@ -757,8 +758,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		ObjectClass objectClass = objectClassToIcf(object);
 
 		if (objectClass == null) {
-			result.recordFatalError("Couldn't get icf object class from resource definition.");
-			throw new IllegalArgumentException("Couldn't get icf object class from resource definition.");
+			result.recordFatalError("Couldn't get icf object class from " + object);
+			throw new IllegalArgumentException("Couldn't get icf object class from " + object);
 		}
 
 		// setting ifc attributes from resource object attributes
@@ -837,12 +838,36 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw new GenericFrameworkException("ICF did not returned UID after create");
 		}
 
-		ResourceAttribute attribute = createUidAttribute(uid, getUidDefinition(attributesContainer.getIdentifiers()));
+		ResourceAttributeDefinition uidDefinition = getUidDefinition(attributesContainer.getDefinition());
+		if (uidDefinition == null) {
+			throw new IllegalArgumentException("No definition for ICF UID attribute found in definition " + attributesContainer.getDefinition());
+		}
+		ResourceAttribute attribute = createUidAttribute(uid, uidDefinition);
 		attributesContainer.getValue().addReplaceExisting(attribute);
 		icfResult.recordSuccess();
 
 		result.recordSuccess();
 		return attributesContainer.getAttributes();
+	}
+
+	private void validateShadow(PrismObject<? extends ResourceObjectShadowType> shadow, String operation, boolean requireUid) {
+		if (shadow == null) {
+			throw new IllegalArgumentException("Cannot "+operation+" null "+shadow);
+		}
+		PrismContainer<?> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		if (attributesContainer == null) {
+			throw new IllegalArgumentException("Cannot "+operation+" shadow without attributes container");
+		}
+		ResourceAttributeContainer resourceAttributesContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
+		if (resourceAttributesContainer == null) {
+			throw new IllegalArgumentException("Cannot "+operation+" shadow without attributes container of type ResourceAttributeContainer, got "+attributesContainer.getClass());
+		}
+		if (requireUid) {
+			Set<ResourceAttribute> identifiers = resourceAttributesContainer.getIdentifiers();
+			if (identifiers == null || identifiers.isEmpty()) {
+				throw new IllegalArgumentException("Cannot "+operation+" shadow without identifiers");
+			}
+		}
 	}
 
 	@Override
@@ -1311,8 +1336,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			result.recordFatalError("Unable to detemine object class", ex);
 			throw ex;
 		}
-		final PrismObjectDefinition<T> objectDefinition = 
-			constructShadowDefinition(objectClassDefinition, type);
+		final PrismObjectDefinition<T> objectDefinition = objectClassDefinition.toShadowDefinition();
 
 		ResultsHandler icfHandler = new ResultsHandler() {
 			@Override
@@ -1431,8 +1455,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		ResourceObjectShadowType shadowType = object.asObjectable();
 		QName qnameObjectClass = shadowType.getObjectClass();
 		if (qnameObjectClass == null) {
-			ResourceAttributeContainerDefinition objectClassDefinition 
-					= ResourceObjectShadowUtil.getAttributesContainer(shadowType).getDefinition();
+			ResourceAttributeContainer attrContainer = ResourceObjectShadowUtil.getAttributesContainer(shadowType);
+			if (attrContainer == null) {
+				return null;
+			}
+			ResourceAttributeContainerDefinition objectClassDefinition  = attrContainer.getDefinition();
 			qnameObjectClass = objectClassDefinition.getTypeName();
 		} 
 		
@@ -1493,7 +1520,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 	
 	private ResourceAttributeDefinition getUidDefinition(ResourceAttributeContainerDefinition def) {
-		return def.findAttributeDefinition(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_UID));
+		return def.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
 	}
 
 	private ResourceAttributeDefinition getUidDefinition(
@@ -1511,17 +1538,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		ResourceAttribute uidRoa = uidDefinition.instantiate();
 		uidRoa.setValue(new PrismPropertyValue<String>(uid.getUidValue()));
 		return uidRoa;
-	}
-	
-	private <T extends ResourceObjectShadowType> PrismObjectDefinition<T> constructShadowDefinition(
-			ResourceAttributeContainerDefinition objectClassDefinition, Class<T> type) {
-		PrismObjectDefinition<T> originalObjectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-		if (originalObjectDefinition == null) {
-			throw new SystemException("No object definition for "+type);
-		}
-		PrismObjectDefinition<T> shadowDefinition = 
-			originalObjectDefinition.cloneWithReplacedDefinition(ResourceObjectShadowType.F_ATTRIBUTES, objectClassDefinition);
-		return shadowDefinition;
 	}
 
 	/**
@@ -1757,7 +1773,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			ResourceAttributeContainerDefinition objectClassDefinition = (ResourceAttributeContainerDefinition) schema
 					.findContainerDefinitionByType(objectClass);
 			// FIXME: we are hadcoding Account here, but we should not
-			PrismObjectDefinition<AccountShadowType> objectDefinition = constructShadowDefinition(objectClassDefinition, AccountShadowType.class);
+			PrismObjectDefinition<AccountShadowType> objectDefinition = objectClassDefinition.toShadowDefinition();
 
 			if (SyncDeltaType.DELETE.equals(delta.getDeltaType())) {
 				ObjectDelta<ResourceObjectShadowType> objectDelta = new ObjectDelta<ResourceObjectShadowType>(
