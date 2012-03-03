@@ -25,10 +25,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.data.atest.Assignment;
-import com.evolveum.midpoint.repo.sql.data.atest.Reference;
-import com.evolveum.midpoint.repo.sql.data.atest.Role;
-import com.evolveum.midpoint.repo.sql.data.atest.User;
+import com.evolveum.midpoint.repo.sql.data.atest.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -74,10 +71,25 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         Session session = factory.openSession();
         session.beginTransaction();
 
+        Connector connector = new Connector();
+        connector.setSomeName("without reference");
+        session.save(connector);
+        
+        connector = new Connector();
+        connector.setSomeName("with reference");
+        Reference ref = new Reference();
+        ref.setOwner(connector);
+        ref.setTarget(connector);
+        ref.setType(new QName("namespace", "connector"));
+        session.save(connector);
+
+        session.getTransaction().commit();
+//*********************************************
+        session.beginTransaction();
         Role role = new Role();
         role.setDescription("role description");
-        List<Assignment> list = new ArrayList<Assignment>();
-        role.setAssignment(list);
+        Set<Assignment> list = new HashSet<Assignment>();
+        role.setAssignments(list);
         
         Assignment a = new Assignment();
         a.setOwner(role);
@@ -98,8 +110,8 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         User user = new User();
         user.setFullName("vilkooo");
         Set<Reference> references = new HashSet<Reference>();
-        user.setReferences(references);
-        Reference ref = new Reference();
+//        user.setReferences(references);
+        ref = new Reference();
         ref.setOwner(user);
         ref.setTarget(otherUser);
         ref.setType(new QName("namespace", "user"));
@@ -110,6 +122,14 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         ref.setTarget(role);
         ref.setType(new QName("namespace", "role"));
         references.add(ref);
+
+        Set<Assignment> set = new HashSet<Assignment>();
+        user.setAssignments(set);
+        a = new Assignment();
+        a.setOwner(user);
+        a.setDescription("a3 user description");
+        set.add(a);
+
         session.saveOrUpdate(user);
         
         session.getTransaction().commit();

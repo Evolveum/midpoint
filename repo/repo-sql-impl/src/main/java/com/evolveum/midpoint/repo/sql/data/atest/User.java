@@ -46,9 +46,7 @@ public class User extends O {
     private Set<Reference> references;
     private Set<Assignment> assignments;
 
-    @OneToMany(mappedBy = "owner", targetEntity = Assignment.class)
-//    @JoinTable
-//    @JoinColumn(name="owner")
+    @OneToMany(mappedBy = "owner")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<Assignment> getAssignments() {
         return assignments;

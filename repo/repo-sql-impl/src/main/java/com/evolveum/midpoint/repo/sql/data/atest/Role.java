@@ -30,7 +30,7 @@ import javax.persistence.Transient;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.Set;
 
 /**
  * Created by IntelliJ IDEA.
@@ -42,33 +42,33 @@ import java.util.List;
 @Entity
 public class Role extends O {
 
-    private List<Assignment> assignment;
+    private Set<Assignment> assignments;
     private String description;
 
     public String getDescription() {
         return description;
     }
 
-    @OneToMany(mappedBy = "owner", targetEntity = Assignment.class)
+    @OneToMany(mappedBy = "owner")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public List<Assignment> getAssignment() {
-        return assignment;
+    public Set<Assignment> getAssignments() {
+        return assignments;
     }
 
     public void setDescription(String description) {
         this.description = description;
     }
 
-    public void setAssignment(List<Assignment> assignment) {
-        this.assignment = assignment;
+    public void setAssignments(Set<Assignment> assignments) {
+        this.assignments = assignments;
     }
 
     @Transient
     @Override
     public Collection<IdentifiableContainer> getContainers(QName name) {
         Collection<IdentifiableContainer> containers = new ArrayList<IdentifiableContainer>();
-        if (getAssignment() != null) {
-            containers.addAll(getAssignment());
+        if (getAssignments() != null) {
+            containers.addAll(getAssignments());
         }
 
         return containers;

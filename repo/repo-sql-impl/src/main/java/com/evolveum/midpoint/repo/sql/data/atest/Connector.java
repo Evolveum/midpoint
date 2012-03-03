@@ -21,30 +21,46 @@
 
 package com.evolveum.midpoint.repo.sql.data.atest;
 
+import org.hibernate.annotations.Cascade;
+
 import javax.persistence.Entity;
+import javax.persistence.OneToOne;
+import javax.xml.namespace.QName;
+import java.util.Collection;
 
 /**
  * Created by IntelliJ IDEA.
  * User: lazyman
  * Date: 3/3/12
- * Time: 12:23 PM
+ * Time: 10:31 PM
  * To change this template use File | Settings | File Templates.
  */
 @Entity
-public class Assignment extends IdentifiableContainer {
+public class Connector extends O {
 
-    private String description;
+    private String someName;
+    private Reference connectorHost;
 
-    public String getDescription() {
-        return description;
+    @OneToOne(mappedBy = "owner")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Reference getConnectorHost() {
+        return connectorHost;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public String getSomeName() {
+        return someName;
+    }
+
+    public void setConnectorHost(Reference connectorHost) {
+        this.connectorHost = connectorHost;
+    }
+
+    public void setSomeName(String someName) {
+        this.someName = someName;
     }
 
     @Override
-    public String toString() {
-        return "[" + description + "]";
+    public Collection<IdentifiableContainer> getContainers(QName name) {
+        throw new UnsupportedOperationException("not implemented yet.");
     }
 }

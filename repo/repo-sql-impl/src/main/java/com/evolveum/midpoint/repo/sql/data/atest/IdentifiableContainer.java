@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.atest;
 
-import com.evolveum.midpoint.util.MiscUtil;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
