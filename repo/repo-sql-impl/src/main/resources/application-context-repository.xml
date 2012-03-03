@@ -68,7 +68,8 @@
         </property>
         <property name="packagesToScan">
             <list>
-                <value>com.evolveum.midpoint.repo.sql.data.common</value>
+                <value>com.evolveum.midpoint.repo.sql.data.atest</value>
+                <!--<value>com.evolveum.midpoint.repo.sql.data.common</value>-->
             </list>
         </property>
     </bean>

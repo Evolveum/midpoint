@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.repo.sql.data.atest.IdentifiableContainer;
 import com.evolveum.midpoint.repo.sql.data.atest.O;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectType;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -31,34 +32,46 @@ import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.id.IdentifierGenerator;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.UUID;
 
 /**
- * @author lazyman
+ * Created by IntelliJ IDEA.
+ * User: lazyman
+ * Date: 3/3/12
+ * Time: 12:30 PM
+ * To change this template use File | Settings | File Templates.
  */
-public class OidGenerator implements IdentifierGenerator {
-
-    private static final Trace LOGGER = TraceManager.getTrace(OidGenerator.class);
+public class ContainerIdGenerator implements IdentifierGenerator {
     
+    private static final Trace LOGGER = TraceManager.getTrace(ContainerIdGenerator.class);
+
     @Override
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
-        LOGGER.info("oooooooooooooooooooooo");
-
-        //todo remove
-        if (object instanceof O) {
-            O o = (O)object;
-            if (StringUtils.isNotEmpty(o.getOid())) {
-                return o.getOid();
+        LOGGER.info("aaaaaaaaaaaaaaaaaaaaaaaa");
+        if (object instanceof IdentifiableContainer) {
+            IdentifiableContainer container = (IdentifiableContainer)object;
+            if (container.getId() != null) {
+                return container.getId();
             }
+            
+            O owner = container.getOwner();
+            if (owner == null) {
+                return null;
+            }
+
+            //todo fix qname
+            Collection<IdentifiableContainer> containers = owner.getContainers(null);
+            Long id = 0L;
+            for (IdentifiableContainer iContainer : containers) {
+                if (iContainer.getId() != null && iContainer.getId() > id) {
+                    id = iContainer.getId();
+                }
+            }   
+            
+            return id+1;
         }
         
-        if (object instanceof RObjectType) {
-            RObjectType rObject = (RObjectType) object;
-            if (StringUtils.isNotEmpty(rObject.getOid())) {
-                return rObject.getOid();
-            }
-        }
-
-        return UUID.randomUUID().toString();
+        return null;
     }
 }
