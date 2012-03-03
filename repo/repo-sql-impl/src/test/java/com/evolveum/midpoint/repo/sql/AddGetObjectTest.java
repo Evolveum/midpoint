@@ -26,7 +26,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.atest.Assignment;
+import com.evolveum.midpoint.repo.sql.data.atest.Reference;
 import com.evolveum.midpoint.repo.sql.data.atest.Role;
+import com.evolveum.midpoint.repo.sql.data.atest.User;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -44,9 +46,12 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author lazyman
@@ -85,6 +90,27 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         list.add(a);
         
         session.saveOrUpdate(role);
+        
+        User otherUser = new User();
+        otherUser.setFullName("other user");
+        session.saveOrUpdate(otherUser);
+        
+        User user = new User();
+        user.setFullName("vilkooo");
+        Set<Reference> references = new HashSet<Reference>();
+        user.setReferences(references);
+        Reference ref = new Reference();
+        ref.setOwner(user);
+        ref.setTarget(otherUser);
+        ref.setType(new QName("namespace", "user"));
+        references.add(ref);
+
+        ref = new Reference();
+        ref.setOwner(user);
+        ref.setTarget(role);
+        ref.setType(new QName("namespace", "role"));
+        references.add(ref);
+        session.saveOrUpdate(user);
         
         session.getTransaction().commit();
         session.close();
