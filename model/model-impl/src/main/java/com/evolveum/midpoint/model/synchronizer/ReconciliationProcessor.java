@@ -142,7 +142,7 @@ public class ReconciliationProcessor {
         	}
         	
         	PrismProperty attribute = attributesContainer.findProperty(attrName);
-        	Set<PrismPropertyValue<Object>> arePValues = null;
+        	Collection<PrismPropertyValue<Object>> arePValues = null;
         	if (attribute != null) {
         		arePValues = attribute.getValues(Object.class);
         	} else {
@@ -173,7 +173,7 @@ public class ReconciliationProcessor {
         	
         	if (!attributeDefinition.isTolerant()) {
         		for (PrismPropertyValue<Object> isPValue: arePValues) {
-        			if (!isInValues(isPValue.getValue(), shouldBePValues)) {
+        			if (!isInValurConstructionValues(isPValue.getValue(), shouldBePValues)) {
         				recordDelta(accCtx, attributeDefinition, ChangeType.DELETE, isPValue.getValue());
         			}
         		}
@@ -197,7 +197,7 @@ public class ReconciliationProcessor {
 		accCtx.addToSecondaryDelta(attrDelta);
 	}
 
-	private boolean isInValues(Object shouldBeValue, Set<PrismPropertyValue<Object>> arePValues) {
+	private boolean isInValues(Object shouldBeValue, Collection<PrismPropertyValue<Object>> arePValues) {
 		if (arePValues == null || arePValues.isEmpty()) {
 			return false;
 		}
@@ -209,7 +209,7 @@ public class ReconciliationProcessor {
 		return false;
 	}
 	
-	private boolean isInValues(Object value, Collection<PrismPropertyValue<ValueConstruction>> shouldBePValues) {
+	private boolean isInValurConstructionValues(Object value, Collection<PrismPropertyValue<ValueConstruction>> shouldBePValues) {
 		for (PrismPropertyValue<ValueConstruction> shouldBePValue: shouldBePValues) {
     		ValueConstruction shouldBeVc = shouldBePValue.getValue();
     		PrismProperty<?> shoudlBeProperty = shouldBeVc.getOutput();
