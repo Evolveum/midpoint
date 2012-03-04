@@ -25,6 +25,7 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -105,13 +106,13 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	private static final String FILENAME_RESOURCE_OPENDJ_BAD = "src/test/resources/ucf/opendj-resource-bad.xml";
 	private static final String FILENAME_CONNECTOR_LDAP = "src/test/resources/ucf/ldap-connector.xml";
 
-	private JAXBContext jaxbctx;
-	ResourceType resourceType;
-	ResourceType badResourceType;
-	ConnectorType connectorType;
+	private ResourceType resourceType;
+	private ResourceType badResourceType;
+	private ConnectorType connectorType;
 	private ConnectorFactory factory;
 	private ConnectorInstance cc;
-	ResourceSchema schema;
+	private PrismSchema connectorSchema;
+	private ResourceSchema resourceSchema;
 
 	private static Trace LOGGER = TraceManager.getTrace(OpenDjUcfTest.class);
 
@@ -126,7 +127,6 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 
 	public OpenDjUcfTest() throws JAXBException {
 		System.setProperty("midpoint.home", "target/midPointHome/");
-		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
 	}
 
 	@BeforeSuite
@@ -153,6 +153,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 
 	@BeforeMethod
 	public void initUcf() throws Exception {
+		displayTestTile("initUcf");
 
 		File file = new File(FILENAME_RESOURCE_OPENDJ);
 		FileInputStream fis = new FileInputStream(file);
@@ -173,16 +174,21 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		factory = connectorFactoryIcfImpl;
 
 		cc = factory.createConnectorInstance(connectorType, resourceType.getNamespace());
-		AssertJUnit.assertNotNull(cc);
+		AssertJUnit.assertNotNull("Cannot create connector instance", cc);
+		
+		connectorSchema = cc.generateConnectorSchema();
+		AssertJUnit.assertNotNull("Cannot generate connector schema", cc);
+		display("Connector schema", connectorSchema);
+		
 		OperationResult result = new OperationResult("initUcf");
 		cc.configure(resourceType.getConfiguration().asPrismContainer(), result);
 		cc.initialize(result);
 		// TODO: assert something
 
-		schema = cc.getResourceSchema(result);
-		display("Resource schema", schema);
+		resourceSchema = cc.getResourceSchema(result);
+		display("Resource schema", resourceSchema);
 
-		AssertJUnit.assertNotNull(schema);
+		AssertJUnit.assertNotNull(resourceSchema);
 
 	}
 
@@ -190,12 +196,24 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	public void shutdownUcf() throws Exception {
 	}
 	
+	
+	@Test
+	public void testConnectorSchemaSanity() throws Exception {
+		displayTestTile("testConnectorSchemaSanity");
+	
+		PrismContainerDefinition configurationDefinition = connectorSchema.findItemDefinition("configuration",PrismContainerDefinition.class);
+		assertNotNull("Definition of <configuration> property container not found",configurationDefinition);
+		assertFalse("Empty definition",configurationDefinition.isEmpty());
+		
+	}
+
+	
 	@Test
 	public void testResourceSchemaSanity() throws Exception {
 		displayTestTile("testResourceSchemaSanity");
 		
 		QName objectClassQname = new QName(resourceType.getNamespace(), "AccountObjectClass");
-		ResourceAttributeContainerDefinition accountDefinition = schema.findAttributeContainerDefinitionByType(objectClassQname);
+		ResourceAttributeContainerDefinition accountDefinition = resourceSchema.findAttributeContainerDefinitionByType(objectClassQname);
 		assertNotNull("No object class definition " + objectClassQname, accountDefinition);
 		assertTrue("Object class " + objectClassQname + " is not account", accountDefinition.isAccountType());
 		assertTrue("Object class " + objectClassQname + " is not default account", accountDefinition.isDefaultAccountType());
@@ -221,7 +239,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testAdd");
 
 		QName objectClassQname = new QName(resourceType.getNamespace(), "AccountObjectClass");
-		ResourceAttributeContainerDefinition accountDefinition = schema.findAttributeContainerDefinitionByType(objectClassQname);
+		ResourceAttributeContainerDefinition accountDefinition = resourceSchema.findAttributeContainerDefinitionByType(objectClassQname);
 		assertNotNull("No object class definition "+objectClassQname, accountDefinition);
 		ResourceAttributeContainer resourceObject = accountDefinition.instantiate();
 
@@ -282,7 +300,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 			}
 		}
 
-		ResourceAttributeContainerDefinition accountDefinition = schema.findDefaultAccountDefinition();
+		ResourceAttributeContainerDefinition accountDefinition = resourceSchema.findDefaultAccountDefinition();
 
 		cc.deleteObject(accountDefinition, null, identifiers, result);
 
@@ -312,7 +330,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		changes.add(createAddAttributeChange("street", "Wall Street"));
 		changes.add(createDeleteAttributeChange("givenName", "John"));
 
-		ResourceAttributeContainerDefinition accountDefinition = schema.findDefaultAccountDefinition();
+		ResourceAttributeContainerDefinition accountDefinition = resourceSchema.findDefaultAccountDefinition();
 
 		cc.modifyObject(accountDefinition, identifiers, changes, result);
 
@@ -345,7 +363,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		displayTestTile(this, "testFetchChanges");
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testFetchChanges");
-		ResourceAttributeContainerDefinition accountDefinition = schema.findDefaultAccountDefinition();
+		ResourceAttributeContainerDefinition accountDefinition = resourceSchema.findDefaultAccountDefinition();
 		PrismProperty lastToken = cc.fetchCurrentToken(accountDefinition, result);
 
 		System.out.println("Property:");
@@ -376,7 +394,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		Set<Operation> changes = new HashSet<Operation>();
 		changes.add(createActivationChange(false));
 
-		ResourceAttributeContainerDefinition accountDefinition = schema.findDefaultAccountDefinition();
+		ResourceAttributeContainerDefinition accountDefinition = resourceSchema.findDefaultAccountDefinition();
 
 		cc.modifyObject(accountDefinition, identifiers, changes, result);
 
@@ -388,7 +406,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	}
 
 	private PrismProperty createProperty(String propertyName, String propertyValue) {
-		ResourceAttributeContainerDefinition accountDefinition = schema.findAttributeContainerDefinitionByType(
+		ResourceAttributeContainerDefinition accountDefinition = resourceSchema.findAttributeContainerDefinitionByType(
 				new QName(resourceType.getNamespace(), "AccountObjectClass"));
 		ResourceAttributeDefinition propertyDef = accountDefinition.findAttributeDefinition(new QName(
 				resourceType.getNamespace(), propertyName));
@@ -511,11 +529,11 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 
 		// THEN
 
-		AssertJUnit.assertNotNull(schema);
+		AssertJUnit.assertNotNull(resourceSchema);
 
-		System.out.println(schema.dump());
+		System.out.println(resourceSchema.dump());
 
-		Document xsdSchema = schema.serializeToXsd();
+		Document xsdSchema = resourceSchema.serializeToXsd();
 
 		System.out
 				.println("-------------------------------------------------------------------------------------");
@@ -523,7 +541,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		System.out
 				.println("-------------------------------------------------------------------------------------");
 
-		ResourceAttributeContainerDefinition accountDefinition = (ResourceAttributeContainerDefinition) schema
+		ResourceAttributeContainerDefinition accountDefinition = (ResourceAttributeContainerDefinition) resourceSchema
 				.findContainerDefinitionByType(new QName(resourceType.getNamespace(), "AccountObjectClass"));
 		AssertJUnit.assertNotNull(accountDefinition);
 
@@ -534,7 +552,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 				.findPropertyDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
 		AssertJUnit.assertNotNull(uidDefinition);
 
-		for (Definition def : schema.getDefinitions()) {
+		for (Definition def : resourceSchema.getDefinitions()) {
 			if (def instanceof ResourceAttributeContainerDefinition) {
 				ResourceAttributeContainerDefinition rdef = (ResourceAttributeContainerDefinition) def;
 				assertNotEmpty("No type name in object class", rdef.getTypeName());
@@ -609,7 +627,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		displayTestTile("testSearch");
 		// GIVEN
 
-		ResourceAttributeContainerDefinition accountDefinition = schema.findDefaultAccountDefinition();
+		ResourceAttributeContainerDefinition accountDefinition = resourceSchema.findDefaultAccountDefinition();
 		// Determine object class from the schema
 
 		ResultHandler<AccountShadowType> handler = new ResultHandler<AccountShadowType>() {
@@ -716,7 +734,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	
 	private ResourceAttributeContainer createResourceObject(String dn, String sn, String cn) {
 		// Account type is hardcoded now
-		ResourceAttributeContainerDefinition accountDefinition = (ResourceAttributeContainerDefinition) schema
+		ResourceAttributeContainerDefinition accountDefinition = (ResourceAttributeContainerDefinition) resourceSchema
 				.findContainerDefinitionByType(new QName(resourceType.getNamespace(), "AccountObjectClass"));
 		// Determine identifier from the schema
 		ResourceAttributeContainer resourceObject = accountDefinition.instantiate();

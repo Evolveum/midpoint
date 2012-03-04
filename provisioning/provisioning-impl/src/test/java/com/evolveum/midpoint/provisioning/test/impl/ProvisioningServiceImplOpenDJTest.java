@@ -225,45 +225,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 //		} catch (Exception e) {
 //		}
 	}
-	
-	/**
-	 * Check whether the connectors were discovered correctly and were added to the repository.
-	 * @throws SchemaProcessorException 
-	 * 
-	 */
-	@Test
-	public void test001Connectors() throws SchemaException {
-		displayTestTile("test001Connectors");
-		
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".test001Connectors");
-		
-		ResultList<PrismObject<ConnectorType>> connectors = repositoryService.listObjects(ConnectorType.class, null, result);
-		
-		assertFalse("No connector found",connectors.isEmpty());
-		
-		for (PrismObject<ConnectorType> connector : connectors) {
-			ConnectorType conn = connector.asObjectable();
-			display("Found connector",conn);
-			if (conn.getConnectorType().equals("org.identityconnectors.ldap.LdapConnector")) {
-				// This connector is loaded manually, it has no schema
-				continue;
-			}
-			XmlSchemaType xmlSchemaType = conn.getSchema();
-			assertNotNull("xmlSchemaType is null",xmlSchemaType);
-			assertFalse("Empty schema",xmlSchemaType.getAny().isEmpty());
-			// Try to parse the schema
-			PrismSchema schema = PrismSchema.parse(xmlSchemaType.getAny().get(0), prismContext);
-			assertNotNull("Cannot parse schema",schema);
-			assertFalse("Empty schema",schema.isEmpty());
-			display("Parsed connector schema",schema);
-			PrismContainerDefinition definition = schema.findItemDefinition("configuration",PrismContainerDefinition.class);
-			assertNotNull("Definition of <configuration> property container not found",definition);
-			PrismContainerDefinition pcd = (PrismContainerDefinition)definition;
-			assertFalse("Empty definition",pcd.isEmpty());
-		}
-	}
-		
+			
 	/**
 	 * This should be the very first test that works with the resource.
 	 * 
@@ -942,21 +904,4 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		}
 	}
 
-	@Test
-	public void testListConnectors(){
-		displayTestTile("testListConnectors");
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".listConnectorsTest");
-		
-		ResultList<PrismObject<ConnectorType>> connectors = provisioningService.listObjects(ConnectorType.class, new PagingType(), result);
-		assertNotNull(connectors);
-		
-		for (PrismObject<ConnectorType> connector : connectors){
-			ConnectorType conn = connector.asObjectable();
-			System.out.println("connector name: "+ conn.getName());
-			System.out.println("connector type: "+ conn.getConnectorType());
-		}
-		
-		// TODO: assert something
-	}
 }

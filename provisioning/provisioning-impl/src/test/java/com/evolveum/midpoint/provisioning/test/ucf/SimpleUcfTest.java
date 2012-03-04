@@ -17,6 +17,7 @@
  */
 package com.evolveum.midpoint.provisioning.test.ucf;
 
+import static org.testng.AssertJUnit.assertEquals;
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -41,10 +42,12 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -56,6 +59,7 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -173,6 +177,27 @@ public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
 		assertNotNull("No connector schema", connectorSchema);
 		display("Generated connector schema", connectorSchema);
 		assertFalse("Empty schema returned", connectorSchema.isEmpty());
+		assertEquals("Unexpected number of definitions", 3, connectorSchema.getDefinitions().size());
+
+		PrismContainerDefinition configurationDefinition = connectorSchema.findItemDefinition("configuration",PrismContainerDefinition.class);
+		assertNotNull("Definition of <configuration> property container not found",configurationDefinition);
+		assertFalse("Empty <configuration> definition",configurationDefinition.isEmpty());
+
+		
+		Document xsdSchemaDom = connectorSchema.serializeToXsd();
+		assertNotNull("No serialized connector schema", xsdSchemaDom);
+		display("Serialized XSD connector schema", DOMUtil.serializeDOMToString(xsdSchemaDom));
+		
+		// Try to re-parse
+		PrismSchema reparsedConnectorSchema = PrismSchema.parse(DOMUtil.getFirstChildElement(xsdSchemaDom), PrismTestUtil.getPrismContext());
+		assertNotNull("No re-parsed connector schema", reparsedConnectorSchema);
+		display("re-parsed  connector schema", reparsedConnectorSchema);
+		assertFalse("Empty re-parsed connector schema", reparsedConnectorSchema.isEmpty());
+		assertEquals("Unexpected number of definitions in re-parsed schema", 3, reparsedConnectorSchema.getDefinitions().size());
+		
+		configurationDefinition = reparsedConnectorSchema.findItemDefinition("configuration",PrismContainerDefinition.class);
+		assertNotNull("Definition of <configuration> property container not found in re-parsed schema",configurationDefinition);
+		assertFalse("Empty <configuration> definition in re-parsed schema",configurationDefinition.isEmpty());
 	}
 
 	@Test

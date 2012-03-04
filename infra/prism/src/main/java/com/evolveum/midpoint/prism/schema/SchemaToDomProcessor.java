@@ -40,6 +40,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
@@ -139,7 +140,7 @@ public class SchemaToDomProcessor {
 				
 				if (definition instanceof PrismContainerDefinition) {
 					// Add property container definition. This will add <complexType> and <element> definitions to XSD
-					addPropertyContainerDefinition((PrismContainerDefinition) definition,
+					addContainerDefinition((PrismContainerDefinition) definition,
 							document.getDocumentElement(), document.getDocumentElement());
 					
 				} else if (definition instanceof PrismPropertyDefinition) {
@@ -176,17 +177,27 @@ public class SchemaToDomProcessor {
 	 * @param definition PropertyContainerDefinition to process
 	 * @param parent element under which the XSD definition will be added
 	 */
-	private void addPropertyContainerDefinition(PrismContainerDefinition definition,
+	private void addContainerDefinition(PrismContainerDefinition definition,
 			Element elementParent, Element complexTypeParent) {
 		
 		ComplexTypeDefinition complexTypeDefinition = definition.getComplexTypeDefinition();
-		// Check if the complex type is a top-level complex type. If it is then it was already processed and we can skip it
-		if (complexTypeDefinition != null && schema.findComplexTypeDefinition(complexTypeDefinition.getTypeName()) == null) {
+		
+		if (complexTypeDefinition != null &&
+				// Check if the complex type is a top-level complex type. If it is then it was already processed and we can skip it
+				schema.findComplexTypeDefinition(complexTypeDefinition.getTypeName()) == null &&
+				// If the definition is not in this schema namespace then skip it. It is only a "ref"
+				schema.getNamespace().equals(complexTypeDefinition.getTypeName().getNamespaceURI())
+				) {
 			addComplexTypeDefinition(complexTypeDefinition,complexTypeParent);
 		}
 
-		addElementDefinition(definition.getName(), definition.getTypeName(), definition.getMinOccurs(), definition.getMaxOccurs(),
+		Element elementElement = addElementDefinition(definition.getName(), definition.getTypeName(), definition.getMinOccurs(), definition.getMaxOccurs(),
 				elementParent);
+		
+		if (complexTypeDefinition == null || !complexTypeDefinition.isContainerMarker()) {
+			// Need to add a:container annotation to the element as the complex type does not have it
+			addAnnotationToDefinition(elementElement, A_PROPERTY_CONTAINER);
+		}
 	}
 
 	/**
@@ -340,7 +351,7 @@ public class SchemaToDomProcessor {
 	 * @param typeName element type QName
 	 * @param parent element under which the definition will be added
 	 */
-	private void addElementDefinition(QName name, QName typeName, int minOccurs, int maxOccurs, Element parent) {
+	private Element addElementDefinition(QName name, QName typeName, int minOccurs, int maxOccurs, Element parent) {
 		Document document = parent.getOwnerDocument();
 		Element elementDef = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "element"));
 		parent.appendChild(elementDef);
@@ -355,6 +366,8 @@ public class SchemaToDomProcessor {
 		
 		setMultiplicityAttribute(elementDef, "minOccurs", minOccurs);
 		setMultiplicityAttribute(elementDef, "maxOccurs", maxOccurs);
+		
+		return elementDef;
 	}
 
 	private void addSequenceXsdAnyDefinition(Element elementDef) {
@@ -417,7 +430,7 @@ public class SchemaToDomProcessor {
 				addPropertyDefinition((PrismPropertyDefinition) def, sequence);
 			} else if (def instanceof PrismContainerDefinition) {
 				PrismContainerDefinition contDef = (PrismContainerDefinition)def;
-				addPropertyContainerDefinition(contDef, sequence, parent);
+				addContainerDefinition(contDef, sequence, parent);
 			} else if (def instanceof PrismReferenceDefinition) { 
 				addReferenceDefinition((PrismReferenceDefinition) def, sequence);
 			} else {
@@ -549,6 +562,24 @@ public class SchemaToDomProcessor {
 		}
 		return annotation;
 	}
+	
+	private void addAnnotationToDefinition(Element definitionElement, QName qname) {
+		Element annotationElement = getOrCreateElement(new QName(W3C_XML_SCHEMA_NS_URI, "annotation"), definitionElement);
+		Element appinfoElement = getOrCreateElement(new QName(W3C_XML_SCHEMA_NS_URI, "appinfo"), annotationElement);
+		addAnnotation(qname, appinfoElement);
+	}
+	
+	private Element getOrCreateElement(QName qName, Element parentElement) {
+		NodeList elements = parentElement.getElementsByTagNameNS(qName.getNamespaceURI(), qName.getLocalPart());
+		if (elements.getLength() == 0) {
+			Element element = createElement(qName);
+			Element refChild = DOMUtil.getFirstChildElement(parentElement);
+			parentElement.insertBefore(element, refChild);
+			return element;
+		}
+		return (Element)elements.item(0);
+	}
+
 
 	/**
 	 * Adds annotation that points to another element (ususaly a property).

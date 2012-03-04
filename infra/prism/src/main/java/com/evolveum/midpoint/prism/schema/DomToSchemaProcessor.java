@@ -430,7 +430,7 @@ class DomToSchemaProcessor {
 				QName typeQName = new QName (xsType.getTargetNamespace(),xsType.getName());
 				XSAnnotation annotation = xsType.getAnnotation();
 				
-				if (isPropertyContainer(xsType) || isObjectDefinition(xsType)) {
+				if (isPropertyContainer(xsElementDecl) || isObjectDefinition(xsType)) {
 					
 					ComplexTypeDefinition complexTypeDefinition = schema.findComplexTypeDefinition(typeQName);
 					PrismContainerDefinition propertyContainerDefinition = createPropertyContainerDefinition(xsType, xsElementDecl,
@@ -506,6 +506,14 @@ class DomToSchemaProcessor {
 			}
 		}
 		return false;
+	}
+	
+	private boolean isPropertyContainer(XSElementDecl xsElementDecl) {
+		Element annoElement = SchemaProcessorUtil.getAnnotationElement(xsElementDecl.getAnnotation(), A_PROPERTY_CONTAINER);
+		if (annoElement != null) {
+			return true;
+		}
+		return isPropertyContainer(xsElementDecl.getType());
 	}
 
 	/**
