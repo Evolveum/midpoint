@@ -176,12 +176,18 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 					"src/test/resources/resource-modified-removed-tags.xml"), 
 					ResourceType.class, PrismTestUtil.getPrismContext());
 			
+			
 			repositoryService.modifyObject(ResourceType.class, objectModificationType.getOid(), 
 					objectModificationType.getModifications(), new OperationResult("test"));
 			retrievedObject = repositoryService.getObject(ResourceType.class, resourceOid,
 					new PropertyReferenceListType(), new OperationResult("test"));
-			System.out.println("retrieved: "+PrismTestUtil.getPrismContext().getPrismDomProcessor().serializeObjectToString(retrievedObject));
 			
+			//we need to remove the configuration part of the resource which is parsed
+			//after the real definition is applied..(the resource in the repo contain this definition,
+			//but before we save the object to the repo it doesn't contain it).
+			retrievedObject.remove(retrievedObject.findItem(ResourceType.F_CONFIGURATION));
+			System.out.println("retrieved: "+PrismTestUtil.getPrismContext().getPrismDomProcessor().serializeObjectToString(retrievedObject));
+			System.out.println("modifiedResource: "+PrismTestUtil.getPrismContext().getPrismDomProcessor().serializeObjectToString(modifiedResource));
 			PrismAsserts.assertEquivalent("Modification result does not match",modifiedResource, retrievedObject);
 
 		} finally {

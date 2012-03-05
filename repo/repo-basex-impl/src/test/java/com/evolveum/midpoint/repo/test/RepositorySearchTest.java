@@ -237,7 +237,7 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void searchAccountByNoAttributesUseQueryUtil() throws Exception {
-        System.out.println("asdfasdf");
+		System.out.println("asdfasdf");
 		XPathSegment xpathSegment = new XPathSegment(SchemaConstants.I_ATTRIBUTES);
 		Document doc = DOMUtil.getDocument();
 		List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
@@ -246,10 +246,14 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 
 		List<Element> values = new ArrayList<Element>();
 
-		Element filter = QueryUtil.createAndFilter(doc, QueryUtil.createEqualFilter(doc, xpath, values));
+		Element equalFilter = null;
+		for (Element e : values) {
+			 equalFilter = QueryUtil.createEqualFilter(doc, xpath, values);
+		}
+		Element filter = QueryUtil.createAndFilter(doc, equalFilter);
 
 		QueryType query = QueryUtil.createQuery(filter);
-		System.out.println("Query: "+ QueryUtil.dump(query));
+		System.out.println("Query: " + QueryUtil.dump(query));
 		// query.setFilter(filter);
 
 		repositoryService.searchObjects(AccountShadowType.class, query, new PagingType(),
