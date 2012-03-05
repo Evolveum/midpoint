@@ -17,6 +17,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -64,7 +65,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 	@Override
 	public void handleError(ResourceObjectShadowType shadow, Exception ex) throws SchemaException,
 			GenericFrameworkException, CommunicationException, ObjectNotFoundException,
-			ObjectAlreadyExistsException {
+			ObjectAlreadyExistsException, ConfigurationException {
 
 		OperationResult operationResult = new OperationResult(CommunicationExceptionHandler.class.getName()
 				+ ".handleError");
