@@ -77,7 +77,7 @@ public abstract class IdentifiableContainer implements Serializable {
 
         IdentifiableContainer container = (IdentifiableContainer) o;
         return equals(owner, container.getOwner())
-                && equals(id, container.getId());
+                && id != null && equals(id, container.getId());
     }
 
     private boolean equals(Object o1, Object o2) {

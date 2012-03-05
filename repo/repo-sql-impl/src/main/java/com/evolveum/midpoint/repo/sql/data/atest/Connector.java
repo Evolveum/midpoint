@@ -41,7 +41,7 @@ public class Connector extends O {
     private String someName;
     private Reference connectorHost;
 
-    @OneToOne(mappedBy = "owner")
+    @OneToOne(optional = true, mappedBy = "owner")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Reference getConnectorHost() {
         return connectorHost;

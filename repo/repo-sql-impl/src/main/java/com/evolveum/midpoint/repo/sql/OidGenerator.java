@@ -23,8 +23,6 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.sql.data.atest.O;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectType;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
@@ -38,20 +36,16 @@ import java.util.UUID;
  */
 public class OidGenerator implements IdentifierGenerator {
 
-    private static final Trace LOGGER = TraceManager.getTrace(OidGenerator.class);
-    
     @Override
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
-        LOGGER.info("oooooooooooooooooooooo");
-
         //todo remove
         if (object instanceof O) {
-            O o = (O)object;
+            O o = (O) object;
             if (StringUtils.isNotEmpty(o.getOid())) {
                 return o.getOid();
             }
         }
-        
+
         if (object instanceof RObjectType) {
             RObjectType rObject = (RObjectType) object;
             if (StringUtils.isNotEmpty(rObject.getOid())) {

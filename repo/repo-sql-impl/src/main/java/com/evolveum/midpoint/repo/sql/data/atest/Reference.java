@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.atest;
 
 import org.hibernate.annotations.Columns;
+import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
@@ -39,9 +40,23 @@ import java.io.Serializable;
 public class Reference implements Serializable {
 
     private O owner;
-//    private Long containerId;
+//    private Long id;
+    private Assignment assignment;
     private QName type;
     private O target;
+    
+//    private String owner_container_id;
+//    private String container_id;
+//
+//    @Column(name = "containerOwnerOid", insertable = false, updatable = false)
+//    public String getContainer_id() {
+//        return container_id;
+//    }
+//
+//    @Column(name = "containerId", insertable = false, updatable = false)
+//    public String getOwner_container_id() {
+//        return owner_container_id;
+//    }
 
     @Id
     @MapsId("oid")
@@ -50,17 +65,31 @@ public class Reference implements Serializable {
         return owner;
     }
 
+//        @MapsId(value = "assignment.id")
+////    @Index(name = "iId")
+//    @Column(name = "id", insertable = false, updatable = false)
+//    public Long getId() {
+//        return id;
+//    }
+
+    @OneToOne(optional = true, fetch = FetchType.LAZY)
+    @PrimaryKeyJoinColumns({
+            @PrimaryKeyJoinColumn(name = "owner_oid"),
+            @PrimaryKeyJoinColumn(name = "id")}
+    )
+//    @JoinColumns({
+//            @JoinColumn(name = "containerOwnerOid"),
+//            @JoinColumn(name = "containerId")
+//            })
+    public Assignment getAssignment() {
+        return assignment;
+    }
+
     @Id
     @ManyToOne
     public O getTarget() {
         return target;
     }
-
-//    @Index(name = "iId")
-//    @Column(nullable = true, updatable = true, unique = false)
-//    public Long getContainerId() {
-//        return containerId;
-//    }
 
     @Columns(columns = {
             @Column(name = "namespaceURI"),
@@ -69,10 +98,6 @@ public class Reference implements Serializable {
     public QName getType() {
         return type;
     }
-
-//    public void setContainerId(Long containerId) {
-//        this.containerId = containerId;
-//    }
 
     public void setTarget(O target) {
         this.target = target;
@@ -85,4 +110,21 @@ public class Reference implements Serializable {
     public void setOwner(O owner) {
         this.owner = owner;
     }
+
+    public void setAssignment(Assignment assignment) {
+        this.assignment = assignment;
+    }
+
+//    public void setId(Long id) {
+//        this.id = id;
+//    }
+
+
+//    public void setContainer_id(String container_id) {
+//        this.container_id = container_id;
+//    }
+//
+//    public void setOwner_container_id(String owner_container_id) {
+//        this.owner_container_id = owner_container_id;
+//    }
 }

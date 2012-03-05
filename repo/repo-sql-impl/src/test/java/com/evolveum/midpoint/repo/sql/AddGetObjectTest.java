@@ -27,10 +27,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.atest.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Objects;
 import org.hibernate.Session;
@@ -38,7 +36,6 @@ import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.springframework.web.bind.annotation.SessionAttributes;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
@@ -69,89 +66,98 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
     @Test
     public void sample() throws Exception {
         Session session = factory.openSession();
-        session.beginTransaction();
 
-        Connector connector = new Connector();
-        connector.setSomeName("without reference");
-        session.save(connector);
-        session.getTransaction().commit();
+        int cycles = 1;
+        long time = System.currentTimeMillis();
+        for (int i = 0; i < cycles; i++) {
+            if (i % 100 == 0) {
+                LOGGER.info("Cycle: {}", new Object[]{i});
+            }
+            session.beginTransaction();
+
+            Connector connector0 = new Connector();
+            connector0.setSomeName("without reference " + i);
+            session.save(connector0);
+            session.getTransaction().commit();
 //**********************************************
-        session.beginTransaction();
-        
-        connector = new Connector();
-        connector.setSomeName("with reference");
-        Reference ref = new Reference();
-        ref.setOwner(connector);
-        ref.setTarget(connector);
-        ref.setType(new QName("namespace", "connector"));
-        session.save(connector);
-        session.getTransaction().commit();
+            session.beginTransaction();
+
+            Connector connector = new Connector();
+            connector.setSomeName("with reference " + i);
+            Reference ref = new Reference();
+            ref.setOwner(connector);
+            ref.setTarget(connector0);
+            ref.setType(new QName("namespace", "connector"));
+            connector.setConnectorHost(ref);
+            session.save(connector);
+            session.getTransaction().commit();
 //*********************************************
-        session.beginTransaction();
+            session.beginTransaction();
 
-        Role role = new Role();
-        role.setDescription("role description");
-        Set<Assignment> list = new HashSet<Assignment>();
-        role.setAssignments(list);
-        
-        Assignment a = new Assignment();
-        a.setOwner(role);
-        a.setDescription("a1 description");
-        list.add(a);
+            Role role = new Role();
+            role.setDescription("role description " + i);
+            Set<Assignment> set = new HashSet<Assignment>();
+            role.setAssignments(set);
 
-        a = new Assignment();
-        a.setOwner(role);
-        a.setDescription("a2 description");
+            Assignment a = new Assignment();
+            a.setOwner(role);
+            a.setDescription("a1 description " + i);
+            set.add(a);
 
-//        ref = new Reference();
-//        ref.setOwner(role);
-//        ref.setTarget(connector);
-//        ref.setType(new QName("namespace", "connector role ref"));
-//        a.setReference(ref);
-        list.add(a);
-        
-        session.saveOrUpdate(role);
-        session.getTransaction().commit();
+            a = new Assignment();
+            a.setOwner(role);
+            a.setDescription("a2 description " + i);
+
+            ref = new Reference();
+            ref.setOwner(role);
+            ref.setTarget(connector);
+            ref.setType(new QName("namespace", "connector role ref"));
+            a.setReference(ref);
+            set.add(a);
+
+            session.saveOrUpdate(role);
+            session.getTransaction().commit();
 //**********************************************
-        session.beginTransaction();
-        
-        User otherUser = new User();
-        otherUser.setFullName("other user");
-        session.saveOrUpdate(otherUser);
-        session.getTransaction().commit();
-//**********************************************
-        session.beginTransaction();
-        
-        User user = new User();
-        user.setFullName("vilkooo");
-        Set<Reference> references = new HashSet<Reference>();
-        user.setReferences(references);
-        ref = new Reference();
-        ref.setOwner(user);
-        ref.setTarget(otherUser);
-        ref.setType(new QName("namespace", "user"));
-        references.add(ref);
-
-        ref = new Reference();
-        ref.setOwner(user);
-        ref.setTarget(role);
-        ref.setType(new QName("namespace", "role"));
-        references.add(ref);
-
-        Set<Assignment> set = new HashSet<Assignment>();
-        user.setAssignments(set);
-        a = new Assignment();
-        a.setOwner(user);
-        a.setDescription("a3 user description");
-        set.add(a);
-
-        session.saveOrUpdate(user);
-        session.getTransaction().commit();
-//**********************************************
+//            session.beginTransaction();
+//
+//            User otherUser = new User();
+//            otherUser.setFullName("other user " + i);
+//            session.saveOrUpdate(otherUser);
+//            session.getTransaction().commit();
+////**********************************************
+//            session.beginTransaction();
+//
+//            User user = new User();
+//            user.setFullName("vilkooo " + i);
+//            Set<Reference> references = new HashSet<Reference>();
+//            user.setReferences(references);
+//            ref = new Reference();
+//            ref.setOwner(user);
+//            ref.setTarget(otherUser);
+//            ref.setType(new QName("namespace", "user"));
+//            references.add(ref);
+//
+//            ref = new Reference();
+//            ref.setOwner(user);
+//            ref.setTarget(role);
+//            ref.setType(new QName("namespace", "role"));
+//            references.add(ref);
+//
+//            set = new HashSet<Assignment>();
+//            user.setAssignments(set);
+//            a = new Assignment();
+//            a.setOwner(user);
+//            a.setDescription("a3 user description " + i);
+//            set.add(a);
+//
+//            session.saveOrUpdate(user);
+//            session.getTransaction().commit();
+        }
+        LOGGER.info("I did {} cycles in {} ms.", cycles, (System.currentTimeMillis() - time));
         session.close();
     }
 
-//    @Test
+    //    @Test
     public void simpleAddGetTest() throws Exception {
         final File OBJECTS_FILE = new File("./src/test/resources/objects.xml");
         Objects objects = prismContext.getPrismJaxbProcessor().unmarshalRootObject(OBJECTS_FILE, Objects.class);
@@ -172,7 +178,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         objects = prismContext.getPrismJaxbProcessor().unmarshalRootObject(OBJECTS_FILE, Objects.class);
         for (int i = 0; i < elements.size(); i++) {
             JAXBElement<? extends ObjectType> element = elements.get(i);
-            ObjectType object = element.getValue();            
+            ObjectType object = element.getValue();
             object.setOid(oids.get(i));
             prismContext.adopt(object);
 
@@ -182,11 +188,11 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
             if (delta == null) {
                 continue;
             }
-            
+
             count += delta.getModifications().size();
             LOGGER.error("Found changes for\n{}\n", new Object[]{newObject.toString(), delta.debugDump(3)});
         }
 
-        AssertJUnit.assertEquals("Found changes during add/get test " + count, 0 , count);
+        AssertJUnit.assertEquals("Found changes during add/get test " + count, 0, count);
     }
 }
