@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -201,10 +202,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	public void testConnectorSchemaSanity() throws Exception {
 		displayTestTile("testConnectorSchemaSanity");
 	
-		PrismContainerDefinition configurationDefinition = connectorSchema.findItemDefinition("configuration",PrismContainerDefinition.class);
-		assertNotNull("Definition of <configuration> property container not found",configurationDefinition);
-		assertFalse("Empty definition",configurationDefinition.isEmpty());
-		
+		ProvisioningTestUtil.assertConnectorSchemaSanity(connectorSchema, "LDAP connector");		
 	}
 
 	

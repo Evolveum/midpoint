@@ -319,7 +319,7 @@ class DomToSchemaProcessor {
 					// This is object reference. It also has its *Ref equivalent which will get parsed.
 					// therefore it is safe to ignore
 					
-				} else if (isPropertyContainer(xsType)) {
+				} else if (isPropertyContainer(elementDecl)) {
 
 					// Create an inner PropertyContainer. It is assumed that this is a XSD complex type
 					// TODO: check cast

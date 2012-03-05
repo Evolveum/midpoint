@@ -309,6 +309,7 @@ public class ConnectorTypeManager {
 				}
 				foundConnector.setOid(oid);
 				discoveredConnectors.add(foundConnector);
+				LOGGER.info("Discovered new connector "+foundConnector);
 			}
 
 		}
@@ -335,6 +336,10 @@ public class ConnectorTypeManager {
 		QueryType query = new QueryType();
 		query.setFilter(filter);
 
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Looking for connector in repository:\n{}",DOMUtil.serializeDOMToString(filter));
+		}
+		
 		List<PrismObject<ConnectorType>> foundConnectors;
 		try {
 			foundConnectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
@@ -389,16 +394,16 @@ public class ConnectorTypeManager {
 				return false;
 			}
 		}
-		if (a.getVersion() == null && b.getVersion() == null) {
+		if (a.getConnectorVersion() == null && b.getConnectorVersion() == null) {
 			// Both connectors without version. This is OK.
 			return true;
 		}
-		if (a.getVersion() != null && b.getVersion() != null) {
+		if (a.getConnectorVersion() != null && b.getConnectorVersion() != null) {
 			// Both connectors with version. This is OK.
-			return a.getVersion().equals(b.getVersion());
+			return a.getConnectorVersion().equals(b.getConnectorVersion());
 		}
 		// One connector has version and other does not. This is inconsistency
-		LOGGER.error("Inconsistent representation of ConnectorType, one has version and other does not. OIDs: "
+		LOGGER.error("Inconsistent representation of ConnectorType, one has connectorVersion and other does not. OIDs: "
 				+ a.getOid() + " and " + b.getOid());
 		// Obviously they don't match
 		return false;

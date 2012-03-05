@@ -107,6 +107,7 @@ public class QueryUtil {
         //todo bad quick fix HACK
         Element equal = doc.createElementNS(SchemaConstants.C_FILTER_EQUAL.getNamespaceURI(), SchemaConstants.C_FILTER_EQUAL.getLocalPart());
         Element value = doc.createElementNS(SchemaConstants.C_FILTER_VALUE.getNamespaceURI(), SchemaConstants.C_FILTER_VALUE.getLocalPart());
+        equal.appendChild(value);
 
         if (object instanceof Element) {
 	        Element domElement= (Element)object;
@@ -117,9 +118,8 @@ public class QueryUtil {
         
         if (xpath != null) {
             Element path = xpath.toElement(SchemaConstants.C_FILTER_PATH, doc);
-            equal.appendChild(doc.importNode(path, true));
+            equal.appendChild(path);
         }
-        equal.appendChild(doc.importNode(value, true));
         
         return equal;
     }

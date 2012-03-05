@@ -191,6 +191,10 @@ public class PrismContainerDefinition extends ItemDefinition {
         return findItemDefinition(name, PrismContainerDefinition.class);
     }
 
+    public PrismContainerDefinition findContainerDefinition(String name) {
+        return findContainerDefinition(new QName(getNamespace(), name));
+    }
+    
     /**
      * Finds an inner PropertyContainerDefinition by following the property container path.
      * <p/>

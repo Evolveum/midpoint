@@ -41,6 +41,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
@@ -169,6 +170,9 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				.getObject(ConnectorType.class, connectorOid, null, result).asObjectable();
 		assertNotNull(connector);
 		display("Dummy Connector", connector);
+		
+		// Check connector schema
+		ProvisioningTestUtil.assertConnectorSchemaSanity(connector, prismContext);
 	}
 
 	/**

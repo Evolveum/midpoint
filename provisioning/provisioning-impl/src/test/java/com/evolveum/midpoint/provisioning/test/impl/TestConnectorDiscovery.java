@@ -43,6 +43,7 @@ import javax.xml.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import java.util.ArrayList;
@@ -56,6 +57,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
@@ -115,6 +117,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsC
 @DirtiesContext
 public class TestConnectorDiscovery extends AbstractIntegrationTest {
 
+	private static final String LDAP_CONNECTOR_TYPE = "org.identityconnectors.ldap.LdapConnector";
+
 	@Autowired
 	private ProvisioningService provisioningService;
 
@@ -155,25 +159,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 //				// This connector is loaded manually, it has no schema
 //				continue;
 //			}
-			XmlSchemaType xmlSchemaType = conn.getSchema();
-			assertNotNull("xmlSchemaType is null",xmlSchemaType);
-			assertFalse("Empty schema",xmlSchemaType.getAny().isEmpty());
-			Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaType);
-			assertNotNull("No xsd:schema element in xmlSchemaType",xsdElement);
-			display("XSD schema of "+conn, DOMUtil.serializeDOMToString(xsdElement));
-			// Try to parse the schema
-			PrismSchema schema = null;
-			try {
-				schema = PrismSchema.parse(xsdElement, prismContext);
-			} catch (SchemaException e) {
-				throw new SchemaException("Error parsing schema of "+conn+": "+e.getMessage(),e);
-			}
-			assertNotNull("Cannot parse schema",schema);
-			assertFalse("Empty schema",schema.isEmpty());
-			display("Parsed connector schema",schema);
-			PrismContainerDefinition configurationDefinition = schema.findItemDefinition("configuration",PrismContainerDefinition.class);
-			assertNotNull("Definition of <configuration> property container not found",configurationDefinition);
-			assertFalse("Empty definition",configurationDefinition.isEmpty());
+			ProvisioningTestUtil.assertConnectorSchemaSanity(conn, prismContext);
 		}
 		
 		assertEquals("Unexpected number of connectors found", 4, connectors.size());
@@ -200,12 +186,41 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 	}
 	
 	@Test
-	public void testSearchConnector() throws SchemaException{
-		displayTestTile("testSearchConnector");
+	public void testSearchConnectorSimple() throws SchemaException{
+		displayTestTile("testSearchConnectorSimple");
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
 				+ ".testSearchConnector");
 		
-		PrismObject<ConnectorType> ldapConnector = findConnectorByType("org.identityconnectors.ldap.LdapConnector", result);
-		assertEquals("Type does not mathc", "org.identityconnectors.ldap.LdapConnector", ldapConnector.asObjectable().getConnectorType());
+		PrismObject<ConnectorType> ldapConnector = findConnectorByType(LDAP_CONNECTOR_TYPE, result);
+		assertEquals("Type does not match", LDAP_CONNECTOR_TYPE, ldapConnector.asObjectable().getConnectorType());
+	}
+	
+	
+	@Test
+	public void testSearchConnectorAnd() throws SchemaException{
+		displayTestTile("testSearchConnectorAnd");
+		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
+				+ ".testSearchConnector");
+		
+		Document doc = DOMUtil.getDocument();
+		Element filter = QueryUtil
+				.createAndFilter(
+						doc,
+						QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_CONNECTOR_FRAMEWORK,
+								ConnectorFactoryIcfImpl.ICF_FRAMEWORK_URI),
+						QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE,
+								LDAP_CONNECTOR_TYPE));
+	
+		QueryType query = new QueryType();
+		query.setFilter(filter);
+		System.out.println("Query:\n"+DOMUtil.serializeDOMToString(query.getFilter())+"\n--");
+
+		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, null,
+				result);
+		
+		assertEquals("Unexpected number of results", 1, connectors.size());
+		PrismObject<ConnectorType> ldapConnector = connectors.get(0);
+		assertEquals("Type does not match", LDAP_CONNECTOR_TYPE, ldapConnector.asObjectable().getConnectorType());
+		assertEquals("Framework does not match", ConnectorFactoryIcfImpl.ICF_FRAMEWORK_URI, ldapConnector.asObjectable().getFramework());
 	}
 }
