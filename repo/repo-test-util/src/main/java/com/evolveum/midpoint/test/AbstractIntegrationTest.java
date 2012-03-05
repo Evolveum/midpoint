@@ -225,6 +225,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		QueryType query = new QueryType();
 		query.setFilter(filter);
 
+//		System.out.println("Query:\n"+DOMUtil.serializeDOMToString(query.getFilter())+"\n--");
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, null,
 				result);
 		if (connectors.size() != 1) {

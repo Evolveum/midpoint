@@ -65,7 +65,7 @@ public class QueryUtil {
      * @return "equal" filter segment (as DOM)
      * @throws JAXBException
      */
-    public static Element createEqualFilter(Document doc, XPathHolder xpath, List<? extends Object> values, PrismContext prismContext) throws
+    public static Element createEqualFilterFromElements(Document doc, XPathHolder xpath, List<?> values, PrismContext prismContext) throws
             SchemaException {
         Validate.notNull(doc);
         Validate.notNull(values);
@@ -93,12 +93,7 @@ public class QueryUtil {
 
     /**
      * Creates "equal" filter segment for single-valued properties based on DOM representation.
-     *
-     * @param doc
-     * @param xpath property container xpath. may be null.
-     * @param value
-     * @return "equal" filter segment (as DOM)
-     * @throws JAXBException
+     * Parameter object is either DOM or JAXB element
      */
     public static Element createEqualFilter(Document doc, XPathHolder xpath, Object object) throws SchemaException {
         Validate.notNull(doc);
@@ -113,9 +108,12 @@ public class QueryUtil {
         Element equal = doc.createElementNS(SchemaConstants.C_FILTER_EQUAL.getNamespaceURI(), SchemaConstants.C_FILTER_EQUAL.getLocalPart());
         Element value = doc.createElementNS(SchemaConstants.C_FILTER_VALUE.getNamespaceURI(), SchemaConstants.C_FILTER_VALUE.getLocalPart());
 
-        Element domElement=doc.createElementNS(SchemaConstants.C_FILTER_VALUE.getNamespaceURI(), "fixMe");
-        domElement.setTextContent(object.toString());
-        value.appendChild(doc.importNode(domElement, true));
+        if (object instanceof Element) {
+	        Element domElement= (Element)object;
+	        value.appendChild(doc.importNode(domElement, true));
+        } else {
+        	throw new UnsupportedOperationException("Unsupported element type "+object.getClass());
+        }
         
         if (xpath != null) {
             Element path = xpath.toElement(SchemaConstants.C_FILTER_PATH, doc);
@@ -143,9 +141,7 @@ public class QueryUtil {
 
         Element element = doc.createElementNS(properyName.getNamespaceURI(), properyName.getLocalPart());
         element.setTextContent(value);
-        List<Element> values = new ArrayList<Element>();
-        values.add(element);
-        return createEqualFilter(doc, xpath, values);
+        return createEqualFilter(doc, xpath, element);
     }
 
     /**

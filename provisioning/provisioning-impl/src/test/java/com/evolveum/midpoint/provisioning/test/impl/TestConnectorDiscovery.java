@@ -190,10 +190,22 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 		
 		for (PrismObject<ConnectorType> connector : connectors){
 			ConnectorType conn = connector.asObjectable();
+			System.out.println(conn.toString());
 			System.out.println("connector name: "+ conn.getName());
 			System.out.println("connector type: "+ conn.getConnectorType());
+			System.out.println("-----\n");
 		}
 		
-		// TODO: assert something
+		assertEquals("Unexpected number of connectors found", 4, connectors.size());
+	}
+	
+	@Test
+	public void testSearchConnector() throws SchemaException{
+		displayTestTile("testSearchConnector");
+		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
+				+ ".testSearchConnector");
+		
+		PrismObject<ConnectorType> ldapConnector = findConnectorByType("org.identityconnectors.ldap.LdapConnector", result);
+		assertEquals("Type does not mathc", "org.identityconnectors.ldap.LdapConnector", ldapConnector.asObjectable().getConnectorType());
 	}
 }
