@@ -65,7 +65,23 @@ public abstract class IdentifiableContainer implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        return super.equals(o);    //To change body of overridden methods use File | Settings | File Templates.
+        if (o == null) {
+            return false;
+        }
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof IdentifiableContainer)) {
+            return false;
+        }
+
+        IdentifiableContainer container = (IdentifiableContainer) o;
+        return equals(owner, container.getOwner())
+                && equals(id, container.getId());
+    }
+
+    private boolean equals(Object o1, Object o2) {
+        return (o1 == null ? o2 == null : o1.equals(o2));
     }
 
     @Override

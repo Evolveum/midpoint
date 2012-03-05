@@ -34,10 +34,21 @@ import javax.persistence.Entity;
 public class Assignment extends IdentifiableContainer {
 
     private String description;
+    private Reference reference;
+
+//    @OneToOne(optional = true)
+//    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+//    public Reference getReference() {
+//        return reference;
+//    }
 
     public String getDescription() {
         return description;
     }
+
+//    public void setReference(Reference reference) {
+//        this.reference = reference;
+//    }
 
     public void setDescription(String description) {
         this.description = description;

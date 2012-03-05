@@ -39,7 +39,7 @@ import java.io.Serializable;
 public class Reference implements Serializable {
 
     private O owner;
-    private Long containerId;
+//    private Long containerId;
     private QName type;
     private O target;
 
@@ -56,11 +56,11 @@ public class Reference implements Serializable {
         return target;
     }
 
-    @Index(name = "iId")
-    @Column(nullable = true, updatable = true, unique = false)
-    public Long getContainerId() {
-        return containerId;
-    }
+//    @Index(name = "iId")
+//    @Column(nullable = true, updatable = true, unique = false)
+//    public Long getContainerId() {
+//        return containerId;
+//    }
 
     @Columns(columns = {
             @Column(name = "namespaceURI"),
@@ -70,9 +70,9 @@ public class Reference implements Serializable {
         return type;
     }
 
-    public void setContainerId(Long containerId) {
-        this.containerId = containerId;
-    }
+//    public void setContainerId(Long containerId) {
+//        this.containerId = containerId;
+//    }
 
     public void setTarget(O target) {
         this.target = target;

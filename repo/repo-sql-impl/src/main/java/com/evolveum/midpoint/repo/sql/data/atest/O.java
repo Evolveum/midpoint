@@ -35,7 +35,7 @@ import java.util.Collection;
  * To change this template use File | Settings | File Templates.
  */
 @Entity
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@Inheritance(strategy = InheritanceType.JOINED)
 public abstract class O {
 
     private String oid;

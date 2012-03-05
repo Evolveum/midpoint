@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.atest;
 
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
 import javax.xml.namespace.QName;
@@ -47,12 +48,14 @@ public class User extends O {
     private Set<Assignment> assignments;
 
     @OneToMany(mappedBy = "owner")
+    @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<Assignment> getAssignments() {
         return assignments;
     }
 
     @OneToMany(mappedBy = "owner")
+    @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<Reference> getReferences() {
         return references;

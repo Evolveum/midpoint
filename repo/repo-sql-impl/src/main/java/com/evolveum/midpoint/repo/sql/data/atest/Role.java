@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.atest;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
@@ -50,6 +51,7 @@ public class Role extends O {
     }
 
     @OneToMany(mappedBy = "owner")
+    @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<Assignment> getAssignments() {
         return assignments;

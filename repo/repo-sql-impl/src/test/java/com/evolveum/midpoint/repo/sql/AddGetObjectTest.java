@@ -65,7 +65,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
     PrismContext prismContext;
     @Autowired
     SessionFactory factory;
-    
+
     @Test
     public void sample() throws Exception {
         Session session = factory.openSession();
@@ -74,6 +74,9 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         Connector connector = new Connector();
         connector.setSomeName("without reference");
         session.save(connector);
+        session.getTransaction().commit();
+//**********************************************
+        session.beginTransaction();
         
         connector = new Connector();
         connector.setSomeName("with reference");
@@ -82,10 +85,10 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         ref.setTarget(connector);
         ref.setType(new QName("namespace", "connector"));
         session.save(connector);
-
         session.getTransaction().commit();
 //*********************************************
         session.beginTransaction();
+
         Role role = new Role();
         role.setDescription("role description");
         Set<Assignment> list = new HashSet<Assignment>();
@@ -99,18 +102,30 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         a = new Assignment();
         a.setOwner(role);
         a.setDescription("a2 description");
+
+//        ref = new Reference();
+//        ref.setOwner(role);
+//        ref.setTarget(connector);
+//        ref.setType(new QName("namespace", "connector role ref"));
+//        a.setReference(ref);
         list.add(a);
         
         session.saveOrUpdate(role);
+        session.getTransaction().commit();
+//**********************************************
+        session.beginTransaction();
         
         User otherUser = new User();
         otherUser.setFullName("other user");
         session.saveOrUpdate(otherUser);
+        session.getTransaction().commit();
+//**********************************************
+        session.beginTransaction();
         
         User user = new User();
         user.setFullName("vilkooo");
         Set<Reference> references = new HashSet<Reference>();
-//        user.setReferences(references);
+        user.setReferences(references);
         ref = new Reference();
         ref.setOwner(user);
         ref.setTarget(otherUser);
@@ -131,8 +146,8 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         set.add(a);
 
         session.saveOrUpdate(user);
-        
         session.getTransaction().commit();
+//**********************************************
         session.close();
     }
 
