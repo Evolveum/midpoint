@@ -132,7 +132,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsC
 public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 	// Let's reuse the resource definition from UCF tests ... for now
-	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
+	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/object/resource-opendj.xml";
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final String FILENAME_ACCOUNT1 = "src/test/resources/impl/account1.xml";
 	private static final String ACCOUNT1_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1cccc";

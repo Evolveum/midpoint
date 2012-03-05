@@ -41,6 +41,7 @@ public class PrismConstants {
 
 	// Annotations
 
+	public static final QName A_TYPE = new QName(NS_ANNOTATION, "type");
 	public static final QName A_DISPLAY_NAME = new QName(NS_ANNOTATION, "displayName");
 	public static final QName A_HELP = new QName(NS_ANNOTATION, "help");	
 	public static final QName A_ACCESS = new QName(NS_ANNOTATION, "access");

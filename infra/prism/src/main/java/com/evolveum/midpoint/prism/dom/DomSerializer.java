@@ -170,6 +170,9 @@ public class DomSerializer {
 
 	private <V extends PrismValue> void serialize(Item<V> item, Element parentElement) throws SchemaException {
 		for (V pval: item.getValues()) {
+			if (!item.equals(pval.getParent())) {
+				throw new IllegalArgumentException("The parent for value "+pval+" of item "+item+" is incorrect");
+			}
 			serialize(pval, parentElement);
 		}
 	}

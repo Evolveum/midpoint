@@ -4,9 +4,18 @@
 	targetNamespace="http://example.com/xml/ns/test/root.xsd"
 	xmlns:tns="http://example.com/xml/ns/test/root.xsd"
 	xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+	xmlns:foo="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
 	elementFormDefault="qualified">
 	
 	<import namespace="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd" />
+	<import namespace="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd" />
+	
+	<complexType name="MyExtensionType">
+		<sequence>
+			<element name="ext1" type="string" minOccurs="0"/>
+			<element name="ext2" type="string" minOccurs="0" maxOccurs="unbounded"/>
+		</sequence>
+	</complexType>
 	
 	<complexType name="RootType">
 		<annotation>
@@ -17,6 +26,13 @@
 		</annotation>
 		<sequence>
 			<element name="name" type="string"/>
+			<element ref="foo:extension" minOccurs="0">
+				<annotation>
+					<appinfo>
+						<a:type>tns:MyExtensionType</a:type>
+					</appinfo>
+				</annotation>
+			</element>
 			<element name="foo" type="tns:FooType"/>
 		</sequence>
 		<attribute name="oid" type="string"/>
@@ -32,4 +48,5 @@
 			<element name="barbar" type="string" minOccurs="0" maxOccurs="unbounded"/>
 		</sequence>
 	</complexType>
+
 </schema>

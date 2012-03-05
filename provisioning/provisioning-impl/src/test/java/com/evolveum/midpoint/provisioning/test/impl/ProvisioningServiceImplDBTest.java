@@ -55,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 @DirtiesContext
 public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 	
-	private static final String FILENAME_RESOURCE_DERBY = "src/test/resources/impl/resource-derby.xml";
+	private static final String FILENAME_RESOURCE_DERBY = "src/test/resources/object/resource-derby.xml";
 	private static final String RESOURCE_DERBY_OID = "ef2bc95b-76e0-59e2-86d6-999902d3abab";
 	private static final String FILENAME_ACCOUNT = "src/test/resources/impl/account-derby.xml";
 	private static final String ACCOUNT_NEW_OID = "c0c010c0-d34d-b44f-f11d-333222123456";

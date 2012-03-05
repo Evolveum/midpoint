@@ -28,6 +28,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -61,19 +62,25 @@ public class ProvisioningTestUtil {
 		assertNotNull("Cannot parse connector schema of "+connectorDescription,schema);
 		assertFalse("Empty connector schema in "+connectorDescription,schema.isEmpty());
 		display("Parsed connector schema of "+connectorDescription,schema);
-		PrismContainerDefinition configurationDefinition = schema.findItemDefinition("configuration",PrismContainerDefinition.class);
+		
+		// Local schema namespace is used here.
+		PrismContainerDefinition configurationDefinition = 
+			schema.findItemDefinition("configuration",PrismContainerDefinition.class);
 		assertNotNull("Definition of <configuration> property container not found in connector schema of "+connectorDescription,
 				configurationDefinition);
 		assertFalse("Empty definition of <configuration> property container in connector schema of "+connectorDescription,
 				configurationDefinition.isEmpty());
 		
-		PrismContainerDefinition configurationPropertiesDefinition = configurationDefinition.findContainerDefinition("configurationProperties");
+		// ICFC schema is used on other elements
+		PrismContainerDefinition configurationPropertiesDefinition = 
+			configurationDefinition.findContainerDefinition(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
 		assertNotNull("Definition of <configurationProperties> property container not found in connector schema of "+connectorDescription,
 				configurationPropertiesDefinition);
 		assertFalse("Empty definition of <configurationProperties> property container in connector schema of "+connectorDescription,
 				configurationPropertiesDefinition.isEmpty());
-		
-		// TODO
+		assertFalse("No definitions in <configurationProperties> in "+connectorDescription, configurationPropertiesDefinition.getDefinitions().isEmpty());
+
+		// TODO: other elements
 	}
 
 }

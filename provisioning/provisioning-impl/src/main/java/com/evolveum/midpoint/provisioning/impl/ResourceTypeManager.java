@@ -255,7 +255,7 @@ public class ResourceTypeManager {
 				.createSubresult(ConnectorTestOperation.CONFIGURATION_VALIDATION.getOperation());
 
 		try {
-			connector.configure(resourceType.getConfiguration().asPrismContainer(), configResult);
+			connector.configure(resourceType.asPrismObject().findContainer(ResourceType.F_CONFIGURATION), configResult);
 			configResult.recordSuccess();
 		} catch (CommunicationException e) {
 			configResult.recordFatalError("Communication error", e);

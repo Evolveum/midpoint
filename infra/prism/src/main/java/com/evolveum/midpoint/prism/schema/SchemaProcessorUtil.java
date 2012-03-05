@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.evolveum.midpoint.util.DOMUtil;
 import com.sun.xml.xsom.XSAnnotation;
 import com.sun.xml.xsom.XSType;
 
@@ -75,6 +76,14 @@ public class SchemaProcessorUtil {
 		}
 
 		return elements;
+	}
+
+	public static QName getAnnotationQName(XSAnnotation annotation, QName qname) {
+		Element element = getAnnotationElement(annotation, qname);
+		if (element == null) {
+			return null;
+		}
+		return DOMUtil.getQNameValue(element);
 	}
 	
 }

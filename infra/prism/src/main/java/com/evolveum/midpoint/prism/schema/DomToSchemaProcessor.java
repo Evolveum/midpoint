@@ -40,6 +40,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.aspectj.weaver.bcel.TypeAnnotationAccessVar;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.EntityResolver;
@@ -84,6 +85,7 @@ class DomToSchemaProcessor {
 	private PrismSchema schema;
 	private EntityResolver entityResolver;
 	private PrismContext prismContext;
+	private XSSchemaSet xsSchemaSet;
 	
 	public EntityResolver getEntityResolver() {
 		return entityResolver;
@@ -108,6 +110,14 @@ class DomToSchemaProcessor {
 	private SchemaDefinitionFactory getDefinitionFactory() {
 		return prismContext.getDefinitionFactory();
 	}
+	
+	private String getNamespace() {
+		return schema.getNamespace();
+	}
+	
+	private boolean isMyNamespace(QName qname) {
+		return getNamespace().equals(qname.getNamespaceURI());
+	}
 
 	/**
 	 * Main entry point.
@@ -125,17 +135,17 @@ class DomToSchemaProcessor {
 		
 		initSchema(xsdSchema);
 
-		XSSchemaSet set = parseSchema(xsdSchema);
-		if (set == null) {
+		xsSchemaSet = parseSchema(xsdSchema);
+		if (xsSchemaSet == null) {
 			return schema;
 		}
 		
 		// Create ComplexTypeDefinitions from all top-level complexType definition in the XSD
-		createComplexTypeDefinitions(set);
+		processComplexTypeDefinitions(xsSchemaSet);
 
 		// Create PropertyContainer (and possibly also Property) definition from the top-level elements in XSD
 		// This also creates ResourceObjectDefinition in some cases
-		createDefinitionsFromElements(set);
+		createDefinitionsFromElements(xsSchemaSet);
 				
 		return schema;
 	}
@@ -208,29 +218,49 @@ class DomToSchemaProcessor {
 	 * 
 	 * @param set XS Schema Set
 	 */
-	private void createComplexTypeDefinitions(XSSchemaSet set) throws SchemaException {
+	private void processComplexTypeDefinitions(XSSchemaSet set) throws SchemaException {
 		Iterator<XSComplexType> iterator = set.iterateComplexTypes();
 		while (iterator.hasNext()) {
 			XSComplexType complexType = iterator.next();
 			if (complexType.getTargetNamespace().equals(schema.getNamespace())) {
-				
-				// Create the actual definition. This is potentially recursive call
-				ComplexTypeDefinition complexTypeDefinition = createComplexTypeDefinition(complexType);				
-				schema.getDefinitions().add(complexTypeDefinition);
-
-				// As this is a top-level complex type definition, attempt to create object or container definition
-				// from it
-				
-				PrismContainerDefinition defFromComplexType = getDefinitionFactory().createExtraDefinitionFromComplexType(complexType, complexTypeDefinition, prismContext, 
-						complexType.getAnnotation());
-				
-				if (defFromComplexType != null) {
-					schema.getDefinitions().add(defFromComplexType);
-				}
-				
+				processComplexTypeDefinition(complexType);
 			}
 		}
 	}
+	
+	private ComplexTypeDefinition processComplexTypeDefinition(XSComplexType complexType) throws SchemaException {
+		// Create the actual definition. This is potentially recursive call
+		ComplexTypeDefinition complexTypeDefinition = createComplexTypeDefinition(complexType);
+		ComplexTypeDefinition existingComplexTypeDefinition = schema.findComplexTypeDefinition(complexTypeDefinition.getTypeName());
+		if (existingComplexTypeDefinition != null) {
+			// Already processed
+			return existingComplexTypeDefinition;
+		}
+		schema.getDefinitions().add(complexTypeDefinition);
+
+		// As this is a top-level complex type definition, attempt to create object or container definition
+		// from it
+		
+		PrismContainerDefinition defFromComplexType = getDefinitionFactory().createExtraDefinitionFromComplexType(complexType, complexTypeDefinition, prismContext, 
+				complexType.getAnnotation());
+		
+		if (defFromComplexType != null) {
+			schema.getDefinitions().add(defFromComplexType);
+		}
+		
+		return complexTypeDefinition;
+	}
+
+	private ComplexTypeDefinition getOrProcessComplexType(QName typeName) throws SchemaException {
+		ComplexTypeDefinition complexTypeDefinition = schema.findComplexTypeDefinition(typeName);
+		if (complexTypeDefinition != null) {
+			return complexTypeDefinition;
+		}
+		// The definition is not yet processed (or does not exist). Let's try to process it.
+		XSComplexType complexType = xsSchemaSet.getComplexType(typeName.getNamespaceURI(), typeName.getLocalPart());
+		return processComplexTypeDefinition(complexType);
+	}
+
 
 	/**
 	 * Creates ComplexTypeDefinition object from a single XSD complexType definition.
@@ -307,6 +337,7 @@ class DomToSchemaProcessor {
 
 				XSElementDecl elementDecl = pterm.asElementDecl();
 				QName elementName = new QName(elementDecl.getTargetNamespace(), elementDecl.getName());
+				QName typeFromAnnotation = getTypeAnnotation(p.getAnnotation());
 				
 				XSType xsType = elementDecl.getType();
 			
@@ -318,23 +349,9 @@ class DomToSchemaProcessor {
 				} else if (isObjectDefinition(xsType)) {					
 					// This is object reference. It also has its *Ref equivalent which will get parsed.
 					// therefore it is safe to ignore
-					
-				} else if (isPropertyContainer(elementDecl)) {
 
-					// Create an inner PropertyContainer. It is assumed that this is a XSD complex type
-					// TODO: check cast
-					XSComplexType complexType = (XSComplexType)xsType;
-					ComplexTypeDefinition innerComplexTypeDefinition = createComplexTypeDefinition(complexType);
-					XSAnnotation containerAnnotation = complexType.getAnnotation();
-					PrismContainerDefinition containerDefinition = createPropertyContainerDefinition(xsType, p, 
-							innerComplexTypeDefinition, containerAnnotation);
-					if (isAny(xsType)) {
-						containerDefinition.setRuntimeSchema(true);
-					}
-					ctd.getDefinitions().add(containerDefinition);
+				} else if (xsType.getName() == null && typeFromAnnotation == null) {					
 					
-				} else if (xsType.getName() == null) {					
-										
 					if (isAny(xsType)) {
 						// This is a element with xsd:any type. It has to be property container
 						XSAnnotation containerAnnotation = xsType.getAnnotation();
@@ -342,7 +359,36 @@ class DomToSchemaProcessor {
 								null, containerAnnotation);
 						ctd.getDefinitions().add(containerDefinition);
 					}
+
+				} else if (isPropertyContainer(elementDecl)) {
 					
+					// Create an inner PropertyContainer. It is assumed that this is a XSD complex type
+					// TODO: check cast
+					XSComplexType complexType = (XSComplexType)xsType;
+					ComplexTypeDefinition complexTypeDefinition = null;
+					if (typeFromAnnotation != null && complexType != null && !typeFromAnnotation.equals(getType(xsType))) {
+						// There is a type override annotation. The type that the schema parser determined is useless
+						// We need to locate our own complex type definition
+						if (isMyNamespace(typeFromAnnotation)) {
+							complexTypeDefinition = getOrProcessComplexType(typeFromAnnotation);
+						} else {
+							complexTypeDefinition = getPrismContext().getSchemaRegistry().findComplexTypeDefinition(typeFromAnnotation);
+						}
+						if (complexTypeDefinition == null) {
+							throw new SchemaException("Cannot find definition of complex type "+typeFromAnnotation+
+									" as specified in type override annotation at "+elementName);
+						}
+					} else {
+						complexTypeDefinition = createComplexTypeDefinition(complexType);
+					}
+					XSAnnotation containerAnnotation = complexType.getAnnotation();
+					PrismContainerDefinition containerDefinition = createPropertyContainerDefinition(xsType, p, 
+							complexTypeDefinition, containerAnnotation);
+					if (isAny(xsType)) {
+						containerDefinition.setRuntimeSchema(true);
+					}
+					ctd.getDefinitions().add(containerDefinition);
+										
 				} else {
 										
 					// Create a property definition (even if this is a XSD complex type)
@@ -422,12 +468,12 @@ class DomToSchemaProcessor {
 				if (xsType == null) {
 					throw new SchemaException("Found element "+elementName+" without type definition");
 				}
-				if (xsType.getName() == null) {
+				QName typeQName = determineType(xsElementDecl);
+				if (typeQName == null) {
 					// No type defined, safe to skip
 					continue;
 					//throw new SchemaException("Found element "+elementName+" with incomplete type name: {"+xsType.getTargetNamespace()+"}"+xsType.getName());
 				}
-				QName typeQName = new QName (xsType.getTargetNamespace(),xsType.getName());
 				XSAnnotation annotation = xsType.getAnnotation();
 				
 				if (isPropertyContainer(xsElementDecl) || isObjectDefinition(xsType)) {
@@ -441,8 +487,7 @@ class DomToSchemaProcessor {
 					
 					// Create a top-level property definition (even if this is a XSD complex type)
 					// This is not really useful, just for the sake of completeness
-					QName typeName = new QName(xsType.getTargetNamespace(), xsType.getName());
-					PrismPropertyDefinition propDef = createPropertyDefinition(xsType, elementName, typeName, null, annotation, null);
+					PrismPropertyDefinition propDef = createPropertyDefinition(xsType, elementName, typeQName, null, annotation, null);
 					schema.getDefinitions().add(propDef);
 				}
 				
@@ -452,6 +497,35 @@ class DomToSchemaProcessor {
 //					throw new SchemaException("Found element "+xsElementDecl.getName()+" with wrong namespace "+xsElementDecl.getTargetNamespace()+" while expecting "+schema.getNamespace());
 			}
 		}
+	}
+	
+	private QName determineType(XSElementDecl xsElementDecl) {
+		// Check for a:type annotation. If present, this overrides the type
+		QName type = getTypeAnnotation(xsElementDecl);
+		if (type != null) {
+			return type;
+		}
+		XSType xsType = xsElementDecl.getType();
+		if (xsType == null) {
+			return null;
+		}
+		return getType(xsType);		
+	}
+	
+	private QName getType(XSType xsType) {
+		if (xsType.getName() == null) {
+			return null;
+		}
+		return new QName(xsType.getTargetNamespace(), xsType.getName());
+	}
+
+	private QName getTypeAnnotation(XSElementDecl xsElementDecl) {
+		XSAnnotation annotation = xsElementDecl.getAnnotation();
+		return getTypeAnnotation(annotation);
+	}
+	
+	private QName getTypeAnnotation(XSAnnotation annotation) {
+		return SchemaProcessorUtil.getAnnotationQName(annotation, A_TYPE);
 	}
 	
 	/**

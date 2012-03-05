@@ -101,5 +101,30 @@ public class TestExtraSchema {
 //		System.out.println("Validation result:");
 //		System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
 	}
+	
+	/**
+	 * Test if a schema directory can be loaded to the schema registry. This contains definition of
+	 * user extension, therefore check if it is applied to the user definition. 
+	 */
+	@Test
+	public void testTypeOverride() throws SAXException, IOException, SchemaException {
+		System.out.println("===[ testTypeOverride ]===");
+		
+		PrismContext context = constructPrismContext();
+		SchemaRegistry reg = context.getSchemaRegistry();
+		reg.registerPrismSchemasFromDirectory(EXTRA_SCHEMA_DIR);
+		context.initialize();
+		
+		PrismSchema schema = reg.getSchema(NS_ROOT);
+		System.out.println("Parsed root schema:");
+		System.out.println(schema.dump());
+		
+		PrismContainerDefinition rootContDef = schema.findContainerDefinitionByElementName(new QName(NS_ROOT,"root"));
+		assertNotNull("Not <root> definition", rootContDef);
+		PrismContainerDefinition extensionContDef = rootContDef.findContainerDefinition(new QName(NS_FOO, "extension"));
+		assertNotNull("Not <extension> definition", extensionContDef);
+		assertEquals("Wrong <extension> type", new QName(NS_ROOT, "MyExtensionType"), extensionContDef.getTypeName());
+		
+	}
 
 }

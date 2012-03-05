@@ -111,6 +111,14 @@ public class SchemaToDomProcessor {
 	private SchemaDefinitionFactory getDefinitionFactory() {
 		return prismContext.getDefinitionFactory();
 	}
+	
+	private String getNamespace() {
+		return schema.getNamespace();
+	}
+	
+	private boolean isMyNamespace(QName qname) {
+		return getNamespace().equals(qname.getNamespaceURI());
+	}
 
 	/**
 	 * Main entry point.
@@ -186,7 +194,7 @@ public class SchemaToDomProcessor {
 				// Check if the complex type is a top-level complex type. If it is then it was already processed and we can skip it
 				schema.findComplexTypeDefinition(complexTypeDefinition.getTypeName()) == null &&
 				// If the definition is not in this schema namespace then skip it. It is only a "ref"
-				schema.getNamespace().equals(complexTypeDefinition.getTypeName().getNamespaceURI())
+				getNamespace().equals(complexTypeDefinition.getTypeName().getNamespaceURI())
 				) {
 			addComplexTypeDefinition(complexTypeDefinition,complexTypeParent);
 		}
@@ -211,7 +219,7 @@ public class SchemaToDomProcessor {
 		parent.appendChild(property);
 
 		String attrNamespace = definition.getName().getNamespaceURI();
-		if (attrNamespace != null && attrNamespace.equals(schema.getNamespace())) {
+		if (attrNamespace != null && attrNamespace.equals(getNamespace())) {
 			setAttribute(property, "name", definition.getName().getLocalPart());
 			setQNameAttribute(property, "type", definition.getTypeName());
 		} else {
@@ -288,7 +296,7 @@ public class SchemaToDomProcessor {
 		parent.appendChild(property);
 
 		String attrNamespace = definition.getName().getNamespaceURI();
-		if (attrNamespace != null && attrNamespace.equals(schema.getNamespace())) {
+		if (attrNamespace != null && attrNamespace.equals(getNamespace())) {
 			setAttribute(property, "name", definition.getName().getLocalPart());
 			setQNameAttribute(property, "type", definition.getTypeName());
 		} else {
@@ -322,7 +330,7 @@ public class SchemaToDomProcessor {
 
 		QName elementName = definition.getCompositeObjectElementName();
 		attrNamespace = elementName.getNamespaceURI();
-		if (attrNamespace != null && attrNamespace.equals(schema.getNamespace())) {
+		if (attrNamespace != null && attrNamespace.equals(getNamespace())) {
 			setAttribute(property, "name", elementName.getLocalPart());
 			setQNameAttribute(property, "type", definition.getTargetTypeName());
 		} else {
@@ -352,16 +360,24 @@ public class SchemaToDomProcessor {
 	 * @param parent element under which the definition will be added
 	 */
 	private Element addElementDefinition(QName name, QName typeName, int minOccurs, int maxOccurs, Element parent) {
-		Document document = parent.getOwnerDocument();
 		Element elementDef = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "element"));
 		parent.appendChild(elementDef);
-		// "typeName" should be used instead of "name" when defining a XSD type
-		setAttribute(elementDef, "name", name.getLocalPart());
 		
-		if (typeName.equals(DOMUtil.XSD_ANY)) {
-			addSequenceXsdAnyDefinition(elementDef);
+		if (isMyNamespace(name)) {
+			setAttribute(elementDef, "name", name.getLocalPart());
+		
+			if (typeName.equals(DOMUtil.XSD_ANY)) {
+				addSequenceXsdAnyDefinition(elementDef);
+			} else {
+				setQNameAttribute(elementDef, "type", typeName);
+			}
 		} else {
-			setQNameAttribute(elementDef, "type", typeName);
+			// Need to create "ref" instead of "name"
+			setAttribute(elementDef, "ref", name);
+			if (typeName != null) {
+				// Type cannot be stored directly, XSD does not allow it with "ref"s.
+				addAnnotationToDefinition(elementDef, A_TYPE, typeName);
+			}
 		}
 		
 		setMultiplicityAttribute(elementDef, "minOccurs", minOccurs);
@@ -564,9 +580,17 @@ public class SchemaToDomProcessor {
 	}
 	
 	private void addAnnotationToDefinition(Element definitionElement, QName qname) {
+		addAnnotationToDefinition(definitionElement, qname, null);
+	}
+		
+	private void addAnnotationToDefinition(Element definitionElement, QName qname, QName value) {
 		Element annotationElement = getOrCreateElement(new QName(W3C_XML_SCHEMA_NS_URI, "annotation"), definitionElement);
 		Element appinfoElement = getOrCreateElement(new QName(W3C_XML_SCHEMA_NS_URI, "appinfo"), annotationElement);
-		addAnnotation(qname, appinfoElement);
+		if (value == null) {
+			addAnnotation(qname, appinfoElement);
+		} else {
+			addAnnotation(qname, value, appinfoElement);
+		}
 	}
 	
 	private Element getOrCreateElement(QName qName, Element parentElement) {
@@ -606,7 +630,7 @@ public class SchemaToDomProcessor {
 			namespacePrefixMapper = prismContext.getSchemaRegistry().getNamespacePrefixMapper();
 		}
 		
-		namespacePrefixMapper.registerPrefix(schema.getNamespace(), "tns");
+		namespacePrefixMapper.registerPrefix(getNamespace(), "tns");
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Using namespace prefix mapper to serialize schema:\n{}",DebugUtil.dump(namespacePrefixMapper));
@@ -622,7 +646,7 @@ public class SchemaToDomProcessor {
 		document.appendChild(root);
 		
 		rootXsdElement = document.getDocumentElement();
-		setAttribute(rootXsdElement, "targetNamespace", schema.getNamespace());
+		setAttribute(rootXsdElement, "targetNamespace", getNamespace());
 		setAttribute(rootXsdElement, "elementFormDefault", "qualified");
 		if (attributeQualified) {
 			setAttribute(rootXsdElement, "attributeFormDefault", "qualified");
@@ -663,6 +687,10 @@ public class SchemaToDomProcessor {
 		setAttribute(element, new QName(W3C_XML_SCHEMA_NS_URI, attrName), attrValue);
 	}
 	
+	private void setAttribute(Element element, String attrName, QName attrValue) {
+		setAttribute(element, new QName(W3C_XML_SCHEMA_NS_URI, attrName), attrValue);
+	}
+	
 	private void setMultiplicityAttribute(Element element, String attrName, int attrValue) {
 		if (attrValue == 1) {
 			return;
@@ -686,6 +714,15 @@ public class SchemaToDomProcessor {
 			addToImport(attr.getNamespaceURI());
 		} else {
 			element.setAttribute(attr.getLocalPart(), attrValue);
+		}
+	}
+	
+	private void setAttribute(Element element, QName attr, QName attrValue) {
+		if (attributeQualified) {
+			DOMUtil.setQNameAttribute(element, attr, attrValue, rootXsdElement);
+			addToImport(attr.getNamespaceURI());
+		} else {
+			DOMUtil.setQNameAttribute(element, attr.getLocalPart(), attrValue, rootXsdElement);
 		}
 	}
 	
@@ -724,7 +761,7 @@ public class SchemaToDomProcessor {
 				continue;
 			}
 
-			if (schema.getNamespace().equals(namespace)) {
+			if (getNamespace().equals(namespace)) {
 				//we don't want to import target namespace
 				continue;
 			}

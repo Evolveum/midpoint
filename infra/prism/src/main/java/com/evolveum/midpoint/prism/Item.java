@@ -287,7 +287,7 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
 
     public void replaceAll(Collection<V> newValues) {
     	values.clear();
-    	values.addAll(newValues);
+    	addAll(newValues);
     }
 
     public void replace(V newValue) {

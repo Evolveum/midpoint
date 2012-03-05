@@ -103,9 +103,9 @@ import static org.testng.AssertJUnit.*;
 		"classpath:application-context-configuration-test-no-repo.xml" })
 public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 
-	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
-	private static final String FILENAME_RESOURCE_OPENDJ_BAD = "src/test/resources/ucf/opendj-resource-bad.xml";
-	private static final String FILENAME_CONNECTOR_LDAP = "src/test/resources/ucf/ldap-connector.xml";
+	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/object/resource-opendj.xml";
+	private static final String FILENAME_RESOURCE_OPENDJ_BAD = "src/test/resources/object/resource-opendj-bad.xml";
+	private static final String FILENAME_CONNECTOR_LDAP = "src/test/resources/ucf/connector-ldap.xml";
 
 	private ResourceType resourceType;
 	private ResourceType badResourceType;

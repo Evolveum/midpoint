@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,8 +98,8 @@ public class ConnectorTypeManager {
 			ConfiguredConnectorInstanceEntry configuredConnectorInstanceEntry = connectorInstanceCache.get(resourceOid);
 
 			if (configuredConnectorInstanceEntry.connectorOid.equals(connectorOid)
-					&& configuredConnectorInstanceEntry.configuration.equals(
-							resource.getConfiguration())) {
+					&& configuredConnectorInstanceEntry.configuration.equivalent(
+							resource.asPrismObject().findContainer(ResourceType.F_CONFIGURATION))) {
 
 				// We found entry that matches
 				return configuredConnectorInstanceEntry.connectorInstance;
@@ -117,7 +118,7 @@ public class ConnectorTypeManager {
 		// .. and cache it
 		ConfiguredConnectorInstanceEntry cacheEntry = new ConfiguredConnectorInstanceEntry();
 		cacheEntry.connectorOid = connectorOid;
-		cacheEntry.configuration = resource.getConfiguration();
+		cacheEntry.configuration = resource.asPrismObject().findContainer(ResourceType.F_CONFIGURATION);
 		cacheEntry.connectorInstance = configuredConnectorInstance;
 		connectorInstanceCache.put(resourceOid, cacheEntry);
 
@@ -411,7 +412,7 @@ public class ConnectorTypeManager {
 
 	private class ConfiguredConnectorInstanceEntry {
 		public String connectorOid;
-		public ResourceConfigurationType configuration;
+		public PrismContainer configuration;
 		public ConnectorInstance connectorInstance;
 	}
 
