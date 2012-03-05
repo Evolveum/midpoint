@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
+import java.util.Collection;
+
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
@@ -46,6 +48,10 @@ public class ResourceSchema extends PrismSchema {
 		// TODO: make sure correct parser plugins are used
 		return (ResourceSchema) PrismSchema.parse(element, new ResourceSchema(prismContext), prismContext);
 	}
+	
+	public Collection<ObjectClassComplexTypeDefinition> getObjectClassDefinitions() {
+		return getDefinitions(ObjectClassComplexTypeDefinition.class);
+	}
 
 	/**
 	 * Creates a new resource object definition and adds it to the schema.
@@ -56,9 +62,9 @@ public class ResourceSchema extends PrismSchema {
 	 *            type name "relative" to schema namespace
 	 * @return new resource object definition
 	 */
-	public ResourceAttributeContainerDefinition createResourceObjectDefinition(String localTypeName) {
+	public ObjectClassComplexTypeDefinition createObjectClassDefinition(String localTypeName) {
 		QName typeName = new QName(getNamespace(), localTypeName);
-		return createResourceObjectDefinition(typeName);
+		return createObjectClassDefinition(typeName);
 	}
 
 	/**
@@ -70,22 +76,20 @@ public class ResourceSchema extends PrismSchema {
 	 *            type QName
 	 * @return new resource object definition
 	 */
-	public ResourceAttributeContainerDefinition createResourceObjectDefinition(QName typeName) {
+	public ObjectClassComplexTypeDefinition createObjectClassDefinition(QName typeName) {
 		QName name = new QName(getNamespace(), toElementName(typeName.getLocalPart()));
 		ObjectClassComplexTypeDefinition cTypeDef = new ObjectClassComplexTypeDefinition(name, typeName, getPrismContext());
-		ResourceAttributeContainerDefinition def = new ResourceAttributeContainerDefinition(name, cTypeDef, getPrismContext());
 		add(cTypeDef);
-		add(def);
-		return def;
+		return cTypeDef;
 	}
 	
-	public ResourceAttributeContainerDefinition findAttributeContainerDefinitionByType(QName qName) {
-		return findItemDefinitionByType(qName, ResourceAttributeContainerDefinition.class);
+	public ObjectClassComplexTypeDefinition findObjectClassDefinition(QName qName) {
+		return (ObjectClassComplexTypeDefinition)findComplexTypeDefinition(qName);
 	}
 
 
-	public ResourceAttributeContainerDefinition findDefaultAccountDefinition() {
-		for (ResourceAttributeContainerDefinition attrContDef: getDefinitions(ResourceAttributeContainerDefinition.class)) {
+	public ObjectClassComplexTypeDefinition findDefaultAccountDefinition() {
+		for (ObjectClassComplexTypeDefinition attrContDef: getDefinitions(ObjectClassComplexTypeDefinition.class)) {
 			if (attrContDef.isDefaultAccountType()) {
 				return attrContDef;
 			}

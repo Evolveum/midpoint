@@ -342,24 +342,6 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 		return findAttributeDefinition(elementQName);
 	}
 	
-	public ResourceAttributeDefinition createAttributeDefinition(QName name, QName typeName) {
-		ResourceAttributeDefinition propDef = new ResourceAttributeDefinition(name, name, typeName, prismContext);
-		getDefinitions().add(propDef);
-		return propDef;
-	}
-	
-	public ResourceAttributeDefinition createAttributeDefinition(String localName, QName typeName) {
-		QName name = new QName(getSchemaNamespace(),localName);
-		return createAttributeDefinition(name,typeName);
-	}
-
-	
-	public ResourceAttributeDefinition createAttributeDefinition(String localName, String localTypeName) {
-		QName name = new QName(getSchemaNamespace(),localName);
-		QName typeName = new QName(getSchemaNamespace(),localTypeName);
-		return createAttributeDefinition(name,typeName);
-	}
-
 	public Collection<? extends ResourceAttributeDefinition> getAttributeDefinitions() {
 		Set<ResourceAttributeDefinition> attrs = new HashSet<ResourceAttributeDefinition>();
 		for (ItemDefinition def: complexTypeDefinition.getDefinitions()) {

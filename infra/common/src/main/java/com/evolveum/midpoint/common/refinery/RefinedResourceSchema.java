@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -56,9 +57,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
  */
 public class RefinedResourceSchema extends PrismSchema implements Dumpable, DebugDumpable {
 	
-	private PrismSchema originalResourceSchema;
+	private ResourceSchema originalResourceSchema;
 	
-	private RefinedResourceSchema(ResourceType resourceType, PrismSchema originalResourceSchema, PrismContext prismContext) {
+	private RefinedResourceSchema(ResourceType resourceType, ResourceSchema originalResourceSchema, PrismContext prismContext) {
 		super(resourceType.getNamespace(), prismContext);
 		this.originalResourceSchema = originalResourceSchema;
 	}
@@ -74,7 +75,7 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		return accounts;
 	}
 	
-	public PrismSchema getOriginalResourceSchema() {
+	public ResourceSchema getOriginalResourceSchema() {
 		return originalResourceSchema;
 	}
 
@@ -149,7 +150,7 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 
 	public static RefinedResourceSchema parse(ResourceType resourceType, PrismContext prismContext) throws SchemaException {
 		
-		PrismSchema originalResourceSchema = getResourceSchema(resourceType, prismContext);
+		ResourceSchema originalResourceSchema = getResourceSchema(resourceType, prismContext);
 		
 		SchemaHandlingType schemaHandling = resourceType.getSchemaHandling();
 		
@@ -199,7 +200,7 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 			PrismContext prismContext, String contextDescription) throws SchemaException {
 
 		RefinedAccountDefinition rAccountDefDefault = null;
-		for(ResourceAttributeContainerDefinition accountDef: rSchema.getOriginalResourceSchema().getDefinitions(ResourceAttributeContainerDefinition.class)) {
+		for(ObjectClassComplexTypeDefinition accountDef: rSchema.getOriginalResourceSchema().getObjectClassDefinitions()) {
 			QName objectClassname = accountDef.getTypeName();
 			RefinedAccountDefinition rAccountDef = RefinedAccountDefinition.parse(accountDef, resourceType, rSchema, prismContext, 
 					"object class "+objectClassname+" (interpreted as account type definition), in "+contextDescription);

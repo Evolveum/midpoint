@@ -22,6 +22,7 @@ package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -224,7 +225,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     }
 
     static RefinedAttributeDefinition parse(ResourceAttributeDefinition attrDef, ResourceAttributeDefinitionType attrDefType,
-                                            ResourceAttributeContainerDefinition objectClassDef, PrismContext prismContext, 
+    		ObjectClassComplexTypeDefinition objectClassDef, PrismContext prismContext, 
                                             String contextDescription) throws SchemaException {
 
         RefinedAttributeDefinition rAttrDef = new RefinedAttributeDefinition(attrDef, prismContext);

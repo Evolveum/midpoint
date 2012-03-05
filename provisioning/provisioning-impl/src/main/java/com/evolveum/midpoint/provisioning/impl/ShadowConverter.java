@@ -95,11 +95,10 @@ public class ShadowConverter {
 
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
-		PrismSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
+		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
 
 		QName objectClass = repoShadow.getObjectClass();
-		ResourceAttributeContainerDefinition objectClassDefinition = (ResourceAttributeContainerDefinition) schema
-				.findContainerDefinitionByType(objectClass);
+		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findObjectClassDefinition(objectClass);
 
 		if (objectClassDefinition == null) {
 			// Unknown objectclass
@@ -200,9 +199,9 @@ public class ShadowConverter {
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
-		PrismSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
+		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
 
-		ResourceAttributeContainerDefinition objectClassDefinition = (ResourceAttributeContainerDefinition) schema.findContainerDefinitionByType(shadow
+		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findObjectClassDefinition(shadow
 				.getObjectClass());
 
 		LOGGER.trace("Getting object identifiers");
@@ -244,10 +243,9 @@ public class ShadowConverter {
 			CommunicationException, ConfigurationException {
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
-		PrismSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
+		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
 
-		ResourceAttributeContainerDefinition objectClassDefinition = (ResourceAttributeContainerDefinition) schema.findContainerDefinitionByType(shadow
-				.getObjectClass());
+		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findObjectClassDefinition(shadow.getObjectClass());
 		Collection<? extends ResourceAttribute> identifiers = ResourceObjectShadowUtil.getIdentifiers(shadow); 
 
 		Set<Operation> attributeChanges = getAttributeChanges(objectChanges, operations, objectClassDefinition);
@@ -298,7 +296,7 @@ public class ShadowConverter {
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
 		// This is a HACK. It should not work only for default account, but also for other objectclasses (FIXME)
-		ResourceAttributeContainerDefinition objectClass = resourceSchema.findDefaultAccountDefinition();
+		ObjectClassComplexTypeDefinition objectClass = resourceSchema.findDefaultAccountDefinition();
 		PrismProperty lastToken = null;
 		try {
 			lastToken = connector.fetchCurrentToken(objectClass, parentResult);
@@ -329,7 +327,7 @@ public class ShadowConverter {
 
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		// This is a HACK. It should not work only for default account, but also for other objectclasses (FIXME)
-		ResourceAttributeContainerDefinition objectClass = resourceSchema.findDefaultAccountDefinition();
+		ObjectClassComplexTypeDefinition objectClass = resourceSchema.findDefaultAccountDefinition();
 
 		// get changes from the connector
 		List<Change> changes = null;
@@ -362,9 +360,9 @@ public class ShadowConverter {
 
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
-		PrismSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
-		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) schema
-				.findContainerDefinitionByType(new QName(resource.getNamespace(), "AccountObjectClass"));
+		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
+		ObjectClassComplexTypeDefinition rod = schema
+				.findObjectClassDefinition(new QName(resource.getNamespace(), "AccountObjectClass"));
 
 		ResourceObjectShadowType shadow = null;
 		try {
@@ -392,7 +390,7 @@ public class ShadowConverter {
 	}
 
 	private <T extends ResourceObjectShadowType> T fetchResourceObject(Class<T> type,
-			ResourceAttributeContainerDefinition objectClassDefinition,
+			ObjectClassComplexTypeDefinition objectClassDefinition,
 			Collection<? extends ResourceAttribute> identifiers, ConnectorInstance connector,
 			ResourceType resource, OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException {
@@ -450,7 +448,7 @@ public class ShadowConverter {
 
 
 	private Set<Operation> getAttributeChanges(Collection<? extends ItemDelta> objectChange, Set<Operation> changes,
-			ResourceAttributeContainerDefinition rod) throws SchemaException {
+			ObjectClassComplexTypeDefinition rod) throws SchemaException {
 		if (changes == null) {
 			changes = new HashSet<Operation>();
 		}

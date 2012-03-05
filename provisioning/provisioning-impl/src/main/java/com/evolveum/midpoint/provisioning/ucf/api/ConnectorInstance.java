@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -161,7 +162,7 @@ public interface ConnectorInstance {
 	 * @throws SchemaException error converting object from native (connector) format
 	 */
 	public <T extends ResourceObjectShadowType> PrismObject<T> fetchObject(
-			Class<T> type, ResourceAttributeContainerDefinition objectClassDefinition,
+			Class<T> type, ObjectClassComplexTypeDefinition objectClassDefinition,
 			Collection<? extends ResourceAttribute> identifiers, boolean returnDefaultAttributes,
 			Collection<? extends ResourceAttributeDefinition> attributesToReturn, OperationResult parentResult)
 		throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
@@ -198,7 +199,7 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException 
 	 * @throws SchemaException error converting object from the native (connector) format
 	 */
-	public <T extends ResourceObjectShadowType> void search(Class<T> type, ResourceAttributeContainerDefinition objectClassDefinition,
+	public <T extends ResourceObjectShadowType> void search(Class<T> type, ObjectClassComplexTypeDefinition objectClassDefinition,
 			ResultHandler<T> handler, OperationResult parentResult) 
 			throws CommunicationException, GenericFrameworkException, SchemaException;
 
@@ -247,9 +248,9 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException
 	 * @throws SchemaException 
 	 */
-	public Set<PropertyModificationOperation> modifyObject(ResourceAttributeContainerDefinition objectClass, Collection<? extends ResourceAttribute> identifiers, Set<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
+	public Set<PropertyModificationOperation> modifyObject(ObjectClassComplexTypeDefinition objectClass, Collection<? extends ResourceAttribute> identifiers, Set<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
 	
-	public void deleteObject(ResourceAttributeContainerDefinition objectClass, Set<Operation> additionalOperations, Collection<? extends ResourceAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
+	public void deleteObject(ObjectClassComplexTypeDefinition objectClass, Set<Operation> additionalOperations, Collection<? extends ResourceAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Creates a live Java object from a token previously serialized to string.
@@ -272,7 +273,7 @@ public interface ConnectorInstance {
 	 * @return
 	 * @throws CommunicationException
 	 */
-	public PrismProperty fetchCurrentToken(ResourceAttributeContainerDefinition objectClass, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	public PrismProperty fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Token may be null. That means "from the beginning of history".
@@ -280,7 +281,7 @@ public interface ConnectorInstance {
 	 * @param lastToken
 	 * @return
 	 */
-	public List<Change> fetchChanges(ResourceAttributeContainerDefinition objectClass, PrismProperty lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
+	public List<Change> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
 	
 	//public ValidationResult validateConfiguration(ResourceConfiguration newConfiguration);
 	

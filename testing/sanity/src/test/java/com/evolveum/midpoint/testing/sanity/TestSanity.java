@@ -36,6 +36,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -450,7 +451,7 @@ public class TestSanity extends AbstractIntegrationTest {
      */
     private void checkOpenDjSchema(ResourceType resource, String source) throws SchemaException {
         ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
-        ResourceAttributeContainerDefinition accountDefinition = schema.findDefaultAccountDefinition();
+        ObjectClassComplexTypeDefinition accountDefinition = schema.findDefaultAccountDefinition();
         assertNotNull("Schema does not define any account (resource from " + source + ")", accountDefinition);
         Collection<ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
         assertFalse("No account identifiers (resource from " + source + ")", identifiers == null || identifiers.isEmpty());

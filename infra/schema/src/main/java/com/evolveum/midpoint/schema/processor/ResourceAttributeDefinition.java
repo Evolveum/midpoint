@@ -71,6 +71,10 @@ public class ResourceAttributeDefinition extends PrismPropertyDefinition {
 	 * @return true if the attribute is a (primary) identifier.
 	 */
 	public boolean isIdentifier(ResourceAttributeContainerDefinition objectDefinition) {
+		return isIdentifier(objectDefinition.getComplexTypeDefinition());
+	}
+		
+	public boolean isIdentifier(ObjectClassComplexTypeDefinition objectDefinition) {
 		for (ResourceAttributeDefinition identifier : objectDefinition.getIdentifiers()) {
 			if (this == identifier) {
 				return true;

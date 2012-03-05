@@ -51,6 +51,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
@@ -303,7 +304,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		// object instance is returned
 		assertTrue(returnedSchema == enh.getParsedSchema());
 
-		ResourceAttributeContainerDefinition accountDef = returnedSchema.findDefaultAccountDefinition();
+		ObjectClassComplexTypeDefinition accountDef = returnedSchema.findDefaultAccountDefinition();
 		assertNotNull("Account definition is missing", accountDef);
 		assertNotNull("Null identifiers in account", accountDef.getIdentifiers());
 		assertFalse("Empty identifiers in account", accountDef.getIdentifiers().isEmpty());

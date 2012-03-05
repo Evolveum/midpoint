@@ -445,8 +445,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// object class.
 			// The important thing here is the last "type" parameter
 			// (objectClassXsdName). The rest is more-or-less cosmetics.
-			ResourceAttributeContainerDefinition roDefinition = resourceSchema
-					.createResourceObjectDefinition(objectClassXsdName);
+			ObjectClassComplexTypeDefinition roDefinition = resourceSchema
+					.createObjectClassDefinition(objectClassXsdName);
 
 			// The __ACCOUNT__ objectclass in ICF is a default account
 			// objectclass. So mark it appropriately.
@@ -629,7 +629,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public <T extends ResourceObjectShadowType> PrismObject<T> fetchObject(Class<T> type,
-			ResourceAttributeContainerDefinition objectClassDefinition,
+			ObjectClassComplexTypeDefinition objectClassDefinition,
 			Collection<? extends ResourceAttribute> identifiers, boolean returnDefaultAttributes,
 			Collection<? extends ResourceAttributeDefinition> attributesToReturn,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
@@ -695,12 +695,18 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					+ ObjectTypeUtil.toShortString(connectorType));
 		}
 
-		PrismObjectDefinition<T> shadowDefinition = objectClassDefinition.toShadowDefinition();
+		PrismObjectDefinition<T> shadowDefinition = toShadowDefinition(objectClassDefinition);
 		PrismObject<T> shadow = convertToResourceObject(co, shadowDefinition, true);
 
 		result.recordSuccess();
 		return shadow;
 
+	}
+
+	private <T extends ResourceObjectShadowType> PrismObjectDefinition<T> toShadowDefinition(ObjectClassComplexTypeDefinition objectClassDefinition) {
+		ResourceAttributeContainerDefinition resourceAttributeContainerDefinition = 
+			objectClassDefinition.toResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
+		return resourceAttributeContainerDefinition.toShadowDefinition();
 	}
 
 	/**
@@ -871,7 +877,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public Set<PropertyModificationOperation> modifyObject(ResourceAttributeContainerDefinition objectClass,
+	public Set<PropertyModificationOperation> modifyObject(ObjectClassComplexTypeDefinition objectClass,
 			Collection<? extends ResourceAttribute> identifiers, Set<Operation> changes,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException, SchemaException {
@@ -1140,7 +1146,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public void deleteObject(ResourceAttributeContainerDefinition objectClass, Set<Operation> additionalOperations,
+	public void deleteObject(ObjectClassComplexTypeDefinition objectClass, Set<Operation> additionalOperations,
 			Collection<? extends ResourceAttribute> identifiers, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException {
 
@@ -1195,7 +1201,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public PrismProperty fetchCurrentToken(ResourceAttributeContainerDefinition objectClass, OperationResult parentResult)
+	public PrismProperty fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
@@ -1217,7 +1223,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public List<Change> fetchChanges(ResourceAttributeContainerDefinition objectClass, PrismProperty lastToken,
+	public List<Change> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty lastToken,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			SchemaException, ConfigurationException {
 
@@ -1312,7 +1318,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> void search(Class<T> type, ResourceAttributeContainerDefinition objectClassDefinition,
+	public <T extends ResourceObjectShadowType> void search(Class<T> type, ObjectClassComplexTypeDefinition objectClassDefinition,
 			final ResultHandler<T> handler, OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			SchemaException {
 
@@ -1336,7 +1342,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			result.recordFatalError("Unable to detemine object class", ex);
 			throw ex;
 		}
-		final PrismObjectDefinition<T> objectDefinition = objectClassDefinition.toShadowDefinition();
+		final PrismObjectDefinition<T> objectDefinition = toShadowDefinition(objectClassDefinition);
 
 		ResultsHandler icfHandler = new ResultsHandler() {
 			@Override
@@ -1474,7 +1480,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * <p/>
 	 * TODO: mind the special characters in the ICF objectclass names.
 	 */
-	private ObjectClass objectClassToIcf(ResourceAttributeContainerDefinition objectClassDefinition) {
+	private ObjectClass objectClassToIcf(ObjectClassComplexTypeDefinition objectClassDefinition) {
 		QName qnameObjectClass = objectClassDefinition.getTypeName();
 		return objectClassToIcf(qnameObjectClass);
 	}

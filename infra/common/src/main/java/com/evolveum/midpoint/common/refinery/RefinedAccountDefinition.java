@@ -50,7 +50,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     private String displayName;
     private String description;
     private boolean isDefault;
-    private ResourceAttributeContainerDefinition objectClassDefinition;
+    private ObjectClassComplexTypeDefinition objectClassDefinition;
     private ResourceType resourceType;
     /**
      * Refined object definition. The "any" parts are replaced with appropriate schema (e.g. resource schema)
@@ -66,7 +66,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     }
 
     private RefinedAccountDefinition(PrismContext prismContext, ResourceType resourceType,
-            ResourceAttributeContainerDefinition objectClassDefinition) {
+    		ObjectClassComplexTypeDefinition objectClassDefinition) {
         super(SchemaConstants.I_ATTRIBUTES, null, prismContext);
         attributeDefinitions = new HashSet<RefinedAttributeDefinition>();
         this.resourceType = resourceType;
@@ -189,20 +189,20 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         return findAttributeDefinition(elementQName);
     }
 
-    @Override
-    public ResourceAttributeDefinition createAttributeDefinition(QName name, QName typeName) {
-        throw new UnsupportedOperationException("Parts of refined account are immutable");
-    }
+//    @Override
+//    public ResourceAttributeDefinition createAttributeDefinition(QName name, QName typeName) {
+//        throw new UnsupportedOperationException("Parts of refined account are immutable");
+//    }
 
-    @Override
-    public ResourceAttributeDefinition createAttributeDefinition(String localName, QName typeName) {
-        throw new UnsupportedOperationException("Parts of refined account are immutable");
-    }
-
-    @Override
-    public ResourceAttributeDefinition createAttributeDefinition(String localName, String localTypeName) {
-        throw new UnsupportedOperationException("Parts of refined account are immutable");
-    }
+//    @Override
+//    public ResourceAttributeDefinition createAttributeDefinition(String localName, QName typeName) {
+//        throw new UnsupportedOperationException("Parts of refined account are immutable");
+//    }
+//
+//    @Override
+//    public ResourceAttributeDefinition createAttributeDefinition(String localName, String localTypeName) {
+//        throw new UnsupportedOperationException("Parts of refined account are immutable");
+//    }
 
 
     @Override
@@ -236,11 +236,11 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         this.isDefault = isDefault;
     }
 
-    public ResourceAttributeContainerDefinition getObjectClassDefinition() {
+    public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
         return objectClassDefinition;
     }
 
-    public void setObjectClassDefinition(ResourceAttributeContainerDefinition objectClassDefinition) {
+    public void setObjectClassDefinition(ObjectClassComplexTypeDefinition objectClassDefinition) {
         this.objectClassDefinition = objectClassDefinition;
     }
 
@@ -316,10 +316,10 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
             throw new SchemaException("Account type definition does not have a name, in " + contextDescription);
         }
 
-        ResourceAttributeContainerDefinition objectClassDef = null;
+        ObjectClassComplexTypeDefinition objectClassDef = null;
         if (accountTypeDefType.getObjectClass() != null) {
             QName objectClass = accountTypeDefType.getObjectClass();
-            objectClassDef = rSchema.getOriginalResourceSchema().findItemDefinitionByType(objectClass, ResourceAttributeContainerDefinition.class);
+            objectClassDef = rSchema.getOriginalResourceSchema().findObjectClassDefinition(objectClass);
             if (objectClassDef == null) {
                 throw new SchemaException("Object class " + objectClass + " as specified in account type " + accountTypeDefType.getName() + " was not found in the resource schema of " + contextDescription);
             }
@@ -378,7 +378,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         return rAccountDef;
     }
 
-    static RefinedAccountDefinition parse(ResourceAttributeContainerDefinition objectClassDef, ResourceType resourceType,
+    static RefinedAccountDefinition parse(ObjectClassComplexTypeDefinition objectClassDef, ResourceType resourceType,
             RefinedResourceSchema rSchema,
             PrismContext prismContext, String contextDescription) throws SchemaException {
 

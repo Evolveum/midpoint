@@ -164,6 +164,10 @@ public class ComplexTypeDefinition extends Definition {
         return findItemDefinition(name, PrismPropertyDefinition.class);
     }
 	
+    public PrismContainerDefinition findContainerDefinition(QName name) {
+    	return findItemDefinition(name, PrismContainerDefinition.class);
+    }
+    
 	public <T extends ItemDefinition> T findItemDefinition(QName name, Class<T> clazz) {
         if (clazz == null) {
             throw new IllegalArgumentException("type not specified while searching for " + name + " in " + this);

@@ -178,10 +178,10 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 	@Override
 	public PrismContainerDefinition createExtraDefinitionFromComplexType(XSComplexType complexType,
 			ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, XSAnnotation annotation) throws SchemaException {		
-		if (complexTypeDefinition instanceof ObjectClassComplexTypeDefinition) {
-			return createResourceAttributeContainerDefinition(complexType, (ObjectClassComplexTypeDefinition)complexTypeDefinition, 
-					prismContext, annotation);
-		}
+//		if (complexTypeDefinition instanceof ObjectClassComplexTypeDefinition) {
+//			return createResourceAttributeContainerDefinition(complexType, (ObjectClassComplexTypeDefinition)complexTypeDefinition, 
+//					prismContext, annotation);
+//		}
 		
 		return super.createExtraDefinitionFromComplexType(complexType, complexTypeDefinition, prismContext, annotation);
 	}

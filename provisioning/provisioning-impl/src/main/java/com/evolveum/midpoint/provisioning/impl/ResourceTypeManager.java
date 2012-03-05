@@ -37,9 +37,11 @@ import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -389,10 +391,10 @@ public class ResourceTypeManager {
 		}
 	}
 
-	public PrismSchema getResourceSchema(ResourceType resource, ConnectorInstance connector,
+	public ResourceSchema getResourceSchema(ResourceType resource, ConnectorInstance connector,
 			OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException {
 
-		PrismSchema schema = null;
+		ResourceSchema schema = null;
 		try {
 
 			// Make sure that the schema is retrieved from the resource
@@ -524,17 +526,17 @@ public class ResourceTypeManager {
 
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
 
-		final PrismSchema schema = getResourceSchema(resourceType, connector, parentResult);
+		final ResourceSchema schema = getResourceSchema(resourceType, connector, parentResult);
 
 		if (schema == null) {
 			parentResult.recordFatalError("Can't get resource schema.");
 			throw new IllegalArgumentException("Can't get resource schema.");
 		}
 
-		ResourceAttributeContainerDefinition resourceDef = (ResourceAttributeContainerDefinition) schema
-				.findContainerDefinitionByType(objectClass);
+		ObjectClassComplexTypeDefinition objectClassDef = schema
+				.findObjectClassDefinition(objectClass);
 
-		if (resourceDef == null) {
+		if (objectClassDef == null) {
 			String message = "Object class " + objectClass + " is not defined in schema of "
 					+ ObjectTypeUtil.toShortString(resourceType);
 			LOGGER.error(message);
@@ -612,7 +614,7 @@ public class ResourceTypeManager {
 
 		try {
 
-			connector.search(type, resourceDef, resultHandler, parentResult);
+			connector.search(type, objectClassDef, resultHandler, parentResult);
 		} catch (GenericFrameworkException e) {
 			parentResult.recordFatalError("Generic error in the connector: " + e.getMessage(), e);
 			throw new CommunicationException("Generic error in the connector: " + e.getMessage(), e);

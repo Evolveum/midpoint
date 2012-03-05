@@ -60,11 +60,11 @@ public class SchemaProcessorTest {
 	@Test
 	public void testAccessList() throws Exception {
 		Document schemaDom = DOMUtil.parseFile("src/test/resources/processor/resource-schema-complex.xsd");
-		PrismSchema schema = PrismSchema.parse(DOMUtil.getFirstChildElement(schemaDom), PrismTestUtil.getPrismContext());
+		ResourceSchema schema = ResourceSchema.parse(DOMUtil.getFirstChildElement(schemaDom), PrismTestUtil.getPrismContext());
 		
 		final String defaultNS = "http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
 		final String icfNS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd";
-		ResourceAttributeContainerDefinition objectDef = (ResourceAttributeContainerDefinition) schema.findContainerDefinitionByType(new QName(defaultNS, "AccountObjectClass"));
+		ObjectClassComplexTypeDefinition objectDef = schema.findObjectClassDefinition(new QName(defaultNS, "AccountObjectClass"));
 		assertNotNull("AccountObjectClass definition not found", objectDef);
 		
 		ResourceAttributeDefinition attrDef = objectDef.findAttributeDefinition(new QName(icfNS, "uid"));
@@ -163,7 +163,7 @@ public class SchemaProcessorTest {
 		ResourceSchema schema = new ResourceSchema(SCHEMA_NS, PrismTestUtil.getPrismContext());
 		
 		// Property container
-		ResourceAttributeContainerDefinition containerDefinition = schema.createResourceObjectDefinition("AccountObjectClass");
+		ObjectClassComplexTypeDefinition containerDefinition = schema.createObjectClassDefinition("AccountObjectClass");
 		containerDefinition.setAccountType(true);
 		containerDefinition.setDefaultAccountType(true);
 		containerDefinition.setNativeObjectClass("ACCOUNT");
@@ -205,29 +205,27 @@ public class SchemaProcessorTest {
 		
 		// THEN
 			
-		PrismContainerDefinition newContainerDef = newSchema.findContainerDefinitionByType(new QName(SCHEMA_NS,"AccountObjectClass"));
-		assertEquals(new QName(SCHEMA_NS,"AccountObjectClass"),newContainerDef.getTypeName());
-		assertTrue(newContainerDef instanceof ResourceAttributeContainerDefinition);
-		ResourceAttributeContainerDefinition rod = (ResourceAttributeContainerDefinition) newContainerDef;
-		assertTrue(rod.isAccountType());
-		assertTrue(rod.isDefaultAccountType());
+		ObjectClassComplexTypeDefinition newObjectClassDef = newSchema.findObjectClassDefinition(new QName(SCHEMA_NS,"AccountObjectClass"));
+		assertEquals(new QName(SCHEMA_NS,"AccountObjectClass"),newObjectClassDef.getTypeName());
+		assertTrue(newObjectClassDef.isAccountType());
+		assertTrue(newObjectClassDef.isDefaultAccountType());
 		
-		PrismPropertyDefinition loginDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"login"));
+		PrismPropertyDefinition loginDef = newObjectClassDef.findPropertyDefinition(new QName(SCHEMA_NS,"login"));
 		assertEquals(new QName(SCHEMA_NS,"login"), loginDef.getName());
 		assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
 		assertFalse(loginDef.isIgnored());
 
-		PrismPropertyDefinition passwdDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"password"));
+		PrismPropertyDefinition passwdDef = newObjectClassDef.findPropertyDefinition(new QName(SCHEMA_NS,"password"));
 		assertEquals(new QName(SCHEMA_NS,"password"), passwdDef.getName());
 		assertEquals(SchemaConstants.R_PROTECTED_STRING_TYPE, passwdDef.getTypeName());
 		assertFalse(passwdDef.isIgnored());
 
-		PrismContainerDefinition credDef = newContainerDef.findContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
+		PrismContainerDefinition credDef = newObjectClassDef.findContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
 		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
 		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
 		assertFalse(credDef.isIgnored());
 		
-		PrismPropertyDefinition sepDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"sep"));
+		PrismPropertyDefinition sepDef = newObjectClassDef.findPropertyDefinition(new QName(SCHEMA_NS,"sep"));
 		assertEquals(new QName(SCHEMA_NS,"sep"), sepDef.getName());
 		assertEquals(DOMUtil.XSD_STRING, sepDef.getTypeName());
 		assertTrue(sepDef.isIgnored());

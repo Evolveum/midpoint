@@ -26,6 +26,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 
@@ -45,8 +46,18 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	private String accountTypeName;
 	private String nativeObjectClass;
 
-	ObjectClassComplexTypeDefinition(QName defaultName, QName typeName, PrismContext prismContext) {
+	public ObjectClassComplexTypeDefinition(QName defaultName, QName typeName, PrismContext prismContext) {
 		super(defaultName, typeName, prismContext);
+	}
+	
+	public Collection<? extends ResourceAttributeDefinition> getAttributeDefinitions() {
+		Set<ResourceAttributeDefinition> attrs = new HashSet<ResourceAttributeDefinition>();
+		for (ItemDefinition def: getDefinitions()) {
+			if (def instanceof ResourceAttributeDefinition) {
+				attrs.add((ResourceAttributeDefinition)def);
+			}
+		}
+		return attrs;
 	}
 	
 	/**
@@ -284,6 +295,42 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
     public ResourceAttributeDefinition findAttributeDefinition(QName name) {
         return findItemDefinition(name, ResourceAttributeDefinition.class);
     }
+    
+    public ResourceAttributeDefinition findAttributeDefinition(String name) {
+    	QName qname = new QName(getTypeName().getNamespaceURI(), name);
+        return findAttributeDefinition(qname);
+    }
+    
+	public ResourceAttributeDefinition createAttributeDefinition(QName name, QName typeName) {
+		ResourceAttributeDefinition propDef = new ResourceAttributeDefinition(name, name, typeName, prismContext);
+		getDefinitions().add(propDef);
+		return propDef;
+	}
+	
+	public ResourceAttributeDefinition createAttributeDefinition(String localName, QName typeName) {
+		QName name = new QName(getSchemaNamespace(),localName);
+		return createAttributeDefinition(name,typeName);
+	}
+
+	
+	public ResourceAttributeDefinition createAttributeDefinition(String localName, String localTypeName) {
+		QName name = new QName(getSchemaNamespace(),localName);
+		QName typeName = new QName(getSchemaNamespace(),localTypeName);
+		return createAttributeDefinition(name,typeName);
+	}
+	
+	public ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
+		return new ResourceAttributeContainerDefinition(elementName, this, getPrismContext());
+	}
+	
+	/**
+	 * This may not be really "clean" as it actually does two steps instead of one. But it is useful.
+	 */
+	public ResourceAttributeContainer instantiate(QName elementName) {
+		ResourceAttributeContainerDefinition racDef = toResourceAttributeContainerDefinition(elementName);
+		ResourceAttributeContainer rac = new ResourceAttributeContainer(elementName, racDef, getPrismContext());
+		return rac;
+	}
 	
 	public ObjectClassComplexTypeDefinition clone() {
 		ObjectClassComplexTypeDefinition clone = new ObjectClassComplexTypeDefinition(getDefaultName(), 
