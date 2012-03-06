@@ -29,6 +29,8 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -112,16 +114,19 @@ public class ResourceObjectShadowUtil {
 		return value;
 	}
 
-	public static List<Object> getAttributeValues(AccountShadowType shadow, QName attrName) {
-		if (shadow.getAttributes() == null || shadow.getAttributes().getAny() == null ||
-				shadow.getAttributes().getAny().isEmpty()) {
+	public static List<Object> getAttributeValues(AccountShadowType shadowType, QName attrName) {
+		PrismObject shadow = shadowType.asPrismObject();
+		PrismContainer attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		if (attributesContainer == null || attributesContainer.isEmpty()) {
+			return null;
+		}
+		PrismProperty<?> attr = attributesContainer.findProperty(attrName);
+		if (attr == null) {
 			return null;
 		}
 		List<Object> values = new ArrayList<Object>();
-		for (Object element : shadow.getAttributes().getAny()) {
-			if (attrName.equals(JAXBUtil.getElementQName(element))) {
-				values.add(element);
-			}
+		for (PrismPropertyValue<?> pval : attr.getValues()) {
+			values.add(pval.getValue());
 		}
 		if (values.isEmpty()) {
 			return null;

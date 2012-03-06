@@ -436,6 +436,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertTrue("The account is not enabled", dummyAccount.isEnabled());
 		assertEquals("Wrong password", "3lizab3th", dummyAccount.getPassword());
 		
+		// Check if the shadow is in the repo
+		PrismObject<AccountShadowType> shadowFromRepo = repositoryService.getObject(AccountShadowType.class, addedObjectOid, null, result);
+		assertNotNull("Shadow was not created in the repository",shadowFromRepo);
+		display("Repository shadow", shadowFromRepo.dump());
+		
 		checkConsistency();
 	}
 
@@ -564,7 +569,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		display("Retrieved account shadow", accountType);
 
 		DummyAccount dummyAccount = dummyResource.getAccountByUsername("will");
-		assertFalse(dummyAccount.isEnabled());
+		assertFalse("Account is not disabled", dummyAccount.isEnabled());
 
 		ObjectModificationType objectModification = unmarshallJaxbFromFile(FILENAME_ENABLE_ACCOUNT,
 				ObjectModificationType.class);
@@ -590,7 +595,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
 				+ ".test031AddScript");
 
-		AccountShadowType account = unmarshallJaxbFromFile(FILENAME_ACCOUNT_SCRIPT, AccountShadowType.class);
+		AccountShadowType account = parseObjectTypeFromFile(FILENAME_ACCOUNT_SCRIPT, AccountShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(account));
 		System.out.println(account.asPrismObject().dump());
@@ -708,9 +713,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		Document doc = DOMUtil.getDocument();
 		XPathHolder xpath = new XPathHolder(SchemaConstants.I_ATTRIBUTES);
 		query.setFilter(QueryUtil.createEqualFilter(doc, xpath, ConnectorFactoryIcfImpl.ICFS_UID, ACCOUNT_NEW_ICF_UID));
-		
+		System.out.println("Looking for shadows of \""+ACCOUNT_NEW_ICF_UID+"\" with filter "+DOMUtil.serializeDOMToString(query.getFilter()));
 		ResultList<PrismObject<AccountShadowType>> objects = repositoryService.searchObjects(AccountShadowType.class, query , null, result);
-		assertEquals("Wrong number of shadows for ICF UID " + ACCOUNT_NEW_ICF_UID, 1, objects.size());
+		
+		assertEquals("Wrong number of shadows for ICF UID \"" + ACCOUNT_NEW_ICF_UID + "\"", 1, objects.size());
 		
 	}
 

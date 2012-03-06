@@ -375,7 +375,8 @@ public class ShadowCacheUtil {
                     doc,
                     QueryUtil.createEqualRefFilter(doc, null, SchemaConstants.I_RESOURCE_REF,
                             resource.getOid()),
-                    QueryUtil.createEqualFilter(doc, xpath, identifier.serializeToJaxb(doc)));
+                    QueryUtil.createEqualFilterFromElements(doc, xpath, identifier.serializeToJaxb(doc),
+                    		resourceShadow.asPrismObject().getPrismContext()));
         } catch (SchemaException e) {
 //			LOGGER.error("Schema error while creating search filter: {}", e.getMessage(), e);
             throw new SchemaException("Schema error while creating search filter: " + e.getMessage(), e);
