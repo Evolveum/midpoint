@@ -787,4 +787,17 @@ public class DOMUtil {
 		}
 	}
 
+	public static Element findElementRecursive(Element element, QName elementQName) {
+		if (elementQName.equals(getQName(element))) {
+			return element;
+		}
+		for (Element subElement: listChildElements(element)) {
+			Element foundElement = findElementRecursive(subElement, elementQName);
+			if (foundElement != null) {
+				return foundElement;
+			}
+		}
+		return null;
+	}
+
 }

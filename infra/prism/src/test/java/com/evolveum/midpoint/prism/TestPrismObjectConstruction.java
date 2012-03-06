@@ -45,7 +45,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
-public class TestPrismConstruction {
+public class TestPrismObjectConstruction {
 	
 	private static final String USER_OID = "1234567890";
 	private static final String ACCOUNT1_OID = "11100000111";
