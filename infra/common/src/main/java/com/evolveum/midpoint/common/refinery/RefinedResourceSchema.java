@@ -57,6 +57,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
  */
 public class RefinedResourceSchema extends PrismSchema implements Dumpable, DebugDumpable {
 	
+	private static final String USER_DATA_KEY_PARSED_RESOURCE_SCHEMA = RefinedResourceSchema.class.getName()+".parsedResourceSchema";
+	private static final String USER_DATA_KEY_REFINED_SCHEMA = RefinedResourceSchema.class.getName()+".refinedSchema";
+	
 	private ResourceSchema originalResourceSchema;
 	
 	private RefinedResourceSchema(ResourceType resourceType, ResourceSchema originalResourceSchema, PrismContext prismContext) {
@@ -114,39 +117,60 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	 * If already refined, return the version created before
 	 */
 	public static RefinedResourceSchema getRefinedSchema(ResourceType resourceType, PrismContext prismContext) throws SchemaException {
-		if (resourceType instanceof EnhancedResourceType) {
-			EnhancedResourceType enh = (EnhancedResourceType) resourceType;
-			if (enh.getRefinedSchema() != null) {
-				return enh.getRefinedSchema();
+		PrismObject<ResourceType> resource = resourceType.asPrismObject();
+		Object userDataEntry = resource.getUserData(USER_DATA_KEY_REFINED_SCHEMA);
+		if (userDataEntry != null) {
+			if (userDataEntry instanceof RefinedResourceSchema) {
+				return (RefinedResourceSchema)userDataEntry;
 			} else {
-				RefinedResourceSchema refinedSchema = parse(resourceType, prismContext);
-				enh.setRefinedSchema(refinedSchema);
-				return refinedSchema;
+				throw new IllegalStateException("Expected RefinedResourceSchema under user data key "+USER_DATA_KEY_REFINED_SCHEMA+
+						"in "+resource+", but got "+userDataEntry.getClass());
 			}
+		} else {
+			RefinedResourceSchema refinedSchema = parse(resourceType, prismContext);
+			resource.setUserData(USER_DATA_KEY_REFINED_SCHEMA, refinedSchema);
+			return refinedSchema;
 		}
-		RefinedResourceSchema refinedSchema = parse(resourceType, prismContext);
-		return refinedSchema;
 	}
 	
-	public static ResourceSchema getResourceSchema(ResourceType resource, PrismContext prismContext) throws SchemaException {
-		Element resourceXsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
+	public static boolean hasRefinedSchema(ResourceType resourceType) {
+		PrismObject<ResourceType> resource = resourceType.asPrismObject();
+		return resource.getUserData(USER_DATA_KEY_REFINED_SCHEMA) != null;
+	}
+	
+	public static ResourceSchema getResourceSchema(ResourceType resourceType, PrismContext prismContext) throws SchemaException {
+		Element resourceXsdSchema = ResourceTypeUtil.getResourceXsdSchema(resourceType);
 		if (resourceXsdSchema == null) {
 			return null;
 		}
-		if (resource instanceof EnhancedResourceType) {
-			EnhancedResourceType enh = (EnhancedResourceType) resource;
-			if (enh.getParsedSchema() != null) {
-				return enh.getParsedSchema();
+		PrismObject<ResourceType> resource = resourceType.asPrismObject();
+		Object userDataEntry = resource.getUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA);
+		if (userDataEntry != null) {
+			if (userDataEntry instanceof ResourceSchema) {
+				return (ResourceSchema)userDataEntry;
 			} else {
-				ResourceSchema parsedSchema = ResourceSchema.parse(resourceXsdSchema, prismContext);
-				enh.setParsedSchema(parsedSchema);
-				return parsedSchema;
+				throw new IllegalStateException("Expected ResourceSchema under user data key "+
+						USER_DATA_KEY_PARSED_RESOURCE_SCHEMA+ "in "+resource+", but got "+userDataEntry.getClass());
 			}
+		} else {
+			ResourceSchema parsedSchema = ResourceSchema.parse(resourceXsdSchema, prismContext);
+			resource.setUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA, parsedSchema);
+			return parsedSchema;
 		}
-		ResourceSchema parsedSchema = ResourceSchema.parse(resourceXsdSchema, prismContext);
-		return parsedSchema;
+	}
+	
+	public static void setParsedResourceSchemaConditional(ResourceType resourceType, ResourceSchema parsedSchema) {
+		if (hasParsedSchema(resourceType)) {
+			return;
+		}
+		PrismObject<ResourceType> resource = resourceType.asPrismObject();
+		resource.setUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA, parsedSchema);
 	}
 
+	public static boolean hasParsedSchema(ResourceType resourceType) {
+		PrismObject<ResourceType> resource = resourceType.asPrismObject();
+		return resource.getUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA) != null;
+	}
 
 	public static RefinedResourceSchema parse(ResourceType resourceType, PrismContext prismContext) throws SchemaException {
 		
@@ -253,4 +277,5 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		// TODO Auto-generated method stub
 		throw new UnsupportedOperationException();
 	}
+
 }

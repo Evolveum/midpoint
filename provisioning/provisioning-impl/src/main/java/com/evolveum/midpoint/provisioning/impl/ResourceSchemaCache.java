@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.refinery.EnhancedResourceType;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -78,10 +78,8 @@ public class ResourceSchemaCache {
 				// Delete the old entry, there is obviously new version of schema
 				cache.remove(oid);
 			} else {
-				// existing entry that seems to be still valid. Reuse parsed schema
-				EnhancedResourceType enhResource = new EnhancedResourceType(resourceType);
-				enhResource.setParsedSchema(entry.parsedSchema);
-				return enhResource;
+				RefinedResourceSchema.setParsedResourceSchemaConditional(resourceType, entry.parsedSchema);
+				return resourceType;
 			}
 		}
 		
@@ -92,10 +90,8 @@ public class ResourceSchemaCache {
 		ResourceSchemaCacheEntry entry = new ResourceSchemaCacheEntry(serial, xsdElement, parsedSchema);
 		cache.put(oid,entry);
 		
-		EnhancedResourceType enhResource = new EnhancedResourceType(resourceType);
-		enhResource.setParsedSchema(parsedSchema);
-		
-		return enhResource;
+		RefinedResourceSchema.setParsedResourceSchemaConditional(resourceType,parsedSchema);
+		return resourceType;
 	}
 	
 	public synchronized ResourceType get(ResourceType resourceType) throws SchemaException {
@@ -132,11 +128,9 @@ public class ResourceSchemaCache {
 			}
 		} // No metadata or serial number - we can reuse cache forever
 
-		// We have entry that matches. Create appropriate resource		
-		EnhancedResourceType enhResource = new EnhancedResourceType(resourceType);
-		enhResource.setParsedSchema(entry.parsedSchema);
-		
-		return enhResource;
+		// We have entry that matches. Create appropriate resource
+		RefinedResourceSchema.setParsedResourceSchemaConditional(resourceType, entry.parsedSchema);
+		return resourceType;
 	}
 
 	private class ResourceSchemaCacheEntry {

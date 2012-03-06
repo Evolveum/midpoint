@@ -34,7 +34,6 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.common.refinery.EnhancedResourceType;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -292,21 +291,21 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				+ ".test004ParsedSchema");
 
 		// WHEN
-		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null,
-				result).asObjectable();
+		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null,
+				result);
+		ResourceType resourceType = resource.asObjectable();
 
 		// THEN
 		// The returned type should have the schema pre-parsed
-		assertTrue(resource instanceof EnhancedResourceType);
-		EnhancedResourceType enh = (EnhancedResourceType) resource;
-		assertNotNull(enh.getParsedSchema());
+		assertNotNull(RefinedResourceSchema.hasParsedSchema(resourceType));
 
 		// Also test if the utility method returns the same thing
-		ResourceSchema returnedSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		ResourceSchema returnedSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
 
+		// Check whether it is reusing the existing schema and not parsing it all over again
 		// Not equals() but == ... we want to really know if exactly the same
 		// object instance is returned
-		assertTrue(returnedSchema == enh.getParsedSchema());
+		assertTrue(returnedSchema == RefinedResourceSchema.getResourceSchema(resourceType, prismContext));
 
 		ObjectClassComplexTypeDefinition accountDef = returnedSchema.findDefaultAccountDefinition();
 		assertNotNull("Account definition is missing", accountDef);

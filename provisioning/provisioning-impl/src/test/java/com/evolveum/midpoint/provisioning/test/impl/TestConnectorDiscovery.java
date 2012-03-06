@@ -51,7 +51,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.common.refinery.EnhancedResourceType;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;

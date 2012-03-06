@@ -38,8 +38,10 @@ import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -61,6 +63,7 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
     protected PrismValue parent;
     protected ItemDefinition definition;
     private List<V> values = new ArrayList<V>();
+    private Map<String,Object> userData;
     
     transient protected PrismContext prismContext;
 
@@ -73,6 +76,7 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
     Item(QName name) {
         super();
         this.name = name;
+        this.userData = new HashMap<String, Object>();
     }
 
     /**
@@ -184,7 +188,19 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
     	return pathPrefix.subPath(getName());
     }
     
-    public List<V> getValues() {
+    public Map<String, Object> getUserData() {
+		return userData;
+	}
+    
+    public Object getUserData(String key) {
+		return userData.get(key);
+	}
+    
+    public void setUserData(String key, Object value) {
+    	userData.put(key, value);
+    }
+
+	public List<V> getValues() {
 		return values;
 	}
     
