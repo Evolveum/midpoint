@@ -403,10 +403,9 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
 				+ ".test010AddAccount");
 
-		AccountShadowType account = unmarshallJaxbFromFile(FILENAME_ACCOUNT, AccountShadowType.class);
+		AccountShadowType account = parseObjectTypeFromFile(FILENAME_ACCOUNT, AccountShadowType.class);
 
-		System.out.println(SchemaDebugUtil.prettyPrint(account));
-		System.out.println(account.asPrismObject().dump());
+		display("Adding shadow", account.asPrismObject());
 
 		// WHEN
 		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, result);

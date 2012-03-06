@@ -263,6 +263,11 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
         }
         items.addAll(itemsToAdd);
     }
+    
+	public void replace(Item<?> oldItem, Item<?> newItem) {
+		remove(oldItem);
+		add(newItem);
+	}
 
     // Expects that the "self" path segment is already included in the basePath
     void addItemPathsToList(PropertyPath basePath, Collection<PropertyPath> list) {
@@ -409,6 +414,10 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 
     public PrismContainer<?> findOrCreateContainer(QName containerName) {
     	return findCreateItem(containerName, PrismContainer.class, true);
+    }
+    
+    public PrismReference findOrCreateReference(QName referenceName) {
+    	return findCreateItem(referenceName, PrismReference.class, true);
     }
     
     public Item<?> findOrCreateItem(QName containerName) {

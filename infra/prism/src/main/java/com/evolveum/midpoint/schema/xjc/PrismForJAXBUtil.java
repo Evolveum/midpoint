@@ -192,19 +192,18 @@ public final class PrismForJAXBUtil {
         setReferenceValue(parent.getValue(), name, value);
     }
 
-    public static void setReferenceObject(PrismContainerValue parent, QName name, PrismObject value) {
-        Validate.notNull(parent, "Prism container value must not be null.");
-        Validate.notNull(name, "QName must not be null.");
+    // Assumes single-value reference
+    public static void setReferenceObject(PrismContainerValue parentValue, QName referenceQName, PrismObject targetObject) {
+        Validate.notNull(parentValue, "Prism container value must not be null.");
+        Validate.notNull(referenceQName, "QName must not be null.");
 
-        if (value != null) {
-            parent.addReplaceExisting(value);
-        } else {
-            parent.remove(value);
-        }
+        PrismReference reference = parentValue.findOrCreateReference(referenceQName);
+        reference.getValue().setObject(targetObject);
     }
 
-    public static void setReferenceObject(PrismContainer parent, QName name, PrismObject value) {
-        setReferenceObject(parent.getValue(), name, value);
+    // Assumes single-value reference
+    public static void setReferenceObject(PrismContainer parent, QName referenceQName, PrismObject targetObject) {
+        setReferenceObject(parent.getValue(), referenceQName, targetObject);
     }
 
     public static <T> List<PrismContainerValue<T>> getContainerValues(PrismContainerValue<T> parent, QName name, Class<T> clazz) {

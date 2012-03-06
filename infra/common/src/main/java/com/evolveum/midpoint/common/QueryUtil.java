@@ -161,9 +161,7 @@ public class QueryUtil {
 
         Element element = doc.createElementNS(properyName.getNamespaceURI(), properyName.getLocalPart());
         DOMUtil.setQNameValue(element, value);
-        List<Element> values = new ArrayList<Element>();
-        values.add(element);
-        return createEqualFilter(doc, xpath, values);
+        return createEqualFilter(doc, xpath, element);
     }
 
     /**

@@ -47,11 +47,14 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType.EnableDisable;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.cxf.bus.spring.OldSpringSupport;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -227,7 +230,11 @@ public class ShadowCache {
 		}
 
 		if (resource == null) {
-			resource = getResource(ResourceObjectShadowUtil.getResourceOid(shadow), parentResult);
+			String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
+			if (StringUtils.isEmpty(resourceOid)) {
+				throw new SchemaException("Shadow "+shadow+" does not have an resource OID, cannot add it.");
+			}
+			resource = getResource(resourceOid, parentResult);
 		}
 
 		Set<Operation> additionalOperations = new HashSet<Operation>();
@@ -257,8 +264,13 @@ public class ShadowCache {
 			shadow.setFailedOperationType(FailedOperationTypeType.ADD);
 			shadow.setResult(shadowConverterResult.createOperationResultType());
 			shadow.setResource(resource);
-			handler.handleError(shadow, ex);
-			
+			if (handler != null) {
+				handler.handleError(shadow, ex);
+			} else {
+				// FIXME
+				parentResult.recordFatalError("Error without a handler. Reason: " + ex.getMessage(), ex);
+				throw new SystemException(ex.getMessage(),ex);
+			}
 		}
 		// } catch (CommunicationException ex) {
 		// parentResult.recordFatalError("Error communicating with connector. Reason: "
@@ -785,6 +797,9 @@ public class ShadowCache {
 
 	private ResourceType getResource(String oid, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		if (StringUtils.isEmpty(oid)) {
+			throw new IllegalArgumentException("Cannot get resource with an empty OID");
+		}
 		// TODO: add some caching
 		PrismObject<ResourceType> resource = getRepositoryService().getObject(ResourceType.class, oid, null, parentResult);
 		// return resource;

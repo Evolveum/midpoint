@@ -1605,7 +1605,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				if (shadow instanceof AccountShadowType) {
 					AccountShadowType accountShadowType = (AccountShadowType)shadow;
 					ProtectedStringType password = getSingleValue(icfAttr, ProtectedStringType.class);
-					accountShadowType.getCredentials().getPassword().setProtectedString(password);
+					ResourceObjectShadowUtil.setPassword(accountShadowType, password);
 				} else {
 					throw new SchemaException("Attempt to set password for non-account object type "+objectDefinition);
 				}
@@ -1615,7 +1615,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				if (shadow instanceof AccountShadowType) {
 					AccountShadowType accountShadowType = (AccountShadowType)shadow;
 					Boolean enabled = getSingleValue(icfAttr, Boolean.class);
-					accountShadowType.getActivation().setEnabled(enabled);
+					ActivationType activationType = ResourceObjectShadowUtil.getOrCreateActivation(accountShadowType);
+					activationType.setEnabled(enabled);
 				} else {
 					throw new SchemaException("Attempt to set password for non-account object type "+objectDefinition);
 				}

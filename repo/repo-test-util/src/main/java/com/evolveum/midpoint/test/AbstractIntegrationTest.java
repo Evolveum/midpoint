@@ -45,10 +45,13 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -56,6 +59,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -111,6 +115,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertNotNull("Task manager is not wired properly", taskManager);
 		LOGGER.trace("initSystemConditional: {} systemInitialized={}", this.getClass(), isSystemInitialized());
 		if (!isSystemInitialized()) {
+			DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+			PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 			LOGGER.trace("initSystemConditional: invoking initSystem");
 			OperationResult result = new OperationResult(this.getClass().getName() + ".initSystem");
 			initSystem(result);
@@ -172,6 +178,20 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		subResult.recordSuccess();
 		return object;
+	}
+	
+	protected <T extends ObjectType> T parseObjectTypeFromFile(String fileName, Class<T> clazz) throws SchemaException {
+		return parseObjectType(new File(fileName), clazz);
+	}
+	
+	protected <T extends ObjectType> T parseObjectType(File file) throws SchemaException {
+		PrismObject<T> prismObject = prismContext.parseObject(file);
+		return prismObject.asObjectable();
+	}
+	
+	protected <T extends ObjectType> T parseObjectType(File file, Class<T> clazz) throws SchemaException {
+		PrismObject<T> prismObject = prismContext.parseObject(file);
+		return prismObject.asObjectable();
 	}
 
 	protected static <T> T unmarshallJaxbFromFile(String filePath, Class<T> clazz)

@@ -46,7 +46,7 @@ import java.util.Set;
  */
 public class ResourceAttribute<T> extends PrismProperty<T> {
 
-    public ResourceAttribute(QName name, PrismPropertyDefinition definition, PrismContext prismContext) {
+    public ResourceAttribute(QName name, ResourceAttributeDefinition definition, PrismContext prismContext) {
         super(name, definition, prismContext);
     }
 
@@ -87,8 +87,20 @@ public class ResourceAttribute<T> extends PrismProperty<T> {
         return getDefinition() == null ? null : getDefinition()
                 .getNativeAttributeName();
     }
+    
+    @Override
+	public ResourceAttribute<T> clone() {
+    	ResourceAttribute<T> clone = new ResourceAttribute<T>(getName(), getDefinition(), getPrismContext());
+    	copyValues(clone);
+    	return clone;
+	}
 
-    /**
+	protected void copyValues(ResourceAttribute<T> clone) {
+		super.copyValues(clone);
+		// Nothing to copy
+	}
+
+	/**
      * Return a human readable name of this class suitable for logs.
      */
     protected String getDebugDumpClassName() {

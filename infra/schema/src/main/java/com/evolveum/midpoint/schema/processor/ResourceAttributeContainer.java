@@ -31,6 +31,8 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 
 /**
@@ -341,6 +343,47 @@ public final class ResourceAttributeContainer extends PrismContainer {
 		return (ResourceAttribute<?>) getValue().findProperty(attributeDefinition);
 	}
 	
+	public static ResourceAttributeContainer convertFromContainer(PrismContainer<?> container,
+			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
+		QName elementName = container.getName();
+		ResourceAttributeContainerDefinition attributesContainerDefinition = new ResourceAttributeContainerDefinition(elementName,
+				objectClassDefinition, container.getPrismContext());
+		ResourceAttributeContainer attributesContainer = 
+			new ResourceAttributeContainer(elementName, attributesContainerDefinition , container.getPrismContext());
+		for (Item item: container.getValue().getItems()) {
+			if (item instanceof PrismProperty) {
+				PrismProperty<?> property = (PrismProperty)item;
+				QName attributeName = property.getName();
+				ResourceAttributeDefinition attributeDefinition = objectClassDefinition.findAttributeDefinition(attributeName);
+				if (attributeDefinition == null) {
+					throw new SchemaException("No definition for attribute "+attributeName+" in object class "+objectClassDefinition);
+				}
+				ResourceAttribute attribute = new ResourceAttribute(attributeName, attributeDefinition , property.getPrismContext());
+				for(PrismPropertyValue pval: property.getValues()) {
+					attribute.add(pval.clone());
+				}
+				attributesContainer.add(attribute);
+			} else {
+				throw new SchemaException("Cannot process item of type "+item.getClass().getSimpleName()+", attributes can only be properties");
+			}
+		}
+		return attributesContainer;
+	}
+	
+	
+	
+	@Override
+	public ResourceAttributeContainer clone() {
+		ResourceAttributeContainer clone = new ResourceAttributeContainer(getName(), getDefinition(), getPrismContext());
+		copyValues(clone);
+		return clone;
+	}
+
+	protected void copyValues(ResourceAttributeContainer clone) {
+		super.copyValues(clone);
+		// Nothing to copy
+	}
+
 	/**
 	 * Return a human readable name of this class suitable for logs.
 	 */

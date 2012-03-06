@@ -88,6 +88,7 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
         this.name = name;
         this.definition = definition;
         this.prismContext = prismContext;
+        this.userData = new HashMap<String, Object>();
     }
         
     /**

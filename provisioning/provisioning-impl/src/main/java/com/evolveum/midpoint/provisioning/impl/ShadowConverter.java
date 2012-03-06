@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -99,6 +100,8 @@ public class ShadowConverter {
 
 		QName objectClass = repoShadow.getObjectClass();
 		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findObjectClassDefinition(objectClass);
+		
+		convertToUcfShadow(repoShadow.asPrismObject(), schema);
 
 		if (objectClassDefinition == null) {
 			// Unknown objectclass
@@ -148,26 +151,33 @@ public class ShadowConverter {
 		return resourceTypeManager.completeResource(resource, null, parentResult);
 	}
 
-	public ResourceObjectShadowType addShadow(ResourceType resource, ResourceObjectShadowType shadow,
+	public ResourceObjectShadowType addShadow(ResourceType resource, ResourceObjectShadowType shadowType,
 			Set<Operation> additionalOperations, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException,
 			ObjectAlreadyExistsException, ConfigurationException {
 
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
-		PrismSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
-
+		ResourceSchema resourceSchema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
 		Set<ResourceAttribute> resourceAttributesAfterAdd = null;
-		// add object using connector, setting new properties to the
-		// resourceObject
+		PrismObject<ResourceObjectShadowType> shadow = shadowType.asPrismObject();
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Shadow before conversion:\n{}",shadow.dump());
+		}
+		convertToUcfShadow(shadow, resourceSchema);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Shadow after conversion:\n{}",shadow.dump());
+		}
+		
 		try {
 
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Connector for resource {}\n ADD object:\n{}\n additional operations:\n{}",
-						new Object[] { resource.asPrismObject(), shadow.asPrismObject().debugDump(),
+						new Object[] { resource.asPrismObject(), shadowType.asPrismObject().debugDump(),
 								SchemaDebugUtil.debugDump(additionalOperations) });
 			}
 
-			resourceAttributesAfterAdd = connector.addObject(shadow.asPrismObject(), additionalOperations,
+			resourceAttributesAfterAdd = connector.addObject(shadow, additionalOperations,
 					parentResult);
 
 			if (LOGGER.isDebugEnabled()) {
@@ -177,7 +187,7 @@ public class ShadowConverter {
 						SchemaDebugUtil.prettyPrint(resourceAttributesAfterAdd));
 			}
 
-			applyAfterOperationAttributes(shadow, resourceAttributesAfterAdd);
+			applyAfterOperationAttributes(shadowType, resourceAttributesAfterAdd);
 		} catch (CommunicationException ex) {
 			parentResult.recordFatalError(
 					"Error communitacing with the connector " + connector + ": " + ex.getMessage(), ex);
@@ -188,10 +198,47 @@ public class ShadowConverter {
 			throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
 		}
 
-		shadow = ShadowCacheUtil.createRepositoryShadow(shadow, resource);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Shadow being stored:\n{}",shadowType.asPrismObject().dump());
+		}
+		shadowType = ShadowCacheUtil.createRepositoryShadow(shadowType, resource);
 
 		parentResult.recordSuccess();
-		return shadow;
+		return shadowType;
+	}
+
+	/**
+	 * Make sure that the shadow is UCF-ready. That means that is has ResourceAttributeContainer as <attributes>,
+	 * has definition, etc.
+	 */
+	private void convertToUcfShadow(PrismObject<ResourceObjectShadowType> shadow, ResourceSchema resourceSchema) throws SchemaException {
+		PrismContainer<?> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		if (attributesContainer instanceof ResourceAttributeContainer) {
+			if (attributesContainer.getDefinition() != null) {
+				// Nothing to do. Everything is OK.
+				return;
+			} else {
+				// TODO: maybe we can apply the definition?
+				throw new SchemaException("No definition for attributes container in "+shadow);
+			}
+		}
+		ObjectClassComplexTypeDefinition objectClassDefinition = determineObjectClassDefinition(shadow, resourceSchema);
+		// We need to convert <attributes> to ResourceAttributeContainer
+		ResourceAttributeContainer convertedContainer = ResourceAttributeContainer.convertFromContainer(attributesContainer,objectClassDefinition);
+		shadow.getValue().replace(attributesContainer, convertedContainer);
+	}
+
+	private ObjectClassComplexTypeDefinition determineObjectClassDefinition(
+			PrismObject<ResourceObjectShadowType> shadow, ResourceSchema resourceSchema) throws SchemaException {
+		QName objectClassName = shadow.asObjectable().getObjectClass();
+		if (objectClassName == null) {
+			throw new SchemaException("No object class specified in shadow " + shadow);
+		}
+		ObjectClassComplexTypeDefinition objectClassDefinition = resourceSchema.findObjectClassDefinition(objectClassName);
+		if (objectClassDefinition == null) {
+			throw new SchemaException("No definition for object class "+objectClassName+" as specified in shadow " + shadow);
+		}
+		return objectClassDefinition;
 	}
 
 	public void deleteShadow(ResourceType resource, ResourceObjectShadowType shadow,

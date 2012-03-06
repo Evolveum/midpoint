@@ -29,12 +29,17 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 
 /**
@@ -76,14 +81,13 @@ public class ResourceObjectShadowUtil {
 	}
 
 	
-	public static String getResourceOid(ResourceObjectShadowType shadow) {
-		if (shadow.getResourceRef() != null) {
-			return shadow.getResourceRef().getOid();
-		} else if (shadow.getResource() != null) {
-			return shadow.getResource().getOid();
-		} else {
+	public static String getResourceOid(ResourceObjectShadowType shadowType) {
+		PrismObject<ResourceObjectShadowType> shadow = shadowType.asPrismObject();
+		PrismReference resourceRef = shadow.findReference(ResourceObjectShadowType.F_RESOURCE_REF);
+		if (resourceRef == null) {
 			return null;
 		}
+		return resourceRef.getOid();
 	}
 	
 	public static String getSingleStringAttributeValue(ResourceObjectShadowType shadow, QName attrName) {
@@ -139,6 +143,29 @@ public class ResourceObjectShadowUtil {
 		}
 		Element element = (Element)value;
 		return element.getTextContent();
+	}
+
+	public static void setPassword(AccountShadowType accountShadowType, ProtectedStringType password) {
+		CredentialsType credentialsType = accountShadowType.getCredentials();
+		if (credentialsType == null) {
+			credentialsType = new CredentialsType();
+			accountShadowType.setCredentials(credentialsType);
+		}
+		PasswordType passwordType = credentialsType.getPassword();
+		if (passwordType == null) {
+			passwordType = new PasswordType();
+			credentialsType.setPassword(passwordType);
+		}
+		passwordType.setProtectedString(password);
+	}
+
+	public static ActivationType getOrCreateActivation(ResourceObjectShadowType shadowType) {
+		ActivationType activation = shadowType.getActivation();
+		if (activation == null) {
+			activation = new ActivationType();
+			shadowType.setActivation(activation);
+		}
+		return activation;
 	}
 
 	

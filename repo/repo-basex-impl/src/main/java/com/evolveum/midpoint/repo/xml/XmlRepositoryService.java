@@ -829,7 +829,7 @@ public class XmlRepositoryService implements RepositoryService {
 
 	private void validateOid(String oid) {
 		if (StringUtils.isEmpty(oid)) {
-			throw new IllegalArgumentException("Invalid OID");
+			throw new IllegalArgumentException("Invalid OID: OID is null or empty");
 		}
 
 		try {
