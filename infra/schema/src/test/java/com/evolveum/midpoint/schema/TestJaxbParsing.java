@@ -61,7 +61,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 /**
  * @author Radovan Semancik
  */
-public class TestSchemaProcessorWithRegistry {
+public class TestJaxbParsing {
 
     private static final String TEST_DIR = "src/test/resources/schema-registry/";
     private static final String NS_FOO = "http://www.example.com/foo";
