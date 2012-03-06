@@ -554,28 +554,27 @@ public class SchemaProcessor implements Processor {
         JVar methodContainer = setContainer.param(PrismContainerValue.class, "container");
         //create method body
         JBlock body = setContainer.body();
-        JBlock then = body._if(methodContainer.eq(JExpr._null()))._then();
-        then.assign(JExpr._this().ref(container), JExpr._null());
-        then._return();
-
-        then = body._if(methodContainer.invoke("getParent").eq(JExpr._null()))._then();
-        then.assign(JExpr._this().ref(container), methodContainer);
-        then._return();
-
-        JVar definition = body.decl(CLASS_MAP.get(PrismContainerDefinition.class), "definition",
-                JExpr.invoke(JExpr.invoke(methodContainer, "getParent"), "getDefinition"));
-
-        JInvocation equals = JExpr.invoke(JExpr.invoke(METHOD_GET_CONTAINER_TYPE), "equals");
-        equals.arg(definition.invoke("getTypeName"));
-        then = body._if(definition.ne(JExpr._null()).cand(equals.not()))._then();
-        JInvocation exception = JExpr._new(CLASS_MAP.get(IllegalArgumentException.class));
-
-        JExpression message = JExpr.lit("Container definition type qname '").plus(JExpr.invoke(definition, "getTypeName"))
-                .plus(JExpr.lit("' doesn't equals to '")).plus(JExpr.invoke(METHOD_GET_CONTAINER_TYPE))
-                .plus(JExpr.lit("'."));
-        exception.arg(message);
-        then._throw(exception);
-
+//        JBlock then = body._if(methodContainer.eq(JExpr._null()))._then();
+//        then.assign(JExpr._this().ref(container), JExpr._null());
+//        then._return();
+//
+//        then = body._if(methodContainer.invoke("getParent").eq(JExpr._null()))._then();
+//        then.assign(JExpr._this().ref(container), methodContainer);
+//        then._return();
+//
+//        JVar definition = body.decl(CLASS_MAP.get(PrismContainerDefinition.class), "definition",
+//                JExpr.invoke(JExpr.invoke(methodContainer, "getParent"), "getDefinition"));
+//
+//        JInvocation equals = JExpr.invoke(JExpr.invoke(METHOD_GET_CONTAINER_TYPE), "equals");
+//        equals.arg(definition.invoke("getTypeName"));
+//        then = body._if(definition.ne(JExpr._null()).cand(equals.not()))._then();
+//        JInvocation exception = JExpr._new(CLASS_MAP.get(IllegalArgumentException.class));
+//
+//        JExpression message = JExpr.lit("Container definition type qname '").plus(JExpr.invoke(definition, "getTypeName"))
+//                .plus(JExpr.lit("' doesn't equals to '")).plus(JExpr.invoke(METHOD_GET_CONTAINER_TYPE))
+//                .plus(JExpr.lit("'."));
+//        exception.arg(message);
+//        then._throw(exception);
 
         body.assign(JExpr._this().ref(container), methodContainer);
     }
@@ -604,23 +603,23 @@ public class SchemaProcessor implements Processor {
         JVar methodContainer = setContainer.param(PrismObject.class, "container");
         //create method body
         JBlock body = setContainer.body();
-        JBlock then = body._if(methodContainer.eq(JExpr._null()))._then();
-        then.assign(JExpr._this().ref(container), JExpr._null());
-        then._return();
-        
-        JVar definition = body.decl(CLASS_MAP.get(PrismContainerDefinition.class), "definition", 
-                JExpr.invoke(methodContainer, "getDefinition"));
-
-        JInvocation equals = JExpr.invoke(JExpr.invoke(METHOD_GET_CONTAINER_TYPE), "equals");
-        equals.arg(definition.invoke("getTypeName"));
-        then = body._if(definition.ne(JExpr._null()).cand(equals.not()))._then();
-        JInvocation exception = JExpr._new(CLASS_MAP.get(IllegalArgumentException.class));
-
-        JExpression message = JExpr.lit("Container definition type qname '").plus(JExpr.invoke(definition, "getTypeName"))
-                .plus(JExpr.lit("' doesn't equals to '")).plus(JExpr.invoke(METHOD_GET_CONTAINER_TYPE))
-                .plus(JExpr.lit("'."));
-        exception.arg(message);
-        then._throw(exception);
+//        JBlock then = body._if(methodContainer.eq(JExpr._null()))._then();
+//        then.assign(JExpr._this().ref(container), JExpr._null());
+//        then._return();
+//
+//        JVar definition = body.decl(CLASS_MAP.get(PrismContainerDefinition.class), "definition",
+//                JExpr.invoke(methodContainer, "getDefinition"));
+//
+//        JInvocation equals = JExpr.invoke(JExpr.invoke(METHOD_GET_CONTAINER_TYPE), "equals");
+//        equals.arg(definition.invoke("getTypeName"));
+//        then = body._if(definition.ne(JExpr._null()).cand(equals.not()))._then();
+//        JInvocation exception = JExpr._new(CLASS_MAP.get(IllegalArgumentException.class));
+//
+//        JExpression message = JExpr.lit("Container definition type qname '").plus(JExpr.invoke(definition, "getTypeName"))
+//                .plus(JExpr.lit("' doesn't equals to '")).plus(JExpr.invoke(METHOD_GET_CONTAINER_TYPE))
+//                .plus(JExpr.lit("'."));
+//        exception.arg(message);
+//        then._throw(exception);
 
         body.assign(JExpr._this().ref(container), methodContainer);
     }
