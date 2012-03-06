@@ -69,13 +69,6 @@ public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 	private ProvisioningService provisioningService;
 	
 	
-	/**
-	 * @throws JAXBException
-	 */
-	public ProvisioningServiceImplDBTest() throws JAXBException {
-		super();
-	}
-
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.test.AbstractIntegrationTest#initSystem()
 	 */
@@ -137,7 +130,7 @@ public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(ProvisioningServiceImplDBTest.class.getName()
 				+ ".test002AddAccount");
 
-		AccountShadowType account = unmarshallJaxbFromFile(FILENAME_ACCOUNT, AccountShadowType.class);
+		AccountShadowType account = parseObjectTypeFromFile(FILENAME_ACCOUNT, AccountShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(account));
 		System.out.println(account.asPrismObject().dump());

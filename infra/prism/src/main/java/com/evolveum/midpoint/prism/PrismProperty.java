@@ -200,6 +200,10 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
     	getValues().clear();
         addValue(value);
     }
+    
+    public void setRealValue(Object realValue) {
+    	setValue(new PrismPropertyValue(realValue));
+    }
 
     public void addValues(Collection<PrismPropertyValue<V>> pValuesToAdd) {
     	for (PrismPropertyValue<V> pValue: pValuesToAdd) {

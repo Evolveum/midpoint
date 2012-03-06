@@ -218,8 +218,8 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	public Task createTaskInstance(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws SchemaException {
 		//Note: we need to be Spring Bean Factory Aware, because some repo implementations are in scope prototype
 		RepositoryService repoService = (RepositoryService) this.beanFactory.getBean("repositoryService");
-		TaskImpl task = new TaskImpl(this,repoService);
-		task.initialize(taskPrism, parentResult);
+		TaskImpl task = new TaskImpl(this, taskPrism, repoService);
+		task.initialize(parentResult);
 		return task;
 	}
 	

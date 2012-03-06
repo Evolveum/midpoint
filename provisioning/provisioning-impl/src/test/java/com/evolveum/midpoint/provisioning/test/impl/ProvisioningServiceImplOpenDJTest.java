@@ -332,7 +332,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 				+ ".test007GetObject");
 		try {
 
-			ObjectType objectToAdd = unmarshallJaxbFromFile(FILENAME_ACCOUNT1);
+			AccountShadowType objectToAdd = parseObjectTypeFromFile(FILENAME_ACCOUNT1, AccountShadowType.class);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(objectToAdd));
 			System.out.println(objectToAdd.asPrismObject().dump());
@@ -456,7 +456,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 				+ ".test010AddObject");
 
 		try {
-			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_NEW);
+			AccountShadowType object = parseObjectTypeFromFile(FILENAME_ACCOUNT_NEW, AccountShadowType.class);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
@@ -525,7 +525,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 				+ ".test012DeleteObject");
 
 		try {
-			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_DELETE);
+			AccountShadowType object = parseObjectTypeFromFile(FILENAME_ACCOUNT_DELETE, AccountShadowType.class);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
@@ -578,7 +578,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 		try {
 
-			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_MODIFY);
+			AccountShadowType object = parseObjectTypeFromFile(FILENAME_ACCOUNT_MODIFY, AccountShadowType.class);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
@@ -646,7 +646,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 		try {
 
-			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_MODIFY_PASSWORD);
+			AccountShadowType object = parseObjectTypeFromFile(FILENAME_ACCOUNT_MODIFY_PASSWORD, AccountShadowType.class);
 
 			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
 
@@ -715,7 +715,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 				+ ".test015AddObjectWithPassword");
 
 		try {
-			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_NEW_WITH_PASSWORD);
+			AccountShadowType object = parseObjectTypeFromFile(FILENAME_ACCOUNT_NEW_WITH_PASSWORD, AccountShadowType.class);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
@@ -806,7 +806,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".searchObjectsIterativeTest");
 		try {
-			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_SEARCH_ITERATIVE);
+			AccountShadowType object = parseObjectTypeFromFile(FILENAME_ACCOUNT_SEARCH_ITERATIVE, AccountShadowType.class);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());

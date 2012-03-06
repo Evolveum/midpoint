@@ -132,6 +132,19 @@ public class PrismContainer<V> extends Item<PrismContainerValue<V>> {
     	return null;
     }
     
+    public void setPropertyRealValue(QName propertyName, Object realValue) {
+    	PrismProperty<?> property = findOrCreateProperty(propertyName);
+    	property.setRealValue(realValue);
+    }
+    
+    public <T> T getPropertyRealValue(QName propertyName, Class<T> type) {
+    	PrismProperty<?> property = findProperty(propertyName);
+    	if (property == null) {
+    		return null;
+    	}
+    	return property.getRealValue(type);
+    }
+    
     public boolean add(PrismContainerValue<V> pValue) {
     	pValue.setParent(this);
     	return getValues().add(pValue);

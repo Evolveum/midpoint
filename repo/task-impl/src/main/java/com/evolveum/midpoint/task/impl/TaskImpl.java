@@ -28,11 +28,14 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -59,10 +62,14 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskBindingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExclusivityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskRecurrenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UriStack;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -81,28 +88,30 @@ public class TaskImpl implements Task {
 	
 	private TaskBinding DEFAULT_BINDING_TYPE = TaskBinding.TIGHT;
 	
-	private String taskIdentifier;
-	private PrismObject<UserType> owner;
-	private TaskExecutionStatus executionStatus;
-	private TaskExclusivityStatus exclusivityStatus;
+	private PrismObject<TaskType> taskPrism;
+	
+//	private String taskIdentifier;
+//	private PrismObject<UserType> owner;
+//	private TaskExecutionStatus executionStatus;
+//	private TaskExclusivityStatus exclusivityStatus;
 	private TaskPersistenceStatus persistenceStatus;
-	private TaskRecurrence recurrenceStatus;
-	private TaskBinding binding;
-	private String handlerUri;
-	private UriStack otherHandlersUriStack;
-	private PrismObject<ObjectType> object;
-	private ObjectReferenceType objectRef;
-	private String oid;
-	private String name;
-	private Long lastRunStartTimestamp;
-	private Long lastRunFinishTimestamp;
-	private Long nextRunStartTime;
-	private PrismContainer extension;
-	private long progress;
+//	private TaskRecurrence recurrenceStatus;
+//	private TaskBinding binding;
+//	private String handlerUri;
+//	private UriStack otherHandlersUriStack;
+//	private PrismObject<ObjectType> object;
+//	private ObjectReferenceType objectRef;
+//	private String oid;
+//	private String name;
+//	private Long lastRunStartTimestamp;
+//	private Long lastRunFinishTimestamp;
+//	private Long nextRunStartTime;
+//	private PrismContainer extension;
+//	private long progress;
 	private TaskManagerImpl taskManager;
 	private RepositoryService repositoryService;
 	private OperationResult result;
-	private ScheduleType schedule;
+//	private ScheduleType schedule;
 	private boolean canRun;
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(TaskImpl.class);
@@ -113,91 +122,62 @@ public class TaskImpl implements Task {
 	 * @param repositoryService
 	 */	
 	TaskImpl(TaskManagerImpl taskManager, LightweightIdentifier taskIdentifier) {
-		this.taskIdentifier = taskIdentifier.toString();
 		this.taskManager = taskManager;
-		executionStatus = TaskExecutionStatus.RUNNING;
-		exclusivityStatus = TaskExclusivityStatus.CLAIMED;
-		persistenceStatus = TaskPersistenceStatus.TRANSIENT;
-		recurrenceStatus = TaskRecurrence.SINGLE;
-		binding = DEFAULT_BINDING_TYPE;
-		extension = ExtensionProcessor.createEmptyExtensionContainer(taskManager.getPrismContext());
-		progress = 0;
-		repositoryService = null;
-		object = null;
-		objectRef = null;
-		// TODO: Is this OK?
-		result = null;
-		schedule = null;
-		canRun = true;
+		this.repositoryService = null;
+		this.taskPrism = createPrism();
+		this.result = null;
+		this.canRun = true;
+		
+		setTaskIdentifier(taskIdentifier.toString());
+		setExecutionStatus(TaskExecutionStatus.RUNNING);
+		setExclusivityStatus(TaskExclusivityStatus.CLAIMED);
+		setPersistenceStatus(TaskPersistenceStatus.TRANSIENT);
+		setRecurrenceStatus(TaskRecurrence.SINGLE);
+		setBinding(DEFAULT_BINDING_TYPE);
+		setProgress(0);
+		setObject(null);
+		
+		setDefaults();
 	}
 
 	/**
-	 * Note: This constructor assumes that the task is persistent.
-	 * @param taskType
-	 * @param repositoryService
+	 * Assumes that the task is persistent
 	 */
-	TaskImpl(TaskManagerImpl taskManager, RepositoryService repositoryService) {
+	TaskImpl(TaskManagerImpl taskManager, PrismObject<TaskType> taskPrism, RepositoryService repositoryService) {
 		this.taskManager = taskManager;
 		this.repositoryService = repositoryService;
+		this.taskPrism = taskPrism;
 		canRun = true;
+		
+		setDefaults();
 	}
+
+	private PrismObject<TaskType> createPrism() {
+		PrismObjectDefinition<TaskType> taskTypeDef = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
+		PrismObject<TaskType> taskPrism = taskTypeDef.instantiate();
+		return taskPrism;
+	}
+
+	private void setDefaults() {
+		if (getBinding() == null)
+			setBinding(DEFAULT_BINDING_TYPE);
 		
-	void initialize(PrismObject<TaskType> taskPrism, OperationResult initResult) throws SchemaException {
-		TaskType taskType = taskPrism.asObjectable();
-		taskIdentifier = taskType.getTaskIdentifier();
-		ObjectReferenceType ownerRef = taskType.getOwnerRef();
-		if (ownerRef == null) {
-			throw new SchemaException("Task "+taskType.getOid()+" does not have an owner (missing ownerRef)");
-		}
-		owner = resolveOwnerRef(taskType.getOwnerRef(), initResult);
-		executionStatus = TaskExecutionStatus.fromTaskType(taskType.getExecutionStatus());
-		exclusivityStatus = TaskExclusivityStatus.fromTaskType(taskType.getExclusivityStatus());
-		recurrenceStatus = TaskRecurrence.fromTaskType(taskType.getRecurrence());
-		binding = TaskBinding.fromTaskType(taskType.getBinding());
-		if (binding == null)
-			binding = DEFAULT_BINDING_TYPE;
-		
-		if (taskType.getOid()==null || taskType.getOid().isEmpty()) {
+		if (StringUtils.isEmpty(getOid())) {
 			persistenceStatus = TaskPersistenceStatus.TRANSIENT;
-			oid = null;			
 		} else {
 			persistenceStatus = TaskPersistenceStatus.PERSISTENT;
-			oid = taskType.getOid();
 		}
-		handlerUri = taskType.getHandlerUri();
-		otherHandlersUriStack = taskType.getOtherHandlersUriStack();
-		// TODO: object =
-		objectRef = taskType.getObjectRef();
-		name = taskType.getName();
-		if (taskType.getLastRunStartTimestamp()!=null) {
-			lastRunStartTimestamp = new Long(XmlTypeConverter.toMillis(taskType.getLastRunStartTimestamp()));
-		}
-		if (taskType.getLastRunFinishTimestamp()!=null) {
-			lastRunFinishTimestamp = new Long(XmlTypeConverter.toMillis(taskType.getLastRunFinishTimestamp()));
-		}
-		if (taskType.getNextRunStartTime()!=null) {
-			nextRunStartTime = new Long(XmlTypeConverter.toMillis(taskType.getNextRunStartTime()));
-		}
-		if (taskType.getProgress()!=null) {
-			progress = taskType.getProgress().longValue();
-		} else {
-			progress = 0;
-		}
-		if (taskType.getResult()!=null) {
-			result = OperationResult.createOperationResult(taskType.getResult());
+		
+		OperationResultType resultType = taskPrism.asObjectable().getResult();
+		if (resultType != null) {
+			result = OperationResult.createOperationResult(resultType);
 		} else {
 			result = null;
 		}
-		schedule = taskType.getSchedule();	
-		extension = taskPrism.getExtension();
 	}
-	
-	private PrismObject<UserType> resolveOwnerRef(ObjectReferenceType ownerRef, OperationResult result) throws SchemaException {
-		try {
-			return repositoryService.getObject(UserType.class, ownerRef.getOid(), null, result);
-		} catch (ObjectNotFoundException e) {
-			throw new SystemException("The owner of task "+oid+" cannot be found (owner OID: "+ownerRef.getOid()+")",e);
-		}
+
+	void initialize(OperationResult initResult) throws SchemaException {
+		resolveOwnerRef(initResult);
 	}
 
 	RepositoryService getRepositoryService() {
@@ -210,17 +190,11 @@ public class TaskImpl implements Task {
 	
 	@Override
 	public String getTaskIdentifier() {
-		return taskIdentifier;
+		return taskPrism.getPropertyRealValue(TaskType.F_TASK_IDENTIFIER, String.class);
 	}
 	
-	@Override
-	public PrismObject<UserType> getOwner() {
-		return owner;
-	}
-
-	@Override
-	public void setOwner(PrismObject<UserType> owner) {
-		this.owner = owner;
+	private void setTaskIdentifier(String value) {
+		taskPrism.setPropertyRealValue(TaskType.F_TASK_IDENTIFIER, value);
 	}
 
 	/* (non-Javadoc)
@@ -228,7 +202,16 @@ public class TaskImpl implements Task {
 	 */
 	@Override
 	public TaskExecutionStatus getExecutionStatus() {
-		return executionStatus;
+		TaskExecutionStatusType xmlValue = taskPrism.getPropertyRealValue(TaskType.F_EXECUTION_STATUS, TaskExecutionStatusType.class);
+		if (xmlValue == null) {
+			return null;
+		}
+		return TaskExecutionStatus.fromTaskType(xmlValue);
+	}
+	
+	@Override
+	public void setExecutionStatus(TaskExecutionStatus executionStatus) {
+		taskPrism.setPropertyRealValue(TaskType.F_EXECUTION_STATUS, executionStatus.toTaskType());
 	}
 
 	/* (non-Javadoc)
@@ -244,12 +227,41 @@ public class TaskImpl implements Task {
 	 */
 	@Override
 	public TaskExclusivityStatus getExclusivityStatus() {
-		return exclusivityStatus;
+		TaskExclusivityStatusType xmlValue = taskPrism.getPropertyRealValue(TaskType.F_EXCLUSIVITY_STATUS, TaskExclusivityStatusType.class);
+		if (xmlValue == null) {
+			return null;
+		}
+		return TaskExclusivityStatus.fromTaskType(xmlValue);
+	}
+	
+	@Override
+	public void setExclusivityStatus(TaskExclusivityStatus exclusivityStatus) {
+		taskPrism.setPropertyRealValue(TaskType.F_EXCLUSIVITY_STATUS, exclusivityStatus.toTaskType());
+	}
+	
+	public TaskRecurrence getRecurrenceStatus() {
+		TaskRecurrenceType xmlValue = taskPrism.getPropertyRealValue(TaskType.F_RECURRENCE, TaskRecurrenceType.class);
+		if (xmlValue == null) {
+			return null;
+		}
+		return TaskRecurrence.fromTaskType(xmlValue);
+	}
+	
+	private void setRecurrenceStatus(TaskRecurrence value) {
+		taskPrism.setPropertyRealValue(TaskType.F_RECURRENCE, value.toTaskType());
 	}
 
 	@Override
 	public TaskBinding getBinding() {
-		return binding;
+		TaskBindingType xmlValue = taskPrism.getPropertyRealValue(TaskType.F_BINDING, TaskBindingType.class);
+		if (xmlValue == null) {
+			return null;
+		}
+		return TaskBinding.fromTaskType(xmlValue);
+	}
+	
+	private void setBinding(TaskBinding value) {
+		taskPrism.setPropertyRealValue(TaskType.F_BINDING, value.toTaskType());
 	}
 
 	/* (non-Javadoc)
@@ -263,25 +275,66 @@ public class TaskImpl implements Task {
 	
 	@Override
 	public long getProgress() {
-		return progress;
+		return taskPrism.getPropertyRealValue(TaskType.F_PROGRESS, Long.class);
 	}
 
-	@Override
-	public ObjectReferenceType getObjectRef() {
-		return objectRef;
+	private void setProgress(long value) {
+		taskPrism.setPropertyRealValue(TaskType.F_PROGRESS, value);
 	}
 	
 	@Override
-	public void setObjectRef(ObjectReferenceType objectRef) {
-		this.objectRef = objectRef;
+	public PrismObject<UserType> getOwner() {
+		PrismReference ownerRef = taskPrism.findReference(TaskType.F_OWNER_REF);
+		if (ownerRef == null) {
+			return null;
+		}
+		return ownerRef.getValue().getObject();
+	}
+
+	@Override
+	public void setOwner(PrismObject<UserType> owner) {
+		PrismReference ownerRef = taskPrism.findOrCreateReference(TaskType.F_OWNER_REF);
+		ownerRef.getValue().setObject(owner);
+	}
+	
+	private PrismObject<UserType> resolveOwnerRef(OperationResult result) throws SchemaException {
+		PrismReference ownerRef = taskPrism.findReference(TaskType.F_OWNER_REF);
+		if (ownerRef == null) {
+			throw new SchemaException("Task "+getOid()+" does not have an owner (missing ownerRef)");
+		}
+		try {
+			return repositoryService.getObject(UserType.class, ownerRef.getOid(), null, result);
+		} catch (ObjectNotFoundException e) {
+			throw new SystemException("The owner of task "+getOid()+" cannot be found (owner OID: "+ownerRef.getOid()+")",e);
+		}
+	}
+	
+	@Override
+	public ObjectReferenceType getObjectRef() {
+		PrismReference objectRef = taskPrism.findReference(TaskType.F_OBJECT_REF);
+		if (objectRef == null) {
+			return null;
+		}
+		ObjectReferenceType objRefType = new ObjectReferenceType();
+		objRefType.setOid(objectRef.getOid());
+		objRefType.setType(objectRef.getValue().getTargetType());
+		return objRefType;
+	}
+	
+	@Override
+	public void setObjectRef(ObjectReferenceType objectRefType) {
+		PrismReference objectRef = taskPrism.findOrCreateReference(TaskType.F_OBJECT_REF);
+		objectRef.getValue().setOid(objectRefType.getOid());
+		objectRef.getValue().setTargetType(objectRefType.getType());
 	}
 	
 	@Override
 	public String getObjectOid() {
-		if (objectRef!=null) {
-			return objectRef.getOid();
+		PrismReference objectRef = taskPrism.findReference(TaskType.F_OBJECT_REF);
+		if (objectRef == null) {
+			return null;
 		}
-		return null;
+		return objectRef.getValue().getOid();
 	}
 
 	/* (non-Javadoc)
@@ -289,36 +342,52 @@ public class TaskImpl implements Task {
 	 */
 	@Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		OperationResult result = parentResult.createSubresult(Task.class.getName()+".getObject");
-		result.addContext(OperationResult.CONTEXT_OID, oid);
-		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskImpl.class);
 		
-		if ( object != null ) {
-			// There is an embedded object in the task
+		// Shortcut
+		PrismReference objectRef = taskPrism.findReference(TaskType.F_OBJECT_REF);
+		if (objectRef == null) {
+			return null;
+		}
+		if (objectRef.getValue().getObject() != null) {
+			PrismObject object = objectRef.getValue().getObject();
 			if (object.canRepresent(type)) {
-				result.recordSuccess();
 				return (PrismObject<T>) object;
 			} else {
 				throw new IllegalArgumentException("Requested object type "+type+", but the type of object in the task is "+object.getClass());
 			}
 		}
-		if (objectRef != null) {
-			// There is object reference. Let's try to resolve it
-			try {
-				// Note: storing this value in field, not local variable. It will be reused.
-				object = (PrismObject<ObjectType>) repositoryService.getObject(type, objectRef.getOid(), null, result);
-				result.recordSuccess();
-				return (PrismObject<T>) object;
-			} catch (ObjectNotFoundException ex) {
-				result.recordFatalError("Object not found", ex);
-				throw ex;
-			} catch (SchemaException ex) {
-				result.recordFatalError("Schema error", ex);
-				throw ex;
-			}
+				
+		OperationResult result = parentResult.createSubresult(Task.class.getName()+".getObject");
+		result.addContext(OperationResult.CONTEXT_OID, getOid());
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskImpl.class);
+		
+		try {
+			// Note: storing this value in field, not local variable. It will be reused.
+			PrismObject<T> object = repositoryService.getObject(type, objectRef.getOid(), null, result);
+			objectRef.getValue().setObject(object);
+			result.recordSuccess();
+			return object;
+		} catch (ObjectNotFoundException ex) {
+			result.recordFatalError("Object not found", ex);
+			throw ex;
+		} catch (SchemaException ex) {
+			result.recordFatalError("Schema error", ex);
+			throw ex;
 		}
-		return null;
 	}
+	
+	private void setObject(PrismObject object) {
+		if (object == null) {
+			PrismReference objectRef = taskPrism.findReference(TaskType.F_OBJECT_REF);
+			if (objectRef != null) {
+				taskPrism.getValue().remove(objectRef);
+			}
+		} else {
+			PrismReference objectRef = taskPrism.findOrCreateReference(TaskType.F_OBJECT_REF);
+			objectRef.getValue().setObject(object);
+		}
+	}
+
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.task.api.Task#getResult()
@@ -334,22 +403,17 @@ public class TaskImpl implements Task {
 
 	@Override
 	public String getHandlerUri() {
-		return handlerUri;
+		return taskPrism.getPropertyRealValue(TaskType.F_HANDLER_URI, String.class);
 	}
 
 	@Override
 	public void setHandlerUri(String handlerUri) {
-		this.handlerUri = handlerUri;
+		taskPrism.setPropertyRealValue(TaskType.F_HANDLER_URI, handlerUri);
 	}
 	
 	@Override
 	public UriStack getOtherHandlersUriStack() {
-		return otherHandlersUriStack;
-	}
-
-	@Override
-	public void setExecutionStatus(TaskExecutionStatus executionStatus) {
-		this.executionStatus = executionStatus;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -358,99 +422,73 @@ public class TaskImpl implements Task {
 	}
 
 	@Override
-	public void setExclusivityStatus(TaskExclusivityStatus exclusivityStatus) {
-		this.exclusivityStatus = exclusivityStatus;
-	}
-
-	@Override
 	public String getOid() {
-		return oid;
+		return taskPrism.getOid();
 	}
 
 	@Override
 	public void setOid(String oid) {
-		this.oid = oid;
+		taskPrism.setOid(oid);
 	}
 
 	@Override
 	public String getName() {
-		return name;
+		return taskPrism.asObjectable().getName();
 	}
 
 	@Override
 	public void setName(String name) {
-		this.name = name;
+		taskPrism.asObjectable().setName(name);
 	}
 
 	@Override
 	public PrismContainer getExtension() {
-		return extension;
+		return taskPrism.getExtension();
 	}
 	
 	@Override
 	public PrismProperty getExtension(QName propertyName) {
-		return extension.findProperty(propertyName);
+		return getExtension().findProperty(propertyName);
 	}
 	
 	@Override
 	public PrismObject<TaskType> getTaskPrismObject() {
-		PrismObjectDefinition<TaskType> taskObjectDefinition = taskManager.getTaskObjectDefinition();
-		PrismObject<TaskType> taskPrism = taskObjectDefinition.instantiate();
-		TaskType taskType = taskPrism.asObjectable();
-		
-		taskType.setExecutionStatus(executionStatus.toTaskType());
-		taskType.setExclusivityStatus(exclusivityStatus.toTaskType());
-		taskType.setRecurrence(recurrenceStatus.toTaskType());
-		taskType.setBinding(binding.toTaskType());
-		
-		if (persistenceStatus == TaskPersistenceStatus.PERSISTENT) {
-			taskType.setOid(oid);
-		} else {
-			// TRANSIENT task
-			// Nothing to do
-		}
-
-		taskType.setHandlerUri(handlerUri);
-		taskType.setOtherHandlersUriStack(otherHandlersUriStack);
-		taskType.setName(name);
-		taskType.setProgress(BigInteger.valueOf(progress));
-		
-		if (objectRef!=null) {
-			taskType.setObjectRef(objectRef);
-		} else if (object!=null) {
-			// TODO
-		}
-
-		if (result!=null) {
-			taskType.setResult(result.createOperationResultType());
-		}
-		
-		if (schedule!=null) {
-			taskType.setSchedule(schedule);
-		}
-		
-		if (owner != null) {
-			taskType.setOwnerRef(ObjectTypeUtil.createObjectRef(owner));
-		}
-		
-		taskPrism.addReplaceExisting(extension.clone());
+				
+		if (result != null) {
+			taskPrism.asObjectable().setResult(result.createOperationResultType());
+		}				
 		
 		return taskPrism;
 	}
 
 	@Override
 	public Long getLastRunStartTimestamp() {
-		return lastRunStartTimestamp;
+		return new Long(XmlTypeConverter.toMillis(taskPrism.asObjectable().getLastRunStartTimestamp()));
+	}
+	
+	private void setLastRunStartTimestamp(Long value) {
+		taskPrism.asObjectable().setLastRunStartTimestamp(
+				XmlTypeConverter.createXMLGregorianCalendar(value));
 	}
 
 	@Override
 	public Long getLastRunFinishTimestamp() {
-		return lastRunFinishTimestamp;
+		return new Long(XmlTypeConverter.toMillis(taskPrism.asObjectable().getLastRunFinishTimestamp()));
+	}
+	
+	private void setLastRunFinishTimestamp(Long value) {
+		taskPrism.asObjectable().setLastRunFinishTimestamp(
+				XmlTypeConverter.createXMLGregorianCalendar(value));
 	}
 
 	@Override
 	public Long getNextRunStartTime() {
-		return nextRunStartTime;
+		return new Long(XmlTypeConverter.toMillis(taskPrism.asObjectable().getNextRunStartTime()));
+	}
+	
+	private void setNextRunStartTime(Long value) {
+		taskPrism.asObjectable().setNextRunStartTime(
+				XmlTypeConverter.createXMLGregorianCalendar(value));
 	}
 	
 	@Override
@@ -459,71 +497,50 @@ public class TaskImpl implements Task {
 		sb.append("Task(");
 		sb.append(TaskImpl.class.getName());
 		sb.append(")\n");
-		sb.append("  OID: ");
-		sb.append(oid);
-		sb.append("\n  name: ");
-		sb.append(name);
-		sb.append("\n  executionStatus: ");
-		sb.append(executionStatus);
-		sb.append("\n  exclusivityStatus: ");
-		sb.append(exclusivityStatus);
+		sb.append(taskPrism.debugDump(1));
 		sb.append("\n  persistenceStatus: ");
 		sb.append(persistenceStatus);
-		sb.append("\n  handlerUri: ");
-		sb.append(handlerUri);
-		sb.append("\n  otherHandlersUriStack: ");
-		sb.append(otherHandlersUriStack);
-		sb.append("\n  object: ");
-		sb.append(object);
-		sb.append("\n  objectRef: ");
-		sb.append(ObjectTypeUtil.toShortString(objectRef));
-		sb.append("\n  lastRunStartTimestamp: ");
-		sb.append(lastRunStartTimestamp);
-		sb.append("\n  lastRunFinishTimestamp: ");
-		sb.append(lastRunFinishTimestamp);
-		sb.append("\n  nextRunStartTime: ");
-		sb.append(nextRunStartTime);
-		sb.append("\n  progress: ");
-		sb.append(progress);
 		sb.append("\n  result: ");
 		if (result==null) {
 			sb.append("null");
 		} else {
 			sb.append(result.dump());
 		}
-		sb.append("\n  extension: ");
-		sb.append(extension);
 		return sb.toString();
 	}
 
 	@Override
 	public void recordRunStart(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		// TODO 
-		lastRunStartTimestamp = System.currentTimeMillis();
-		nextRunStartTime = ScheduleEvaluator.determineNextRunStartTime(this);
+		long currentTimestamp = System.currentTimeMillis();
+		setLastRunStartTimestamp(currentTimestamp);
+		
+		setNextRunStartTime(ScheduleEvaluator.determineNextRunStartTime(this));
 		// This is all we need to do for transient tasks
 		if (!isPersistent()) {
 			return;
 		}
 		GregorianCalendar cal = new GregorianCalendar();
-		cal.setTimeInMillis(lastRunStartTimestamp);
+		cal.setTimeInMillis(currentTimestamp);
 		Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
 				TaskType.F_LAST_RUN_START_TIMESTAMP, 
 				getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class),
 				cal);
 
+		Long nextRunStartTime = getNextRunStartTime();
 		// FIXME: if nextRunStartTime == 0 we should delete the corresponding element; however, this does not work as for now
 		if (nextRunStartTime > 0) {
 			((Collection)modifications).add(taskManager.createNextRunStartTimeModification(nextRunStartTime));
 		}
 		
-		repositoryService.modifyObject(TaskType.class, oid, modifications, parentResult);
+		repositoryService.modifyObject(TaskType.class, getOid(), modifications, parentResult);
 	}
 
 	@Override
 	public void recordRunFinish(TaskRunResult runResult, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		progress = runResult.getProgress(); 
-		lastRunFinishTimestamp = System.currentTimeMillis();
+		setProgress(runResult.getProgress()); 
+		long currentTimestamp = System.currentTimeMillis();
+		setLastRunFinishTimestamp(currentTimestamp);
 		// This is all we need to do for transient tasks
 		if (!isPersistent()) {
 			return;
@@ -533,14 +550,14 @@ public class TaskImpl implements Task {
 
 		// last run time modification
 		GregorianCalendar calLRFT = new GregorianCalendar();
-		calLRFT.setTimeInMillis(lastRunFinishTimestamp);
+		calLRFT.setTimeInMillis(currentTimestamp);
 		PropertyDelta timestampModificationLRFT = PropertyDelta.createReplaceDelta(taskManager.getTaskObjectDefinition(), 
 				TaskType.F_LAST_RUN_FINISH_TIMESTAMP, calLRFT);
 		modifications.add(timestampModificationLRFT);
 		
 		// progress
 		PropertyDelta progressModification = PropertyDelta.createReplaceDelta(taskManager.getTaskObjectDefinition(), 
-				TaskType.F_PROGRESS, progress);
+				TaskType.F_PROGRESS, getProgress());
 		modifications.add(progressModification);
 		
 		// result
@@ -556,7 +573,7 @@ public class TaskImpl implements Task {
 		modifications.add(resultModification);
 			
 		// execute the modification
-		repositoryService.modifyObject(TaskType.class, oid, modifications, parentResult);
+		repositoryService.modifyObject(TaskType.class, getOid(), modifications, parentResult);
 		
 		// TODO: Also save the OpResult
 	}
@@ -583,7 +600,7 @@ public class TaskImpl implements Task {
 			resultModification = PropertyDelta.createReplaceEmptyDelta(taskManager.getTaskObjectDefinition(), TaskType.F_RESULT);
 		}
 		modifications.add(resultModification);
-		repositoryService.modifyObject(TaskType.class, oid, modifications, parentResult);		
+		repositoryService.modifyObject(TaskType.class, getOid(), modifications, parentResult);		
 		
 	}
 	
@@ -608,14 +625,17 @@ public class TaskImpl implements Task {
 			result.recordFatalError("Schema error", ex);
 			throw ex;			
 		}
-		initialize(repoObj, result);
+		this.taskPrism = repoObj;
+		initialize(result);
 		result.recordSuccess();
 	}
 	
 	@Override
-	public void modify(Collection<? extends ItemDelta> modifications, OperationResult parentResult) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException();
+	public void modify(Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		PropertyDelta.applyTo(modifications, taskPrism);
+		if (isPersistent()) {
+			getRepositoryService().modifyObject(TaskType.class, getOid(), modifications, parentResult);
+		}
 	}
 
 	private boolean isPersistent() {
@@ -634,7 +654,7 @@ public class TaskImpl implements Task {
 				getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class),
 				TaskExecutionStatusType.CLOSED.value());
 		try {
-			repositoryService.modifyObject(TaskType.class, oid, modifications, result);
+			repositoryService.modifyObject(TaskType.class, getOid(), modifications, result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Object not found", ex);
 			throw ex;
@@ -646,28 +666,32 @@ public class TaskImpl implements Task {
 
 	@Override
 	public boolean isSingle() {
-		return (recurrenceStatus == TaskRecurrence.SINGLE);
+		return (getRecurrenceStatus() == TaskRecurrence.SINGLE);
 	}
 
 	@Override
 	public boolean isCycle() {
 		// TODO: binding
-		return (recurrenceStatus == TaskRecurrence.RECURRING);
+		return (getRecurrenceStatus() == TaskRecurrence.RECURRING);
 	}
 
 	@Override
 	public boolean isTightlyBound() {
-		return binding == TaskBinding.TIGHT;
+		return getBinding() == TaskBinding.TIGHT;
 	}
 	
 	@Override
 	public boolean isLooselyBound() {
-		return binding == TaskBinding.LOOSE;
+		return getBinding() == TaskBinding.LOOSE;
 	}
 
 	@Override
 	public ScheduleType getSchedule() {
-		return schedule;
+		return taskPrism.asObjectable().getSchedule();
+	}
+	
+	private void setSchedule(ScheduleType schedule) {
+		taskPrism.asObjectable().setSchedule(schedule);
 	}
 
 	@Override
@@ -685,24 +709,14 @@ public class TaskImpl implements Task {
 	 */
 	@Override
 	public String toString() {
-		return "Task(id:" + taskIdentifier + ", name:" + name + ", oid:" + oid + ")";
+		return "Task(id:" + getTaskIdentifier() + ", name:" + getName() + ", oid:" + getOid() + ")";
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((oid == null) ? 0 : oid.hashCode());
-		return result;
+		return taskPrism.hashCode();
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -712,24 +726,27 @@ public class TaskImpl implements Task {
 		if (getClass() != obj.getClass())
 			return false;
 		TaskImpl other = (TaskImpl) obj;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
+		if (persistenceStatus != other.persistenceStatus)
 			return false;
-		if (oid == null) {
-			if (other.oid != null)
+		if (result == null) {
+			if (other.result != null)
 				return false;
-		} else if (!oid.equals(other.oid))
+		} else if (!result.equals(other.result))
+			return false;
+		if (taskPrism == null) {
+			if (other.taskPrism != null)
+				return false;
+		} else if (!taskPrism.equals(other.taskPrism))
 			return false;
 		return true;
 	}
 
 	public void makeRecurrent(long interval)
 	{
-		recurrenceStatus = TaskRecurrence.RECURRING;
-		schedule = new ScheduleType();
+		setRecurrenceStatus(TaskRecurrence.RECURRING);
+		ScheduleType schedule = new ScheduleType();
 		schedule.setInterval(BigInteger.valueOf(interval));
+		setSchedule(schedule);
 	}
 
 	@Override
@@ -738,16 +755,17 @@ public class TaskImpl implements Task {
 		// let us drop the current handler URI and nominate the top of the other
 		// handlers stack as the current one
 		int stackSize;
+		UriStack otherHandlersUriStack = getOtherHandlersUriStack();
 		if (otherHandlersUriStack != null && !otherHandlersUriStack.getUri().isEmpty()) {
 			stackSize = otherHandlersUriStack.getUri().size();
-			handlerUri = otherHandlersUriStack.getUri().get(stackSize - 1);
+			setHandlerUri(otherHandlersUriStack.getUri().get(stackSize - 1));
 			otherHandlersUriStack.getUri().remove(stackSize - 1);
 		} else {
-			handlerUri = null;
+			setHandlerUri(null);
 			stackSize = 0;
 		}
 		
-		LOGGER.trace("finishHandler: new current handler uri = {}, stack size = {}", handlerUri, stackSize);
+		LOGGER.trace("finishHandler: new current handler uri = {}, stack size = {}", getHandlerUri(), stackSize);
 		
 		// TODO: make changes in repository as well (really? this has to be thought out yet)
 	}
