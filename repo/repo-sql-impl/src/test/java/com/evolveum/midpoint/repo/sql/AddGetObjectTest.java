@@ -33,6 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Objects;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.stat.Statistics;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -67,7 +68,10 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
     public void sample() throws Exception {
         Session session = factory.openSession();
 
-        int cycles = 1000;
+        Statistics stats = factory.getStatistics();
+        stats.setStatisticsEnabled(true);
+
+        int cycles = 1;
         long time = System.currentTimeMillis();
         for (int i = 0; i < cycles; i++) {
             if (i % 100 == 0) {
@@ -154,7 +158,9 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         }
         LOGGER.info("I did {} cycles in {} ms.", cycles, (System.currentTimeMillis() - time));
         session.close();
-    }
+
+        stats.logSummary();
+    }    
 
     //    @Test
     public void simpleAddGetTest() throws Exception {

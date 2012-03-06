@@ -25,11 +25,14 @@
             <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
             <embedded>true</embedded>
             <baseDir>target</baseDir>
-            <!--jdbc.driverClassName=com.mysql.jdbc.Driver-->
-            <!--jdbc.url=jdbc:mysql://localhost:3306/midpoint-->
-            <!--jdbc.username=midpoint-->
-            <!--jdbc.password=hKyN834cMR-->
-            <!--hibernate.dialect=org.hibernate.dialect.MySQLDialect-->
+
+            <!--<embedded>false</embedded>-->
+            <!--<driverClassName>com.mysql.jdbc.Driver</driverClassName>-->
+            <!--<hibernateHbm2ddl>update</hibernateHbm2ddl>-->
+            <!--<hibernateDialect>org.hibernate.dialect.MySQLDialect</hibernateDialect>-->
+            <!--<jdbcPassword>hKyN834cMR</jdbcPassword>-->
+            <!--<jdbcUsername>midpoint</jdbcUsername>-->
+            <!--<jdbcUrl>jdbc:mysql://localhost:3306/midpoint</jdbcUrl>-->
         </repository>
         <icf>
             <scanClasspath>true</scanClasspath>
