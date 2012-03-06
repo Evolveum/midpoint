@@ -123,11 +123,6 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 
 	private static Trace LOGGER = TraceManager.getTrace(TestConnectorDiscovery.class);
 
-	public TestConnectorDiscovery() throws JAXBException {
-		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
-		unmarshaller = jaxbctx.createUnmarshaller();
-	}
-
 	@Override
 	public void initSystem(OperationResult initResult) throws Exception {
 		provisioningService.postInit(initResult);

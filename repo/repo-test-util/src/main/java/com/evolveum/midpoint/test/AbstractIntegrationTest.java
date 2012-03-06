@@ -47,6 +47,7 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -77,13 +78,6 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractIntegrationTest.class);
 
-	/**
-	 * Unmarshalled resource definition to reach the embedded OpenDJ instance.
-	 * Used for convenience - the tests method may find it handy.
-	 */
-	protected static JAXBContext jaxbctx;
-	protected static Unmarshaller unmarshaller;
-
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	protected RepositoryService repositoryService;
@@ -103,11 +97,6 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	// only tests that need OpenDJ or derby should start it
 	protected static OpenDJController openDJController = new OpenDJController();
 	protected static DerbyController derbyController = new DerbyController();
-
-	public AbstractIntegrationTest() throws JAXBException {
-		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
-		unmarshaller = jaxbctx.createUnmarshaller();
-	}
 
 	// We need this complicated init as we want to initialize repo only once.
 	// JUnit will
@@ -186,16 +175,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected static <T> T unmarshallJaxbFromFile(String filePath, Class<T> clazz)
-			throws FileNotFoundException, JAXBException {
-		File file = new File(filePath);
-		FileInputStream fis = new FileInputStream(file);
-		Object object = unmarshaller.unmarshal(fis);
-		T objectType = ((JAXBElement<T>) object).getValue();
-		return objectType;
+			throws FileNotFoundException, JAXBException, SchemaException {
+		return PrismTestUtil.unmarshalObject(new File(filePath), clazz);
 	}
 
 	protected static ObjectType unmarshallJaxbFromFile(String filePath) throws FileNotFoundException,
-			JAXBException {
+			JAXBException, SchemaException {
 		return unmarshallJaxbFromFile(filePath, ObjectType.class);
 	}
 

@@ -70,11 +70,6 @@ public class SynchronizationTest extends AbstractIntegrationTest {
 		this.repositoryService = repositoryService;
 	}
 
-	public SynchronizationTest() throws JAXBException {
-		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
-		unmarshaller = jaxbctx.createUnmarshaller();
-	}
-
 	@BeforeClass
 	public static void startLdap() throws Exception {
 		openDJController.startCleanServer();
