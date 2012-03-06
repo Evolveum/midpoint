@@ -38,7 +38,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "resource")
-public class RResourceType extends RExtensibleObjectType {
+public class RResourceType extends RObjectType {
 
     private static final Trace LOGGER = TraceManager.getTrace(RResourceType.class);
     private RObjectReferenceType connectorRef;
@@ -134,7 +134,7 @@ public class RResourceType extends RExtensibleObjectType {
 
     public static void copyToJAXB(RResourceType repo, ResourceType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        RExtensibleObjectType.copyToJAXB(repo, jaxb, prismContext);
+        RObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setNamespace(repo.getNamespace());
 
@@ -157,7 +157,7 @@ public class RResourceType extends RExtensibleObjectType {
 
     public static void copyFromJAXB(ResourceType jaxb, RResourceType repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RExtensibleObjectType.copyFromJAXB(jaxb, repo, prismContext);
+        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setNamespace(jaxb.getNamespace());
         repo.setConnectorRef(RUtil.jaxbRefToRepo(jaxb.getConnectorRef(), jaxb, prismContext));

@@ -124,10 +124,10 @@ public final class RUtil {
         if (ref == null) {
             return null;
         }
-        Validate.notEmpty(ownerId, "Owner oid of reference must not be null.");
+//        Validate.notEmpty(ownerId, "Owner oid of reference must not be null.");
 
         RObjectReferenceType result = new RObjectReferenceType();
-        result.setOwner(ownerId);
+//        result.setOwner(ownerId);
         RObjectReferenceType.copyFromJAXB(ref, result, prismContext);
 
         return result;

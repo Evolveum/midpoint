@@ -30,10 +30,7 @@ import org.hibernate.annotations.Columns;
 import org.hibernate.annotations.Type;
 import org.w3c.dom.Element;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 
@@ -44,22 +41,24 @@ import java.io.Serializable;
 @Table(name = "object_reference")
 public class RObjectReferenceType implements Serializable {
 
-    private String owner;
-    private long containerId;
+    private RObjectType owner;
+    private RIdentifiable container;
+
     private String description;
     private String target;
     private String filter;
     private QName type;
 
-    @Id
-    @Column(length = 32, nullable = false)
-    public String getOwner() {
-        return owner;
+    @MapsId
+    @OneToOne
+    public RIdentifiable getContainer() {
+        return container;
     }
 
-    @Id
-    public long getContainerId() {
-        return containerId;
+    @MapsId
+    @OneToOne
+    public RObjectType getOwner() {
+        return owner;
     }
 
     @Id
@@ -81,10 +80,6 @@ public class RObjectReferenceType implements Serializable {
         return type;
     }
 
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
-
     public String getDescription() {
         return description;
     }
@@ -93,8 +88,12 @@ public class RObjectReferenceType implements Serializable {
         this.description = description;
     }
 
-    public void setContainerId(long containerId) {
-        this.containerId = containerId;
+    public void setContainer(RIdentifiable container) {
+        this.container = container;
+    }
+
+    public void setOwner(RObjectType owner) {
+        this.owner = owner;
     }
 
     public void setType(QName type) {

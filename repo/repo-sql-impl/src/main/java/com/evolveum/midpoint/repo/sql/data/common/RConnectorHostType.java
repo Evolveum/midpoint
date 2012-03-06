@@ -36,7 +36,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "connector_host")
-public class RConnectorHostType extends RExtensibleObjectType {
+public class RConnectorHostType extends RObjectType {
 
     private String hostname;
     private String port;
@@ -89,7 +89,7 @@ public class RConnectorHostType extends RExtensibleObjectType {
 
     public static void copyToJAXB(RConnectorHostType repo, ConnectorHostType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        RExtensibleObjectType.copyToJAXB(repo, jaxb, prismContext);
+        RObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setHostname(repo.getHostname());
         jaxb.setPort(repo.getPort());
@@ -105,7 +105,7 @@ public class RConnectorHostType extends RExtensibleObjectType {
 
     public static void copyFromJAXB(ConnectorHostType jaxb, RConnectorHostType repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RExtensibleObjectType.copyFromJAXB(jaxb, repo, prismContext);
+        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setHostname(jaxb.getHostname());
         repo.setPort(jaxb.getPort());

@@ -244,10 +244,10 @@ public class ObjectImporter {
     protected PrismContainer validateWithDynamicSchemas(ObjectType object, Element objectElement,
                                                            RepositoryService repository, OperationResult objectResult) {
 
-        if (object instanceof ExtensibleObjectType) {
+//        if (object instanceof ExtensibleObjectType) {
             // TODO: check extension schema (later)
             //objectResult.computeStatus("Extension schema error");
-        }
+//        }
 
         if (object instanceof ConnectorType) {
             ConnectorType connector = (ConnectorType) object;

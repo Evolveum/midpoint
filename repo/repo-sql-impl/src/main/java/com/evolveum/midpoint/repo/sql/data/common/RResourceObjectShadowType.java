@@ -41,7 +41,7 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "resource_object_shadow")
-public class RResourceObjectShadowType extends RExtensibleObjectType {
+public class RResourceObjectShadowType extends RObjectType {
 
     private static final Trace LOGGER = TraceManager.getTrace(RResourceObjectShadowType.class);
     private RObjectReferenceType resourceRef;
@@ -124,7 +124,7 @@ public class RResourceObjectShadowType extends RExtensibleObjectType {
 
     public static void copyToJAXB(RResourceObjectShadowType repo, ResourceObjectShadowType jaxb,
             PrismContext prismContext) throws DtoTranslationException {
-        RExtensibleObjectType.copyToJAXB(repo, jaxb, prismContext);
+        RObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setAttemptNumber(repo.getAttemptNumber());
         jaxb.setObjectClass(repo.getObjectClass());
@@ -148,7 +148,7 @@ public class RResourceObjectShadowType extends RExtensibleObjectType {
 
     public static void copyFromJAXB(ResourceObjectShadowType jaxb, RResourceObjectShadowType repo,
             PrismContext prismContext) throws DtoTranslationException {
-        RExtensibleObjectType.copyFromJAXB(jaxb, repo, prismContext);
+        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         if (jaxb.getResource() != null) {
             LOGGER.warn("Resource from resource object shadow type won't be saved. It should be " +

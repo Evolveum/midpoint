@@ -38,7 +38,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "system_configuration")
-public class RSystemConfigurationType extends RExtensibleObjectType {
+public class RSystemConfigurationType extends RObjectType {
 
     private static final Trace LOGGER = TraceManager.getTrace(RSystemConfigurationType.class);
     private String globalAccountSynchronizationSettings;
@@ -95,7 +95,7 @@ public class RSystemConfigurationType extends RExtensibleObjectType {
 
     public static void copyToJAXB(RSystemConfigurationType repo, SystemConfigurationType jaxb,
             PrismContext prismContext) throws DtoTranslationException {
-        RExtensibleObjectType.copyToJAXB(repo, jaxb, prismContext);
+        RObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         if (repo.getDefaultUserTemplateRef() != null) {
             jaxb.setDefaultUserTemplateRef(repo.getDefaultUserTemplateRef().toJAXB(prismContext));
@@ -114,7 +114,7 @@ public class RSystemConfigurationType extends RExtensibleObjectType {
 
     public static void copyFromJAXB(SystemConfigurationType jaxb, RSystemConfigurationType repo,
             PrismContext prismContext) throws DtoTranslationException {
-        RExtensibleObjectType.copyFromJAXB(jaxb, repo, prismContext);
+        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         if (jaxb.getDefaultUserTemplate() != null) {
             LOGGER.warn("Default user template from system configuration type won't be saved. It should be " +

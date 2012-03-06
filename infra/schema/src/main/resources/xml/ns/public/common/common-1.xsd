@@ -313,6 +313,17 @@
 				</xsd:annotation>
 			</xsd:element>
 
+            <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object with generic extensibility mechanism. It contains a
+                        special XML element where almost any extension can be placed.
+                        The extension is treated exactly the same as other object
+                        properties by the code (storage, modifications, etc), except
+                        that the system may not be able to understand their meaning.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
 
         <xsd:attribute name="oid" type="xsd:string" use="optional">
@@ -424,26 +435,6 @@
         <xsd:attribute name="id" type="xsd:string" use="optional"/>
     </xsd:complexType>
 
-    <xsd:complexType name="ExtensibleObjectType" abstract="true">
-        <xsd:annotation>
-            <xsd:documentation>
-                Object with generic extensibility mechanism. It contains a
-                special XML element where almost any extension can be placed.
-                The extension is treated exactly the same as other object
-                properties by the code (storage, modifications, etc), except
-                that the system may not be able to understand their meaning.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:ObjectType">
-                <xsd:sequence>
-                    <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
-
     <xsd:complexType name="GenericObjectType">
         <xsd:annotation>
             <xsd:documentation>
@@ -458,7 +449,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ExtensibleObjectType">
+            <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
                     <xsd:element name="objectType" type="xsd:anyURI">
                         <xsd:annotation>
@@ -533,7 +524,6 @@
         </xsd:attribute>
     </xsd:complexType>
 
-    <xsd:element name="extensibleObject" type="tns:ExtensibleObjectType" />
     <xsd:element name="object" type="tns:ObjectType"/>
     <xsd:element name="genericObject" type="tns:GenericObjectType" substitutionGroup="tns:object"/>
     <xsd:element name="objectRef" type="tns:ObjectReferenceType"/>
@@ -1466,7 +1456,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ExtensibleObjectType">
+            <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
                     <xsd:element name="taskIdentifier" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
@@ -2017,7 +2007,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:ExtensibleObjectType">
+            <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
                     <xsd:element name="fullName" type="xsd:string">
                         <xsd:annotation>
@@ -2496,7 +2486,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:ExtensibleObjectType">
+            <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
                     <xsd:element name="connector" type="tns:ConnectorType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
@@ -3880,7 +3870,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ExtensibleObjectType">
+            <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
                     <xsd:element name="framework" type="xsd:anyURI">
                         <xsd:annotation>
@@ -3999,7 +3989,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ExtensibleObjectType">
+            <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
                     <xsd:element name="hostname" type="xsd:string">
                         <xsd:annotation>
@@ -4062,7 +4052,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:ExtensibleObjectType">
+            <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
                     <!-- xsd:choice -->
                     <xsd:element name="resourceRef" type="c:ObjectReferenceType" minOccurs="0">
@@ -4525,7 +4515,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ExtensibleObjectType">
+            <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
                     <xsd:choice minOccurs="0" maxOccurs="unbounded">
                         <xsd:element name="containedObject" type="tns:ObjectType">
@@ -4578,7 +4568,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ExtensibleObjectType">
+            <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
                     <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
@@ -4765,7 +4755,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:ExtensibleObjectType">
+            <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
                     <xsd:element name="propertyConstruction" type="tns:PropertyConstructionType" minOccurs="0"
                                  maxOccurs="unbounded">
@@ -5093,7 +5083,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ExtensibleObjectType">
+            <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
                     <xsd:element name="globalAccountSynchronizationSettings"
                                  type="tns:AccountSynchronizationSettingsType" minOccurs="0">

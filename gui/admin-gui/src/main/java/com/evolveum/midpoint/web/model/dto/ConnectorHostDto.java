@@ -27,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
  * @author lazyman
  * 
  */
-public class ConnectorHostDto extends ExtensibleObjectDto<ConnectorHostType> {
+public class ConnectorHostDto extends ObjectDto<ConnectorHostType> {
 
 	private static final long serialVersionUID = -7257722781547588113L;
 

@@ -36,7 +36,7 @@ import java.math.BigInteger;
  */
 @Entity
 @Table(name = "task")
-public class RTaskType extends RExtensibleObjectType {
+public class RTaskType extends RObjectType {
 
     private String taskIdentifier;
     private RObjectReferenceType ownerRef;
@@ -216,7 +216,7 @@ public class RTaskType extends RExtensibleObjectType {
 
     public static void copyToJAXB(RTaskType repo, TaskType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        RExtensibleObjectType.copyToJAXB(repo, jaxb, prismContext);
+        RObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setTaskIdentifier(repo.getTaskIdentifier());
         jaxb.setClaimExpirationTimestamp(repo.getClaimExpirationTimestamp());
@@ -252,7 +252,7 @@ public class RTaskType extends RExtensibleObjectType {
 
     public static void copyFromJAXB(TaskType jaxb, RTaskType repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RExtensibleObjectType.copyFromJAXB(jaxb, repo, prismContext);
+        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setTaskIdentifier(jaxb.getTaskIdentifier());
         repo.setClaimExpirationTimestamp(jaxb.getClaimExpirationTimestamp());

@@ -26,7 +26,6 @@ import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordLifeTimeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.StringPolicyType;
-import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Entity;
@@ -62,8 +61,7 @@ public class RPasswordPolicyType extends RObjectType {
 
     public static void copyToJAXB(RPasswordPolicyType repo, PasswordPolicyType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        Validate.notNull(jaxb, "JAXB object must not be null.");
-        Validate.notNull(repo, "Repo object must not be null.");
+        RObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         try {
             jaxb.setLifetime(RUtil.toJAXB(repo.getLifetime(), PasswordLifeTimeType.class, prismContext));
@@ -75,8 +73,7 @@ public class RPasswordPolicyType extends RObjectType {
 
     public static void copyFromJAXB(PasswordPolicyType jaxb, RPasswordPolicyType repo, PrismContext prismContext) throws
             DtoTranslationException {
-        Validate.notNull(jaxb, "JAXB object must not be null.");
-        Validate.notNull(repo, "Repo object must not be null.");
+        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         try {
             repo.setLifetime(RUtil.toRepo(jaxb.getLifetime(), prismContext));

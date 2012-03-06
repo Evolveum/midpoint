@@ -34,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
  * @author lazyman
  * 
  */
-public class RoleDto extends ExtensibleObjectDto<RoleType> implements ContainsAssignment {
+public class RoleDto extends ObjectDto<RoleType> implements ContainsAssignment {
 
 	private static final long serialVersionUID = -6609121465638251441L;
 	private List<AssignmentBean> assignments;

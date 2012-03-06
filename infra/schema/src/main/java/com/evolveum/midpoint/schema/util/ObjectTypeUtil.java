@@ -452,7 +452,7 @@ public class ObjectTypeUtil {
     
     public static void assertConcreteType(Class<? extends Objectable> type) {
     	// The abstract object types are enumerated here. It should be switched to some flag later on
-    	if (type.equals(ObjectType.class) || type.equals(ExtensibleObjectType.class)) {
+    	if (type.equals(ObjectType.class)) {
     		throw new IllegalArgumentException("The type "+type.getName()+" is abstract");
     	}
     }

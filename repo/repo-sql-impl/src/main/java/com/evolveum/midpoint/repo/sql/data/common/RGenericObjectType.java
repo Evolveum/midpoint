@@ -33,7 +33,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "generic_object")
-public class RGenericObjectType extends RExtensibleObjectType {
+public class RGenericObjectType extends RObjectType {
 
     private String objectType;
 
@@ -47,14 +47,14 @@ public class RGenericObjectType extends RExtensibleObjectType {
 
     public static void copyToJAXB(RGenericObjectType repo, GenericObjectType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        RExtensibleObjectType.copyToJAXB(repo, jaxb, prismContext);
+        RObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setObjectType(repo.getObjectType());
     }
 
     public static void copyFromJAXB(GenericObjectType jaxb, RGenericObjectType repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RExtensibleObjectType.copyFromJAXB(jaxb, repo, prismContext);
+        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setObjectType(jaxb.getObjectType());
     }

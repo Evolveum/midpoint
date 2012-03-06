@@ -38,27 +38,13 @@ import java.io.Serializable;
  */
 @Entity
 @Table(name = "assignment")
-public class RAssignmentType implements Serializable, Identifiable {
+public class RAssignmentType extends RIdentifiable implements Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(RAssignmentType.class);
-    private String owner;
-    private long id;
     private RExtension extension;
     private RObjectReferenceType targetRef;
     private String accountConstruction;
     private RActivationType activation;
-
-    @Id
-    @Column(length = 32, nullable = false)
-    public String getOwner() {
-        return owner;
-    }
-
-    @Id
-    @Override
-    public long getId() {
-        return id;
-    }
 
     public String getAccountConstruction() {
         return accountConstruction;
@@ -81,11 +67,6 @@ public class RAssignmentType implements Serializable, Identifiable {
         return targetRef;
     }
 
-    @Override
-    public void setId(long id) {
-        this.id = id;
-    }
-
     public void setAccountConstruction(String accountConstruction) {
         this.accountConstruction = accountConstruction;
     }
@@ -102,16 +83,12 @@ public class RAssignmentType implements Serializable, Identifiable {
         this.targetRef = targetRef;
     }
 
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
-
     public static void copyToJAXB(RAssignmentType repo, AssignmentType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        jaxb.setId(Long.toString(repo.getId()));
+        jaxb.setId(Long.toString(repo.getContainerId()));
         try {
             jaxb.setAccountConstruction(RUtil.toJAXB(repo.getAccountConstruction(), AccountConstructionType.class, prismContext));
         } catch (Exception ex) {
@@ -138,7 +115,7 @@ public class RAssignmentType implements Serializable, Identifiable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        repo.setId(RUtil.getLongFromString(jaxb.getId()));
+        repo.setContainerId(RUtil.getLongFromString(jaxb.getId()));
 
         try {
             repo.setAccountConstruction(RUtil.toRepo(jaxb.getAccountConstruction(), prismContext));

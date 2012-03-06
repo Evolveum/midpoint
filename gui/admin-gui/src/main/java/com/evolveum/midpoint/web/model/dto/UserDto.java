@@ -36,7 +36,7 @@ import java.util.List;
 /**
  * @author semancik
  */
-public class UserDto extends ExtensibleObjectDto<UserType> implements ContainsAssignment {
+public class UserDto extends ObjectDto<UserType> implements ContainsAssignment {
 
     private static final long serialVersionUID = 2178456879571587946L;
     private List<AccountShadowDto> accountDtos;

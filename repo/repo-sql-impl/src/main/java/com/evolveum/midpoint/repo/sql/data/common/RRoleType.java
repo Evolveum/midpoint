@@ -36,7 +36,7 @@ import java.util.List;
  */
 @Entity
 @Table(name = "role")
-public class RRoleType extends RExtensibleObjectType {
+public class RRoleType extends RObjectType {
 
     private List<RAssignmentType> assignment;
 
@@ -54,7 +54,7 @@ public class RRoleType extends RExtensibleObjectType {
 
     public static void copyToJAXB(RRoleType repo, RoleType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        RExtensibleObjectType.copyToJAXB(repo, jaxb, prismContext);
+        RObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         if (repo.getAssignment() == null) {
             return;
@@ -67,7 +67,7 @@ public class RRoleType extends RExtensibleObjectType {
 
     public static void copyFromJAXB(RoleType jaxb, RRoleType repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RExtensibleObjectType.copyFromJAXB(jaxb, repo, prismContext);
+        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         if (!jaxb.getAssignment().isEmpty()) {
             repo.setAssignment(new ArrayList<RAssignmentType>());

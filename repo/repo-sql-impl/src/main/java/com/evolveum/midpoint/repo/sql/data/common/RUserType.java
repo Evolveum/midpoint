@@ -35,7 +35,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "user")
-public class RUserType extends RExtensibleObjectType {
+public class RUserType extends RObjectType {
 
     private String fullName;
     private String givenName;
@@ -218,7 +218,7 @@ public class RUserType extends RExtensibleObjectType {
 
     public static void copyFromJAXB(UserType jaxb, RUserType repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RExtensibleObjectType.copyFromJAXB(jaxb, repo, prismContext);
+        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setFullName(jaxb.getFullName());
         repo.setGivenName(jaxb.getGivenName());
@@ -263,7 +263,7 @@ public class RUserType extends RExtensibleObjectType {
 
     public static void copyToJAXB(RUserType repo, UserType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        RExtensibleObjectType.copyToJAXB(repo, jaxb, prismContext);
+        RObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setFullName(repo.getFullName());
         jaxb.setGivenName(repo.getGivenName());

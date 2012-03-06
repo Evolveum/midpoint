@@ -64,7 +64,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionT
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -93,7 +92,7 @@ public class TestSchemaSanity {
 		
 		// THEN
 		assertNotNull("No prism context", prismContext);
-		
+
 		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
 		assertNotNull("No schema registry in context", schemaRegistry);
 		
@@ -121,12 +120,7 @@ public class TestSchemaSanity {
 		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_FAMILY_NAME, DOMUtil.XSD_STRING, 1, 1);
 		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_ADDITIONAL_NAMES, DOMUtil.XSD_STRING, 0, -1);
 		assertFalse("User definition is marked as runtime", userDefinition.isRuntimeSchema());
-		
-		PrismContainerDefinition extensionContainer = userDefinition.findContainerDefinition(ExtensibleObjectType.F_EXTENSION);
-		PrismAsserts.assertDefinition(extensionContainer, ExtensibleObjectType.F_EXTENSION, ExtensionType.COMPLEX_TYPE, 0, 1);
-		assertTrue("Extension is not runtime", extensionContainer.isRuntimeSchema());
-		assertTrue("Extension is not empty", extensionContainer.getDefinitions().isEmpty());
-		
+
 		PrismContainerDefinition activationContainer = userDefinition.findContainerDefinition(UserType.F_ACTIVATION);
 		PrismAsserts.assertDefinition(activationContainer, UserType.F_ACTIVATION, ActivationType.COMPLEX_TYPE, 0, 1);
 		assertFalse("Activation is runtime", activationContainer.isRuntimeSchema());

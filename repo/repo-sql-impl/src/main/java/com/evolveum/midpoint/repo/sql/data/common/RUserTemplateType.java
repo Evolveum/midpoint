@@ -35,7 +35,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "user_template")
-public class RUserTemplateType extends RExtensibleObjectType {
+public class RUserTemplateType extends RObjectType {
 
     private String propertyConstruction;
     private String accountConstruction;
@@ -62,7 +62,7 @@ public class RUserTemplateType extends RExtensibleObjectType {
 
     public static void copyToJAXB(RUserTemplateType repo, UserTemplateType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        RExtensibleObjectType.copyToJAXB(repo, jaxb, prismContext);
+        RObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         try {
 //            if (StringUtils.isNotEmpty(repo.getAccountConstruction())) {
@@ -83,7 +83,7 @@ public class RUserTemplateType extends RExtensibleObjectType {
 
     public static void copyFromJAXB(UserTemplateType jaxb, RUserTemplateType repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RExtensibleObjectType.copyFromJAXB(jaxb, repo, prismContext);
+        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         try {
             if (!jaxb.getAccountConstruction().isEmpty()) {

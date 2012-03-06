@@ -40,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
  * 
  * @author semancik
  */
-public class ResourceDto extends ExtensibleObjectDto<ResourceType> {
+public class ResourceDto extends ObjectDto<ResourceType> {
 
 	private static final long serialVersionUID = -2599530038158817244L;
 

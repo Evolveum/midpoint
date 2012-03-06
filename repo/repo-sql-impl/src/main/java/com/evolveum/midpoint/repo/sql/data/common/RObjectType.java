@@ -26,9 +26,11 @@ import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.query.QueryContainer;
 import com.evolveum.midpoint.schema.SchemaConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
@@ -51,23 +53,24 @@ public abstract class RObjectType {
     private String oid;
     @QueryAttribute(name = "version")
     private long version;
+    private RExtension extension;
+
+    @ManyToOne(optional = true)
+//    @JoinTable(name = "extensible_object_extension", joinColumns = @JoinColumn(name = "extensibleOid"),
+//            inverseJoinColumns = @JoinColumn(name = "extensionId"))
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public RExtension getExtension() {
+        return extension;
+    }
 
     @Type(type = "org.hibernate.type.TextType")
     public String getDescription() {
         return description;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    @Index(name = "iName")
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+    @Version()
+    public long getVersion() {
+        return version;
     }
 
     @Id
@@ -78,13 +81,26 @@ public abstract class RObjectType {
         return oid;
     }
 
+    @Index(name = "iName")
+    public String getName() {
+        return name;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public void setOid(String oid) {
         this.oid = oid;
     }
 
-    @Version()
-    public long getVersion() {
-        return version;
+    public void setExtension(RExtension extension) {
+        this.extension = extension;
     }
 
     public void setVersion(long version) {
@@ -100,6 +116,13 @@ public abstract class RObjectType {
         jaxb.setName(repo.getName());
         jaxb.setOid(repo.getOid());
         jaxb.setVersion(Long.toString(repo.getVersion()));
+
+        if (repo.getExtension() != null) {
+            ExtensionType extension = new ExtensionType();
+            jaxb.setExtension(extension);
+
+            RExtension.copyToJAXB(repo.getExtension(), extension, prismContext);
+        }
     }
 
     public static void copyFromJAXB(ObjectType jaxb, RObjectType repo, PrismContext prismContext) throws
@@ -115,6 +138,13 @@ public abstract class RObjectType {
         long version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*")
                 ? Long.parseLong(jaxb.getVersion()) : 0;
         repo.setVersion(version);
+
+        if (jaxb.getExtension() != null) {
+            RExtension extension = new RExtension();
+            repo.setExtension(extension);
+
+            RExtension.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
+        }
     }
 
     public abstract <T extends ObjectType> T toJAXB(PrismContext prismContext) throws DtoTranslationException;

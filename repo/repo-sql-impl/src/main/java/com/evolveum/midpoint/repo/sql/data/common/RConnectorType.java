@@ -38,7 +38,7 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "connector")
-public class RConnectorType extends RExtensibleObjectType {
+public class RConnectorType extends RObjectType {
 
     private static final Trace LOGGER = TraceManager.getTrace(RConnectorType.class);
     private String framework;
@@ -123,7 +123,7 @@ public class RConnectorType extends RExtensibleObjectType {
 
     public static void copyToJAXB(RConnectorType repo, ConnectorType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        RExtensibleObjectType.copyToJAXB(repo, jaxb, prismContext);
+        RObjectType.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setConnectorBundle(repo.getConnectorBundle());
         jaxb.setConnectorType(repo.getConnectorType());
@@ -146,7 +146,7 @@ public class RConnectorType extends RExtensibleObjectType {
 
     public static void copyFromJAXB(ConnectorType jaxb, RConnectorType repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RExtensibleObjectType.copyFromJAXB(jaxb, repo, prismContext);
+        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setConnectorBundle(jaxb.getConnectorBundle());
         repo.setConnectorType(jaxb.getConnectorType());

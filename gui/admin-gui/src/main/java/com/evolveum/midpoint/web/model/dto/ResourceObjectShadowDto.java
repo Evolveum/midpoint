@@ -37,14 +37,14 @@ import java.util.List;
  * 
  * @author semancik
  */
-public class ResourceObjectShadowDto<T extends ResourceObjectShadowType> extends ExtensibleObjectDto<T> {
+public class ResourceObjectShadowDto<T extends ResourceObjectShadowType> extends ObjectDto<T> {
 
 	private static final long serialVersionUID = 8812191338352845507L;
 
 	public ResourceObjectShadowDto() {
 	}
 
-	public ResourceObjectShadowDto(ResourceObjectShadowType object) {
+	public ResourceObjectShadowDto(T object) {
 		super(object);
 	}
 
