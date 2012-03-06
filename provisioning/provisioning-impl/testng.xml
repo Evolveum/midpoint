@@ -24,14 +24,10 @@
 	<listeners>
 		<listener class-name="com.evolveum.midpoint.tools.testng.TestMethodLoggerListener"/>
 	</listeners>
-	<test name="provisioning-ucf-simple" preserve-order="true" parallel="false" verbose="10">
+	<test name="provisioning-ucf" preserve-order="true" parallel="false" verbose="10">
 		<classes>
-			<class name="com.evolveum.midpoint.provisioning.test.ucf.SimpleUcfTest" />
-		</classes>
-	</test>
-	<test name="provisioning-ucf-opendj" preserve-order="true" parallel="false" verbose="10">
-		<classes>
-			<class name="com.evolveum.midpoint.provisioning.test.ucf.OpenDjUcfTest" />
+			<class name="com.evolveum.midpoint.provisioning.test.ucf.TestUcfDummy" />
+			<class name="com.evolveum.midpoint.provisioning.test.ucf.TestUcfOpenDj" />
 		</classes>
 	</test>
 	<test name="provisioning-service-opendj" preserve-order="true" parallel="false" verbose="10">

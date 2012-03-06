@@ -219,6 +219,9 @@ public class ObjectTypeUtil {
 
 
     public static String dump(ObjectType object) {
+    	if (object == null) {
+    		return "null";
+    	}
         return object.asPrismObject().dump();
     }
 

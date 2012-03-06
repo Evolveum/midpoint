@@ -101,7 +101,7 @@ import static org.testng.AssertJUnit.*;
  */
 @ContextConfiguration(locations = { "classpath:application-context-provisioning-test.xml",
 		"classpath:application-context-configuration-test-no-repo.xml" })
-public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
+public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/object/resource-opendj.xml";
 	private static final String FILENAME_RESOURCE_OPENDJ_BAD = "src/test/resources/object/resource-opendj-bad.xml";
@@ -115,7 +115,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	private PrismSchema connectorSchema;
 	private ResourceSchema resourceSchema;
 
-	private static Trace LOGGER = TraceManager.getTrace(OpenDjUcfTest.class);
+	private static Trace LOGGER = TraceManager.getTrace(TestUcfOpenDj.class);
 
 	@Autowired(required = true)
 	ConnectorFactory connectorFactoryIcfImpl;
@@ -126,7 +126,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 
 	protected static OpenDJController openDJController = new OpenDJController();
 
-	public OpenDjUcfTest() throws JAXBException {
+	public TestUcfOpenDj() throws JAXBException {
 		System.setProperty("midpoint.home", "target/midPointHome/");
 	}
 

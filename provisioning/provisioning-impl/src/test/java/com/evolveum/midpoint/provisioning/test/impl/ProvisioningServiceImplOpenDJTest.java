@@ -261,6 +261,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		assertNotNull("No serialNumber",cachingMetadata.getSerialNumber());
 		
 		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
+		display("Resource schema as stored in discovered resource", DOMUtil.serializeDOMToString(xsdElement));
 		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, prismContext);
 		assertNotNull("No schema after parsing",parsedSchema);
 		

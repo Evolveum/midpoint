@@ -66,6 +66,7 @@ import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -93,7 +94,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 @ContextConfiguration(locations = { 
 		"classpath:application-context-provisioning-test.xml",
 		"classpath:application-context-configuration-test-no-repo.xml" })
-public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
+public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 
 	private static final String FILENAME_RESOURCE_DUMMY = "src/test/resources/object/resource-dummy.xml";
 	private static final String FILENAME_CONNECTOR_DUMMY = "src/test/resources/ucf/connector-dummy.xml";
@@ -106,7 +107,7 @@ public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
 	@Autowired(required = true)
 	ConnectorFactory connectorFactoryIcfImpl;
 	
-	private static Trace LOGGER = TraceManager.getTrace(SimpleUcfTest.class);
+	private static Trace LOGGER = TraceManager.getTrace(TestUcfDummy.class);
 	
 	@BeforeClass
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -194,17 +195,17 @@ public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
 		ProvisioningTestUtil.assertConnectorSchemaSanity(reparsedConnectorSchema, "re-parsed");
 		assertEquals("Unexpected number of definitions in re-parsed schema", 3, reparsedConnectorSchema.getDefinitions().size());		
 	}
-
+	
 	/**
 	 * Test listing connectors. Very simple. Just test that the list is
 	 * non-empty and that there are mandatory values filled in.
 	 * @throws CommunicationException 
 	 */
 	@Test
-	public void test003ListConnectors() throws CommunicationException {
-		displayTestTile("test003ListConnectors");
+	public void test010ListConnectors() throws CommunicationException {
+		displayTestTile("test004ListConnectors");
 		
-		OperationResult result = new OperationResult(SimpleUcfTest.class+".testListConnectors");
+		OperationResult result = new OperationResult(TestUcfDummy.class+".testListConnectors");
 		Set<ConnectorType> listConnectors = manager.listConnectors(null, result);
 
 		System.out.println("---------------------------------------------------------------------");
@@ -225,14 +226,14 @@ public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
 	}
 	
 	@Test
-	public void test004CreateConfiguredConnector() throws FileNotFoundException, JAXBException,
+	public void test020CreateConfiguredConnector() throws FileNotFoundException, JAXBException,
 			ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException, SchemaException, ConfigurationException {
 		displayTestTile("test004CreateConfiguredConnector");
 		
 		ConnectorInstance cc = manager.createConnectorInstance(connectorType, resourceType.getNamespace());
 		assertNotNull("Failed to instantiate connector", cc);
-		OperationResult result = new OperationResult(SimpleUcfTest.class.getName() + ".testCreateConfiguredConnector");
+		OperationResult result = new OperationResult(TestUcfDummy.class.getName() + ".testCreateConfiguredConnector");
 		PrismContainer configContainer = resourceType.getConfiguration().asPrismContainer();
 		display("Configuration container", configContainer);
 		
@@ -244,6 +245,37 @@ public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Connector configuration failed", result);
 		// TODO: assert something
 	}
+	
+	@Test
+	public void test030ResourceSchema() throws ObjectNotFoundException, SchemaException, CommunicationException, GenericFrameworkException, ConfigurationException {
+		displayTestTile("test030ResourceSchema");
+		
+		OperationResult result = new OperationResult(TestUcfDummy.class+".test030ResourceSchema");
+		
+		ConnectorInstance cc = manager.createConnectorInstance(connectorType, resourceType.getNamespace());
+		assertNotNull("Failed to instantiate connector", cc);
+		
+		PrismContainer configContainer = resourceType.getConfiguration().asPrismContainer();
+		display("Configuration container", configContainer);
+		cc.configure(configContainer, result);
+		
+		// WHEN
+		ResourceSchema resourceSchema = cc.getResourceSchema(result);
+		
+		// THEN
+		display("Generated resource schema", resourceSchema);
+		assertEquals("Unexpected number of definitions", 1, resourceSchema.getDefinitions().size());
+
+		
+		Document xsdSchemaDom = resourceSchema.serializeToXsd();
+		assertNotNull("No serialized resource schema", xsdSchemaDom);
+		display("Serialized XSD resource schema", DOMUtil.serializeDOMToString(xsdSchemaDom));
+		
+		// Try to re-parse
+		PrismSchema reparsedResourceSchema = ResourceSchema.parse(DOMUtil.getFirstChildElement(xsdSchemaDom), PrismTestUtil.getPrismContext());
+		assertEquals("Unexpected number of definitions in re-parsed schema", 1, reparsedResourceSchema.getDefinitions().size());		
+	}
+
 
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
 			int maxOccurs) {
