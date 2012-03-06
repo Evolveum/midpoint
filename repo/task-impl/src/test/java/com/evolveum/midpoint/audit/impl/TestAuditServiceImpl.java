@@ -43,6 +43,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
  */
 @ContextConfiguration(locations = {"classpath:application-context-task.xml",
         "classpath:application-context-task-test.xml",
+        "classpath:application-context-repo-cache.xml",
         "classpath:application-context-repository.xml",
         "classpath:application-context-configuration-test.xml"})
 public class TestAuditServiceImpl extends AbstractTestNGSpringContextTests {
