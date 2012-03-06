@@ -44,7 +44,7 @@ import java.util.Set;
 public class User extends O {
 
     private String fullName;
-    private Set<Reference> references;
+    private Set<ObjectReference> references;
     private Set<Assignment> assignments;
 
     @OneToMany(mappedBy = "owner")
@@ -57,7 +57,7 @@ public class User extends O {
     @OneToMany(mappedBy = "owner")
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<Reference> getReferences() {
+    public Set<ObjectReference> getReferences() {
         return references;
     }
 
@@ -73,7 +73,7 @@ public class User extends O {
         this.assignments = assignments;
     }
 
-    public void setReferences(Set<Reference> references) {
+    public void setReferences(Set<ObjectReference> references) {
         this.references = references;
     }
 

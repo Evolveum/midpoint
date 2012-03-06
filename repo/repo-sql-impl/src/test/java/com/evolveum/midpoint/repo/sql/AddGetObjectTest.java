@@ -67,7 +67,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
     public void sample() throws Exception {
         Session session = factory.openSession();
 
-        int cycles = 1;
+        int cycles = 1000;
         long time = System.currentTimeMillis();
         for (int i = 0; i < cycles; i++) {
             if (i % 100 == 0) {
@@ -84,7 +84,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 
             Connector connector = new Connector();
             connector.setSomeName("with reference " + i);
-            Reference ref = new Reference();
+            ObjectReference ref = new ObjectReference();
             ref.setOwner(connector);
             ref.setTarget(connector0);
             ref.setType(new QName("namespace", "connector"));
@@ -108,50 +108,49 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
             a.setOwner(role);
             a.setDescription("a2 description " + i);
 
-            ref = new Reference();
-            ref.setOwner(role);
-            ref.setTarget(connector);
-            ref.setType(new QName("namespace", "connector role ref"));
-            a.setReference(ref);
+            Reference cRef = new Reference();
+            cRef.setType(new QName("namespace", "connector role ref"));
+            a.setReference(cRef);
+            a.setTarget(connector);
             set.add(a);
 
             session.saveOrUpdate(role);
             session.getTransaction().commit();
 //**********************************************
-//            session.beginTransaction();
-//
-//            User otherUser = new User();
-//            otherUser.setFullName("other user " + i);
-//            session.saveOrUpdate(otherUser);
-//            session.getTransaction().commit();
+            session.beginTransaction();
+
+            User otherUser = new User();
+            otherUser.setFullName("other user " + i);
+            session.saveOrUpdate(otherUser);
+            session.getTransaction().commit();
 ////**********************************************
-//            session.beginTransaction();
-//
-//            User user = new User();
-//            user.setFullName("vilkooo " + i);
-//            Set<Reference> references = new HashSet<Reference>();
-//            user.setReferences(references);
-//            ref = new Reference();
-//            ref.setOwner(user);
-//            ref.setTarget(otherUser);
-//            ref.setType(new QName("namespace", "user"));
-//            references.add(ref);
-//
-//            ref = new Reference();
-//            ref.setOwner(user);
-//            ref.setTarget(role);
-//            ref.setType(new QName("namespace", "role"));
-//            references.add(ref);
-//
-//            set = new HashSet<Assignment>();
-//            user.setAssignments(set);
-//            a = new Assignment();
-//            a.setOwner(user);
-//            a.setDescription("a3 user description " + i);
-//            set.add(a);
-//
-//            session.saveOrUpdate(user);
-//            session.getTransaction().commit();
+            session.beginTransaction();
+
+            User user = new User();
+            user.setFullName("vilkooo " + i);
+            Set<ObjectReference> references = new HashSet<ObjectReference>();
+            user.setReferences(references);
+            ref = new ObjectReference();
+            ref.setOwner(user);
+            ref.setTarget(otherUser);
+            ref.setType(new QName("namespace", "user"));
+            references.add(ref);
+
+            ref = new ObjectReference();
+            ref.setOwner(user);
+            ref.setTarget(role);
+            ref.setType(new QName("namespace", "role"));
+            references.add(ref);
+
+            set = new HashSet<Assignment>();
+            user.setAssignments(set);
+            a = new Assignment();
+            a.setOwner(user);
+            a.setDescription("a3 user description " + i);
+            set.add(a);
+
+            session.saveOrUpdate(user);
+            session.getTransaction().commit();
         }
         LOGGER.info("I did {} cycles in {} ms.", cycles, (System.currentTimeMillis() - time));
         session.close();

@@ -39,11 +39,11 @@ import java.util.Collection;
 public class Connector extends O {
 
     private String someName;
-    private Reference connectorHost;
+    private ObjectReference connectorHost;
 
     @OneToOne(optional = true, mappedBy = "owner")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Reference getConnectorHost() {
+    public ObjectReference getConnectorHost() {
         return connectorHost;
     }
 
@@ -51,7 +51,7 @@ public class Connector extends O {
         return someName;
     }
 
-    public void setConnectorHost(Reference connectorHost) {
+    public void setConnectorHost(ObjectReference connectorHost) {
         this.connectorHost = connectorHost;
     }
 

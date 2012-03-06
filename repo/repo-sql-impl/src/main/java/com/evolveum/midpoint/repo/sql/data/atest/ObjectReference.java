@@ -21,34 +21,64 @@
 
 package com.evolveum.midpoint.repo.sql.data.atest;
 
-import org.hibernate.annotations.Columns;
-
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
+import javax.persistence.*;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 
 /**
  * Created by IntelliJ IDEA.
  * User: lazyman
- * Date: 3/3/12
- * Time: 12:23 PM
+ * Date: 3/6/12
+ * Time: 10:57 AM
  * To change this template use File | Settings | File Templates.
  */
-@Embeddable
-public class Reference implements Serializable {
+@Entity
+public class ObjectReference implements Serializable {
 
-    private QName type;
+    private O owner;
+    private Reference reference;
+    private O target;
 
-    @Columns(columns = {
-            @Column(name = "namespaceURI"),
-            @Column(name = "localPart")
-    })
-    public QName getType() {
-        return type;
+    @Id
+    @ManyToOne(fetch = FetchType.LAZY)
+    public O getTarget() {
+        return target;
     }
 
+    @Id
+    @MapsId("oid")
+    @ManyToOne(fetch = FetchType.LAZY)
+    public O getOwner() {
+        return owner;
+    }
+
+    @Embedded
+    public Reference getReference() {
+        if (reference == null) {
+            reference = new Reference();
+        }
+        return reference;
+    }
+
+    public void setOwner(O owner) {
+        this.owner = owner;
+    }
+
+    public void setReference(Reference reference) {
+        this.reference = reference;
+    }
+
+    public void setTarget(O target) {
+        this.target = target;
+    }
+
+    @Transient
+    public QName getType() {
+        return getReference().getType();
+    }
+
+    @Transient
     public void setType(QName type) {
-        this.type = type;
+        getReference().setType(type);
     }
 }

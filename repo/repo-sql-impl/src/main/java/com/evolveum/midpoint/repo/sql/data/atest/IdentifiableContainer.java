@@ -50,7 +50,6 @@ public abstract class IdentifiableContainer implements Serializable {
     @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.ContainerIdGenerator")
-    @Column(nullable = true, updatable = true)
     public Long getId() {
         return id;
     }

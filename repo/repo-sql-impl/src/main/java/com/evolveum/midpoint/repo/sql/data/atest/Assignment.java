@@ -23,10 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.atest;
 
 import org.hibernate.annotations.Cascade;
 
-import javax.persistence.Entity;
-import javax.persistence.OneToOne;
-import javax.persistence.PrimaryKeyJoinColumn;
-import javax.persistence.PrimaryKeyJoinColumns;
+import javax.persistence.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -39,12 +36,21 @@ import javax.persistence.PrimaryKeyJoinColumns;
 public class Assignment extends IdentifiableContainer {
 
     private String description;
+    //reference
     private Reference reference;
+    private O target;
 
-    @OneToOne(optional = true, mappedBy = "assignment")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Embedded
     public Reference getReference() {
+        if (reference == null) {
+            reference = new Reference();
+        }
         return reference;
+    }
+
+    @ManyToOne(optional = true, fetch = FetchType.LAZY)
+    public O getTarget() {
+        return target;
     }
 
     public String getDescription() {
@@ -53,6 +59,10 @@ public class Assignment extends IdentifiableContainer {
 
     public void setReference(Reference reference) {
         this.reference = reference;
+    }
+
+    public void setTarget(O target) {
+        this.target = target;
     }
 
     public void setDescription(String description) {
