@@ -690,9 +690,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("scripts", scripts);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		PrismObject<ObjectType> object = null;
+		PrismObject<T> object = null;
 		try {
-			object = getCacheRepositoryService().getObject(ObjectType.class, oid,
+			object = getCacheRepositoryService().getObject(type, oid,
 					new PropertyReferenceListType(), parentResult);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("**PROVISIONING: Object from repository to delete:\n{}", object.dump());

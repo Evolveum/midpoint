@@ -863,7 +863,8 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 				+ ".searchObjectsTest");
 
 		try {
-			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_SEARCH);
+			AccountShadowType object = parseObjectTypeFromFile(FILENAME_ACCOUNT_SEARCH, AccountShadowType.class); 
+				//unmarshallJaxbFromFile(FILENAME_ACCOUNT_SEARCH);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
@@ -900,4 +901,43 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		}
 	}
 
+	
+	public void testAddObjectObjectAlreadyExist() throws Exception{
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".test010AddObject");
+
+		try {
+			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_NEW);
+
+			System.out.println(SchemaDebugUtil.prettyPrint(object));
+			System.out.println(object.asPrismObject().dump());
+
+			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
+			assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
+			
+			String addedObjectOid2 = provisioningService.addObject(object.asPrismObject(), null, result);
+			assertEquals(ACCOUNT_NEW_OID, addedObjectOid2);
+
+			AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
+					new PropertyReferenceListType(), result).asObjectable();
+			assertEquals("will", accountType.getName());
+
+			AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
+					new PropertyReferenceListType(), result).asObjectable();
+			assertEquals("will", provisioningAccountType.getName());
+		} finally {
+			try {
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
+			} catch (Exception ex) {
+			}
+			try {
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
+			} catch (Exception ex) {
+			}
+			try {
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_NEW_OID, result);
+			} catch (Exception ex) {
+			}
+		}
+	}
 }

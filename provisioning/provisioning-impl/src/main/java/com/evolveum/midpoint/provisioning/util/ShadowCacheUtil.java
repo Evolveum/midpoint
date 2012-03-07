@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.provisioning.util;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -32,9 +33,11 @@ import com.evolveum.midpoint.provisioning.impl.ShadowConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -182,6 +185,40 @@ public class ShadowCacheUtil {
 				ObjectTypeUtil.toShortString(resource),
 				values, activation == null ? "null" : activation.isEnabled()});
 		return activation;
+	}
+	
+	/**
+	 * Make sure that the shadow is UCF-ready. That means that is has ResourceAttributeContainer as <attributes>,
+	 * has definition, etc.
+	 */
+	public static void convertToUcfShadow(PrismObject<ResourceObjectShadowType> shadow, ResourceSchema resourceSchema) throws SchemaException {
+		PrismContainer<?> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		if (attributesContainer instanceof ResourceAttributeContainer) {
+			if (attributesContainer.getDefinition() != null) {
+				// Nothing to do. Everything is OK.
+				return;
+			} else {
+				// TODO: maybe we can apply the definition?
+				throw new SchemaException("No definition for attributes container in "+shadow);
+			}
+		}
+		ObjectClassComplexTypeDefinition objectClassDefinition = determineObjectClassDefinition(shadow, resourceSchema);
+		// We need to convert <attributes> to ResourceAttributeContainer
+		ResourceAttributeContainer convertedContainer = ResourceAttributeContainer.convertFromContainer(attributesContainer,objectClassDefinition);
+		shadow.getValue().replace(attributesContainer, convertedContainer);
+	}
+
+	private static ObjectClassComplexTypeDefinition determineObjectClassDefinition(
+			PrismObject<ResourceObjectShadowType> shadow, ResourceSchema resourceSchema) throws SchemaException {
+		QName objectClassName = shadow.asObjectable().getObjectClass();
+		if (objectClassName == null) {
+			throw new SchemaException("No object class specified in shadow " + shadow);
+		}
+		ObjectClassComplexTypeDefinition objectClassDefinition = resourceSchema.findObjectClassDefinition(objectClassName);
+		if (objectClassDefinition == null) {
+			throw new SchemaException("No definition for object class "+objectClassName+" as specified in shadow " + shadow);
+		}
+		return objectClassDefinition;
 	}
 
 	

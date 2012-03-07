@@ -288,6 +288,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 			// Lazy initialize connector list
 			localConnectorTypes = new HashSet<ConnectorType>();
 
+			
 			// Fetch list of local connectors from ICF
 			List<ConnectorInfo> connectorInfos = getLocalConnectorInfoManager().getConnectorInfos();
 

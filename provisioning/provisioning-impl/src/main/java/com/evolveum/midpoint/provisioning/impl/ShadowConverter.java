@@ -26,6 +26,8 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -36,6 +38,7 @@ import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -49,6 +52,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType.EnableDisable;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -56,6 +61,7 @@ import org.springframework.stereotype.Component;
 import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -101,7 +107,7 @@ public class ShadowConverter {
 		QName objectClass = repoShadow.getObjectClass();
 		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findObjectClassDefinition(objectClass);
 		
-		convertToUcfShadow(repoShadow.asPrismObject(), schema);
+		ShadowCacheUtil.convertToUcfShadow(repoShadow.asPrismObject(), schema);
 
 		if (objectClassDefinition == null) {
 			// Unknown objectclass
@@ -164,7 +170,7 @@ public class ShadowConverter {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Shadow before conversion:\n{}",shadow.dump());
 		}
-		convertToUcfShadow(shadow, resourceSchema);
+		ShadowCacheUtil.convertToUcfShadow(shadow, resourceSchema);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Shadow after conversion:\n{}",shadow.dump());
 		}
@@ -207,39 +213,39 @@ public class ShadowConverter {
 		return shadowType;
 	}
 
-	/**
-	 * Make sure that the shadow is UCF-ready. That means that is has ResourceAttributeContainer as <attributes>,
-	 * has definition, etc.
-	 */
-	private void convertToUcfShadow(PrismObject<ResourceObjectShadowType> shadow, ResourceSchema resourceSchema) throws SchemaException {
-		PrismContainer<?> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
-		if (attributesContainer instanceof ResourceAttributeContainer) {
-			if (attributesContainer.getDefinition() != null) {
-				// Nothing to do. Everything is OK.
-				return;
-			} else {
-				// TODO: maybe we can apply the definition?
-				throw new SchemaException("No definition for attributes container in "+shadow);
-			}
-		}
-		ObjectClassComplexTypeDefinition objectClassDefinition = determineObjectClassDefinition(shadow, resourceSchema);
-		// We need to convert <attributes> to ResourceAttributeContainer
-		ResourceAttributeContainer convertedContainer = ResourceAttributeContainer.convertFromContainer(attributesContainer,objectClassDefinition);
-		shadow.getValue().replace(attributesContainer, convertedContainer);
-	}
-
-	private ObjectClassComplexTypeDefinition determineObjectClassDefinition(
-			PrismObject<ResourceObjectShadowType> shadow, ResourceSchema resourceSchema) throws SchemaException {
-		QName objectClassName = shadow.asObjectable().getObjectClass();
-		if (objectClassName == null) {
-			throw new SchemaException("No object class specified in shadow " + shadow);
-		}
-		ObjectClassComplexTypeDefinition objectClassDefinition = resourceSchema.findObjectClassDefinition(objectClassName);
-		if (objectClassDefinition == null) {
-			throw new SchemaException("No definition for object class "+objectClassName+" as specified in shadow " + shadow);
-		}
-		return objectClassDefinition;
-	}
+//	/**
+//	 * Make sure that the shadow is UCF-ready. That means that is has ResourceAttributeContainer as <attributes>,
+//	 * has definition, etc.
+//	 */
+//	private void convertToUcfShadow(PrismObject<ResourceObjectShadowType> shadow, ResourceSchema resourceSchema) throws SchemaException {
+//		PrismContainer<?> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+//		if (attributesContainer instanceof ResourceAttributeContainer) {
+//			if (attributesContainer.getDefinition() != null) {
+//				// Nothing to do. Everything is OK.
+//				return;
+//			} else {
+//				// TODO: maybe we can apply the definition?
+//				throw new SchemaException("No definition for attributes container in "+shadow);
+//			}
+//		}
+//		ObjectClassComplexTypeDefinition objectClassDefinition = determineObjectClassDefinition(shadow, resourceSchema);
+//		// We need to convert <attributes> to ResourceAttributeContainer
+//		ResourceAttributeContainer convertedContainer = ResourceAttributeContainer.convertFromContainer(attributesContainer,objectClassDefinition);
+//		shadow.getValue().replace(attributesContainer, convertedContainer);
+//	}
+//
+//	private ObjectClassComplexTypeDefinition determineObjectClassDefinition(
+//			PrismObject<ResourceObjectShadowType> shadow, ResourceSchema resourceSchema) throws SchemaException {
+//		QName objectClassName = shadow.asObjectable().getObjectClass();
+//		if (objectClassName == null) {
+//			throw new SchemaException("No object class specified in shadow " + shadow);
+//		}
+//		ObjectClassComplexTypeDefinition objectClassDefinition = resourceSchema.findObjectClassDefinition(objectClassName);
+//		if (objectClassDefinition == null) {
+//			throw new SchemaException("No definition for object class "+objectClassName+" as specified in shadow " + shadow);
+//		}
+//		return objectClassDefinition;
+//	}
 
 	public void deleteShadow(ResourceType resource, ResourceObjectShadowType shadow,
 			Set<Operation> additionalOperations, OperationResult parentResult)
@@ -250,7 +256,10 @@ public class ShadowConverter {
 
 		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findObjectClassDefinition(shadow
 				.getObjectClass());
+		
 
+		ShadowCacheUtil.convertToUcfShadow(shadow.asPrismObject(), schema);
+		
 		LOGGER.trace("Getting object identifiers");
 		Collection<? extends ResourceAttribute> identifiers =  ResourceObjectShadowUtil.getIdentifiers(shadow);
 
@@ -293,6 +302,28 @@ public class ShadowConverter {
 		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, connector, parentResult);
 
 		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findObjectClassDefinition(shadow.getObjectClass());
+		
+		ShadowCacheUtil.convertToUcfShadow(shadow.asPrismObject(), schema);
+		
+		ResourceAttributeContainerDefinition resourceAttributeDefinition = ResourceObjectShadowUtil.getObjectClassDefinition(shadow);;
+		
+		Set<Operation> changes = new HashSet<Operation>();
+		if (shadow instanceof AccountShadowType) {
+
+			// Look for password change
+			PasswordChangeOperation passwordChangeOp = determinePasswordChange(objectChanges, shadow);
+			if (passwordChangeOp != null) {
+				changes.add(passwordChangeOp);
+			}
+			
+			// look for activation change
+			Operation activationOperation = determineActivationChange(objectChanges, resource, resourceAttributeDefinition);
+			if (activationOperation != null) {
+				changes.add(activationOperation);
+			}
+		}
+
+		
 		Collection<? extends ResourceAttribute> identifiers = ResourceObjectShadowUtil.getIdentifiers(shadow); 
 
 		Set<Operation> attributeChanges = getAttributeChanges(objectChanges, operations, objectClassDefinition);
@@ -492,6 +523,63 @@ public class ShadowConverter {
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		return connectorTypeManager.getConfiguredConnectorInstance(resource, parentResult);
 	}
+	
+	private Operation determineActivationChange(Collection<? extends ItemDelta> objectChange, ResourceType resource,
+			ResourceAttributeContainerDefinition objectClassDefinition) throws SchemaException {
+		
+		PropertyDelta<Boolean> enabledPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
+				new PropertyPath(ResourceObjectShadowType.F_ACTIVATION, ActivationType.F_ENABLED));
+		if (enabledPropertyDelta == null) {
+			return null;
+		}
+		Boolean enabled = enabledPropertyDelta.getPropertyNew().getRealValue();
+		LOGGER.trace("Find activation change to: {}", enabled);
+
+		if (enabled != null) {
+
+			LOGGER.trace("enabled not null.");
+			if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
+				// if resource cannot do activation, resource should
+				// have specified policies to do that
+				PropertyModificationOperation activationAttribute = convertToActivationAttribute(resource,
+						enabled, objectClassDefinition);
+				// changes.add(activationAttribute);
+				return activationAttribute;
+			} else {
+				// Navive activation, nothing special to do
+				return new PropertyModificationOperation(enabledPropertyDelta);
+			}
+
+		}
+		return null;
+	}
+
+	private PasswordChangeOperation determinePasswordChange(Collection<? extends ItemDelta> objectChange,
+			ResourceObjectShadowType objectType) throws SchemaException {
+		// Look for password change
+		
+		PropertyDelta<PasswordType> passwordPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
+				new PropertyPath(AccountShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD));
+		if (passwordPropertyDelta == null) {
+			return null;
+		}
+		PasswordType newPasswordStructure = passwordPropertyDelta.getPropertyNew().getRealValue();
+		
+		PasswordChangeOperation passwordChangeOp = null;
+		if (newPasswordStructure != null) {
+			ProtectedStringType newPasswordPS = newPasswordStructure.getProtectedString();
+			if (MiscSchemaUtil.isNullOrEmpty(newPasswordPS)) {
+				throw new IllegalArgumentException(
+						"ProtectedString is empty in an attempt to change password of "
+								+ ObjectTypeUtil.toShortString(objectType));
+			}
+			passwordChangeOp = new PasswordChangeOperation(newPasswordPS);
+			// TODO: other things from the structure
+			// changes.add(passwordChangeOp);
+		}
+		return passwordChangeOp;
+	}
+
 
 
 	private Set<Operation> getAttributeChanges(Collection<? extends ItemDelta> objectChange, Set<Operation> changes,
@@ -509,4 +597,61 @@ public class ShadowConverter {
 		}
 		return changes;
 	}
+	
+	private PropertyModificationOperation convertToActivationAttribute(ResourceType resource, Boolean enabled, 
+			ResourceAttributeContainerDefinition objectClassDefinition) throws SchemaException {
+		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
+				ActivationCapabilityType.class);
+		if (activationCapability == null) {
+			throw new SchemaException("Resource " + ObjectTypeUtil.toShortString(resource)
+					+ " does not have native or simulated activation capability");
+		}
+		
+		EnableDisable enableDisable = activationCapability.getEnableDisable();
+		if (enableDisable == null) {
+			throw new SchemaException("Resource " + ObjectTypeUtil.toShortString(resource)
+					+ " does not have native or simulated activation/enableDisable capability");
+		}
+
+		QName enableAttributeName = enableDisable.getAttribute();
+		if (enableAttributeName == null) {
+			throw new SchemaException(
+					"Resource " + ObjectTypeUtil.toShortString(resource)
+							+ " does not have attribute specification for simulated activation/enableDisable capability");
+		}
+		
+		ResourceAttributeDefinition enableAttributeDefinition = objectClassDefinition.findAttributeDefinition(enableAttributeName);
+		if (enableAttributeDefinition == null) {
+			throw new SchemaException(
+					"Resource " + ObjectTypeUtil.toShortString(resource)
+							+ "  attribute for simulated activation/enableDisable capability" + enableAttributeName +
+							" in not present in the schema for objeclass " + objectClassDefinition);
+		}
+		
+		PropertyDelta enableAttributeDelta 
+			= new PropertyDelta(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, enableAttributeName),
+					enableAttributeDefinition);
+		
+		List<String> enableValues = enableDisable.getEnableValue();
+
+		Iterator<String> i = enableValues.iterator();
+		String enableValue = i.next();
+		if ("".equals(enableValue)) {
+			if (enableValues.size() < 2) {
+				enableValue = "false";
+			} else {
+				enableValue = i.next();
+			}
+		}
+		String disableValue = enableDisable.getDisableValue().iterator().next();
+		if (enabled) {
+			enableAttributeDelta.setValueToReplace(new PrismPropertyValue(enableValue));
+		} else {
+			enableAttributeDelta.setValueToReplace(new PrismPropertyValue(disableValue));
+		}
+		
+		PropertyModificationOperation attributeChange = new PropertyModificationOperation(enableAttributeDelta);
+		return attributeChange;
+	}
+
 }

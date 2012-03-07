@@ -391,7 +391,7 @@ public class ShadowCache {
 
 			}
 			
-			ResourceAttributeContainerDefinition objectClassDefinition = ResourceObjectShadowUtil.getObjectClassDefinition(shadow);;
+//			ResourceAttributeContainerDefinition objectClassDefinition = ResourceObjectShadowUtil.getObjectClassDefinition(shadow);;
 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Modifying resource with oid {}, object:\n{}", resource.getOid(), 
@@ -399,20 +399,20 @@ public class ShadowCache {
 			}
 
 			Set<Operation> changes = new HashSet<Operation>();
-			if (shadow instanceof AccountShadowType) {
-
-				// Look for password change
-				PasswordChangeOperation passwordChangeOp = determinePasswordChange(modifications, shadow);
-				if (passwordChangeOp != null) {
-					changes.add(passwordChangeOp);
-				}
-				
-				// look for activation change
-				Operation activationOperation = determineActivationChange(modifications, resource, objectClassDefinition);
-				if (activationOperation != null) {
-					changes.add(activationOperation);
-				}
-			}
+//			if (shadow instanceof AccountShadowType) {
+//
+//				// Look for password change
+//				PasswordChangeOperation passwordChangeOp = determinePasswordChange(modifications, shadow);
+//				if (passwordChangeOp != null) {
+//					changes.add(passwordChangeOp);
+//				}
+//				
+//				// look for activation change
+//				Operation activationOperation = determineActivationChange(modifications, resource, objectClassDefinition);
+//				if (activationOperation != null) {
+//					changes.add(activationOperation);
+//				}
+//			}
 
 			addExecuteScriptOperation(changes, OperationTypeType.MODIFY, scripts, parentResult);
 
@@ -599,117 +599,117 @@ public class ShadowCache {
 		}
 	}
 
-	private PropertyModificationOperation convertToActivationAttribute(ResourceType resource, Boolean enabled, 
-			ResourceAttributeContainerDefinition objectClassDefinition) throws SchemaException {
-		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
-				ActivationCapabilityType.class);
-		if (activationCapability == null) {
-			throw new SchemaException("Resource " + ObjectTypeUtil.toShortString(resource)
-					+ " does not have native or simulated activation capability");
-		}
-		
-		EnableDisable enableDisable = activationCapability.getEnableDisable();
-		if (enableDisable == null) {
-			throw new SchemaException("Resource " + ObjectTypeUtil.toShortString(resource)
-					+ " does not have native or simulated activation/enableDisable capability");
-		}
+//	private PropertyModificationOperation convertToActivationAttribute(ResourceType resource, Boolean enabled, 
+//			ResourceAttributeContainerDefinition objectClassDefinition) throws SchemaException {
+//		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
+//				ActivationCapabilityType.class);
+//		if (activationCapability == null) {
+//			throw new SchemaException("Resource " + ObjectTypeUtil.toShortString(resource)
+//					+ " does not have native or simulated activation capability");
+//		}
+//		
+//		EnableDisable enableDisable = activationCapability.getEnableDisable();
+//		if (enableDisable == null) {
+//			throw new SchemaException("Resource " + ObjectTypeUtil.toShortString(resource)
+//					+ " does not have native or simulated activation/enableDisable capability");
+//		}
+//
+//		QName enableAttributeName = enableDisable.getAttribute();
+//		if (enableAttributeName == null) {
+//			throw new SchemaException(
+//					"Resource " + ObjectTypeUtil.toShortString(resource)
+//							+ " does not have attribute specification for simulated activation/enableDisable capability");
+//		}
+//		
+//		ResourceAttributeDefinition enableAttributeDefinition = objectClassDefinition.findAttributeDefinition(enableAttributeName);
+//		if (enableAttributeDefinition == null) {
+//			throw new SchemaException(
+//					"Resource " + ObjectTypeUtil.toShortString(resource)
+//							+ "  attribute for simulated activation/enableDisable capability" + enableAttributeName +
+//							" in not present in the schema for objeclass " + objectClassDefinition);
+//		}
+//		
+//		PropertyDelta enableAttributeDelta 
+//			= new PropertyDelta(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, enableAttributeName),
+//					enableAttributeDefinition);
+//		
+//		List<String> enableValues = enableDisable.getEnableValue();
+//
+//		Iterator<String> i = enableValues.iterator();
+//		String enableValue = i.next();
+//		if ("".equals(enableValue)) {
+//			if (enableValues.size() < 2) {
+//				enableValue = "false";
+//			} else {
+//				enableValue = i.next();
+//			}
+//		}
+//		String disableValue = enableDisable.getDisableValue().iterator().next();
+//		if (enabled) {
+//			enableAttributeDelta.setValueToReplace(new PrismPropertyValue(enableValue));
+//		} else {
+//			enableAttributeDelta.setValueToReplace(new PrismPropertyValue(disableValue));
+//		}
+//		
+//		PropertyModificationOperation attributeChange = new PropertyModificationOperation(enableAttributeDelta);
+//		return attributeChange;
+//	}
 
-		QName enableAttributeName = enableDisable.getAttribute();
-		if (enableAttributeName == null) {
-			throw new SchemaException(
-					"Resource " + ObjectTypeUtil.toShortString(resource)
-							+ " does not have attribute specification for simulated activation/enableDisable capability");
-		}
-		
-		ResourceAttributeDefinition enableAttributeDefinition = objectClassDefinition.findAttributeDefinition(enableAttributeName);
-		if (enableAttributeDefinition == null) {
-			throw new SchemaException(
-					"Resource " + ObjectTypeUtil.toShortString(resource)
-							+ "  attribute for simulated activation/enableDisable capability" + enableAttributeName +
-							" in not present in the schema for objeclass " + objectClassDefinition);
-		}
-		
-		PropertyDelta enableAttributeDelta 
-			= new PropertyDelta(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, enableAttributeName),
-					enableAttributeDefinition);
-		
-		List<String> enableValues = enableDisable.getEnableValue();
-
-		Iterator<String> i = enableValues.iterator();
-		String enableValue = i.next();
-		if ("".equals(enableValue)) {
-			if (enableValues.size() < 2) {
-				enableValue = "false";
-			} else {
-				enableValue = i.next();
-			}
-		}
-		String disableValue = enableDisable.getDisableValue().iterator().next();
-		if (enabled) {
-			enableAttributeDelta.setValueToReplace(new PrismPropertyValue(enableValue));
-		} else {
-			enableAttributeDelta.setValueToReplace(new PrismPropertyValue(disableValue));
-		}
-		
-		PropertyModificationOperation attributeChange = new PropertyModificationOperation(enableAttributeDelta);
-		return attributeChange;
-	}
-
-	private Operation determineActivationChange(Collection<? extends ItemDelta> objectChange, ResourceType resource,
-			ResourceAttributeContainerDefinition objectClassDefinition) throws SchemaException {
-		
-		PropertyDelta<Boolean> enabledPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
-				new PropertyPath(ResourceObjectShadowType.F_ACTIVATION, ActivationType.F_ENABLED));
-		if (enabledPropertyDelta == null) {
-			return null;
-		}
-		Boolean enabled = enabledPropertyDelta.getPropertyNew().getRealValue();
-		LOGGER.trace("Find activation change to: {}", enabled);
-
-		if (enabled != null) {
-
-			LOGGER.trace("enabled not null.");
-			if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
-				// if resource cannot do activation, resource should
-				// have specified policies to do that
-				PropertyModificationOperation activationAttribute = convertToActivationAttribute(resource,
-						enabled, objectClassDefinition);
-				// changes.add(activationAttribute);
-				return activationAttribute;
-			} else {
-				// Navive activation, nothing special to do
-				return new PropertyModificationOperation(enabledPropertyDelta);
-			}
-
-		}
-		return null;
-	}
-
-	private PasswordChangeOperation determinePasswordChange(Collection<? extends ItemDelta> objectChange,
-			ResourceObjectShadowType objectType) throws SchemaException {
-		// Look for password change
-		
-		PropertyDelta<PasswordType> passwordPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
-				new PropertyPath(AccountShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD));
-		if (passwordPropertyDelta == null) {
-			return null;
-		}
-		PasswordType newPasswordStructure = passwordPropertyDelta.getPropertyNew().getRealValue();
-		
-		PasswordChangeOperation passwordChangeOp = null;
-		if (newPasswordStructure != null) {
-			ProtectedStringType newPasswordPS = newPasswordStructure.getProtectedString();
-			if (MiscSchemaUtil.isNullOrEmpty(newPasswordPS)) {
-				throw new IllegalArgumentException(
-						"ProtectedString is empty in an attempt to change password of "
-								+ ObjectTypeUtil.toShortString(objectType));
-			}
-			passwordChangeOp = new PasswordChangeOperation(newPasswordPS);
-			// TODO: other things from the structure
-			// changes.add(passwordChangeOp);
-		}
-		return passwordChangeOp;
-	}
+//	private Operation determineActivationChange(Collection<? extends ItemDelta> objectChange, ResourceType resource,
+//			ResourceAttributeContainerDefinition objectClassDefinition) throws SchemaException {
+//		
+//		PropertyDelta<Boolean> enabledPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
+//				new PropertyPath(ResourceObjectShadowType.F_ACTIVATION, ActivationType.F_ENABLED));
+//		if (enabledPropertyDelta == null) {
+//			return null;
+//		}
+//		Boolean enabled = enabledPropertyDelta.getPropertyNew().getRealValue();
+//		LOGGER.trace("Find activation change to: {}", enabled);
+//
+//		if (enabled != null) {
+//
+//			LOGGER.trace("enabled not null.");
+//			if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
+//				// if resource cannot do activation, resource should
+//				// have specified policies to do that
+//				PropertyModificationOperation activationAttribute = convertToActivationAttribute(resource,
+//						enabled, objectClassDefinition);
+//				// changes.add(activationAttribute);
+//				return activationAttribute;
+//			} else {
+//				// Navive activation, nothing special to do
+//				return new PropertyModificationOperation(enabledPropertyDelta);
+//			}
+//
+//		}
+//		return null;
+//	}
+//
+//	private PasswordChangeOperation determinePasswordChange(Collection<? extends ItemDelta> objectChange,
+//			ResourceObjectShadowType objectType) throws SchemaException {
+//		// Look for password change
+//		
+//		PropertyDelta<PasswordType> passwordPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
+//				new PropertyPath(AccountShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD));
+//		if (passwordPropertyDelta == null) {
+//			return null;
+//		}
+//		PasswordType newPasswordStructure = passwordPropertyDelta.getPropertyNew().getRealValue();
+//		
+//		PasswordChangeOperation passwordChangeOp = null;
+//		if (newPasswordStructure != null) {
+//			ProtectedStringType newPasswordPS = newPasswordStructure.getProtectedString();
+//			if (MiscSchemaUtil.isNullOrEmpty(newPasswordPS)) {
+//				throw new IllegalArgumentException(
+//						"ProtectedString is empty in an attempt to change password of "
+//								+ ObjectTypeUtil.toShortString(objectType));
+//			}
+//			passwordChangeOp = new PasswordChangeOperation(newPasswordPS);
+//			// TODO: other things from the structure
+//			// changes.add(passwordChangeOp);
+//		}
+//		return passwordChangeOp;
+//	}
 
 	private ResourceObjectShadowType findOrCreateShadowFromChange(ResourceType resource, Change change,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
