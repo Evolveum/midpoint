@@ -24,8 +24,8 @@ package com.evolveum.midpoint.web.controller.account;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
-import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -637,10 +637,10 @@ public class UserDetailsController implements Serializable {
                         PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
                         Document document = DOMUtil.getDocument();
                         element = jaxbProcessor.marshalObjectToDom(protectedString, definition.getElementName(), document);
-						element.setPrefix(MidPointNamespacePrefixMapper.getPreferredPrefix(namespace));
+						element.setPrefix(GlobalDynamicNamespacePrefixMapper.getPreferredPrefix(namespace));
 					} else {
 						element = doc.createElementNS(namespace, name);
-						element.setPrefix(MidPointNamespacePrefixMapper.getPreferredPrefix(namespace));
+						element.setPrefix(GlobalDynamicNamespacePrefixMapper.getPreferredPrefix(namespace));
 						element.setTextContent(object.toString());
 					}
 					attrList.add(element);

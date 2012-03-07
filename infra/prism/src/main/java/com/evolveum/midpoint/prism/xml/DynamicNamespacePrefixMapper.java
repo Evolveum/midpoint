@@ -21,6 +21,8 @@ package com.evolveum.midpoint.prism.xml;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.Dumpable;
+
 /**
  * Maps namespaces to preferred prefixes. Should be used through the code to
  * avoid generation of prefixes.
@@ -31,7 +33,7 @@ import javax.xml.namespace.QName;
  * @author Radovan Semancik
  * 
  */
-public interface DynamicNamespacePrefixMapper {
+public interface DynamicNamespacePrefixMapper extends Dumpable {
 	
 	public void registerPrefix(String namespace, String prefix);
 	

@@ -21,43 +21,29 @@
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
 
-<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-1"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-1"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             elementFormDefault="qualified">
 
     <xsd:annotation>
         <xsd:documentation>
-            Prism annotations.
+            MidPoint annotations intended for resource schemas.
+            
+            Usual prefix: ra
 
             TODO
         </xsd:documentation>
     </xsd:annotation>
 
-    <xsd:element name="container">
+    <xsd:element name="account">
         <xsd:annotation>
             <xsd:documentation>
-                This is XSD annotation. It marks XSD type that is a property
-                container.
-
-                Every first-level element in a property container is either a
-                property or another property container.
+                TODO
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
 
-    <!-- REFACTOR THIS, TAKE PROPERTY CONTAINER ANNOTATION INTO ACCOUNT -->
-    <xsd:element name="object">
-        <xsd:annotation>
-            <xsd:documentation>
-                This is XSD annotation. It marks XSD type that is a midpoint object
-                property container.
-
-                Every first-level element in a property container is either a
-                property or another property container.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
 
 </xsd:schema>
 

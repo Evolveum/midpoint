@@ -39,6 +39,7 @@ import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -56,7 +57,9 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -82,6 +85,32 @@ public class TestSchemaSanity {
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
 	
+	@Test
+	public void testPrefixMappings() {
+		System.out.println("===[ testPrefixMappings ]===");
+
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		assertNotNull("No prism context", prismContext);
+		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
+		assertNotNull("No schema registry in context", schemaRegistry);
+		DynamicNamespacePrefixMapper prefixMapper = schemaRegistry.getNamespacePrefixMapper();
+		assertNotNull("No prefix mapper in context", prefixMapper);
+		
+		System.out.println("Prefix mapper:");
+		System.out.println(prefixMapper.dump());
+		// WHEN, THEN
+		assertMapping(prefixMapper, PrismConstants.NS_ANNOTATION, PrismConstants.PREFIX_NS_ANNOTATION);
+		assertMapping(prefixMapper, SchemaConstants.NS_COMMON, "c");
+		assertMapping(prefixMapper, MidPointConstants.NS_RA, MidPointConstants.PREFIX_NS_RA);
+		assertMapping(prefixMapper, SchemaTestConstants.NS_ICFC, "icfc");
+		assertMapping(prefixMapper, SchemaTestConstants.NS_ICFS, "icfs");
+	}
+	
+	private void assertMapping(DynamicNamespacePrefixMapper prefixMapper, String namespace, String prefix) {
+		assertEquals("Wrong prefix mapping for namespace "+namespace, prefix, prefixMapper.getPrefix(namespace));
+	}
+
 	@Test
 	public void testCommonSchema() {
 		System.out.println("===[ testCommonSchema ]===");

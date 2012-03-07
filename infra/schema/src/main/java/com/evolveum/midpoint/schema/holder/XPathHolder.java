@@ -44,8 +44,8 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PropertyPathSegment;
+import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -361,7 +361,7 @@ public class XPathHolder {
 
 	public Element toElement(String elementNamespace, String localElementName, Document document) {
 		Element e = document.createElementNS(elementNamespace, localElementName);
-		e.setPrefix(MidPointNamespacePrefixMapper.getPreferredPrefix(elementNamespace));
+		e.setPrefix(GlobalDynamicNamespacePrefixMapper.getPreferredPrefix(elementNamespace));
 		e.setTextContent(getXPath());
 		Map<String, String> namespaceMap = getNamespaceMap();
 		if (namespaceMap != null) {

@@ -32,12 +32,9 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismContextFactory;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
-import com.evolveum.midpoint.schema.namespace.PrefixMapper;
 import com.evolveum.midpoint.schema.processor.MidPointSchemaDefinitionFactory;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 
 /**
  * @author semancik
@@ -81,6 +78,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/annotation-1.xsd", "a");
 		
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/resource-schema-1.xsd", "r");
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/annotation-1.xsd", "ra");
 		
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/capabilities-1.xsd", "cap",
 				com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ObjectFactory.class.getPackage());
@@ -92,6 +90,10 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 				com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_1.ObjectFactory.class.getPackage());
 		
 		schemaRegistry.registerSchemaResource("xml/ns/standard/XMLSchema.xsd", "xsd");
+		schemaRegistry.registerSchemaResource("xml/ns/standard/xmldsig-core-schema.xsd", "ds");
+		schemaRegistry.registerSchemaResource("xml/ns/standard/xenc-schema.xsd", "enc");
+		
+		schemaRegistry.getNamespacePrefixMapper().registerPrefix(W3C_XML_SCHEMA_INSTANCE_NS_URI, "xsi");
 	}
 	
 //	private NamespacePrefixMapper createPrefixMapper() {

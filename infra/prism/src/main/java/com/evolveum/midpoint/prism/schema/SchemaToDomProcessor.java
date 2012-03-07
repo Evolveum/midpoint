@@ -241,24 +241,8 @@ public class SchemaToDomProcessor {
 		Element appinfo = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "appinfo"));
 		annotation.appendChild(appinfo);
 
-		// attributeDisplayName
-		if (!StringUtils.isEmpty(definition.getDisplayName())) {
-			addAnnotation(A_DISPLAY_NAME, definition.getDisplayName(), appinfo);
-		}
-
-		// help
-		if (!StringUtils.isEmpty(definition.getHelp())) {
-			addAnnotation(A_HELP, definition.getHelp(),appinfo);
-		}
-
-//		if (definition instanceof ResourceObjectAttributeDefinition) {
-//			ResourceObjectAttributeDefinition attrDefinition = (ResourceObjectAttributeDefinition) definition;
-//			// nativeAttributeName
-//			if (!StringUtils.isEmpty(attrDefinition.getNativeAttributeName())) {
-//				addAnnotation(A_NATIVE_ATTRIBUTE_NAME, attrDefinition.getNativeAttributeName(), appinfo);
-//			}
-//		}
-		
+		addCommonDefinitionAnnotations(definition, appinfo);
+				
 		if (definition.isIgnored()) {
 			addAnnotation(A_IGNORE, "true", appinfo);
 		}
@@ -469,6 +453,8 @@ public class SchemaToDomProcessor {
 			addAnnotation(A_PROPERTY_CONTAINER, definition.getDisplayName(), appinfo);
 		}
 		
+		addCommonDefinitionAnnotations(definition, appinfo);
+		
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
 		definitionFactory.addExtraComplexTypeAnnotations(definition, appinfo, this);
 		
@@ -480,73 +466,15 @@ public class SchemaToDomProcessor {
 		return complexType;
 	}
 	
-//	/**
-//	 * Adds XSD annotations to the XSD complexType defintion. The annotations will be based on the provided ResourceObjectDefinition.
-//	 * @param parent element under which the definition will be added (inserted as the first sub-element)
-//	 * @return created annotation XSD element
-//	 */
-//	private Element addResourceObjectAnnotations(ResourceObjectDefinition definition, Element parent) {
-//		// The annotation element can already exist. If it does, use the existing one instead of creating it.
-//		Element annotation = null;
-//		Element appinfo = null;
-//		NodeList annotations = parent.getElementsByTagNameNS(W3C_XML_SCHEMA_NS_URI, "annotation");
-//		if (annotations.getLength()>0) {
-//			// TODO: more checks
-//			annotation = (Element) annotations.item(0);
-//			appinfo = (Element) annotation.getElementsByTagNameNS(W3C_XML_SCHEMA_NS_URI, "appinfo").item(0);
-//		} else {
-//			annotation = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "annotation"));
-//			parent.insertBefore(annotation, parent.getFirstChild());
-//			appinfo = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "appinfo"));
-//			annotation.appendChild(appinfo);
-//		}
-//
-//		addAnnotation(A_RESOURCE_OBJECT, null, appinfo);
-//		
-//		// displayName, identifier, secondaryIdentifier
-//		for (ResourceObjectAttributeDefinition identifier : definition.getIdentifiers()) {
-//			addRefAnnotation(A_IDENTIFIER, identifier.getName(), appinfo);
-//		}
-//		for (ResourceObjectAttributeDefinition identifier : definition.getSecondaryIdentifiers()) {
-//			addRefAnnotation(A_SECONDARY_IDENTIFIER,identifier.getName(),appinfo);
-//		}
-//		if (definition.getDisplayNameAttribute() != null) {
-//			addRefAnnotation(A_DISPLAY_NAME, definition.getDisplayNameAttribute().getName(), appinfo);
-//		}
-//		if (definition.getDescriptionAttribute() != null) {
-//			addRefAnnotation(A_DESCRIPTION_ATTRIBUTE, definition.getDescriptionAttribute().getName(), appinfo);
-//		}
-//		if (definition.getNamingAttribute() != null) {
-//			addRefAnnotation(A_NAMING_ATTRIBUTE, definition.getNamingAttribute().getName(), appinfo);
-//		}
-//		// TODO: what to do with native object class, composite
-//		// // nativeObjectClass
-//		if (!StringUtils.isEmpty(definition.getNativeObjectClass())) {
-//			addAnnotation(A_NATIVE_OBJECT_CLASS, definition.getNativeObjectClass(), appinfo);
-//		}
-//		
-//		if (definition.isIgnored()) {
-//			addAnnotation(A_IGNORE, "true", appinfo);
-//		}
-//
-//		// container
-//		// appinfo.appendChild(createAnnotation(A_CONTAINER, null, document));
-//
-//		// accountType
-//		if (definition.isAccountType()) {
-//			Element accountTypeAnnotation = addAnnotation(A_ACCOUNT_TYPE, null,appinfo);
-//			if (definition.isDefaultAccountType()) {
-//				setAttribute(accountTypeAnnotation, A_ATTR_DEFAULT, "true");
-//			}
-//		}
-//
-//		if (!appinfo.hasChildNodes()) {
-//			// Remove unneeded empty annotation
-//			parent.removeChild(annotation);
-//		}
-//
-//		return annotation;
-//	}
+	private void addCommonDefinitionAnnotations(Definition definition, Element appinfoElement) {
+		if (definition.getDisplayName() != null) {
+			addAnnotation(A_DISPLAY_NAME, definition.getDisplayName(), appinfoElement);
+		}
+		
+		if (definition.getHelp() != null) {
+			addAnnotation(A_HELP, definition.getDisplayName(), appinfoElement);
+		}
+	}
 	
 	/**
 	 * Add generic annotation element.
@@ -648,6 +576,9 @@ public class SchemaToDomProcessor {
 		rootXsdElement = document.getDocumentElement();
 		setAttribute(rootXsdElement, "targetNamespace", getNamespace());
 		setAttribute(rootXsdElement, "elementFormDefault", "qualified");
+		
+		DOMUtil.setNamespaceDeclaration(rootXsdElement, "tns", getNamespace());
+		
 		if (attributeQualified) {
 			setAttribute(rootXsdElement, "attributeFormDefault", "qualified");
 		}

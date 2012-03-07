@@ -26,7 +26,6 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -87,7 +86,6 @@ public class TestAssignment extends AbstractTestNGSpringContextTests {
     @SuppressWarnings("unchecked")
     @Test
     public void simpleRoleAssignment() throws Exception {
-        MidPointNamespacePrefixMapper.initialize();
 
         ModelTUtil.mockGetSystemConfiguration(repository, new File(
                 TEST_FOLDER_COMMON, "system-configuration.xml"));
@@ -146,7 +144,6 @@ public class TestAssignment extends AbstractTestNGSpringContextTests {
     @Test(enabled = false)
     public void accountAssignment() throws Exception {
         try {
-            MidPointNamespacePrefixMapper.initialize();
 
             ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER_COMMON,
                     "system-configuration.xml"));

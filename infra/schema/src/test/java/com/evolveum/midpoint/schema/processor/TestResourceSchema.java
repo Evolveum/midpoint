@@ -31,8 +31,12 @@ import java.io.IOException;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
@@ -44,6 +48,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -129,24 +134,8 @@ public class TestResourceSchema {
 	public void testResourceSchemaRoundTrip() throws SchemaException, JAXBException {
 		System.out.println("\n===[ testResourceSchemaRoundTrip ]=====");
 		// GIVEN
-		ResourceSchema schema = new ResourceSchema(SCHEMA_NAMESPACE, PrismTestUtil.getPrismContext());
+		ResourceSchema schema = createResourceSchema();
 		
-		// Property container
-		ObjectClassComplexTypeDefinition containerDefinition = schema.createObjectClassDefinition("AccountObjectClass");
-		containerDefinition.setAccountType(true);
-		containerDefinition.setDefaultAccountType(true);
-		containerDefinition.setNativeObjectClass("ACCOUNT");
-		// ... in it ordinary attribute - an identifier
-		ResourceAttributeDefinition xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
-		containerDefinition.getIdentifiers().add(xloginDef);
-		xloginDef.setNativeAttributeName("LOGIN");
-		containerDefinition.setDisplayNameAttribute(xloginDef.getName());
-		// ... and local property with a type from another schema
-		ResourceAttributeDefinition xpasswdDef = containerDefinition.createAttributeDefinition("password", SchemaConstants.R_PROTECTED_STRING_TYPE);
-		xpasswdDef.setNativeAttributeName("PASSWORD");
-		// ... property reference
-		containerDefinition.createAttributeDefinition(SchemaConstants.I_CREDENTIALS, SchemaConstants.I_CREDENTIALS_TYPE);
-
 		System.out.println("Resource schema before serializing to XSD: ");
 		System.out.println(schema.dump());
 		System.out.println();
@@ -197,7 +186,105 @@ public class TestResourceSchema {
 		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
 		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
 	}
+	
+	@Test
+	public void testResourceSchemaSerializationDom() throws SchemaException, JAXBException {
+		System.out.println("\n===[ testResourceSchemaSerializationDom ]=====");
+		// GIVEN
+		ResourceSchema schema = createResourceSchema();
+		
+		// WHEN
+		Document xsdDocument = schema.serializeToXsd();
+		Element xsdElement = DOMUtil.getFirstChildElement(xsdDocument);
+		
+		System.out.println("Serialized XSD schema");
+		System.out.println(DOMUtil.serializeDOMToString(xsdElement));
+		
+		assertDomSchema(xsdElement);
+	}
 
+	@Test
+	public void testResourceSchemaSerializationInResource() throws SchemaException, JAXBException {
+		System.out.println("\n===[ testResourceSchemaSerializationInResource ]=====");
+		// GIVEN
+		ResourceSchema schema = createResourceSchema();
+		
+		// WHEN
+		Document xsdDocument = schema.serializeToXsd();
+		Element xsdElement = DOMUtil.getFirstChildElement(xsdDocument);
+		
+		PrismObject<ResourceType> resource = wrapInResource(xsdElement);
+		String resourceXmlString = PrismTestUtil.getPrismContext().getPrismDomProcessor().serializeObjectToString(resource);
+		
+		System.out.println("Serialized resource");
+		System.out.println(resourceXmlString);
+		
+		PrismObject<ResourceType> reparsedResource = PrismTestUtil.getPrismContext().parseObject(resourceXmlString);
+		XmlSchemaType reparsedSchemaType = reparsedResource.asObjectable().getSchema();
+		Element reparsedXsdElement = ObjectTypeUtil.findXsdElement(reparsedSchemaType);
+		
+		System.out.println("Reparsed XSD schema");
+		System.out.println(DOMUtil.serializeDOMToString(reparsedXsdElement));
+		
+		assertDomSchema(reparsedXsdElement);
+	}
+
+	
+	private PrismObject<ResourceType> wrapInResource(Element xsdElement) {
+		PrismObjectDefinition<ResourceType> resourceDefinition =
+			PrismTestUtil.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
+		PrismObject<ResourceType> resource = resourceDefinition.instantiate();
+		XmlSchemaType schemaType = ObjectTypeUtil.createXmlSchemaType(xsdElement);
+		resource.asObjectable().setSchema(schemaType);
+		return resource;
+	}
+
+	private void assertDomSchema(Element xsdElement) {
+		assertPrefix("xsd", xsdElement);
+		Element displayNameAnnotationElement = DOMUtil.findElementRecursive(xsdElement, PrismConstants.A_DISPLAY_NAME);
+		assertPrefix(PrismConstants.PREFIX_NS_ANNOTATION, displayNameAnnotationElement);
+		Element accountAnnotationElement = DOMUtil.findElementRecursive(xsdElement, MidPointConstants.RA_ACCOUNT);
+		assertPrefix("ra", accountAnnotationElement);
+		Element identifierAnnotationElement = DOMUtil.findElementRecursive(xsdElement, MidPointConstants.RA_IDENTIFIER);
+		assertPrefix("ra", identifierAnnotationElement);
+		QName identifier = DOMUtil.getQNameValue(identifierAnnotationElement);
+		assertEquals("Wrong <a:identifier> value prefix", "icfs", identifier.getPrefix());
+		Element dnaAnnotationElement = DOMUtil.findElementRecursive(xsdElement, MidPointConstants.RA_DISPLAY_NAME_ATTRIBUTE);
+		assertPrefix("ra", dnaAnnotationElement);
+		QName dna = DOMUtil.getQNameValue(dnaAnnotationElement);
+		assertEquals("Wrong <a:identifier> value prefix", "tns", dna.getPrefix());
+		
+		assertEquals("Wrong 'tns' prefix declaration", SCHEMA_NAMESPACE, xsdElement.lookupNamespaceURI("tns"));
+	}
+
+	private ResourceSchema createResourceSchema() {
+		ResourceSchema schema = new ResourceSchema(SCHEMA_NAMESPACE, PrismTestUtil.getPrismContext());
+		
+		// Property container
+		ObjectClassComplexTypeDefinition containerDefinition = schema.createObjectClassDefinition("AccountObjectClass");
+		containerDefinition.setAccountType(true);
+		containerDefinition.setDefaultAccountType(true);
+		containerDefinition.setDisplayName("The Account");
+		containerDefinition.setNativeObjectClass("ACCOUNT");
+		// ... in it ordinary attribute - an identifier
+		ResourceAttributeDefinition icfUidDef = containerDefinition.createAttributeDefinition(
+				SchemaTestConstants.ICFS_UID, DOMUtil.XSD_STRING);
+		containerDefinition.getIdentifiers().add(icfUidDef);
+		ResourceAttributeDefinition xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
+		xloginDef.setNativeAttributeName("LOGIN");
+		containerDefinition.setDisplayNameAttribute(xloginDef.getName());
+		// ... and local property with a type from another schema
+		ResourceAttributeDefinition xpasswdDef = containerDefinition.createAttributeDefinition("password", SchemaConstants.R_PROTECTED_STRING_TYPE);
+		xpasswdDef.setNativeAttributeName("PASSWORD");
+		// ... property reference
+		containerDefinition.createAttributeDefinition(SchemaConstants.I_CREDENTIALS, SchemaConstants.I_CREDENTIALS_TYPE);
+
+		return schema;
+	}
+	
+	private void assertPrefix(String expectedPrefix, Element element) {
+		assertEquals("Wrong prefix on element "+DOMUtil.getQName(element), expectedPrefix, element.getPrefix());
+	}	
 
 //    @Test
 //    public void instantiationTest() throws SchemaException, JAXBException {
