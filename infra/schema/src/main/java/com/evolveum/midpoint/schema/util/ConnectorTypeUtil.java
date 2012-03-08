@@ -22,7 +22,15 @@ package com.evolveum.midpoint.schema.util;
 
 import javax.xml.namespace.QName;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
 /**
  * @author Radovan Semancik
@@ -38,6 +46,33 @@ public class ConnectorTypeUtil {
 		} else {
 			return null;
 		}
+	}
+	
+	public static Element getConnectorXsdSchema(ConnectorType connector) {
+		XmlSchemaType xmlSchemaType = connector.getSchema();
+		if (xmlSchemaType == null) {
+			return null;
+		}
+		return ObjectTypeUtil.findXsdElement(xmlSchemaType);
+	}
+	
+	public static Element getConnectorXsdSchema(PrismObject<ConnectorType> connector) {
+		PrismContainer<XmlSchemaType> xmlSchema = connector.findContainer(ConnectorType.F_SCHEMA);
+		if (xmlSchema == null) {
+			return null;
+		}
+		return ObjectTypeUtil.findXsdElement(xmlSchema);
+	}
+	
+	public static void setConnectorXsdSchema(ConnectorType connectorType, Element xsdElement) {
+		PrismObject<ConnectorType> connector = connectorType.asPrismObject();
+		setConnectorXsdSchema(connector, xsdElement);
+	}
+	
+	public static void setConnectorXsdSchema(PrismObject<ConnectorType> connector, Element xsdElement) {
+		PrismContainer<XmlSchemaType> schemaContainer = connector.findOrCreateContainer(ConnectorType.F_SCHEMA);
+		PrismProperty<Element> definitionProperty = schemaContainer.findOrCreateProperty(XmlSchemaType.F_DEFINITION);
+		ObjectTypeUtil.setXsdSchemaDefinition(definitionProperty, xsdElement);
 	}
 	
 }

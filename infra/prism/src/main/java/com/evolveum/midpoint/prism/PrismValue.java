@@ -34,7 +34,7 @@ public abstract class PrismValue {
 	
 	private SourceType type;
     private Objectable source;
-    private Item parent;
+    private Itemable parent;
     protected Element domElement = null;
     
     PrismValue() {
@@ -47,7 +47,7 @@ public abstract class PrismValue {
 		this.source = source;
 	}
     
-    PrismValue(SourceType type, Objectable source, Item parent) {
+    PrismValue(SourceType type, Objectable source, Itemable parent) {
 		super();
 		this.type = type;
 		this.source = source;
@@ -70,11 +70,11 @@ public abstract class PrismValue {
         return source;
     }
     
-	public Item getParent() {
+	public Itemable getParent() {
 		return parent;
 	}
 
-	public void setParent(Item parent) {
+	public void setParent(Itemable parent) {
 		this.parent = parent;
 	}
 	
@@ -116,6 +116,12 @@ public abstract class PrismValue {
 	public abstract boolean equalsRealValue(PrismValue value);
 	
 	public abstract PrismValue clone();
+	
+	protected void copyValues(PrismValue clone) {
+		clone.type = this.type;
+		clone.source = this.source;
+		clone.parent = this.parent;
+	}
 	
 	@Override
 	public int hashCode() {

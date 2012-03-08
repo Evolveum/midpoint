@@ -6,9 +6,13 @@ import java.util.Iterator;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -47,6 +51,22 @@ public class ContainerDelta<V> extends ItemDelta<PrismContainerValue<V>> {
         }
         return (Collection) MiscUtil.union(valuesToAdd, valuesToDelete);
     }
+    
+    public static <T,O extends Objectable> ContainerDelta<T> createDelta(PrismContext prismContext, Class<O> type,
+			QName containerName) {
+    	PrismObjectDefinition<O> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+    	return createDelta(objectDefinition, containerName);
+    }
+    
+    public static <T,O extends Objectable> ContainerDelta<T> createDelta(PrismObjectDefinition<O> objectDefinition,
+			QName containerName) {
+		PrismContainerDefinition containerDefinition = objectDefinition.findContainerDefinition(containerName);
+		if (containerDefinition == null) {
+			throw new IllegalArgumentException("No definition for "+containerName+" in "+objectDefinition);
+		}
+		ContainerDelta<T> delta = new ContainerDelta<T>(containerName, containerDefinition);
+		return delta;
+	}
     
     @Override
     protected void dumpValues(StringBuilder sb, String label, Collection<PrismContainerValue<V>> values, int indent) {

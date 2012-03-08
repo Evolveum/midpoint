@@ -27,7 +27,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -38,7 +40,7 @@ import com.evolveum.midpoint.util.Dumpable;
  * @author Radovan Semancik
  *
  */
-public abstract class ItemDelta<V extends PrismValue> implements Dumpable, DebugDumpable {
+public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpable, DebugDumpable {
 	
 	/**
      * Name of the property
@@ -49,6 +51,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Dumpable, Debug
      */
     protected PropertyPath parentPath;
     protected ItemDefinition definition;
+    protected PrismContext prismContext;
     
     protected Collection<V> valuesToReplace = null;
     protected Collection<V> valuesToAdd = null;
@@ -97,6 +100,11 @@ public abstract class ItemDelta<V extends PrismValue> implements Dumpable, Debug
     public PropertyPath getPath() {
         return getParentPath().subPath(name);
     }
+    
+	@Override
+	public PropertyPath getPath(PropertyPath pathPrefix) {
+		return pathPrefix.subPath(name);
+	}
 
 	public ItemDefinition getDefinition() {
 		return definition;
@@ -106,7 +114,15 @@ public abstract class ItemDelta<V extends PrismValue> implements Dumpable, Debug
 		this.definition = definition;
 	}
 	
-    public abstract Class<? extends Item> getItemClass();
+    public PrismContext getPrismContext() {
+		return prismContext;
+	}
+
+	public void setPrismContext(PrismContext prismContext) {
+		this.prismContext = prismContext;
+	}
+
+	public abstract Class<? extends Item> getItemClass();
 	
 	public Collection<V> getValuesToAdd() {
         return valuesToAdd;

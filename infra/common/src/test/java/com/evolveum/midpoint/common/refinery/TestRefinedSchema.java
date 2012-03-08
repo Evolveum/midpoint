@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.common.refinery;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -72,8 +73,8 @@ public class TestRefinedSchema {
         // GIVEN
     	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
 
-        JAXBElement<ResourceType> jaxbElement = PrismTestUtil.unmarshalElement(new File(TEST_DIR_NAME, "resource.xml"), ResourceType.class);
-        ResourceType resourceType = jaxbElement.getValue();
+        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "resource.xml"));
+        ResourceType resourceType = resource.asObjectable();
 
         // WHEN
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
@@ -126,8 +127,8 @@ public class TestRefinedSchema {
         // GIVEN
     	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
 
-        JAXBElement<ResourceType> resJaxbElement = PrismTestUtil.unmarshalElement(new File(TEST_DIR_NAME, "resource.xml"), ResourceType.class);
-        ResourceType resourceType = resJaxbElement.getValue();
+        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "resource.xml"));
+        ResourceType resourceType = resource.asObjectable();
 
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
         RefinedAccountDefinition defaultAccountDefinition = rSchema.getDefaultAccountDefinition();

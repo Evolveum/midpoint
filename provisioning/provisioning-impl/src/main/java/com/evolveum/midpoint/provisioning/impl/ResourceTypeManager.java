@@ -19,10 +19,12 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -57,6 +59,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
@@ -149,7 +152,7 @@ public class ResourceTypeManager {
 			xmlSchemaType = new XmlSchemaType();
 			resource.setSchema(xmlSchemaType);
 		}
-		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaType);
+		Element xsdElement = ResourceTypeUtil.getResourceXsdSchema(resource);
 
 		ResourceType newResource = null;
 
@@ -183,26 +186,53 @@ public class ResourceTypeManager {
 			Document xsdDoc = null;
 			try {
 				// Convert to XSD
-				LOGGER.trace("Generating XSD resource schema for " + ObjectTypeUtil.toShortString(resource));
+				LOGGER.trace("Serializing XSD resource schema for {} to DOM", ObjectTypeUtil.toShortString(resource));
 
 				xsdDoc = resourceSchema.serializeToXsd();
 
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Serialized XSD resource schema for {}:\n{}", ObjectTypeUtil.toShortString(resource), 
+							DOMUtil.serializeDOMToString(xsdDoc));
+				}
+				
 			} catch (SchemaException e) {
 				throw new SchemaException("Error processing resource schema for "
 						+ ObjectTypeUtil.toShortString(resource) + ": " + e.getMessage(), e);
 			}
-			// Store into repository (modify ResourceType)
-			LOGGER.info("Storing generated schema in resource " + ObjectTypeUtil.toShortString(resource));
-
+			
+			
 			xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
-			xmlSchemaType.getAny().add(xsdElement);
-			xmlSchemaType.setCachingMetadata(MiscSchemaUtil.generateCachingMetadata());
-
-			Collection<? extends ItemDelta> modifications = PropertyDelta
-					.createModificationReplacePropertyCollection(ResourceType.F_SCHEMA,
-							getResourceTypeDefinition(), xmlSchemaType);
+			if (xsdElement == null) {
+				throw new SchemaException("No schema was generated for "+resource);
+			}
+			CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
+			
+			// Store generated schema into repository (modify the original Resource)
+			LOGGER.info("Storing generated schema in resource " + ObjectTypeUtil.toShortString(resource));
+			
+			ContainerDelta<XmlSchemaType> schemaContainerDelta = ContainerDelta.createDelta(prismContext, ResourceType.class, ResourceType.F_SCHEMA);
+			PrismContainerValue<XmlSchemaType> cval = new PrismContainerValue<XmlSchemaType>();
+			schemaContainerDelta.setValueToReplace(cval);
+			PrismProperty<CachingMetadataType> cachingMetadataProperty = cval.createProperty(XmlSchemaType.F_CACHING_METADATA);
+			cachingMetadataProperty.setRealValue(cachingMetadata);
+			PrismProperty<Element> definitionProperty = cval.createProperty(XmlSchemaType.F_DEFINITION);
+			ObjectTypeUtil.setXsdSchemaDefinition(definitionProperty, xsdElement);
+			
+			Collection modifications = new ArrayList(1);
+			modifications.add(schemaContainerDelta);
 
 			repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
+			
+			// Store generated schema into the resource (this will be kept in the in-memory cache)
+			ResourceTypeUtil.setResourceXsdSchema(resource, xsdElement);
+			resource.getSchema().setCachingMetadata(cachingMetadata);
+			// Note: do not switch order of the operations. Storing schema in repo must happend first. The same
+			// DOM element is used here. Its ownership must remain with the in-memory resource
+
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Putting resource in cache:\n{}", resource.asPrismObject().dump());
+				LOGGER.trace("Schema:\n{}", DOMUtil.serializeDOMToString(ResourceTypeUtil.getResourceXsdSchema(resource)));
+			}
 
 			newResource = resourceSchemaCache.put(resource);
 		}

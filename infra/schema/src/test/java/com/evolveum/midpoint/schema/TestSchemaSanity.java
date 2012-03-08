@@ -47,6 +47,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
@@ -67,11 +68,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionT
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
 /**
  * @author semancik
@@ -172,13 +176,13 @@ public class TestSchemaSanity {
 		// Assert ACCOUNT definition
 		PrismObjectDefinition<AccountShadowType> accountDefinition = objectSchema.findObjectDefinitionByElementName(
 				new QName(SchemaConstants.NS_COMMON,"account"));
-		assertNotNull("No user definition", accountDefinition);
-		System.out.println("User definition:");
+		assertNotNull("No account definition", accountDefinition);
+		System.out.println("Account definition:");
 		System.out.println(accountDefinition.dump());
 		
 		PrismObjectDefinition<AccountShadowType> accountDefinitionByClass = 
 			schemaRegistry.findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
-		assertTrue("Different user def", accountDefinition == accountDefinitionByClass);
+		assertTrue("Different account def", accountDefinition == accountDefinitionByClass);
 
 		assertEquals("Wrong compile-time class in account definition", AccountShadowType.class, accountDefinition.getCompileTimeClass());
 		PrismAsserts.assertPropertyDefinition(accountDefinition, AccountShadowType.F_NAME, DOMUtil.XSD_STRING, 0, 1);
@@ -189,6 +193,31 @@ public class TestSchemaSanity {
 		PrismAsserts.assertDefinition(attributesContainer, AccountShadowType.F_ATTRIBUTES, ResourceObjectShadowAttributesType.COMPLEX_TYPE, 0, 1);
 		assertTrue("Attributes is NOT runtime", attributesContainer.isRuntimeSchema());
 		
+		// Assert RESOURCE definition
+		PrismObjectDefinition<ResourceType> resourceDefinition = objectSchema.findObjectDefinitionByElementName(
+				new QName(SchemaConstants.NS_COMMON, "resource"));
+		assertNotNull("No resource definition", resourceDefinition);
+		System.out.println("Resource definition:");
+		System.out.println(resourceDefinition.dump());
+		
+		PrismObjectDefinition<ResourceType> resourceDefinitionByClass = 
+			schemaRegistry.findObjectDefinitionByCompileTimeClass(ResourceType.class);
+		assertTrue("Different user def", resourceDefinition == resourceDefinitionByClass);
+
+		assertEquals("Wrong compile-time class in resource definition", ResourceType.class, resourceDefinition.getCompileTimeClass());
+		PrismAsserts.assertPropertyDefinition(resourceDefinition, ResourceType.F_NAME, DOMUtil.XSD_STRING, 0, 1);
+		PrismAsserts.assertPropertyDefinition(resourceDefinition, ResourceType.F_DESCRIPTION, DOMUtil.XSD_STRING, 0, 1);
+		assertFalse("Resource definition is marked as runtime", resourceDefinition.isRuntimeSchema());
+		
+		PrismContainerDefinition schemaContainerDef = resourceDefinition.findContainerDefinition(ResourceType.F_SCHEMA);
+		PrismAsserts.assertDefinition(schemaContainerDef, ResourceType.F_SCHEMA, XmlSchemaType.COMPLEX_TYPE, 0, 1);
+		assertFalse("Schema is runtime", schemaContainerDef.isRuntimeSchema());
+		assertEquals("Unexpected number of definitions in <schema>", 2, schemaContainerDef.getDefinitions().size());
+		PrismAsserts.assertPropertyDefinition(schemaContainerDef, XmlSchemaType.F_CACHING_METADATA, 
+				CachingMetadataType.COMPLEX_TYPE, 0, 1);		
+		PrismAsserts.assertPropertyDefinition(schemaContainerDef, XmlSchemaType.F_DEFINITION, DOMUtil.XSD_ANY, 0, 1);
+		PrismPropertyDefinition definitionPropertyDef = schemaContainerDef.findPropertyDefinition(XmlSchemaType.F_DEFINITION);
+//		assertFalse("schema/definition is NOT runtime", definitionPropertyDef.isRuntimeSchema());
 	}
 	
 	@Test

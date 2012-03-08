@@ -32,12 +32,14 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -103,16 +105,13 @@ public class RepositoryNamespaceTest extends AbstractTestNGSpringContextTests {
 
 				// connector object just for testing...
 				ConnectorType connectorType = new ConnectorType();
-				XmlSchemaType xmlSchema = new XmlSchemaType();
+				PrismTestUtil.getPrismContext().adopt(connectorType);
 
 				document = DOMUtil.parseDocument(xml);
-				xmlSchema.getAny().add(document.getDocumentElement());
-
-				connectorType.setSchema(xmlSchema);
+				ConnectorTypeUtil.setConnectorXsdSchema(connectorType, document.getDocumentElement());
 				connectorType.setName(file.getName());
 				connectorType.setNamespace("http://" + file.getName());
 				PrismObject<ConnectorType> connector = connectorType.asPrismObject();
-				connector.revive(PrismTestUtil.getPrismContext());
 
 				LOGGER.debug("Adding connector to repository");
 				String oid = repository.addObject(connector, result);
@@ -120,9 +119,9 @@ public class RepositoryNamespaceTest extends AbstractTestNGSpringContextTests {
 				connector = repository.getObject(ConnectorType.class, oid, new PropertyReferenceListType(),
 						result);
 				connectorType = connector.asObjectable();
-				xmlSchema = connectorType.getSchema();
+				Element xsdSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(connector);
 				LOGGER.debug("Parsing dom schema to object");
-				schema = PrismSchema.parse(xmlSchema.getAny().get(0), PrismTestUtil.getPrismContext());
+				schema = PrismSchema.parse(xsdSchemaElement, PrismTestUtil.getPrismContext());
 				LOGGER.debug("Schema parsed {}", schema);
 				document = schema.serializeToXsd();
 				xml = DOMUtil.printDom(document).toString();

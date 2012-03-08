@@ -87,7 +87,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadata;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
@@ -240,7 +240,8 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 				result).asObjectable();
 		assertNotNull(connector);
 		XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
-		AssertJUnit.assertTrue("Found schema before test connection. Bad test setup?",xmlSchemaTypeBefore.getAny().isEmpty());
+		Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
+		AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 		
 		OperationResult	operationResult = provisioningService.testResource(RESOURCE_OPENDJ_OID);
 		
@@ -253,14 +254,15 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		
 		XmlSchemaType xmlSchemaTypeAfter = resourceAfter.getSchema();
 		assertNotNull("No schema after test connection",xmlSchemaTypeAfter);
-		assertFalse("No schema after test connection",xmlSchemaTypeAfter.getAny().isEmpty());
+		Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceAfter);
+		assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 		
-		CachingMetadata cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
+		CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
 		assertNotNull("No caching metadata",cachingMetadata);
 		assertNotNull("No retrievalTimestamp",cachingMetadata.getRetrievalTimestamp());
 		assertNotNull("No serialNumber",cachingMetadata.getSerialNumber());
 		
-		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
+		Element xsdElement = ResourceTypeUtil.getResourceXsdSchema(resourceAfter);
 		display("Resource schema as stored in discovered resource", DOMUtil.serializeDOMToString(xsdElement));
 		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, prismContext);
 		assertNotNull("No schema after parsing",parsedSchema);

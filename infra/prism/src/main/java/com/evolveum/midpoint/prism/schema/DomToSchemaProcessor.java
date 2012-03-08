@@ -353,11 +353,17 @@ class DomToSchemaProcessor {
 				} else if (xsType.getName() == null && typeFromAnnotation == null) {					
 					
 					if (isAny(xsType)) {
-						// This is a element with xsd:any type. It has to be property container
-						XSAnnotation containerAnnotation = xsType.getAnnotation();
-						PrismContainerDefinition containerDefinition = createPropertyContainerDefinition(xsType, p,
-								null, containerAnnotation);
-						ctd.getDefinitions().add(containerDefinition);
+						if (isPropertyContainer(elementDecl)) {
+							XSAnnotation containerAnnotation = xsType.getAnnotation();
+							PrismContainerDefinition containerDefinition = createPropertyContainerDefinition(xsType, p,
+									null, containerAnnotation);
+							ctd.getDefinitions().add(containerDefinition);
+						} else {
+							PrismPropertyDefinition propDef = createPropertyDefinition(xsType, elementName, DOMUtil.XSD_ANY,
+									ctd, annotation, p);
+							setMultiplicity(propDef, p);
+							ctd.getDefinitions().add(propDef);
+						}
 					}
 
 				} else if (isPropertyContainer(elementDecl)) {

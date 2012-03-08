@@ -69,12 +69,12 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
     public T getValue() {
     	if (rawElement != null) {
     		ItemDefinition def = null;
-    		Item parent = getParent();
+    		Itemable parent = getParent();
     		if (parent != null && parent.getDefinition() != null) {
     			def = getParent().getDefinition();
     		}
     		if (def == null) {
-        		// We are weak now. If there is no better definition for this we assume a default definitio and process
+        		// We are weak now. If there is no better definition for this we assume a default definition and process
         		// the attribute now. But we should rather do this: TODO:
         		// throw new IllegalStateException("Attempt to get value withot a type from raw value of property "+getParent());
     			if (parent != null && parent.getPrismContext() != null) {
@@ -122,6 +122,19 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		return new ElementPrismPropertyImpl<T>(this);
 	}
 
+    @Override
+    public PrismPropertyValue<T> clone() {
+        PrismPropertyValue clone = new PrismPropertyValue(null, getType(), getSource());
+        copyValues(clone);
+        return clone;
+    }
+	
+	protected void copyValues(PrismPropertyValue clone) {
+		super.copyValues(clone);
+		clone.value = this.value;
+		clone.rawElement = this.rawElement;
+	}
+
 	@Override
 	public String toString() {
         StringBuilder builder = new StringBuilder();
@@ -150,7 +163,12 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + ((value == null) ? 0 : value.hashCode());
+		if (value != null && value instanceof Element) {
+			// We need special handling here. We haven't found out the proper way now.
+			// so we just do not include this in the hashcode now.
+		} else {
+			result = prime * result + ((value == null) ? 0 : value.hashCode());
+		}
 		return result;
 	}
 
@@ -166,9 +184,17 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		if (value == null) {
 			if (other.value != null)
 				return false;
-		} else if (!value.equals(other.value))
+		} else if (!compareRealValues(value,other.value))
 			return false;
 		return true;
+	}
+
+	private boolean compareRealValues(T thisValue, Object otherValue) {
+		if (thisValue instanceof Element && 
+				otherValue instanceof Element) {
+			return DOMUtil.compareElement((Element)thisValue, (Element)otherValue, false);
+		}
+		return thisValue.equals(otherValue);
 	}
 
 	@Override
@@ -200,17 +226,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
         	return false;
         }
 
-        // DOM elements cannot be compared directly. Use utility method instead.
-        if (otherRealValue instanceof Element && getValue() instanceof Element) {
-        	return DOMUtil.compareElement((Element)getValue(), (Element)otherRealValue, true);
-        }
-        
-        // FIXME!! HACK!!
-//        if (valueToCompare instanceof ObjectReferenceType && getValue() instanceof ObjectReferenceType) {
-//        	return ((ObjectReferenceType)valueToCompare).getOid().equals(((ObjectReferenceType)getValue()).getOid());
-//        }
-        
-        return getValue().equals(other.getValue());
+        return compareRealValues(getValue(), otherRealValue);
     }
 
 	private boolean equalsRawElements(PrismPropertyValue<T> other) {
@@ -239,10 +255,5 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
     @Override
     public String dump() {
         return toString();
-    }
-
-    @Override
-    public PrismPropertyValue<T> clone() {
-        return new PrismPropertyValue(getValue(), getType(), getSource());
     }
 }

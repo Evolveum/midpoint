@@ -31,7 +31,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ResultArrayList;
 import com.evolveum.midpoint.schema.ResultList;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadata;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
@@ -89,8 +89,8 @@ public class MiscSchemaUtil {
 		return options;
 	}
 
-	public static CachingMetadata generateCachingMetadata() {
-		CachingMetadata cmd = new CachingMetadata();
+	public static CachingMetadataType generateCachingMetadata() {
+		CachingMetadataType cmd = new CachingMetadataType();
 		XMLGregorianCalendar xmlGregorianCalendarNow = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
 		cmd.setRetrievalTimestamp(xmlGregorianCalendarNow);
 		cmd.setSerialNumber(generateSerialNumber());

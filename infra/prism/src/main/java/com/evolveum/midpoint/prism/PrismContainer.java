@@ -58,7 +58,7 @@ import java.util.*;
  *
  * @author Radovan Semancik
  */
-public class PrismContainer<V> extends Item<PrismContainerValue<V>> {
+public class PrismContainer<V> extends Item<PrismContainerValue<V>> implements PrismContainerable {
     private static final long serialVersionUID = 5206821250098051028L;
 
     public PrismContainer(QName name) {
@@ -305,19 +305,19 @@ public class PrismContainer<V> extends Item<PrismContainerValue<V>> {
     	}
     }
     
-	public PrismContainer<?> findContainer(PropertyPath path) {
+	public <T> PrismContainer<T> findContainer(PropertyPath path) {
         return findItem(path, PrismContainer.class);
     }
     
-    public PrismContainer<?> findContainer(QName containerName) {
+    public <T> PrismContainer<T> findContainer(QName containerName) {
         return findItem(containerName, PrismContainer.class);
     }
 
-    public PrismProperty<?> findProperty(PropertyPath path) {
+    public <T> PrismProperty<T> findProperty(PropertyPath path) {
         return findItem(path, PrismProperty.class);
     }
     
-    public PrismProperty<?> findProperty(QName propertyQName) {
+    public <T> PrismProperty<T> findProperty(QName propertyQName) {
     	return findItem(propertyQName, PrismProperty.class);
     }
 
@@ -333,19 +333,19 @@ public class PrismContainer<V> extends Item<PrismContainerValue<V>> {
         return findCreateItem(containerPath, type, true);
     }
     
-    public PrismContainer<?> findOrCreateContainer(PropertyPath containerPath) {
+    public <T> PrismContainer<T> findOrCreateContainer(PropertyPath containerPath) {
         return findCreateItem(containerPath, PrismContainer.class, true);
     }
     
-    public PrismContainer<?> findOrCreateContainer(QName containerName) {
+    public <T> PrismContainer<T> findOrCreateContainer(QName containerName) {
         return findCreateItem(containerName, PrismContainer.class, true);
     }
     
-    public PrismProperty<?> findOrCreateProperty(PropertyPath propertyPath) {
+    public <T> PrismProperty<T> findOrCreateProperty(PropertyPath propertyPath) {
         return findCreateItem(propertyPath, PrismProperty.class, true);
     }
     
-    public PrismProperty<?> findOrCreateProperty(QName propertyName) {
+    public <T> PrismProperty<T> findOrCreateProperty(QName propertyName) {
         return findCreateItem(propertyName, PrismProperty.class, true);
     }
 

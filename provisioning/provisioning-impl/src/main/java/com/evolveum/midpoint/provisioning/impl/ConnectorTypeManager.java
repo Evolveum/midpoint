@@ -45,6 +45,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -259,10 +260,7 @@ public class ConnectorTypeManager {
 						xsdDoc = connectorSchema.serializeToXsd();
 						Element xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
 						LOGGER.trace("Generated XSD connector schema: {}", DOMUtil.serializeDOMToString(xsdElement));
-						if (foundConnector.getSchema() == null) {
-							foundConnector.setSchema(new XmlSchemaType());
-						}
-						foundConnector.getSchema().getAny().add(xsdElement);
+						ConnectorTypeUtil.setConnectorXsdSchema(foundConnector, xsdElement);
 					}
 				} catch (ObjectNotFoundException ex) {
 					LOGGER.error(

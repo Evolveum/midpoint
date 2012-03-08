@@ -60,7 +60,7 @@ public class SchemaFormParser {
         // list of object as config values. They will be inserted into form
         Map<List<QName>, List<Object>> valueMap = createConfigValueMap(configuration);
 
-        PrismSchema schema = PrismSchema.parse(connector.getXmlObject().getSchema().getAny().get(0), prismContext);
+        PrismSchema schema = PrismSchema.parse(connector.getXmlObject().getSchema().getDefinition().getAny().get(0), prismContext);
         for (Definition definition : schema.getDefinitions()) {
             if (!(definition instanceof ResourceAttributeContainerDefinition)) {
                 continue;

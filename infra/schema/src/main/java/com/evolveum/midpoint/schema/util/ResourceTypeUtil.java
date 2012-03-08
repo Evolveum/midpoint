@@ -25,8 +25,12 @@ import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -40,6 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAccountTypeD
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
 
@@ -79,16 +84,32 @@ public class ResourceTypeUtil {
 	}
 
 	public static Element getResourceXsdSchema(ResourceType resource) {
-		if (resource.getSchema() == null) {
+		XmlSchemaType xmlSchemaType = resource.getSchema();
+		if (xmlSchemaType == null) {
 			return null;
 		}
-		for (Element e : resource.getSchema().getAny()) {
-			if (QNameUtil.compareQName(DOMUtil.XSD_SCHEMA_ELEMENT, e)) {
-				return e;
-			}
-		}
-		return null;
+		return ObjectTypeUtil.findXsdElement(xmlSchemaType);
 	}
+	
+	public static Element getResourceXsdSchema(PrismObject<ResourceType> resource) {
+		PrismContainer<XmlSchemaType> xmlSchema = resource.findContainer(ResourceType.F_SCHEMA);
+		if (xmlSchema == null) {
+			return null;
+		}
+		return ObjectTypeUtil.findXsdElement(xmlSchema);
+	}
+	
+	public static void setResourceXsdSchema(ResourceType resourceType, Element xsdElement) {
+		PrismObject<ResourceType> resource = resourceType.asPrismObject();
+		setResourceXsdSchema(resource, xsdElement);
+	}
+	
+	public static void setResourceXsdSchema(PrismObject<ResourceType> resource, Element xsdElement) {
+		PrismContainer<XmlSchemaType> schemaContainer = resource.findOrCreateContainer(ResourceType.F_SCHEMA);
+		PrismProperty<Element> definitionProperty = schemaContainer.findOrCreateProperty(XmlSchemaType.F_DEFINITION);
+		ObjectTypeUtil.setXsdSchemaDefinition(definitionProperty, xsdElement);
+	}
+
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T> T getCapability(Collection<Object> capabilities, Class<T> capabilityClass) {

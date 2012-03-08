@@ -221,8 +221,8 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 					ObjectTypeUtil.toShortString(connectorType));
 			LOGGER.trace("Connector object: {}", ObjectTypeUtil.dump(connectorType));
 			LOGGER.trace("Connector host object: {}", ObjectTypeUtil.dump(connectorType.getConnectorHost()));
-			throw new ObjectNotFoundException("The connector " + ObjectTypeUtil.toShortString(connectorType)
-					+ " was not found");
+			throw new ObjectNotFoundException("The " + ObjectTypeUtil.toShortString(connectorType)
+					+ " was not found; type=" + connectorType.getConnectorType() + ", version="+connectorType.getConnectorVersion());
 		}
 
 		PrismSchema connectorSchema = getConnectorSchema(connectorType, namespace);

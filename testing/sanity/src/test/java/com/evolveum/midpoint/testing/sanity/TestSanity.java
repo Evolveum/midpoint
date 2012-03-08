@@ -406,7 +406,8 @@ public class TestSanity extends AbstractIntegrationTest {
         assertEquals(RESOURCE_OPENDJ_OID, resourceOpenDj.getOid());
         display("Initialized OpenDJ resource (respository)", resourceOpenDj);
         assertNotNull("Resource schema was not generated", resourceOpenDj.getSchema());
-        assertFalse("Resource schema was not generated", resourceOpenDj.getSchema().getAny().isEmpty());
+        Element resourceOpenDjXsdSchemaElement = ResourceTypeUtil.getResourceXsdSchema(resourceOpenDj);
+        assertNotNull("Resource schema was not generated", resourceOpenDjXsdSchemaElement);
 
         PrismObject<ResourceType> openDjResourceProvisioninig = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null,
                 opResult);
@@ -499,7 +500,8 @@ public class TestSanity extends AbstractIntegrationTest {
         assertEquals(RESOURCE_DERBY_OID, resourceDerby.getOid());
         display("Initialized Derby resource (respository)", resourceDerby);
         assertNotNull("Resource schema was not generated", resourceDerby.getSchema());
-        assertFalse("Resource schema was not generated", resourceDerby.getSchema().getAny().isEmpty());
+        Element resourceDerbyXsdSchemaElement = ResourceTypeUtil.getResourceXsdSchema(resourceDerby);
+        assertNotNull("Resource schema was not generated", resourceDerbyXsdSchemaElement);
 
         PrismObject<ResourceType> derbyResourceProvisioninig = provisioningService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null,
                 opResult);

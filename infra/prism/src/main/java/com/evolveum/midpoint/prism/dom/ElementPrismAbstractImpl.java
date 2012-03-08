@@ -39,7 +39,7 @@ public abstract class ElementPrismAbstractImpl implements Element {
 	}
 
 	protected Item getItem() {
-		return value.getParent();
+		return (Item)value.getParent();
 	}
 	
 	protected PrismContext getPrismContext() {

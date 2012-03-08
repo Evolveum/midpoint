@@ -85,6 +85,11 @@ public class DOMUtil {
 	public static final String NS_W3C_XML_SCHEMA_PREFIX = "xsd";
 	public static final QName XSD_SCHEMA_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "schema",
 			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_ANNOTATION_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "annotation",
+			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_APPINFO_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "appinfo",
+			NS_W3C_XML_SCHEMA_PREFIX);
+	
 	public static final QName XSD_ATTR_TARGET_NAMESPACE = new QName(W3C_XML_SCHEMA_NS_URI, "targetNamespace",
 			NS_W3C_XML_SCHEMA_PREFIX);
 	
@@ -112,7 +117,11 @@ public class DOMUtil {
 	private static Random rnd = new Random();
 	private static final DocumentBuilder loader;
 	
-
+	// We hope that nobody will choose attribute name so lame as this one
+	private static final String PHANTOM_ATTRIBUTE_NAME = "phantom___aTTr";
+	private static final String PHANTOM_ELEMENT_NAME = "phantom___eLeMeNt";;
+	
+	
 	static {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -532,11 +541,11 @@ public class DOMUtil {
 		return prefix;
 	}
 	
-	private static boolean isNamespaceDefinition(Attr attr) {
+	public static boolean isNamespaceDefinition(Attr attr) {
 			if(W3C_XML_SCHEMA_XMLNS_URI.equals(attr.getNamespaceURI())) {
 				return true;
 			}
-			if(attr.getName().startsWith("xmlns:")) {
+			if(attr.getName().startsWith("xmlns:") || "xmlns".equals(attr.getName())) {
 				return true;
 			}
 			return false;
@@ -561,6 +570,175 @@ public class DOMUtil {
 		for (Entry<String, String> entry : rootNamespaceDeclarations.entrySet()) {
 			setNamespaceDeclaration(element, entry.getKey(), entry.getValue());
 		}
+	}
+	
+	/**
+	 * Take all the namespace declaration of parent elements and put them to this element.
+	 */
+	public static void fixNamespaceDeclarations(Element element) {
+		fixNamespaceDeclarations(element, element);
+	}
+
+	private static void fixNamespaceDeclarations(Element targetElement, Element currentElement) {
+		NamedNodeMap attributes = currentElement.getAttributes();
+		for(int i=0; i<attributes.getLength(); i++) {
+			Attr attr = (Attr)attributes.item(i);
+			if (isNamespaceDefinition(attr)) {
+				String prefix = getNamespaceDeclarationPrefix(attr);
+				String namespace = getNamespaceDeclarationNamespace(attr);
+				if (hasNamespaceDeclarationForPrefix(targetElement, prefix)) {
+					if (targetElement != currentElement) {
+						// We are processing parent element, while the original element already
+						// has prefix declaration. That means it must have been processed before
+						// we can skip the usage check
+						continue;
+					}
+				} else {
+					setNamespaceDeclaration(targetElement, prefix, getNamespaceDeclarationNamespace(attr));
+				}
+				// Make sure that the declaration does not disappear during XML normalization:
+				// create a dummy attribute using that namespace, if such attribute does not exists yet
+//				if (!isPrefixUsed(targetElement, prefix)) {
+//					Attr phantomAttr = targetElement.getOwnerDocument().createAttributeNS(namespace, PHANTOM_ATTRIBUTE_NAME);
+//					phantomAttr.setPrefix(prefix);
+//					phantomAttr.setValue(prefix);
+//					targetElement.setAttributeNode(phantomAttr);
+//				}
+			}
+		}
+		Node parentNode = currentElement.getParentNode();
+		if (parentNode instanceof Element) {
+			fixNamespaceDeclarations(targetElement, (Element)parentNode);
+		}
+	}
+
+	private static boolean isPrefixUsed(Element targetElement, String prefix) {
+		if (comparePrefix(prefix, targetElement.getPrefix())) {
+			return true;
+		}
+		NamedNodeMap attributes = targetElement.getAttributes();
+		for(int i=0; i<attributes.getLength(); i++) {
+			Attr attr = (Attr)attributes.item(i);
+			if (comparePrefix(prefix, attr.getPrefix())) {
+				return true;
+			}
+		}
+		NodeList childNodes = targetElement.getChildNodes();
+		for (int i=0; i<childNodes.getLength(); i++) {
+			Node node = childNodes.item(i);
+			if (node instanceof Element) {
+				Element element = (Element)node; 
+				if (isPrefixUsed(element, prefix)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public static boolean hasNamespaceDeclarationForPrefix(Element targetElement, String prefix) {
+		return getNamespaceDeclarationForPrefix(targetElement, prefix) != null;
+	}
+
+	public static String getNamespaceDeclarationForPrefix(Element targetElement, String prefix) {
+		NamedNodeMap attributes = targetElement.getAttributes();
+		for(int i=0; i<attributes.getLength(); i++) {
+			Attr attr = (Attr)attributes.item(i);
+			if (isNamespaceDefinition(attr)) {
+				String thisPrefix = getNamespaceDeclarationPrefix(attr);
+				if (comparePrefix(prefix, thisPrefix)) {
+					return getNamespaceDeclarationNamespace(attr);
+				}
+			}
+		}
+		return null;
+	}
+
+	public static String getNamespaceDeclarationPrefix(Attr attr) {
+		if(!W3C_XML_SCHEMA_XMLNS_URI.equals(attr.getNamespaceURI())) {
+			throw new IllegalStateException("Attempt to get prefix from a attribute that is not a namespace declaration, it has namespace "
+					+ attr.getNamespaceURI());
+		}
+		String attrName = attr.getName();
+		if(attrName.startsWith("xmlns:")) {
+			return attrName.substring(6);
+		}
+		if ("xmlns".equals(attrName)) {
+			return null;
+		}
+		throw new IllegalStateException("Attempt to get prefix from a attribute that is not a namespace declaration, it is "+attrName);
+	}
+	
+	public static String getNamespaceDeclarationNamespace(Attr attr) {
+		if(!W3C_XML_SCHEMA_XMLNS_URI.equals(attr.getNamespaceURI())) {
+			throw new IllegalStateException("Attempt to get namespace from a attribute that is not a namespace declaration, it has namespace "
+					+ attr.getNamespaceURI());
+		}
+		String attrName = attr.getName();
+		if(!attrName.startsWith("xmlns:") && !"xmlns".equals(attr.getName())) {
+			throw new IllegalStateException("Attempt to get namespace from a attribute that is not a namespace declaration, it is "+attrName);
+		}
+		return attr.getValue();
+	}
+
+
+	private static boolean comparePrefix(String prefixA, String prefixB) {
+		if (StringUtils.isBlank(prefixA) && StringUtils.isBlank(prefixB)) {
+			return true;
+		}
+		if (StringUtils.isBlank(prefixA) || StringUtils.isBlank(prefixB)) {
+			return false;
+		}
+		return prefixA.equals(prefixB);
+	}
+
+	
+
+	public static void fixXsdNamespaces(Element element) {
+		QName elementQname = getQName(element);
+		if (!XSD_SCHEMA_ELEMENT.equals(elementQname)) {
+			return;
+		}
+		NamedNodeMap attributes = element.getAttributes();
+		for(int i=0; i<attributes.getLength(); i++) {
+			Attr attr = (Attr)attributes.item(i);
+			if (isNamespaceDefinition(attr)) {
+				String prefix = getNamespaceDeclarationPrefix(attr);
+				String namespace = getNamespaceDeclarationNamespace(attr);
+				if (!isPrefixUsed(element, prefix)) {
+					addPhantomAppinfoElement(element, prefix, namespace);
+				}
+			}
+		}		
+	}
+		
+	private static void addPhantomAppinfoElement(Element element, String prefix, String namespace) {
+		Element annotationElement = getOrCreateAsFirstElement(element, XSD_ANNOTATION_ELEMENT);
+		Element appinfoElement = getOrCreateAsFirstElement(annotationElement, XSD_APPINFO_ELEMENT);
+		Document doc = element.getOwnerDocument();
+		Element phantomElement = doc.createElementNS(namespace, PHANTOM_ELEMENT_NAME);
+		phantomElement.setPrefix(prefix);
+		appinfoElement.appendChild(phantomElement);
+	}
+	
+	public static Element getChildElement(Element element, QName qname) {
+		for (Element subelement: listChildElements(element)) {
+			if (qname.equals(getQName(subelement))) {
+				return subelement;
+			}
+		}
+		return null;
+	}
+
+	public static Element getOrCreateAsFirstElement(Element parentElement, QName elementQName) {
+		Element element = getChildElement(parentElement, elementQName);
+		if (element != null) {
+			return element;
+		}
+		Document doc = parentElement.getOwnerDocument();
+		element = doc.createElementNS(elementQName.getNamespaceURI(), elementQName.getLocalPart());
+		parentElement.insertBefore(element, getFirstChildElement(parentElement));
+		return element;
 	}
 
 	public static QName getQName(Node node) {

@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -311,22 +312,38 @@ public class ObjectTypeUtil {
         if (xmlSchemaType == null) {
             return null;
         }
-        List<Element> schemaElements = xmlSchemaType.getAny();
+        PrismContainer<XmlSchemaType> xmlSchemaContainer = xmlSchemaType.asPrismContainer();
+        return findXsdElement(xmlSchemaContainer);
+    }
+    
+    public static Element findXsdElement(PrismContainer<XmlSchemaType> xmlSchemaContainer) {
+        PrismProperty<Element> definitionProperty = xmlSchemaContainer.findProperty(XmlSchemaType.F_DEFINITION);
+        if (definitionProperty == null) {
+			return null;
+		}
+        Element definitionElement = definitionProperty.getValue().getValue();
+        if (definitionElement == null) {
+			return null;
+		}
+        List<Element> schemaElements = DOMUtil.listChildElements(definitionElement);
         for (Element e : schemaElements) {
             if (QNameUtil.compareQName(DOMUtil.XSD_SCHEMA_ELEMENT, e)) {
+            	DOMUtil.fixNamespaceDeclarations(e);
                 return e;
             }
         }
         return null;
     }
     
-	public static XmlSchemaType createXmlSchemaType(Element xsdElement) {
-		XmlSchemaType xmlSchemaType = new XmlSchemaType();
-		List<Element> any = xmlSchemaType.getAny();
-		any.add(xsdElement);
-		return xmlSchemaType;
+	public static void setXsdSchemaDefinition(PrismProperty<Element> definitionProperty, Element xsdElement) {
+		Document document = xsdElement.getOwnerDocument();
+		Element definitionElement = document.createElementNS(XmlSchemaType.F_DEFINITION.getNamespaceURI(),
+				XmlSchemaType.F_DEFINITION.getLocalPart());
+		definitionElement.appendChild(xsdElement);
+		definitionProperty.setRealValue(definitionElement);
 	}
 
+    
 //    /**
 //     * common-1.xsd namespace is assumed
 //     * single value and "replace" modification are assumed
@@ -464,6 +481,5 @@ public class ObjectTypeUtil {
     		throw new IllegalArgumentException("The type "+type.getName()+" is abstract");
     	}
     }
-
 
 }

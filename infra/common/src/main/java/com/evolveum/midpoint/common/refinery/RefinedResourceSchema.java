@@ -154,6 +154,9 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 			}
 		} else {
 			ResourceSchema parsedSchema = ResourceSchema.parse(resourceXsdSchema, prismContext);
+			if (parsedSchema == null) {
+				throw new IllegalStateException("Parsed schema is null: most likely an internall error");
+			}
 			resource.setUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA, parsedSchema);
 			return parsedSchema;
 		}
@@ -175,6 +178,9 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	public static RefinedResourceSchema parse(ResourceType resourceType, PrismContext prismContext) throws SchemaException {
 		
 		ResourceSchema originalResourceSchema = getResourceSchema(resourceType, prismContext);
+		if (originalResourceSchema == null) {
+			throw new IllegalArgumentException("Cannot determine resource schema from " + resourceType.asPrismObject());
+		}
 		
 		SchemaHandlingType schemaHandling = resourceType.getSchemaHandling();
 		

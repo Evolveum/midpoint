@@ -997,7 +997,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="CachingMetadata">
+    <xsd:complexType name="CachingMetadataType">
         <xsd:annotation>
             <xsd:documentation>
                 Metadata that record when a cache copy was retrieved, the identifiers (etags) of that
@@ -1030,7 +1030,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:element name="cachingMetadata" type="tns:CachingMetadata"/>
+    <xsd:element name="cachingMetadata" type="tns:CachingMetadataType"/>
 
     <xsd:complexType name="ProtectedStringType">
         <xsd:annotation>
@@ -2616,16 +2616,25 @@
                 Note: xsd:any is here, but maybe a stricter type would be preferable.
                 However xsd:any seems to be a common practice (e.g. SPML, WSDL).
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:cachingMetadata" minOccurs="0"/>
-            <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="strict">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <xjc:dom/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:any>
+            <xsd:element name="definition" minOccurs="0">
+            	<xsd:complexType>
+            		<xsd:sequence>
+			            <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="strict">
+			                <xsd:annotation>
+			                    <xsd:appinfo>
+			                        <xjc:dom/>
+			                    </xsd:appinfo>
+			                </xsd:annotation>
+			            </xsd:any>
+		            </xsd:sequence>
+	          	</xsd:complexType>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

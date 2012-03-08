@@ -335,7 +335,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	private PrismProperty<String> getNameProperty() {
 		QName elementName = getName();
 		String myNamespace = elementName.getNamespaceURI();
-		return (PrismProperty<String>) findProperty(new QName(myNamespace, PrismConstants.NAME_LOCAL_NAME));
+		return findProperty(new QName(myNamespace, PrismConstants.NAME_LOCAL_NAME));
 	}
 	
 	private String getNamePropertyValue() {

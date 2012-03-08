@@ -83,27 +83,9 @@
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
 			xmlns:my="http://myself.me/schemas/whatever">100</icfc:producerBufferSize>
-		<icfc:timeouts xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
-			xmlns:my="http://myself.me/schemas/whatever">
-			<icfc:create>-1</icfc:create>
-			<icfc:get>-1</icfc:get>
-			<icfc:update>-1</icfc:update>
-			<icfc:delete>-1</icfc:delete>
-			<icfc:test>-1</icfc:test>
-			<icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
-			<icfc:scriptOnResource>-1</icfc:scriptOnResource>
-			<icfc:authenticate>-1</icfc:authenticate>
-			<icfc:search>-1</icfc:search>
-			<icfc:validate>-1</icfc:validate>
-			<icfc:sync>-1</icfc:sync>
-			<icfc:schema>-1</icfc:schema>
-		</icfc:timeouts>
 	</configuration>
 	<schema>
+	  <definition>
 		<xsd:schema elementFormDefault="qualified"
 			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
 			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
@@ -205,6 +187,7 @@
 				</xsd:sequence>
 			</xsd:complexType>
 		</xsd:schema>
+	  </definition>
 	</schema>
 	<schemaHandling>
 		<accountType>

@@ -136,10 +136,10 @@ public final class PrismForJAXBUtil {
         } else {
             PrismContainer newValue = new PrismContainer(name);
             newValue.add(value);
-            if (parent.getParent() == null) {
+            if (parent.getContainer() == null) {
                 parent.getItems().add(newValue);
             } else {
-                parent.getParent().getValue().addReplaceExisting(newValue);
+                parent.getContainer().getValue().addReplaceExisting(newValue);
             }
         }
 
@@ -207,7 +207,7 @@ public final class PrismForJAXBUtil {
     }
 
     public static <T> List<PrismContainerValue<T>> getContainerValues(PrismContainerValue<T> parent, QName name, Class<T> clazz) {
-        return getContainerValues(parent.getParent(), name, clazz);
+        return getContainerValues(parent.getContainer(), name, clazz);
     }
 
     public static <T> List<PrismContainerValue<T>> getContainerValues(PrismContainer<T> parent, QName name, Class<T> clazz) {

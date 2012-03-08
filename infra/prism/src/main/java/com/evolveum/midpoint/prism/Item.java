@@ -54,7 +54,7 @@ import java.util.Map;
  *
  * @author Radovan Semancik
  */
-public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpable, Serializable {
+public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, DebugDumpable, Serializable {
 
 	// The object should basically work without definition and prismContext. This is the
 	// usual case when it is constructed "out of the blue", e.g. as a new JAXB object
@@ -114,6 +114,7 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
      *
      * @return property name
      */
+    @Override
     public QName getName() {
         return name;
     }
@@ -170,6 +171,7 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
         return getDefinition() == null ? null : getDefinition().getHelp();
     }
     
+    @Override
     public PrismContext getPrismContext() {
     	return prismContext;
     }
@@ -182,6 +184,7 @@ public abstract class Item<V extends PrismValue> implements Dumpable, DebugDumpa
     	this.parent = parentValue;
     }
     
+    @Override
     public PropertyPath getPath(PropertyPath pathPrefix) {
     	if (pathPrefix == null) {
     		return new PropertyPath(getName());

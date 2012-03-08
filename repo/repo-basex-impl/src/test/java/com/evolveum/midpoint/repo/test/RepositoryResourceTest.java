@@ -124,7 +124,8 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 			// get resource
 			PrismObject<ResourceType> retrievedObject = repositoryService.getObject(ResourceType.class, resourceOid,
 					new PropertyReferenceListType(), new OperationResult("test"));
-			PrismAsserts.assertEquals(resource, retrievedObject);
+			
+			PrismAsserts.assertEquivalent("add/get cycle: not equivalent", resource, retrievedObject);
 
 			// list objects
 			List<PrismObject<ResourceType>> objects = repositoryService.listObjects(
@@ -185,7 +186,7 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 			//we need to remove the configuration part of the resource which is parsed
 			//after the real definition is applied..(the resource in the repo contain this definition,
 			//but before we save the object to the repo it doesn't contain it).
-			retrievedObject.remove(retrievedObject.findItem(ResourceType.F_CONFIGURATION));
+//			retrievedObject.remove(retrievedObject.findItem(ResourceType.F_CONFIGURATION));
 			System.out.println("retrieved: "+PrismTestUtil.getPrismContext().getPrismDomProcessor().serializeObjectToString(retrievedObject));
 			System.out.println("modifiedResource: "+PrismTestUtil.getPrismContext().getPrismDomProcessor().serializeObjectToString(modifiedResource));
 			PrismAsserts.assertEquivalent("Modification result does not match",modifiedResource, retrievedObject);

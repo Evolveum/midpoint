@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -130,9 +131,10 @@ public class TestResourceSchema {
         assertTrue("Not ignored as it should be", ufoDef.isIgnored());
     }
     
-	@Test
-	public void testResourceSchemaRoundTrip() throws SchemaException, JAXBException {
-		System.out.println("\n===[ testResourceSchemaRoundTrip ]=====");
+    // The support for the xsd:any properties is missing in JAXB generator. Otherwise this test should work.
+	@Test(enabled=false)
+	public void testResourceSchemaJaxbRoundTrip() throws SchemaException, JAXBException {
+		System.out.println("\n===[ testResourceSchemaJaxbRoundTrip ]=====");
 		// GIVEN
 		ResourceSchema schema = createResourceSchema();
 		
@@ -144,9 +146,7 @@ public class TestResourceSchema {
 
 		ResourceType resource = new ResourceType();
 		resource.setName("JAXB With Dynamic Schemas Test");
-		XmlSchemaType xmlSchemaType = new XmlSchemaType();
-		xmlSchemaType.getAny().add(DOMUtil.getFirstChildElement(xsd));
-		resource.setSchema(xmlSchemaType);
+		ResourceTypeUtil.setResourceXsdSchema(resource, DOMUtil.getFirstChildElement(xsd));
 		
 		// WHEN
 		
@@ -161,14 +161,63 @@ public class TestResourceSchema {
 		System.out.println("unmarshalled resource");
 		System.out.println(ObjectTypeUtil.dump(unmarshalledResource));
 		XmlSchemaType unXmlSchemaType = unmarshalledResource.getSchema();
-		Element unXsd = unXmlSchemaType.getAny().get(0);
+		Element unXsd = unXmlSchemaType.getDefinition().getAny().get(0);
 		ResourceSchema unSchema = ResourceSchema.parse(unXsd, PrismTestUtil.getPrismContext());
 		
 		System.out.println("unmarshalled schema");
 		System.out.println(unSchema.dump());
 		
 		// THEN
+		assertResourceSchema(unSchema);
+	}
+	
+	@Test
+	public void testResourceSchemaPrismRoundTrip() throws SchemaException, JAXBException {
+		System.out.println("\n===[ testResourceSchemaPrismRoundTrip ]=====");
+		// GIVEN
+		ResourceSchema schema = createResourceSchema();
 		
+		System.out.println("Resource schema before serializing to XSD: ");
+		System.out.println(schema.dump());
+		System.out.println();
+		
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+
+		Document xsd = schema.serializeToXsd();
+
+		PrismObjectDefinition<ResourceType> resourceDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
+		PrismObject<ResourceType> resource = resourceDefinition.instantiate();
+		ResourceType resourceType = resource.asObjectable();
+		resourceType.setName("Prism With Dynamic Schemas Test");
+		ResourceTypeUtil.setResourceXsdSchema(resource, DOMUtil.getFirstChildElement(xsd));
+		
+		// WHEN
+		
+		String marshalledResource = prismContext.getPrismDomProcessor().serializeObjectToString(resource);
+		
+		System.out.println("Marshalled resource");
+		System.out.println(marshalledResource); 
+		
+		PrismObject<ResourceType> unmarshalledResource = PrismTestUtil.parseObject(marshalledResource);
+		
+		System.out.println("unmarshalled resource");
+		System.out.println(unmarshalledResource.dump());
+		
+		Element unXsd = ResourceTypeUtil.getResourceXsdSchema(unmarshalledResource);
+		
+		System.out.println("unmarshalled resource schema");
+		System.out.println(DOMUtil.serializeDOMToString(unXsd));
+		
+		ResourceSchema unSchema = ResourceSchema.parse(unXsd, PrismTestUtil.getPrismContext());
+		
+		System.out.println("unmarshalled parsed schema");
+		System.out.println(unSchema.dump());
+		
+		// THEN
+		assertResourceSchema(unSchema);
+	}
+	
+	private void assertResourceSchema(ResourceSchema unSchema) {
 		ObjectClassComplexTypeDefinition objectClassDef = unSchema.findObjectClassDefinition(new QName(SCHEMA_NAMESPACE,"AccountObjectClass"));
 		assertEquals(new QName(SCHEMA_NAMESPACE,"AccountObjectClass"),objectClassDef.getTypeName());
 		assertTrue("AccountObjectClass class not an account", objectClassDef.isAccountType());
@@ -220,6 +269,10 @@ public class TestResourceSchema {
 		System.out.println(resourceXmlString);
 		
 		PrismObject<ResourceType> reparsedResource = PrismTestUtil.getPrismContext().parseObject(resourceXmlString);
+		
+		System.out.println("Re-parsed resource");
+		System.out.println(reparsedResource.dump());
+		
 		XmlSchemaType reparsedSchemaType = reparsedResource.asObjectable().getSchema();
 		Element reparsedXsdElement = ObjectTypeUtil.findXsdElement(reparsedSchemaType);
 		
@@ -234,8 +287,7 @@ public class TestResourceSchema {
 		PrismObjectDefinition<ResourceType> resourceDefinition =
 			PrismTestUtil.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
 		PrismObject<ResourceType> resource = resourceDefinition.instantiate();
-		XmlSchemaType schemaType = ObjectTypeUtil.createXmlSchemaType(xsdElement);
-		resource.asObjectable().setSchema(schemaType);
+		ResourceTypeUtil.setResourceXsdSchema(resource, xsdElement);
 		return resource;
 	}
 

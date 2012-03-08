@@ -19,7 +19,9 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static org.testng.AssertJUnit.assertTrue;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
@@ -30,6 +32,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
+
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -171,6 +175,54 @@ public class TestParseResource {
 		assertResource(resourceType.asPrismObject());
 	}
 
+	
+	@Test
+	public void testParseResourceRoundtrip() throws SchemaException {
+		System.out.println("===[ testParseResourceRoundtrip ]===");
+
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		
+		PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_FILE);
+		
+		System.out.println("Parsed resource:");
+		System.out.println(resource.dump());
+		
+		assertResource(resource);
+		
+		// SERIALIZE
+		
+		String serializedResource = prismContext.getPrismDomProcessor().serializeObjectToString(resource);
+		
+		System.out.println("serialized resource:");
+		System.out.println(serializedResource);
+		
+		// RE-PARSE
+		
+		PrismObject<ResourceType> reparsedResource = prismContext.parseObject(serializedResource);
+		
+		System.out.println("Re-parsed resource:");
+		System.out.println(reparsedResource.dump());
+		
+		assertResource(resource);
+		
+		PrismProperty<Element> definitionProperty = reparsedResource.findContainer(ResourceType.F_SCHEMA).findProperty(XmlSchemaType.F_DEFINITION);
+		Element definitionElement = definitionProperty.getValue().getValue();
+		System.out.println("Re-parsed definition element:");
+		System.out.println(DOMUtil.serializeDOMToString(definitionElement));
+		
+		ObjectDelta<ResourceType> objectDelta = resource.diff(reparsedResource);
+		System.out.println("Delta:");
+		System.out.println(objectDelta.dump());
+		assertTrue("Delta is not empty", objectDelta.isEmpty());
+		
+		PrismAsserts.assertEquivalent("Resource re-parsed quivalence", resource, reparsedResource);
+		
+//		// Compare schema container
+//		
+//		PrismContainer<?> originalSchemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
+//		PrismContainer<?> reparsedSchemaContainer = reparsedResource.findContainer(ResourceType.F_SCHEMA);
+	}
 	
 	private void assertResource(PrismObject<ResourceType> resource) {
 		

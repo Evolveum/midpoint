@@ -29,7 +29,9 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
@@ -44,7 +46,8 @@ public class ProvisioningTestUtil {
 	public static void assertConnectorSchemaSanity(ConnectorType conn, PrismContext prismContext) throws SchemaException {
 		XmlSchemaType xmlSchemaType = conn.getSchema();
 		assertNotNull("xmlSchemaType is null",xmlSchemaType);
-		assertFalse("Empty schema",xmlSchemaType.getAny().isEmpty());
+		Element connectorXsdSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(conn);
+		assertNotNull("No schema", connectorXsdSchemaElement);
 		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaType);
 		assertNotNull("No xsd:schema element in xmlSchemaType",xsdElement);
 		display("XSD schema of "+conn, DOMUtil.serializeDOMToString(xsdElement));

@@ -186,7 +186,7 @@ public class AnyArrayList<T> extends AbstractList<Object> {
     }
     
     private PrismContainer<T> getContainer() {
-    	return containerValue.getParent();
+    	return containerValue.getContainer();
     }
     
     private PrismContext getPrismContext() {

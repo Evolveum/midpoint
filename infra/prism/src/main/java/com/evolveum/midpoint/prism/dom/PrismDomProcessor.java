@@ -55,6 +55,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -376,7 +377,11 @@ public class PrismDomProcessor {
     	if (valueElement instanceof Element) {
     		// Need to convert the DOM representation to something more java-like
     		Element element = (Element)valueElement;
-        	if (XmlTypeConverter.canConvert(typeName)) {
+    		if (propertyDefinition.getTypeName().equals(DOMUtil.XSD_ANY)) {
+    			// No conversion. Element is the value.
+    			PrismUtil.unfortifyNamespaceDeclarations(element);
+    			realValue = element;
+    		} else if (XmlTypeConverter.canConvert(typeName)) {
             	realValue = XmlTypeConverter.toJavaValue(element, typeName);
         	} else if (jaxbProcessor.canConvert(typeName)) {
         		try {
@@ -386,6 +391,9 @@ public class PrismDomProcessor {
 				}
         	} else {
         		// fallback to storing DOM in value
+        		// We need to fix the declarations. The element may be used as stand-alone
+        		// DOM element value, so it needs to be "torn out" of the original document
+        		DOMUtil.fixNamespaceDeclarations(element);
         		realValue = element;
         	}
     	} else if (valueElement instanceof JAXBElement) {

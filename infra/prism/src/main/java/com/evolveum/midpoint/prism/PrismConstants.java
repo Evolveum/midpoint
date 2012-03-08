@@ -57,7 +57,12 @@ public class PrismConstants {
 	public static final QName A_OBJECT_REFERENCE = new QName(NS_ANNOTATION,"objectReference");
 	public static final QName A_OBJECT_REFERENCE_TARGET_TYPE = new QName(NS_ANNOTATION,"objectReferenceTargetType");
 	
+	public static final QName A_NAMESPACE = new QName(NS_ANNOTATION,"namespace");
+	public static final String A_NAMESPACE_PREFIX = "prefix";
+	public static final String A_NAMESPACE_URL = "url";
+	
 	public static final Class DEFAULT_VALUE_CLASS = String.class;
+	
 	
 	
 //	static final QName A_RESOURCE_OBJECT = new QName(SchemaConstants.NS_RESOURCE, "resourceObject");

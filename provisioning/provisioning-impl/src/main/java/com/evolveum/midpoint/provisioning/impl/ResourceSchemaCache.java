@@ -31,8 +31,9 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadata;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
@@ -84,7 +85,10 @@ public class ResourceSchemaCache {
 		}
 		
 		// Cache entry does not exist (or was deleted). Parse the schema.
-		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaType);
+		Element xsdElement = ResourceTypeUtil.getResourceXsdSchema(resourceType);
+		if (xsdElement == null) {
+			throw new IllegalArgumentException("No resource schema in " + resourceType + ", cannot put in cache");
+		}
 		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, prismContext);
 		// Put it into cache
 		ResourceSchemaCacheEntry entry = new ResourceSchemaCacheEntry(serial, xsdElement, parsedSchema);
@@ -117,7 +121,7 @@ public class ResourceSchemaCache {
 		}
 				
 		// Check metadata to see if we can reuse what is in the cache
-		CachingMetadata cachingMetadata = xmlSchemaType.getCachingMetadata();
+		CachingMetadataType cachingMetadata = xmlSchemaType.getCachingMetadata();
 		if (cachingMetadata != null) {			
 			if (cachingMetadata.getSerialNumber()!=null) {
 				if (!cachingMetadata.getSerialNumber().equals(entry.serialNumber)) {

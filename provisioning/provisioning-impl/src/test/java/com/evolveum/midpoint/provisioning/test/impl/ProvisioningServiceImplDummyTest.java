@@ -73,7 +73,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadata;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -198,9 +198,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 			display("Found connector", conn);
 			XmlSchemaType xmlSchemaType = conn.getSchema();
 			assertNotNull("xmlSchemaType is null", xmlSchemaType);
-			assertFalse("Empty schema", xmlSchemaType.getAny().isEmpty());
+			Element resourceXsdSchemaElement = ResourceTypeUtil.getResourceXsdSchema(resource);
+			assertNotNull("No schema", resourceXsdSchemaElement);
 			// Try to parse the schema
-			PrismSchema schema = PrismSchema.parse(xmlSchemaType.getAny().get(0), prismContext);
+			PrismSchema schema = PrismSchema.parse(resourceXsdSchemaElement, prismContext);
 			assertNotNull("Cannot parse schema", schema);
 			assertFalse("Empty schema", schema.isEmpty());
 			display("Parsed connector schema", schema);
@@ -254,8 +255,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				.getConnectorRef().getOid(), null, result).asObjectable();
 		assertNotNull(connector);
 		XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
-		AssertJUnit.assertTrue("Found schema before test connection. Bad test setup?", xmlSchemaTypeBefore
-				.getAny().isEmpty());
+		Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
+		AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
 		// WHEN
 		OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID);
@@ -269,9 +270,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		XmlSchemaType xmlSchemaTypeAfter = resource.getSchema();
 		assertNotNull("No schema after test connection", xmlSchemaTypeAfter);
-		assertFalse("No schema after test connection", xmlSchemaTypeAfter.getAny().isEmpty());
+		Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resource);
+		assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
-		CachingMetadata cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
+		CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
 		assertNotNull("No caching metadata", cachingMetadata);
 		assertNotNull("No retrievalTimestamp", cachingMetadata.getRetrievalTimestamp());
 		assertNotNull("No serialNumber", cachingMetadata.getSerialNumber());

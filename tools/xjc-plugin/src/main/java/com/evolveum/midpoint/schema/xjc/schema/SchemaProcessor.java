@@ -286,7 +286,7 @@ public class SchemaProcessor implements Processor {
 
         //create method body
         JBlock body = getContainer.body();
-        body._return(JExpr.invoke(JExpr.invoke(METHOD_GET_CONTAINER), "getParent"));
+        body._return(JExpr.invoke(JExpr.invoke(METHOD_GET_CONTAINER), "getContainer"));
     }
 
     private void createAsPrismContainerValue(JDefinedClass definedClass) {

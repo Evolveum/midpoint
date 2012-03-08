@@ -31,14 +31,17 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -87,7 +90,7 @@ public class DomSerializer {
 	}
 
 	private void serialize(PrismContainerValue<?> value, Element parentElement) throws SchemaException {
-		PrismContainer<?> parent = value.getParent();
+		PrismContainerable parent = value.getParent();
 		QName elementQName = parent.getName();
 		Element element = createElement(elementQName);
 		parentElement.appendChild(element);
@@ -98,7 +101,7 @@ public class DomSerializer {
 	}
 	
 	private void serialize(PrismPropertyValue<?> value, Element parentElement) throws SchemaException {
-		Item parent = value.getParent();
+		Itemable parent = value.getParent();
 		QName elementName = parent.getName();
 		if (value.getRawElement() != null) {
 			// This element was not yet touched by the schema, but we still can serialize it
@@ -111,7 +114,15 @@ public class DomSerializer {
 		if (definition != null) {
 			recordType = definition.isDynamic();
 		}
-		if (XmlTypeConverter.canConvert(type)) {
+		if (value.getValue() instanceof Element) {
+			// No conversion needed, just adopt the element
+			Element originalValueElement = (Element)value.getValue();
+			Element adoptedElement = (Element) parentElement.getOwnerDocument().importNode(originalValueElement, true);
+			parentElement.appendChild(adoptedElement);
+			DOMUtil.fixNamespaceDeclarations(adoptedElement);
+			// HACK HACK HACK
+			PrismUtil.fortifyNamespaceDeclarations(adoptedElement);
+		} else if (XmlTypeConverter.canConvert(type)) {
 			// Primitive value
 			Element element = createElement(elementName);
 			parentElement.appendChild(element);
@@ -149,7 +160,7 @@ public class DomSerializer {
 	}
 
 	private void serialize(PrismReferenceValue value, Element parentElement) throws SchemaException {
-		Item parent = value.getParent();
+		Itemable parent = value.getParent();
 		Element element = createElement(parent.getName());
 		parentElement.appendChild(element);
 		element.setAttribute(PrismConstants.ATTRIBUTE_OID_LOCAL_NAME, value.getOid());

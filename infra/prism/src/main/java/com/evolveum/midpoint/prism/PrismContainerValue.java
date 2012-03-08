@@ -60,7 +60,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
     	// Nothing to do
     }
     
-    public PrismContainerValue(SourceType type, Objectable source, PrismContainer container, String id) {
+    public PrismContainerValue(SourceType type, Objectable source, PrismContainerable container, String id) {
 		super(type, source, container);
 		this.id = id;
 	}
@@ -118,11 +118,11 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
      *
      * @return set of properties that the property container contains.
      */
-    public Set<PrismProperty> getProperties() {
-        Set<PrismProperty> properties = new HashSet<PrismProperty>();
+    public Set<PrismProperty<?>> getProperties() {
+        Set<PrismProperty<?>> properties = new HashSet<PrismProperty<?>>();
         for (Item<?> item : getItems()) {
             if (item instanceof PrismProperty) {
-                properties.add((PrismProperty) item);
+                properties.add((PrismProperty<?>) item);
             }
         }
         return properties;
@@ -136,7 +136,33 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 		this.id = id;
 	}
 	
-	public PrismContainer<T> getParent() {
+	@SuppressWarnings("unchecked")
+	public PrismContainerable getParent() {
+		Itemable parent = super.getParent();
+		if (parent == null) {
+			return null;
+		}
+		if (!(parent instanceof PrismContainerable)) {
+			throw new IllegalStateException("Expected that parent of "+PrismContainerValue.class.getName()+" will be "+
+					PrismContainerable.class.getName()+", but it is "+parent.getClass().getName());
+		}
+		return (PrismContainerable)super.getParent();
+	}
+	
+	void setParent(PrismContainerable container) {
+		super.setParent(container);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public PrismContainer<T> getContainer() {
+		Itemable parent = super.getParent();
+		if (parent == null) {
+			return null;
+		}
+		if (!(parent instanceof PrismContainer)) {
+			throw new IllegalStateException("Expected that parent of "+PrismContainerValue.class.getName()+" will be "+
+					PrismContainer.class.getName()+", but it is "+parent.getClass().getName());
+		}
 		return (PrismContainer<T>)super.getParent();
 	}
 	
@@ -145,7 +171,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 	}
 	
 	public PropertyPath getPath(PropertyPath pathPrefix) {
-		PrismContainer<T> parent = getParent();
+		Itemable parent = getParent();
 		PropertyPath parentPath = PropertyPath.EMPTY_PATH;
 		if (parent != null) {
 			parentPath = getParent().getPath(pathPrefix);
@@ -180,7 +206,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 
 	public Collection<QName> getPropertyNames() {
 		Collection<QName> names = new HashSet<QName>();
-		for (PrismProperty prop: getProperties()) {
+		for (PrismProperty<?> prop: getProperties()) {
 			names.add(prop.getName());
 		}
 		return names;
@@ -209,7 +235,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
      * @param item item to add.
      */
     public void addReplaceExisting(Item<?> item) {
-        Item existingItem = findItem(item.getName(), Item.class);
+        Item<?> existingItem = findItem(item.getName(), Item.class);
         if (existingItem != null) {
             items.remove(existingItem);
             existingItem.setParent(null);
@@ -220,7 +246,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
     public void remove(Item<?> item) {
         Validate.notNull(item, "Item must not be null.");
 
-        Item existingItem = findItem(item.getName(),  Item.class);
+        Item<?> existingItem = findItem(item.getName(),  Item.class);
         if (existingItem != null) {
             items.remove(existingItem);
             existingItem.setParent(null);
@@ -255,8 +281,8 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
      */
     public void addAllReplaceExisting(Collection<? extends Item<?>> itemsToAdd) {
         // Check for conflicts, remove conflicting values
-        for (Item item : itemsToAdd) {
-            Item existingItem = findItem(item.getName(), Item.class);
+        for (Item<?> item : itemsToAdd) {
+            Item<?> existingItem = findItem(item.getName(), Item.class);
             if (existingItem != null) {
                 items.remove(existingItem);
             }
@@ -284,7 +310,8 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
     	items.clear();
     }
 
-    public PrismProperty findProperty(QName propertyQName) {
+    @SuppressWarnings("unchecked")
+	public <X> PrismProperty<X> findProperty(QName propertyQName) {
         return findItem(propertyQName, PrismProperty.class);
     }
 
@@ -296,7 +323,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
      * @param propertyDefinition property definition to find.
      * @return found property or null
      */
-    public PrismProperty findProperty(PrismPropertyDefinition propertyDefinition) {
+    public <X> PrismProperty<X> findProperty(PrismPropertyDefinition propertyDefinition) {
         if (propertyDefinition == null) {
             throw new IllegalArgumentException("No property definition");
         }
@@ -311,7 +338,8 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
     	return findCreateItem(itemName, Item.class, false);
     }
     
-    <I extends Item<?>> I findCreateItem(QName itemName, Class<I> type, boolean create) {
+    @SuppressWarnings("unchecked")
+	<I extends Item<?>> I findCreateItem(QName itemName, Class<I> type, boolean create) {
     	for (Item<?> item : items) {
             if (itemName.equals(item.getName())) {
             	if (type.isAssignableFrom(item.getClass())) {
@@ -342,7 +370,8 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 
 
     // Expects that "self" path is NOT present in propPath
-    <I extends Item<?>> I findCreateItem(PropertyPath propPath, Class<I> type, boolean create) {
+    @SuppressWarnings("unchecked")
+	<I extends Item<?>> I findCreateItem(PropertyPath propPath, Class<I> type, boolean create) {
     	PropertyPathSegment first = propPath.first();
     	PropertyPath rest = propPath.rest();
     	for (Item<?> item : items) {
@@ -390,7 +419,8 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
     	}
     }
     
-    private <I extends Item<?>> I createSubItem(QName name, Class<I> type) {
+    @SuppressWarnings("unchecked")
+	private <I extends Item<?>> I createSubItem(QName name, Class<I> type) {
     	// the item with specified name does not exist, create it now
 		Item<?> newItem = null;
 		if (getParent().getDefinition() != null) {
@@ -424,8 +454,8 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
     	return findCreateItem(containerName, Item.class, true);
     }
 
-    public PrismProperty findOrCreateProperty(QName propertyQName) {
-        PrismProperty property = findItem(propertyQName, PrismProperty.class);
+    public <X> PrismProperty<X> findOrCreateProperty(QName propertyQName) {
+        PrismProperty<X> property = findItem(propertyQName, PrismProperty.class);
         if (property != null) {
             return property;
         }
@@ -440,7 +470,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 //        return container.findOrCreateProperty(propertyQName, valueClass);
 //    }
 
-    public PrismContainer<?> createContainer(QName containerName) {
+    public <X> PrismContainer<X> createContainer(QName containerName) {
         if (getParent().getDefinition() == null) {
             throw new IllegalStateException("No definition of container "+containerName);
         }
@@ -448,12 +478,12 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
         if (containerDefinition == null) {
             throw new IllegalArgumentException("No definition of container '" + containerName + "' in " + getParent().getDefinition());
         }
-        PrismContainer<?> container = containerDefinition.instantiate();
+        PrismContainer<X> container = containerDefinition.instantiate();
         add(container);
         return container;
     }
 
-    public PrismProperty createProperty(QName propertyName) {
+    public <X> PrismProperty<X> createProperty(QName propertyName) {
         PrismPropertyDefinition propertyDefinition = null;
         if (getParent() != null && getParent().getDefinition() != null) {
         	propertyDefinition = getParent().getDefinition().findPropertyDefinition(propertyName);
@@ -468,10 +498,10 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
         		}
         	}
         }
-        PrismProperty property = null;
+        PrismProperty<X> property = null;
         if (propertyDefinition == null) {
         	// Definitionless
-        	property = new PrismProperty(propertyName);
+        	property = new PrismProperty<X>(propertyName);
         } else {
         	property = propertyDefinition.instantiate();
         }
@@ -481,7 +511,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
     
     @Override
 	protected Element createDomElement() {
-		return new ElementPrismContainerImpl(this);
+		return new ElementPrismContainerImpl<T>(this);
 	}
 
 	public boolean equivalent(PrismContainerValue<?> other) {
@@ -626,13 +656,21 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
     
     public PrismContainerValue<T> clone() {
     	PrismContainerValue<T> clone = new PrismContainerValue<T>(getType(), getSource(), getParent(), getId());
-        for (Item<?> item: this.items) {
-        	clone.items.add(item.clone());
-        }
+    	copyValues(clone);
         return clone;
     }
     
-    @Override
+	protected void copyValues(PrismContainerValue<T> clone) {
+		super.copyValues(clone);
+		clone.id = this.id;
+        for (Item<?> item: this.items) {
+        	clone.items.add(item.clone());
+        }
+        // TODO: deep clonning?
+        clone.rawElements = this.rawElements;
+	}
+
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
