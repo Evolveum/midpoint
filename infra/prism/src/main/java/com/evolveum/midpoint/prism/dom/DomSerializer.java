@@ -119,8 +119,10 @@ public class DomSerializer {
 			Element originalValueElement = (Element)value.getValue();
 			Element adoptedElement = (Element) parentElement.getOwnerDocument().importNode(originalValueElement, true);
 			parentElement.appendChild(adoptedElement);
+			// Make sure that all applicable namespace declarations are placed on this element
 			DOMUtil.fixNamespaceDeclarations(adoptedElement);
-			// HACK HACK HACK
+			// HACK HACK HACK. Make sure that the declarations survive stupid XML normalization by placing them
+			// in explicit elements.
 			PrismUtil.fortifyNamespaceDeclarations(adoptedElement);
 		} else if (XmlTypeConverter.canConvert(type)) {
 			// Primitive value

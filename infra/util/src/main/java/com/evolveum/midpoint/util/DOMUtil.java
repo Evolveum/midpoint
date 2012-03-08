@@ -115,12 +115,7 @@ public class DOMUtil {
 	private static final int RANDOM_ATTR_PREFIX_RND = 1000;
 	// To generate random namespace prefixes
 	private static Random rnd = new Random();
-	private static final DocumentBuilder loader;
-	
-	// We hope that nobody will choose attribute name so lame as this one
-	private static final String PHANTOM_ATTRIBUTE_NAME = "phantom___aTTr";
-	private static final String PHANTOM_ELEMENT_NAME = "phantom___eLeMeNt";;
-	
+	private static final DocumentBuilder loader;	
 	
 	static {
 		try {
@@ -596,14 +591,6 @@ public class DOMUtil {
 				} else {
 					setNamespaceDeclaration(targetElement, prefix, getNamespaceDeclarationNamespace(attr));
 				}
-				// Make sure that the declaration does not disappear during XML normalization:
-				// create a dummy attribute using that namespace, if such attribute does not exists yet
-//				if (!isPrefixUsed(targetElement, prefix)) {
-//					Attr phantomAttr = targetElement.getOwnerDocument().createAttributeNS(namespace, PHANTOM_ATTRIBUTE_NAME);
-//					phantomAttr.setPrefix(prefix);
-//					phantomAttr.setValue(prefix);
-//					targetElement.setAttributeNode(phantomAttr);
-//				}
 			}
 		}
 		Node parentNode = currentElement.getParentNode();
@@ -690,35 +677,6 @@ public class DOMUtil {
 			return false;
 		}
 		return prefixA.equals(prefixB);
-	}
-
-	
-
-	public static void fixXsdNamespaces(Element element) {
-		QName elementQname = getQName(element);
-		if (!XSD_SCHEMA_ELEMENT.equals(elementQname)) {
-			return;
-		}
-		NamedNodeMap attributes = element.getAttributes();
-		for(int i=0; i<attributes.getLength(); i++) {
-			Attr attr = (Attr)attributes.item(i);
-			if (isNamespaceDefinition(attr)) {
-				String prefix = getNamespaceDeclarationPrefix(attr);
-				String namespace = getNamespaceDeclarationNamespace(attr);
-				if (!isPrefixUsed(element, prefix)) {
-					addPhantomAppinfoElement(element, prefix, namespace);
-				}
-			}
-		}		
-	}
-		
-	private static void addPhantomAppinfoElement(Element element, String prefix, String namespace) {
-		Element annotationElement = getOrCreateAsFirstElement(element, XSD_ANNOTATION_ELEMENT);
-		Element appinfoElement = getOrCreateAsFirstElement(annotationElement, XSD_APPINFO_ELEMENT);
-		Document doc = element.getOwnerDocument();
-		Element phantomElement = doc.createElementNS(namespace, PHANTOM_ELEMENT_NAME);
-		phantomElement.setPrefix(prefix);
-		appinfoElement.appendChild(phantomElement);
 	}
 	
 	public static Element getChildElement(Element element, QName qname) {

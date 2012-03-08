@@ -378,7 +378,9 @@ public class PrismDomProcessor {
     		// Need to convert the DOM representation to something more java-like
     		Element element = (Element)valueElement;
     		if (propertyDefinition.getTypeName().equals(DOMUtil.XSD_ANY)) {
-    			// No conversion. Element is the value.
+    			// No conversion. Element is the value. Almost.
+    			// Extract the namespace declarations from explicit elements used to fortify them against
+    			// stupid XML normalization. If the declarations were not fortified this has no effect.
     			PrismUtil.unfortifyNamespaceDeclarations(element);
     			realValue = element;
     		} else if (XmlTypeConverter.canConvert(typeName)) {

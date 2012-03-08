@@ -41,9 +41,12 @@ import com.evolveum.midpoint.util.DOMUtil;
 public class PrismUtil {
 
 	/**
-	 * Super-mega-giga-ultra hack.
+	 * Super-mega-giga-ultra hack. This is used to "fortify" XML namespace declaration in a non-standard way.
+	 * It is useful in case that someone will try some stupid kind of schema-less XML normalization that removes
+	 * "unused" XML namespace declaration. The declarations are usually used, but they are used inside QName values
+	 * that the dumb normalization cannot see. Therefore this fortification places XML namespace declaration in
+	 * a explicit XML elements. That can be reconstructed later by using unfortification method below.
 	 */
-	
 	public static void fortifyNamespaceDeclarations(Element definitionElement) {
 		for(Element childElement: DOMUtil.listChildElements(definitionElement)) {
 			fortifyNamespaceDeclarations(definitionElement, childElement);
