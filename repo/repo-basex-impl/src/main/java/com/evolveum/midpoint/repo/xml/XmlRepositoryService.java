@@ -30,34 +30,24 @@ import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.UUID;
-
-
 import javax.xml.bind.JAXBException;
-
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.pool.ObjectPool;
 import org.apache.commons.pool.PoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.apache.commons.pool.impl.GenericObjectPool.Config;
 import org.basex.core.BaseXException;
-
 import org.basex.server.ClientQuery;
 import org.basex.server.ClientSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
 import com.evolveum.midpoint.common.QueryUtil;
-
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultArrayList;
 import com.evolveum.midpoint.schema.ResultList;
@@ -65,11 +55,9 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
-
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.EscapeStringBuilder;
-
 import com.evolveum.midpoint.util.XQueryEscapeStringBuilder;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -79,10 +67,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -397,7 +383,13 @@ public class XmlRepositoryService implements RepositoryService {
 			}
 
 			if (validateFilterElement(SchemaConstants.NS_C, "value", criteria)) {
-				processValueNode(criteria, filters, namespaces, null);
+				Node criteriaPathNode = DOMUtil.getNextSiblingElement(criteria);
+				String parentPath = null;
+				if (criteriaPathNode != null && validateFilterElement(SchemaConstants.NS_C, "path", criteriaPathNode)){
+					XPathHolder xpathType = new XPathHolder((Element) criteriaPathNode);
+					parentPath = xpathType.getXPath();
+				}
+				processValueNode(criteria, filters, namespaces, parentPath);
 			}
 		}
 	}
