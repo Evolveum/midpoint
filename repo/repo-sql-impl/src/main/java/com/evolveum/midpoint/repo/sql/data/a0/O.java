@@ -19,11 +19,11 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.repo.sql.data.atest;
+package com.evolveum.midpoint.repo.sql.data.a0;
 
 import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.ManyToAny;
 
 import javax.persistence.*;
 import javax.xml.namespace.QName;
@@ -42,7 +42,9 @@ import java.util.Set;
 public abstract class O {
 
     private String oid;
-    private Set<ExtensionValue> extensions;
+    private long version;
+    
+//    private Set<ExtensionValue> extensions;
 
     @Id
     @GeneratedValue(generator = "OidGenerator")
@@ -52,20 +54,30 @@ public abstract class O {
         return oid;
     }
 
-    @OneToMany(mappedBy = "owner")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<ExtensionValue> getExtensions() {
-        return extensions;
+    @Version
+    public long getVersion() {
+        return version;
     }
+
+    //    @OneToMany(mappedBy = "object")
+//    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+//    public Set<ExtensionValue> getExtensions() {
+//        return extensions;
+//    }
 
     public void setOid(String oid) {
         this.oid = oid;
     }
 
-    public void setExtensions(Set<ExtensionValue> extensions) {
-        this.extensions = extensions;
+//    public void setExtensions(Set<ExtensionValue> extensions) {
+//        this.extensions = extensions;
+//    }
+
+
+    public void setVersion(long version) {
+        this.version = version;
     }
 
     @Transient
-    public abstract Collection<IdentifiableContainer> getContainers(QName name);
+    public abstract Collection<Assignment> getContainers(QName name);
 }

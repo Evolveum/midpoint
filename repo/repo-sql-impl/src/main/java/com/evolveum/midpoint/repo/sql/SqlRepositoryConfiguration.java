@@ -38,6 +38,10 @@ public class SqlRepositoryConfiguration {
     private String baseDir;
     private boolean tcpSSL = false;
     private int port = 5437;
+    //embedded jdbc url configuration properties
+    //CACHE_SIZE
+    private int cacheSize;
+
     //connection for hibernate
     private String driverClassName;
     private String jdbcUrl;
@@ -186,5 +190,13 @@ public class SqlRepositoryConfiguration {
 
     public void setTcpSSL(boolean tcpSSL) {
         this.tcpSSL = tcpSSL;
+    }
+
+    public int getCacheSize() {
+        return cacheSize;
+    }
+
+    public void setCacheSize(int cacheSize) {
+        this.cacheSize = cacheSize;
     }
 }

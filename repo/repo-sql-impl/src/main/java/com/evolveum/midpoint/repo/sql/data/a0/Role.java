@@ -19,8 +19,9 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.repo.sql.data.atest;
+package com.evolveum.midpoint.repo.sql.data.a0;
 
+import com.evolveum.midpoint.repo.sql.data.atest.IdentifiableContainer;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -67,10 +68,10 @@ public class Role extends O {
 
     @Transient
     @Override
-    public Collection<IdentifiableContainer> getContainers(QName name) {
-        Collection<IdentifiableContainer> containers = new ArrayList<IdentifiableContainer>();
+    public Collection<Assignment> getContainers(QName name) {
+        Collection<Assignment> containers = new ArrayList<Assignment>();
         if (getAssignments() != null) {
-//            containers.addAll(getAssignments());
+            containers.addAll(getAssignments());
         }
 
         return containers;

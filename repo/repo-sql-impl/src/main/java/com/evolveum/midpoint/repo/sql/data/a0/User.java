@@ -19,9 +19,8 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.repo.sql.data.atest;
+package com.evolveum.midpoint.repo.sql.data.a0;
 
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
@@ -37,18 +36,15 @@ import java.util.Set;
  * Created by IntelliJ IDEA.
  * User: lazyman
  * Date: 3/3/12
- * Time: 12:23 PM
+ * Time: 2:50 PM
  * To change this template use File | Settings | File Templates.
  */
+
 @Entity
-public class Role extends O {
+public class User extends O {
 
+    private String fullName;
     private Set<Assignment> assignments;
-    private String description;
-
-    public String getDescription() {
-        return description;
-    }
 
     @OneToMany(mappedBy = "owner")
     @ForeignKey(name = "none")
@@ -57,8 +53,12 @@ public class Role extends O {
         return assignments;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public void setAssignments(Set<Assignment> assignments) {
@@ -67,17 +67,12 @@ public class Role extends O {
 
     @Transient
     @Override
-    public Collection<IdentifiableContainer> getContainers(QName name) {
-        Collection<IdentifiableContainer> containers = new ArrayList<IdentifiableContainer>();
+    public Collection<Assignment> getContainers(QName name) {
+        Collection<Assignment> containers = new ArrayList<Assignment>();
         if (getAssignments() != null) {
-//            containers.addAll(getAssignments());
+            containers.addAll(getAssignments());
         }
 
         return containers;
-    }
-
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toString(this);
     }
 }

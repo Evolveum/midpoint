@@ -30,5 +30,6 @@
 	<root level="INFO">
 		<appender-ref ref="X" />
 	</root>
+    <logger name="org.hibernate" level="TRACE" />
 </configuration>
 

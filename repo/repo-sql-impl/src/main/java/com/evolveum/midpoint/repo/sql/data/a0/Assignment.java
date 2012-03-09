@@ -19,32 +19,36 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.repo.sql.data.atest;
+package com.evolveum.midpoint.repo.sql.data.a0;
 
+import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Set;
 
 /**
  * Created by IntelliJ IDEA.
  * User: lazyman
  * Date: 3/3/12
- * Time: 12:29 PM
+ * Time: 12:23 PM
  * To change this template use File | Settings | File Templates.
  */
-//@Entity
-//@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-public abstract class IdentifiableContainer implements Serializable {
+@Entity
+public class Assignment implements Serializable {
 
     private String ownerOid;
-    
+
     private O owner;
     private Long id;
 
     @Id
-    @Column(name = "owner", nullable = false, insertable = true, updatable = false)
+    @Column(name = "owner_oid", length = 36, insertable = true, updatable = false, unique = false)
     public String getOwnerOid() {
+        if (ownerOid == null && owner != null) {
+            ownerOid = owner.getOid();
+        }
         return ownerOid;
     }
 
@@ -52,10 +56,9 @@ public abstract class IdentifiableContainer implements Serializable {
         this.ownerOid = ownerOid;
     }
 
-//    @Id
     @MapsId("oid")
-    @ManyToOne
-    @JoinColumn(name = "owner", referencedColumnName = "oid", nullable = false, insertable = true, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @PrimaryKeyJoinColumn(name = "owner_oid", referencedColumnName = "oid")
     public O getOwner() {
         return owner;
     }
@@ -63,6 +66,7 @@ public abstract class IdentifiableContainer implements Serializable {
     @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.ContainerIdGenerator")
+    @Column(name = "id")
     public Long getId() {
         return id;
     }
@@ -75,33 +79,55 @@ public abstract class IdentifiableContainer implements Serializable {
         this.id = id;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null) {
-            return false;
-        }
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof IdentifiableContainer)) {
-            return false;
-        }
 
-        IdentifiableContainer container = (IdentifiableContainer) o;
-        return equals(owner, container.getOwner())
-                && id != null && equals(id, container.getId());
+    private String description;
+    //reference
+    private Reference reference;
+    private O target;
+    //extension
+    private Set<ExtensionValue> extensions;
+
+    @OneToMany(mappedBy = "object")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<ExtensionValue> getExtensions() {
+        return extensions;
     }
 
-    private boolean equals(Object o1, Object o2) {
-        return (o1 == null ? o2 == null : o1.equals(o2));
+    @Embedded
+    public Reference getReference() {
+        if (reference == null) {
+            reference = new Reference();
+        }
+        return reference;
+    }
+
+    @ManyToOne(optional = true, fetch = FetchType.LAZY)
+    public O getTarget() {
+        return target;
+    }
+
+    public void setExtensions(Set<ExtensionValue> extensions) {
+        this.extensions = extensions;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setReference(Reference reference) {
+        this.reference = reference;
+    }
+
+    public void setTarget(O target) {
+        this.target = target;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((owner == null) ? 0 : owner.hashCode());
-        result = prime * result + ((id == null) ? 0 : id.hashCode());
-        return result;
+    public String toString() {
+        return "[" + description + "]";
     }
 }

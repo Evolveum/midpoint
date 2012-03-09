@@ -22,8 +22,12 @@
 package com.evolveum.midpoint.repo.sql.data.atest;
 
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.io.Serializable;
+import java.util.Set;
 
 /**
  * Created by IntelliJ IDEA.
@@ -33,12 +37,60 @@ import javax.persistence.*;
  * To change this template use File | Settings | File Templates.
  */
 @Entity
-public class Assignment extends IdentifiableContainer {
+public class Assignment implements Serializable {//} extends IdentifiableContainer {
+
+    private String ownerOid;
+
+    private O owner;
+    private Long id;
+
+    @Id
+    @Column(name = "owner", nullable = false, insertable = true, updatable = false)
+    public String getOwnerOid() {
+        return ownerOid;
+    }
+
+    public void setOwnerOid(String ownerOid) {
+        this.ownerOid = ownerOid;
+    }
+
+    //    @Id
+    @MapsId("oid")
+    @ManyToOne
+//    @JoinColumn(name = "owner", referencedColumnName = "oid", nullable = false, insertable = true, updatable = false)
+    public O getOwner() {
+        return owner;
+    }
+
+    @Id
+    @GeneratedValue(generator = "ContainerIdGenerator")
+    @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.ContainerIdGenerator")
+    public Long getId() {
+        return id;
+    }
+
+    public void setOwner(O owner) {
+        this.owner = owner;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+
 
     private String description;
     //reference
     private Reference reference;
     private O target;
+    //extension
+    private Set<ContainerExtensionValue> extensions;
+
+    @OneToMany(mappedBy = "assignment")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<ContainerExtensionValue> getExtensions() {
+        return extensions;
+    }
 
     @Embedded
     public Reference getReference() {
@@ -51,6 +103,10 @@ public class Assignment extends IdentifiableContainer {
     @ManyToOne(optional = true, fetch = FetchType.LAZY)
     public O getTarget() {
         return target;
+    }
+
+    public void setExtensions(Set<ContainerExtensionValue> extensions) {
+        this.extensions = extensions;
     }
 
     public String getDescription() {

@@ -21,14 +21,15 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.repo.sql.data.atest.IdentifiableContainer;
-import com.evolveum.midpoint.repo.sql.data.atest.O;
+import com.evolveum.midpoint.repo.sql.data.a0.Assignment;
+import com.evolveum.midpoint.repo.sql.data.a0.Role;
+import com.evolveum.midpoint.repo.sql.data.a0.User;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.id.IdentifierGenerator;
 
 import java.io.Serializable;
-import java.util.Collection;
+import java.util.Set;
 
 /**
  * Created by IntelliJ IDEA.
@@ -41,29 +42,75 @@ public class ContainerIdGenerator implements IdentifierGenerator {
 
     @Override
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
-        if (object instanceof IdentifiableContainer) {
-            IdentifiableContainer container = (IdentifiableContainer) object;
-            if (container.getId() != null) {
-                return container.getId();
+        if (object instanceof Assignment) {
+            Assignment assignment = (Assignment) object;
+            if (assignment.getId() != null && assignment.getOwner() == null) {
+                return assignment.getId();
             }
 
-            O owner = container.getOwner();
-            if (owner == null) {
+            Set<Assignment> assignments = null;
+            if (assignment.getOwner() instanceof User) {
+                assignments = ((User) assignment.getOwner()).getAssignments();
+            } else if (assignment.getOwner() instanceof Role) {
+                assignments = (((Role) assignment.getOwner()).getAssignments());
+            }
+            if (assignments == null) {
                 return null;
             }
-
-            //todo fix qname
-            Collection<IdentifiableContainer> containers = owner.getContainers(null);
             Long id = 0L;
-            for (IdentifiableContainer iContainer : containers) {
-                if (iContainer.getId() != null && iContainer.getId() > id) {
-                    id = iContainer.getId();
+            for (Assignment item : assignments) {
+                if (item.getId() != null && item.getId() > id) {
+                    id = item.getId();
                 }
             }
-
             return id + 1;
         }
 
         return null;
+
+        //todo remove
+//        if (object instanceof A) {
+//            A a = (A)object;
+//            if (a.getId() != null) {
+//                return a.getId();
+//            }
+//            if (a.getR() == null) {
+//                return null;
+//            }
+//            Set<A> set = a.getR().getAset();
+//            Long id = 0L;
+//            for (A aa : set) {
+//                if (aa.getId() != null && aa.getId() > id) {
+//                    id = aa.getId();
+//                }
+//            }
+//
+//            return id + 1;
+//        }
+//        
+//        if (object instanceof IdentifiableContainer) {
+//            IdentifiableContainer container = (IdentifiableContainer) object;
+//            if (container.getId() != null) {
+//                return container.getId();
+//            }
+//
+//            O owner = container.getOwner();
+//            if (owner == null) {
+//                return null;
+//            }
+//
+//            //todo fix qname
+//            Collection<IdentifiableContainer> containers = owner.getContainers(null);
+//            Long id = 0L;
+//            for (IdentifiableContainer iContainer : containers) {
+//                if (iContainer.getId() != null && iContainer.getId() > id) {
+//                    id = iContainer.getId();
+//                }
+//            }
+//
+//            return id + 1;
+//        }
+//
+//        return null;
     }
 }

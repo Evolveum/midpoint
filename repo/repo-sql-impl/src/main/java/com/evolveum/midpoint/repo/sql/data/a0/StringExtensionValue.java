@@ -19,34 +19,45 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.repo.sql.data.a;
+package com.evolveum.midpoint.repo.sql.data.a0;
 
-import org.hibernate.annotations.GenericGenerator;
-
-import javax.persistence.*;
+import javax.persistence.Id;
 
 /**
  * Created by IntelliJ IDEA.
  * User: lazyman
- * Date: 3/8/12
- * Time: 4:57 PM
+ * Date: 3/7/12
+ * Time: 1:52 PM
  * To change this template use File | Settings | File Templates.
  */
-@Entity
-@Inheritance(strategy = InheritanceType.JOINED)
-public class O {
-    
-    private String oid;
+//@Entity
+public class StringExtensionValue extends ExtensionValue {
+
+    private String value;
 
     @Id
-    @GeneratedValue(generator = "OidGenerator")
-    @GenericGenerator(name = "OidGenerator", strategy = "com.evolveum.midpoint.repo.sql.OidGenerator")
-    @Column(unique = true, nullable = false, updatable = false, length = 36)
-    public String getOid() {
-        return oid;
+    public String getValue() {
+        return value;
     }
 
-    public void setOid(String oid) {
-        this.oid = oid;
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        StringExtensionValue that = (StringExtensionValue) o;
+
+        if (value != null ? !value.equals(that.value) : that.value != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return value != null ? value.hashCode() : 0;
     }
 }

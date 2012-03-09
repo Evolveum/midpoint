@@ -38,6 +38,13 @@ public class OidGenerator implements IdentifierGenerator {
 
     @Override
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
+        if (object instanceof com.evolveum.midpoint.repo.sql.data.a0.O) {
+            com.evolveum.midpoint.repo.sql.data.a0.O o = (com.evolveum.midpoint.repo.sql.data.a0.O) object;
+            if (StringUtils.isNotEmpty(o.getOid())) {
+                return o.getOid();
+            }
+        }
+
         //todo remove
         if (object instanceof O) {
             O o = (O) object;

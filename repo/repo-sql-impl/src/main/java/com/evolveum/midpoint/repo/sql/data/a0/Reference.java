@@ -19,36 +19,36 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.repo.sql.data.a;
+package com.evolveum.midpoint.repo.sql.data.a0;
 
+import org.hibernate.annotations.Columns;
+
+import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import javax.xml.namespace.QName;
+import java.io.Serializable;
 
 /**
  * Created by IntelliJ IDEA.
  * User: lazyman
- * Date: 3/8/12
- * Time: 10:26 PM
+ * Date: 3/3/12
+ * Time: 12:23 PM
  * To change this template use File | Settings | File Templates.
  */
 @Embeddable
-public class AId {
-    
-    private String oid;
-    private Long id;
+public class Reference implements Serializable {
 
-    public Long getId() {
-        return id;
+    private QName type;
+
+    @Columns(columns = {
+            @Column(name = "namespaceURI"),
+            @Column(name = "localPart")
+    })
+    public QName getType() {
+        return type;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getOid() {
-        return oid;
-    }
-
-    public void setOid(String oid) {
-        this.oid = oid;
+    public void setType(QName type) {
+        this.type = type;
     }
 }

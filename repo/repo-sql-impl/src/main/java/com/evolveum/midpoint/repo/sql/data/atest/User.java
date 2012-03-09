@@ -82,7 +82,7 @@ public class User extends O {
     public Collection<IdentifiableContainer> getContainers(QName name) {
         Collection<IdentifiableContainer> containers = new ArrayList<IdentifiableContainer>();
         if (getAssignments() != null) {
-            containers.addAll(getAssignments());
+//            containers.addAll(getAssignments());
         }
 
         return containers;

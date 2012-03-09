@@ -104,6 +104,14 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         return new SqlRepositoryServiceImpl();
     }
 
+    /**
+     * This method checks actual configuration and updates if it's in embedded mode. (build correct
+     * jdbc url, sets default username and password, driver class and hibernate properties)
+     *
+     * @param config
+     * @throws RepositoryServiceFactoryException
+     *          this exception is thrown if baseDir defined in configuration xml doesn't exist or it's not a directory
+     */
     private void normalizeConfiguration(SqlRepositoryConfiguration config) throws RepositoryServiceFactoryException {
         if (!config.isEmbedded()) {
             return;
@@ -127,7 +135,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         jdbcUrl.append(baseDir.getAbsolutePath());
         jdbcUrl.append("/midpoint");
         config.setJdbcUrl(jdbcUrl.toString());
-        
+
         config.setJdbcUsername("sa");
         config.setJdbcPassword("");
 
