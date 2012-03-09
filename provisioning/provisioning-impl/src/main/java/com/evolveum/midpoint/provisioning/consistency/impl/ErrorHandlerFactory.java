@@ -7,6 +7,7 @@ import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -28,6 +29,9 @@ public class ErrorHandlerFactory {
 	
 	@Autowired(required=true)
 	GenericErrorHandler genericErrorHandler;
+	
+	@Autowired(required=true)
+	ConfigurationExceptionHandler configurationExceptionHandler;
 	
 	
 //	public CommunicationExceptionHandler getCommunicationExceptionHandler() {
@@ -54,6 +58,9 @@ public class ErrorHandlerFactory {
 		}
 		if (ex instanceof SchemaException){
 			return schemaExceptionHandler;
+		}
+		if (ex instanceof ConfigurationException){
+			return configurationExceptionHandler;
 		}
 		
 		return null;
