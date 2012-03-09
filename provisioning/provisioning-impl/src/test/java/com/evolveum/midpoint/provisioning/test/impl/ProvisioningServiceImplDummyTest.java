@@ -57,6 +57,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
@@ -118,7 +119,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImplDummyTest.class);
 
-	private ResourceType resource;
+	private PrismObject<ResourceType> resource;
+	private ResourceType resourceType;
 	private static DummyResource dummyResource;
 	
 	@Autowired(required=true)
@@ -144,7 +146,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	@Override
 	public void initSystem(OperationResult initResult) throws Exception {
 		provisioningService.postInit(initResult);
-		addResourceFromFile(FILENAME_RESOURCE_DUMMY, DUMMY_CONNECTOR_TYPE, initResult);
+		resource = addResourceFromFile(FILENAME_RESOURCE_DUMMY, DUMMY_CONNECTOR_TYPE, initResult);
+		resourceType = resource.asObjectable();
 	}
 
 	@BeforeClass
@@ -158,6 +161,9 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		displayTestTile("test000Integrity");
 
 		display("Dummy resource instance", dummyResource.toString());
+		
+		assertNotNull("Resource is null", resource);
+		assertNotNull("ResourceType is null", resourceType);
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
 				+ ".test000Integrity");
@@ -198,10 +204,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 			display("Found connector", conn);
 			XmlSchemaType xmlSchemaType = conn.getSchema();
 			assertNotNull("xmlSchemaType is null", xmlSchemaType);
-			Element resourceXsdSchemaElement = ResourceTypeUtil.getResourceXsdSchema(resource);
-			assertNotNull("No schema", resourceXsdSchemaElement);
+			Element connectorXsdSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(conn);
+			assertNotNull("No schema", connectorXsdSchemaElement);
 			// Try to parse the schema
-			PrismSchema schema = PrismSchema.parse(resourceXsdSchemaElement, prismContext);
+			PrismSchema schema = PrismSchema.parse(connectorXsdSchemaElement, prismContext);
 			assertNotNull("Cannot parse schema", schema);
 			assertFalse("Empty schema", schema.isEmpty());
 			display("Parsed connector schema", schema);
@@ -265,12 +271,12 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		display("Test result", testResult);
 		assertSuccess("Test resource failed (result)", testResult);
 
-		resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result).asObjectable();
-		display("Resource after test", resource);
+		resourceType = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result).asObjectable();
+		display("Resource after test", resourceType);
 
-		XmlSchemaType xmlSchemaTypeAfter = resource.getSchema();
+		XmlSchemaType xmlSchemaTypeAfter = resourceType.getSchema();
 		assertNotNull("No schema after test connection", xmlSchemaTypeAfter);
-		Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resource);
+		Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceType);
 		assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
 		CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
@@ -478,7 +484,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		Document doc = DOMUtil.getDocument();
 		query.setFilter(QueryUtil.createAndFilter(doc,
 				QueryUtil.createEqualRefFilter(doc, null, SchemaConstants.I_RESOURCE_REF, RESOURCE_DUMMY_OID),
-				QueryUtil.createEqualFilter(doc, null, SchemaConstants.I_OBJECT_CLASS, new QName(resource.getNamespace(),ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME)),
+				QueryUtil.createEqualFilter(doc, null, SchemaConstants.I_OBJECT_CLASS, new QName(resourceType.getNamespace(),ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME)),
 				QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, "will")));
 		
 		final List<AccountShadowType> foundObjects = new ArrayList<AccountShadowType>();
@@ -515,7 +521,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertNotNull("no ICF NAME",ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow, ConnectorFactoryIcfImpl.ICFS_NAME));
 		assertEquals("Will Turner",
 				ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow,
-						new QName(resource.getNamespace(), "fullname")));
+						new QName(resourceType.getNamespace(), "fullname")));
 		assertNotNull("no activation",shadow.getActivation());
 		assertNotNull("no activation/enabled",shadow.getActivation().isEnabled());
 	}

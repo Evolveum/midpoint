@@ -72,6 +72,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -661,11 +662,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			display("Object after password change",accountType);
 			
 			String uid = null;
-			for (Object e : accountType.getAttributes().getAny()) {
-				if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(e))) {
-					uid = ((Element)e).getTextContent();
-				}
-			}
+			uid = ResourceObjectShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);
 			assertNotNull(uid);
 			
 			SearchResultEntry entryBefore = openDJController.searchAndAssertByEntryUuid(uid);			

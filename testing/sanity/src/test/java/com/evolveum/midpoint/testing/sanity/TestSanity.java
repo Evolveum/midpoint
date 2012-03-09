@@ -2765,7 +2765,7 @@ public class TestSanity extends AbstractIntegrationTest {
             
             display("Account after import ", account);
             
-            String attributeValueL = ResourceObjectShadowUtil.getAttributeStringValue(account, new QName(resourceOpenDj.getNamespace(), "l"));
+            String attributeValueL = ResourceObjectShadowUtil.getSingleStringAttributeValue(account, new QName(resourceOpenDj.getNamespace(), "l"));
             assertEquals("Unexcpected value of l", "middle of nowhere", attributeValueL);
         }
         

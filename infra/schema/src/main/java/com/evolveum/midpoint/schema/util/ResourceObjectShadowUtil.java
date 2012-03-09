@@ -93,29 +93,27 @@ public class ResourceObjectShadowUtil {
 	}
 	
 	public static String getSingleStringAttributeValue(ResourceObjectShadowType shadow, QName attrName) {
-		if (shadow.getAttributes() == null || shadow.getAttributes().getAny() == null ||
-				shadow.getAttributes().getAny().isEmpty()) {
+		return getSingleStringAttributeValue(shadow.asPrismObject(), attrName);
+	}
+	
+
+	private static String getSingleStringAttributeValue(PrismObject<ResourceObjectShadowType> shadow, QName attrName) {
+		PrismContainer<?> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		if (attributesContainer == null) {
 			return null;
 		}
-		String value = null;
-		for (Object element : shadow.getAttributes().getAny()) {
-			if (attrName.equals(JAXBUtil.getElementQName(element))) {
-				if (value != null) {
-					throw new IllegalArgumentException("Multiple values for attribute "+attrName+" in "+ObjectTypeUtil.toShortString(shadow)+" while expecting a single value");
-				}
-				if (element instanceof Element) {
-					value = ((Element)element).getTextContent();
-				} else {
-					// JAXBObject, obviously not a string attribute
-					throw new IllegalArgumentException("Found value "+element+" for attribute "+attrName+" in "+ObjectTypeUtil.toShortString(shadow)+" while expecting a string value");
-				}
-			}
+		PrismProperty<String> attribute = attributesContainer.findProperty(attrName);
+		if (attribute == null) {
+			return null;
 		}
-		return value;
+		return attribute.getRealValue();
 	}
 
-	public static List<Object> getAttributeValues(AccountShadowType shadowType, QName attrName) {
-		PrismObject shadow = shadowType.asPrismObject();
+	public static List<Object> getAttributeValues(ResourceObjectShadowType shadowType, QName attrName) {
+		return getAttributeValues(shadowType.asPrismObject(), attrName);
+	}
+	
+	public static List<Object> getAttributeValues(PrismObject<ResourceObjectShadowType> shadow, QName attrName) {
 		PrismContainer attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null || attributesContainer.isEmpty()) {
 			return null;
@@ -132,22 +130,6 @@ public class ResourceObjectShadowUtil {
 			return null;
 		}
 		return values;
-	}
-
-	public static String getAttributeStringValue(AccountShadowType shadow, QName attrName) {
-		List<Object> values = getAttributeValues(shadow, attrName);
-		if (values.isEmpty()) {
-			return null;
-		}
-		if (values.size() > 1) {
-			throw new IllegalStateException("More than one value for "+attrName);
-		}
-		Object value = values.get(0);
-		if (!(value instanceof Element)) {
-			throw new IllegalStateException("Not an Element value for "+attrName);
-		}
-		Element element = (Element)value;
-		return element.getTextContent();
 	}
 
 	public static void setPassword(AccountShadowType accountShadowType, ProtectedStringType password) {
