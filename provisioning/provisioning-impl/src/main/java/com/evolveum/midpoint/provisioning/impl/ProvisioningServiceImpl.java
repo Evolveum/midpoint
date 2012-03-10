@@ -826,8 +826,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 		};
 
+		try{
 		resourceTypeManager.listShadows(resource.asObjectable(), objectClass, shadowHandler, false, result);
-
+		} catch(ConfigurationException ex){
+			parentResult.recordFatalError(ex.getMessage(), ex);
+			throw new CommunicationException("Error in the configuration: "+ex.getMessage(), ex);
+		}
 		return objectList;
 	}
 

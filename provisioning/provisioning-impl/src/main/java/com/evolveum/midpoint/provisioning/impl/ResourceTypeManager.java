@@ -186,52 +186,59 @@ public class ResourceTypeManager {
 			Document xsdDoc = null;
 			try {
 				// Convert to XSD
-				LOGGER.trace("Serializing XSD resource schema for {} to DOM", ObjectTypeUtil.toShortString(resource));
+				LOGGER.trace("Serializing XSD resource schema for {} to DOM",
+						ObjectTypeUtil.toShortString(resource));
 
 				xsdDoc = resourceSchema.serializeToXsd();
 
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Serialized XSD resource schema for {}:\n{}", ObjectTypeUtil.toShortString(resource), 
-							DOMUtil.serializeDOMToString(xsdDoc));
+					LOGGER.trace("Serialized XSD resource schema for {}:\n{}",
+							ObjectTypeUtil.toShortString(resource), DOMUtil.serializeDOMToString(xsdDoc));
 				}
-				
+
 			} catch (SchemaException e) {
 				throw new SchemaException("Error processing resource schema for "
 						+ ObjectTypeUtil.toShortString(resource) + ": " + e.getMessage(), e);
 			}
-			
-			
+
 			xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
 			if (xsdElement == null) {
-				throw new SchemaException("No schema was generated for "+resource);
+				throw new SchemaException("No schema was generated for " + resource);
 			}
 			CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
-			
-			// Store generated schema into repository (modify the original Resource)
+
+			// Store generated schema into repository (modify the original
+			// Resource)
 			LOGGER.info("Storing generated schema in resource " + ObjectTypeUtil.toShortString(resource));
-			
-			ContainerDelta<XmlSchemaType> schemaContainerDelta = ContainerDelta.createDelta(prismContext, ResourceType.class, ResourceType.F_SCHEMA);
+
+			ContainerDelta<XmlSchemaType> schemaContainerDelta = ContainerDelta.createDelta(prismContext,
+					ResourceType.class, ResourceType.F_SCHEMA);
 			PrismContainerValue<XmlSchemaType> cval = new PrismContainerValue<XmlSchemaType>();
 			schemaContainerDelta.setValueToReplace(cval);
-			PrismProperty<CachingMetadataType> cachingMetadataProperty = cval.createProperty(XmlSchemaType.F_CACHING_METADATA);
+			PrismProperty<CachingMetadataType> cachingMetadataProperty = cval
+					.createProperty(XmlSchemaType.F_CACHING_METADATA);
 			cachingMetadataProperty.setRealValue(cachingMetadata);
 			PrismProperty<Element> definitionProperty = cval.createProperty(XmlSchemaType.F_DEFINITION);
 			ObjectTypeUtil.setXsdSchemaDefinition(definitionProperty, xsdElement);
-			
+
 			Collection modifications = new ArrayList(1);
 			modifications.add(schemaContainerDelta);
 
 			repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
-			
-			// Store generated schema into the resource (this will be kept in the in-memory cache)
+
+			// Store generated schema into the resource (this will be kept in
+			// the in-memory cache)
 			ResourceTypeUtil.setResourceXsdSchema(resource, xsdElement);
 			resource.getSchema().setCachingMetadata(cachingMetadata);
-			// Note: do not switch order of the operations. Storing schema in repo must happend first. The same
-			// DOM element is used here. Its ownership must remain with the in-memory resource
+			// Note: do not switch order of the operations. Storing schema in
+			// repo must happend first. The same
+			// DOM element is used here. Its ownership must remain with the
+			// in-memory resource
 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Putting resource in cache:\n{}", resource.asPrismObject().dump());
-				LOGGER.trace("Schema:\n{}", DOMUtil.serializeDOMToString(ResourceTypeUtil.getResourceXsdSchema(resource)));
+				LOGGER.trace("Schema:\n{}",
+						DOMUtil.serializeDOMToString(ResourceTypeUtil.getResourceXsdSchema(resource)));
 			}
 
 			newResource = resourceSchemaCache.put(resource);
@@ -462,9 +469,9 @@ public class ResourceTypeManager {
 		return schema;
 	}
 
-	public void listShadows(final ResourceType resource, final QName objectClass,
-			final ShadowHandler handler, final boolean readFromRepository, final OperationResult parentResult)
-			throws CommunicationException, ObjectNotFoundException, SchemaException {
+	public void listShadows(final ResourceType resource, final QName objectClass, final ShadowHandler handler,
+			final boolean readFromRepository, final OperationResult parentResult)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, ConfigurationException {
 
 		Validate.notNull(objectClass);
 		if (resource == null) {
@@ -472,104 +479,14 @@ public class ResourceTypeManager {
 			throw new IllegalArgumentException("Resource must not be null.");
 		}
 
-		// TODO: implement using searchObjectsIterative
-		throw new UnsupportedOperationException();
+		
+		
+		searchObjects(ResourceObjectShadowType.class, objectClass, resource, handler, null, readFromRepository, parentResult);
+		
 
-		// LOGGER.trace("Start listing objects on resource with oid {} with object class {} ",
-		// resource.getOid(), objectClass);
-		//
-		// ConnectorInstance connector = getConnectorInstance(resource,
-		// parentResult);
-		//
-		// PrismSchema schema = getResourceSchema(resource, connector,
-		// parentResult);
-		//
-		// if (schema == null) {
-		// parentResult.recordFatalError("Can't get resource schema.");
-		// throw new IllegalArgumentException("Can't get resource schema.");
-		// }
-		//
-		// ResourceAttributeContainerDefinition resourceDef =
-		// (ResourceAttributeContainerDefinition) schema
-		// .findContainerDefinitionByType(objectClass);
-		//
-		// if (resourceDef == null) {
-		// // Unknown objectclass
-		// SchemaException ex = new SchemaException("Object class " +
-		// objectClass
-		// +
-		// " defined in the repository shadow is not known in schema of resource "
-		// + ObjectTypeUtil.toShortString(resource));
-		// parentResult.recordFatalError("Object class " + objectClass
-		// +
-		// " defined in the repository shadow is not known in resource schema",
-		// ex);
-		// throw ex;
-		// }
-		//
-		// ResultHandler resultHandler = new ResultHandler() {
-		//
-		// @Override
-		// public boolean handle(PrismObject object) {
-		//
-		// ResourceObjectShadowType shadow;
-		// if (readFromRepository) {
-		// // Attached shadow (with OID)
-		// try {
-		// shadow = lookupShadowInRepository(object, resource, parentResult);
-		// } catch (SchemaException e) {
-		// // TODO: better error handling
-		// LOGGER.error(
-		// "Schema exception in resource object search on {} for {}: {}",
-		// new Object[] { ObjectTypeUtil.toShortString(resource), objectClass,
-		// e.getMessage(), e });
-		// return false;
-		// }
-		// } else {
-		// // Detached shadow (without OID)
-		// try {
-		// shadow = assembleShadow(object, null, parentResult);
-		//
-		// } catch (SchemaException e) {
-		// // TODO: better error handling
-		// LOGGER.error(
-		// "Schema exception in resource object search on {} for {}: {}",
-		// new Object[] { ObjectTypeUtil.toShortString(resource), objectClass,
-		// e.getMessage(), e });
-		// return false;
-		// }
-		// }
-		//
-		// // TODO: if shadow does not exists, create it now
-		//
-		// return handler.handle(shadow);
-		// }
-		// };
-		//
-		// try {
-		// connector.search(resourceDef, resultHandler, parentResult);
-		// LOGGER.trace("Finished listing obejcts.");
-		// } catch
-		// (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e)
-		// {
-		// parentResult.recordFatalError("Error communicationg with the connector "
-		// + connector
-		// + ". Reason: " + e.getMessage(), e);
-		// throw new
-		// CommunicationException("Error communicationg with the connector " +
-		// connector
-		// + ". Reason: " + e.getMessage(), e);
-		// } catch (GenericFrameworkException e) {
-		// parentResult.recordFatalError("Generic error in connector. Reason: "
-		// + e.getMessage(), e);
-		// throw new
-		// GenericConnectorException("Generic error in connector. Reason: " +
-		// e.getMessage(), e);
-		// }
-		// parentResult.recordSuccess();
 	}
 
-	//TODO: maybe this method should be placed in another class...
+	// TODO: maybe this method should be placed in another class...
 	public <T extends ResourceObjectShadowType> void searchObjectsIterative(final Class<T> type,
 			final QName objectClass, final ResourceType resourceType, final ShadowHandler handler,
 			final DiscoveryHandler discoveryHandler, final OperationResult parentResult)
@@ -581,7 +498,17 @@ public class ResourceTypeManager {
 
 		LOGGER.trace("Searching objects iterative with obejct class {}, resource: {}.", objectClass,
 				ObjectTypeUtil.toShortString(resourceType));
+		
+		searchObjects(type, objectClass, resourceType, handler, discoveryHandler, true, parentResult);
 
+	
+	}
+
+	private <T extends ResourceObjectShadowType> void searchObjects(final Class<T> type, QName objectClass,
+			final ResourceType resourceType, final ShadowHandler handler,
+			final DiscoveryHandler discoveryHandler, final boolean readFromRepository,
+			final OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
+			CommunicationException, ConfigurationException {
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
 
 		final ResourceSchema schema = getResourceSchema(resourceType, connector, parentResult);
@@ -612,49 +539,59 @@ public class ResourceTypeManager {
 					T resourceShadowType = resourceShadow.asObjectable();
 					// Try to find shadow that corresponds to the resource
 					// object
-					resultShadowType = lookupShadowInRepository(type, resourceShadowType, resourceType,
-							parentResult);
+					if (readFromRepository) {
+						resultShadowType = lookupShadowInRepository(type, resourceShadowType, resourceType,
+								parentResult);
 
-					if (resultShadowType == null) {
-						LOGGER.trace(
-								"Shadow object (in repo) corresponding to the resource object (on the resource) was not found. The repo shadow will be created. The resource object:\n{}",
-								SchemaDebugUtil.prettyPrint(resourceShadow));
+						if (resultShadowType == null) {
+							LOGGER.trace(
+									"Shadow object (in repo) corresponding to the resource object (on the resource) was not found. The repo shadow will be created. The resource object:\n{}",
+									SchemaDebugUtil.prettyPrint(resourceShadow));
 
-						// TODO: make sure that the resource object has
-						// appropriate definition
-						// (use objectClass and schema)
+							// TODO: make sure that the resource object has
+							// appropriate definition
+							// (use objectClass and schema)
 
-						// The resource object obviously exists on the resource,
-						// but appropriate shadow does not exist in the
-						// repository
-						// we need to create the shadow to align repo state to
-						// the reality (resource)
+							// The resource object obviously exists on the
+							// resource,
+							// but appropriate shadow does not exist in the
+							// repository
+							// we need to create the shadow to align repo state
+							// to
+							// the reality (resource)
 
-						try {
-							ResourceObjectShadowType repoShadow = ShadowCacheUtil.createRepositoryShadow(
-									resourceShadowType, resourceType);
-							String oid = getRepositoryService().addObject(repoShadow.asPrismObject(),
-									parentResult);
+							try {
+								ResourceObjectShadowType repoShadow = ShadowCacheUtil.createRepositoryShadow(
+										resourceShadowType, resourceType);
+								String oid = getRepositoryService().addObject(repoShadow.asPrismObject(),
+										parentResult);
 
-							resultShadowType = ShadowCacheUtil.completeShadow(resourceShadowType, repoShadow,
-									resourceType, parentResult);
-							resultShadowType.setOid(oid);
-						} catch (ObjectAlreadyExistsException e) {
-							// This should not happen. We haven't supplied an
-							// OID so is should not conflict
-							LOGGER.error("Unexpected repository behavior: Object already exists: {}",
-									e.getMessage(), e);
-							// but still go on ...
-						}
+								resultShadowType = ShadowCacheUtil.completeShadow(resourceShadowType,
+										repoShadow, resourceType, parentResult);
+								resultShadowType.setOid(oid);
+							} catch (ObjectAlreadyExistsException e) {
+								// This should not happen. We haven't supplied
+								// an
+								// OID so is should not conflict
+								LOGGER.error("Unexpected repository behavior: Object already exists: {}",
+										e.getMessage(), e);
+								// but still go on ...
+							}
 
-						// And notify about the change we have discovered (if
-						// requested to do so)
-						if (discoveryHandler != null) {
-							discoveryHandler.discovered(resultShadowType, parentResult);
+							// And notify about the change we have discovered
+							// (if
+							// requested to do so)
+							if (discoveryHandler != null) {
+								discoveryHandler.discovered(resultShadowType, parentResult);
+							}
+						} else {
+							LOGGER.trace("Found shadow object in the repository {}",
+									SchemaDebugUtil.prettyPrint(resultShadowType));
 						}
 					} else {
-						LOGGER.trace("Found shadow object in the repository {}",
-								SchemaDebugUtil.prettyPrint(resultShadowType));
+						resultShadowType = ShadowCacheUtil.completeShadow(resourceShadowType, null,
+								resourceType, parentResult);
+
 					}
 
 				} catch (SchemaException e) {
@@ -684,7 +621,6 @@ public class ResourceTypeManager {
 		}
 
 		parentResult.recordSuccess();
-
 	}
 
 	/**
@@ -728,10 +664,10 @@ public class ResourceTypeManager {
 			} catch (CommunicationException ex) {
 				parentResult
 						.recordFatalError("Error communicating with the connector " + ex.getMessage(), ex);
-				
+
 			} catch (ConfigurationException ex) {
 				parentResult.recordFatalError("Error in the configuration: " + ex.getMessage(), ex);
-				
+
 			}
 			ShadowCacheUtil.convertToUcfShadow(repoShadow.asPrismObject(), resourceSchema);
 		}
