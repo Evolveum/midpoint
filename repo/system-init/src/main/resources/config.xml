@@ -21,33 +21,33 @@
 <!--                                                         -->
 <configuration>
     <midpoint>
-        <repository>
-            <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
-            <embedded>true</embedded>
-            <asServer>false</asServer>
-            <baseDir>${midpoint.home}</baseDir>
-        </repository>
         <!--<repository>-->
-            <!--<repositoryServiceFactoryClass>com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory-->
-            <!--</repositoryServiceFactoryClass>-->
-            <!--<runServer>true</runServer>-->
-            <!--<serverPath>${midpoint.home}</serverPath>-->
-            <!--&lt;!&ndash; embedded is applicable only if runServer > true &ndash;&gt;-->
-            <!--<embedded>true</embedded>-->
-            <!--<shutdown>true</shutdown>-->
-            <!--<dropDatabase>false</dropDatabase>-->
-            <!--<debug>true</debug>-->
-            <!--&lt;!&ndash; initialDataPath - path containing xmls that should be loaded into DB &ndash;&gt;-->
-            <!--&lt;!&ndash;  initialDataPath>${midpoint.home}/backup.xml</initialDataPath&ndash;&gt;-->
-            <!--&lt;!&ndash; database name &ndash;&gt;-->
-            <!--<databaseName>midPoint</databaseName>-->
-            <!--&lt;!&ndash; client connection properties &ndash;&gt;-->
-            <!--<host>localhost</host>-->
-            <!--<port>1984</port>-->
-            <!--<eventPort>1985</eventPort>-->
-            <!--<username>admin</username>-->
-            <!--<password>admin</password>-->
+        <!--<repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>-->
+        <!--<embedded>true</embedded>-->
+        <!--<asServer>false</asServer>-->
+        <!--<baseDir>${midpoint.home}</baseDir>-->
         <!--</repository>-->
+        <repository>
+            <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory
+            </repositoryServiceFactoryClass>
+            <runServer>true</runServer>
+            <serverPath>${midpoint.home}</serverPath>
+            <!-- embedded is applicable only if runServer > true -->
+            <embedded>true</embedded>
+            <shutdown>true</shutdown>
+            <dropDatabase>false</dropDatabase>
+            <debug>true</debug>
+            <!-- initialDataPath - path containing xmls that should be loaded into DB -->
+            <!--  initialDataPath>${midpoint.home}/backup.xml</initialDataPath-->
+            <!-- database name -->
+            <databaseName>midPoint</databaseName>
+            <!-- client connection properties -->
+            <host>localhost</host>
+            <port>1984</port>
+            <eventPort>1985</eventPort>
+            <username>admin</username>
+            <password>admin</password>
+        </repository>
         <icf>
             <scanClasspath>true</scanClasspath>
             <scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>
