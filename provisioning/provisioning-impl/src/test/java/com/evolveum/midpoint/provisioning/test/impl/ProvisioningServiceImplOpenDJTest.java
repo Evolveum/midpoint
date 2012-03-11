@@ -659,7 +659,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
 					ACCOUNT_MODIFY_PASSWORD_OID, new PropertyReferenceListType(), result).asObjectable();
 			
-			display("Object after password change",accountType);
+			display("Object before password change",accountType);
 			
 			String uid = null;
 			uid = ResourceObjectShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);

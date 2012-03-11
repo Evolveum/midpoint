@@ -197,8 +197,13 @@ public class DeltaConvertor {
         Value modValue = new Value();
         mod.setValue(modValue);
         for (PrismPropertyValue<Object> value : values) {
-        	// Always record xsi:type. This is FIXME, but should work OK for now (until we put definition into deltas)
-            modValue.getAny().add(XmlTypeConverter.toXsdElement(value.getValue(), delta.getName(), document, true));
+        	Object realValue = value.getValue();
+        	Object xmlValue = realValue;
+        	if (XmlTypeConverter.canConvert(realValue.getClass())) {
+        		// Always record xsi:type. This is FIXME, but should work OK for now (until we put definition into deltas)
+        		xmlValue = XmlTypeConverter.toXsdElement(realValue, delta.getName(), document, true);
+        	}
+            modValue.getAny().add(xmlValue);
         }
     }
 
