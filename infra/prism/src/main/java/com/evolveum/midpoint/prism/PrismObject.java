@@ -156,25 +156,25 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 
 	@Override
 	public <I extends Item<?>> I findItem(PropertyPath path, Class<I> type) {
-		return findCreateItem(path, type, false);
+		return findCreateItem(path, type, null, false);
 	}
 
 	@Override
 	public Item<?> findItem(PropertyPath path) {
-		return findCreateItem(path, Item.class, false);
+		return findCreateItem(path, Item.class, null, false);
 	}
 
 	@Override
-	<I extends Item<?>> I findCreateItem(PropertyPath path, Class<I> type, boolean create) {
+	<I extends Item<?>> I findCreateItem(PropertyPath path, Class<I> type, ItemDefinition itemDefinition, boolean create) {
 		// Objects are only a single-valued containers. The path of the object itself is "empty".
 		// Fix this special behavior here.
 		PropertyPathSegment first = path.first();
-		Item<?> subitem = getValue().findCreateItem(first.getName(), Item.class, create);
+		Item<?> subitem = getValue().findCreateItem(first.getName(), Item.class, itemDefinition, create);
 		if (subitem == null) {
 			return null;
 		}
 		if (subitem instanceof PrismContainer) {
-			return ((PrismContainer<?>)subitem).findCreateItem(path, type, create);
+			return ((PrismContainer<?>)subitem).findCreateItem(path, type, itemDefinition, create);
 		} else if (type.isAssignableFrom(subitem.getClass())){
 			return (I) subitem;
 		} else {

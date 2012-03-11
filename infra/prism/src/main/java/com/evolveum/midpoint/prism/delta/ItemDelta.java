@@ -258,7 +258,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
      * Apply this delta (path) to a property container.
      */
     public void applyTo(PrismContainer<?> propertyContainer) {
-        Item<?> item = propertyContainer.findOrCreateItem(getPath(), getItemClass());
+        Item<?> item = propertyContainer.findOrCreateItem(getPath(), getItemClass(), getDefinition());
         applyTo(item);
         if (item.isEmpty()) {
         	propertyContainer.remove(item);

@@ -974,6 +974,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	private PropertyDelta getTokenModification(PrismProperty token) {
+		if (token == null) {
+			throw new IllegalArgumentException("Cannot create modification from a null live sync token");
+		}
+		if (token.getDefinition() == null) {
+			throw new IllegalArgumentException("Live sync token "+token+" has no definition. Cannot create modification.");
+		}
 		PropertyDelta tokenDelta = new PropertyDelta(new PropertyPath(ResourceObjectShadowType.F_EXTENSION, token.getName()),
 				token.getDefinition());
 		tokenDelta.setValuesToReplace((Collection)token.getValues());

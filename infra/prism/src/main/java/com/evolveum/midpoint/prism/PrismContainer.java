@@ -254,19 +254,19 @@ public class PrismContainer<V> extends Item<PrismContainerValue<V>> implements P
     }
     
     <I extends Item<?>> I findCreateItem(QName itemQName, Class<I> type, boolean create) {
-   		return getValue().findCreateItem(itemQName, type, create);
+   		return getValue().findCreateItem(itemQName, type, null, create);
     }
         
     public <I extends Item<?>> I findItem(PropertyPath propPath, Class<I> type) {
-    	return findCreateItem(propPath, type, false);
+    	return findCreateItem(propPath, type, null, false);
     }
     
     public Item<?> findItem(PropertyPath propPath) {
-    	return findCreateItem(propPath, Item.class, false);
+    	return findCreateItem(propPath, Item.class, null, false);
     }
     
     // Expects that "self" path IS present in propPath
-    <I extends Item<?>> I findCreateItem(PropertyPath propPath, Class<I> type, boolean create) {
+    <I extends Item<?>> I findCreateItem(PropertyPath propPath, Class<I> type, ItemDefinition itemDefinition, boolean create) {
     	if (propPath == null || propPath.isEmpty()) {
     		throw new IllegalArgumentException("Empty path specified");
     	}
@@ -291,14 +291,14 @@ public class PrismContainer<V> extends Item<PrismContainerValue<V>> implements P
     	// Otherwise descent to the correct value
     	if (first.getId() == null) {
     		if (canAssumeSingleValue()) {
-    			return getValue().findCreateItem(rest, type, create);
+    			return getValue().findCreateItem(rest, type, itemDefinition, create);
     		} else {
     			throw new IllegalArgumentException("Attempt to get segment "+first+" without an ID from a multi-valued container "+getName());
     		}
     	} else {
 	        for (PrismContainerValue<V> pval : getValues()) {
 	        	if (first.getId().equals(pval.getId())) {
-	        		return pval.findCreateItem(rest, type, create);
+	        		return pval.findCreateItem(rest, type, itemDefinition, create);
 	        	}
 	        }
 	        return null;
@@ -330,11 +330,17 @@ public class PrismContainer<V> extends Item<PrismContainerValue<V>> implements P
     }
     
     public <T extends Item<?>> T findOrCreateItem(PropertyPath containerPath, Class<T> type) {
-        return findCreateItem(containerPath, type, true);
+        return findCreateItem(containerPath, type, null, true);
+    }
+    
+    // The "definition" parameter provides definition of item to create, in case that the container does not have
+    // the definition (e.g. in case of "extension" containers)
+    public <T extends Item<?>> T findOrCreateItem(PropertyPath containerPath, Class<T> type, ItemDefinition definition) {
+        return findCreateItem(containerPath, type, definition, true);
     }
     
     public <T> PrismContainer<T> findOrCreateContainer(PropertyPath containerPath) {
-        return findCreateItem(containerPath, PrismContainer.class, true);
+        return findCreateItem(containerPath, PrismContainer.class, null, true);
     }
     
     public <T> PrismContainer<T> findOrCreateContainer(QName containerName) {
@@ -342,7 +348,7 @@ public class PrismContainer<V> extends Item<PrismContainerValue<V>> implements P
     }
     
     public <T> PrismProperty<T> findOrCreateProperty(PropertyPath propertyPath) {
-        return findCreateItem(propertyPath, PrismProperty.class, true);
+        return findCreateItem(propertyPath, PrismProperty.class, null, true);
     }
     
     public <T> PrismProperty<T> findOrCreateProperty(QName propertyName) {
@@ -350,7 +356,7 @@ public class PrismContainer<V> extends Item<PrismContainerValue<V>> implements P
     }
 
     public PrismReference findOrCreateReference(PropertyPath propertyPath) {
-        return findCreateItem(propertyPath, PrismReference.class, true);
+        return findCreateItem(propertyPath, PrismReference.class, null, true);
     }
     
     public PrismReference findOrCreateReference(QName propertyName) {

@@ -331,15 +331,15 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
     }
     
     public <I extends Item<?>> I findItem(QName itemName, Class<I> type) {
-    	return findCreateItem(itemName, type, false);
+    	return findCreateItem(itemName, type, null, false);
     }
     
     public Item<?> findItem(QName itemName) {
-    	return findCreateItem(itemName, Item.class, false);
+    	return findCreateItem(itemName, Item.class, null, false);
     }
     
     @SuppressWarnings("unchecked")
-	<I extends Item<?>> I findCreateItem(QName itemName, Class<I> type, boolean create) {
+	<I extends Item<?>> I findCreateItem(QName itemName, Class<I> type, ItemDefinition itemDefinition, boolean create) {
     	for (Item<?> item : items) {
             if (itemName.equals(item.getName())) {
             	if (type.isAssignableFrom(item.getClass())) {
@@ -355,7 +355,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
             }
         }
     	if (create) {
-    		return createSubItem(itemName, type);
+    		return createSubItem(itemName, type, itemDefinition);
     	} else {
     		return null;
     	}
@@ -371,7 +371,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 
     // Expects that "self" path is NOT present in propPath
     @SuppressWarnings("unchecked")
-	<I extends Item<?>> I findCreateItem(PropertyPath propPath, Class<I> type, boolean create) {
+	<I extends Item<?>> I findCreateItem(PropertyPath propPath, Class<I> type, ItemDefinition itemDefinition, boolean create) {
     	PropertyPathSegment first = propPath.first();
     	PropertyPath rest = propPath.rest();
     	for (Item<?> item : items) {
@@ -382,7 +382,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
             		}
             		// Go deeper
 	            	if (item instanceof PrismContainer) {
-	            		return ((PrismContainer<?>)item).findCreateItem(propPath, type, create);
+	            		return ((PrismContainer<?>)item).findCreateItem(propPath, type, itemDefinition, create);
 	            	} else {
             			if (create) {
             				throw new IllegalStateException("Cannot create " + type.getSimpleName() + " under a "
@@ -403,13 +403,13 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
             }
         }
     	if (create) {
-    		I subItem = createSubItem(first.getName(), type);
+    		I subItem = createSubItem(first.getName(), type, itemDefinition);
     		if (rest.isEmpty()) {
     			return (I)subItem;
     		}
     		// Go deeper
         	if (subItem instanceof PrismContainer) {
-        		return ((PrismContainer<?>)subItem).findCreateItem(propPath, type, create);
+        		return ((PrismContainer<?>)subItem).findCreateItem(propPath, type, itemDefinition, create);
         	} else {
 				throw new IllegalStateException("Cannot create " + type.getSimpleName() + " under a "
 						+ subItem.getClass().getSimpleName() + " ("+subItem.getName()+")");
@@ -420,14 +420,18 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
     }
     
     @SuppressWarnings("unchecked")
-	private <I extends Item<?>> I createSubItem(QName name, Class<I> type) {
+	private <I extends Item<?>> I createSubItem(QName name, Class<I> type, ItemDefinition itemDefinition) {
     	// the item with specified name does not exist, create it now
 		Item<?> newItem = null;
-		if (getParent().getDefinition() != null) {
-			ItemDefinition itemDefinition = getParent().getDefinition().findItemDefinition(name);
+		
+		if (itemDefinition == null && getParent().getDefinition() != null) {
+			itemDefinition = getParent().getDefinition().findItemDefinition(name);
 			if (itemDefinition == null) {
 				throw new IllegalArgumentException("No definition for item "+name+" in "+getParent());
 			}
+		}
+		
+		if (itemDefinition != null) {
 			newItem = itemDefinition.instantiate(name);
 		} else {
 			newItem = Item.createNewDefinitionlessItem(name, type);
@@ -443,15 +447,15 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
     }
 
     public PrismContainer<?> findOrCreateContainer(QName containerName) {
-    	return findCreateItem(containerName, PrismContainer.class, true);
+    	return findCreateItem(containerName, PrismContainer.class, null, true);
     }
     
     public PrismReference findOrCreateReference(QName referenceName) {
-    	return findCreateItem(referenceName, PrismReference.class, true);
+    	return findCreateItem(referenceName, PrismReference.class, null, true);
     }
     
     public Item<?> findOrCreateItem(QName containerName) {
-    	return findCreateItem(containerName, Item.class, true);
+    	return findCreateItem(containerName, Item.class, null, true);
     }
 
     public <X> PrismProperty<X> findOrCreateProperty(QName propertyQName) {
