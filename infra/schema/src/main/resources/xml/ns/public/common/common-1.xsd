@@ -415,6 +415,18 @@
 
     <xsd:element name="extension" type="tns:ExtensionType" />
 
+    <xsd:attribute name="extensionId" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                This attribute is used for complex type extension elements which can be multivalued.
+                It's optional. It depends on repository implementation if this identificator is used
+                or not.
+
+                Only experimental.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:attribute>
+
     <xsd:complexType name="ExtensionType">
         <xsd:annotation>
             <xsd:documentation>

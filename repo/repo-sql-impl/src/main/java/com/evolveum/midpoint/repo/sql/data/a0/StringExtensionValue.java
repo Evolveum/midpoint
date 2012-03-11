@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.a0;
 
+import javax.persistence.Entity;
 import javax.persistence.Id;
 
 /**
