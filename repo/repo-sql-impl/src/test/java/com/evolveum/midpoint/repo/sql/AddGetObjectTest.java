@@ -25,10 +25,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.data.a0.Assignment;
-import com.evolveum.midpoint.repo.sql.data.a0.ExtensionValue;
-import com.evolveum.midpoint.repo.sql.data.a0.StringExtensionValue;
-import com.evolveum.midpoint.repo.sql.data.a0.User;
+import com.evolveum.midpoint.repo.sql.data.a1.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -43,11 +40,9 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -69,42 +64,95 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
     public void a() {
         Session session = factory.openSession();
 
+        Connector connector0 = new Connector();
+        connector0.setName("connector0");
+        connector0.setFramework("framework");
+        Connector connector1 = new Connector();
+        connector1.setName("connector1");
+
         User user = new User();
-        user.setFullName("user name");
-        Set<Assignment> aset = new HashSet<Assignment>();
-        user.setAssignments(aset);
-
-        Assignment a0 = new Assignment();
-        a0.setOwner(user);
-        a0.setDescription("a0");
-        aset.add(a0);
-        Set<ExtensionValue> eset = new HashSet<ExtensionValue>();
-        a0.setExtensions(eset);
-        ExtensionValue e0 = new ExtensionValue();
-        e0.setObject(a0);
-        e0.setValue("a0-0");
-        eset.add(e0);
-        e0 = new ExtensionValue();
-        e0.setObject(a0);
-        e0.setValue("a0-1");
-        eset.add(e0);
-
-        a0 = new Assignment();
-        a0.setOwner(user);
-        a0.setDescription("a1");
-        aset.add(a0);
-        eset = new HashSet<ExtensionValue>();
-        a0.setExtensions(eset);
-        e0 = new ExtensionValue();
-        e0.setObject(a0);
-        e0.setValue("a1-0");
-        eset.add(e0);
+        user.setFullName("connector reference target");
+        
+        Connector connector = new Connector();
+        connector.setName("connector");
+        connector.setFramework("framework");
+        Reference reference = new Reference();
+        reference.setOwner(connector);
+        reference.setTarget(user);
+        connector.setConnectorRef(reference);
+        
+        //refs
+        Set<Reference> accountRefs = new HashSet<Reference>();
+        reference = new Reference();
+        reference.setOwner(user);
+        reference.setTarget(connector0);
+        accountRefs.add(reference);
+        reference = new Reference();
+        reference.setOwner(user);
+        reference.setTarget(connector1);
+        accountRefs.add(reference);
+        user.setAccountRefs(accountRefs);
+        //extensions
+        Extension value = new Extension();
+        value.setOwner(user);
+        user.setExtension(value);
+        Set<StringValue> strings = new HashSet<StringValue>();
+        strings.add(new StringValue(new QName("name namespace", "loc"), null, "str1"));
+        strings.add(new StringValue(null, new QName("name namespace", "loc"), "str1"));
+        value.setStrings(strings);
+        Set<LongValue> longs = new HashSet<LongValue>();
+        longs.add(new LongValue(123L));
+        longs.add(new LongValue(456L));
+        value.setLongs(longs);
+        Set<DateValue> dates = new HashSet<DateValue>();
+        value.setDates(dates);
+        dates.add(new DateValue(new Date()));
 
         session.beginTransaction();
-        session.saveOrUpdate(user);
+        session.save(connector0);
+        session.save(connector1);
+        session.save(user);
+        session.save(connector);
         session.getTransaction().commit();
-        session.close();
 
+        //a0 tests
+//        User user = new User();
+//        user.setFullName("user name");
+//        Set<Assignment> aset = new HashSet<Assignment>();
+//        user.setAssignments(aset);
+//
+//        Assignment a0 = new Assignment();
+//        a0.setOwner(user);
+//        a0.setDescription("a0");
+//        aset.add(a0);
+//        Set<ExtensionValue> eset = new HashSet<ExtensionValue>();
+//        a0.setExtensions(eset);
+//        ExtensionValue e0 = new ExtensionValue();
+//        e0.setObject(a0);
+//        e0.setValue("a0-0");
+//        eset.add(e0);
+//        e0 = new ExtensionValue();
+//        e0.setObject(a0);
+//        e0.setValue("a0-1");
+//        eset.add(e0);
+//
+//        a0 = new Assignment();
+//        a0.setOwner(user);
+//        a0.setDescription("a1");
+//        aset.add(a0);
+//        eset = new HashSet<ExtensionValue>();
+//        a0.setExtensions(eset);
+//        e0 = new ExtensionValue();
+//        e0.setObject(a0);
+//        e0.setValue("a1-0");
+//        eset.add(e0);
+//
+//        session.beginTransaction();
+//        session.saveOrUpdate(user);
+//        session.getTransaction().commit();
+//        session.close();
+
+        //atest test
 //        A0 a0= new A0();
 //        Set<A1> set = new HashSet<A1>();
 //        a0.setAset(set);

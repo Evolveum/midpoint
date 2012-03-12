@@ -21,15 +21,13 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.repo.sql.data.a0.Assignment;
-import com.evolveum.midpoint.repo.sql.data.a0.Role;
-import com.evolveum.midpoint.repo.sql.data.a0.User;
+import com.evolveum.midpoint.repo.sql.data.a1.Container;
+import com.evolveum.midpoint.repo.sql.data.a1.O;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.id.IdentifierGenerator;
 
 import java.io.Serializable;
-import java.util.Set;
 
 /**
  * Created by IntelliJ IDEA.
@@ -42,29 +40,36 @@ public class ContainerIdGenerator implements IdentifierGenerator {
 
     @Override
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
-        if (object instanceof Assignment) {
-            Assignment assignment = (Assignment) object;
-            if (assignment.getId() != null && assignment.getOwner() == null) {
-                return assignment.getId();
-            }
-
-            Set<Assignment> assignments = null;
-            if (assignment.getOwner() instanceof User) {
-                assignments = ((User) assignment.getOwner()).getAssignments();
-            } else if (assignment.getOwner() instanceof Role) {
-                assignments = (((Role) assignment.getOwner()).getAssignments());
-            }
-            if (assignments == null) {
-                return null;
-            }
-            Long id = 0L;
-            for (Assignment item : assignments) {
-                if (item.getId() != null && item.getId() > id) {
-                    id = item.getId();
-                }
-            }
-            return id + 1;
+        if (object instanceof O)   {
+            return 0L;
+        } else if (object instanceof Container) {
+            //todo assignment get parent also extesion, resource swhadow attributes
         }
+        
+        //a0 test
+//        if (object instanceof Assignment) {
+//            Assignment assignment = (Assignment) object;
+//            if (assignment.getId() != null && assignment.getOwner() == null) {
+//                return assignment.getId();
+//            }
+//
+//            Set<Assignment> assignments = null;
+//            if (assignment.getOwner() instanceof User) {
+//                assignments = ((User) assignment.getOwner()).getAssignments();
+//            } else if (assignment.getOwner() instanceof Role) {
+//                assignments = (((Role) assignment.getOwner()).getAssignments());
+//            }
+//            if (assignments == null) {
+//                return null;
+//            }
+//            Long id = 0L;
+//            for (Assignment item : assignments) {
+//                if (item.getId() != null && item.getId() > id) {
+//                    id = item.getId();
+//                }
+//            }
+//            return id + 1;
+//        }
 
         return null;
 

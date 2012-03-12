@@ -57,13 +57,13 @@ public class SpringApplicationContextTest extends AbstractTestNGSpringContextTes
         org.hibernate.cfg.Configuration configuration = new Configuration();
         configuration.setProperties(sessionFactory.getHibernateProperties());
 
-        File dir = new File("./src/main/java/com/evolveum/midpoint/repo/sql/data/a0");//common");
+        File dir = new File("./src/main/java/com/evolveum/midpoint/repo/sql/data/a1");//common");
         File[] files = dir.listFiles();
         for (File file : files) {
             if (file.isDirectory() || !file.getName().endsWith("java")) {
                 continue;
             }
-            String className = "com.evolveum.midpoint.repo.sql.data.a0." + file.getName().substring(0, file.getName().length() - 5);//common." + file.getName().substring(0, file.getName().length() - 5);
+            String className = "com.evolveum.midpoint.repo.sql.data.a1." + file.getName().substring(0, file.getName().length() - 5);//common." + file.getName().substring(0, file.getName().length() - 5);
             System.out.println(className);
             configuration.addAnnotatedClass(Class.forName(className));
         }
