@@ -603,17 +603,21 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			
 			display("Object after change",accountType);
 
-			String changedSn = null;
-			String uid = null;
-			for (Object e : accountType.getAttributes().getAny()) {
-				if ("sn".equals(JAXBUtil.getElementQName(e).getLocalPart())) {
-					changedSn = ((Element)e).getTextContent();
-				}
-				if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(e))) {
-					uid = ((Element)e).getTextContent();
-				}
-
-			}
+//			String changedSn = null;
+//			String uid = null;
+//			for (Object e : accountType.getAttributes().getAny()) {
+//				if ("sn".equals(JAXBUtil.getElementQName(e).getLocalPart())) {
+//					changedSn = ((Element)e).getTextContent();
+//				}
+//				if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(e))) {
+//					uid = ((Element)e).getTextContent();
+//				}
+//
+//			}
+			
+			String uid = ResourceObjectShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);
+			String changedSn = ResourceObjectShadowUtil.getSingleStringAttributeValue(accountType, new QName(RESOURCE_NS, "sn"));
+			
 			assertNotNull(uid);
 			
 			// Check if object was modified in LDAP

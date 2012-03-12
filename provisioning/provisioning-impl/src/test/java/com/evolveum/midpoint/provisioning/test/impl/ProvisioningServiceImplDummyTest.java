@@ -722,6 +722,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		XPathHolder xpath = new XPathHolder(SchemaConstants.I_ATTRIBUTES);
 		query.setFilter(QueryUtil.createEqualFilter(doc, xpath, ConnectorFactoryIcfImpl.ICFS_UID, ACCOUNT_NEW_ICF_UID));
 		System.out.println("Looking for shadows of \""+ACCOUNT_NEW_ICF_UID+"\" with filter "+DOMUtil.serializeDOMToString(query.getFilter()));
+		display("Looking for shadows of \""+ACCOUNT_NEW_ICF_UID+"\" with filter "+DOMUtil.serializeDOMToString(query.getFilter()));
 		ResultList<PrismObject<AccountShadowType>> objects = repositoryService.searchObjects(AccountShadowType.class, query , null, result);
 		
 		assertEquals("Wrong number of shadows for ICF UID \"" + ACCOUNT_NEW_ICF_UID + "\"", 1, objects.size());

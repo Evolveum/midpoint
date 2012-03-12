@@ -246,6 +246,7 @@ public class ShadowCache {
 				PasswordType password = account.getCredentials().getPassword();
 				ProtectedStringType protectedString = password.getProtectedString();
 				if (protectedString != null) {
+//					Passw	
 					PasswordChangeOperation passOp = new PasswordChangeOperation(protectedString);
 					additionalOperations.add(passOp);
 				}
