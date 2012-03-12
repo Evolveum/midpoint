@@ -34,6 +34,7 @@ import java.io.Serializable;
  * To change this template use File | Settings | File Templates.
  */
 @Entity
+@Table(name = "reference")
 public class Reference implements Serializable {
 
     private Container owner;

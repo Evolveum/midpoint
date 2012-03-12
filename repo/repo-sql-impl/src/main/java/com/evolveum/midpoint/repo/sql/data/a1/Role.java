@@ -21,12 +21,10 @@
 
 package com.evolveum.midpoint.repo.sql.data.a1;
 
-import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.Entity;
-import javax.persistence.OneToMany;
-import java.util.Set;
+import javax.persistence.Table;
 
 /**
  * Created by IntelliJ IDEA.
@@ -36,6 +34,7 @@ import java.util.Set;
  * To change this template use File | Settings | File Templates.
  */
 @Entity
+@Table(name = "role")
 @ForeignKey(name = "fk_role")
 public class Role extends O {
 

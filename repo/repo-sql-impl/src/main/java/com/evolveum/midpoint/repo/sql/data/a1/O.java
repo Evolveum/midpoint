@@ -25,9 +25,8 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.Entity;
-import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
-import java.util.Set;
+import javax.persistence.Table;
 
 /**
  * Created by IntelliJ IDEA.
@@ -37,17 +36,18 @@ import java.util.Set;
  * To change this template use File | Settings | File Templates.
  */
 @Entity
+@Table(name = "object")
 @ForeignKey(name = "fk_container")
 public abstract class O extends Container {
 
     private String name;
     private String description;
-    private Extension extension;
+    private AnyContainer extension;
 
     @OneToOne(optional = true, mappedBy = "owner")
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Extension getExtension() {
+    public AnyContainer getExtension() {
         return extension;
     }
 
@@ -67,7 +67,10 @@ public abstract class O extends Container {
         this.name = name;
     }
 
-    public void setExtension(Extension extension) {
+    public void setExtension(AnyContainer extension) {
         this.extension = extension;
+        if (extension != null) {
+            extension.setOwnerType(RContainerType.OBJECT);
+        }
     }
 }

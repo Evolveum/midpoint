@@ -36,9 +36,10 @@ import java.util.Set;
  * To change this template use File | Settings | File Templates.
  */
 @Entity
-public class Extension implements Serializable {
+@Table(name = "any")
+public class AnyContainer implements Serializable {
 
-    private RType ownerType;
+    private RContainerType ownerType;
 
     private Container owner;
     private String ownerOid;
@@ -79,48 +80,49 @@ public class Extension implements Serializable {
     }
 
     @ElementCollection
-    @ForeignKey(name = "fk_extension_long")
-    @CollectionTable(name = "extension_long", joinColumns =
-            {@JoinColumn(name = "owner_oid"), @JoinColumn(name = "owner_id")})
+    @ForeignKey(name = "fk_any_long")
+    @CollectionTable(name = "any_long", joinColumns =
+            {@JoinColumn(name = "owner_oid"), @JoinColumn(name = "owner_id"), @JoinColumn(name = "ownerType")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<LongValue> getLongs() {
         return longs;
     }
 
     @ElementCollection
-    @ForeignKey(name = "fk_extension_string")
-    @CollectionTable(name = "extension_string", joinColumns =
-            {@JoinColumn(name = "owner_oid"), @JoinColumn(name = "owner_id")})
+    @ForeignKey(name = "fk_any_string")
+    @CollectionTable(name = "any_string", joinColumns =
+            {@JoinColumn(name = "owner_oid"), @JoinColumn(name = "owner_id"), @JoinColumn(name = "ownerType")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<StringValue> getStrings() {
         return strings;
     }
 
     @ElementCollection
-    @ForeignKey(name = "fk_extension_clob")
-    @CollectionTable(name = "extension_clob", joinColumns =
-            {@JoinColumn(name = "owner_oid"), @JoinColumn(name = "owner_id")})
+    @ForeignKey(name = "fk_any_clob")
+    @CollectionTable(name = "any_clob", joinColumns =
+            {@JoinColumn(name = "owner_oid"), @JoinColumn(name = "owner_id"), @JoinColumn(name = "ownerType")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<ClobValue> getClobs() {
         return clobs;
     }
 
     @ElementCollection
-    @ForeignKey(name = "fk_extension_date")
-    @CollectionTable(name = "extension_date", joinColumns =
-            {@JoinColumn(name = "owner_oid"), @JoinColumn(name = "owner_id")})
+    @ForeignKey(name = "fk_any_date")
+    @CollectionTable(name = "any_date", joinColumns =
+            {@JoinColumn(name = "owner_oid"), @JoinColumn(name = "owner_id"), @JoinColumn(name = "ownerType")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<DateValue> getDates() {
         return dates;
     }
 
-//    @Id
+    @Id
     @Enumerated(EnumType.ORDINAL)
-    public RType getOwnerType() {
+    @Column(name = "ownerType")
+    public RContainerType getOwnerType() {
         return ownerType;
     }
 
-    public void setOwnerType(RType ownerType) {
+    public void setOwnerType(RContainerType ownerType) {
         this.ownerType = ownerType;
     }
 

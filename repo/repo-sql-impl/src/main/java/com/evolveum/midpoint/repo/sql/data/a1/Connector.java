@@ -26,6 +26,7 @@ import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
+import javax.persistence.Table;
 
 /**
  * Created by IntelliJ IDEA.
@@ -35,6 +36,7 @@ import javax.persistence.OneToOne;
  * To change this template use File | Settings | File Templates.
  */
 @Entity
+@Table(name = "connector")
 @ForeignKey(name = "fk_connector")
 public class Connector extends O {
 

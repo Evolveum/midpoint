@@ -25,9 +25,7 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Columns;
 import org.hibernate.annotations.ForeignKey;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 import javax.xml.namespace.QName;
 
 /**
@@ -38,11 +36,12 @@ import javax.xml.namespace.QName;
  * To change this template use File | Settings | File Templates.
  */
 @Entity
+@Table(name = "resource_shadow")
 @ForeignKey(name = "fk_resource_object_shadow")
 public class ResourceObjectShadow extends O {
 
     private QName objectClass;
-//    private Extension attributes;
+    private AnyContainer attributes;
 
     @Columns(columns = {
             @Column(name = "class_namespace"),
@@ -52,15 +51,18 @@ public class ResourceObjectShadow extends O {
         return objectClass;
     }
 
-//    @OneToOne(optional = true, mappedBy = "owner")
-//    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-//    public Extension getAttributes() {
-//        return attributes;
-//    }
-//
-//    public void setAttributes(Extension attributes) {
-//        this.extension = attributes;
-//    }
+    @OneToOne(optional = true, mappedBy = "owner")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public AnyContainer getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(AnyContainer attributes) {
+        this.attributes = attributes;
+        if (attributes != null) {
+            attributes.setOwnerType(RContainerType.RESOURCE_OBJECT_SHADOW);
+        }
+    }
 
     public void setObjectClass(QName objectClass) {
         this.objectClass = objectClass;

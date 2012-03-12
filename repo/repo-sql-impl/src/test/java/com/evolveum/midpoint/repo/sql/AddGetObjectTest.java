@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Objects;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,57 +65,93 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
     public void a() {
         Session session = factory.openSession();
 
-        Connector connector0 = new Connector();
-        connector0.setName("connector0");
-        connector0.setFramework("framework");
-        Connector connector1 = new Connector();
-        connector1.setName("connector1");
+//        Connector connector0 = new Connector();
+//        connector0.setName("connector0");
+//        connector0.setFramework("framework");
+//        Connector connector1 = new Connector();
+//        connector1.setName("connector1");
+//
+//        User user = new User();
+//        user.setFullName("connector reference target");
+//
+//        Connector connector = new Connector();
+//        connector.setName("connector");
+//        connector.setFramework("framework");
+//        Reference reference = new Reference();
+//        reference.setOwner(connector);
+//        reference.setTarget(user);
+//        connector.setConnectorRef(reference);
+//
+//        //refs
+//        Set<Reference> accountRefs = new HashSet<Reference>();
+//        reference = new Reference();
+//        reference.setOwner(user);
+//        reference.setTarget(connector0);
+//        accountRefs.add(reference);
+//        reference = new Reference();
+//        reference.setOwner(user);
+//        reference.setTarget(connector1);
+//        accountRefs.add(reference);
+//        user.setAccountRefs(accountRefs);
+//        //extensions
+//        AnyContainer value = new AnyContainer();
+//        value.setOwner(user);
+//        user.setExtension(value);
+//        Set<StringValue> strings = new HashSet<StringValue>();
+//        strings.add(new StringValue(new QName("name namespace", "loc"), null, "str1"));
+//        strings.add(new StringValue(null, new QName("name namespace", "loc"), "str1"));
+//        value.setStrings(strings);
+//        Set<LongValue> longs = new HashSet<LongValue>();
+//        longs.add(new LongValue(123L));
+//        longs.add(new LongValue(456L));
+//        value.setLongs(longs);
+//        Set<DateValue> dates = new HashSet<DateValue>();
+//        value.setDates(dates);
+//        dates.add(new DateValue(new Date()));
 
-        User user = new User();
-        user.setFullName("connector reference target");
-        
-        Connector connector = new Connector();
-        connector.setName("connector");
-        connector.setFramework("framework");
-        Reference reference = new Reference();
-        reference.setOwner(connector);
-        reference.setTarget(user);
-        connector.setConnectorRef(reference);
-        
-        //refs
-        Set<Reference> accountRefs = new HashSet<Reference>();
-        reference = new Reference();
-        reference.setOwner(user);
-        reference.setTarget(connector0);
-        accountRefs.add(reference);
-        reference = new Reference();
-        reference.setOwner(user);
-        reference.setTarget(connector1);
-        accountRefs.add(reference);
-        user.setAccountRefs(accountRefs);
-        //extensions
-        Extension value = new Extension();
-        value.setOwner(user);
-        user.setExtension(value);
+        ResourceObjectShadow shadow = new ResourceObjectShadow();
+        shadow.setObjectClass(new QName("object class", "local"));
+        //extension
+        AnyContainer extension = new AnyContainer();
+        extension.setOwner(shadow);
+        shadow.setExtension(extension);
         Set<StringValue> strings = new HashSet<StringValue>();
-        strings.add(new StringValue(new QName("name namespace", "loc"), null, "str1"));
-        strings.add(new StringValue(null, new QName("name namespace", "loc"), "str1"));
-        value.setStrings(strings);
-        Set<LongValue> longs = new HashSet<LongValue>();
-        longs.add(new LongValue(123L));
-        longs.add(new LongValue(456L));
-        value.setLongs(longs);
+        strings.add(new StringValue(null, null, "ext1"));
+        strings.add(new StringValue(null, null, "ext2"));
+        extension.setStrings(strings);
         Set<DateValue> dates = new HashSet<DateValue>();
-        value.setDates(dates);
+        extension.setDates(dates);
+        dates.add(new DateValue(new Date()));
+        //attributes
+        AnyContainer attributes = new AnyContainer();
+        attributes.setOwner(shadow);
+        shadow.setAttributes(attributes);
+        strings = new HashSet<StringValue>();
+        strings.add(new StringValue(null, null, "attr1"));
+        strings.add(new StringValue(null, null, "attr2"));
+        attributes.setStrings(strings);
+        dates = new HashSet<DateValue>();
+        attributes.setDates(dates);
         dates.add(new DateValue(new Date()));
 
         session.beginTransaction();
-        session.save(connector0);
-        session.save(connector1);
-        session.save(user);
-        session.save(connector);
+//        session.save(connector0);
+//        session.save(connector1);
+//        session.save(user);
+//        session.save(connector);
+        session.save(shadow);
         session.getTransaction().commit();
 
+        String oid = shadow.getOid();
+//        session.close();
+//        session = factory.openSession();
+        session.beginTransaction();
+        Query query = session.createQuery("from ResourceObjectShadow as s where s.oid = :oid");
+        query.setString("oid", oid);
+        shadow = (ResourceObjectShadow) query.uniqueResult();
+        session.getTransaction().commit();
+
+        System.out.println("shadow");
         //a0 tests
 //        User user = new User();
 //        user.setFullName("user name");

@@ -28,7 +28,7 @@ package com.evolveum.midpoint.repo.sql.data.a1;
  * Time: 7:03 PM
  * To change this template use File | Settings | File Templates.
  */
-public enum RType {
+public enum RContainerType {
     
-    EXTENSION, RESOURCE_SHADOW
+    OBJECT, RESOURCE_OBJECT_SHADOW, ASSIGNMENT;
 }

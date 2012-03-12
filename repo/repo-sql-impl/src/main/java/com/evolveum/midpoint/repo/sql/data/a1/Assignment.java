@@ -35,6 +35,7 @@ import java.io.Serializable;
  * To change this template use File | Settings | File Templates.
  */
 @Entity
+@Table(name = "assignment")
 public class Assignment implements Serializable {
 
     private O owner;
