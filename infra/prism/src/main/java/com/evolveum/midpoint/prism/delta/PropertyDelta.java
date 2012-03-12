@@ -101,7 +101,11 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     }
     
     public <P extends PrismProperty> P instantiateEmptyProperty() {
-    	return (P) getPropertyDefinition().instantiate(getName());
+    	PrismPropertyDefinition propertyDefinition = getPropertyDefinition();
+    	if (propertyDefinition == null) {
+    		throw new IllegalArgumentException("Cannot instantiate property "+getName()+" from delta "+this+": no definition");
+    	}
+    	return (P) propertyDefinition.instantiate(getName());
     }
     
 	public static <O extends Objectable> PropertyDelta createReplaceDelta(PrismObjectDefinition<O> objectDefinition,
