@@ -11,6 +11,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 @Component
 public class ErrorHandlerFactory {
@@ -63,7 +64,7 @@ public class ErrorHandlerFactory {
 			return configurationExceptionHandler;
 		}
 		
-		return null;
+		throw new SystemException("Unknown error occurred: "+ex.getMessage(), ex);
 	}
 	
 	
