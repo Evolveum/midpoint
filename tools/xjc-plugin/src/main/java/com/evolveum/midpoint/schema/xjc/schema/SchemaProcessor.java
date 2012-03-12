@@ -592,7 +592,8 @@ public class SchemaProcessor implements Processor {
 
         JInvocation newContainer = JExpr._new(CLASS_MAP.get(PrismObject.class));
         newContainer.arg(JExpr.invoke(METHOD_GET_CONTAINER_NAME));
-        newContainer.arg(JExpr.dotclass(definedClass));
+        newContainer.arg(JExpr._this().invoke("getClass"));
+//        newContainer.arg(JExpr.dotclass(definedClass));
         then.assign(container, newContainer);
 
         body._return(container);

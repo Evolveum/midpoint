@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.schema.xjc;
 
 import com.evolveum.midpoint.prism.*;
+
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
@@ -198,7 +199,15 @@ public final class PrismForJAXBUtil {
         Validate.notNull(referenceQName, "QName must not be null.");
 
         PrismReference reference = parentValue.findOrCreateReference(referenceQName);
-        reference.getValue().setObject(targetObject);
+        if (reference == null) {
+        	throw new IllegalArgumentException("No reference "+referenceQName+" in "+parentValue);
+        }
+        PrismReferenceValue referenceValue = reference.getValue();
+        if (referenceValue == null) {
+        	referenceValue = new PrismReferenceValue();
+        	reference.add(referenceValue);
+        }
+        referenceValue.setObject(targetObject);
     }
 
     // Assumes single-value reference

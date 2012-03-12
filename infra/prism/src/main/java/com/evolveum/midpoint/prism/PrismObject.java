@@ -67,6 +67,9 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 
 	public PrismObject(QName name, Class<T> compileTimeClass) {
 		super(name);
+		if (Modifier.isAbstract(compileTimeClass.getModifiers())) {
+            throw new IllegalArgumentException("Can't use class '" + compileTimeClass.getSimpleName() + "' as compile-time class for object "+name+"; the class is abstract.");
+        }
 		this.compileTimeClass = compileTimeClass;
 	}
 

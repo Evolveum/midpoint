@@ -288,15 +288,17 @@ public class UserSynchronizer {
 
     private void loadFromSystemConfig(SyncContext context, OperationResult result) throws ObjectNotFoundException,
             SchemaException {
-        SystemConfigurationType systemConfigurationType = 
+        PrismObject<SystemConfigurationType> systemConfiguration = 
         	cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
-        			result).asObjectable();
-        if (systemConfigurationType == null) {
+        			result);
+        if (systemConfiguration == null) {
             // throw new SystemException("System configuration object is null (should not happen!)");
             // This should not happen, but it happens in tests. And it is a convenient short cut. Tolerate it for now.
             LOGGER.warn("System configuration object is null (should not happen!)");
             return;
         }
+        
+        SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();
 
         if (context.getUserTemplate() == null) {
             UserTemplateType defaultUserTemplate = systemConfigurationType.getDefaultUserTemplate();

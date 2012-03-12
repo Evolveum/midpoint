@@ -35,6 +35,7 @@
     <c:name>add-resource-correct</c:name>
     <namespace>http://mi6.gov.uk/schema/</namespace>
     <schema>
+      <definition>
         <xsd:schema targetNamespace="http://mi6.gov.uk/schema/">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/resource/ldap/1#"/>
             <xsd:complexType name="Mi6PersonObjectClass">
@@ -61,5 +62,6 @@
                 </xsd:complexContent>
             </xsd:complexType>
         </xsd:schema>
+      </definition>
     </schema>
 </c:object>

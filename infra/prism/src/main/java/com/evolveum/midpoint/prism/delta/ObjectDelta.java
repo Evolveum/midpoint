@@ -24,9 +24,12 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -150,6 +153,10 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     
     	if (PrismProperty.class.isAssignableFrom(itemType)) {
     		return (D) new PropertyDelta(propertyPath, (PrismPropertyDefinition)itemDef);
+    	} else if (PrismContainer.class.isAssignableFrom(itemType)) {
+    		return (D) new ContainerDelta(propertyPath, (PrismContainerDefinition)itemDef);
+    	} else if (PrismReference.class.isAssignableFrom(itemType)) {
+    		return (D) new ReferenceDelta(propertyPath, (PrismReferenceDefinition)itemDef);
     	} else {
     		throw new IllegalArgumentException("Unknown item type "+itemType);
     	}

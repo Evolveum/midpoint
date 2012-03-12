@@ -168,7 +168,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 
 			@Override
 			public String answer(InvocationOnMock invocation) throws Throwable {
-				UserType user = (UserType) invocation.getArguments()[0];
+				PrismObject<UserType> user = (PrismObject<UserType>) invocation.getArguments()[0];
 				PrismAsserts.assertEquals(new File(TEST_FOLDER, "add-user-correct.xml"), user);
 
 				return oid;
@@ -314,7 +314,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 
 			@Override
 			public String answer(InvocationOnMock invocation) throws Throwable {
-				ResourceType resource = (ResourceType) invocation.getArguments()[0];
+				PrismObject<ResourceType> resource = (PrismObject<ResourceType>) invocation.getArguments()[0];
 				PrismAsserts.assertEquals(new File(TEST_FOLDER, "add-resource-correct.xml"), resource);
 
 				return oid;

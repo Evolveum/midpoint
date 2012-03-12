@@ -235,6 +235,10 @@ public class PrismAsserts {
 	public static void assertEquals(File fileNewXml, Objectable objectable) throws SchemaException {
 		assertEquals(toPrism(fileNewXml), objectable.asPrismObject());
     }
+	
+	public static void assertEquals(File fileNewXml, PrismObject<?> actual) throws SchemaException {
+		assertEquals(toPrism(fileNewXml), actual);
+    }
 
 	public static void assertEquals(PrismObject<?> prism1, PrismObject<?> prism2) {
 		if (prism1 == null) {
