@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -195,6 +197,13 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
 
     public boolean isEmpty() {
         return (objectToAdd == null && (modifications == null || modifications.isEmpty()));
+    }
+    
+    public void applyDefinition(PrismObjectDefinition<T> definition) throws SchemaException {
+    	if (objectToAdd != null) {
+    		objectToAdd.applyDefinition(definition);
+    	}
+    	ItemDelta.applyDefinition(getModifications(), definition);
     }
 
     /**

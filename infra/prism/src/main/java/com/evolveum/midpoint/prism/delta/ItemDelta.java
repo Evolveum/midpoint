@@ -30,11 +30,13 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author Radovan Semancik
@@ -113,6 +115,27 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	public void setDefinition(ItemDefinition definition) {
 		this.definition = definition;
 	}
+	
+	public void applyDefinition(ItemDefinition definition) throws SchemaException {
+		this.definition = definition;
+		for(V pval: getValuesToAdd()) {
+			pval.applyDefinition(definition);
+		}
+		for(V pval: getValuesToDelete()) {
+			pval.applyDefinition(definition);
+		}
+		for(V pval: getValuesToReplace()) {
+			pval.applyDefinition(definition);
+		}
+	}
+	
+	public static void applyDefinition(Collection<? extends ItemDelta> deltas, PrismObjectDefinition definition) throws SchemaException {
+    	for(ItemDelta<?> itemDelta: deltas) {
+    		PropertyPath path = itemDelta.getPath();
+    		ItemDefinition itemDefinition = definition.findItemDefinition(path, ItemDefinition.class);
+    		itemDelta.applyDefinition(itemDefinition);
+    	}
+    }
 	
     public PrismContext getPrismContext() {
 		return prismContext;

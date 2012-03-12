@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
 
@@ -84,6 +86,14 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 	}
 	
     @Override
+	public void applyDefinition(ItemDefinition definition) throws SchemaException {
+    	if (!(definition instanceof PrismPropertyDefinition)) {
+    		throw new IllegalArgumentException("Cannot apply "+definition+" to a property delta "+this);
+    	}
+		super.applyDefinition(definition);
+	}
+
+	@Override
 	public Class<PrismProperty> getItemClass() {
 		return PrismProperty.class;
 	}

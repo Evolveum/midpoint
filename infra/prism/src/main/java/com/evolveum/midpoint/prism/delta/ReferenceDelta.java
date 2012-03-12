@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
@@ -57,6 +58,14 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue> {
 	@Override
 	public Class<PrismReference> getItemClass() {
 		return PrismReference.class;
+	}
+	
+	@Override
+	public void applyDefinition(ItemDefinition definition) throws SchemaException {
+		if (!(definition instanceof PrismReferenceDefinition)) {
+			throw new IllegalArgumentException("Cannot apply definition "+definition+" to reference delta "+this);
+		}
+		super.applyDefinition(definition);
 	}
 
 	/**
