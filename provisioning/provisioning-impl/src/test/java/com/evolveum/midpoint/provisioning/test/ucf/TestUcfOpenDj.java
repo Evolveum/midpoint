@@ -39,8 +39,10 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
@@ -67,6 +69,7 @@ import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.annotations.*;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBContext;
@@ -656,13 +659,19 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		Set<Operation> additionalOperations = new HashSet<Operation>();
 		ProtectedStringType ps = protector.encryptString("t4k30v3rTh3W0rld");
-		PasswordChangeOperation passOp = new PasswordChangeOperation(ps);
-		additionalOperations.add(passOp);
+		
+//		PasswordChangeOperation passOp = new PasswordChangeOperation(ps);
+//		additionalOperations.add(passOp);
 
 		OperationResult addResult = new OperationResult(this.getClass().getName()
 				+ ".testCreateAccountWithPassword");
 
 		PrismObject<AccountShadowType> shadow = wrapInShadow(AccountShadowType.class, resourceObject);
+		CredentialsType credentials = new CredentialsType();
+		PasswordType pass = new PasswordType();
+		pass.setProtectedString(ps);
+		credentials.setPassword(pass);
+		shadow.asObjectable().setCredentials(credentials);
 		
 		// WHEN
 		cc.addObject(shadow, additionalOperations, addResult);
@@ -684,7 +693,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	@Test
 	public void testChangePassword() throws DirectoryException, CommunicationException,
 			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException,
-			ObjectNotFoundException, EncryptionException {
+			ObjectNotFoundException, EncryptionException, JAXBException {
 		displayTestTile("testChangePassword");
 		// GIVEN
 		ResourceAttributeContainer resourceObject = createResourceObject(
@@ -714,9 +723,31 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		// WHEN
 
 		Set<Operation> changes = new HashSet<Operation>();
-		ProtectedStringType passPs = protector.encryptString("x-m4rx-da-sp0t");
-		PasswordChangeOperation passwordChange = new PasswordChangeOperation(passPs);
-		changes.add(passwordChange);
+		ProtectedStringType passPs = protector.encryptString("salalala");
+		
+		PropertyModificationType propMod = new PropertyModificationType();
+		//create modification path
+		Document doc = DOMUtil.getDocument();
+		Element path = doc.createElementNS(SchemaConstants.NS_C, "path");
+//		PropertyPath propPath = new PropertyPath(new PropertyPath(AccountShadowType.F_CREDENTIALS), CredentialsType.F_PASSWORD);
+		path.setTextContent("c:credentials/c:password");
+		propMod.setPath(path);
+		
+		//set the replace value
+		PropertyModificationType.Value value = new PropertyModificationType.Value();
+		Element valueElement = PrismTestUtil.marshalObjectToDom(passPs, PasswordType.F_PROTECTED_STRING, doc);
+		value.getAny().add(valueElement);
+		propMod.setValue(value);
+		
+		//set the modificaion type
+		propMod.setModificationType(PropertyModificationTypeType.replace);
+		
+		PropertyDelta passDelta = DeltaConvertor.createPropertyDelta(propMod, shadow.getDefinition());
+		PropertyModificationOperation passwordModification = new PropertyModificationOperation(passDelta);
+		changes.add(passwordModification);
+		
+//		PasswordChangeOperation passwordChange = new PasswordChangeOperation(passPs);
+//		changes.add(passwordChange);
 		cc.modifyObject(accountDefinition, identifiers, changes, result);
 
 		// THEN
