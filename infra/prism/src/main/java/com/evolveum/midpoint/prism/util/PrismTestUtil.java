@@ -38,6 +38,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Class that statically instantiates the prism contexts and provides convenient static version of the PrismContext
@@ -110,6 +111,10 @@ public class PrismTestUtil {
     
     public static <T extends Objectable> PrismObject<T> parseObject(Element element) throws SchemaException {
     	return getPrismContext().parseObject(element);
+    }
+    
+    public static List<PrismObject<? extends Objectable>> parseObjects(File file) throws SchemaException {
+    	return getPrismContext().getPrismDomProcessor().parseObjects(file);
     }
     
     // ==========================

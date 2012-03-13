@@ -34,6 +34,7 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
@@ -110,6 +111,34 @@ public class PrismDomProcessor {
 		} catch (SchemaException e) {
 			throw new SchemaException(e.getMessage()+" while parsing file "+file, e);
 		}
+	}
+	
+	/**
+	 * This is really stupid implementation. Parsing long files with DOM does not make much sense.
+	 * But it may be OK for tests and such "lightweight" things.
+	 */
+	public List<PrismObject<? extends Objectable>> parseObjects(File file) throws SchemaException {
+		Document parsedDocument = DOMUtil.parseFile(file);
+		Element listElement = DOMUtil.getFirstChildElement(parsedDocument);
+		if (listElement == null) {
+			return null;
+		}
+		NodeList childNodes = listElement.getChildNodes();
+		int count = 0;
+		List<PrismObject<? extends Objectable>> list = new ArrayList<PrismObject<? extends Objectable>>();
+		for (int i=0; i<childNodes.getLength(); i++) {
+			Node node = childNodes.item(i);
+			if (node instanceof Element) {
+				count++;
+				try {
+					PrismObject<Objectable> object = parseObject((Element)node);
+					list.add(object);
+				} catch (SchemaException e) {
+					throw new SchemaException(e.getMessage()+" while parsing object #"+count+" from file "+file, e);
+				}
+			}
+		}
+		return list;
 	}
 	
 	public <T extends Objectable> PrismObject<T> parseObject(String objectString, Class<T> type) throws SchemaException {

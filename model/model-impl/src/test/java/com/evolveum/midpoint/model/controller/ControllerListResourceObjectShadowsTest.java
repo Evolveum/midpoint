@@ -17,7 +17,9 @@
  */
 package com.evolveum.midpoint.model.controller;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -108,14 +110,13 @@ public class ControllerListResourceObjectShadowsTest extends AbstractTestNGSprin
     public <T extends ResourceObjectShadowType> void correctList() throws Exception {
 
         final String resourceOid = "abababab-abab-abab-abab-000000000001";
-        final ResourceObjectShadowListType expected = PrismTestUtil.unmarshalObject(
-                new File(TEST_FOLDER, "resource-object-shadow-list.xml"), ResourceObjectShadowListType.class);
+        final List<PrismObject<? extends Objectable>> expected = PrismTestUtil.parseObjects(new File(TEST_FOLDER, "resource-object-shadow-list.xml"));
         LOGGER.warn("TODO: File resource-object-shadow-list.xml doesn't contain proper resource object shadow list.");
 
         when(
                 repository.listResourceObjectShadows(eq(resourceOid),
                         eq((Class<T>) ObjectTypes.ACCOUNT.getClassDefinition()), any(OperationResult.class)))
-                .thenReturn(MiscSchemaUtil.toResultList((Class<T>) ObjectTypes.ACCOUNT.getClassDefinition(), expected.getObject()));
+                .thenReturn(MiscSchemaUtil.prismObjectListToResultList((Class<T>) ObjectTypes.ACCOUNT.getClassDefinition(), expected));
 
         OperationResult result = new OperationResult("List Resource Object Shadows");
         try {
@@ -130,15 +131,14 @@ public class ControllerListResourceObjectShadowsTest extends AbstractTestNGSprin
         }
     }
 
-    private <T extends ResourceObjectShadowType> void assertShadowListType(ResourceObjectShadowListType expected,
+    private <T extends ResourceObjectShadowType> void assertShadowListType(List<PrismObject<? extends Objectable>> expectedList,
             List<PrismObject<T>> returnedList) {
-        List<ResourceObjectShadowType> expectedList = expected.getObject();
 
         assertTrue(expectedList == null ? returnedList == null : returnedList != null);
-        assertEquals("Unexpected number of results", expected.getObject().size(), expectedList.size());
+        assertEquals("Unexpected number of results", expectedList.size(), expectedList.size());
 
         for (int i = 0; i < expectedList.size(); i++) {
-            assertEquals("Shadows do not match", expectedList.get(i),returnedList.get(i));
+            PrismAsserts.assertEquals("Shadows do not match", expectedList.get(i),returnedList.get(i));
         }
     }
 }
