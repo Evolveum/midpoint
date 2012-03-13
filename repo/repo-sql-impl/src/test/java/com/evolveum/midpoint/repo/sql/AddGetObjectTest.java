@@ -70,9 +70,20 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 //        connector0.setFramework("framework");
 //        Connector connector1 = new Connector();
 //        connector1.setName("connector1");
-//
-//        User user = new User();
-//        user.setFullName("connector reference target");
+
+        User user = new User();
+        user.setFullName("connector reference target");
+        
+        Set<Assignment> aset = new HashSet<Assignment>();
+        Assignment a = new Assignment();
+        a.setAccountConstruction("a1");
+        a.setOwner(user);
+        aset.add(a);
+        a = new Assignment();
+        a.setAccountConstruction("a2");
+        a.setOwner(user);
+        aset.add(a);
+        user.setAssignments(aset);
 //
 //        Connector connector = new Connector();
 //        connector.setName("connector");
@@ -123,23 +134,23 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         extension.setDates(dates);
         dates.add(new DateValue(new Date()));
         //attributes
-        AnyContainer attributes = new AnyContainer();
-        attributes.setOwner(shadow);
-        shadow.setAttributes(attributes);
-        strings = new HashSet<StringValue>();
-        strings.add(new StringValue(null, null, "attr1"));
-        strings.add(new StringValue(null, null, "attr2"));
-        attributes.setStrings(strings);
-        dates = new HashSet<DateValue>();
-        attributes.setDates(dates);
-        dates.add(new DateValue(new Date()));
+//        AnyContainer attributes = new AnyContainer();
+//        attributes.setOwner(shadow);
+//        shadow.setAttributes(attributes);
+//        strings = new HashSet<StringValue>();
+//        strings.add(new StringValue(null, null, "attr1"));
+//        strings.add(new StringValue(null, null, "attr2"));
+//        attributes.setStrings(strings);
+//        dates = new HashSet<DateValue>();
+//        attributes.setDates(dates);
+//        dates.add(new DateValue(new Date()));
 
         session.beginTransaction();
 //        session.save(connector0);
 //        session.save(connector1);
-//        session.save(user);
+        session.save(user);
 //        session.save(connector);
-        session.save(shadow);
+//        session.save(shadow);
         session.getTransaction().commit();
 
         String oid = shadow.getOid();

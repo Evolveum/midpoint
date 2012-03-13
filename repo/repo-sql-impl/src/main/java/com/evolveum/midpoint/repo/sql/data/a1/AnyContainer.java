@@ -79,6 +79,13 @@ public class AnyContainer implements Serializable {
         return ownerOid;
     }
 
+    @Id
+    @Enumerated(EnumType.ORDINAL)
+    @Column(name = "ownerType")
+    public RContainerType getOwnerType() {
+        return ownerType;
+    }
+
     @ElementCollection
     @ForeignKey(name = "fk_any_long")
     @CollectionTable(name = "any_long", joinColumns =
@@ -113,13 +120,6 @@ public class AnyContainer implements Serializable {
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<DateValue> getDates() {
         return dates;
-    }
-
-    @Id
-    @Enumerated(EnumType.ORDINAL)
-    @Column(name = "ownerType")
-    public RContainerType getOwnerType() {
-        return ownerType;
     }
 
     public void setOwnerType(RContainerType ownerType) {

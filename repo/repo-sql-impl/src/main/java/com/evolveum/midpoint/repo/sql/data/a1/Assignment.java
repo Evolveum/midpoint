@@ -36,7 +36,7 @@ import java.io.Serializable;
  */
 @Entity
 @Table(name = "assignment")
-public class Assignment implements Serializable {
+public class Assignment extends Container implements Ownable {
 
     private O owner;
     private Reference targetRef;
@@ -44,11 +44,13 @@ public class Assignment implements Serializable {
     private String ownerOid;
     private Long ownerId;
 
+    private String accountConstruction;
+
     @ForeignKey(name = "fk_assignment_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({
-            @PrimaryKeyJoinColumn(name = "owner_oid", referencedColumnName = "ownerOid"),
+            @PrimaryKeyJoinColumn(name = "oid", referencedColumnName = "ownerOid"),
             @PrimaryKeyJoinColumn(name = "owner_id", referencedColumnName = "id")
     })
     public O getOwner() {
@@ -61,7 +63,7 @@ public class Assignment implements Serializable {
         return targetRef;
     }
 
-    @Id
+//    @Id
     @Column(name = "owner_id", nullable = false)
     public Long getOwnerId() {
         if (ownerId == null && owner != null) {
@@ -70,13 +72,21 @@ public class Assignment implements Serializable {
         return ownerId;
     }
 
-    @Id
+//    @Id
     @Column(name = "owner_oid", length = 36, nullable = false)
     public String getOwnerOid() {
         if (ownerOid == null && owner != null) {
             ownerOid = owner.getOid();
         }
         return ownerOid;
+    }
+
+    public String getAccountConstruction() {
+        return accountConstruction;
+    }
+
+    public void setAccountConstruction(String accountConstruction) {
+        this.accountConstruction = accountConstruction;
     }
 
     public void setOwnerId(Long ownerId) {
@@ -93,5 +103,38 @@ public class Assignment implements Serializable {
 
     public void setOwner(O owner) {
         this.owner = owner;
+    }
+
+    @Transient
+    @Override
+    public Container getContainerOwner() {
+        return getOwner();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        Assignment that = (Assignment) o;
+
+        if (accountConstruction != null ? !accountConstruction.equals(that.accountConstruction) : that.accountConstruction != null)
+            return false;
+//        if (ownerId != null ? !ownerId.equals(that.ownerId) : that.ownerId != null) return false;
+//        if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
+        if (targetRef != null ? !targetRef.equals(that.targetRef) : that.targetRef != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (targetRef != null ? targetRef.hashCode() : 0);
+//        result = 31 * result + (ownerOid != null ? ownerOid.hashCode() : 0);
+//        result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
+        result = 31 * result + (accountConstruction != null ? accountConstruction.hashCode() : 0);
+        return result;
     }
 }

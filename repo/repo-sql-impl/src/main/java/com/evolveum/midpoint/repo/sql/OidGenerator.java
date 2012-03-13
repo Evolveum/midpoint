@@ -21,8 +21,8 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.repo.sql.data.atest.O;
-import com.evolveum.midpoint.repo.sql.data.common.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.a1.Container;
+import com.evolveum.midpoint.repo.sql.data.a1.Ownable;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
@@ -38,35 +38,19 @@ public class OidGenerator implements IdentifierGenerator {
 
     @Override
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
-        if (!(object instanceof com.evolveum.midpoint.repo.sql.data.a1.O)) {
+        Container container = null;
+        if (object instanceof Ownable) {
+            container = ((Ownable) object).getContainerOwner();
+        } else if (object instanceof com.evolveum.midpoint.repo.sql.data.a1.O) {
+            container = (Container) object;
+        }
+
+        if (container == null) {
             return null;
         }
-        com.evolveum.midpoint.repo.sql.data.a1.O obj = (com.evolveum.midpoint.repo.sql.data.a1.O) object;
-        if (StringUtils.isNotEmpty(obj.getOid())) {
-            return obj.getOid();
-        }
 
-        //a0 test
-        if (object instanceof com.evolveum.midpoint.repo.sql.data.a0.O) {
-            com.evolveum.midpoint.repo.sql.data.a0.O o = (com.evolveum.midpoint.repo.sql.data.a0.O) object;
-            if (StringUtils.isNotEmpty(o.getOid())) {
-                return o.getOid();
-            }
-        }
-
-        //todo remove
-        if (object instanceof O) {
-            O o = (O) object;
-            if (StringUtils.isNotEmpty(o.getOid())) {
-                return o.getOid();
-            }
-        }
-
-        if (object instanceof RObjectType) {
-            RObjectType rObject = (RObjectType) object;
-            if (StringUtils.isNotEmpty(rObject.getOid())) {
-                return rObject.getOid();
-            }
+        if (StringUtils.isNotEmpty(container.getOid())) {
+            return container.getOid();
         }
 
         return UUID.randomUUID().toString();

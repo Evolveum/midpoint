@@ -21,36 +21,14 @@
 
 package com.evolveum.midpoint.repo.sql.data.a1;
 
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
-
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import java.util.Set;
-
 /**
  * Created by IntelliJ IDEA.
  * User: lazyman
- * Date: 3/12/12
- * Time: 6:54 PM
+ * Date: 3/13/12
+ * Time: 8:03 PM
  * To change this template use File | Settings | File Templates.
  */
-@Entity
-@Table(name = "role")
-@ForeignKey(name = "fk_role")
-public class Role extends O {
-
-    private Set<Assignment> assignments;
-
-    @OneToMany(mappedBy = "owner")
-    @ForeignKey(name = "none")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<Assignment> getAssignments() {
-        return assignments;
-    }
-
-    public void setAssignments(Set<Assignment> assignments) {
-        this.assignments = assignments;
-    }
+public interface Ownable {
+    
+    Container getContainerOwner();
 }

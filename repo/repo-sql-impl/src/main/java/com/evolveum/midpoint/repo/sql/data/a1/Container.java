@@ -53,7 +53,7 @@ public abstract class Container implements Serializable {
     @Id
     @GeneratedValue(generator = "OidGenerator")
     @GenericGenerator(name = "OidGenerator", strategy = "com.evolveum.midpoint.repo.sql.OidGenerator")
-    @Column(unique = true, nullable = false, updatable = false, length = 36)
+    @Column(nullable = false, updatable = false, length = 36)
     public String getOid() {
         return oid;
     }
@@ -82,16 +82,18 @@ public abstract class Container implements Serializable {
 
         Container container = (Container) o;
 
-        if (id != null ? !id.equals(container.id) : container.id != null) return false;
-        if (oid != null ? !oid.equals(container.oid) : container.oid != null) return false;
-
-        return true;
+//        if (id != null ? !id.equals(container.id) : container.id != null) return false;
+//        if (oid != null ? !oid.equals(container.oid) : container.oid != null) return false;
+//
+//        return true;
+        return false;
     }
 
     @Override
     public int hashCode() {
-        int result = oid != null ? oid.hashCode() : 0;
-        result = 31 * result + (id != null ? id.hashCode() : 0);
-        return result;
+//        int result = oid != null ? oid.hashCode() : 0;
+//        result = 31 * result + (id != null ? id.hashCode() : 0);
+//        return result;
+        return 31;
     }
 }

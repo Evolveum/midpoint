@@ -43,7 +43,7 @@ public class User extends O {
 
     private String fullName;
     private Set<Reference> accountRefs;
-//    private Set<Assignment> assignments;
+    private Set<Assignment> assignments;
 
     @OneToMany(mappedBy = "owner")
     @ForeignKey(name = "none")
@@ -52,20 +52,20 @@ public class User extends O {
         return accountRefs;
     }
 
-//    @OneToMany(mappedBy = "owner")
-//    @ForeignKey(name = "none")
-//    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-//    public Set<Assignment> getAssignments() {
-//        return assignments;
-//    }
+    @OneToMany(mappedBy = "owner")
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<Assignment> getAssignments() {
+        return assignments;
+    }
 
     public String getFullName() {
         return fullName;
     }
 
-//    public void setAssignments(Set<Assignment> assignments) {
-//        this.assignments = assignments;
-//    }
+    public void setAssignments(Set<Assignment> assignments) {
+        this.assignments = assignments;
+    }
 
     public void setAccountRefs(Set<Reference> accountRefs) {
         this.accountRefs = accountRefs;
