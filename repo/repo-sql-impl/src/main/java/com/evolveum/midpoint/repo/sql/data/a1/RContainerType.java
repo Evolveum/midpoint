@@ -30,5 +30,5 @@ package com.evolveum.midpoint.repo.sql.data.a1;
  */
 public enum RContainerType {
     
-    OBJECT, RESOURCE_OBJECT_SHADOW, ASSIGNMENT;
+    OBJECT, RESOURCE_OBJECT_SHADOW, ASSIGNMENT//, EXTENSION, USER, ROLE;
 }

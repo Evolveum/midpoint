@@ -143,8 +143,8 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         session.getTransaction().commit();
 
         String oid = shadow.getOid();
-//        session.close();
-//        session = factory.openSession();
+        session.close();
+        session = factory.openSession();
         session.beginTransaction();
         Query query = session.createQuery("from ResourceObjectShadow as s where s.oid = :oid");
         query.setString("oid", oid);
