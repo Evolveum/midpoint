@@ -124,22 +124,21 @@ public class ControllerListResourceObjectShadowsTest extends AbstractTestNGSprin
 
             assertNotNull(expected);
             assertNotNull(returned);
-            testShadowListType(expected, returned);
+            assertShadowListType(expected, returned);
         } finally {
             LOGGER.debug(result.dump());
         }
     }
 
-    @Test(enabled = false)
-    private <T extends ResourceObjectShadowType> void testShadowListType(ResourceObjectShadowListType expected,
+    private <T extends ResourceObjectShadowType> void assertShadowListType(ResourceObjectShadowListType expected,
             List<PrismObject<T>> returnedList) {
         List<ResourceObjectShadowType> expectedList = expected.getObject();
 
         assertTrue(expectedList == null ? returnedList == null : returnedList != null);
-        assertEquals(expected.getObject().size(), expectedList.size());
+        assertEquals("Unexpected number of results", expected.getObject().size(), expectedList.size());
 
         for (int i = 0; i < expectedList.size(); i++) {
-            assertTrue(expectedList.get(i).equals(returnedList.get(i)));
+            assertEquals("Shadows do not match", expectedList.get(i),returnedList.get(i));
         }
     }
 }

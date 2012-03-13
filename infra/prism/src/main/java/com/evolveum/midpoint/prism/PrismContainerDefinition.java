@@ -283,7 +283,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
      * This is a preferred way how to create property container.
      */
     @Override
-    public PrismContainer instantiate() {
+    public PrismContainer<V> instantiate() {
         return instantiate(getNameOrDefaultName());
     }
 
@@ -293,8 +293,8 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
      * This is a preferred way how to create property container.
      */
     @Override
-    public PrismContainer instantiate(QName name) {
-        return new PrismContainer(name, this, prismContext);
+    public PrismContainer<V> instantiate(QName name) {
+        return new PrismContainer<V>(name, this, prismContext);
     }
 
     /**
@@ -314,8 +314,8 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
         clone.compileTimeClass = this.compileTimeClass;
     }
     
-    public PrismContainerDefinition cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
-    	PrismContainerDefinition clone = clone();
+    public PrismContainerDefinition<V> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
+    	PrismContainerDefinition<V> clone = clone();
     	ComplexTypeDefinition originalComplexTypeDefinition = getComplexTypeDefinition();
         ComplexTypeDefinition cloneComplexTypeDefinition = originalComplexTypeDefinition.clone();
         clone.setComplexTypeDefinition(cloneComplexTypeDefinition);

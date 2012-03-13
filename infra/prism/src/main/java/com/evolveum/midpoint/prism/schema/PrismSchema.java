@@ -182,11 +182,11 @@ public class PrismSchema implements Dumpable, DebugDumpable, Serializable {
 		return findContainerDefinitionByType(typeName,PrismContainerDefinition.class);
 	}
 	
-	public PrismObjectDefinition findObjectDefinitionByType(QName typeName) {
+	public <X extends Objectable> PrismObjectDefinition<X> findObjectDefinitionByType(QName typeName) {
 		return findContainerDefinitionByType(typeName,PrismObjectDefinition.class);
 	}
 	
-	public PrismObjectDefinition findObjectDefinitionByElementName(QName elementName) {
+	public <X extends Objectable> PrismObjectDefinition<X> findObjectDefinitionByElementName(QName elementName) {
 		return findContainerDefinitionByElementName(elementName, PrismObjectDefinition.class);
 	}
 

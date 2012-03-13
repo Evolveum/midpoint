@@ -164,11 +164,11 @@ public class PrismDomProcessor {
 		return object;
 	}
 	
-	public PrismContainer parsePrismContainer(Element domElement) throws SchemaException {
+	public <T extends Containerable> PrismContainer<T> parsePrismContainer(Element domElement) throws SchemaException {
 		// locate appropriate definition based on the element name
 		QName elementName = DOMUtil.getQName(domElement);
 		PrismSchema schema = schemaRegistry.findSchemaByNamespace(elementName.getNamespaceURI());
-		PrismContainerDefinition propertyContainerDefinition = schema.findItemDefinition(elementName,
+		PrismContainerDefinition<T> propertyContainerDefinition = schema.findItemDefinition(elementName,
 				PrismContainerDefinition.class);
 		if (propertyContainerDefinition == null) {
 			throw new SchemaException("No definition for element " + elementName);
@@ -176,29 +176,30 @@ public class PrismDomProcessor {
 		return parsePrismContainer(domElement, propertyContainerDefinition);
 	}
 
-	private PrismContainer parsePrismContainer(Element domElement, PrismContainerDefinition propertyContainerDefinition) throws SchemaException {
+	private <T extends Containerable> PrismContainer<T> parsePrismContainer(Element domElement, PrismContainerDefinition<T> propertyContainerDefinition) throws SchemaException {
 		List<Object> valueElements = new ArrayList<Object>(1);
 		valueElements.add(domElement);
 		return parsePrismContainer(valueElements, DOMUtil.getQName(domElement), propertyContainerDefinition);
 	}
 
-	private PrismContainer parsePrismContainer(List<? extends Object> valueElements, QName itemName, PrismContainerDefinition containerDefinition) throws SchemaException {
-		PrismContainer container = containerDefinition.instantiate(itemName);
+	private <T extends Containerable> PrismContainer<T> parsePrismContainer(List<? extends Object> valueElements, QName itemName,
+			PrismContainerDefinition<T> containerDefinition) throws SchemaException {
+		PrismContainer<T> container = containerDefinition.instantiate(itemName);
         for (Object value: valueElements) {
         	if (value instanceof Element) {
         		Element element = (Element)value;
 	        	String id = getContainerId(element);
-	        	PrismContainerValue pval = new PrismContainerValue(null, null, container, id);
+	        	PrismContainerValue<T> pval = new PrismContainerValue<T>(null, null, container, id);
 	            List<Element> childElements = DOMUtil.listChildElements(element);
-	            pval.addAll(parsePrismContainerItems(childElements, containerDefinition));
+	            pval.addAll((Collection)parsePrismContainerItems(childElements, containerDefinition));
 	            container.add(pval);
         	} else if (value instanceof JAXBElement) {
-        		PrismContainerValue pval = parsePrismContainerFromValueObject(((JAXBElement)value).getValue(), container.getDefinition());
+        		PrismContainerValue<T> pval = parsePrismContainerFromValueObject(((JAXBElement)value).getValue(), container.getDefinition());
         		if (pval != null) {
         			container.add(pval);
         		}
         	} else {
-        		PrismContainerValue pval = parsePrismContainerFromValueObject(value, container.getDefinition());
+        		PrismContainerValue<T> pval = parsePrismContainerFromValueObject(value, container.getDefinition());
         		if (pval != null) {
         			container.add(pval);
         		}
@@ -207,9 +208,9 @@ public class PrismDomProcessor {
         return container;
 	}
 	
-	private PrismContainerValue parsePrismContainerFromValueObject(Object value, PrismContainerDefinition def) throws SchemaException {
+	private <T extends Containerable> PrismContainerValue<T> parsePrismContainerFromValueObject(Object value, PrismContainerDefinition def) throws SchemaException {
 		if (value instanceof Containerable) {
-			PrismContainerValue containerValue = ((Containerable)value).asPrismContainerValue();
+			PrismContainerValue<T> containerValue = ((Containerable)value).asPrismContainerValue();
 			containerValue.applyDefinition(def);
 			return containerValue;
 		}
@@ -237,7 +238,8 @@ public class PrismDomProcessor {
 		return null;
 	}
 
-	private Collection<? extends Item> parsePrismContainerItems(List<Element> childElements, PrismContainerDefinition containerDefinition) throws SchemaException {
+	private <T extends Containerable> Collection<? extends Item> parsePrismContainerItems(List<Element> childElements, 
+			PrismContainerDefinition<T> containerDefinition) throws SchemaException {
 		return parsePrismContainerItems(childElements, containerDefinition, null);
 	}
 	
@@ -252,12 +254,13 @@ public class PrismDomProcessor {
      * min/max constraints are not checked now
      * TODO: maybe we need to check them
      */
-    protected Collection<? extends Item> parsePrismContainerItems(List<Element> elements, PrismContainerDefinition containerDefinition, 
+    protected <T extends Containerable> Collection<? extends Item<?>> parsePrismContainerItems(List<Element> elements, 
+    		PrismContainerDefinition<T> containerDefinition, 
     		Collection<? extends ItemDefinition> selection) throws SchemaException {
 
         // TODO: more robustness in handling schema violations (min/max constraints, etc.)
 
-        Collection<Item> props = new HashSet<Item>();
+        Collection<Item<?>> props = new HashSet<Item<?>>();
 
         // Iterate over all the XML elements there. Each element is
         // an item value.
@@ -301,7 +304,7 @@ public class PrismDomProcessor {
             	}
             }
             
-            Item item = parseItem(valueElements, elementQName, def);
+            Item<?> item = parseItem(valueElements, elementQName, def);
             props.add(item);
         }
         return props;
@@ -340,12 +343,12 @@ public class PrismDomProcessor {
 		return propDef;
 	}
 		
-	private PrismProperty parsePrismPropertyRaw(List<? extends Object> valueElements, QName itemName) {
+	private <T> PrismProperty<T> parsePrismPropertyRaw(List<? extends Object> valueElements, QName itemName) {
 		Object firstElement = valueElements.get(0);
 		QName propertyName = JAXBUtil.getElementQName(firstElement);
-		PrismProperty property = new PrismProperty(propertyName);
+		PrismProperty<T> property = new PrismProperty<T>(propertyName);
 		for (Object valueElement: valueElements) {
-			PrismPropertyValue pval = new PrismPropertyValue(null);
+			PrismPropertyValue<T> pval = new PrismPropertyValue<T>(null);
 			pval.setRawElement(valueElement);
 			property.add(pval);
 		}
@@ -353,24 +356,24 @@ public class PrismDomProcessor {
 	}
 
     
-    public PrismProperty parsePrismProperty(List<? extends Object> valueElements, QName propName, PrismPropertyDefinition propertyDefinition) throws SchemaException {
+    public <T> PrismProperty<T> parsePrismProperty(List<? extends Object> valueElements, QName propName, PrismPropertyDefinition propertyDefinition) throws SchemaException {
         if (valueElements == null || valueElements.isEmpty()) {
             return null;
         }
-        PrismProperty prop = propertyDefinition.instantiate(propName);
+        PrismProperty<T> prop = propertyDefinition.instantiate(propName);
 
         if (!propertyDefinition.isMultiValue() && valueElements.size() > 1) {
             throw new SchemaException("Attempt to store multiple values in single-valued property " + propName);
         }
 
         for (Object valueElement : valueElements) {
-        	Object realValue = parsePrismPropertyRealValue(valueElement, propertyDefinition);
-            prop.add(new PrismPropertyValue(realValue));
+        	T realValue = parsePrismPropertyRealValue(valueElement, propertyDefinition);
+            prop.add(new PrismPropertyValue<T>(realValue));
         }
         return prop;
     }
     
-	public Object parsePrismPropertyRealValue(Object valueElement, PrismPropertyDefinition propertyDefinition) throws SchemaException {
+	public <T> T parsePrismPropertyRealValue(Object valueElement, PrismPropertyDefinition propertyDefinition) throws SchemaException {
 		QName typeName = propertyDefinition.getTypeName();
 		PrismJaxbProcessor jaxbProcessor = getJaxbProcessor();
     	Object realValue = null;
@@ -405,17 +408,18 @@ public class PrismDomProcessor {
     		// The values is already in java form, just store it directly
     		realValue = valueElement;
     	}
-    	return realValue;
+    	return (T) realValue;
 	}
 
-	public PrismProperty parsePropertyFromValueElement(Element valueElement, PrismPropertyDefinition propertyDefinition) throws SchemaException {
-    	PrismProperty prop = propertyDefinition.instantiate();
+	public <T> PrismProperty<T> parsePropertyFromValueElement(Element valueElement, PrismPropertyDefinition propertyDefinition) throws SchemaException {
+    	PrismProperty<T> prop = propertyDefinition.instantiate();
         if (propertyDefinition.isSingleValue()) {
-            prop.addValue(new PrismPropertyValue(XmlTypeConverter.convertValueElementAsScalar(valueElement, propertyDefinition.getTypeName())));
+        	T realValue = (T) XmlTypeConverter.convertValueElementAsScalar(valueElement, propertyDefinition.getTypeName());
+            prop.addValue(new PrismPropertyValue<T>(realValue));
         } else {
-            List list = XmlTypeConverter.convertValueElementAsList(valueElement, propertyDefinition.getTypeName());
-            for (Object object : list) {
-                prop.add(new PrismPropertyValue(object));
+            List<T> list = (List)XmlTypeConverter.convertValueElementAsList(valueElement, propertyDefinition.getTypeName());
+            for (T realValue : list) {
+                prop.add(new PrismPropertyValue<T>(realValue));
             }
         }
         return prop;
@@ -426,7 +430,7 @@ public class PrismDomProcessor {
 	 * valueElements may contain DOM and JAXB values
 	 * @throws SchemaException 
 	 */
-	public Collection<? extends Item> parseContainerItems(PrismContainerDefinition containingPcd,
+	public <T extends Containerable> Collection<? extends Item> parseContainerItems(PrismContainerDefinition<T> containingPcd,
 			List<Object> valueElements) throws SchemaException {
 		Collection<Item<?>> items = new ArrayList<Item<?>>(valueElements.size());
 		for (int i=0; i < valueElements.size(); i++) {
@@ -456,7 +460,7 @@ public class PrismDomProcessor {
 		return items;
 	}
 
-	private ItemDefinition locateItemDefinition(PrismContainerDefinition containerDefinition, QName elementQName,
+	private <T extends Containerable> ItemDefinition locateItemDefinition(PrismContainerDefinition<T> containerDefinition, QName elementQName,
 			List<? extends Object> valueElements) {
 		ItemDefinition def = containerDefinition.findItemDefinition(elementQName);
         if (def == null && !valueElements.isEmpty() && valueElements.get(0) instanceof Element) {
@@ -471,7 +475,7 @@ public class PrismDomProcessor {
         return def;
 	}
 
-	private ItemDefinition resolveGlobalItemDefinition(PrismContainerDefinition containerDefinition,
+	private <T extends Containerable> ItemDefinition resolveGlobalItemDefinition(PrismContainerDefinition<T> containerDefinition,
 			List<? extends Object> valueElements) {
 		Object firstElement = valueElements.get(0);
 		QName elementQName = JAXBUtil.getElementQName(firstElement);
@@ -570,7 +574,7 @@ public class PrismDomProcessor {
 	/**
 	 * Parse the provided JAXB/DOM element and add it as a new value of the specified item. 
 	 */
-	public boolean addItemValue(Item item, Object element, PrismContainer container) throws SchemaException {
+	public <T extends Containerable> boolean addItemValue(Item item, Object element, PrismContainer<T> container) throws SchemaException {
 		ItemDefinition itemDefinition = item.getDefinition();
 		List<Object> itemValueElements = new ArrayList<Object>();
 		itemValueElements.add(element);
@@ -593,7 +597,7 @@ public class PrismDomProcessor {
 	/**
 	 * Parse the provided JAXB/DOM element and delete it from the specified item. 
 	 */
-	public boolean deleteItemValue(Item item, Object element, PrismContainer container) throws SchemaException {
+	public <T extends Containerable> boolean deleteItemValue(Item item, Object element, PrismContainer<T> container) throws SchemaException {
 		ItemDefinition itemDefinition = item.getDefinition();
 		List<Object> itemValueElements = new ArrayList<Object>();
 		itemValueElements.add(element);
