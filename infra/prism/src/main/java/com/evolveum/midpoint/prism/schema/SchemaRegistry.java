@@ -597,6 +597,10 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	public Class<?> determineCompileTimeClass(QName elementName, ComplexTypeDefinition complexTypeDefinition) {
 		return determineCompileTimeClass(complexTypeDefinition.getTypeName());
 	}
+	
+	public Class<?> determineCompileTimeClass(ComplexTypeDefinition complexTypeDefinition) {
+		return determineCompileTimeClass(complexTypeDefinition.getTypeName());
+	}
 		
 	public Class<?> determineCompileTimeClass(QName typeName) {
 		if (typeName.getNamespaceURI() == null) {

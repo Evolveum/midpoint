@@ -286,21 +286,25 @@ public class SyncContext implements Dumpable, DebugDumpable {
      * Returns delta of user assignments, both primary and secondary (merged together).
      * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
      */
-    public ContainerDelta getAssignmentDelta() {
+    public ContainerDelta<AssignmentType> getAssignmentDelta() {
         ObjectDelta<UserType> userDelta = getUserDelta();
         if (userDelta == null) {
             return createEmptyAssignmentDelta();
         }
-        ContainerDelta assignmentDelta = userDelta.getContainerDelta(new PropertyPath(SchemaConstants.C_ASSIGNMENT));
+        ContainerDelta<AssignmentType> assignmentDelta = userDelta.getContainerDelta(new PropertyPath(SchemaConstants.C_ASSIGNMENT));
         if (assignmentDelta == null) { 
             return createEmptyAssignmentDelta();
         }
         return assignmentDelta;
     }
 
-    private ContainerDelta createEmptyAssignmentDelta() {
-        return new ContainerDelta(getContainerDefinition());
+    private ContainerDelta<AssignmentType> createEmptyAssignmentDelta() {
+        return new ContainerDelta<AssignmentType>(getAssignmentContainerDefinition());
     }
+    
+    private PrismContainerDefinition<AssignmentType> getAssignmentContainerDefinition() {
+		return getUserDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+	}
 
 	private PrismObjectDefinition<UserType> getUserDefinition() {
 		if (userDefinition == null) {
@@ -308,9 +312,7 @@ public class SyncContext implements Dumpable, DebugDumpable {
 		}
 		return userDefinition;
 	}
-	private PrismContainerDefinition getContainerDefinition() {
-		return getUserDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
-	}
+	
 
 	public void addPrimaryUserDelta(ObjectDelta<UserType> userDelta) {
         if (userPrimaryDelta == null) {

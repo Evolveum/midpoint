@@ -96,13 +96,13 @@ public class AssignmentProcessor {
 
         Collection<PrismContainerValue<AssignmentType>> assignmentsOld = new HashSet<PrismContainerValue<AssignmentType>>();
         if (context.getUserOld() != null) {
-            PrismContainer<AssignmentType> assignmentProperty = context.getUserOld().findContainer(UserType.F_ASSIGNMENT);
-            if (assignmentProperty != null) {
-            	assignmentsOld.addAll(assignmentProperty.getValues());
+            PrismContainer<AssignmentType> assignmentContainer = context.getUserOld().findContainer(UserType.F_ASSIGNMENT);
+            if (assignmentContainer != null) {
+            	assignmentsOld.addAll(assignmentContainer.getValues());
             }
         }
 
-        ContainerDelta assignmentDelta = context.getAssignmentDelta();
+        ContainerDelta<AssignmentType> assignmentDelta = context.getAssignmentDelta();
 
         LOGGER.trace("Assignment delta {}", assignmentDelta.dump());
 

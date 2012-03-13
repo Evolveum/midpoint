@@ -209,11 +209,11 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
      * @param name property container definition name
      * @return found property container definition or null
      */
-    public PrismContainerDefinition findContainerDefinition(QName name) {
+    public <X extends Containerable> PrismContainerDefinition<X> findContainerDefinition(QName name) {
         return findItemDefinition(name, PrismContainerDefinition.class);
     }
 
-    public PrismContainerDefinition findContainerDefinition(String name) {
+    public <X extends Containerable> PrismContainerDefinition<X> findContainerDefinition(String name) {
         return findContainerDefinition(new QName(getNamespace(), name));
     }
     

@@ -204,13 +204,13 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	}
 
 	public T asContainerable() {
-		PrismContainer<T> container = getContainer();
-		if (container == null) {
+		PrismContainerable parent = getParent();
+		if (parent == null) {
 			throw new IllegalStateException("Cannot represent container value witout a parent as containerable");
 		}
-        Class<T> clazz = container.getCompileTimeClass();
+        Class<T> clazz = parent.getCompileTimeClass();
         if (clazz == null) {
-            throw new SystemException("Unknown compile time class of container '" + container.getName() + "'.");
+            throw new SystemException("Unknown compile time class of container '" + parent.getName() + "'.");
         }
         if (Modifier.isAbstract(clazz.getModifiers())) {
             throw new SystemException("Can't create instance of class '" + clazz.getSimpleName() + "', it's abstract.");

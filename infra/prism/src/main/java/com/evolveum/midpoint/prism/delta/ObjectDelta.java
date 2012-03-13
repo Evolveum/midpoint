@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.prism.delta;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
@@ -130,7 +131,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	return getItemDelta(propertyPath, PropertyDelta.class, PrismProperty.class);
     }
     
-    public ContainerDelta getContainerDelta(PropertyPath propertyPath) {
+    public <X extends Containerable> ContainerDelta<X> getContainerDelta(PropertyPath propertyPath) {
     	return getItemDelta(propertyPath, ContainerDelta.class, PrismContainer.class);
     }
 

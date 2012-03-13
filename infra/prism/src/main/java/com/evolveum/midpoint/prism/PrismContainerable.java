@@ -23,9 +23,11 @@ package com.evolveum.midpoint.prism;
  * @author semancik
  *
  */
-public interface PrismContainerable extends Itemable {
+public interface PrismContainerable<T extends Containerable> extends Itemable {
 	
 	@Override
-	public PrismContainerDefinition getDefinition();
+	public PrismContainerDefinition<T> getDefinition();
+
+	public Class<T> getCompileTimeClass();
 
 }

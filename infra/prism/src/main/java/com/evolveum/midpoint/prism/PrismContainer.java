@@ -60,7 +60,7 @@ import java.util.*;
  *
  * @author Radovan Semancik
  */
-public class PrismContainer<V extends Containerable> extends Item<PrismContainerValue<V>> implements PrismContainerable {
+public class PrismContainer<V extends Containerable> extends Item<PrismContainerValue<V>> implements PrismContainerable<V> {
     private static final long serialVersionUID = 5206821250098051028L;
     
     protected Class<V> compileTimeClass;

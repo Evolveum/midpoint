@@ -167,10 +167,9 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	}
 
 	public void addValuesToAdd(Collection<V> newValues) {
-		if (valuesToAdd == null) {
-			valuesToAdd = newValueCollection();
+		for (V val: newValues) {
+			addValueToAdd(val);
 		}
-		valuesToAdd.addAll(newValues);
 	}
 
 	public void addValueToAdd(V newValue) {
@@ -178,13 +177,13 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			valuesToAdd = newValueCollection();
 		}
 		valuesToAdd.add(newValue);
+		newValue.setParent(this);
 	}
 
 	public void addValuesToDelete(Collection<V> newValues) {
-		if (valuesToDelete == null) {
-			valuesToDelete = newValueCollection();
+		for (V val: newValues) {
+			addValueToDelete(val);
 		}
-		valuesToDelete.addAll(newValues);
 	}
 
 	public void addValueToDelete(V newValue) {
@@ -192,6 +191,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			valuesToDelete = newValueCollection();
 		}
 		valuesToDelete.add(newValue);
+		newValue.setParent(this);
 	}
 
 	public void setValuesToReplace(Collection<V> newValues) {
@@ -200,7 +200,10 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		} else {
 			valuesToReplace.clear();
 		}
-		valuesToReplace.addAll(newValues);
+		for (V val: newValues) {
+			valuesToReplace.add(val);
+			val.setParent(this);
+		}
 	}
 
 	public void setValueToReplace(V newValue) {
@@ -210,6 +213,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			valuesToReplace.clear();
 		}
 		valuesToReplace.add(newValue);
+		newValue.setParent(this);
 	}
 
 	private Collection<V> newValueCollection() {

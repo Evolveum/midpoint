@@ -309,6 +309,11 @@ class DomToSchemaProcessor {
 			ctd.setXsdAnyMarker(true);
 		}
 		
+		if (getSchemaRegistry() != null) {
+			Class<?> compileTimeClass = getSchemaRegistry().determineCompileTimeClass(ctd);
+			ctd.setCompileTimeClass(compileTimeClass);
+		}
+		
 		definitionFactory.finishComplexTypeDefinition(ctd, complexType, prismContext, complexType.getAnnotation());
 		
 		return ctd;

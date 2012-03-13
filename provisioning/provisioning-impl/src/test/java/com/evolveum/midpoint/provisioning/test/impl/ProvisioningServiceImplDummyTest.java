@@ -701,6 +701,9 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		
 		// THEN
 		
+		display("Synchronization result", result);
+		assertSuccess("Synchronization result is not OK", result);
+		
 		assertTrue("Sync service was not called", syncServiceMock.wasCalled());
 		
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();

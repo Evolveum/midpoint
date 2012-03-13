@@ -274,6 +274,9 @@ public class PrismAsserts {
 		// TODO: log the delta?
 		assert false: message + ": " + suffix;
 	}
+	public static void assertEquivalent(String message, File expectedFile, PrismObject actual) throws SchemaException {
+		assertEquivalent(message, toPrism(expectedFile), actual);
+	}
 	
 	public static void assertEquivalent(String message, PrismObject expected, PrismObject actual) {
 		if (expected == null && actual == null) {

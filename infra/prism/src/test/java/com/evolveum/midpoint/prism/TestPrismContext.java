@@ -186,6 +186,7 @@ public class TestPrismContext {
 		PrismContainerDefinition assignmentContainer = userDefinition.findContainerDefinition(USER_ASSIGNMENT_QNAME);
 		PrismAsserts.assertDefinition(assignmentContainer, USER_ASSIGNMENT_QNAME, ASSIGNMENT_TYPE_QNAME, 0, -1);
 		assertFalse("Assignment is runtime", assignmentContainer.isRuntimeSchema());
+		assertEquals("Wrong compile time class for assignment container", AssignmentType.class, assignmentContainer.getCompileTimeClass());
 		assertEquals("Assignment size", 2, assignmentContainer.getDefinitions().size());
 		PrismAsserts.assertPropertyDefinition(assignmentContainer, USER_DESCRIPTION_QNAME, DOMUtil.XSD_STRING, 0, 1);
 		PrismAsserts.assertPropertyDefinition(assignmentContainer, USER_ACCOUNT_CONSTRUCTION_QNAME, ACCOUNT_CONSTRUCTION_TYPE_QNAME, 0, 1);

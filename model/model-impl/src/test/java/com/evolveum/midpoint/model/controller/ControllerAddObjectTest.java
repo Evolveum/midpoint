@@ -53,6 +53,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.model.test.util.ModelTUtil;
 import com.evolveum.midpoint.model.test.util.mock.ObjectTypeNameMatcher;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -158,18 +159,19 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 		
 		ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER_COMMON, "system-configuration.xml"));
 
-		final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
-				"add-user-correct.xml"), UserType.class);
+		final PrismObject<UserType> expectedUser = PrismTestUtil.parseObject(new File(TEST_FOLDER,
+				"add-user-correct.xml"));
+		final UserType expectedUserType = expectedUser.asObjectable();
 
 		final String oid = "abababab-abab-abab-abab-000000000001";
 		when(
-				repository.addObject(argThat(new ObjectTypeNameMatcher(expectedUser.getName())),
+				repository.addObject(argThat(new ObjectTypeNameMatcher(expectedUserType.getName())),
 						any(OperationResult.class))).thenAnswer(new Answer<String>() {
 
 			@Override
 			public String answer(InvocationOnMock invocation) throws Throwable {
 				PrismObject<UserType> user = (PrismObject<UserType>) invocation.getArguments()[0];
-				PrismAsserts.assertEquals(new File(TEST_FOLDER, "add-user-correct.xml"), user);
+				PrismAsserts.assertEquivalent("Unexpected argument to addObject", expectedUser, user);
 
 				return oid;
 			}
@@ -178,12 +180,12 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult("Test Operation");
 		
 		// WHEN
-		String userOid = controller.addObject(expectedUser.asPrismObject(), task, result);
+		String userOid = controller.addObject(expectedUser, task, result);
 		
 		// THEN
 		display("addObject result",result.dump());
 
-		verify(repository, times(1)).addObject(argThat(new ObjectTypeNameMatcher(expectedUser.getName())),
+		verify(repository, times(1)).addObject(argThat(new ObjectTypeNameMatcher(expectedUserType.getName())),
 				any(OperationResult.class));
 		assertEquals(oid, userOid);
 	}
@@ -304,18 +306,19 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 		
 		Task task = taskManager.createTaskInstance();
 		
-		final ResourceType expectedResource = PrismTestUtil.unmarshalObject(new File(
-				TEST_FOLDER, "add-resource-correct.xml"), ResourceType.class);
+		final PrismObject<ResourceType> expectedResource = PrismTestUtil.parseObject(new File(
+				TEST_FOLDER, "add-resource-correct.xml"));
+		final ResourceType expectedResourceType = expectedResource.asObjectable();
 
 		final String oid = "abababab-abab-abab-abab-000000000002";
 		when(
-				provisioning.addObject(argThat(new ObjectTypeNameMatcher(expectedResource.getName())),
+				provisioning.addObject(argThat(new ObjectTypeNameMatcher(expectedResourceType.getName())),
 						any(ScriptsType.class), any(OperationResult.class))).thenAnswer(new Answer<String>() {
 
 			@Override
 			public String answer(InvocationOnMock invocation) throws Throwable {
 				PrismObject<ResourceType> resource = (PrismObject<ResourceType>) invocation.getArguments()[0];
-				PrismAsserts.assertEquals(new File(TEST_FOLDER, "add-resource-correct.xml"), resource);
+				PrismAsserts.assertEquivalent("Wrong argument to addObject", expectedResource, resource);
 
 				return oid;
 			}
@@ -323,13 +326,13 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 
 		OperationResult result = new OperationResult("Test Operation");
 		try {
-			String resourceOid = controller.addObject(expectedResource.asPrismObject(), task, result);
+			String resourceOid = controller.addObject(expectedResource, task, result);
 			assertEquals(oid, resourceOid);
 		} finally {
 			LOGGER.debug(result.dump());
 
 			verify(provisioning, times(1)).addObject(
-					argThat(new ObjectTypeNameMatcher(expectedResource.getName())), any(ScriptsType.class),
+					argThat(new ObjectTypeNameMatcher(expectedResourceType.getName())), any(ScriptsType.class),
 					any(OperationResult.class));
 		}
 	}
