@@ -41,7 +41,7 @@
 	</connectorRef>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003</namespace>
 	<configuration>
-		<icfcldap:configurationProperties xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+		<icfc:configurationProperties xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
 			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -65,7 +65,7 @@
 			<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
 			<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
-		</icfcldap:configurationProperties>
+		</icfc:configurationProperties>
 		<icfc:connectorPoolConfiguration xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
 			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
@@ -97,7 +97,7 @@
 			<icfc:test>-1</icfc:test>
 			<icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
 			<icfc:scriptOnResource>-1</icfc:scriptOnResource>
-			<icfc:authenticate>-1</icfc:authenticate>
+			<icfc:authentication>-1</icfc:authentication>
 			<icfc:search>-1</icfc:search>
 			<icfc:validate>-1</icfc:validate>
 			<icfc:sync>-1</icfc:sync>
@@ -105,6 +105,7 @@
 		</icfc:timeouts>
 	</configuration>
 	<schema>
+	  <definition>
 		<xsd:schema elementFormDefault="qualified"
 			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
 			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
@@ -207,6 +208,7 @@
 				</xsd:sequence>
 			</xsd:complexType>
 		</xsd:schema>
+	  </definition>
 	</schema>
 	<schemaHandling>
 		<accountType>

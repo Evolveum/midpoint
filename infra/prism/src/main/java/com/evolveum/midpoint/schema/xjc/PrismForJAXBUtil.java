@@ -187,13 +187,18 @@ public final class PrismForJAXBUtil {
         Validate.notNull(parent, "Prism container value must not be null.");
         Validate.notNull(name, "QName must not be null.");
 
-        PrismReference reference = parent.findItem(name, PrismReference.class);
-        if (reference == null) {
+        PrismReference reference = parent.findOrCreateItem(name, PrismReference.class);
+        if (reference != null) {
             if (value == null) {
-                reference.getValue().setObject(null);
-            }
-        } else {
-            reference.getValue().setObject(value.getObject());
+            	if (reference.getValue() != null) {
+            		reference.getValue().setObject(null);
+            	}
+	        } else {
+	        	if (reference.getValue() == null) {
+	        		reference.add(new PrismReferenceValue());
+	        	}
+	            reference.getValue().setObject(value.getObject());
+	        }
         }
     }
 

@@ -490,6 +490,10 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     public Item<?> findOrCreateItem(QName containerName) {
     	return findCreateItem(containerName, Item.class, null, true);
     }
+    
+    public <X extends Item> X findOrCreateItem(QName containerName, Class<X> type) {
+    	return findCreateItem(containerName, type, null, true);
+    }
 
     public <X> PrismProperty<X> findOrCreateProperty(QName propertyQName) {
         PrismProperty<X> property = findItem(propertyQName, PrismProperty.class);

@@ -291,7 +291,6 @@ public class ChangeExecutor {
             if (resourceOid == null) {
                 throw new IllegalArgumentException("Resource OID is null in shadow");
             }
-            ModelUtils.unresolveResourceObjectShadow(shadow);
         }
 
         try {

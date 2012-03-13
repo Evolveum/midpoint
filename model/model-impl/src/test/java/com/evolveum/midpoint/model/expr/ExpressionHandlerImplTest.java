@@ -39,6 +39,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -83,9 +85,9 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 	@Test(expectedExceptions = ExpressionEvaluationException.class)
 	@SuppressWarnings("unchecked")
 	public void testConfirmUserWithoutModel() throws Exception {
-		AccountShadowType account = PrismTestUtil.unmarshalObject(new File(
-				TEST_FOLDER, "./expr/account-xpath-evaluation-without-resource.xml"), AccountShadowType.class);
-		UserType user = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "./user-new.xml"), UserType.class);
+		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(
+				TEST_FOLDER, "./expr/account-xpath-evaluation-without-resource.xml"));
+		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_FOLDER, "./user-new.xml"));
 
 		ExpressionType expression = PrismTestUtil.unmarshalObject(
 						"<object xsi:type=\"ExpressionType\" xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd\" "
@@ -96,7 +98,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 
 		OperationResult result = new OperationResult("testConfirmUserWithoutModel");
 		try {
-			expressionHandler.evaluateConfirmationExpression(user, account, expression, result);
+			expressionHandler.evaluateConfirmationExpression(user.asObjectable(), account.asObjectable(), expression, result);
 			Assert.fail();
 		} finally {
 			LOGGER.info(result.dump());
@@ -106,9 +108,9 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testConfirmUser() throws Exception {
-		AccountShadowType account = PrismTestUtil.unmarshalObject(new File(
-				TEST_FOLDER, "./account-xpath-evaluation.xml"), AccountShadowType.class);
-		UserType user = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "./user-new.xml"), UserType.class);
+		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(
+				TEST_FOLDER, "account-xpath-evaluation.xml"));
+		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_FOLDER, "user-new.xml"));
 
 		ExpressionType expression = PrismTestUtil.unmarshalObject(
 						"<object xsi:type=\"ExpressionType\" xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd\" "
@@ -118,7 +120,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 								+ "$c:user/c:givenName = $c:account/c:attributes/dj:givenName</code></object>", ExpressionType.class);
 
 		OperationResult result = new OperationResult("testConfirmUser");
-		boolean confirmed = expressionHandler.evaluateConfirmationExpression(user, account, expression,
+		boolean confirmed = expressionHandler.evaluateConfirmationExpression(user.asObjectable(), account.asObjectable(), expression,
 				result);
 		LOGGER.info(result.dump());
 
@@ -128,19 +130,20 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEvaluateExpression() throws Exception {
-		AccountShadowType account = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "./expr/account.xml"), AccountShadowType.class);
-		ResourceType resource = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON, "resource.xml"), ResourceType.class);
-		account.setResource(resource);
-		account.setResourceRef(null);
+		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(TEST_FOLDER, "expr/account.xml"));
+		AccountShadowType accountType = account.asObjectable();
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(TEST_FOLDER_COMMON, "resource.xml"));
+		ResourceType resourceType = resource.asObjectable();
+		accountType.setResource(resourceType);
 
-		Element valueExpressionElement = findChildElement(resource.getSynchronization().getCorrelation()
+		Element valueExpressionElement = findChildElement(resourceType.getSynchronization().getCorrelation()
 				.getFilter(), SchemaConstants.NS_C, "valueExpression");
-		ExpressionType expression = XmlTypeConverter
+		ExpressionType expression = PrismTestUtil.getPrismContext().getPrismJaxbProcessor()
 				.toJavaValue(valueExpressionElement, ExpressionType.class);
 		LOGGER.debug(SchemaDebugUtil.prettyPrint(expression));
 
 		OperationResult result = new OperationResult("testCorrelationRule");
-		String name = expressionHandler.evaluateExpression(account, expression, "test expression", result);
+		String name = expressionHandler.evaluateExpression(accountType, expression, "test expression", result);
 		LOGGER.info(result.dump());
 
 		assertEquals("hbarbossa", name);

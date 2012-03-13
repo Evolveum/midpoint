@@ -125,6 +125,9 @@ public class ExpressionHandler {
 		if (ref == null) {
 			throw new ExpressionEvaluationException("Resource shadow object '', oid '' doesn't have defined resource.");
 		}
+		if (ref.getOid() == null) {
+			throw new ExpressionEvaluationException("Resource shadow object '', oid '' defines null resource OID.");
+		}
 
 		return getModel().getObject(ResourceType.class, ref.getOid(), new PropertyReferenceListType(),
 				result).asObjectable();

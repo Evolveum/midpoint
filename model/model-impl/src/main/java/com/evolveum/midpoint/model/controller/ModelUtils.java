@@ -57,18 +57,6 @@ public class ModelUtils {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelUtils.class);
 
-	public static void unresolveResourceObjectShadow(ResourceObjectShadowType shadow) {
-		Validate.notNull(shadow, "Resource object shadow must not be null.");
-
-		if (shadow.getResource() == null) {
-			return;
-		}
-
-		ObjectReferenceType reference = ObjectTypeUtil.createObjectRef(shadow.getResource().getOid(), ObjectTypes.RESOURCE);
-		shadow.setResource(null);
-		shadow.setResourceRef(reference);
-	}
-
 	public static void validatePaging(PagingType paging) {
 		if (paging == null) {
 			return;

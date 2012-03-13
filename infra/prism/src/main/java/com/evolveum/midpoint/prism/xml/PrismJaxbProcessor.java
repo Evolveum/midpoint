@@ -156,6 +156,11 @@ public class PrismJaxbProcessor {
 		return map.get(xsdType);
 	}
 	
+	public <T> T toJavaValue(Element element, Class<T> typeClass) throws JAXBException {
+		QName type = JAXBUtil.getTypeQName(typeClass);
+		return (T) toJavaValue(element, type);
+	}
+	
 	/**
 	 * Used to convert property values from DOM 
 	 */
@@ -645,4 +650,5 @@ public class PrismJaxbProcessor {
             getPrismContext().adopt(((Objectable)(object)));
         }
     }
+
 }

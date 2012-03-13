@@ -160,30 +160,7 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 		assertEquals(2, list.getProperty().size());
 
 		// TODO
-		AssertJUnit.fail("FIXME");
 //		XmlAsserts.assertPatch(new File(TEST_FOLDER, "property-list-type.xml"), JAXBUtil.marshalWrap(list));
-	}
-
-	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void unresolveResourceObjectNull() {
-		ModelUtils.unresolveResourceObjectShadow(null);
-	}
-
-	@Test
-	@SuppressWarnings("unchecked")
-	public void unresolveResourceObject() throws Exception {
-		AccountShadowType account = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "account-schema-handling.xml"), AccountShadowType.class);
-
-		assertNotNull(account.getResource());
-		String resourceOid = account.getResource().getOid();
-
-		ModelUtils.unresolveResourceObjectShadow(account);
-		assertNull(account.getResource());
-		assertNotNull(account.getResourceRef());
-
-		ObjectReferenceType ref = account.getResourceRef();
-		assertEquals(resourceOid, ref.getOid());
-		assertEquals(ObjectTypes.RESOURCE.getTypeQName(), ref.getType());
 	}
 
 	@Test
