@@ -84,6 +84,13 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         a.setOwner(user);
         aset.add(a);
         user.setAssignments(aset);
+
+        AnyContainer userExt = new AnyContainer();
+        userExt.setOwner(a);
+        a.setExtension(userExt);
+        Set<StringValue> userStrings = new HashSet<StringValue>();
+        userExt.setStrings(userStrings);
+        userStrings.add(new StringValue(null, null, "user ext"));
 //
 //        Connector connector = new Connector();
 //        connector.setName("connector");

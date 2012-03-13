@@ -25,7 +25,6 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
-import java.io.Serializable;
 
 /**
  * Created by IntelliJ IDEA.
@@ -36,15 +35,18 @@ import java.io.Serializable;
  */
 @Entity
 @Table(name = "assignment")
+@ForeignKey(name = "fk_assignment")
 public class Assignment extends Container implements Ownable {
 
+    //owner
     private O owner;
-    private Reference targetRef;
-
     private String ownerOid;
     private Long ownerId;
-
+    //extension
+    private AnyContainer extension;
+    //assignment fields
     private String accountConstruction;
+    private Reference targetRef;
 
     @ForeignKey(name = "fk_assignment_owner")
     @MapsId("owner")
@@ -63,7 +65,6 @@ public class Assignment extends Container implements Ownable {
         return targetRef;
     }
 
-//    @Id
     @Column(name = "owner_id", nullable = false)
     public Long getOwnerId() {
         if (ownerId == null && owner != null) {
@@ -72,7 +73,6 @@ public class Assignment extends Container implements Ownable {
         return ownerId;
     }
 
-//    @Id
     @Column(name = "owner_oid", length = 36, nullable = false)
     public String getOwnerOid() {
         if (ownerOid == null && owner != null) {
@@ -81,8 +81,22 @@ public class Assignment extends Container implements Ownable {
         return ownerOid;
     }
 
+    @OneToOne(optional = true, mappedBy = "owner")
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public AnyContainer getExtension() {
+        return extension;
+    }
+
     public String getAccountConstruction() {
         return accountConstruction;
+    }
+
+    public void setExtension(AnyContainer extension) {
+        this.extension = extension;
+        if (extension != null) {
+            extension.setOwnerType(RContainerType.ASSIGNMENT);
+        }
     }
 
     public void setAccountConstruction(String accountConstruction) {
