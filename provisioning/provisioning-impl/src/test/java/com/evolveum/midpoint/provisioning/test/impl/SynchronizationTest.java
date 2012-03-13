@@ -16,6 +16,7 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.LDIFReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -36,11 +37,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 		"classpath:application-context-provisioning-test.xml",
 		"classpath:application-context-task.xml",
 		"classpath:application-context-repository.xml",
+		"classpath:application-context-repo-cache.xml",
 		"classpath:application-context-configuration-test.xml" })
 public class SynchronizationTest extends AbstractIntegrationTest {
 
-	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
-	private static final String FILENAME_LDAP_CONNECTOR = "src/test/resources/ucf/ldap-connector.xml";
+	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/object/resource-opendj.xml";
+	private static final String FILENAME_LDAP_CONNECTOR = "src/test/resources/ucf/connector-ldap.xml";
 	private static final String SYNC_TASK_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final String FILENAME_SYNC_TASK = "src/test/resources/impl/sync-task-example.xml";
 	private static final String LDIF_WILL_FILENAME = "src/test/resources/ucf/will.ldif";
