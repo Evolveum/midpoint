@@ -234,7 +234,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		ConnectorInstance cc = manager.createConnectorInstance(connectorType, resourceType.getNamespace());
 		assertNotNull("Failed to instantiate connector", cc);
 		OperationResult result = new OperationResult(TestUcfDummy.class.getName() + ".testCreateConfiguredConnector");
-		PrismContainer configContainer = resourceType.getConfiguration().asPrismContainer();
+		PrismContainerValue configContainer = resourceType.getConfiguration().asPrismContainerValue();
 		display("Configuration container", configContainer);
 		
 		// WHEN
@@ -255,7 +255,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		ConnectorInstance cc = manager.createConnectorInstance(connectorType, resourceType.getNamespace());
 		assertNotNull("Failed to instantiate connector", cc);
 		
-		PrismContainer configContainer = resourceType.getConfiguration().asPrismContainer();
+		PrismContainerValue configContainer = resourceType.getConfiguration().asPrismContainerValue();
 		display("Configuration container", configContainer);
 		cc.configure(configContainer, result);
 		

@@ -102,19 +102,27 @@ public final class PrismForJAXBUtil {
         return new PropertyArrayList<T>(property);
     }
 
-    public static PrismContainerValue getContainerValue(PrismContainer parent, QName name) {
+    public static <T extends Containerable> PrismContainerValue<T> getFieldContainerValue(PrismContainer<?> parent, QName fieldName) {
         Validate.notNull(parent, "Container must not be null.");
-        Validate.notNull(name, "QName must not be null.");
+        Validate.notNull(fieldName, "Field QName must not be null.");
 
-        return getContainerValue(parent.getValue(), name);
+        return getFieldContainerValue(parent.getValue(), fieldName);
     }
 
-    public static PrismContainerValue<?> getContainerValue(PrismContainerValue<?> parent, QName name) {
-        Validate.notNull(parent, "Container must not be null.");
-        Validate.notNull(name, "QName must not be null.");
+    public static <T extends Containerable> PrismContainerValue<T> getFieldContainerValue(PrismContainerValue<?> parent, QName fieldName) {
+        Validate.notNull(parent, "Container value must not be null.");
+        Validate.notNull(fieldName, "Field QName must not be null.");
 
-        PrismContainer<?> container = parent.findItem(name, PrismContainer.class);
+        PrismContainer<T> container = parent.findItem(fieldName, PrismContainer.class);
         return container != null ? container.getValue() : null;
+    }
+    
+    public static <T extends Containerable> T getFieldSingleContainerable(PrismContainerValue<?> parent, QName fieldName, Class<T> fieldClass) {
+    	PrismContainerValue<T> fieldContainerValue = getFieldContainerValue(parent, fieldName);
+    	if (fieldContainerValue == null) {
+    		return null;
+    	}
+    	return fieldContainerValue.asContainerable(fieldClass);
     }
 
     public static <T extends PrismContainer<?>> T getContainer(PrismContainer<?> parent, QName name, Class<T> clazz) {
@@ -125,18 +133,18 @@ public final class PrismForJAXBUtil {
         return parent.findItem(name, clazz);
     }
 
-    public static boolean setContainerValue(PrismContainerValue parent, QName name, PrismContainerValue value) {
+    public static <T extends Containerable> boolean setFieldContainerValue(PrismContainerValue<?> parent, QName fieldName, PrismContainerValue<T> fieldContainerValue) {
         Validate.notNull(parent, "Prism container value must not be null.");
-        Validate.notNull(name, "QName must not be null.");
+        Validate.notNull(fieldName, "QName must not be null.");
 
-        if (value == null) {
-            PrismContainer container = parent.findOrCreateContainer(name);
+        if (fieldContainerValue == null) {
+            PrismContainer<T> container = parent.findOrCreateContainer(fieldName);
             if (container != null) {
-                container.getValue().removeAll();
+                container.clear();
             }
         } else {
-            PrismContainer newValue = new PrismContainer(name);
-            newValue.add(value);
+            PrismContainer<T> newValue = new PrismContainer<T>(fieldName);
+            newValue.add(fieldContainerValue);
             if (parent.getContainer() == null) {
                 parent.getItems().add(newValue);
             } else {
@@ -147,8 +155,8 @@ public final class PrismForJAXBUtil {
         return true;
     }
 
-    public static boolean setContainerValue(PrismContainer parent, QName name, PrismContainerValue value) {
-        return setContainerValue(parent.getValue(), name, value);
+    public static boolean setFieldContainerValue(PrismContainer<?> parent, QName fieldName, PrismContainerValue<?> fieldContainerValue) {
+        return setFieldContainerValue(parent.getValue(), fieldName, fieldContainerValue);
     }
 
     public static PrismReferenceValue getReferenceValue(PrismContainerValue<?> parent, QName name) {
@@ -215,11 +223,11 @@ public final class PrismForJAXBUtil {
         setReferenceObject(parent.getValue(), referenceQName, targetObject);
     }
 
-    public static <T> List<PrismContainerValue<T>> getContainerValues(PrismContainerValue<T> parent, QName name, Class<T> clazz) {
+    public static <T extends Containerable> List<PrismContainerValue<T>> getContainerValues(PrismContainerValue<T> parent, QName name, Class<T> clazz) {
         return getContainerValues(parent.getContainer(), name, clazz);
     }
 
-    public static <T> List<PrismContainerValue<T>> getContainerValues(PrismContainer<T> parent, QName name, Class<T> clazz) {
+    public static <T extends Containerable> List<PrismContainerValue<T>> getContainerValues(PrismContainer<T> parent, QName name, Class<T> clazz) {
         Validate.notNull(parent, "Container must not be null.");
         Validate.notNull(name, "QName must not be null.");
         

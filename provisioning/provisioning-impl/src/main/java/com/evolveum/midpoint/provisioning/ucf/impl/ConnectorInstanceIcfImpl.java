@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -140,7 +141,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * (com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration)
 	 */
 	@Override
-	public void configure(PrismContainer configuration, OperationResult parentResult)
+	public void configure(PrismContainerValue configuration, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
@@ -1986,7 +1987,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * @throws SchemaException
 	 * @throws ConfigurationException
 	 */
-	private void transformConnectorConfiguration(APIConfiguration apiConfig, PrismContainer configuration)
+	private void transformConnectorConfiguration(APIConfiguration apiConfig, PrismContainerValue configuration)
 			throws SchemaException, ConfigurationException {
 
 		ConfigurationProperties configProps = apiConfig.getConfigurationProperties();

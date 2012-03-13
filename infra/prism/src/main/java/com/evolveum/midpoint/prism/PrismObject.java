@@ -63,14 +63,10 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 
 	protected String oid;
 	protected String version;
-	protected Class<T> compileTimeClass;
+	private T objectable = null;
 
 	public PrismObject(QName name, Class<T> compileTimeClass) {
-		super(name);
-		if (Modifier.isAbstract(compileTimeClass.getModifiers())) {
-            throw new IllegalArgumentException("Can't use class '" + compileTimeClass.getSimpleName() + "' as compile-time class for object "+name+"; the class is abstract.");
-        }
-		this.compileTimeClass = compileTimeClass;
+		super(name, compileTimeClass);
 	}
 
 	public PrismObject(QName name, PrismObjectDefinition<T> definition, PrismContext prismContext) {
@@ -105,42 +101,25 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 		return (PrismObjectDefinition<T>) super.getDefinition();
 	}
 
-	public Class<T> getCompileTimeClass() {
-		if (this.compileTimeClass != null) {
-			return compileTimeClass;
-		}
-		if (getDefinition() != null) {
-			return getDefinition().getCompileTimeClass();
-		}
-		return null;
-	}
-
-	/**
-	 * Returns true if this object can represent specified compile-time class.
-	 * I.e. this object can be presented in the compile-time form that is an
-	 * instance of a specified class.
-	 */
-	public boolean canRepresent(Class<?> compileTimeClass) {
-		return (compileTimeClass.isAssignableFrom(getCompileTimeClass()));
-	}
-
 	public T asObjectable() {
+		if (objectable != null) {
+			return objectable;
+		}
+		Class<T> clazz = getCompileTimeClass();
+        if (clazz == null) {
+            throw new SystemException("Unknown compile time class of this prism object '" + getName() + "'.");
+        }
+        if (Modifier.isAbstract(clazz.getModifiers())) {
+            throw new SystemException("Can't create instance of class '" + clazz.getSimpleName() + "', it's abstract.");
+        }
         try {
-            Class<T> clazz = getCompileTimeClass();
-            if (clazz == null) {
-                throw new SystemException("Unknown compile time class of this prism object '" + getName() + "'.");
-            }
-            if (Modifier.isAbstract(clazz.getModifiers())) {
-                throw new SystemException("Can't create instance of class '" + clazz.getSimpleName() + "', it's abstract.");
-            }
-            T object = clazz.newInstance();
-            object.setContainer(this);
-
-            return (T) object;
+            objectable = clazz.newInstance();
+            objectable.setupContainer(this);
+            return (T) objectable;
         } catch (SystemException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw new SystemException("Couldn't create jaxb object instance of '" + getCompileTimeClass() + "': "+ex.getMessage(), ex);
+            throw new SystemException("Couldn't create jaxb object instance of '" + clazz + "': "+ex.getMessage(), ex);
         }
 	}
 
@@ -153,7 +132,6 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
     	if (!(definition instanceof PrismObjectDefinition)) {
     		throw new IllegalArgumentException("Cannot apply "+definition+" to object");
     	}
-    	this.compileTimeClass = ((PrismObjectDefinition)definition).getCompileTimeClass();
     	super.applyDefinition(definition);
 	}
 

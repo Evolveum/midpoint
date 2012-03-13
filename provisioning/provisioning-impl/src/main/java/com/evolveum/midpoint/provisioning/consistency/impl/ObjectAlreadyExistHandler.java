@@ -82,7 +82,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler{
 		change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_SYNC));
 
 		XPathHolder holder = ObjectTypeUtil.createXPathHolder(SchemaConstants.I_ATTRIBUTES);
-		Element filter = QueryUtil.createEqualFilter(DOMUtil.getDocument(), holder, shadow.getAttributes().asPrismContainer().findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA, "name")));
+		Element filter = QueryUtil.createEqualFilter(DOMUtil.getDocument(), holder, shadow.getAttributes().asPrismContainerValue().findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA, "name")));
 		QueryType query = QueryUtil.createQuery(filter);
 		ResultList<PrismObject<AccountShadowType>> foundAccount = provisioningService.searchObjects(AccountShadowType.class, query, new PagingType(), parentResult);
 		

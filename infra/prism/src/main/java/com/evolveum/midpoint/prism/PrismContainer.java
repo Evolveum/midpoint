@@ -35,6 +35,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.xml.namespace.QName;
+
+import java.lang.reflect.Modifier;
 import java.util.*;
 
 /**
@@ -58,16 +60,45 @@ import java.util.*;
  *
  * @author Radovan Semancik
  */
-public class PrismContainer<V> extends Item<PrismContainerValue<V>> implements PrismContainerable {
+public class PrismContainer<V extends Containerable> extends Item<PrismContainerValue<V>> implements PrismContainerable {
     private static final long serialVersionUID = 5206821250098051028L;
+    
+    protected Class<V> compileTimeClass;
 
     public PrismContainer(QName name) {
         super(name);
     }
     
+    public PrismContainer(QName name, Class<V> compileTimeClass) {
+        super(name);
+		if (Modifier.isAbstract(compileTimeClass.getModifiers())) {
+            throw new IllegalArgumentException("Can't use class '" + compileTimeClass.getSimpleName() + "' as compile-time class for "+name+"; the class is abstract.");
+        }
+        this.compileTimeClass = compileTimeClass;
+    }
+    
     protected PrismContainer(QName name, PrismContainerDefinition definition, PrismContext prismContext) {
         super(name, definition, prismContext);
     }
+    
+    public Class<V> getCompileTimeClass() {
+		if (this.compileTimeClass != null) {
+			return compileTimeClass;
+		}
+		if (getDefinition() != null) {
+			return getDefinition().getCompileTimeClass();
+		}
+		return null;
+	}
+    
+    /**
+	 * Returns true if this object can represent specified compile-time class.
+	 * I.e. this object can be presented in the compile-time form that is an
+	 * instance of a specified class.
+	 */
+	public boolean canRepresent(Class<?> compileTimeClass) {
+		return (compileTimeClass.isAssignableFrom(getCompileTimeClass()));
+	}
 
     @Override
     public List<PrismContainerValue<V>> getValues() {
@@ -97,6 +128,20 @@ public class PrismContainer<V> extends Item<PrismContainerValue<V>> implements P
 			PrismContainerValue<V> pValue = new PrismContainerValue<V>(null, null, this, null);
 	        add(pValue);
 	        return pValue;
+		}
+    }
+    
+    public void setValue(PrismContainerValue<V> value) {
+    	if (getDefinition() != null) {
+			if (getDefinition().isSingleValue()) {
+				clear();
+		        add(value);
+			} else {
+				throw new IllegalStateException("Attempt to set single value to a multivalued container "+getName());
+			}
+		} else {
+			clear();
+	        add(value);
 		}
     }
     
@@ -242,6 +287,7 @@ public class PrismContainer<V> extends Item<PrismContainerValue<V>> implements P
     	if (!(definition instanceof PrismContainerDefinition)) {
     		throw new IllegalArgumentException("Cannot apply "+definition+" to container " + this);
     	}
+    	this.compileTimeClass = ((PrismContainerDefinition)definition).getCompileTimeClass();
     	super.applyDefinition(definition);
 	}
 
@@ -305,11 +351,11 @@ public class PrismContainer<V> extends Item<PrismContainerValue<V>> implements P
     	}
     }
     
-	public <T> PrismContainer<T> findContainer(PropertyPath path) {
+	public <T extends Containerable> PrismContainer<T> findContainer(PropertyPath path) {
         return findItem(path, PrismContainer.class);
     }
     
-    public <T> PrismContainer<T> findContainer(QName containerName) {
+    public <T extends Containerable> PrismContainer<T> findContainer(QName containerName) {
         return findItem(containerName, PrismContainer.class);
     }
 
@@ -339,11 +385,11 @@ public class PrismContainer<V> extends Item<PrismContainerValue<V>> implements P
         return findCreateItem(containerPath, type, definition, true);
     }
     
-    public <T> PrismContainer<T> findOrCreateContainer(PropertyPath containerPath) {
+    public <T extends Containerable> PrismContainer<T> findOrCreateContainer(PropertyPath containerPath) {
         return findCreateItem(containerPath, PrismContainer.class, null, true);
     }
     
-    public <T> PrismContainer<T> findOrCreateContainer(QName containerName) {
+    public <T extends Containerable> PrismContainer<T> findOrCreateContainer(QName containerName) {
         return findCreateItem(containerName, PrismContainer.class, true);
     }
     

@@ -5,6 +5,7 @@ import java.util.Iterator;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
@@ -19,7 +20,7 @@ import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class ContainerDelta<V> extends ItemDelta<PrismContainerValue<V>> {
+public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismContainerValue<V>> {
 
 	public ContainerDelta(PrismContainerDefinition itemDefinition) {
 		super(itemDefinition);
@@ -46,7 +47,7 @@ public class ContainerDelta<V> extends ItemDelta<PrismContainerValue<V>> {
      * Returns all values regardless of whether they are added or removed or replaced.
      * Useful for iterating over all the changed values.
      */
-    public <T> Collection<PrismContainerValue<T>> getValues(Class<T> type) {
+    public <T extends Containerable> Collection<PrismContainerValue<T>> getValues(Class<T> type) {
         checkConsistence();
         if (valuesToReplace != null) {
             return (Collection) valuesToReplace;
@@ -62,15 +63,15 @@ public class ContainerDelta<V> extends ItemDelta<PrismContainerValue<V>> {
 		super.applyDefinition(definition);
 	}
 
-	public static <T,O extends Objectable> ContainerDelta<T> createDelta(PrismContext prismContext, Class<O> type,
+	public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createDelta(PrismContext prismContext, Class<O> type,
 			QName containerName) {
     	PrismObjectDefinition<O> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
     	return createDelta(objectDefinition, containerName);
     }
     
-    public static <T,O extends Objectable> ContainerDelta<T> createDelta(PrismObjectDefinition<O> objectDefinition,
+    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createDelta(PrismObjectDefinition<O> objectDefinition,
 			QName containerName) {
-		PrismContainerDefinition containerDefinition = objectDefinition.findContainerDefinition(containerName);
+		PrismContainerDefinition<T> containerDefinition = objectDefinition.findContainerDefinition(containerName);
 		if (containerDefinition == null) {
 			throw new IllegalArgumentException("No definition for "+containerName+" in "+objectDefinition);
 		}

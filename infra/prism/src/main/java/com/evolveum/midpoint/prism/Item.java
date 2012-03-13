@@ -314,6 +314,10 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     	values.clear();
     	values.add(newValue);
     }
+    
+    public void clear() {
+    	values.clear();
+    }
 
     public List<Element> asDomElements() {
     	List<Element> elements = new ArrayList<Element>();

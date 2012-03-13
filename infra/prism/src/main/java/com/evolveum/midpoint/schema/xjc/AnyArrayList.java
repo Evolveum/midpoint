@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.schema.xjc;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -46,7 +47,7 @@ import javax.xml.namespace.QName;
  * 
  * @author Radovan Semancik
  */
-public class AnyArrayList<T> extends AbstractList<Object> {
+public class AnyArrayList<T extends Containerable> extends AbstractList<Object> {
 
     private PrismContainerValue<T> containerValue;
 

@@ -185,7 +185,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		display("Connector schema", connectorSchema);
 		
 		OperationResult result = new OperationResult("initUcf");
-		cc.configure(resourceType.getConfiguration().asPrismContainer(), result);
+		cc.configure(resourceType.getConfiguration().asPrismContainerValue(), result);
 		cc.initialize(result);
 		// TODO: assert something
 
@@ -495,7 +495,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		ConnectorInstance badConnector = factory.createConnectorInstance(connectorType,
 				badResourceType.getNamespace());
-		badConnector.configure(badResourceType.getConfiguration().asPrismContainer(), result);
+		badConnector.configure(badResourceType.getConfiguration().asPrismContainerValue(), result);
 
 		// WHEN
 

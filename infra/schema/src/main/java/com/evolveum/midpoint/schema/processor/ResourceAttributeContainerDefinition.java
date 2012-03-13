@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 
 /**
@@ -60,7 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
  * @author Radovan Semancik
  * 
  */
-public class ResourceAttributeContainerDefinition extends PrismContainerDefinition {
+public class ResourceAttributeContainerDefinition extends PrismContainerDefinition<ResourceObjectShadowAttributesType> {
 
 	private static final long serialVersionUID = 3943909626639924429L;
 	
@@ -330,11 +331,11 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 //	}
 
 	public ResourceAttributeDefinition findAttributeDefinition(QName elementQName) {
-		return findItemDefinition(elementQName,ResourceAttributeDefinition.class);
+		return findItemDefinition(elementQName, ResourceAttributeDefinition.class);
 	}
 	
 	public ResourceAttributeDefinition findAttributeDefinition(PropertyPath elementPath) {
-		return findItemDefinition(elementPath,ResourceAttributeDefinition.class);
+		return findItemDefinition(elementPath, ResourceAttributeDefinition.class);
 	}
 	
 	public ResourceAttributeDefinition findAttributeDefinition(String elementLocalname) {

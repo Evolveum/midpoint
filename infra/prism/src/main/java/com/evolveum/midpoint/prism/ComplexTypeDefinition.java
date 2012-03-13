@@ -42,10 +42,17 @@ public class ComplexTypeDefinition extends Definition {
 	private boolean objectMarker;
 	private boolean xsdAnyMarker;
 	private QName extensionForType;
+	private Class<?> compileTimeClass;
 
 	public ComplexTypeDefinition(QName defaultName, QName typeName, PrismContext prismContext) {
 		super(defaultName, typeName, prismContext);
 		itemDefinitions = new HashSet<ItemDefinition>();
+	}
+	
+	public ComplexTypeDefinition(QName defaultName, QName typeName, PrismContext prismContext, Class<?> compileTimeClass) {
+		super(defaultName, typeName, prismContext);
+		itemDefinitions = new HashSet<ItemDefinition>();
+		this.compileTimeClass = compileTimeClass;
 	}
 
 	protected String getSchemaNamespace() {
@@ -67,6 +74,14 @@ public class ComplexTypeDefinition extends Definition {
 		return itemDefinitions;
 	}
 	
+	public Class<?> getCompileTimeClass() {
+		return compileTimeClass;
+	}
+
+	public void setCompileTimeClass(Class<?> compileTimeClass) {
+		this.compileTimeClass = compileTimeClass;
+	}
+
 	public QName getExtensionForType() {
 		return extensionForType;
 	}

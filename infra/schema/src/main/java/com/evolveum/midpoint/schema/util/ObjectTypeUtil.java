@@ -23,6 +23,7 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -312,12 +313,16 @@ public class ObjectTypeUtil {
         if (xmlSchemaType == null) {
             return null;
         }
-        PrismContainer<XmlSchemaType> xmlSchemaContainer = xmlSchemaType.asPrismContainer();
-        return findXsdElement(xmlSchemaContainer);
+        PrismContainerValue<XmlSchemaType> xmlSchemaContainerValue = xmlSchemaType.asPrismContainerValue();
+        return findXsdElement(xmlSchemaContainerValue);
     }
     
     public static Element findXsdElement(PrismContainer<XmlSchemaType> xmlSchemaContainer) {
-        PrismProperty<Element> definitionProperty = xmlSchemaContainer.findProperty(XmlSchemaType.F_DEFINITION);
+    	return findXsdElement(xmlSchemaContainer.getValue());
+    }
+    
+    public static Element findXsdElement(PrismContainerValue<XmlSchemaType> xmlSchemaContainerValue) {
+        PrismProperty<Element> definitionProperty = xmlSchemaContainerValue.findProperty(XmlSchemaType.F_DEFINITION);
         if (definitionProperty == null) {
 			return null;
 		}

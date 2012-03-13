@@ -160,11 +160,11 @@ public class TestJaxbSanity {
 		assertTrue("AccountConstructionType hashcode does not match (JAXB)", ac1.hashCode() == ac2.hashCode());
 		
 		AssignmentType as1Type = user1Type.getAssignment().get(0);
-		PrismContainer as1Cont = as1Type.asPrismContainer();
-		PrismContainerValue as1ContVal = as1Type.asPrismContainerValue();
+		PrismContainerValue<AssignmentType> as1ContVal = as1Type.asPrismContainerValue();
+		PrismContainer<AssignmentType> as1Cont = as1ContVal.getContainer();
 		AssignmentType as2Type = user2Type.getAssignment().get(0);
-		PrismContainer as2Cont = as2Type.asPrismContainer();
-		PrismContainerValue as2ContVal = as2Type.asPrismContainerValue();
+		PrismContainerValue<AssignmentType> as2ContVal = as2Type.asPrismContainerValue();
+		PrismContainer<AssignmentType> as2Cont = as2ContVal.getContainer();
 		assertTrue("Assignment not equals (ContainerValue)", as1ContVal.equals(as2ContVal));
 		assertTrue("Assignment not equals (ContainerValue, ignoreMetadata)", as1ContVal.equals(as2ContVal,true));
 		assertTrue("Assignment not equals (ContainerValue, not ignoreMetadata)", as1ContVal.equals(as2ContVal,false));

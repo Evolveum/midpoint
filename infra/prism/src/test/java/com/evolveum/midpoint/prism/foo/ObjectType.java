@@ -9,6 +9,8 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlType;
 
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 
 
 /**
@@ -184,6 +186,26 @@ public abstract class ObjectType
 	@Override
 	public String toDebugType() {
 		return "object";
+	}
+	
+	@Override
+    public PrismObject asPrismObject() {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    @Override
+    public void setupContainer(PrismObject object) {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+	@Override
+	public PrismContainerValue asPrismContainerValue() {
+		 throw new UnsupportedOperationException("not implemented yet");
+	}
+
+	@Override
+	public void setupContainerValue(PrismContainerValue container) {
+		throw new UnsupportedOperationException("not implemented yet");
 	}
 
 }

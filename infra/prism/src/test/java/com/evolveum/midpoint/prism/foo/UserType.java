@@ -247,15 +247,4 @@ public class UserType
     public void setActivation(ActivationType value) {
         this.activation = value;
     }
-
-
-    @Override
-    public PrismObject asPrismObject() {
-        throw new UnsupportedOperationException("not implemented yet");
-    }
-
-    @Override
-    public void setContainer(PrismObject object) {
-        throw new UnsupportedOperationException("not implemented yet");
-    }
 }

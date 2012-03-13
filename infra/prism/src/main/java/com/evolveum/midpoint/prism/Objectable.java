@@ -23,7 +23,7 @@ package com.evolveum.midpoint.prism;
  * @author semancik
  *
  */
-public interface Objectable {
+public interface Objectable extends Containerable {
 	
 	public String getOid();
 	
@@ -60,5 +60,9 @@ public interface Objectable {
 
     public PrismObject asPrismObject();
     
-    public void setContainer(PrismObject object);
+    public void setupContainer(PrismObject object);
+
+//	public <O extends Objectable> PrismObject<O> asPrismObject();
+//    
+//    public <O extends Objectable> void setupContainer(PrismObject<O> object);
 }

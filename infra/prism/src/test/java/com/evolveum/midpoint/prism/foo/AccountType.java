@@ -77,7 +77,7 @@ public class AccountType
     }
 
     @Override
-    public void setContainer(PrismObject object) {
+    public void setupContainer(PrismObject object) {
         throw new UnsupportedOperationException("not implemented yet");
     }
 }

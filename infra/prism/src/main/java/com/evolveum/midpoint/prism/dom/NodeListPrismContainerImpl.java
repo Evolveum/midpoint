@@ -25,6 +25,7 @@ import java.util.List;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -33,7 +34,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
  * @author semancik
  *
  */
-public class NodeListPrismContainerImpl<T> implements NodeList {
+public class NodeListPrismContainerImpl<T extends Containerable> implements NodeList {
 	
 	private ElementPrismContainerImpl<T> elementPrismContainerImpl;
 	private String selectionNamespace;

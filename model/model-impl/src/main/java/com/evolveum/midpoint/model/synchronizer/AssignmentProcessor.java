@@ -133,7 +133,7 @@ public class AssignmentProcessor {
         Collection<AssignmentType> newAssignments = new HashSet<AssignmentType>();
         Collection<PrismContainerValue<AssignmentType>> allAssignments = MiscUtil.union(assignmentsOld, changedAssignments);
         for (PrismContainerValue<AssignmentType> propertyValue : allAssignments) {
-            AssignmentType assignmentType = propertyValue.asCompileTimeObject();
+            AssignmentType assignmentType = propertyValue.asContainerable();
 
             LOGGER.trace("Processing assignment {}", SchemaDebugUtil.prettyPrint(assignmentType));
 

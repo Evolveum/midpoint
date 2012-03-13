@@ -142,7 +142,7 @@ public class ConnectorTypeManager {
 			throw new ObjectNotFoundException(e.getMessage(), e);
 		}
 		try {
-			connector.configure(resource.getConfiguration().asPrismContainer(), result);
+			connector.configure(resource.getConfiguration().asPrismContainerValue(), result);
 		} catch (GenericFrameworkException e) {
 			// Not expected. Transform to system exception
 			result.recordFatalError("Generic provisioning framework error", e);

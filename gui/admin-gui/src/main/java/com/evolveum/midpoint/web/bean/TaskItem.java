@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+
 import it.sauronsoftware.cron4j.InvalidPatternException;
 import org.apache.commons.lang.time.DurationFormatUtils;
 
@@ -160,7 +161,7 @@ public class TaskItem extends SelectableBean {
                     .getResult());
         }
         if (taskType.getExtension() != null) {
-            this.extension = taskType.getExtension().asPrismContainer();
+            this.extension = taskType.asPrismObject().getExtension();
         }
     }
 
@@ -211,12 +212,7 @@ public class TaskItem extends SelectableBean {
             taskType.setResult(getResult().createOperationResultType());
         }
         if (getExtension() != null) {
-            ExtensionType extension = new ExtensionType();
-            List<PrismContainerValue> values = getExtension().getValues();
-            for (PrismContainerValue value :values) {
-                extension.asPrismContainer().add(value);
-            }
-            taskType.setExtension(extension);
+            taskType.setExtension((ExtensionType) getExtension().getValue().asContainerable());
         }
 
         taskType.setProgress(BigInteger.valueOf(getProgress()));

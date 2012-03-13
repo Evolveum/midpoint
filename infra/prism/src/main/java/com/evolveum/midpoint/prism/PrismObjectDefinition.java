@@ -42,28 +42,17 @@ import com.evolveum.midpoint.util.exception.SystemException;
  * @author Radovan Semancik
  * 
  */
-public class PrismObjectDefinition<T extends Objectable> extends PrismContainerDefinition {
+public class PrismObjectDefinition<T extends Objectable> extends PrismContainerDefinition<T> {
 	private static final long serialVersionUID = -8298581031956931008L;
-	
-	protected Class<T> compileTimeClass;
 
 	public PrismObjectDefinition(QName name, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, 
 			Class<T> compileTimeClass) {
 		// Object definition can only be top-level, hence null parent
-		super(name, complexTypeDefinition, prismContext);
+		super(name, complexTypeDefinition, prismContext, compileTimeClass);
 		if (name != null) {
 			// Override default name for objects. In this case name is usually the element name
 			defaultName = name;
 		}
-		this.compileTimeClass = compileTimeClass;
-	}
-	
-	public Class<T> getCompileTimeClass() {
-		return compileTimeClass;
-	}
-
-	public void setCompileTimeClass(Class<T> compileTimeClass) {
-		this.compileTimeClass = compileTimeClass;
 	}
 	
 	@Override

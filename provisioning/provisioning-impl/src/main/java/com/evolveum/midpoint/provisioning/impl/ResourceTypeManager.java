@@ -292,7 +292,7 @@ public class ResourceTypeManager {
 				.createSubresult(ConnectorTestOperation.CONFIGURATION_VALIDATION.getOperation());
 
 		try {
-			connector.configure(resourceType.asPrismObject().findContainer(ResourceType.F_CONFIGURATION),
+			connector.configure(resourceType.asPrismObject().findContainer(ResourceType.F_CONFIGURATION).getValue(),
 					configResult);
 			configResult.recordSuccess();
 		} catch (CommunicationException e) {

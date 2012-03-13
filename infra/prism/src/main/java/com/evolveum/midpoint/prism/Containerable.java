@@ -28,4 +28,6 @@ public interface Containerable {
 	
 	public PrismContainerValue asPrismContainerValue();
 	
+	public void setupContainerValue(PrismContainerValue container);
+	
 }

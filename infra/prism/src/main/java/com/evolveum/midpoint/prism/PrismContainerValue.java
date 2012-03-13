@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.prism;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
@@ -44,7 +46,7 @@ import org.w3c.dom.Element;
  * @author semancik
  *
  */
-public class PrismContainerValue<T> extends PrismValue implements Dumpable, DebugDumpable {
+public class PrismContainerValue<T extends Containerable> extends PrismValue implements Dumpable, DebugDumpable {
 	
 	// This is list. We need to maintain the order internally to provide consistent
     // output in DOM and other ordering-sensitive representations
@@ -54,6 +56,8 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
     // We can't do anything smarter, as we don't have definition nor prism context. So we store the raw
     // elements here and process them later (e.g. during applyDefinition).
     private List<Object> rawElements = null;
+    
+	private T containerable = null;
     
     public PrismContainerValue() {
     	super();
@@ -185,7 +189,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 	
 	// For compatibility with other PrismValue types
 	public T getValue() {
-		return asCompileTimeObject();
+		return asContainerable();
 	}
 	
 	public List<Object> getRawElements() {
@@ -199,9 +203,34 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 		return new ArrayList<Object>();
 	}
 
-	public T asCompileTimeObject() {
-    	// TODO
-    	throw new UnsupportedOperationException();
+	public T asContainerable() {
+		PrismContainer<T> container = getContainer();
+		if (container == null) {
+			throw new IllegalStateException("Cannot represent container value witout a parent as containerable");
+		}
+        Class<T> clazz = container.getCompileTimeClass();
+        if (clazz == null) {
+            throw new SystemException("Unknown compile time class of container '" + container.getName() + "'.");
+        }
+        if (Modifier.isAbstract(clazz.getModifiers())) {
+            throw new SystemException("Can't create instance of class '" + clazz.getSimpleName() + "', it's abstract.");
+        }
+        return asContainerable(clazz);
+	}     
+        
+   public T asContainerable(Class<T> clazz) {
+	   if (containerable != null) {
+		   return containerable ;
+	   }
+		try {
+            containerable = clazz.newInstance();
+            containerable.setupContainerValue(this);
+            return (T) containerable;
+        } catch (SystemException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new SystemException("Couldn't create jaxb object instance of '" + clazz + "': "+ex.getMessage(), ex);
+        }
     }
 
 	public Collection<QName> getPropertyNames() {
@@ -330,6 +359,10 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
         return findProperty(propertyDefinition.getName());
     }
     
+    public <X extends Containerable> PrismContainer<X> findContainer(QName containerName) {
+    	return findItem(containerName, PrismContainer.class);
+    }
+    
     public <I extends Item<?>> I findItem(QName itemName, Class<I> type) {
     	return findCreateItem(itemName, type, null, false);
     }
@@ -446,7 +479,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
     	}
     }
 
-    public PrismContainer<?> findOrCreateContainer(QName containerName) {
+    public <T extends Containerable> PrismContainer<T> findOrCreateContainer(QName containerName) {
     	return findCreateItem(containerName, PrismContainer.class, null, true);
     }
     
@@ -474,7 +507,7 @@ public class PrismContainerValue<T> extends PrismValue implements Dumpable, Debu
 //        return container.findOrCreateProperty(propertyQName, valueClass);
 //    }
 
-    public <X> PrismContainer<X> createContainer(QName containerName) {
+    public <X extends Containerable> PrismContainer<X> createContainer(QName containerName) {
         if (getParent().getDefinition() == null) {
             throw new IllegalStateException("No definition of container "+containerName);
         }

@@ -21,6 +21,7 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -79,7 +80,7 @@ public interface ConnectorInstance {
 	 * @param configuration
 	 * @throws ConfigurationException 
 	 */
-	public void configure(PrismContainer configuration, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
+	public void configure(PrismContainerValue configuration, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
 
 	
 	public PrismSchema generateConnectorSchema();

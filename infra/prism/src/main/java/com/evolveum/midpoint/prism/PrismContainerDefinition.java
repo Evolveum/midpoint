@@ -50,10 +50,12 @@ import java.util.*;
  *
  * @author Radovan Semancik
  */
-public class PrismContainerDefinition extends ItemDefinition {
+public class PrismContainerDefinition<V extends Containerable> extends ItemDefinition {
 
     private static final long serialVersionUID = -5068923696147960699L;
+    
     protected ComplexTypeDefinition complexTypeDefinition;
+    protected Class<V> compileTimeClass;
  
     /**
      * This means that the property container is not defined by fixed (compile-time) schema.
@@ -67,6 +69,11 @@ public class PrismContainerDefinition extends ItemDefinition {
      * Use the factory methods in the ResourceObjectDefintion instead.
      */
     public PrismContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext) {
+        this(name, complexTypeDefinition, prismContext, null);
+    }
+
+    public PrismContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, 
+    		Class<V> compileTimeClass) {
         super(name, determineDefaultName(complexTypeDefinition), determineTypeName(complexTypeDefinition), prismContext);
         this.complexTypeDefinition = complexTypeDefinition;
         if (complexTypeDefinition == null) {
@@ -74,6 +81,7 @@ public class PrismContainerDefinition extends ItemDefinition {
         } else {
             isRuntimeSchema = complexTypeDefinition.isXsdAnyMarker();
         }
+		this.compileTimeClass = compileTimeClass;
     }
 
     private static QName determineTypeName(ComplexTypeDefinition complexTypeDefinition) {
@@ -92,6 +100,20 @@ public class PrismContainerDefinition extends ItemDefinition {
         return complexTypeDefinition.getDefaultName();
     }
 
+    public Class<V> getCompileTimeClass() {
+		if (compileTimeClass != null) {
+			return compileTimeClass;
+		}
+		if (complexTypeDefinition == null) {
+			return null;
+		}
+		return (Class<V>) complexTypeDefinition.getCompileTimeClass();	
+	}
+
+	public void setCompileTimeClass(Class<V> compileTimeClass) {
+		this.compileTimeClass = compileTimeClass;
+	}
+    
     protected String getSchemaNamespace() {
         return getNameOrDefaultName().getNamespaceURI();
     }
@@ -115,7 +137,7 @@ public class PrismContainerDefinition extends ItemDefinition {
 		}
 	}
 
-	public <T extends ItemDefinition> T findItemDefinition(QName name, Class<T> clazz) {
+	public <D extends ItemDefinition> D findItemDefinition(QName name, Class<D> clazz) {
         if (clazz == null) {
             throw new IllegalArgumentException("type not specified while searching for " + name + " in " + this);
         }
@@ -124,12 +146,12 @@ public class PrismContainerDefinition extends ItemDefinition {
         }
 
         if (isItemValid(this, name, clazz)) {
-            return (T) this;
+            return (D) this;
         }
 
         for (ItemDefinition def : getDefinitions()) {
             if (isItemValid(def, name, clazz)) {
-                return (T) def;
+                return (D) def;
             }
         }
         return null;
@@ -279,16 +301,17 @@ public class PrismContainerDefinition extends ItemDefinition {
      * Shallow clone
      */
     @Override
-    public PrismContainerDefinition clone() {
-        PrismContainerDefinition clone = new PrismContainerDefinition(name, complexTypeDefinition, prismContext);
+    public PrismContainerDefinition<V> clone() {
+        PrismContainerDefinition<V> clone = new PrismContainerDefinition<V>(name, complexTypeDefinition, prismContext, compileTimeClass);
         copyDefinitionData(clone);
         return clone;
     }
 
-    protected void copyDefinitionData(PrismContainerDefinition clone) {
+    protected void copyDefinitionData(PrismContainerDefinition<V> clone) {
         super.copyDefinitionData(clone);
         clone.complexTypeDefinition = this.complexTypeDefinition;
         clone.isRuntimeSchema = this.isRuntimeSchema;
+        clone.compileTimeClass = this.compileTimeClass;
     }
     
     public PrismContainerDefinition cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
@@ -411,9 +434,9 @@ public class PrismContainerDefinition extends ItemDefinition {
     	return createContainerDefinition(name, typeDefinition, minOccurs, maxOccurs);
     }
     
-    public PrismContainerDefinition createContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition,
+    public PrismContainerDefinition<V> createContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition,
             int minOccurs, int maxOccurs) {
-    	PrismContainerDefinition def = new PrismContainerDefinition(name, complexTypeDefinition, prismContext);
+    	PrismContainerDefinition<V> def = new PrismContainerDefinition<V>(name, complexTypeDefinition, prismContext);
         def.setMinOccurs(minOccurs);
         def.setMaxOccurs(maxOccurs);
         getDefinitions().add(def);

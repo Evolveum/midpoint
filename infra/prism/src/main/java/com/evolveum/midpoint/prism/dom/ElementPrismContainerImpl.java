@@ -10,6 +10,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -19,7 +20,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
-public class ElementPrismContainerImpl<T> extends ElementPrismAbstractImpl {
+public class ElementPrismContainerImpl<T extends Containerable> extends ElementPrismAbstractImpl {
 	
 	private NodeListPrismContainerImpl<T> valueNodeList;
 	

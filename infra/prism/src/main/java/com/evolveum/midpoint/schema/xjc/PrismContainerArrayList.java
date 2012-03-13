@@ -21,8 +21,10 @@
 
 package com.evolveum.midpoint.schema.xjc;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+
 import org.apache.commons.lang.Validate;
 
 import java.util.ArrayList;
@@ -32,7 +34,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public abstract class PrismContainerArrayList<T> extends ArrayList<T> {
+public abstract class PrismContainerArrayList<T extends Containerable> extends ArrayList<T> {
     
     private List<PrismContainerValue<T>> values;
     
