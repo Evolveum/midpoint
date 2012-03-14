@@ -78,8 +78,10 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_AS_PRISM_CONTAINER_VALUE = "asPrismContainerValue";
     private static final String METHOD_AS_PRISM_CONTAINER = "asPrismContainer";
     // The "setup" prefix is chosen avoid collision with regular setters for generated fields 
-    private static final String METHOD_SET_CONTAINER_VALUE = "setupContainerValue";
-    private static final String METHOD_SET_CONTAINER = "setupContainer";
+    private static final String METHOD_SETUP_CONTAINER_VALUE = "setupContainerValue";
+    private static final String METHOD_SETUP_CONTAINER = "setupContainer";
+    private static final String METHOD_AS_REFERENCE_VALUE = "asReferenceValue";
+    private static final String METHOD_SETUP_REFERENCE_VALUE = "setupReferenceValue";
     
     // Internal fields and methods. Although some of these fields needs to be public (so they can be used by
     // prism classes), they are not really intended for public usage. We also want to avoid conflicts with code
@@ -88,9 +90,7 @@ public class SchemaProcessor implements Processor {
     private static final String CONTAINER_VALUE_FIELD_NAME = "_containerValue";
     private static final String METHOD_GET_CONTAINER_NAME = "_getContainerName";
     private static final String METHOD_GET_CONTAINER_TYPE = "_getContainerType";
-    private static final String REFERENCE_FIELD_NAME = "_reference";
-    private static final String METHOD_GET_REFERENCE = "_getReference";
-    private static final String METHOD_SET_REFERENCE = "_setReference";
+    private static final String REFERENCE_VALUE_FIELD_NAME = "_referenceValue";
     
     //methods in PrismForJAXBUtil
     private static final String METHOD_PRISM_UTIL_GET_FIELD_SINGLE_CONTAINERABLE = "getFieldSingleContainerable";
@@ -103,6 +103,7 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_PRISM_UTIL_GET_REFERENCE_VALUE = "getReferenceValue";
     private static final String METHOD_PRISM_UTIL_SET_REFERENCE_VALUE = "setReferenceValue";
     private static final String METHOD_PRISM_UTIL_SET_REFERENCE_OBJECT = "setReferenceObject";
+    private static final String METHOD_PRISM_UTIL_OBJECTABLE_AS_REFERENCE_VALUE = "objectableAsReferenceValue";
     
     // ???
     private static final String METHOD_PRISM_GET_ANY = "getAny";
@@ -113,6 +114,7 @@ public class SchemaProcessor implements Processor {
 	private static final String CONTAINER_VALUE_LOCAL_VAR_NAME = "containerValue";
 	private static final String FIELD_CONTAINER_VALUE_LOCAL_VAR_NAME = "fieldContainerValue";
 	private static final String OBJECT_LOCAL_FIELD_NAME = "object";
+	private static final String REFERENCE_LOCAL_VARIABLE_NAME = "reference";
     
 	//equals, toString, hashCode methods
     private static final String METHOD_TO_STRING = "toString";
@@ -191,8 +193,8 @@ public class SchemaProcessor implements Processor {
 
         JDefinedClass definedClass = objectReferenceOutline.implClass;
         //add prism reference and get/set method for it
-        JVar reference = definedClass.field(JMod.PRIVATE, PrismReferenceValue.class, REFERENCE_FIELD_NAME);
-        JMethod getReference = definedClass.method(JMod.PUBLIC, PrismReferenceValue.class, METHOD_GET_REFERENCE);
+        JVar reference = definedClass.field(JMod.PRIVATE, PrismReferenceValue.class, REFERENCE_VALUE_FIELD_NAME);
+        JMethod getReference = definedClass.method(JMod.PUBLIC, PrismReferenceValue.class, METHOD_AS_REFERENCE_VALUE);
 //        getReference.annotate(CLASS_MAP.get(XmlTransient.class));
         JBlock body = getReference.body();
         JBlock then = body._if(reference.eq(JExpr._null()))._then();
@@ -200,7 +202,7 @@ public class SchemaProcessor implements Processor {
         then.assign(reference, newReference);
         body._return(reference);
 
-        JMethod setReference = definedClass.method(JMod.PUBLIC, void.class, METHOD_SET_REFERENCE);
+        JMethod setReference = definedClass.method(JMod.PUBLIC, void.class, METHOD_SETUP_REFERENCE_VALUE);
         JVar value = setReference.param(PrismReferenceValue.class, "value");
         body = setReference.body();
         body.assign(reference, value);
@@ -579,7 +581,7 @@ public class SchemaProcessor implements Processor {
     }
 
     private void createSetContainerValueMethod(JDefinedClass definedClass, JVar container) {
-        JMethod setContainer = definedClass.method(JMod.PUBLIC, void.class, METHOD_SET_CONTAINER_VALUE);
+        JMethod setContainer = definedClass.method(JMod.PUBLIC, void.class, METHOD_SETUP_CONTAINER_VALUE);
         JVar methodContainer = setContainer.param(PrismContainerValue.class, "containerValue");
         //create method body
         JBlock body = setContainer.body();
@@ -609,7 +611,7 @@ public class SchemaProcessor implements Processor {
     }
     
     private void createSetContainerValueMethodInObject(JDefinedClass definedClass, JVar container) {
-    	JMethod setContainerValue = definedClass.method(JMod.PUBLIC, void.class, METHOD_SET_CONTAINER_VALUE);
+    	JMethod setContainerValue = definedClass.method(JMod.PUBLIC, void.class, METHOD_SETUP_CONTAINER_VALUE);
     	setContainerValue.annotate(CLASS_MAP.get(Override.class));
         JVar containerValue = setContainerValue.param(PrismContainerValue.class, "containerValue");
         //create method body
@@ -638,7 +640,7 @@ public class SchemaProcessor implements Processor {
     }
 
     private void createSetContainerMethod(JDefinedClass definedClass, JVar container) {
-        JMethod setContainer = definedClass.method(JMod.PUBLIC, void.class, METHOD_SET_CONTAINER);
+        JMethod setContainer = definedClass.method(JMod.PUBLIC, void.class, METHOD_SETUP_CONTAINER);
         JVar methodContainer = setContainer.param(PrismObject.class, "container");
         //create method body
         JBlock body = setContainer.body();
@@ -944,8 +946,8 @@ public class SchemaProcessor implements Processor {
     }
 
     private void createFieldReferenceSetterBody(JFieldVar field, JVar param, JBlock body) {
-        JVar cont = body.decl(CLASS_MAP.get(PrismReferenceValue.class), REFERENCE_FIELD_NAME,
-                JOp.cond(param.ne(JExpr._null()), JExpr.invoke(param, METHOD_GET_REFERENCE), JExpr._null()));
+        JVar cont = body.decl(CLASS_MAP.get(PrismReferenceValue.class), REFERENCE_VALUE_FIELD_NAME,
+                JOp.cond(param.ne(JExpr._null()), JExpr.invoke(param, METHOD_AS_REFERENCE_VALUE), JExpr._null()));
         JInvocation invocation = body.staticInvoke(CLASS_MAP.get(PrismForJAXBUtil.class),
                 METHOD_PRISM_UTIL_SET_REFERENCE_VALUE);
         invocation.arg(JExpr.invoke(METHOD_AS_PRISM_CONTAINER_VALUE));
@@ -973,7 +975,7 @@ public class SchemaProcessor implements Processor {
 
         anonymous._extends(clazz);
         JMethod constructor = anonymous.constructor(JMod.PUBLIC);
-        constructor.param(CLASS_MAP.get(PrismReference.class), REFERENCE_FIELD_NAME);
+        constructor.param(CLASS_MAP.get(PrismReference.class), REFERENCE_LOCAL_VARIABLE_NAME);
         JBlock constructorBody = constructor.body();
         JInvocation invocation = constructorBody.invoke("super");
         invocation.arg(constructor.listParams()[0]);
@@ -985,6 +987,10 @@ public class SchemaProcessor implements Processor {
         JMethod getValueFrom = anonymous.method(JMod.PROTECTED, CLASS_MAP.get(PrismReferenceValue.class), "getValueFrom");
         getValueFrom.annotate(CLASS_MAP.get(Override.class));
         getValueFrom.param(type, "value");
+        
+        JMethod willClear = anonymous.method(JMod.PROTECTED, boolean.class, "willClear");
+        willClear.annotate(CLASS_MAP.get(Override.class));
+        willClear.param(CLASS_MAP.get(PrismReferenceValue.class), "value");
 
         return anonymous;
     }
@@ -994,14 +1000,26 @@ public class SchemaProcessor implements Processor {
 
         JBlock body = method.body();
         JVar decl = body.decl(type, field.name(), JExpr._new(type));
-        JInvocation invocation = body.invoke(decl, METHOD_SET_REFERENCE);
+        JInvocation invocation = body.invoke(decl, METHOD_SETUP_REFERENCE_VALUE);
         invocation.arg(method.listParams()[0]);
         body._return(decl);
     }
 
     private void createFieldReferenceGetValueFrom(JFieldVar field, JMethod method) {
         JBlock body = method.body();
-        body._return(JExpr.invoke(method.listParams()[0], METHOD_GET_REFERENCE));
+        body._return(JExpr.invoke(method.listParams()[0], METHOD_AS_REFERENCE_VALUE));
+    }
+    
+    private void createFieldReferenceWillClear(JFieldVar field, JMethod method) {
+        JBlock body = method.body();
+        JInvocation getObject = JExpr.invoke(method.listParams()[0], "getObject");
+        body._return(getObject.eq(JExpr._null()));
+    }
+    
+    private void createFieldReferenceUseWillClear(JFieldVar field, JMethod method) {
+        JBlock body = method.body();
+        JInvocation getObject = JExpr.invoke(method.listParams()[0], "getObject");
+        body._return(getObject.ne(JExpr._null()));
     }
 
     private void createFieldReferenceGetterBody(JFieldVar field, ClassOutline classOutline, JBlock body,
@@ -1011,11 +1029,12 @@ public class SchemaProcessor implements Processor {
             //if it's List<ObjectReferenceType> ...
             JInvocation invoke = JExpr.invoke(JExpr.invoke(METHOD_AS_PRISM_CONTAINER_VALUE), "findOrCreateReference");
             invoke.arg(qnameRef);
-            JVar ref = body.decl(CLASS_MAP.get(PrismReference.class), REFERENCE_FIELD_NAME, invoke);
+            JVar ref = body.decl(CLASS_MAP.get(PrismReference.class), REFERENCE_LOCAL_VARIABLE_NAME, invoke);
 
             JDefinedClass anonymous = createFieldReferenceGetterListAnon(field, classOutline);
             createFieldReferenceCreateItemBody(field, findMethod(anonymous, "createItem"));
             createFieldReferenceGetValueFrom(field, findMethod(anonymous, "getValueFrom"));
+            createFieldReferenceWillClear(field, findMethod(anonymous, "willClear"));
             JInvocation newList = JExpr._new(anonymous);
             newList.arg(ref);
             body._return(newList);
@@ -1025,12 +1044,12 @@ public class SchemaProcessor implements Processor {
             invocation.arg(JExpr.invoke(METHOD_AS_PRISM_CONTAINER_VALUE));
             invocation.arg(qnameRef);
 
-            JVar container = body.decl(CLASS_MAP.get(PrismReferenceValue.class), REFERENCE_FIELD_NAME, invocation);
+            JVar container = body.decl(CLASS_MAP.get(PrismReferenceValue.class), REFERENCE_LOCAL_VARIABLE_NAME, invocation);
 
             JBlock then = body._if(container.eq(JExpr._null()))._then();
             then._return(JExpr._null());
             JVar wrapper = body.decl(field.type(), field.name(), JExpr._new(field.type()));
-            invocation = body.invoke(wrapper, METHOD_SET_REFERENCE);
+            invocation = body.invoke(wrapper, METHOD_SETUP_REFERENCE_VALUE);
             invocation.arg(container);
             body._return(wrapper);
         }
@@ -1077,23 +1096,29 @@ public class SchemaProcessor implements Processor {
 
         JBlock body = method.body();
         JVar decl = body.decl(type, field.name(), JExpr._new(type));
-        JInvocation invocation = body.invoke(decl, METHOD_SET_CONTAINER);
+        JInvocation invocation = body.invoke(decl, METHOD_SETUP_CONTAINER);
         invocation.arg(JExpr.invoke(method.listParams()[0], "getObject"));
         body._return(decl);
     }
 
     private void createFieldReferenceUseGetValueFrom(JFieldVar field, JMethod method) {
         JBlock body = method.body();
-        JVar object = body.decl(CLASS_MAP.get(PrismObject.class), "object",
-                JExpr.invoke(method.listParams()[0], METHOD_AS_PRISM_OBJECT));
-        JVar reference = body.decl(CLASS_MAP.get(PrismReference.class), "reference",
-                JExpr.invoke("getReference"));
-        JForEach forEach = body.forEach(CLASS_MAP.get(PrismReferenceValue.class), "refValue",
-                JExpr.invoke(reference, "getValues"));
-        JBlock forBody = forEach.body();
-        JBlock then = forBody._if(object.eq(JExpr.invoke(forEach.var(), "getObject")))._then();
-        then._return(forEach.var());
-        body._return(JExpr._null());
+        
+        JInvocation invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_OBJECTABLE_AS_REFERENCE_VALUE);
+        invocation.arg(method.listParams()[0]);
+        invocation.arg(JExpr.invoke("getReference"));
+        body._return(invocation);
+        
+//        JVar object = body.decl(CLASS_MAP.get(PrismObject.class), "object",
+//                JExpr.invoke(method.listParams()[0], METHOD_AS_PRISM_OBJECT));
+//        JVar reference = body.decl(CLASS_MAP.get(PrismReference.class), "reference",
+//                JExpr.invoke("getReference"));
+//        JForEach forEach = body.forEach(CLASS_MAP.get(PrismReferenceValue.class), "refValue",
+//                JExpr.invoke(reference, "getValues"));
+//        JBlock forBody = forEach.body();
+//        JBlock then = forBody._if(object.eq(JExpr.invoke(forEach.var(), "getObject")))._then();
+//        then._return(forEach.var());
+//        body._return(JExpr._null());
     }
 
     private void createFieldReferenceUseGetterBody(JFieldVar field, ClassOutline classOutline, JBlock body,
@@ -1104,11 +1129,12 @@ public class SchemaProcessor implements Processor {
         if (isList) {
             JInvocation invoke = JExpr.invoke(JExpr.invoke(METHOD_AS_PRISM_CONTAINER_VALUE), "findOrCreateReference");
             invoke.arg(qnameRef);
-            JVar ref = body.decl(CLASS_MAP.get(PrismReference.class), REFERENCE_FIELD_NAME, invoke);
+            JVar ref = body.decl(CLASS_MAP.get(PrismReference.class), REFERENCE_LOCAL_VARIABLE_NAME, invoke);
 
             JDefinedClass anonymous = createFieldReferenceGetterListAnon(field, classOutline);
             createFieldReferenceUseCreateItemBody(field, findMethod(anonymous, "createItem"));
             createFieldReferenceUseGetValueFrom(field, findMethod(anonymous, "getValueFrom"));
+            createFieldReferenceUseWillClear(field, findMethod(anonymous, "willClear"));
 
             JInvocation newList = JExpr._new(anonymous);
             newList.arg(ref);
@@ -1118,7 +1144,7 @@ public class SchemaProcessor implements Processor {
             invocation.arg(JExpr.invoke(METHOD_AS_PRISM_CONTAINER_VALUE));
             invocation.arg(qnameRef);
 
-            JVar reference = body.decl(CLASS_MAP.get(PrismReferenceValue.class), REFERENCE_FIELD_NAME, invocation);
+            JVar reference = body.decl(CLASS_MAP.get(PrismReferenceValue.class), REFERENCE_LOCAL_VARIABLE_NAME, invocation);
 
             JBlock then = body._if(reference.eq(JExpr._null()).cor(JExpr.invoke(reference, "getObject")
                     .eq(JExpr._null())))._then();
@@ -1320,7 +1346,7 @@ public class SchemaProcessor implements Processor {
 
         JBlock body = method.body();
         JVar decl = body.decl(listType, field.name(), JExpr._new(listType));
-        JInvocation invocation = body.invoke(decl, METHOD_SET_CONTAINER_VALUE);
+        JInvocation invocation = body.invoke(decl, METHOD_SETUP_CONTAINER_VALUE);
         invocation.arg(method.listParams()[0]);
         body._return(decl);
     }

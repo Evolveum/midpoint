@@ -197,6 +197,16 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	public void setDynamic(boolean dynamic) {
 		this.dynamic = dynamic;
 	}
+	
+	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz) {
+		if (!clazz.isAssignableFrom(this.getClass())) {
+    		return false;
+    	}
+        if (elementQName.equals(getName())) {
+        	return true;
+        }
+        return false;
+	}
 
 	/**
 	 * Create an item instance. Definition name or default name will
@@ -230,7 +240,6 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		clone.dynamic = this.dynamic;
 	}
 
-	
 	@Override
 	void revive(PrismContext prismContext) {
 		if (this.prismContext != null) {
@@ -239,8 +248,6 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		this.prismContext = prismContext;
 	}
 	
-	
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;

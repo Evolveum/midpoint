@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!--                                                         -->
+
+<!-- Simple user definition -->
+ 
+<object xsi:type="UserType" 
+        oid="2f9b9299-6f45-498f-bc8e-8d17c6b93b20" 
+        xmlns:gen973="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" 
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
+        xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" 
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd" 
+        xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+    <name>jack</name>
+    <fullName>Jack Sparrow</fullName>
+    <givenName>Jack</givenName>
+    <familyName>Sparrow</familyName>
+    <emailAddress></emailAddress>
+    <locality></locality>
+    <credentials>
+        <password>
+            <protectedString>
+                <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
+                    <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"/>
+                    <ds:KeyInfo>
+                        <ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName>
+         			</ds:KeyInfo>
+                    <enc:CipherData>
+                        <enc:CipherValue>blc5OXO2Z4vJW7o/XXhqZzg/rkwsIOwRBK7KLgMqwcrVcYpeZZOjxzgRgFiNw4IB</enc:CipherValue>
+                    </enc:CipherData>
+                </enc:EncryptedData>
+            </protectedString>
+        </password>
+        <allowedIdmAdminGuiAccess>false</allowedIdmAdminGuiAccess>
+    </credentials>
+    <activation>
+        <enabled>true</enabled>
+    </activation>
+    
+    <!-- Account as composite object, resource as reference -->
+    <account oid="2f9b9299-6f45-498f-aaaa-000000001111">
+    	<name>jsparrow</name>
+    	<resourceRef oid="2f9b9299-5555-5555-5555-000000001111"/>
+    	<!-- Faux object class, it does not even have a prefix -->
+    	<objectClass>AccountObjectClass</objectClass>
+    </account>
+    
+    <!-- Account as composite object, resource as composite object -->
+    <account oid="2f9b9299-6f45-498f-aaaa-000000002222">
+    	<name>captain</name>
+    	<resource oid="2f9b9299-5555-5555-5555-000000002222">
+    		<name>Rum Supply System</name>
+    		<connectorRef oid="2f9b9299-cccc-cccc-cccc-000000002222"/>
+    		<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/2f9b9299-5555-5555-5555-000000002222</namespace>
+    		<configuration>
+    		</configuration>
+    	</resource>
+    	<!-- Faux object class, it does not even have a prefix -->
+    	<objectClass>AccountObjectClass</objectClass>
+    </account>
+    
+    <!-- Account as reference -->
+    <accountRef oid="2f9b9299-6f45-498f-aaaa-000000003333"/>
+    
+</object>

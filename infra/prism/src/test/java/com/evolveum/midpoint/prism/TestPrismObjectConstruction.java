@@ -209,8 +209,8 @@ public class TestPrismObjectConstruction {
 		PrismReference accountRef = user.findOrCreateReference(USER_ACCOUNTREF_QNAME);
 		assertEquals(USER_ACCOUNTREF_QNAME, accountRef.getName());
 		if (assertDefinitions) PrismAsserts.assertDefinition(accountRef, OBJECT_REFERENCE_TYPE_QNAME, 0, -1);
-		accountRef.addValue(new PrismReferenceValue(ACCOUNT1_OID));
-		accountRef.addValue(new PrismReferenceValue(ACCOUNT2_OID));
+		accountRef.add(new PrismReferenceValue(ACCOUNT1_OID));
+		accountRef.add(new PrismReferenceValue(ACCOUNT2_OID));
 		PrismReference accountRefAgain = user.findOrCreateReference(USER_ACCOUNTREF_QNAME);
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
 		assertTrue("Property not the same", accountRef == accountRefAgain);

@@ -185,6 +185,10 @@ public class PrismDomProcessor {
 				throw new SchemaException("No object definition for element "+elementName+" in schema "+schema);
 			}
 		}
+		return parseObject(objectElement, objectDefinition);
+	}
+		
+	private <T extends Objectable> PrismObject<T> parseObject(Element objectElement, PrismObjectDefinition<T> objectDefinition) throws SchemaException {
 		PrismObject<T> object = (PrismObject<T>) parsePrismContainer(objectElement, objectDefinition);
 		String oid = getOid(objectElement);
 		object.setOid(oid);
@@ -220,7 +224,8 @@ public class PrismDomProcessor {
 	        	String id = getContainerId(element);
 	        	PrismContainerValue<T> pval = new PrismContainerValue<T>(null, null, container, id);
 	            List<Element> childElements = DOMUtil.listChildElements(element);
-	            pval.addAll((Collection)parsePrismContainerItems(childElements, containerDefinition));
+	            Collection<? extends Item> newContainerItems = parsePrismContainerItems(childElements, containerDefinition);
+	            addValuesToContainerValue(pval, newContainerItems);
 	            container.add(pval);
         	} else if (value instanceof JAXBElement) {
         		PrismContainerValue<T> pval = parsePrismContainerFromValueObject(((JAXBElement)value).getValue(), container.getDefinition());
@@ -235,6 +240,22 @@ public class PrismDomProcessor {
         	}
         }
         return container;
+	}
+	
+	/**
+	 * Adds all the value to the container value, merging with existing values if necessary.
+	 */
+	private <T extends Containerable> void addValuesToContainerValue(PrismContainerValue<T> containerValue, Collection<? extends Item> newContainerItems) {
+		for (Item<?> newItem: newContainerItems) {
+			Item existingItem = containerValue.findItem(newItem.getName());
+			if (existingItem == null) {
+				containerValue.add(newItem);
+			} else {
+				for (PrismValue newPVal: newItem.getValues()) {
+					existingItem.add(newPVal);
+				}
+			}
+		}
 	}
 	
 	private <T extends Containerable> PrismContainerValue<T> parsePrismContainerFromValueObject(Object value, PrismContainerDefinition def) throws SchemaException {
@@ -492,12 +513,19 @@ public class PrismDomProcessor {
 	private <T extends Containerable> ItemDefinition locateItemDefinition(PrismContainerDefinition<T> containerDefinition, QName elementQName,
 			List<? extends Object> valueElements) {
 		ItemDefinition def = containerDefinition.findItemDefinition(elementQName);
-        if (def == null && !valueElements.isEmpty() && valueElements.get(0) instanceof Element) {
+		if (def != null) {
+			return def;
+		}
+
+		if (!valueElements.isEmpty() && valueElements.get(0) instanceof Element) {
         	// Try to locate xsi:type definition in the element
         	def = resolveDynamicItemDefinition(containerDefinition, (List<Element>)valueElements, prismContext);
         }
+		if (def != null) {
+			return def;
+		}
         
-        if (def == null && containerDefinition.isRuntimeSchema()) {
+        if (containerDefinition.isRuntimeSchema()) {
         	// Try to locate global definition in any of the schemas
         	def = resolveGlobalItemDefinition(containerDefinition, valueElements);
         }
@@ -524,21 +552,64 @@ public class PrismDomProcessor {
         if (valueElements == null || valueElements.isEmpty()) {
             return null;
         }
-        PrismReference ref = referenceDefinition.instantiate(propName);
+        PrismReference ref = referenceDefinition.instantiate();
 
         if (!referenceDefinition.isMultiValue() && valueElements.size() > 1) {
             throw new SchemaException("Attempt to store multiple values in single-valued property " + propName);
         }
 
         for (Object valueElement : valueElements) {
-        	if (valueElement instanceof Element) {
-        		ref.add(parseReferenceValue((Element)valueElement));
+        	if (propName.equals(referenceDefinition.getName())) {
+        		// This is "real" reference (oid type and nothing more)
+	        	if (valueElement instanceof Element) {
+	        		ref.add(parseReferenceValue((Element)valueElement));
+	        	} else {
+	        		ref.add(parseReferenceValueFromObject(valueElement));
+	        	}
         	} else {
-        		ref.add(parseReferenceValueFromObject(valueElement));
+        		// This is a composite object (complete object stored inside reference)
+        		ref.add(parseReferenceAsCompositeObject(valueElement, referenceDefinition));
         	}
         }
         return ref;
     }
+
+	private PrismValue parseReferenceAsCompositeObject(Object valueElement, PrismReferenceDefinition referenceDefinition) throws SchemaException {
+		QName targetTypeName = referenceDefinition.getTargetTypeName();
+		PrismObjectDefinition<Objectable> schemaObjectDefinition = null;
+		if (targetTypeName != null) {
+			schemaObjectDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(targetTypeName);
+		}
+		
+		PrismObject<Objectable> compositeObject = null;
+		try {	
+			if (valueElement instanceof Element) {
+				Element valueDomElement = (Element)valueElement;
+				if (schemaObjectDefinition == null) {
+					compositeObject = parseObject(valueDomElement);
+				} else {
+					compositeObject = parseObject(valueDomElement, schemaObjectDefinition);
+				}
+			} else if (valueElement instanceof JAXBElement) {
+				// This must be complete JAXB object
+				JAXBElement<Objectable> jaxbElement = (JAXBElement<Objectable>)valueElement;
+				Objectable objectable = jaxbElement.getValue();
+				compositeObject = objectable.asPrismObject();
+				if (schemaObjectDefinition == null) {
+					getPrismContext().adopt(objectable);
+				} else {
+					compositeObject.revive(getPrismContext());
+					compositeObject.applyDefinition(schemaObjectDefinition);
+				}
+			}
+		} catch (SchemaException e) {
+			throw new SchemaException(e.getMessage()+" while parsing composite object in reference element "+referenceDefinition.getCompositeObjectElementName(), e);
+		}
+		
+		PrismReferenceValue refVal = new PrismReferenceValue();
+		refVal.setObject(compositeObject);
+		return refVal;
+	}
 
 	private PrismReferenceValue parseReferenceValue(Element element) {
 		String oid = getOid(element);

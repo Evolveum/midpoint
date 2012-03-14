@@ -227,6 +227,18 @@ public final class PrismForJAXBUtil {
     public static void setReferenceObject(PrismContainer parent, QName referenceQName, PrismObject targetObject) {
         setReferenceObject(parent.getValue(), referenceQName, targetObject);
     }
+    
+    public static <T extends Objectable> PrismReferenceValue objectableAsReferenceValue(T objectable, PrismReference reference ) {
+    	PrismObject<T> object = objectable.asPrismObject();
+        for (PrismReferenceValue refValue: reference.getValues()) {
+            if (object == refValue.getObject()) {
+                return refValue;
+            }
+        }
+        PrismReferenceValue referenceValue = new PrismReferenceValue();
+        referenceValue.setObject(object);
+        return referenceValue;
+    }
 
     public static <T extends Containerable> List<PrismContainerValue<T>> getContainerValues(PrismContainerValue<T> parent, QName name, Class<T> clazz) {
         return getContainerValues(parent.getContainer(), name, clazz);

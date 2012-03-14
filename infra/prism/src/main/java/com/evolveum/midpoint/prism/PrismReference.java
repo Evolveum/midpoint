@@ -96,9 +96,9 @@ public class PrismReference extends Item {
         return getValues().iterator().next();
     }
     
-    public void addValue(PrismReferenceValue value) {
+    public boolean add(PrismReferenceValue value) {
     	value.setParent(this);
-    	getValues().add(value);
+    	return getValues().add(value);
     }
     
     public String getOid() {
@@ -127,7 +127,7 @@ public class PrismReference extends Item {
     protected void copyValues(PrismReference clone) {
         super.copyValues(clone);
         for (PrismReferenceValue value : getValues()) {
-            clone.addValue(value.clone());
+            clone.add(value.clone());
         }
     }
 			

@@ -27,6 +27,7 @@ import org.apache.commons.lang.Validate;
 
 import java.util.AbstractList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -102,7 +103,7 @@ public abstract class PrismReferenceArrayList<T> extends AbstractList<T> {
     @Override
     public boolean add(T t) {
         PrismReferenceValue value = getValueFrom(t);
-        return reference.getValues().add(value);
+        return reference.add(value);
     }
 
     @Override
@@ -117,8 +118,31 @@ public abstract class PrismReferenceArrayList<T> extends AbstractList<T> {
         }
         return changed;
     }
-
+    
+    /**
+     * JAXB unmarshaller is calling clear() on lists even though they were just
+     * created. As the references should be visible as two JAXB fields, clearing one
+     * of them will also clear the other. Therefore we need this hack. Calling clear()
+     * will only clear the values that naturally "belong" to the list.
+     */
     @Override
+	public void clear() {
+    	List<PrismReferenceValue> values = reference.getValues();
+    	if (values == null) {
+    		return;
+    	}
+    	Iterator<PrismReferenceValue> iterator = values.iterator();
+    	while (iterator.hasNext()) {
+    		PrismReferenceValue value = iterator.next();
+    		if (willClear(value)) {
+    			iterator.remove();
+    		}
+    	}
+	}
+
+	protected abstract boolean willClear(PrismReferenceValue value);
+
+	@Override
     public boolean isEmpty() {
         return size() == 0;
     }

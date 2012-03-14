@@ -51,7 +51,7 @@ import static org.testng.AssertJUnit.assertNotNull;
  */
 public class TestParseUser {
 	
-	public static final File USER_FILE = new File("src/test/resources/diff/user-real-before.xml");
+	public static final File USER_FILE = new File("src/test/resources/common/user-jack.xml");
 	
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -109,6 +109,9 @@ public class TestParseUser {
 		UserType userType = jaxbProcessor.unmarshalObject(USER_FILE, UserType.class);
 		
 		// THEN
+		System.out.println("Parsed user:");
+		System.out.println(userType.asPrismObject().dump());
+		
 		assertUser(userType.asPrismObject());
 	}
 	
@@ -128,6 +131,9 @@ public class TestParseUser {
 		ObjectType userType = jaxbProcessor.unmarshalObject(USER_FILE, ObjectType.class);
 		
 		// THEN
+		System.out.println("Parsed user:");
+		System.out.println(userType.asPrismObject().dump());
+		
 		assertUser(userType.asPrismObject());
 	}
 	
@@ -147,6 +153,9 @@ public class TestParseUser {
 		UserType userType = jaxbElement.getValue();
 		
 		// THEN
+		System.out.println("Parsed user:");
+		System.out.println(userType.asPrismObject().dump());
+		
 		assertUser(userType.asPrismObject());
 	}
 
@@ -166,6 +175,9 @@ public class TestParseUser {
 		ObjectType userType = jaxbElement.getValue();
 		
 		// THEN
+		System.out.println("Parsed user:");
+		System.out.println(userType.asPrismObject().dump());
+		
 		assertUser(userType.asPrismObject());
 	}
 
@@ -206,7 +218,12 @@ public class TestParseUser {
 //		PrismProperty validFromProperty = user.findProperty(new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_VALID_FROM));
 //		assertNotNull("Property "+ActivationType.F_VALID_FROM+" not found", validFromProperty);
 //		PrismAsserts.assertPropertyValue(validFromProperty, USER_JACK_VALID_FROM);
-				
+		
+		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
+		assertEquals("Wrong number of accountRef values", 3, accountRef.getValues().size());
+		PrismAsserts.assertReferenceValue(accountRef, "2f9b9299-6f45-498f-aaaa-000000001111");
+		PrismAsserts.assertReferenceValue(accountRef, "2f9b9299-6f45-498f-aaaa-000000002222");
+		PrismAsserts.assertReferenceValue(accountRef, "2f9b9299-6f45-498f-aaaa-000000003333");
 	}
 	
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,

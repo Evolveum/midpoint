@@ -79,6 +79,20 @@ public class PrismReferenceDefinition extends ItemDefinition {
 		this.compositeObjectElementName = compositeObjectElementName;
 	}
 	
+	@Override
+	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz) {
+		if (!clazz.isAssignableFrom(this.getClass())) {
+    		return false;
+    	}
+        if (elementQName.equals(getName())) {
+        	return true;
+        }
+        if (elementQName.equals(getCompositeObjectElementName())) {
+        	return true;
+        }
+        return false;
+	}
+	
     @Override
     public PrismReference instantiate() {
         return instantiate(getNameOrDefaultName());

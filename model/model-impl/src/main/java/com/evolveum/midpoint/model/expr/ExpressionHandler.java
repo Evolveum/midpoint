@@ -123,10 +123,10 @@ public class ExpressionHandler {
 
 		ObjectReferenceType ref = shadow.getResourceRef();
 		if (ref == null) {
-			throw new ExpressionEvaluationException("Resource shadow object '', oid '' doesn't have defined resource.");
+			throw new ExpressionEvaluationException("Resource shadow object " + shadow + " doesn't have defined resource.");
 		}
 		if (ref.getOid() == null) {
-			throw new ExpressionEvaluationException("Resource shadow object '', oid '' defines null resource OID.");
+			throw new ExpressionEvaluationException("Resource shadow object " + shadow + " defines null resource OID.");
 		}
 
 		return getModel().getObject(ResourceType.class, ref.getOid(), new PropertyReferenceListType(),
