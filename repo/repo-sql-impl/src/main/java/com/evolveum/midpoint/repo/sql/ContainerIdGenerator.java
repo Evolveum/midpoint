@@ -21,8 +21,8 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.repo.sql.data.a1.Assignment;
-import com.evolveum.midpoint.repo.sql.data.a1.O;
+import com.evolveum.midpoint.repo.sql.data.a1.RAssignment;
+import com.evolveum.midpoint.repo.sql.data.a1.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.a1.Role;
 import com.evolveum.midpoint.repo.sql.data.a1.User;
 import org.hibernate.HibernateException;
@@ -43,11 +43,11 @@ public class ContainerIdGenerator implements IdentifierGenerator {
 
     @Override
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
-        if (object instanceof O) {
+        if (object instanceof RObjectType) {
             return 0L;
-        } else if (object instanceof Assignment) {
-            Assignment assignment = (Assignment) object;
-            O o = assignment.getOwner();
+        } else if (object instanceof RAssignment) {
+            RAssignment assignment = (RAssignment) object;
+            RObjectType o = assignment.getOwner();
             if (o instanceof User) {
                 User user = (User) o;
                 return getNextId(user.getAssignments());
@@ -60,9 +60,9 @@ public class ContainerIdGenerator implements IdentifierGenerator {
         return null;
     }
 
-    private Long getNextId(Set<Assignment> set) {
+    private Long getNextId(Set<RAssignment> set) {
         Long id = 0L;
-        for (Assignment assignment : set) {
+        for (RAssignment assignment : set) {
             if (assignment.getId() != null && assignment.getId() > id) {
                 id = assignment.getId();
             }

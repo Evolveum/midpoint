@@ -21,43 +21,36 @@
 
 package com.evolveum.midpoint.repo.sql.data.a1;
 
-import org.hibernate.annotations.Type;
-
 import javax.persistence.Embeddable;
-import javax.persistence.UniqueConstraint;
 import javax.xml.namespace.QName;
+import java.util.Date;
 
 /**
- * Created by IntelliJ IDEA.
- * User: lazyman
- * Date: 3/12/12
- * Time: 8:59 PM
- * To change this template use File | Settings | File Templates.
+ * @author lazyman
  */
 @Embeddable
-public class ClobValue extends Value {
+public class RDateValue extends Value {
 
-    private String value;
+    private Date value;
 
-    public ClobValue() {
+    public RDateValue() {
     }
 
-    public ClobValue(String value) {
+    public RDateValue(Date value) {
         this(null, null, value);
     }
 
-    public ClobValue(QName name, QName type, String value) {
+    public RDateValue(QName name, QName type, Date value) {
         setName(name);
         setType(type);
         setValue(value);
     }
 
-    @Type(type = "org.hibernate.type.MaterializedClobType")
-    public String getValue() {
+    public Date getValue() {
         return value;
     }
 
-    public void setValue(String value) {
+    public void setValue(Date value) {
         this.value = value;
     }
 }

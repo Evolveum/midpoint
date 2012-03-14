@@ -21,6 +21,9 @@
 
 package com.evolveum.midpoint.repo.sql.data.a1;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
@@ -39,18 +42,55 @@ import java.util.Set;
 @Entity
 @Table(name = "role")
 @ForeignKey(name = "fk_role")
-public class Role extends O {
+public class Role extends RObjectType {
 
-    private Set<Assignment> assignments;
+    private Set<RAssignment> assignments;
 
     @OneToMany(mappedBy = "owner")
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<Assignment> getAssignments() {
+    public Set<RAssignment> getAssignments() {
         return assignments;
     }
 
-    public void setAssignments(Set<Assignment> assignments) {
+    public void setAssignments(Set<RAssignment> assignments) {
         this.assignments = assignments;
+    }
+
+    public static void copyToJAXB(Role repo, RoleType jaxb, PrismContext prismContext) throws
+            DtoTranslationException {
+        RObjectType.copyToJAXB(repo, jaxb, prismContext);
+
+//        if (repo.getAssignment() == null) {
+//            return;
+//        }
+//
+//        for (RAssignmentType rAssignment : repo.getAssignment()) {
+//            jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
+//        }
+    }
+
+    public static void copyFromJAXB(RoleType jaxb, Role repo, PrismContext prismContext) throws
+            DtoTranslationException {
+        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
+
+//        if (!jaxb.getAssignment().isEmpty()) {
+//            repo.setAssignment(new ArrayList<RAssignmentType>());
+//        }
+//
+//        for (AssignmentType assignment : jaxb.getAssignment()) {
+//            RAssignmentType rAssignment = new RAssignmentType();
+//            RAssignmentType.copyFromJAXB(assignment, rAssignment, prismContext);
+//
+//            repo.getAssignment().add(rAssignment);
+//        }
+    }
+
+    @Override
+    public RoleType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+        RoleType object = new RoleType();
+        Role.copyToJAXB(this, object, prismContext);
+        RUtil.revive(object.asPrismObject(), RoleType.class, prismContext);
+        return object;
     }
 }

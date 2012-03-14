@@ -21,40 +21,38 @@
 
 package com.evolveum.midpoint.repo.sql.data.a1;
 
+import org.hibernate.annotations.Type;
+
 import javax.persistence.Embeddable;
 import javax.xml.namespace.QName;
-import java.util.Date;
 
 /**
- * Created by IntelliJ IDEA.
- * User: lazyman
- * Date: 3/12/12
- * Time: 9:00 PM
- * To change this template use File | Settings | File Templates.
+ * @author lazyman
  */
 @Embeddable
-public class DateValue extends Value {
+public class RClobValue extends Value {
 
-    private Date value;
+    private String value;
 
-    public DateValue() {
+    public RClobValue() {
     }
 
-    public DateValue(Date value) {
+    public RClobValue(String value) {
         this(null, null, value);
     }
 
-    public DateValue(QName name, QName type, Date value) {
+    public RClobValue(QName name, QName type, String value) {
         setName(name);
         setType(type);
         setValue(value);
     }
 
-    public Date getValue() {
+    @Type(type = "org.hibernate.type.MaterializedClobType")
+    public String getValue() {
         return value;
     }
 
-    public void setValue(Date value) {
+    public void setValue(String value) {
         this.value = value;
     }
 }

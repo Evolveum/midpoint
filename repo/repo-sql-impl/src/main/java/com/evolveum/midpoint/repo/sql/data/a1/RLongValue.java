@@ -25,25 +25,21 @@ import javax.persistence.Embeddable;
 import javax.xml.namespace.QName;
 
 /**
- * Created by IntelliJ IDEA.
- * User: lazyman
- * Date: 3/12/12
- * Time: 9:00 PM
- * To change this template use File | Settings | File Templates.
+ * @author lazyman
  */
 @Embeddable
-public class LongValue extends Value{
+public class RLongValue extends Value{
     
     private Long value;
 
-    public LongValue() {
+    public RLongValue() {
     }
     
-    public LongValue(Long value) {
+    public RLongValue(Long value) {
         this(null, null, value);
     }
 
-    public LongValue(QName name, QName type, Long value) {
+    public RLongValue(QName name, QName type, Long value) {
         setName(name);
         setType(type);
         setValue(value);

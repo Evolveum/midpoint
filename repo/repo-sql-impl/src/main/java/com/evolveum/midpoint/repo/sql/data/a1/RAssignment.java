@@ -21,30 +21,35 @@
 
 package com.evolveum.midpoint.repo.sql.data.a1;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
+import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: lazyman
- * Date: 3/12/12
- * Time: 6:55 PM
- * To change this template use File | Settings | File Templates.
+ * @author lazyman
  */
 @Entity
 @Table(name = "assignment")
 @ForeignKey(name = "fk_assignment")
-public class Assignment extends Container implements Ownable {
+public class RAssignment extends Container implements Ownable {
 
+    private static final Trace LOGGER = TraceManager.getTrace(RAssignment.class);
     //owner
-    private O owner;
+    private RObjectType owner;
     private String ownerOid;
     private Long ownerId;
     //extension
-    private AnyContainer extension;
+    private RAnyContainer extension;
     //assignment fields
+    private RActivationType activation;
     private String accountConstruction;
     private Reference targetRef;
 
@@ -55,7 +60,7 @@ public class Assignment extends Container implements Ownable {
             @JoinColumn(name = "oid", referencedColumnName = "oid"),
             @JoinColumn(name = "owner_id", referencedColumnName = "id")
     })
-    public O getOwner() {
+    public RObjectType getOwner() {
         return owner;
     }
 
@@ -89,15 +94,28 @@ public class Assignment extends Container implements Ownable {
             @PrimaryKeyJoinColumn(name = "extId", referencedColumnName = "owner_id"),
             @PrimaryKeyJoinColumn(name = "extType", referencedColumnName = "ownerType")
     })
-    public AnyContainer getExtension() {
+    public RAnyContainer getExtension() {
         return extension;
     }
 
+    @Embedded
+    public RActivationType getActivation() {
+        if (activation == null) {
+            activation = new RActivationType();
+        }
+        return activation;
+    }
+
+    @Type(type = "org.hibernate.type.TextType")
     public String getAccountConstruction() {
         return accountConstruction;
     }
 
-    public void setExtension(AnyContainer extension) {
+    public void setActivation(RActivationType activation) {
+        this.activation = activation;
+    }
+
+    public void setExtension(RAnyContainer extension) {
         this.extension = extension;
         if (extension != null) {
             extension.setOwnerType(RContainerType.ASSIGNMENT);
@@ -120,7 +138,7 @@ public class Assignment extends Container implements Ownable {
         this.targetRef = targetRef;
     }
 
-    public void setOwner(O owner) {
+    public void setOwner(RObjectType owner) {
         this.owner = owner;
     }
 
@@ -136,7 +154,7 @@ public class Assignment extends Container implements Ownable {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
-        Assignment that = (Assignment) o;
+        RAssignment that = (RAssignment) o;
 
         if (accountConstruction != null ? !accountConstruction.equals(that.accountConstruction) : that.accountConstruction != null)
             return false;
@@ -155,5 +173,70 @@ public class Assignment extends Container implements Ownable {
 //        result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
         result = 31 * result + (accountConstruction != null ? accountConstruction.hashCode() : 0);
         return result;
+    }
+
+    public static void copyToJAXB(RAssignment repo, AssignmentType jaxb, PrismContext prismContext) throws
+            DtoTranslationException {
+        Validate.notNull(repo, "Repo object must not be null.");
+        Validate.notNull(jaxb, "JAXB object must not be null.");
+
+//        jaxb.setId(Long.toString(repo.getContainerId()));
+//        try {
+//            jaxb.setAccountConstruction(RUtil.toJAXB(repo.getAccountConstruction(), AccountConstructionType.class, prismContext));
+//        } catch (Exception ex) {
+//            throw new DtoTranslationException(ex.getMessage(), ex);
+//        }
+//
+//        com.evolveum.midpoint.repo.sql.data.common.RActivationType activation = repo.getActivation();
+//        if (activation != null) {
+//            jaxb.setActivation(activation.toJAXB(prismContext));
+//        }
+//
+//        AnyContainer extension = repo.getExtension();
+//        if (extension != null) {
+//            jaxb.setExtension(extension.toJAXB(prismContext));
+//        }
+//
+//        if (repo.getTargetRef() != null) {
+//            jaxb.setTargetRef(repo.getTargetRef().toJAXB(prismContext));
+//        }
+    }
+
+    public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, PrismContext prismContext) throws
+            DtoTranslationException {
+        Validate.notNull(repo, "Repo object must not be null.");
+        Validate.notNull(jaxb, "JAXB object must not be null.");
+
+//        repo.setContainerId(com.evolveum.midpoint.repo.sql.data.common.RUtil.getLongFromString(jaxb.getId()));
+//
+//        try {
+//            repo.setAccountConstruction(RUtil.toRepo(jaxb.getAccountConstruction(), prismContext));
+//        } catch (Exception ex) {
+//            throw new DtoTranslationException(ex.getMessage(), ex);
+//        }
+//
+//        if (jaxb.getActivation() != null) {
+//            com.evolveum.midpoint.repo.sql.data.common.RActivationType activation = new com.evolveum.midpoint.repo.sql.data.common.RActivationType();
+//            com.evolveum.midpoint.repo.sql.data.common.RActivationType.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
+//            repo.setActivation(activation);
+//        }
+//
+//        if (jaxb.getExtension() != null) {
+//            AnyContainer extension = new AnyContainer();
+//            AnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
+//            repo.setExtension(extension);
+//        }
+//
+//        if (jaxb.getTarget() != null) {
+//            LOGGER.warn("Target from assignment type won't be saved. It should be translated to target reference.");
+//        }
+//
+//        repo.setTargetRef(RUtil.jaxbRefToRepo(jaxb.getTargetRef(), jaxb.getId(), prismContext));
+    }
+
+    public AssignmentType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+        AssignmentType object = new AssignmentType();
+        RAssignment.copyToJAXB(this, object, prismContext);
+        return object;
     }
 }

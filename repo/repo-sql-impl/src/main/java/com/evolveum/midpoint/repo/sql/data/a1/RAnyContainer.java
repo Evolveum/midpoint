@@ -21,6 +21,10 @@
 
 package com.evolveum.midpoint.repo.sql.data.a1;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
+import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
@@ -29,15 +33,11 @@ import java.io.Serializable;
 import java.util.Set;
 
 /**
- * Created by IntelliJ IDEA.
- * User: lazyman
- * Date: 3/12/12
- * Time: 7:12 PM
- * To change this template use File | Settings | File Templates.
+ * @author lazyman
  */
 @Entity
 @Table(name = "any")
-public class AnyContainer implements Serializable {
+public class RAnyContainer implements Serializable {
 
     private Container owner;
     private String ownerOid;
@@ -45,9 +45,9 @@ public class AnyContainer implements Serializable {
     private RContainerType ownerType;
 
     private Set<StringValue> strings;
-    private Set<LongValue> longs;
-    private Set<DateValue> dates;
-    private Set<ClobValue> clobs;
+    private Set<RLongValue> longs;
+    private Set<RDateValue> dates;
+    private Set<RClobValue> clobs;
 
     @Transient
     public Container getOwner() {
@@ -84,7 +84,7 @@ public class AnyContainer implements Serializable {
     @CollectionTable(name = "any_long", joinColumns =
             {@JoinColumn(name = "owner_oid"), @JoinColumn(name = "owner_id"), @JoinColumn(name = "ownerType")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<LongValue> getLongs() {
+    public Set<RLongValue> getLongs() {
         return longs;
     }
 
@@ -102,7 +102,7 @@ public class AnyContainer implements Serializable {
     @CollectionTable(name = "any_clob", joinColumns =
             {@JoinColumn(name = "owner_oid"), @JoinColumn(name = "owner_id"), @JoinColumn(name = "ownerType")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<ClobValue> getClobs() {
+    public Set<RClobValue> getClobs() {
         return clobs;
     }
 
@@ -111,7 +111,7 @@ public class AnyContainer implements Serializable {
     @CollectionTable(name = "any_date", joinColumns =
             {@JoinColumn(name = "owner_oid"), @JoinColumn(name = "owner_id"), @JoinColumn(name = "ownerType")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<DateValue> getDates() {
+    public Set<RDateValue> getDates() {
         return dates;
     }
 
@@ -119,15 +119,15 @@ public class AnyContainer implements Serializable {
         this.ownerType = ownerType;
     }
 
-    public void setClobs(Set<ClobValue> clobs) {
+    public void setClobs(Set<RClobValue> clobs) {
         this.clobs = clobs;
     }
 
-    public void setDates(Set<DateValue> dates) {
+    public void setDates(Set<RDateValue> dates) {
         this.dates = dates;
     }
 
-    public void setLongs(Set<LongValue> longs) {
+    public void setLongs(Set<RLongValue> longs) {
         this.longs = longs;
     }
 
@@ -145,5 +145,28 @@ public class AnyContainer implements Serializable {
 
     public void setOwner(Container owner) {
         this.owner = owner;
+    }
+
+    public static void copyToJAXB(RAnyContainer repo, ExtensionType jaxb, PrismContext prismContext) throws
+            DtoTranslationException {
+        Validate.notNull(repo, "Repo object must not be null.");
+        Validate.notNull(jaxb, "JAXB object must not be null.");
+
+        //todo
+    }
+
+    public static void copyFromJAXB(ExtensionType jaxb, RAnyContainer repo, PrismContext prismContext) throws
+            DtoTranslationException {
+        Validate.notNull(repo, "Repo object must not be null.");
+        Validate.notNull(jaxb, "JAXB object must not be null.");
+
+        //todo
+    }
+
+    public ExtensionType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+        ExtensionType extension = new ExtensionType();
+        RAnyContainer.copyToJAXB(this, extension, prismContext);
+
+        return extension;
     }
 }

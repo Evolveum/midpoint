@@ -21,29 +21,40 @@
 
 package com.evolveum.midpoint.repo.sql.data.a1;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Set;
 
 /**
- * Created by IntelliJ IDEA.
- * User: lazyman
- * Date: 3/12/12
- * Time: 6:54 PM
- * To change this template use File | Settings | File Templates.
+ * @author lazyman
  */
 @Entity
 @Table(name = "user")
 @ForeignKey(name = "fk_user")
-public class User extends O {
+public class User extends RObjectType {
 
     private String fullName;
+    private String givenName;
+    private String familyName;
+    private Set<String> additionalNames;
+    private String honorificPrefix;
+    private String honorificSuffix;
+    private Set<String> emailAddress;
+    private Set<String> telephoneNumber;
+    private String employeeNumber;
+    private Set<String> employeeType;
+    private Set<String> organizationalUnit;
+    private String locality;
+    private RCredentialsType credentials;
+    private RActivationType activation;
+
     private Set<Reference> accountRefs;
-    private Set<Assignment> assignments;
+    private Set<RAssignment> assignments;
 
     @OneToMany(mappedBy = "owner")
     @ForeignKey(name = "none")
@@ -55,15 +66,162 @@ public class User extends O {
     @OneToMany(mappedBy = "owner")
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<Assignment> getAssignments() {
+    public Set<RAssignment> getAssignments() {
         return assignments;
+    }
+
+    @Embedded
+    public RActivationType getActivation() {
+        if (activation == null) {
+            activation = new RActivationType();
+        }
+        return activation;
+    }
+
+    @ElementCollection
+    @ForeignKey(name = "fk_user_additional_name")
+    @CollectionTable(name = "user_additional_name", joinColumns = {
+            @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
+            @JoinColumn(name = "user_id", referencedColumnName = "id")
+    })
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<String> getAdditionalNames() {
+        return additionalNames;
+    }
+
+    @Embedded
+    public RCredentialsType getCredentials() {
+        if (credentials == null) {
+            credentials = new RCredentialsType();
+        }
+        return credentials;
+    }
+
+    @ElementCollection
+    @ForeignKey(name = "fk_user_email_address")
+    @CollectionTable(name = "user_email_address", joinColumns = {
+            @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
+            @JoinColumn(name = "user_id", referencedColumnName = "id")
+    })
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<String> getEmailAddress() {
+        return emailAddress;
+    }
+
+    @ElementCollection
+    @ForeignKey(name = "fk_user_org_unit")
+    @CollectionTable(name = "user_organizational_unit", joinColumns = {
+            @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
+            @JoinColumn(name = "user_id", referencedColumnName = "id")
+    })
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<String> getOrganizationalUnit() {
+        return organizationalUnit;
+    }
+
+    @ElementCollection
+    @ForeignKey(name = "fk_user_telephone_number")
+    @CollectionTable(name = "user_telephone_number", joinColumns = {
+            @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
+            @JoinColumn(name = "user_id", referencedColumnName = "id")
+    })
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<String> getTelephoneNumber() {
+        return telephoneNumber;
+    }
+
+    @ElementCollection
+    @ForeignKey(name = "fk_user_employee_type")
+    @CollectionTable(name = "user_employee_type", joinColumns = {
+            @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
+            @JoinColumn(name = "user_id", referencedColumnName = "id")
+    })
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<String> getEmployeeType() {
+        return employeeType;
+    }
+
+    public String getEmployeeNumber() {
+        return employeeNumber;
+    }
+
+    public String getFamilyName() {
+        return familyName;
+    }
+
+    public String getGivenName() {
+        return givenName;
+    }
+
+    public String getHonorificPrefix() {
+        return honorificPrefix;
+    }
+
+    public String getHonorificSuffix() {
+        return honorificSuffix;
+    }
+
+    public String getLocality() {
+        return locality;
     }
 
     public String getFullName() {
         return fullName;
     }
 
-    public void setAssignments(Set<Assignment> assignments) {
+    public void setActivation(RActivationType activation) {
+        this.activation = activation;
+    }
+
+    public void setAdditionalNames(Set<String> additionalNames) {
+        this.additionalNames = additionalNames;
+    }
+
+    public void setCredentials(RCredentialsType credentials) {
+        this.credentials = credentials;
+    }
+
+    public void setEmailAddress(Set<String> emailAddress) {
+        this.emailAddress = emailAddress;
+    }
+
+    public void setEmployeeNumber(String employeeNumber) {
+        this.employeeNumber = employeeNumber;
+    }
+
+    public void setEmployeeType(Set<String> employeeType) {
+        this.employeeType = employeeType;
+    }
+
+    public void setFamilyName(String familyName) {
+        this.familyName = familyName;
+    }
+
+    public void setGivenName(String givenName) {
+        this.givenName = givenName;
+    }
+
+    public void setHonorificPrefix(String honorificPrefix) {
+        this.honorificPrefix = honorificPrefix;
+    }
+
+    public void setHonorificSuffix(String honorificSuffix) {
+        this.honorificSuffix = honorificSuffix;
+    }
+
+    public void setLocality(String locality) {
+        this.locality = locality;
+    }
+
+    public void setOrganizationalUnit(Set<String> organizationalUnit) {
+        this.organizationalUnit = organizationalUnit;
+    }
+
+    public void setTelephoneNumber(Set<String> telephoneNumber) {
+        this.telephoneNumber = telephoneNumber;
+    }
+
+    public void setAssignments(Set<RAssignment> assignments) {
         this.assignments = assignments;
     }
 
@@ -73,5 +231,101 @@ public class User extends O {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public static void copyFromJAXB(UserType jaxb, User repo, PrismContext prismContext) throws
+            DtoTranslationException {
+        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
+
+//        repo.setFullName(jaxb.getFullName());
+//        repo.setGivenName(jaxb.getGivenName());
+//        repo.setFamilyName(jaxb.getFamilyName());
+//        repo.setHonorificPrefix(jaxb.getHonorificPrefix());
+//        repo.setHonorificSuffix(jaxb.getHonorificSuffix());
+//        repo.setEmployeeNumber(jaxb.getEmployeeNumber());
+//        repo.setLocality(jaxb.getLocality());
+//
+//        RActivationType activation = new RActivationType();
+//        if (jaxb.getActivation() != null) {
+//            RActivationType.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
+//        }
+//        repo.setActivation(activation);
+//        RCredentialsType credentials = new RCredentialsType();
+//        if (jaxb.getCredentials() != null) {
+//            RCredentialsType.copyFromJAXB(jaxb.getCredentials(), credentials, prismContext);
+//        }
+//        repo.setCredentials(credentials);
+//
+//        //sets
+//        repo.setAdditionalNames(RUtil.listToSet(jaxb.getAdditionalNames()));
+//        repo.setEmailAddress(RUtil.listToSet(jaxb.getEmailAddress()));
+//        repo.setEmployeeType(RUtil.listToSet(jaxb.getEmployeeType()));
+//        repo.setOrganizationalUnit(RUtil.listToSet(jaxb.getOrganizationalUnit()));
+//        repo.setTelephoneNumber(RUtil.listToSet(jaxb.getTelephoneNumber()));
+//
+//        if (jaxb.getAccountRef() != null && !jaxb.getAccountRef().isEmpty()) {
+//            repo.setAccountRef(new HashSet<Reference>());
+//        }
+//        for (ObjectReferenceType accountRef : jaxb.getAccountRef()) {
+//            repo.getAccountRef().add(RUtil.jaxbRefToRepo(accountRef, jaxb, prismContext));
+//        }
+//
+//        for (AssignmentType assignment : jaxb.getAssignment()) {
+//            assignment rAssignment = new RAssignmentType();
+//            RAssignmentType.copyFromJAXB(assignment, rAssignment, prismContext);
+//
+//            repo.getAssignment().add(rAssignment);
+//        }
+    }
+
+    public static void copyToJAXB(User repo, UserType jaxb, PrismContext prismContext) throws
+            DtoTranslationException {
+        RObjectType.copyToJAXB(repo, jaxb, prismContext);
+
+//        jaxb.setFullName(repo.getFullName());
+//        jaxb.setGivenName(repo.getGivenName());
+//        jaxb.setFamilyName(repo.getFamilyName());
+//        jaxb.setHonorificPrefix(repo.getHonorificPrefix());
+//        jaxb.setHonorificSuffix(repo.getHonorificSuffix());
+//        jaxb.setEmployeeNumber(repo.getEmployeeNumber());
+//        jaxb.setLocality(repo.getLocality());
+//
+//        if (repo.getActivation() != null) {
+//            ActivationType activation = new ActivationType();
+//            RActivationType.copyToJAXB(repo.getActivation(), activation, prismContext);
+//            jaxb.setActivation(activation);
+//        }
+//
+//        if (repo.getCredentials() != null) {
+//            CredentialsType credentials = new CredentialsType();
+//            RCredentialsType.copyToJAXB(repo.getCredentials(), credentials, prismContext);
+//            jaxb.setCredentials(credentials);
+//        }
+//
+//        jaxb.getAdditionalNames().addAll(RUtil.safeSetToList(repo.getAdditionalNames()));
+//        jaxb.getEmailAddress().addAll(RUtil.safeSetToList(repo.getEMailAddress()));
+//        jaxb.getEmployeeType().addAll(RUtil.safeSetToList(repo.getEmployeeType()));
+//        jaxb.getTelephoneNumber().addAll(RUtil.safeSetToList(repo.getTelephoneNumber()));
+//        jaxb.getOrganizationalUnit().addAll(RUtil.safeSetToList(repo.getOrganizationalUnit()));
+//
+//        if (repo.getAccountRef() != null) {
+//            for (RObjectReferenceType repoRef : repo.getAccountRef()) {
+//                jaxb.getAccountRef().add(repoRef.toJAXB(prismContext));
+//            }
+//        }
+//
+//        if (repo.getAssignment() != null) {
+//            for (RAssignmentType rAssignment : repo.getAssignment()) {
+//                jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
+//            }
+//        }
+    }
+
+    @Override
+    public UserType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+        UserType object = new UserType();
+        User.copyToJAXB(this, object, prismContext);
+        RUtil.revive(object.asPrismObject(), UserType.class, prismContext);
+        return object;
     }
 }

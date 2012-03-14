@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.sql.data.a1.Container;
 import com.evolveum.midpoint.repo.sql.data.a1.Ownable;
+import com.evolveum.midpoint.repo.sql.data.a1.RObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
@@ -41,7 +42,7 @@ public class OidGenerator implements IdentifierGenerator {
         Container container = null;
         if (object instanceof Ownable) {
             container = ((Ownable) object).getContainerOwner();
-        } else if (object instanceof com.evolveum.midpoint.repo.sql.data.a1.O) {
+        } else if (object instanceof RObjectType) {
             container = (Container) object;
         }
 

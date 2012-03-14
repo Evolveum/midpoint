@@ -21,6 +21,9 @@
 
 package com.evolveum.midpoint.repo.sql.data.a1;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Columns;
 import org.hibernate.annotations.ForeignKey;
@@ -28,21 +31,18 @@ import org.hibernate.annotations.ForeignKey;
 import javax.persistence.*;
 import javax.xml.namespace.QName;
 
+
 /**
- * Created by IntelliJ IDEA.
- * User: lazyman
- * Date: 3/12/12
- * Time: 10:07 PM
- * To change this template use File | Settings | File Templates.
+ * @author lazyman
  */
 @Entity
 @Table(name = "resource_shadow")
 @ForeignKey(name = "fk_resource_object_shadow")
-public class ResourceObjectShadow extends O {
+public class ResourceObjectShadow extends RObjectType {
 
     private QName objectClass;
     //attributes
-    private AnyContainer attributes;
+    private RAnyContainer attributes;
 
     @Columns(columns = {
             @Column(name = "class_namespace"),
@@ -61,11 +61,11 @@ public class ResourceObjectShadow extends O {
             @JoinColumn(name = "attrType", referencedColumnName = "ownerType")
     })
 
-    public AnyContainer getAttributes() {
+    public RAnyContainer getAttributes() {
         return attributes;
     }
 
-    public void setAttributes(AnyContainer attributes) {
+    public void setAttributes(RAnyContainer attributes) {
         this.attributes = attributes;
         if (attributes != null) {
             attributes.setOwnerType(RContainerType.RESOURCE_OBJECT_SHADOW);
@@ -74,5 +74,62 @@ public class ResourceObjectShadow extends O {
 
     public void setObjectClass(QName objectClass) {
         this.objectClass = objectClass;
+    }
+
+    public static void copyToJAXB(ResourceObjectShadow repo, ResourceObjectShadowType jaxb,
+            PrismContext prismContext) throws DtoTranslationException {
+        RObjectType.copyToJAXB(repo, jaxb, prismContext);
+
+//        jaxb.setAttemptNumber(repo.getAttemptNumber());
+//        jaxb.setObjectClass(repo.getObjectClass());
+//        jaxb.setFailedOperationType(repo.getFailedOperationType());
+//
+//        if (repo.getOpResult() != null) {
+//            jaxb.setResult(repo.getOpResult().toJAXB(prismContext));
+//        }
+//        if (repo.getResourceRef() != null) {
+//            jaxb.setResourceRef(repo.getResourceRef().toJAXB(prismContext));
+//        }
+//
+//        try {
+//            jaxb.setObjectChange(RUtil.toJAXB(repo.getObjectChange(), ObjectChangeType.class, prismContext));
+//        } catch (Exception ex) {
+//            throw new DtoTranslationException(ex.getMessage(), ex);
+//        }
+
+        //todo implement attributes
+    }
+
+    public static void copyFromJAXB(ResourceObjectShadowType jaxb, ResourceObjectShadow repo,
+            PrismContext prismContext) throws DtoTranslationException {
+        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
+
+//        if (jaxb.getResource() != null) {
+//            LOGGER.warn("Resource from resource object shadow type won't be saved. It should be " +
+//                    "translated to resource reference.");
+//        }
+//
+//        repo.setAttemptNumber(jaxb.getAttemptNumber());
+//        repo.setObjectClass(jaxb.getObjectClass());
+//        repo.setFailedOperationType(jaxb.getFailedOperationType());
+//
+//        repo.setResourceRef(RUtil.jaxbRefToRepo(jaxb.getResourceRef(), jaxb, prismContext));
+//        repo.setOpResult(RUtil.jaxbResultToRepo(repo, jaxb.getResult(), prismContext));
+//
+//        try {
+//            repo.setObjectChange(RUtil.toRepo(jaxb.getObjectChange(), prismContext));
+//        } catch (Exception ex) {
+//            throw new DtoTranslationException(ex.getMessage(), ex);
+//        }
+
+        //todo implement attributes
+    }
+
+    @Override
+    public ResourceObjectShadowType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+        ResourceObjectShadowType object = new ResourceObjectShadowType();
+        ResourceObjectShadow.copyToJAXB(this, object, prismContext);
+        RUtil.revive(object.asPrismObject(), ResourceObjectShadowType.class, prismContext);
+        return object;
     }
 }

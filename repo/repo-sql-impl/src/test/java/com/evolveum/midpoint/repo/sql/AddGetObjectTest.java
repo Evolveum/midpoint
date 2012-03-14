@@ -66,7 +66,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void a() {
-        Session session =null;
+        Session session = null;
 
         Statistics stats = factory.getStatistics();
         stats.setStatisticsEnabled(true);
@@ -75,7 +75,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 
         long previousCycle = 0;
 
-        int cycles = 100;
+        int cycles = 1;
         long time = System.currentTimeMillis();
         for (int i = 0; i < cycles; i++) {
             if (i % 100 == 0) {
@@ -92,18 +92,18 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
             User user = new User();
             user.setFullName("connector reference target");
 
-            Set<Assignment> aset = new HashSet<Assignment>();
-            Assignment a = new Assignment();
+            Set<RAssignment> aset = new HashSet<RAssignment>();
+            RAssignment a = new RAssignment();
             a.setAccountConstruction("a1");
             a.setOwner(user);
             aset.add(a);
-            a = new Assignment();
+            a = new RAssignment();
             a.setAccountConstruction("a2");
             a.setOwner(user);
             aset.add(a);
             user.setAssignments(aset);
 
-            AnyContainer userExt = new AnyContainer();
+            RAnyContainer userExt = new RAnyContainer();
             userExt.setOwner(a);
             a.setExtension(userExt);
             Set<StringValue> userStrings = new HashSet<StringValue>();
@@ -116,7 +116,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
             Reference reference = new Reference();
             reference.setOwner(connector);
             reference.setTarget(user);
-            connector.setConnectorRef(reference);
+            connector.setConnectorHostRef(reference);
 
             //refs
             Set<Reference> accountRefs = new HashSet<Reference>();
@@ -130,54 +130,54 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
             accountRefs.add(reference);
             user.setAccountRefs(accountRefs);
             //extensions
-            AnyContainer value = new AnyContainer();
+            RAnyContainer value = new RAnyContainer();
             value.setOwner(user);
             user.setExtension(value);
             Set<StringValue> strings = new HashSet<StringValue>();
             strings.add(new StringValue(new QName("name namespace", "loc"), null, "str1"));
             strings.add(new StringValue(null, new QName("name namespace", "loc"), "str1"));
             value.setStrings(strings);
-            Set<LongValue> longs = new HashSet<LongValue>();
-            longs.add(new LongValue(123L));
-            longs.add(new LongValue(456L));
+            Set<RLongValue> longs = new HashSet<RLongValue>();
+            longs.add(new RLongValue(123L));
+            longs.add(new RLongValue(456L));
             value.setLongs(longs);
-            Set<DateValue> dates = new HashSet<DateValue>();
+            Set<RDateValue> dates = new HashSet<RDateValue>();
             value.setDates(dates);
-            dates.add(new DateValue(new Date()));
+            dates.add(new RDateValue(new Date()));
 
             ResourceObjectShadow shadow = new ResourceObjectShadow();
             shadow.setObjectClass(new QName("object class", "local"));
             //extension
-            AnyContainer extension = new AnyContainer();
+            RAnyContainer extension = new RAnyContainer();
             extension.setOwner(shadow);
             shadow.setExtension(extension);
             strings = new HashSet<StringValue>();
             strings.add(new StringValue(null, null, "ext1"));
             strings.add(new StringValue(null, null, "ext2"));
             extension.setStrings(strings);
-            dates = new HashSet<DateValue>();
+            dates = new HashSet<RDateValue>();
             extension.setDates(dates);
-            dates.add(new DateValue(new Date()));
+            dates.add(new RDateValue(new Date()));
             //attributes
-            AnyContainer attributes = new AnyContainer();
+            RAnyContainer attributes = new RAnyContainer();
             attributes.setOwner(shadow);
             shadow.setAttributes(attributes);
             strings = new HashSet<StringValue>();
             strings.add(new StringValue(null, null, "attr1"));
             strings.add(new StringValue(null, null, "attr2"));
             attributes.setStrings(strings);
-            dates = new HashSet<DateValue>();
+            dates = new HashSet<RDateValue>();
             attributes.setDates(dates);
-            dates.add(new DateValue(new Date()));
+            dates.add(new RDateValue(new Date()));
 
             session = open();
             session.save(connector0);
             close(session);
-            
+
             session = open();
             session.save(connector1);
             close(session);
-            
+
             session = open();
             session.save(user);
             close(session);
@@ -189,7 +189,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
             session = open();
             session.save(shadow);
             close(session);
-            
+
             if (0.1 < Math.random()) {
                 oid = shadow.getOid();
             }
@@ -208,13 +208,13 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 
         stats.logSummary();
     }
-    
+
     private Session open() {
         Session session = factory.openSession();
         session.beginTransaction();
         return session;
     }
-    
+
     private void close(Session session) {
         session.getTransaction().commit();
         session.close();

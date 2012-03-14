@@ -22,13 +22,12 @@
 package com.evolveum.midpoint.repo.sql.data.a1;
 
 /**
- * Created by IntelliJ IDEA.
- * User: lazyman
- * Date: 3/13/12
- * Time: 8:03 PM
- * To change this template use File | Settings | File Templates.
+ * @author lazyman
  */
 public interface Ownable {
-    
+
+    /**
+     * @return todo
+     */
     Container getContainerOwner();
 }

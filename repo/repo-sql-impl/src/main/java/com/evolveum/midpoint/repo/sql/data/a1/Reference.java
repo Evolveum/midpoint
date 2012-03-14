@@ -21,29 +21,36 @@
 
 package com.evolveum.midpoint.repo.sql.data.a1;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.ForeignKey;
+import org.w3c.dom.Element;
 
 import javax.persistence.*;
 import java.io.Serializable;
 
 /**
- * Created by IntelliJ IDEA.
- * User: lazyman
- * Date: 3/12/12
- * Time: 7:07 PM
- * To change this template use File | Settings | File Templates.
+ * @author lazyman
  */
 @Entity
 @Table(name = "reference")
 public class Reference implements Serializable {
 
+    //owner
     private Container owner;
-    private Container target;
-
     private String ownerOid;
     private Long ownerId;
+    //target
+    private Container target;
     private String targetOid;
     private Long targetId;
+    //other fields
+    private String description;
+    private String filter;
+//    private QName type; //todo for reference types create only enum of qnames (register table or something)
 
     @ForeignKey(name = "fk_reference_owner")
     @MapsId("owner")
@@ -103,6 +110,22 @@ public class Reference implements Serializable {
         return targetOid;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public String getFilter() {
+        return filter;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setFilter(String filter) {
+        this.filter = filter;
+    }
+
     public void setTarget(Container target) {
         this.target = target;
     }
@@ -152,5 +175,37 @@ public class Reference implements Serializable {
 //        result = 31 * result + (targetId != null ? targetId.hashCode() : 0);
 //        return result;
         return 31;
+    }
+
+    public static void copyToJAXB(Reference repo, ObjectReferenceType jaxb, PrismContext prismContext) {
+        Validate.notNull(repo, "Repo object must not be null.");
+        Validate.notNull(jaxb, "JAXB object must not be null.");
+
+        String filter = repo.getFilter();
+        if (StringUtils.isNotEmpty(filter)) {
+            Element element = DOMUtil.parseDocument(filter).getDocumentElement();
+            jaxb.setFilter(element);
+        }
+//        jaxb.setType(repo.getType()); //todo type as above
+        jaxb.setDescription(repo.getDescription());
+    }
+
+    public static void copyFromJAXB(ObjectReferenceType jaxb, Reference repo, PrismContext prismContext) {
+        Validate.notNull(repo, "Repo object must not be null.");
+        Validate.notNull(jaxb, "JAXB object must not be null.");
+
+        repo.setDescription(jaxb.getDescription());
+//        repo.setType(jaxb.getType());     //todo type as above
+
+        if (jaxb.getFilter() != null) {
+            repo.setFilter(DOMUtil.printDom(jaxb.getFilter()).toString());
+        }
+    }
+
+    public ObjectReferenceType toJAXB(PrismContext prismContext) {
+        ObjectReferenceType ref = new ObjectReferenceType();
+        copyToJAXB(this, ref, prismContext);
+
+        return ref;
     }
 }
