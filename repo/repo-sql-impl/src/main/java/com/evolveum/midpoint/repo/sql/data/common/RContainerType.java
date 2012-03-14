@@ -22,14 +22,33 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 /**
- * Created by IntelliJ IDEA.
- * User: lazyman
- * Date: 3/12/12
- * Time: 7:03 PM
- * To change this template use File | Settings | File Templates.
+ * @author lazyman
  */
 public enum RContainerType {
 
-    //todo...
-    OBJECT, RESOURCE_OBJECT_SHADOW, ASSIGNMENT//, EXTENSION, USER, ROLE;
+    ASSIGNMENT(RAssignmentType.class),
+
+    ACCOUNT(RAccountShadowType.class),
+    CONNECTOR(RConnectorType.class),
+    CONNECTOR_HOST(RConnectorHostType.class),
+    GENERIC_OBJECT(RGenericObjectType.class),
+    OBJECT(RObjectType.class),
+    PASSWORD_POLICY(RPasswordPolicyType.class),
+    RESOURCE(RResourceType.class),
+    RESOURCE_OBJECT_SHADOW(RResourceObjectShadowType.class),
+    ROLE(RRoleType.class),
+    SYSTEM_CONFIGURATION(RSystemConfigurationType.class),
+    TASK(RTaskType.class),
+    USER(RUserType.class),
+    USER_TEMPLATE(RUserTemplateType.class);
+
+    private Class<? extends RContainer> clazz;
+
+    private RContainerType(Class<? extends RContainer> clazz) {
+        this.clazz = clazz;
+    }
+
+    public Class<? extends RContainer> getClazz() {
+        return clazz;
+    }
 }

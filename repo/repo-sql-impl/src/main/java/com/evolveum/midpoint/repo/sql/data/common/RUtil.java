@@ -41,12 +41,15 @@ import org.w3c.dom.Element;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
  * @author lazyman
  */
 public final class RUtil {
+
+    private static final QName CUSTOM_OBJECT = new QName("http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd", "sqlRepoObject");
 
     private RUtil() {
     }
@@ -73,16 +76,12 @@ public final class RUtil {
         return element.getValue();
     }
 
-    public static <T> String toRepo(T value, PrismContext prismContext) throws SchemaException {
+    public static <T> String toRepo(T value, PrismContext prismContext) throws SchemaException, JAXBException {
         if (value == null) {
             return null;
         }
 
         PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put(Marshaller.JAXB_FORMATTED_OUTPUT, false);
-
         if (value instanceof Objectable) {
             return domProcessor.serializeObjectToString(((Objectable) value).asPrismObject());
         }
@@ -92,8 +91,10 @@ public final class RUtil {
                     createFakeParentElement());
         }
 
-        throw new IllegalArgumentException("Couldn't serialize value '"
-                + value.getClass().getSimpleName() + "' to xml string.");
+        Map<String, Object> properties = new HashMap<String, Object>();
+        properties.put(Marshaller.JAXB_FORMATTED_OUTPUT, false);
+        return prismContext.getPrismJaxbProcessor().marshalElementToString(
+                new JAXBElement<Object>(CUSTOM_OBJECT, Object.class, value), properties);
     }
 
     private static Element createFakeParentElement() {
@@ -137,7 +138,8 @@ public final class RUtil {
 //        Validate.notEmpty(ownerId, "Owner oid of reference must not be null.");
 
         RObjectReferenceType result = new RObjectReferenceType();
-//        result.setOwner(ownerId);
+//        result.setOwnerOid(ownerId);
+//        result.setOwnerId(0L);
         RObjectReferenceType.copyFromJAXB(ref, result, prismContext);
 
         return result;

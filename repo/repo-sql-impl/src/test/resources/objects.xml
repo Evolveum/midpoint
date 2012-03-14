@@ -72,7 +72,7 @@
         <activation>
             <enabled>true</enabled>
         </activation>
-        <!--<accountRef oid="1234" />-->
+        <accountRef oid="1234" />
     </object>
 
     <resource>

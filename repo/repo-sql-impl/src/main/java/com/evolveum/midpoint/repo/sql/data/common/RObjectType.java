@@ -30,6 +30,7 @@ import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 
@@ -61,6 +62,7 @@ public abstract class RObjectType extends RContainer {
         return extension;
     }
 
+    @Type(type = "org.hibernate.type.TextType")
     public String getDescription() {
         return description;
     }

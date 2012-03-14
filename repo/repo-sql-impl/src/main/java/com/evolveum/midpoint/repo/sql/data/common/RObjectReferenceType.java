@@ -22,11 +22,13 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.ClassMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Type;
 import org.w3c.dom.Element;
 
 import javax.persistence.*;
@@ -50,7 +52,7 @@ public class RObjectReferenceType implements Serializable {
     //other fields
     private String description;
     private String filter;
-//    private QName type; //todo for reference types create only enum of qnames (register table or something)
+    private RContainerType type;
 
     @ForeignKey(name = "fk_reference_owner")
     @MapsId("owner")
@@ -110,12 +112,22 @@ public class RObjectReferenceType implements Serializable {
         return targetOid;
     }
 
+    @Type(type = "org.hibernate.type.TextType")
     public String getDescription() {
         return description;
     }
 
+    @Enumerated(EnumType.ORDINAL)
+    public RContainerType getType() {
+        return type;
+    }
+
     public String getFilter() {
         return filter;
+    }
+
+    public void setType(RContainerType type) {
+        this.type = type;
     }
 
     public void setDescription(String description) {
@@ -181,13 +193,15 @@ public class RObjectReferenceType implements Serializable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
+        jaxb.setDescription(repo.getDescription());
+        jaxb.setType(ClassMapper.getQNameForHQLType(repo.getType()));
+        jaxb.setOid(repo.getTargetOid());
+
         String filter = repo.getFilter();
         if (StringUtils.isNotEmpty(filter)) {
             Element element = DOMUtil.parseDocument(filter).getDocumentElement();
             jaxb.setFilter(element);
         }
-//        jaxb.setType(repo.getType()); //todo type as above
-        jaxb.setDescription(repo.getDescription());
     }
 
     public static void copyFromJAXB(ObjectReferenceType jaxb, RObjectReferenceType repo, PrismContext prismContext) {
@@ -195,7 +209,10 @@ public class RObjectReferenceType implements Serializable {
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
         repo.setDescription(jaxb.getDescription());
-//        repo.setType(jaxb.getType());     //todo type as above
+        repo.setType(ClassMapper.getHQLTypeForQName(jaxb.getType()));
+
+        repo.setTargetId(0L);
+        repo.setTargetOid(jaxb.getOid());
 
         if (jaxb.getFilter() != null) {
             repo.setFilter(DOMUtil.printDom(jaxb.getFilter()).toString());
