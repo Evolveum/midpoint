@@ -570,7 +570,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     }
 
     private void cleanupSessionAndResult(Session session, OperationResult result) {
-        if (session != null) {
+        if (session != null && session.isOpen()) {
             session.close();
         }
 

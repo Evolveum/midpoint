@@ -39,24 +39,17 @@ import java.util.Set;
 @Table(name = "any")
 public class AnyContainer implements Serializable {
 
-    private RContainerType ownerType;
-
     private Container owner;
     private String ownerOid;
     private Long ownerId;
+    private RContainerType ownerType;
 
     private Set<StringValue> strings;
     private Set<LongValue> longs;
     private Set<DateValue> dates;
     private Set<ClobValue> clobs;
 
-    @ForeignKey(name = "fk_reference_owner")
-    @MapsId("owner")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @PrimaryKeyJoinColumns({
-            @PrimaryKeyJoinColumn(name = "owner_oid", referencedColumnName = "ownerOid"),
-            @PrimaryKeyJoinColumn(name = "owner_id", referencedColumnName = "id")
-    })
+    @Transient
     public Container getOwner() {
         return owner;
     }

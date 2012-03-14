@@ -21,11 +21,10 @@
 
 package com.evolveum.midpoint.repo.sql.data.a1;
 
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 
 /**
  * Created by IntelliJ IDEA.
@@ -43,49 +42,17 @@ public abstract class O extends Container {
     private String description;
     private AnyContainer extension;
 
-//    private String extOid;
-//    private Long extId;
-//    private RContainerType extType;
-
-    @OneToOne(optional = true, mappedBy = "owner")
+    @ManyToOne(optional = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-//    @PrimaryKeyJoinColumns({
-//            @PrimaryKeyJoinColumn(name = "oid", referencedColumnName = "owner_oid"),
-//            @PrimaryKeyJoinColumn(name = "id", referencedColumnName = "owner_id"),
-//            @PrimaryKeyJoinColumn(name="extType", referencedColumnName = "ownerType")
-//    })
+    @JoinColumns({
+            @JoinColumn(name = "extOid", referencedColumnName = "owner_oid"),
+            @JoinColumn(name = "extId", referencedColumnName = "owner_id"),
+            @JoinColumn(name = "extType", referencedColumnName = "ownerType")
+    })
     public AnyContainer getExtension() {
         return extension;
     }
-
-//    @Column(name = "anyId")
-//    public Long getExtId() {
-//        return extId;
-//    }
-//
-//    @Column(name = "anyOid", length = 36)
-//    public String getExtOid() {
-//        return extOid;
-//    }
-//
-//    @Column(name = "anyType")
-//    @Enumerated(EnumType.ORDINAL)
-//    public RContainerType getExtType() {
-//        return extType;
-//    }
-//
-//    public void setExtId(Long extId) {
-//        this.extId = extId;
-//    }
-//
-//    public void setExtOid(String extOid) {
-//        this.extOid = extOid;
-//    }
-//
-//    public void setExtType(RContainerType extType) {
-//        this.extType = extType;
-//    }
 
     public String getDescription() {
         return description;

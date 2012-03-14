@@ -50,14 +50,14 @@
         <property name="hibernateProperties">
             <props>
                 <prop key="hibernate.dialect">#{sqlRepositoryFactory.sqlConfiguration.hibernateDialect}</prop>
-                <prop key="hibernate.show_sql">true</prop>
-                <prop key="hibernate.format_sql">true</prop>
+                <!--<prop key="hibernate.show_sql">true</prop>-->
+                <!--<prop key="hibernate.format_sql">true</prop>-->
                 <prop key="hibernate.hbm2ddl.auto">#{sqlRepositoryFactory.sqlConfiguration.hibernateHbm2ddl}</prop>
                 <prop key="hibernate.id.new_generator_mappings">true</prop>
                 <!-- connection pool -->
                 <prop key="hibernate.c3p0.min_size">5</prop>
                 <prop key="hibernate.c3p0.max_size">20</prop>
-                <prop key="hibernate.c3p0.timeout">300</prop>
+                <prop key="hibernate.c3p0.timeout">0</prop>
                 <prop key="hibernate.c3p0.max_statements">50</prop>
                 <prop key="hibernate.c3p0.idle_test_period">3000</prop>
             </props>

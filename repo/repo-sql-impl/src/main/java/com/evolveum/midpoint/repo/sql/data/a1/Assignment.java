@@ -51,9 +51,9 @@ public class Assignment extends Container implements Ownable {
     @ForeignKey(name = "fk_assignment_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
-    @PrimaryKeyJoinColumns({
-            @PrimaryKeyJoinColumn(name = "oid", referencedColumnName = "ownerOid"),
-            @PrimaryKeyJoinColumn(name = "owner_id", referencedColumnName = "id")
+    @JoinColumns({
+            @JoinColumn(name = "oid", referencedColumnName = "oid"),
+            @JoinColumn(name = "owner_id", referencedColumnName = "id")
     })
     public O getOwner() {
         return owner;
@@ -81,9 +81,14 @@ public class Assignment extends Container implements Ownable {
         return ownerOid;
     }
 
-    @OneToOne(optional = true, mappedBy = "owner")
+    @ManyToOne(optional = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @PrimaryKeyJoinColumns({
+            @PrimaryKeyJoinColumn(name = "extOid", referencedColumnName = "owner_oid"),
+            @PrimaryKeyJoinColumn(name = "extId", referencedColumnName = "owner_id"),
+            @PrimaryKeyJoinColumn(name = "extType", referencedColumnName = "ownerType")
+    })
     public AnyContainer getExtension() {
         return extension;
     }

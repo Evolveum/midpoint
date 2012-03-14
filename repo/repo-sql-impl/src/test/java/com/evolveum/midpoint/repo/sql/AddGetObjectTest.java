@@ -26,14 +26,17 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.a1.*;
+import com.evolveum.midpoint.repo.sql.data.a1.StringValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Objects;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.stat.Statistics;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -63,206 +66,158 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void a() {
+        Session session =null;
+
+        Statistics stats = factory.getStatistics();
+        stats.setStatisticsEnabled(true);
+
+        String oid = null;
+
+        long previousCycle = 0;
+
+        int cycles = 100;
+        long time = System.currentTimeMillis();
+        for (int i = 0; i < cycles; i++) {
+            if (i % 100 == 0) {
+                LOGGER.info("Previous cycle time {}. Next cycle: {}", new Object[]{(System.currentTimeMillis() - time - previousCycle), i});
+                previousCycle = System.currentTimeMillis() - time;
+            }
+
+            Connector connector0 = new Connector();
+            connector0.setName("connector0");
+            connector0.setFramework("framework");
+            Connector connector1 = new Connector();
+            connector1.setName("connector1");
+
+            User user = new User();
+            user.setFullName("connector reference target");
+
+            Set<Assignment> aset = new HashSet<Assignment>();
+            Assignment a = new Assignment();
+            a.setAccountConstruction("a1");
+            a.setOwner(user);
+            aset.add(a);
+            a = new Assignment();
+            a.setAccountConstruction("a2");
+            a.setOwner(user);
+            aset.add(a);
+            user.setAssignments(aset);
+
+            AnyContainer userExt = new AnyContainer();
+            userExt.setOwner(a);
+            a.setExtension(userExt);
+            Set<StringValue> userStrings = new HashSet<StringValue>();
+            userExt.setStrings(userStrings);
+            userStrings.add(new StringValue(null, null, "ass ext"));
+
+            Connector connector = new Connector();
+            connector.setName("connector");
+            connector.setFramework("framework");
+            Reference reference = new Reference();
+            reference.setOwner(connector);
+            reference.setTarget(user);
+            connector.setConnectorRef(reference);
+
+            //refs
+            Set<Reference> accountRefs = new HashSet<Reference>();
+            reference = new Reference();
+            reference.setOwner(user);
+            reference.setTarget(connector0);
+            accountRefs.add(reference);
+            reference = new Reference();
+            reference.setOwner(user);
+            reference.setTarget(connector1);
+            accountRefs.add(reference);
+            user.setAccountRefs(accountRefs);
+            //extensions
+            AnyContainer value = new AnyContainer();
+            value.setOwner(user);
+            user.setExtension(value);
+            Set<StringValue> strings = new HashSet<StringValue>();
+            strings.add(new StringValue(new QName("name namespace", "loc"), null, "str1"));
+            strings.add(new StringValue(null, new QName("name namespace", "loc"), "str1"));
+            value.setStrings(strings);
+            Set<LongValue> longs = new HashSet<LongValue>();
+            longs.add(new LongValue(123L));
+            longs.add(new LongValue(456L));
+            value.setLongs(longs);
+            Set<DateValue> dates = new HashSet<DateValue>();
+            value.setDates(dates);
+            dates.add(new DateValue(new Date()));
+
+            ResourceObjectShadow shadow = new ResourceObjectShadow();
+            shadow.setObjectClass(new QName("object class", "local"));
+            //extension
+            AnyContainer extension = new AnyContainer();
+            extension.setOwner(shadow);
+            shadow.setExtension(extension);
+            strings = new HashSet<StringValue>();
+            strings.add(new StringValue(null, null, "ext1"));
+            strings.add(new StringValue(null, null, "ext2"));
+            extension.setStrings(strings);
+            dates = new HashSet<DateValue>();
+            extension.setDates(dates);
+            dates.add(new DateValue(new Date()));
+            //attributes
+            AnyContainer attributes = new AnyContainer();
+            attributes.setOwner(shadow);
+            shadow.setAttributes(attributes);
+            strings = new HashSet<StringValue>();
+            strings.add(new StringValue(null, null, "attr1"));
+            strings.add(new StringValue(null, null, "attr2"));
+            attributes.setStrings(strings);
+            dates = new HashSet<DateValue>();
+            attributes.setDates(dates);
+            dates.add(new DateValue(new Date()));
+
+            session = open();
+            session.save(connector0);
+            close(session);
+            
+            session = open();
+            session.save(connector1);
+            close(session);
+            
+            session = open();
+            session.save(user);
+            close(session);
+
+            session = open();
+            session.save(connector);
+            close(session);
+
+            session = open();
+            session.save(shadow);
+            close(session);
+            
+            if (0.1 < Math.random()) {
+                oid = shadow.getOid();
+            }
+        }
+        LOGGER.info("I did {} cycles ({} objects) in {} ms.", new Object[]{cycles, (cycles * 5), (System.currentTimeMillis() - time)});
+
+        if (oid != null) {
+            session = open();
+            Query query = session.createQuery("from ResourceObjectShadow as s where s.oid = :oid");
+            query.setString("oid", oid);
+            ResourceObjectShadow shadow = (ResourceObjectShadow) query.uniqueResult();
+
+            LOGGER.info("shadow\n{}", ReflectionToStringBuilder.toString(shadow));
+            session.close();
+        }
+
+        stats.logSummary();
+    }
+    
+    private Session open() {
         Session session = factory.openSession();
-
-//        Connector connector0 = new Connector();
-//        connector0.setName("connector0");
-//        connector0.setFramework("framework");
-//        Connector connector1 = new Connector();
-//        connector1.setName("connector1");
-
-        User user = new User();
-        user.setFullName("connector reference target");
-        
-        Set<Assignment> aset = new HashSet<Assignment>();
-        Assignment a = new Assignment();
-        a.setAccountConstruction("a1");
-        a.setOwner(user);
-        aset.add(a);
-        a = new Assignment();
-        a.setAccountConstruction("a2");
-        a.setOwner(user);
-        aset.add(a);
-        user.setAssignments(aset);
-
-        AnyContainer userExt = new AnyContainer();
-        userExt.setOwner(a);
-        a.setExtension(userExt);
-        Set<StringValue> userStrings = new HashSet<StringValue>();
-        userExt.setStrings(userStrings);
-        userStrings.add(new StringValue(null, null, "user ext"));
-//
-//        Connector connector = new Connector();
-//        connector.setName("connector");
-//        connector.setFramework("framework");
-//        Reference reference = new Reference();
-//        reference.setOwner(connector);
-//        reference.setTarget(user);
-//        connector.setConnectorRef(reference);
-//
-//        //refs
-//        Set<Reference> accountRefs = new HashSet<Reference>();
-//        reference = new Reference();
-//        reference.setOwner(user);
-//        reference.setTarget(connector0);
-//        accountRefs.add(reference);
-//        reference = new Reference();
-//        reference.setOwner(user);
-//        reference.setTarget(connector1);
-//        accountRefs.add(reference);
-//        user.setAccountRefs(accountRefs);
-//        //extensions
-//        AnyContainer value = new AnyContainer();
-//        value.setOwner(user);
-//        user.setExtension(value);
-//        Set<StringValue> strings = new HashSet<StringValue>();
-//        strings.add(new StringValue(new QName("name namespace", "loc"), null, "str1"));
-//        strings.add(new StringValue(null, new QName("name namespace", "loc"), "str1"));
-//        value.setStrings(strings);
-//        Set<LongValue> longs = new HashSet<LongValue>();
-//        longs.add(new LongValue(123L));
-//        longs.add(new LongValue(456L));
-//        value.setLongs(longs);
-//        Set<DateValue> dates = new HashSet<DateValue>();
-//        value.setDates(dates);
-//        dates.add(new DateValue(new Date()));
-
-        ResourceObjectShadow shadow = new ResourceObjectShadow();
-        shadow.setObjectClass(new QName("object class", "local"));
-        //extension
-        AnyContainer extension = new AnyContainer();
-        extension.setOwner(shadow);
-        shadow.setExtension(extension);
-        Set<StringValue> strings = new HashSet<StringValue>();
-        strings.add(new StringValue(null, null, "ext1"));
-        strings.add(new StringValue(null, null, "ext2"));
-        extension.setStrings(strings);
-        Set<DateValue> dates = new HashSet<DateValue>();
-        extension.setDates(dates);
-        dates.add(new DateValue(new Date()));
-        //attributes
-//        AnyContainer attributes = new AnyContainer();
-//        attributes.setOwner(shadow);
-//        shadow.setAttributes(attributes);
-//        strings = new HashSet<StringValue>();
-//        strings.add(new StringValue(null, null, "attr1"));
-//        strings.add(new StringValue(null, null, "attr2"));
-//        attributes.setStrings(strings);
-//        dates = new HashSet<DateValue>();
-//        attributes.setDates(dates);
-//        dates.add(new DateValue(new Date()));
-
         session.beginTransaction();
-//        session.save(connector0);
-//        session.save(connector1);
-        session.save(user);
-//        session.save(connector);
-//        session.save(shadow);
+        return session;
+    }
+    
+    private void close(Session session) {
         session.getTransaction().commit();
-
-        String oid = shadow.getOid();
         session.close();
-        session = factory.openSession();
-        session.beginTransaction();
-        Query query = session.createQuery("from ResourceObjectShadow as s where s.oid = :oid");
-        query.setString("oid", oid);
-        shadow = (ResourceObjectShadow) query.uniqueResult();
-        session.getTransaction().commit();
-
-        System.out.println("shadow");
-        //a0 tests
-//        User user = new User();
-//        user.setFullName("user name");
-//        Set<Assignment> aset = new HashSet<Assignment>();
-//        user.setAssignments(aset);
-//
-//        Assignment a0 = new Assignment();
-//        a0.setOwner(user);
-//        a0.setDescription("a0");
-//        aset.add(a0);
-//        Set<ExtensionValue> eset = new HashSet<ExtensionValue>();
-//        a0.setExtensions(eset);
-//        ExtensionValue e0 = new ExtensionValue();
-//        e0.setObject(a0);
-//        e0.setValue("a0-0");
-//        eset.add(e0);
-//        e0 = new ExtensionValue();
-//        e0.setObject(a0);
-//        e0.setValue("a0-1");
-//        eset.add(e0);
-//
-//        a0 = new Assignment();
-//        a0.setOwner(user);
-//        a0.setDescription("a1");
-//        aset.add(a0);
-//        eset = new HashSet<ExtensionValue>();
-//        a0.setExtensions(eset);
-//        e0 = new ExtensionValue();
-//        e0.setObject(a0);
-//        e0.setValue("a1-0");
-//        eset.add(e0);
-//
-//        session.beginTransaction();
-//        session.saveOrUpdate(user);
-//        session.getTransaction().commit();
-//        session.close();
-
-        //atest test
-//        A0 a0= new A0();
-//        Set<A1> set = new HashSet<A1>();
-//        a0.setAset(set);
-//        a0.setValue("a0");
-//        
-//        A1s a1 = new A1s();
-//
-//        a1.setOwner(a0);
-//        a1.setValue("a1-1");
-//        set.add(a1);
-//
-//        A1c a1c = new A1c();
-//        a1.setOwner(a0);
-//        a1.setValue("a1-2");
-//        set.add(a1);
-//        
-//        session.beginTransaction();
-//        session.saveOrUpdate(a0);
-//        session.getTransaction().commit();
-//        session.close();
-
-//        R r = new R();
-//        Set<A> aset = new HashSet<A>();
-//        r.setAset(aset);
-//
-//        A a = new A();
-//        a.setValue("a1");
-//        a.setR(r);
-//        Set<E> eset = new HashSet<E>();
-////        a.setEset(eset);
-//        E e = new E();
-//        e.setValue("e1");
-//        eset.add(e);
-//        e = new E();
-//        e.setValue("e2");
-//        eset.add(e);
-//        aset.add(a);
-//
-//        a = new A();
-//        a.setValue("a2");
-//        a.setR(r);
-//        eset = new HashSet<E>();
-////        a.setEset(eset);
-//        e = new E();
-//        e.setValue("e3");
-//        eset.add(e);
-//        e = new E();
-//        e.setValue("e4");
-//        eset.add(e);
-//        aset.add(a);
-//
-//        session.beginTransaction();
-//        session.save(r);
-//        session.getTransaction().commit();
-//        session.close();
     }
 
     //    @Test

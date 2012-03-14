@@ -25,10 +25,7 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Columns;
 import org.hibernate.annotations.ForeignKey;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.xml.namespace.QName;
 
 /**
@@ -44,6 +41,7 @@ import javax.xml.namespace.QName;
 public class ResourceObjectShadow extends O {
 
     private QName objectClass;
+    //attributes
     private AnyContainer attributes;
 
     @Columns(columns = {
@@ -54,8 +52,15 @@ public class ResourceObjectShadow extends O {
         return objectClass;
     }
 
-    @OneToOne(optional = true, mappedBy = "owner")
+    @OneToOne(optional = true)
+    @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @JoinColumns({
+            @JoinColumn(name = "attrOid", referencedColumnName = "owner_oid"),
+            @JoinColumn(name = "attrId", referencedColumnName = "owner_id"),
+            @JoinColumn(name = "attrType", referencedColumnName = "ownerType")
+    })
+
     public AnyContainer getAttributes() {
         return attributes;
     }

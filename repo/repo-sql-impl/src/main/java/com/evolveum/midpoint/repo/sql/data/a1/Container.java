@@ -53,7 +53,7 @@ public abstract class Container implements Serializable {
     @Id
     @GeneratedValue(generator = "OidGenerator")
     @GenericGenerator(name = "OidGenerator", strategy = "com.evolveum.midpoint.repo.sql.OidGenerator")
-    @Column(nullable = false, updatable = false, length = 36)
+    @Column(name="oid", nullable = false, updatable = false, length = 36)
     public String getOid() {
         return oid;
     }

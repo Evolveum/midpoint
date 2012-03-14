@@ -57,8 +57,6 @@ public class ContainerIdGenerator implements IdentifierGenerator {
             }
         }
 
-        //todo assignment get parent also extesion, resource swhadow attributes
-
         return null;
     }
 

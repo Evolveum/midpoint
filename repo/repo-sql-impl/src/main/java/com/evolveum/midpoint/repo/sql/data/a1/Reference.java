@@ -49,7 +49,7 @@ public class Reference implements Serializable {
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({
-            @PrimaryKeyJoinColumn(name = "owner_oid", referencedColumnName = "ownerOid"),
+            @PrimaryKeyJoinColumn(name = "owner_oid", referencedColumnName = "oid"),
             @PrimaryKeyJoinColumn(name = "owner_id", referencedColumnName = "id")
     })
     public Container getOwner() {
@@ -60,7 +60,7 @@ public class Reference implements Serializable {
     @MapsId("target")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({
-            @PrimaryKeyJoinColumn(name = "target_oid", referencedColumnName = "ownerOid"),
+            @PrimaryKeyJoinColumn(name = "target_oid", referencedColumnName = "oid"),
             @PrimaryKeyJoinColumn(name = "target_id", referencedColumnName = "id")
     })
     public Container getTarget() {
