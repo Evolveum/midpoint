@@ -124,8 +124,12 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 		if (propertyDefinition == null) {
 			throw new IllegalArgumentException("No definition for "+propertyName+" in "+objectDefinition);
 		}
-		PropertyDelta delta = new PropertyDelta(propertyName, propertyDefinition);
+		PropertyDelta<Object> delta = new PropertyDelta<Object>(propertyName, propertyDefinition);
 		Collection<PrismPropertyValue<Object>> valuesToReplace = delta.getValuesToReplace();
+		if (valuesToReplace == null) {
+			valuesToReplace = new HashSet<PrismPropertyValue<Object>>();
+			delta.setValuesToReplace(valuesToReplace);
+		}
 		for (Object realVal: realValues) {
 			valuesToReplace.add(new PrismPropertyValue<Object>(realVal));
 		}
@@ -144,6 +148,16 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 		PropertyDelta delta = new PropertyDelta(propertyName, propertyDefinition);
 		return delta;
 	}
+	
+	public static <O extends Objectable> PropertyDelta<?> createReplaceDeltaOrEmptyDelta(PrismObjectDefinition<O> objectDefinition,
+			QName propertyName, Object realValue) {
+		
+		if (realValue != null)
+			return createReplaceDelta(objectDefinition, propertyName, realValue);
+		else
+			return createReplaceEmptyDelta(objectDefinition, propertyName);
+	}
+
 
     public boolean isRealValueToAdd(PrismPropertyValue<?> value) {
         if (valuesToAdd == null) {
@@ -238,5 +252,6 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     	}
     	return null;
     }
+
 
 }
