@@ -138,12 +138,12 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         RUserType user = new RUserType();
         user.setFullName("connector reference target");
         //assignment
-        Set<RAssignment> aset = new HashSet<RAssignment>();
-        RAssignment a = new RAssignment();
+        Set<RAssignmentType> aset = new HashSet<RAssignmentType>();
+        RAssignmentType a = new RAssignmentType();
         a.setAccountConstruction("a1");
         a.setOwner(user);
         aset.add(a);
-        a = new RAssignment();
+        a = new RAssignmentType();
         a.setAccountConstruction("a2");
         a.setOwner(user);
         aset.add(a);
@@ -258,7 +258,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         long time = System.currentTimeMillis();
         for (int i = 0; i < elements.size(); i++) {
             PrismObject object = elements.get(i);
-//            prismContext.adopt(object);
+            LOGGER.info("Adding object {}, type {}", new Object[]{(i + 1), object.getCompileTimeClass().getSimpleName()});
             oids.add(repositoryService.addObject(object, result));
         }
         LOGGER.info("Time to add objects ({}): {}", new Object[]{elements.size(), (System.currentTimeMillis() - time),});
@@ -268,7 +268,6 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         for (int i = 0; i < elements.size(); i++) {
             PrismObject object = elements.get(i);
             object.asObjectable().setOid(oids.get(i));
-//            prismContext.adopt(object);
 
             Class<? extends ObjectType> clazz = object.getCompileTimeClass();
             PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), null, result);

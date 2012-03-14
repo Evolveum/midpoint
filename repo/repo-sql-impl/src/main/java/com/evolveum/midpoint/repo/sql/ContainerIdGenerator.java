@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.repo.sql.data.common.RAssignment;
+import com.evolveum.midpoint.repo.sql.data.common.RAssignmentType;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.RRoleType;
 import com.evolveum.midpoint.repo.sql.data.common.RUserType;
@@ -45,8 +45,8 @@ public class ContainerIdGenerator implements IdentifierGenerator {
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
         if (object instanceof RObjectType) {
             return 0L;
-        } else if (object instanceof RAssignment) {
-            RAssignment assignment = (RAssignment) object;
+        } else if (object instanceof RAssignmentType) {
+            RAssignmentType assignment = (RAssignmentType) object;
             RObjectType o = assignment.getOwner();
             if (o instanceof RUserType) {
                 RUserType user = (RUserType) o;
@@ -60,9 +60,9 @@ public class ContainerIdGenerator implements IdentifierGenerator {
         return null;
     }
 
-    private Long getNextId(Set<RAssignment> set) {
+    private Long getNextId(Set<RAssignmentType> set) {
         Long id = 0L;
-        for (RAssignment assignment : set) {
+        for (RAssignmentType assignment : set) {
             if (assignment.getId() != null && assignment.getId() > id) {
                 id = assignment.getId();
             }

@@ -23,12 +23,13 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -55,7 +56,7 @@ public class RUserType extends RObjectType {
     private RActivationType activation;
 
     private Set<RObjectReferenceType> accountRefs;
-    private Set<RAssignment> assignments;
+    private Set<RAssignmentType> assignments;
 
     @OneToMany(mappedBy = "owner")
     @ForeignKey(name = "none")
@@ -67,7 +68,7 @@ public class RUserType extends RObjectType {
     @OneToMany(mappedBy = "owner")
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAssignment> getAssignments() {
+    public Set<RAssignmentType> getAssignments() {
         return assignments;
     }
 
@@ -227,7 +228,7 @@ public class RUserType extends RObjectType {
         this.telephoneNumber = telephoneNumber;
     }
 
-    public void setAssignments(Set<RAssignment> assignments) {
+    public void setAssignments(Set<RAssignmentType> assignments) {
         this.assignments = assignments;
     }
 
@@ -243,88 +244,91 @@ public class RUserType extends RObjectType {
             DtoTranslationException {
         RObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
-//        repo.setFullName(jaxb.getFullName());
-//        repo.setGivenName(jaxb.getGivenName());
-//        repo.setFamilyName(jaxb.getFamilyName());
-//        repo.setHonorificPrefix(jaxb.getHonorificPrefix());
-//        repo.setHonorificSuffix(jaxb.getHonorificSuffix());
-//        repo.setEmployeeNumber(jaxb.getEmployeeNumber());
-//        repo.setLocality(jaxb.getLocality());
-//
-//        RActivationType activation = new RActivationType();
-//        if (jaxb.getActivation() != null) {
-//            RActivationType.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
-//        }
-//        repo.setActivation(activation);
-//        RCredentialsType credentials = new RCredentialsType();
-//        if (jaxb.getCredentials() != null) {
-//            RCredentialsType.copyFromJAXB(jaxb.getCredentials(), credentials, prismContext);
-//        }
-//        repo.setCredentials(credentials);
-//
-//        //sets
-//        repo.setAdditionalNames(RUtil.listToSet(jaxb.getAdditionalNames()));
-//        repo.setEmailAddress(RUtil.listToSet(jaxb.getEmailAddress()));
-//        repo.setEmployeeType(RUtil.listToSet(jaxb.getEmployeeType()));
-//        repo.setOrganizationalUnit(RUtil.listToSet(jaxb.getOrganizationalUnit()));
-//        repo.setTelephoneNumber(RUtil.listToSet(jaxb.getTelephoneNumber()));
-//
-//        if (jaxb.getAccountRef() != null && !jaxb.getAccountRef().isEmpty()) {
-//            repo.setAccountRef(new HashSet<Reference>());
-//        }
-//        for (ObjectReferenceType accountRef : jaxb.getAccountRef()) {
-//            repo.getAccountRef().add(RUtil.jaxbRefToRepo(accountRef, jaxb, prismContext));
-//        }
-//
-//        for (AssignmentType assignment : jaxb.getAssignment()) {
-//            assignment rAssignment = new RAssignmentType();
-//            RAssignmentType.copyFromJAXB(assignment, rAssignment, prismContext);
-//
-//            repo.getAssignment().add(rAssignment);
-//        }
+        repo.setFullName(jaxb.getFullName());
+        repo.setGivenName(jaxb.getGivenName());
+        repo.setFamilyName(jaxb.getFamilyName());
+        repo.setHonorificPrefix(jaxb.getHonorificPrefix());
+        repo.setHonorificSuffix(jaxb.getHonorificSuffix());
+        repo.setEmployeeNumber(jaxb.getEmployeeNumber());
+        repo.setLocality(jaxb.getLocality());
+
+        RActivationType activation = new RActivationType();
+        if (jaxb.getActivation() != null) {
+            RActivationType.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
+        }
+        repo.setActivation(activation);
+        RCredentialsType credentials = new RCredentialsType();
+        if (jaxb.getCredentials() != null) {
+            RCredentialsType.copyFromJAXB(jaxb.getCredentials(), credentials, prismContext);
+        }
+        repo.setCredentials(credentials);
+
+        //sets
+        repo.setAdditionalNames(RUtil.listToSet(jaxb.getAdditionalNames()));
+        repo.setEmailAddress(RUtil.listToSet(jaxb.getEmailAddress()));
+        repo.setEmployeeType(RUtil.listToSet(jaxb.getEmployeeType()));
+        repo.setOrganizationalUnit(RUtil.listToSet(jaxb.getOrganizationalUnit()));
+        repo.setTelephoneNumber(RUtil.listToSet(jaxb.getTelephoneNumber()));
+
+        if (jaxb.getAccountRef() != null && !jaxb.getAccountRef().isEmpty()) {
+            repo.setAccountRefs(new HashSet<RObjectReferenceType>());
+        }
+        for (ObjectReferenceType accountRef : jaxb.getAccountRef()) {
+            repo.getAccountRefs().add(RUtil.jaxbRefToRepo(accountRef, jaxb, prismContext));
+        }
+
+        if (jaxb.getAssignment() != null && !jaxb.getAssignment().isEmpty()) {
+            repo.setAssignments(new HashSet<RAssignmentType>());
+        }
+        for (AssignmentType assignment : jaxb.getAssignment()) {
+            RAssignmentType rAssignment = new RAssignmentType();
+            RAssignmentType.copyFromJAXB(assignment, rAssignment, prismContext);
+
+            repo.getAssignments().add(rAssignment);
+        }
     }
 
     public static void copyToJAXB(RUserType repo, UserType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
         RObjectType.copyToJAXB(repo, jaxb, prismContext);
 
-//        jaxb.setFullName(repo.getFullName());
-//        jaxb.setGivenName(repo.getGivenName());
-//        jaxb.setFamilyName(repo.getFamilyName());
-//        jaxb.setHonorificPrefix(repo.getHonorificPrefix());
-//        jaxb.setHonorificSuffix(repo.getHonorificSuffix());
-//        jaxb.setEmployeeNumber(repo.getEmployeeNumber());
-//        jaxb.setLocality(repo.getLocality());
-//
-//        if (repo.getActivation() != null) {
-//            ActivationType activation = new ActivationType();
-//            RActivationType.copyToJAXB(repo.getActivation(), activation, prismContext);
-//            jaxb.setActivation(activation);
-//        }
-//
-//        if (repo.getCredentials() != null) {
-//            CredentialsType credentials = new CredentialsType();
-//            RCredentialsType.copyToJAXB(repo.getCredentials(), credentials, prismContext);
-//            jaxb.setCredentials(credentials);
-//        }
-//
-//        jaxb.getAdditionalNames().addAll(RUtil.safeSetToList(repo.getAdditionalNames()));
-//        jaxb.getEmailAddress().addAll(RUtil.safeSetToList(repo.getEMailAddress()));
-//        jaxb.getEmployeeType().addAll(RUtil.safeSetToList(repo.getEmployeeType()));
-//        jaxb.getTelephoneNumber().addAll(RUtil.safeSetToList(repo.getTelephoneNumber()));
-//        jaxb.getOrganizationalUnit().addAll(RUtil.safeSetToList(repo.getOrganizationalUnit()));
-//
-//        if (repo.getAccountRef() != null) {
-//            for (RObjectReferenceType repoRef : repo.getAccountRef()) {
-//                jaxb.getAccountRef().add(repoRef.toJAXB(prismContext));
-//            }
-//        }
-//
-//        if (repo.getAssignment() != null) {
-//            for (RAssignmentType rAssignment : repo.getAssignment()) {
-//                jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
-//            }
-//        }
+        jaxb.setFullName(repo.getFullName());
+        jaxb.setGivenName(repo.getGivenName());
+        jaxb.setFamilyName(repo.getFamilyName());
+        jaxb.setHonorificPrefix(repo.getHonorificPrefix());
+        jaxb.setHonorificSuffix(repo.getHonorificSuffix());
+        jaxb.setEmployeeNumber(repo.getEmployeeNumber());
+        jaxb.setLocality(repo.getLocality());
+
+        if (repo.getActivation() != null) {
+            ActivationType activation = new ActivationType();
+            RActivationType.copyToJAXB(repo.getActivation(), activation, prismContext);
+            jaxb.setActivation(activation);
+        }
+
+        if (repo.getCredentials() != null) {
+            CredentialsType credentials = new CredentialsType();
+            RCredentialsType.copyToJAXB(repo.getCredentials(), credentials, prismContext);
+            jaxb.setCredentials(credentials);
+        }
+
+        jaxb.getAdditionalNames().addAll(RUtil.safeSetToList(repo.getAdditionalNames()));
+        jaxb.getEmailAddress().addAll(RUtil.safeSetToList(repo.getEmailAddress()));
+        jaxb.getEmployeeType().addAll(RUtil.safeSetToList(repo.getEmployeeType()));
+        jaxb.getTelephoneNumber().addAll(RUtil.safeSetToList(repo.getTelephoneNumber()));
+        jaxb.getOrganizationalUnit().addAll(RUtil.safeSetToList(repo.getOrganizationalUnit()));
+
+        if (repo.getAccountRefs() != null) {
+            for (RObjectReferenceType repoRef : repo.getAccountRefs()) {
+                jaxb.getAccountRef().add(repoRef.toJAXB(prismContext));
+            }
+        }
+
+        if (repo.getAssignments() != null) {
+            for (RAssignmentType rAssignment : repo.getAssignments()) {
+                jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
+            }
+        }
     }
 
     @Override

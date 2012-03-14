@@ -26,10 +26,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.data.common.RObjectType;
-import com.evolveum.midpoint.repo.sql.data.common.RResourceObjectShadowType;
-import com.evolveum.midpoint.repo.sql.data.common.RTaskType;
-import com.evolveum.midpoint.repo.sql.data.common.RUserType;
+import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.query.QueryProcessor;
 import com.evolveum.midpoint.schema.ResultArrayList;
 import com.evolveum.midpoint.schema.ResultList;
@@ -82,7 +79,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         Session session = null;
         try {
             session = beginTransaction();
-            Query query = session.createQuery("from " + ClassMapper.getHQLType(type) + " o where o.oid = :oid");
+            Query query = session.createQuery("from " + ClassMapper.getHQLType(type) + " o where o.oid = :oid and o.id = 0");
             query.setString("oid", oid);
 
             RObjectType object = (RObjectType) query.uniqueResult();
@@ -241,7 +238,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
             LOGGER.debug("Saving object.");
             session = beginTransaction();
-            oid = (String) session.save(rObject);
+            RContainerId containerId = (RContainerId) session.save(rObject);
+            oid = containerId.getOid();
             session.getTransaction().commit();
 
             LOGGER.debug("Saved object '{}' with oid '{}'", new Object[]{object.getClass().getSimpleName(), oid});

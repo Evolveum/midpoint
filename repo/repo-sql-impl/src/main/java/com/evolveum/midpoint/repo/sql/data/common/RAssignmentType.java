@@ -39,9 +39,9 @@ import javax.persistence.*;
 @Entity
 @Table(name = "assignment")
 @ForeignKey(name = "fk_assignment")
-public class RAssignment extends RContainer implements ROwnable {
+public class RAssignmentType extends RContainer implements ROwnable {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RAssignment.class);
+    private static final Trace LOGGER = TraceManager.getTrace(RAssignmentType.class);
     //owner
     private RObjectType owner;
     private String ownerOid;
@@ -154,7 +154,7 @@ public class RAssignment extends RContainer implements ROwnable {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
-        RAssignment that = (RAssignment) o;
+        RAssignmentType that = (RAssignmentType) o;
 
         if (accountConstruction != null ? !accountConstruction.equals(that.accountConstruction) : that.accountConstruction != null)
             return false;
@@ -175,7 +175,7 @@ public class RAssignment extends RContainer implements ROwnable {
         return result;
     }
 
-    public static void copyToJAXB(RAssignment repo, AssignmentType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RAssignmentType repo, AssignmentType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
@@ -202,7 +202,7 @@ public class RAssignment extends RContainer implements ROwnable {
 //        }
     }
 
-    public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, PrismContext prismContext) throws
+    public static void copyFromJAXB(AssignmentType jaxb, RAssignmentType repo, PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
@@ -236,7 +236,7 @@ public class RAssignment extends RContainer implements ROwnable {
 
     public AssignmentType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         AssignmentType object = new AssignmentType();
-        RAssignment.copyToJAXB(this, object, prismContext);
+        RAssignmentType.copyToJAXB(this, object, prismContext);
         return object;
     }
 }

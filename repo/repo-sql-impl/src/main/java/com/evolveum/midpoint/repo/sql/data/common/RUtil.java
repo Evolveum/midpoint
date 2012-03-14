@@ -21,23 +21,26 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.schema.SchemaConstants;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
@@ -70,22 +73,32 @@ public final class RUtil {
         return element.getValue();
     }
 
-    public static <T> String toRepo(T value, PrismContext prismContext) throws JAXBException {
+    public static <T> String toRepo(T value, PrismContext prismContext) throws SchemaException {
         if (value == null) {
             return null;
         }
 
-        PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
 
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put(Marshaller.JAXB_FORMATTED_OUTPUT, false);
 
         if (value instanceof Objectable) {
-            return jaxbProcessor.marshalToString((Objectable) value, properties);
+            return domProcessor.serializeObjectToString(((Objectable) value).asPrismObject());
         }
 
-        return jaxbProcessor.marshalElementToString(new JAXBElement<Object>(new QName(SchemaConstants.NS_COMMON,
-                "rUtilObject"), Object.class, value), properties);
+        if (value instanceof Containerable) {
+            return domProcessor.serializeObjectToString(((Containerable) value).asPrismContainerValue(),
+                    createFakeParentElement());
+        }
+
+        throw new IllegalArgumentException("Couldn't serialize value '"
+                + value.getClass().getSimpleName() + "' to xml string.");
+    }
+
+    private static Element createFakeParentElement() {
+        Document document = DOMUtil.getDocument();
+        return document.createElementNS("http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd", "sqlRepoObject");
     }
 
     public static <T> Set<T> listToSet(List<T> list) {

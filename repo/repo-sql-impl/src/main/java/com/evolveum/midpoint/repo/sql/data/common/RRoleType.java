@@ -44,16 +44,16 @@ import java.util.Set;
 @ForeignKey(name = "fk_role")
 public class RRoleType extends RObjectType {
 
-    private Set<RAssignment> assignments;
+    private Set<RAssignmentType> assignments;
 
     @OneToMany(mappedBy = "owner")
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAssignment> getAssignments() {
+    public Set<RAssignmentType> getAssignments() {
         return assignments;
     }
 
-    public void setAssignments(Set<RAssignment> assignments) {
+    public void setAssignments(Set<RAssignmentType> assignments) {
         this.assignments = assignments;
     }
 

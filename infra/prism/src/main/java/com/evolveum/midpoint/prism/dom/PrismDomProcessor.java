@@ -731,8 +731,22 @@ public class PrismDomProcessor {
 		return domSerializer.serialize(object);
 	}
 
+    public <T extends Containerable> Element serializeToDom(PrismContainerValue<T> object, Element parentElement)
+            throws SchemaException {
+
+        DomSerializer domSerializer = new DomSerializer(getPrismContext());
+        domSerializer.serialize(object, parentElement);
+        return parentElement;
+    }
+
 	public <T extends Objectable> String serializeObjectToString(PrismObject<T> object) throws SchemaException {
 		Element element = serializeToDom(object);
 		return DOMUtil.serializeDOMToString(element);
 	}
+
+    public <T extends Containerable> String serializeObjectToString(PrismContainerValue<T> object, Element parentElement)
+            throws SchemaException {
+        Element element = serializeToDom(object, parentElement);
+        return DOMUtil.serializeDOMToString(element);
+    }
 }

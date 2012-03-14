@@ -34,6 +34,7 @@ import java.io.Serializable;
  * To change this template use File | Settings | File Templates.
  */
 @Entity
+@IdClass(RContainerId.class)
 @Table(name = "container")
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class RContainer implements Serializable {
