@@ -19,13 +19,11 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.repo.sql.data.a1;
+package com.evolveum.midpoint.repo.sql.data.common;
 
 import org.hibernate.annotations.Columns;
 
 import javax.persistence.Column;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.MappedSuperclass;
 import javax.xml.namespace.QName;
 

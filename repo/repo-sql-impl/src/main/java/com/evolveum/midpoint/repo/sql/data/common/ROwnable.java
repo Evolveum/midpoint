@@ -19,17 +19,15 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.repo.sql.data.a1;
+package com.evolveum.midpoint.repo.sql.data.common;
 
 /**
- * Created by IntelliJ IDEA.
- * User: lazyman
- * Date: 3/12/12
- * Time: 7:03 PM
- * To change this template use File | Settings | File Templates.
+ * @author lazyman
  */
-public enum RContainerType {
+public interface ROwnable {
 
-    //todo...
-    OBJECT, RESOURCE_OBJECT_SHADOW, ASSIGNMENT//, EXTENSION, USER, ROLE;
+    /**
+     * @return todo
+     */
+    RContainer getContainerOwner();
 }

@@ -31,7 +31,6 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.lang.reflect.Field;
 
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -57,14 +56,14 @@ public class SpringApplicationContextTest extends AbstractTestNGSpringContextTes
         org.hibernate.cfg.Configuration configuration = new Configuration();
         configuration.setProperties(sessionFactory.getHibernateProperties());
 
-        File dir = new File("./src/main/java/com/evolveum/midpoint/repo/sql/data/a1");//common");
+        File dir = new File("./src/main/java/com/evolveum/midpoint/repo/sql/data/common");
         File[] files = dir.listFiles();
         for (File file : files) {
             if (file.isDirectory() || !file.getName().endsWith("java")) {
                 continue;
             }
-            String className = "com.evolveum.midpoint.repo.sql.data.a1." + file.getName().substring(0, file.getName().length() - 5);//common." + file.getName().substring(0, file.getName().length() - 5);
-            System.out.println(className);
+            String className = "com.evolveum.midpoint.repo.sql.data.common."
+                    + file.getName().substring(0, file.getName().length() - 5);
             configuration.addAnnotatedClass(Class.forName(className));
         }
 

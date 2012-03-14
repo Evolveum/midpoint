@@ -19,37 +19,17 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.repo.sql.data.a1;
-
-import javax.persistence.Embeddable;
-import javax.xml.namespace.QName;
+package com.evolveum.midpoint.repo.sql.data.common;
 
 /**
- * @author lazyman
+ * Created by IntelliJ IDEA.
+ * User: lazyman
+ * Date: 3/12/12
+ * Time: 7:03 PM
+ * To change this template use File | Settings | File Templates.
  */
-@Embeddable
-public class RStringValue extends RValue {
+public enum RContainerType {
 
-    private String value;
-
-    public RStringValue() {
-    }
-
-    public RStringValue(String value) {
-        this(null, null, value);
-    }
-
-    public RStringValue(QName name, QName type, String value) {
-        setName(name);
-        setType(type);
-        setValue(value);
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
+    //todo...
+    OBJECT, RESOURCE_OBJECT_SHADOW, ASSIGNMENT//, EXTENSION, USER, ROLE;
 }

@@ -21,9 +21,9 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.repo.sql.data.a1.RContainer;
-import com.evolveum.midpoint.repo.sql.data.a1.ROwnable;
-import com.evolveum.midpoint.repo.sql.data.a1.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.RContainer;
+import com.evolveum.midpoint.repo.sql.data.common.ROwnable;
+import com.evolveum.midpoint.repo.sql.data.common.RObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;

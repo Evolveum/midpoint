@@ -19,15 +19,37 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.repo.sql.data.a1;
+package com.evolveum.midpoint.repo.sql.data.common;
+
+import javax.persistence.Embeddable;
+import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
  */
-public interface ROwnable {
+@Embeddable
+public class RStringValue extends RValue {
 
-    /**
-     * @return todo
-     */
-    RContainer getContainerOwner();
+    private String value;
+
+    public RStringValue() {
+    }
+
+    public RStringValue(String value) {
+        this(null, null, value);
+    }
+
+    public RStringValue(QName name, QName type, String value) {
+        setName(name);
+        setType(type);
+        setValue(value);
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
 }

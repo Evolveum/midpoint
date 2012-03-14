@@ -21,10 +21,10 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.repo.sql.data.a1.RAssignment;
-import com.evolveum.midpoint.repo.sql.data.a1.RObjectType;
-import com.evolveum.midpoint.repo.sql.data.a1.RRoleType;
-import com.evolveum.midpoint.repo.sql.data.a1.RUserType;
+import com.evolveum.midpoint.repo.sql.data.common.RAssignment;
+import com.evolveum.midpoint.repo.sql.data.common.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.RRoleType;
+import com.evolveum.midpoint.repo.sql.data.common.RUserType;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.id.IdentifierGenerator;
