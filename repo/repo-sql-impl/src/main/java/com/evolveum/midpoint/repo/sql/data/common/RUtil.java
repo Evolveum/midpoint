@@ -21,22 +21,19 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -70,10 +67,39 @@ public final class RUtil {
             return null;
         }
 
-        PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
-        JAXBElement<T> element = jaxbProcessor.unmarshalElement(value, clazz);
+        Document document = DOMUtil.parseDocument(value);
+        Element root = document.getDocumentElement();
+        Element firstChild = getFirstSubElement(root);
+        if (firstChild == null) {
+            return null;
+        }
 
+        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+        if (Objectable.class.isAssignableFrom(clazz)) {
+            return (T) domProcessor.parseObject(firstChild).asObjectable();
+        } else if (Containerable.class.isAssignableFrom(clazz)) {
+            PrismContainer container = domProcessor.parsePrismContainer(firstChild);
+            return (T) container.getValue().asContainerable(clazz);
+        }
+
+        PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+        JAXBElement<T> element = jaxbProcessor.unmarshalElement(firstChild, clazz);
         return element.getValue();
+    }
+
+    private static Element getFirstSubElement(Element parent) {
+        if (parent == null) {
+            return null;
+        }
+
+        NodeList list = parent.getChildNodes();
+        for (int i = 0; i < list.getLength(); i++) {
+            if (list.item(i).getNodeType() == Node.ELEMENT_NODE) {
+                return (Element) list.item(i);
+            }
+        }
+
+        return null;
     }
 
     public static <T> String toRepo(T value, PrismContext prismContext) throws SchemaException, JAXBException {
@@ -119,43 +145,18 @@ public final class RUtil {
         return list;
     }
 
-    public static RObjectReferenceType jaxbRefToRepo(ObjectReferenceType ref, ObjectType owner,
+    public static RObjectReferenceType jaxbRefToRepo(ObjectReferenceType ref, RContainer owner,
             PrismContext prismContext) {
         if (ref == null) {
             return null;
         }
         Validate.notNull(owner, "Owner of reference must not be null.");
 
-        return jaxbRefToRepo(ref, owner.getOid(), prismContext);
-    }
+        RObjectReferenceType reference = new RObjectReferenceType();
+        reference.setOwner(owner);
+        RObjectReferenceType.copyFromJAXB(ref, reference, prismContext);
 
-    public static RObjectReferenceType jaxbRefToRepo(ObjectReferenceType ref, String ownerId,
-            PrismContext prismContext) {
-        if (ref == null) {
-            return null;
-        }
-//        Validate.notEmpty(ownerId, "Owner oid of reference must not be null.");
-
-        RObjectReferenceType result = new RObjectReferenceType();
-//        result.setOwnerOid(ownerId);
-//        result.setOwnerId(0L);
-        RObjectReferenceType.copyFromJAXB(ref, result, prismContext);
-
-        return result;
-    }
-
-    public static ROperationResultType jaxbResultToRepo(RObjectType owner, OperationResultType result,
-            PrismContext prismContext) throws DtoTranslationException {
-        if (result == null) {
-            return null;
-        }
-
-        ROperationResultType rResult = new ROperationResultType();
-        ROperationResultType.copyFromJAXB(result, rResult, prismContext);
-
-        rResult.setOwner(owner);
-
-        return rResult;
+        return reference;
     }
 
     public static Long getLongWrappedFromString(String text) {

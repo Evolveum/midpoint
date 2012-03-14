@@ -196,10 +196,10 @@ public class RAssignmentType extends RContainer implements ROwnable {
 //        if (extension != null) {
 //            jaxb.setExtension(extension.toJAXB(prismContext));
 //        }
-//
-//        if (repo.getTargetRef() != null) {
-//            jaxb.setTargetRef(repo.getTargetRef().toJAXB(prismContext));
-//        }
+
+        if (repo.getTargetRef() != null) {
+            jaxb.setTargetRef(repo.getTargetRef().toJAXB(prismContext));
+        }
     }
 
     public static void copyFromJAXB(AssignmentType jaxb, RAssignmentType repo, PrismContext prismContext) throws
@@ -231,7 +231,7 @@ public class RAssignmentType extends RContainer implements ROwnable {
 //            LOGGER.warn("Target from assignment type won't be saved. It should be translated to target reference.");
 //        }
 //
-//        repo.setTargetRef(RUtil.jaxbRefToRepo(jaxb.getTargetRef(), jaxb.getId(), prismContext));
+        repo.setTargetRef(RUtil.jaxbRefToRepo(jaxb.getTargetRef(), repo, prismContext));
     }
 
     public AssignmentType toJAXB(PrismContext prismContext) throws DtoTranslationException {

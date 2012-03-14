@@ -162,9 +162,7 @@ public class RConnectorType extends RObjectType {
         repo.setConnectorVersion(jaxb.getConnectorVersion());
         repo.setFramework(jaxb.getFramework());
         repo.setNamespace(jaxb.getNamespace());
-        RObjectReferenceType ref = RUtil.jaxbRefToRepo(jaxb.getConnectorHostRef(), jaxb, prismContext);
-        ref.setOwner(repo);
-        repo.setConnectorHostRef(ref);
+        repo.setConnectorHostRef(RUtil.jaxbRefToRepo(jaxb.getConnectorHostRef(), repo, prismContext));
 
         if (jaxb.getConnectorHost() != null) {
             LOGGER.warn("Connector host from connector type won't be saved. It should be " +

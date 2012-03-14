@@ -123,7 +123,7 @@ public class RSystemConfigurationType extends RObjectType {
                     "translated to user template reference.");
         }
 
-        repo.setDefaultUserTemplateRef(RUtil.jaxbRefToRepo(jaxb.getDefaultUserTemplateRef(), jaxb, prismContext));
+        repo.setDefaultUserTemplateRef(RUtil.jaxbRefToRepo(jaxb.getDefaultUserTemplateRef(), repo, prismContext));
 
         try {
             repo.setConnectorFramework(RUtil.toRepo(jaxb.getConnectorFramework(), prismContext));

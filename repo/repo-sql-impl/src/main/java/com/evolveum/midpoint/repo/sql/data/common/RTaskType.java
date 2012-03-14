@@ -269,8 +269,8 @@ public class RTaskType extends RObjectType {
         repo.setNextRunStartTime(jaxb.getNextRunStartTime());
         repo.setRecurrence(jaxb.getRecurrence());
 
-//        repo.setObjectRef(RUtil.jaxbRefToRepo(jaxb.getObjectRef(), jaxb, prismContext));
-//        repo.setOwnerRef(RUtil.jaxbRefToRepo(jaxb.getOwnerRef(), jaxb, prismContext));
+        repo.setObjectRef(RUtil.jaxbRefToRepo(jaxb.getObjectRef(), repo, prismContext));
+        repo.setOwnerRef(RUtil.jaxbRefToRepo(jaxb.getOwnerRef(), repo, prismContext));
 //        repo.setResult(RUtil.jaxbResultToRepo(repo, jaxb.getResult(), prismContext));
 
         try {
