@@ -117,22 +117,22 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     	}
     	return (P) propertyDefinition.instantiate(getName());
     }
-    
-	public static <O extends Objectable> PropertyDelta createReplaceDelta(PrismObjectDefinition<O> objectDefinition,
+
+    // TODO: the same as createModificationReplaceProperty?
+    public static <O extends Objectable> PropertyDelta createReplaceDelta(PrismObjectDefinition<O> objectDefinition,
 			QName propertyName, Object... realValues) {
 		PrismPropertyDefinition propertyDefinition = objectDefinition.findPropertyDefinition(propertyName);
 		if (propertyDefinition == null) {
 			throw new IllegalArgumentException("No definition for "+propertyName+" in "+objectDefinition);
 		}
-		PropertyDelta<Object> delta = new PropertyDelta<Object>(propertyName, propertyDefinition);
-		Collection<PrismPropertyValue<Object>> valuesToReplace = delta.getValuesToReplace();
-		if (valuesToReplace == null) {
-			valuesToReplace = new HashSet<PrismPropertyValue<Object>>();
-			delta.setValuesToReplace(valuesToReplace);
-		}
+		PropertyDelta delta = new PropertyDelta(propertyName, propertyDefinition);
+		Collection<PrismPropertyValue> valuesToReplace = delta.getValuesToReplace();
+		if (valuesToReplace == null)
+			valuesToReplace = new ArrayList<PrismPropertyValue>(realValues.length);
 		for (Object realVal: realValues) {
-			valuesToReplace.add(new PrismPropertyValue<Object>(realVal));
+			valuesToReplace.add(new PrismPropertyValue(realVal));
 		}
+		delta.setValuesToReplace(valuesToReplace);
 		return delta;
 	}
 
