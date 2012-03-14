@@ -16,7 +16,7 @@
         <fullName>Test UserX00002</fullName>
         <givenName>TestX</givenName>
         <familyName>UserX00002</familyName>
-        <eMailAddress>testuserX00002@example.com</eMailAddress>
+        <emailAddress>testuserX00002@example.com</emailAddress>
         <locality>AreaX 00002</locality>
         <credentials>
             <password>
@@ -49,7 +49,7 @@
         <fullName>Test UserX00003</fullName>
         <givenName>TestX</givenName>
         <familyName>UserX00003</familyName>
-        <eMailAddress>testuserX00003@example.com</eMailAddress>
+        <emailAddress>testuserX00003@example.com</emailAddress>
         <locality>AreaX 00003</locality>
         <credentials>
             <password>
@@ -178,7 +178,7 @@
              This example has a schema definition to show how it looks like and also to
              demonstrate that it can be provided during import if needed. -->
         <schema>
-
+            <definition>
             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
                         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
@@ -321,6 +321,7 @@
                     </xsd:complexContent>
                 </xsd:complexType>
             </xsd:schema>
+            </definition>
         </schema>
 
 
@@ -986,6 +987,7 @@
         <connectorBundle>org.forgerock.openicf.connectors.file.csvfile</connectorBundle>
         <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.file.csvfile/org.forgerock.openicf.csvfile.CSVFileConnector</namespace>
         <schema>
+        <definition>
             <xsd:schema elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.file.csvfile/org.forgerock.openicf.csvfile.CSVFileConnector" xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:gen366="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" xmlns:gen538="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.file.csvfile/org.forgerock.openicf.csvfile.CSVFileConnector">
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"/>
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
@@ -1087,6 +1089,7 @@
                 </xsd:complexType>
                 <xsd:element name="configurationProperties" type="gen538:ConfigurationPropertiesType"/>
             </xsd:schema>
+        </definition>
         </schema>
     </object>
 
