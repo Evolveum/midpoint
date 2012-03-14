@@ -46,6 +46,7 @@ public class SynchronizationTest extends AbstractIntegrationTest {
 	private static final String SYNC_TASK_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final String FILENAME_SYNC_TASK = "src/test/resources/impl/sync-task-example.xml";
 	private static final String LDIF_WILL_FILENAME = "src/test/resources/ucf/will.ldif";
+	private static final String FILENAME_USER_ADMIN = "src/test/resources/impl/admin.xml";
 
 	private ResourceType resource;
 	@Autowired
@@ -92,6 +93,8 @@ public class SynchronizationTest extends AbstractIntegrationTest {
 	public void initSystem(OperationResult initResult) throws Exception {
 		assertNotNull(manager);
 		resource = (ResourceType) addObjectFromFile(FILENAME_RESOURCE_OPENDJ, initResult).asObjectable();
+		//it is needed to declare the task owner, so we add the user admin to the reposiotry
+		addObjectFromFile(FILENAME_USER_ADMIN, initResult);
 		assertNotNull(provisioningService);
 	}
 

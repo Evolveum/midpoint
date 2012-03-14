@@ -373,9 +373,17 @@ public class ShadowCacheUtil {
         for (PrismProperty identifier : identifiers) {
             values.addAll(identifier.serializeToJaxb(doc));
         }
+        
+        //TODO: fix for more than one identifier..The create equal filter must be fixed first..
+        if (values.size() > 1){
+        	throw new UnsupportedOperationException("More than one identifier not supported yet.");
+        }
+        
+        Object identifier = values.get(0);
+        
         Element filter;
         try {
-            filter = QueryUtil.createEqualFilter(doc, xpath, values);
+            filter = QueryUtil.createEqualFilter(doc, xpath, identifier);
         } catch (SchemaException e) {
             parentResult.recordFatalError(e);
             throw e;

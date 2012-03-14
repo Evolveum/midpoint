@@ -788,7 +788,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					PasswordType password = account.getCredentials().getPassword();
 					ProtectedStringType protectedString = password.getProtectedString();
 					GuardedString guardedPassword = toGuardedString(protectedString, "new password");
-					attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME, guardedPassword));
+					attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME,
+							guardedPassword));
 				}
 			}
 			if (LOGGER.isTraceEnabled()) {
@@ -927,20 +928,20 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (operation instanceof PropertyModificationOperation) {
 				PropertyModificationOperation change = (PropertyModificationOperation) operation;
 				PropertyDelta delta = change.getPropertyDelta();
-				
-				
+
 				if (delta.getParentPath().equals(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES))) {
-					if (delta.getDefinition() == null){
-//						
-						ResourceAttributeDefinition def = objectClass.findAttributeDefinition(delta.getName());
-//						
+					if (delta.getDefinition() == null) {
+						//
+						ResourceAttributeDefinition def = objectClass
+								.findAttributeDefinition(delta.getName());
+						//
 						delta.applyDefinition(def);
-//						
+						//
 					}
 					// Change in (ordinary) attributes. Transform to the ICF
 					// attributes.
 					if (delta.isAdd()) {
-						
+
 						ResourceAttribute addAttribute = (ResourceAttribute) delta.instantiateEmptyProperty();
 						addAttribute.addValues(delta.getValuesToAdd());
 						addValues.add(addAttribute);
@@ -959,7 +960,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					}
 				} else if (delta.getParentPath().equals(new PropertyPath(AccountShadowType.F_ACTIVATION))) {
 					activationDeltas.add(delta);
-				} else if (delta.getParentPath().equals(new PropertyPath(new PropertyPath(AccountShadowType.F_CREDENTIALS), CredentialsType.F_PASSWORD))) {
+				} else if (delta.getParentPath().equals(
+						new PropertyPath(new PropertyPath(AccountShadowType.F_CREDENTIALS),
+								CredentialsType.F_PASSWORD))) {
 					passwordDelta = delta;
 				} else {
 					throw new SchemaException("Change of unknown attribute " + delta.getName());
@@ -1733,7 +1736,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		Collection<ResourceAttribute> resourceAttributes = attributesPrism.getAttributes();
 		return convertFromResourceObject(resourceAttributes, parentResult);
 	}
-	
 
 	private Set<Attribute> convertFromResourceObject(Collection<ResourceAttribute> resourceAttributes,
 			OperationResult parentResult) throws SchemaException {
@@ -1822,17 +1824,23 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			ObjectClass objClass = delta.getObject().getObjectClass();
 			QName objectClass = objectClassToQname(objClass.getObjectClassValue());
-			ResourceAttributeContainerDefinition objectClassDefinition = (ResourceAttributeContainerDefinition) schema
-					.findContainerDefinitionByType(objectClass);
+			// we don't want resource container deifinition, instead we need the
+			// objectClassDef
+			// ResourceAttributeContainerDefinition objectClassDefinition =
+			// (ResourceAttributeContainerDefinition) schema
+			// .findContainerDefinitionByType(objectClass);
+			ObjectClassComplexTypeDefinition objClassDefinition = (ObjectClassComplexTypeDefinition) schema
+					.findComplexTypeDefinition(objectClass);
+//			ResourceAttributeContainerDefinition resourceAttributeDef = (ResourceAttributeContainerDefinition) objClassDefinition
+//					.findContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
 			// FIXME: we are hadcoding Account here, but we should not
-			PrismObjectDefinition<AccountShadowType> objectDefinition = objectClassDefinition
-					.toShadowDefinition();
+			PrismObjectDefinition<AccountShadowType> objectDefinition = toShadowDefinition(objClassDefinition);
 
 			if (SyncDeltaType.DELETE.equals(delta.getDeltaType())) {
 				ObjectDelta<ResourceObjectShadowType> objectDelta = new ObjectDelta<ResourceObjectShadowType>(
 						ResourceObjectShadowType.class, ChangeType.DELETE);
 				ResourceAttribute uidAttribute = createUidAttribute(delta.getUid(),
-						getUidDefinition(objectClassDefinition));
+						getUidDefinition(objClassDefinition.toResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES)));
 				Set<ResourceAttribute> identifiers = new HashSet<ResourceAttribute>();
 				identifiers.add(uidAttribute);
 				Change change = new Change(identifiers, objectDelta, getToken(delta.getToken()));

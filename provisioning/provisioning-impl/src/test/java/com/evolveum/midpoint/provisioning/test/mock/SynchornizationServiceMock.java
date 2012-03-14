@@ -22,62 +22,69 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 
-
 @Service(value = "syncServiceMock")
-public class SynchornizationServiceMock implements ResourceObjectChangeListener{
-	
+public class SynchornizationServiceMock implements ResourceObjectChangeListener {
+
 	private static final Trace LOGGER = TraceManager.getTrace(SynchornizationServiceMock.class);
 
 	private int callCount = 0;
 	private ResourceObjectShadowChangeDescription lastChange = null;
-	
+
 	@Autowired
 	ChangeNotificationDispatcher notificationManager;
-	
+
 	@PostConstruct
-	public void registerForResourceObjectChangeNotifications(){
+	public void registerForResourceObjectChangeNotifications() {
 		notificationManager.registerNotificationListener(this);
 	}
-	
+
 	@PreDestroy
-	public void unregisterForResourceObjectChangeNotifications(){
+	public void unregisterForResourceObjectChangeNotifications() {
 		notificationManager.unregisterNotificationListener(this);
 	}
-	
+
 	@Override
-	public void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
+	public void notifyChange(ResourceObjectShadowChangeDescription change, Task task,
+			OperationResult parentResult) {
 		LOGGER.debug("Notify change mock called with {}", change);
-		
+
 		// Some basic sanity checks
-		assertNotNull("No change",change);
-		assertNotNull("No task",task);
-		assertNotNull("No result",parentResult);
-		
-		assertTrue("Either current shadow or delta must be present",change.getCurrentShadow() != null || change.getObjectDelta() != null);
+		assertNotNull("No change", change);
+		assertNotNull("No task", task);
+		assertNotNull("No result", parentResult);
+
+		assertTrue("Either current shadow or delta must be present", change.getCurrentShadow() != null
+				|| change.getObjectDelta() != null);
 		if (change.getCurrentShadow() != null) {
 			ResourceObjectShadowType currentShadowType = change.getCurrentShadow().asObjectable();
-			assertNotNull("Current shadow does not have an OID", change.getCurrentShadow().getOid());
-			assertNotNull("Current shadow does not have resourceRef", currentShadowType.getResourceRef());
-			assertNotNull("Current shadow has null attributes", currentShadowType.getAttributes());
-			assertFalse("Current shadow has empty attributes", ResourceObjectShadowUtil.getAttributesContainer(currentShadowType).isEmpty());
-			
-			if (change.getCurrentShadow().asObjectable() instanceof AccountShadowType) {
-				AccountShadowType account = (AccountShadowType)change.getCurrentShadow().asObjectable();
-				assertNotNull("Current shadow does not have activation", account.getActivation());
-				assertNotNull("Current shadow activation/enabled is null", account.getActivation().isEnabled());
-			} else {
-				// We don't support other types now
-				AssertJUnit.fail("Unexpected type of shadow "+change.getCurrentShadow().getClass());
+			if (currentShadowType != null) {
+				// not a useful check..the current shadow could be null
+				assertNotNull("Current shadow does not have an OID", change.getCurrentShadow().getOid());
+				assertNotNull("Current shadow does not have resourceRef", currentShadowType.getResourceRef());
+				assertNotNull("Current shadow has null attributes", currentShadowType.getAttributes());
+				assertFalse("Current shadow has empty attributes", ResourceObjectShadowUtil
+						.getAttributesContainer(currentShadowType).isEmpty());
+
+				if (change.getCurrentShadow().asObjectable() instanceof AccountShadowType) {
+					AccountShadowType account = (AccountShadowType) change.getCurrentShadow().asObjectable();
+					assertNotNull("Current shadow does not have activation", account.getActivation());
+					assertNotNull("Current shadow activation/enabled is null", account.getActivation()
+							.isEnabled());
+				} else {
+					// We don't support other types now
+					AssertJUnit.fail("Unexpected type of shadow " + change.getCurrentShadow().getClass());
+				}
 			}
 		}
 		if (change.getOldShadow() != null) {
 			assertNotNull("Old shadow does not have an OID", change.getOldShadow().getOid());
-			assertNotNull("Old shadow does not have an resourceRef", change.getOldShadow().asObjectable().getResourceRef());
+			assertNotNull("Old shadow does not have an resourceRef", change.getOldShadow().asObjectable()
+					.getResourceRef());
 		}
 		if (change.getObjectDelta() != null) {
 			assertNotNull("Delta has null OID", change.getObjectDelta().getOid());
 		}
-		
+
 		// remember ...
 		callCount++;
 		lastChange = change;

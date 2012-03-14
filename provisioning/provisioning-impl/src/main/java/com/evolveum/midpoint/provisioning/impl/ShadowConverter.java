@@ -453,7 +453,7 @@ public class ShadowConverter {
 			return null;
 		}
 		try {
-
+			shadow = ShadowCacheUtil.completeShadow(shadow, null, resource, parentResult);
 			shadow = ShadowCacheUtil.createRepositoryShadow(shadow, resource);
 
 		} catch (SchemaException ex) {
