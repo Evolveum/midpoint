@@ -109,7 +109,11 @@ public class ExpressionHandler {
 		Validate.notNull(result, "Operation result must not be null.");
 
 		ResourceType resource = resolveResource(shadow, result);
-		String expressionResult = evaluateExpression(shadow, expressionType, "Confiration expression for "+resource.asPrismObject(), result);
+		Map<QName, Object> variables = getDefaultXPathVariables(user, shadow, resource);
+		
+		Expression expression = expressionFactory.createExpression(expressionType, "Confiration expression for "+resource.asPrismObject());
+		expression.addVariableDefinitions(variables);
+		String expressionResult = expression.evaluateScalar(String.class, result).getValue();
 		
 		return Boolean.valueOf(expressionResult);
 	}

@@ -87,7 +87,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 	public void testConfirmUserWithoutModel() throws Exception {
 		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(
 				TEST_FOLDER, "./expr/account-xpath-evaluation-without-resource.xml"));
-		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_FOLDER, "./user-new.xml"));
+		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_FOLDER, "user-new.xml"));
 
 		ExpressionType expression = PrismTestUtil.unmarshalObject(
 						"<object xsi:type=\"ExpressionType\" xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd\" "
@@ -124,7 +124,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 				result);
 		LOGGER.info(result.dump());
 
-		assertTrue(confirmed);
+		assertTrue("Wrong expression result (expected true)", confirmed);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -146,7 +146,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 		String name = expressionHandler.evaluateExpression(accountType, expression, "test expression", result);
 		LOGGER.info(result.dump());
 
-		assertEquals("hbarbossa", name);
+		assertEquals("Wrong expression result", "hbarbossa", name);
 	}
 
 	private Element findChildElement(Element element, String namespace, String name) {

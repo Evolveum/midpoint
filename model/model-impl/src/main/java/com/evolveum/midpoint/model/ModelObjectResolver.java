@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -73,20 +74,27 @@ public class ModelObjectResolver implements ObjectResolver {
 
 	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, PropertyReferenceListType resolve,
 			OperationResult result) throws ObjectNotFoundException {
-		T object = null;
+		T objectType = null;
 		try {
-			ObjectType objectType = null;
+			PrismObject<T> object = null;
 			if (ObjectTypes.isClassManagedByProvisioning(clazz)) {
-				objectType = provisioning.getObject(clazz, oid, resolve, result).asObjectable();
+				object = provisioning.getObject(clazz, oid, resolve, result);
+				if (object == null) {
+					throw new SystemException("Got null result from provisioning.getObject while looking for "+clazz.getSimpleName()
+							+" with OID "+oid+"; using provisioning implementation "+provisioning.getClass().getName());
+				}
 			} else {
-				objectType = cacheRepositoryService.getObject(clazz, oid, resolve, result).asObjectable();
+				object = cacheRepositoryService.getObject(clazz, oid, resolve, result);
+				if (object == null) {
+					throw new SystemException("Got null result from repository.getObject while looking for "+clazz.getSimpleName()
+							+" with OID "+oid+"; using repository implementation "+cacheRepositoryService.getClass().getName());
+				}
 			}
+			objectType = object.asObjectable();
 			if (!clazz.isInstance(objectType)) {
 				throw new ObjectNotFoundException("Bad object type returned for referenced oid '" + oid
 						+ "'. Expected '" + clazz + "', but was '"
 						+ (objectType == null ? "null" : objectType.getClass()) + "'.");
-			} else {
-				object = (T) objectType;
 			}
 
 		} catch (SystemException ex) {
@@ -107,7 +115,7 @@ public class ModelObjectResolver implements ObjectResolver {
 			result.computeStatus();
 		}
 
-		return object;
+		return objectType;
 	}
 	
 }

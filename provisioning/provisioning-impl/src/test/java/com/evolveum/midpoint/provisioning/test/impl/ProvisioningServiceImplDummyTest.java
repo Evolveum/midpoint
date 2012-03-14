@@ -117,6 +117,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	private static final String FILENAME_SCRIPT_ADD = "src/test/resources/impl/script-add.xml";
 	private static final String DUMMY_CONNECTOR_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
 
+	private static final String NOT_PRESENT_OID = "deaddead-dead-dead-dead-deaddeaddead";
+	
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImplDummyTest.class);
 
 	private PrismObject<ResourceType> resource;
@@ -713,6 +715,25 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
 		assertTrue("Wrong type of current shadow: "+ currentShadowType.getClass().getName(), currentShadowType instanceof AccountShadowType);
 		
+	}
+	
+	@Test
+	public void test901FailResourceNotFound() throws FileNotFoundException, JAXBException, ObjectAlreadyExistsException,
+			SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException {
+		displayTestTile("test901FailResourceNotFound");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+				+ ".test901FailResourceNotFound");
+	
+		// WHEN
+		try {
+			PrismObject<ResourceType> object = provisioningService.getObject(ResourceType.class, NOT_PRESENT_OID, null, result);
+			AssertJUnit.fail("Expected ObjectNotFoundException to be thrown, but getObject returned "+object+" instead");
+		} catch (ObjectNotFoundException e) {
+			// This is expected
+		}
+		
+		// TODO: check result
 	}
 
 	
