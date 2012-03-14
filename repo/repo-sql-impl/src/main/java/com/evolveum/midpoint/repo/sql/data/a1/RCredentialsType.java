@@ -23,7 +23,6 @@ package com.evolveum.midpoint.repo.sql.data.a1;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.data.common.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
 import org.apache.commons.lang.Validate;

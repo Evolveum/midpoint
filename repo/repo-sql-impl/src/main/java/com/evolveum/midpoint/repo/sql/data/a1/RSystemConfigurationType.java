@@ -46,7 +46,7 @@ public class RSystemConfigurationType extends RObjectType {
     private String globalAccountSynchronizationSettings;
     private String modelHooks;
     private String logging;
-    private Reference defaultUserTemplateRef;
+    private RObjectReferenceType defaultUserTemplateRef;
     private String connectorFramework;
 
     @Type(type = "org.hibernate.type.TextType")
@@ -56,7 +56,7 @@ public class RSystemConfigurationType extends RObjectType {
 
     @OneToOne(optional = true, mappedBy = "owner")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Reference getDefaultUserTemplateRef() {
+    public RObjectReferenceType getDefaultUserTemplateRef() {
         return defaultUserTemplateRef;
     }
 
@@ -79,7 +79,7 @@ public class RSystemConfigurationType extends RObjectType {
         this.connectorFramework = connectorFramework;
     }
 
-    public void setDefaultUserTemplateRef(Reference defaultUserTemplateRef) {
+    public void setDefaultUserTemplateRef(RObjectReferenceType defaultUserTemplateRef) {
         this.defaultUserTemplateRef = defaultUserTemplateRef;
     }
 

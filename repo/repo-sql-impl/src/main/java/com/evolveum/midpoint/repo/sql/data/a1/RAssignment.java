@@ -39,7 +39,7 @@ import javax.persistence.*;
 @Entity
 @Table(name = "assignment")
 @ForeignKey(name = "fk_assignment")
-public class RAssignment extends Container implements Ownable {
+public class RAssignment extends RContainer implements ROwnable {
 
     private static final Trace LOGGER = TraceManager.getTrace(RAssignment.class);
     //owner
@@ -51,7 +51,7 @@ public class RAssignment extends Container implements Ownable {
     //assignment fields
     private RActivationType activation;
     private String accountConstruction;
-    private Reference targetRef;
+    private RObjectReferenceType targetRef;
 
     @ForeignKey(name = "fk_assignment_owner")
     @MapsId("owner")
@@ -66,7 +66,7 @@ public class RAssignment extends Container implements Ownable {
 
     @OneToOne(optional = true, mappedBy = "owner")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Reference getTargetRef() {
+    public RObjectReferenceType getTargetRef() {
         return targetRef;
     }
 
@@ -134,7 +134,7 @@ public class RAssignment extends Container implements Ownable {
         this.ownerOid = ownerOid;
     }
 
-    public void setTargetRef(Reference targetRef) {
+    public void setTargetRef(RObjectReferenceType targetRef) {
         this.targetRef = targetRef;
     }
 
@@ -144,7 +144,7 @@ public class RAssignment extends Container implements Ownable {
 
     @Transient
     @Override
-    public Container getContainerOwner() {
+    public RContainer getContainerOwner() {
         return getOwner();
     }
 

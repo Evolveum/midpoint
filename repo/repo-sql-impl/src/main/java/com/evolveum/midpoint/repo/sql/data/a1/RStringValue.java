@@ -21,13 +21,35 @@
 
 package com.evolveum.midpoint.repo.sql.data.a1;
 
+import javax.persistence.Embeddable;
+import javax.xml.namespace.QName;
+
 /**
  * @author lazyman
  */
-public interface Ownable {
+@Embeddable
+public class RStringValue extends RValue {
 
-    /**
-     * @return todo
-     */
-    Container getContainerOwner();
+    private String value;
+
+    public RStringValue() {
+    }
+
+    public RStringValue(String value) {
+        this(null, null, value);
+    }
+
+    public RStringValue(QName name, QName type, String value) {
+        setName(name);
+        setType(type);
+        setValue(value);
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
 }

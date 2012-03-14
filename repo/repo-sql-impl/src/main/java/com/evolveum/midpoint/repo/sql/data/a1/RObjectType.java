@@ -29,6 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 
@@ -42,7 +43,7 @@ import javax.persistence.*;
 @Entity
 @Table(name = "object")
 @ForeignKey(name = "fk_container")
-public abstract class RObjectType extends Container {
+public abstract class RObjectType extends RContainer {
 
     private String name;
     private String description;
@@ -64,6 +65,7 @@ public abstract class RObjectType extends Container {
         return description;
     }
 
+    @Index(name = "iName")
     public String getName() {
         return name;
     }

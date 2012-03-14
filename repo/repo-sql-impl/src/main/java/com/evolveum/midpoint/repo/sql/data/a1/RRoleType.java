@@ -19,66 +19,71 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.repo.sql.data.common;
+package com.evolveum.midpoint.repo.sql.data.a1;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.ForeignKey;
 
-import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import java.util.Set;
 
 /**
- * @author lazyman
+ * Created by IntelliJ IDEA.
+ * User: lazyman
+ * Date: 3/12/12
+ * Time: 6:54 PM
+ * To change this template use File | Settings | File Templates.
  */
 @Entity
 @Table(name = "role")
+@ForeignKey(name = "fk_role")
 public class RRoleType extends RObjectType {
 
-    private List<RAssignmentType> assignment;
+    private Set<RAssignment> assignments;
 
-    @OneToMany
-    @JoinTable(name = "role_assignment", joinColumns = {@JoinColumn(name = "roleOid")},
-            inverseJoinColumns = {@JoinColumn(name = "owner"), @JoinColumn(name = "id")})
+    @OneToMany(mappedBy = "owner")
+    @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public List<RAssignmentType> getAssignment() {
-        return assignment;
+    public Set<RAssignment> getAssignments() {
+        return assignments;
     }
 
-    public void setAssignment(List<RAssignmentType> assignment) {
-        this.assignment = assignment;
+    public void setAssignments(Set<RAssignment> assignments) {
+        this.assignments = assignments;
     }
 
     public static void copyToJAXB(RRoleType repo, RoleType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
         RObjectType.copyToJAXB(repo, jaxb, prismContext);
 
-        if (repo.getAssignment() == null) {
-            return;
-        }
-
-        for (RAssignmentType rAssignment : repo.getAssignment()) {
-            jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
-        }
+//        if (repo.getAssignment() == null) {
+//            return;
+//        }
+//
+//        for (RAssignmentType rAssignment : repo.getAssignment()) {
+//            jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
+//        }
     }
 
     public static void copyFromJAXB(RoleType jaxb, RRoleType repo, PrismContext prismContext) throws
             DtoTranslationException {
         RObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
-        if (!jaxb.getAssignment().isEmpty()) {
-            repo.setAssignment(new ArrayList<RAssignmentType>());
-        }
-
-        for (AssignmentType assignment : jaxb.getAssignment()) {
-            RAssignmentType rAssignment = new RAssignmentType();
-            RAssignmentType.copyFromJAXB(assignment, rAssignment, prismContext);
-
-            repo.getAssignment().add(rAssignment);
-        }
+//        if (!jaxb.getAssignment().isEmpty()) {
+//            repo.setAssignment(new ArrayList<RAssignmentType>());
+//        }
+//
+//        for (AssignmentType assignment : jaxb.getAssignment()) {
+//            RAssignmentType rAssignment = new RAssignmentType();
+//            RAssignmentType.copyFromJAXB(assignment, rAssignment, prismContext);
+//
+//            repo.getAssignment().add(rAssignment);
+//        }
     }
 
     @Override

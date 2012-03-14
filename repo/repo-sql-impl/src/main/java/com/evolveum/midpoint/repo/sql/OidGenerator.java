@@ -21,8 +21,8 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.repo.sql.data.a1.Container;
-import com.evolveum.midpoint.repo.sql.data.a1.Ownable;
+import com.evolveum.midpoint.repo.sql.data.a1.RContainer;
+import com.evolveum.midpoint.repo.sql.data.a1.ROwnable;
 import com.evolveum.midpoint.repo.sql.data.a1.RObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.HibernateException;
@@ -39,11 +39,11 @@ public class OidGenerator implements IdentifierGenerator {
 
     @Override
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
-        Container container = null;
-        if (object instanceof Ownable) {
-            container = ((Ownable) object).getContainerOwner();
+        RContainer container = null;
+        if (object instanceof ROwnable) {
+            container = ((ROwnable) object).getContainerOwner();
         } else if (object instanceof RObjectType) {
-            container = (Container) object;
+            container = (RContainer) object;
         }
 
         if (container == null) {

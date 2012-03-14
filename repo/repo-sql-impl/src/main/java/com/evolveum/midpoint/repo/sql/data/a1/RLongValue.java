@@ -28,7 +28,7 @@ import javax.xml.namespace.QName;
  * @author lazyman
  */
 @Embeddable
-public class RLongValue extends Value{
+public class RLongValue extends RValue {
     
     private Long value;
 

@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.a1.*;
-import com.evolveum.midpoint.repo.sql.data.a1.StringValue;
+import com.evolveum.midpoint.repo.sql.data.a1.RStringValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -83,13 +83,13 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
                 previousCycle = System.currentTimeMillis() - time;
             }
 
-            Connector connector0 = new Connector();
+            RConnectorType connector0 = new RConnectorType();
             connector0.setName("connector0");
             connector0.setFramework("framework");
-            Connector connector1 = new Connector();
+            RConnectorType connector1 = new RConnectorType();
             connector1.setName("connector1");
 
-            User user = new User();
+            RUserType user = new RUserType();
             user.setFullName("connector reference target");
 
             Set<RAssignment> aset = new HashSet<RAssignment>();
@@ -106,25 +106,25 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
             RAnyContainer userExt = new RAnyContainer();
             userExt.setOwner(a);
             a.setExtension(userExt);
-            Set<StringValue> userStrings = new HashSet<StringValue>();
+            Set<RStringValue> userStrings = new HashSet<RStringValue>();
             userExt.setStrings(userStrings);
-            userStrings.add(new StringValue(null, null, "ass ext"));
+            userStrings.add(new RStringValue(null, null, "ass ext"));
 
-            Connector connector = new Connector();
+            RConnectorType connector = new RConnectorType();
             connector.setName("connector");
             connector.setFramework("framework");
-            Reference reference = new Reference();
+            RObjectReferenceType reference = new RObjectReferenceType();
             reference.setOwner(connector);
             reference.setTarget(user);
             connector.setConnectorHostRef(reference);
 
             //refs
-            Set<Reference> accountRefs = new HashSet<Reference>();
-            reference = new Reference();
+            Set<RObjectReferenceType> accountRefs = new HashSet<RObjectReferenceType>();
+            reference = new RObjectReferenceType();
             reference.setOwner(user);
             reference.setTarget(connector0);
             accountRefs.add(reference);
-            reference = new Reference();
+            reference = new RObjectReferenceType();
             reference.setOwner(user);
             reference.setTarget(connector1);
             accountRefs.add(reference);
@@ -133,9 +133,9 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
             RAnyContainer value = new RAnyContainer();
             value.setOwner(user);
             user.setExtension(value);
-            Set<StringValue> strings = new HashSet<StringValue>();
-            strings.add(new StringValue(new QName("name namespace", "loc"), null, "str1"));
-            strings.add(new StringValue(null, new QName("name namespace", "loc"), "str1"));
+            Set<RStringValue> strings = new HashSet<RStringValue>();
+            strings.add(new RStringValue(new QName("name namespace", "loc"), null, "str1"));
+            strings.add(new RStringValue(null, new QName("name namespace", "loc"), "str1"));
             value.setStrings(strings);
             Set<RLongValue> longs = new HashSet<RLongValue>();
             longs.add(new RLongValue(123L));
@@ -145,15 +145,15 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
             value.setDates(dates);
             dates.add(new RDateValue(new Date()));
 
-            ResourceObjectShadow shadow = new ResourceObjectShadow();
+            RResourceObjectShadowType shadow = new RResourceObjectShadowType();
             shadow.setObjectClass(new QName("object class", "local"));
             //extension
             RAnyContainer extension = new RAnyContainer();
             extension.setOwner(shadow);
             shadow.setExtension(extension);
-            strings = new HashSet<StringValue>();
-            strings.add(new StringValue(null, null, "ext1"));
-            strings.add(new StringValue(null, null, "ext2"));
+            strings = new HashSet<RStringValue>();
+            strings.add(new RStringValue(null, null, "ext1"));
+            strings.add(new RStringValue(null, null, "ext2"));
             extension.setStrings(strings);
             dates = new HashSet<RDateValue>();
             extension.setDates(dates);
@@ -162,9 +162,9 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
             RAnyContainer attributes = new RAnyContainer();
             attributes.setOwner(shadow);
             shadow.setAttributes(attributes);
-            strings = new HashSet<StringValue>();
-            strings.add(new StringValue(null, null, "attr1"));
-            strings.add(new StringValue(null, null, "attr2"));
+            strings = new HashSet<RStringValue>();
+            strings.add(new RStringValue(null, null, "attr1"));
+            strings.add(new RStringValue(null, null, "attr2"));
             attributes.setStrings(strings);
             dates = new HashSet<RDateValue>();
             attributes.setDates(dates);
@@ -198,9 +198,9 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 
         if (oid != null) {
             session = open();
-            Query query = session.createQuery("from ResourceObjectShadow as s where s.oid = :oid");
+            Query query = session.createQuery("from RResourceObjectShadowType as s where s.oid = :oid");
             query.setString("oid", oid);
-            ResourceObjectShadow shadow = (ResourceObjectShadow) query.uniqueResult();
+            RResourceObjectShadowType shadow = (RResourceObjectShadowType) query.uniqueResult();
 
             LOGGER.info("shadow\n{}", ReflectionToStringBuilder.toString(shadow));
             session.close();

@@ -37,7 +37,7 @@ import javax.xml.namespace.QName;
  * To change this template use File | Settings | File Templates.
  */
 @MappedSuperclass
-public class Value {
+public class RValue {
 
     private QName name;
     private QName type;

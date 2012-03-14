@@ -36,7 +36,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "account_shadow")
 @ForeignKey(name = "fk_account_shadow")
-public class RAccountShadowType extends ResourceObjectShadow {
+public class RAccountShadowType extends RResourceObjectShadowType {
 
     private String accountType;
     private RCredentialsType credentials;
@@ -76,7 +76,7 @@ public class RAccountShadowType extends ResourceObjectShadow {
 
     public static void copyToJAXB(RAccountShadowType repo, AccountShadowType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        ResourceObjectShadow.copyToJAXB(repo, jaxb, prismContext);
+        RResourceObjectShadowType.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setAccountType(repo.getAccountType());
 
@@ -86,7 +86,7 @@ public class RAccountShadowType extends ResourceObjectShadow {
 
     public static void copyFromJAXB(AccountShadowType jaxb, RAccountShadowType repo, PrismContext prismContext) throws
             DtoTranslationException {
-        ResourceObjectShadow.copyFromJAXB(jaxb, repo, prismContext);
+        RResourceObjectShadowType.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setAccountType(jaxb.getAccountType());
 

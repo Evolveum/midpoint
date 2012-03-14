@@ -39,18 +39,18 @@ import java.util.Set;
 @Table(name = "any")
 public class RAnyContainer implements Serializable {
 
-    private Container owner;
+    private RContainer owner;
     private String ownerOid;
     private Long ownerId;
     private RContainerType ownerType;
 
-    private Set<StringValue> strings;
+    private Set<RStringValue> strings;
     private Set<RLongValue> longs;
     private Set<RDateValue> dates;
     private Set<RClobValue> clobs;
 
     @Transient
-    public Container getOwner() {
+    public RContainer getOwner() {
         return owner;
     }
 
@@ -93,7 +93,7 @@ public class RAnyContainer implements Serializable {
     @CollectionTable(name = "any_string", joinColumns =
             {@JoinColumn(name = "owner_oid"), @JoinColumn(name = "owner_id"), @JoinColumn(name = "ownerType")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<StringValue> getStrings() {
+    public Set<RStringValue> getStrings() {
         return strings;
     }
 
@@ -139,11 +139,11 @@ public class RAnyContainer implements Serializable {
         this.ownerOid = ownerOid;
     }
 
-    public void setStrings(Set<StringValue> strings) {
+    public void setStrings(Set<RStringValue> strings) {
         this.strings = strings;
     }
 
-    public void setOwner(Container owner) {
+    public void setOwner(RContainer owner) {
         this.owner = owner;
     }
 

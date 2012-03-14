@@ -19,7 +19,7 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.repo.sql.data.common;
+package com.evolveum.midpoint.repo.sql.data.a1;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
@@ -30,7 +30,7 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
@@ -71,7 +71,7 @@ public class RResourceType extends RObjectType {
         return configuration;
     }
 
-    @ManyToOne
+    @OneToOne(optional = true, mappedBy = "owner")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public RObjectReferenceType getConnectorRef() {
         return connectorRef;

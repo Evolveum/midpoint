@@ -29,7 +29,7 @@ import java.util.Date;
  * @author lazyman
  */
 @Embeddable
-public class RDateValue extends Value {
+public class RDateValue extends RValue {
 
     private Date value;
 

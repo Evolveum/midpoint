@@ -38,7 +38,7 @@ import javax.xml.namespace.QName;
 @Entity
 @Table(name = "resource_shadow")
 @ForeignKey(name = "fk_resource_object_shadow")
-public class ResourceObjectShadow extends RObjectType {
+public class RResourceObjectShadowType extends RObjectType {
 
     private QName objectClass;
     //attributes
@@ -76,7 +76,7 @@ public class ResourceObjectShadow extends RObjectType {
         this.objectClass = objectClass;
     }
 
-    public static void copyToJAXB(ResourceObjectShadow repo, ResourceObjectShadowType jaxb,
+    public static void copyToJAXB(RResourceObjectShadowType repo, ResourceObjectShadowType jaxb,
             PrismContext prismContext) throws DtoTranslationException {
         RObjectType.copyToJAXB(repo, jaxb, prismContext);
 
@@ -100,7 +100,7 @@ public class ResourceObjectShadow extends RObjectType {
         //todo implement attributes
     }
 
-    public static void copyFromJAXB(ResourceObjectShadowType jaxb, ResourceObjectShadow repo,
+    public static void copyFromJAXB(ResourceObjectShadowType jaxb, RResourceObjectShadowType repo,
             PrismContext prismContext) throws DtoTranslationException {
         RObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
@@ -128,7 +128,7 @@ public class ResourceObjectShadow extends RObjectType {
     @Override
     public ResourceObjectShadowType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         ResourceObjectShadowType object = new ResourceObjectShadowType();
-        ResourceObjectShadow.copyToJAXB(this, object, prismContext);
+        RResourceObjectShadowType.copyToJAXB(this, object, prismContext);
         RUtil.revive(object.asPrismObject(), ResourceObjectShadowType.class, prismContext);
         return object;
     }

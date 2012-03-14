@@ -41,7 +41,7 @@ import java.math.BigInteger;
 public class RTaskType extends RObjectType {
 
     private String taskIdentifier;
-    private Reference ownerRef;
+    private RObjectReferenceType ownerRef;
     private TaskExecutionStatusType executionStatus;
     private TaskExclusivityStatusType exclusivityStatus;
     private String node;
@@ -49,7 +49,7 @@ public class RTaskType extends RObjectType {
     private String handlerUri;
     private String otherHandlersUriStack;
     private ROperationResultType result;
-    private Reference objectRef;
+    private RObjectReferenceType objectRef;
     private XMLGregorianCalendar lastRunStartTimestamp;
     private XMLGregorianCalendar lastRunFinishTimestamp;
     private XMLGregorianCalendar nextRunStartTime;
@@ -76,13 +76,13 @@ public class RTaskType extends RObjectType {
 
     @OneToOne(optional = true, mappedBy = "owner")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Reference getOwnerRef() {
+    public RObjectReferenceType getOwnerRef() {
         return ownerRef;
     }
 
     @OneToOne(optional = true, mappedBy = "owner")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Reference getObjectRef() {
+    public RObjectReferenceType getObjectRef() {
         return objectRef;
     }
 
@@ -196,11 +196,11 @@ public class RTaskType extends RObjectType {
         this.taskIdentifier = taskIdentifier;
     }
 
-    public void setObjectRef(Reference objectRef) {
+    public void setObjectRef(RObjectReferenceType objectRef) {
         this.objectRef = objectRef;
     }
 
-    public void setOwnerRef(Reference ownerRef) {
+    public void setOwnerRef(RObjectReferenceType ownerRef) {
         this.ownerRef = ownerRef;
     }
 

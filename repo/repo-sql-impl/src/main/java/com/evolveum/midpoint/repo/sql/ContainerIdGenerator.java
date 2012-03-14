@@ -23,8 +23,8 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.sql.data.a1.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.a1.RObjectType;
-import com.evolveum.midpoint.repo.sql.data.a1.Role;
-import com.evolveum.midpoint.repo.sql.data.a1.User;
+import com.evolveum.midpoint.repo.sql.data.a1.RRoleType;
+import com.evolveum.midpoint.repo.sql.data.a1.RUserType;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.id.IdentifierGenerator;
@@ -48,11 +48,11 @@ public class ContainerIdGenerator implements IdentifierGenerator {
         } else if (object instanceof RAssignment) {
             RAssignment assignment = (RAssignment) object;
             RObjectType o = assignment.getOwner();
-            if (o instanceof User) {
-                User user = (User) o;
+            if (o instanceof RUserType) {
+                RUserType user = (RUserType) o;
                 return getNextId(user.getAssignments());
-            } else if (o instanceof Role) {
-                Role role = (Role) o;
+            } else if (o instanceof RRoleType) {
+                RRoleType role = (RRoleType) o;
                 return getNextId(role.getAssignments());
             }
         }

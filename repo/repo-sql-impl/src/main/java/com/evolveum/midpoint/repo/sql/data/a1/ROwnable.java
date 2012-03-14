@@ -21,40 +21,13 @@
 
 package com.evolveum.midpoint.repo.sql.data.a1;
 
-import javax.persistence.Embeddable;
-import javax.persistence.UniqueConstraint;
-import javax.xml.namespace.QName;
-
 /**
- * Created by IntelliJ IDEA.
- * User: lazyman
- * Date: 3/12/12
- * Time: 8:59 PM
- * To change this template use File | Settings | File Templates.
+ * @author lazyman
  */
-@Embeddable
-public class StringValue extends Value {
+public interface ROwnable {
 
-    private String value;
-
-    public StringValue() {
-    }
-
-    public StringValue(String value) {
-        this(null, null, value);
-    }
-
-    public StringValue(QName name, QName type, String value) {
-        setName(name);
-        setType(type);
-        setValue(value);
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
+    /**
+     * @return todo
+     */
+    RContainer getContainerOwner();
 }

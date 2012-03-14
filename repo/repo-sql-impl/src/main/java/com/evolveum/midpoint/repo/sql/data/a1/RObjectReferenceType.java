@@ -37,14 +37,14 @@ import java.io.Serializable;
  */
 @Entity
 @Table(name = "reference")
-public class Reference implements Serializable {
+public class RObjectReferenceType implements Serializable {
 
     //owner
-    private Container owner;
+    private RContainer owner;
     private String ownerOid;
     private Long ownerId;
     //target
-    private Container target;
+    private RContainer target;
     private String targetOid;
     private Long targetId;
     //other fields
@@ -59,7 +59,7 @@ public class Reference implements Serializable {
             @PrimaryKeyJoinColumn(name = "owner_oid", referencedColumnName = "oid"),
             @PrimaryKeyJoinColumn(name = "owner_id", referencedColumnName = "id")
     })
-    public Container getOwner() {
+    public RContainer getOwner() {
         return owner;
     }
 
@@ -70,7 +70,7 @@ public class Reference implements Serializable {
             @PrimaryKeyJoinColumn(name = "target_oid", referencedColumnName = "oid"),
             @PrimaryKeyJoinColumn(name = "target_id", referencedColumnName = "id")
     })
-    public Container getTarget() {
+    public RContainer getTarget() {
         return target;
     }
 
@@ -126,11 +126,11 @@ public class Reference implements Serializable {
         this.filter = filter;
     }
 
-    public void setTarget(Container target) {
+    public void setTarget(RContainer target) {
         this.target = target;
     }
 
-    public void setOwner(Container owner) {
+    public void setOwner(RContainer owner) {
         this.owner = owner;
     }
 
@@ -156,7 +156,7 @@ public class Reference implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Reference reference = (Reference) o;
+        RObjectReferenceType reference = (RObjectReferenceType) o;
 
 //        if (ownerId != null ? !ownerId.equals(reference.ownerId) : reference.ownerId != null) return false;
 //        if (ownerOid != null ? !ownerOid.equals(reference.ownerOid) : reference.ownerOid != null) return false;
@@ -177,7 +177,7 @@ public class Reference implements Serializable {
         return 31;
     }
 
-    public static void copyToJAXB(Reference repo, ObjectReferenceType jaxb, PrismContext prismContext) {
+    public static void copyToJAXB(RObjectReferenceType repo, ObjectReferenceType jaxb, PrismContext prismContext) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
@@ -190,7 +190,7 @@ public class Reference implements Serializable {
         jaxb.setDescription(repo.getDescription());
     }
 
-    public static void copyFromJAXB(ObjectReferenceType jaxb, Reference repo, PrismContext prismContext) {
+    public static void copyFromJAXB(ObjectReferenceType jaxb, RObjectReferenceType repo, PrismContext prismContext) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -36,7 +37,7 @@ import java.util.Set;
 @Entity
 @Table(name = "user")
 @ForeignKey(name = "fk_user")
-public class User extends RObjectType {
+public class RUserType extends RObjectType {
 
     private String fullName;
     private String givenName;
@@ -53,13 +54,13 @@ public class User extends RObjectType {
     private RCredentialsType credentials;
     private RActivationType activation;
 
-    private Set<Reference> accountRefs;
+    private Set<RObjectReferenceType> accountRefs;
     private Set<RAssignment> assignments;
 
     @OneToMany(mappedBy = "owner")
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<Reference> getAccountRefs() {
+    public Set<RObjectReferenceType> getAccountRefs() {
         return accountRefs;
     }
 
@@ -141,16 +142,29 @@ public class User extends RObjectType {
         return employeeType;
     }
 
-    public String getEmployeeNumber() {
-        return employeeNumber;
-    }
-
+    @Index(name = "iFamilyName")
     public String getFamilyName() {
         return familyName;
     }
 
+    @Index(name = "iFullName")
+    public String getFullName() {
+        return fullName;
+    }
+
+    @Index(name = "iGivenName")
     public String getGivenName() {
         return givenName;
+    }
+
+    @Index(name = "iLocality")
+    public String getLocality() {
+        return locality;
+    }
+
+    @Index(name = "iEmployeeNumber")
+    public String getEmployeeNumber() {
+        return employeeNumber;
     }
 
     public String getHonorificPrefix() {
@@ -159,14 +173,6 @@ public class User extends RObjectType {
 
     public String getHonorificSuffix() {
         return honorificSuffix;
-    }
-
-    public String getLocality() {
-        return locality;
-    }
-
-    public String getFullName() {
-        return fullName;
     }
 
     public void setActivation(RActivationType activation) {
@@ -225,7 +231,7 @@ public class User extends RObjectType {
         this.assignments = assignments;
     }
 
-    public void setAccountRefs(Set<Reference> accountRefs) {
+    public void setAccountRefs(Set<RObjectReferenceType> accountRefs) {
         this.accountRefs = accountRefs;
     }
 
@@ -233,7 +239,7 @@ public class User extends RObjectType {
         this.fullName = fullName;
     }
 
-    public static void copyFromJAXB(UserType jaxb, User repo, PrismContext prismContext) throws
+    public static void copyFromJAXB(UserType jaxb, RUserType repo, PrismContext prismContext) throws
             DtoTranslationException {
         RObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
@@ -278,7 +284,7 @@ public class User extends RObjectType {
 //        }
     }
 
-    public static void copyToJAXB(User repo, UserType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RUserType repo, UserType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
         RObjectType.copyToJAXB(repo, jaxb, prismContext);
 
@@ -324,7 +330,7 @@ public class User extends RObjectType {
     @Override
     public UserType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         UserType object = new UserType();
-        User.copyToJAXB(this, object, prismContext);
+        RUserType.copyToJAXB(this, object, prismContext);
         RUtil.revive(object.asPrismObject(), UserType.class, prismContext);
         return object;
     }

@@ -30,7 +30,7 @@ import javax.xml.namespace.QName;
  * @author lazyman
  */
 @Embeddable
-public class RClobValue extends Value {
+public class RClobValue extends RValue {
 
     private String value;
 

@@ -106,7 +106,7 @@ public final class RUtil {
         return list;
     }
 
-    public static Reference jaxbRefToRepo(ObjectReferenceType ref, ObjectType owner,
+    public static RObjectReferenceType jaxbRefToRepo(ObjectReferenceType ref, ObjectType owner,
             PrismContext prismContext) {
         if (ref == null) {
             return null;
@@ -116,16 +116,16 @@ public final class RUtil {
         return jaxbRefToRepo(ref, owner.getOid(), prismContext);
     }
 
-    public static Reference jaxbRefToRepo(ObjectReferenceType ref, String ownerId,
+    public static RObjectReferenceType jaxbRefToRepo(ObjectReferenceType ref, String ownerId,
             PrismContext prismContext) {
         if (ref == null) {
             return null;
         }
 //        Validate.notEmpty(ownerId, "Owner oid of reference must not be null.");
 
-        Reference result = new Reference();
+        RObjectReferenceType result = new RObjectReferenceType();
 //        result.setOwner(ownerId);
-        Reference.copyFromJAXB(ref, result, prismContext);
+        RObjectReferenceType.copyFromJAXB(ref, result, prismContext);
 
         return result;
     }

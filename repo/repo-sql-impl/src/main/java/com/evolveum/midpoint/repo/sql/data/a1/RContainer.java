@@ -36,7 +36,7 @@ import java.io.Serializable;
 @Entity
 @Table(name = "container")
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class Container implements Serializable {
+public abstract class RContainer implements Serializable {
 
     private String oid;
     private Long id;
@@ -80,7 +80,7 @@ public abstract class Container implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Container container = (Container) o;
+        RContainer container = (RContainer) o;
 
 //        if (id != null ? !id.equals(container.id) : container.id != null) return false;
 //        if (oid != null ? !oid.equals(container.oid) : container.oid != null) return false;

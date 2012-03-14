@@ -44,11 +44,11 @@ import java.util.Set;
 @Entity
 @Table(name = "connector")
 @ForeignKey(name = "fk_connector")
-public class Connector extends RObjectType {
+public class RConnectorType extends RObjectType {
 
-    private static final Trace LOGGER = TraceManager.getTrace(Connector.class);
+    private static final Trace LOGGER = TraceManager.getTrace(RConnectorType.class);
     private String framework;
-    private Reference connectorHostRef;
+    private RObjectReferenceType connectorHostRef;
     private String connectorType;
     private String connectorVersion;
     private String connectorBundle;
@@ -58,7 +58,7 @@ public class Connector extends RObjectType {
 
     @OneToOne(optional = true, mappedBy = "owner")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Reference getConnectorHostRef() {
+    public RObjectReferenceType getConnectorHostRef() {
         return connectorHostRef;
     }
 
@@ -102,7 +102,7 @@ public class Connector extends RObjectType {
         this.framework = framework;
     }
 
-    public void setConnectorHostRef(Reference connectorHostRef) {
+    public void setConnectorHostRef(RObjectReferenceType connectorHostRef) {
         this.connectorHostRef = connectorHostRef;
     }
 
@@ -130,7 +130,7 @@ public class Connector extends RObjectType {
         this.xmlSchema = xmlSchema;
     }
 
-    public static void copyToJAXB(Connector repo, ConnectorType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RConnectorType repo, ConnectorType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
         RObjectType.copyToJAXB(repo, jaxb, prismContext);
 
@@ -153,7 +153,7 @@ public class Connector extends RObjectType {
         }
     }
 
-    public static void copyFromJAXB(ConnectorType jaxb, Connector repo, PrismContext prismContext) throws
+    public static void copyFromJAXB(ConnectorType jaxb, RConnectorType repo, PrismContext prismContext) throws
             DtoTranslationException {
         RObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
@@ -180,7 +180,7 @@ public class Connector extends RObjectType {
     @Override
     public ConnectorType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         ConnectorType object = new ConnectorType();
-        Connector.copyToJAXB(this, object, prismContext);
+        RConnectorType.copyToJAXB(this, object, prismContext);
         RUtil.revive(object.asPrismObject(), ConnectorType.class, prismContext);
 
         return object;
