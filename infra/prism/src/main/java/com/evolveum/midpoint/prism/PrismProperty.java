@@ -154,7 +154,15 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
      * Type override, also for compatibility.
      */
 	public <T> T getRealValue(Class<T> type) {
-		return (T) getValue().getValue();
+		V value = getValue().getValue();
+		if (value == null) {
+			return null;
+		}
+		if (type.isAssignableFrom(value.getClass())) {
+			return (T)value;
+		} else {
+			throw new ClassCastException("Cannot cast value of property "+getName()+" which is of type "+value.getClass()+" to "+type);
+		}
 	}
 
 	/**

@@ -140,8 +140,14 @@ public class PrismJaxbProcessor {
 		if (schema == null) {
 			return false;
 		}
-		ComplexTypeDefinition complexTypeDefinition = schema.findComplexTypeDefinition(xsdType);
-		return complexTypeDefinition != null;
+		// We may be answering "yes" to a broader set of types that we can really convert.
+		// But that does not matter that much. If the type is in the correct namespace
+		// then either we can convert it or nobody can.
+		return true;
+		// Following code is not really correct. There are XSD types that we can convert and there is
+		// no complexTypeDefinition for then in our parsed schema. E.g. all the property JAXB types.
+//		ComplexTypeDefinition complexTypeDefinition = schema.findComplexTypeDefinition(xsdType);
+//		return complexTypeDefinition != null;
 	}
 
 	public Class<?> getCompileTimeClass(QName xsdType) {
