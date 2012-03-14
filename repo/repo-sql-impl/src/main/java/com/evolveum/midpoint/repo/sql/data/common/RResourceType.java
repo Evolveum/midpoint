@@ -160,7 +160,9 @@ public class RResourceType extends RObjectType {
         RObjectType.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setNamespace(jaxb.getNamespace());
-        repo.setConnectorRef(RUtil.jaxbRefToRepo(jaxb.getConnectorRef(), jaxb, prismContext));
+        RObjectReferenceType ref = RUtil.jaxbRefToRepo(jaxb.getConnectorRef(), jaxb, prismContext);
+        ref.setOwner(repo);
+        repo.setConnectorRef(ref);
 
         if (jaxb.getConnector() != null) {
             LOGGER.warn("Connector from resource type won't be saved. It should be translated to connector reference.");

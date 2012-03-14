@@ -98,8 +98,7 @@ public final class RUtil {
     }
 
     private static Element createFakeParentElement() {
-        Document document = DOMUtil.getDocument();
-        return document.createElementNS("http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd", "sqlRepoObject");
+        return DOMUtil.createElement(DOMUtil.getDocument(), CUSTOM_OBJECT);
     }
 
     public static <T> Set<T> listToSet(List<T> list) {

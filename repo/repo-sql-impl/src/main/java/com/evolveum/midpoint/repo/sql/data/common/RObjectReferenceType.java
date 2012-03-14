@@ -65,7 +65,8 @@ public class RObjectReferenceType implements Serializable {
         return owner;
     }
 
-    @ForeignKey(name = "fk_reference_target")
+    @ForeignKey(name = "none")  //todo disabled target oid FK check
+//    @ForeignKey(name = "fk_reference_target")
     @MapsId("target")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({

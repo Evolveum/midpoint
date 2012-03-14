@@ -274,7 +274,9 @@ public class RUserType extends RObjectType {
             repo.setAccountRefs(new HashSet<RObjectReferenceType>());
         }
         for (ObjectReferenceType accountRef : jaxb.getAccountRef()) {
-            repo.getAccountRefs().add(RUtil.jaxbRefToRepo(accountRef, jaxb, prismContext));
+            RObjectReferenceType ref = RUtil.jaxbRefToRepo(accountRef, jaxb, prismContext);
+            ref.setOwner(repo);
+            repo.getAccountRefs().add(ref);
         }
 
         if (jaxb.getAssignment() != null && !jaxb.getAssignment().isEmpty()) {
