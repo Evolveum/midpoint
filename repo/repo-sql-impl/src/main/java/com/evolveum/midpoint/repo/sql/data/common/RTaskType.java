@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
@@ -244,9 +245,13 @@ public class RTaskType extends RObjectType {
         }
 
         try {
-            jaxb.setModelOperationState(RUtil.toJAXB(repo.getModelOperationState(), ModelOperationStateType.class, prismContext));
-            jaxb.setOtherHandlersUriStack(RUtil.toJAXB(repo.getOtherHandlersUriStack(), UriStack.class, prismContext));
-            jaxb.setSchedule(RUtil.toJAXB(repo.getSchedule(), ScheduleType.class, prismContext));
+            PrismContainerValue value = jaxb.asPrismContainerValue();
+            jaxb.setModelOperationState(RUtil.toJAXB(value, TaskType.F_MODEL_OPERATION_STATE,
+                    repo.getModelOperationState(), ModelOperationStateType.class, prismContext));
+            jaxb.setOtherHandlersUriStack(RUtil.toJAXB(value, TaskType.F_OTHER_HANDLERS_URI_STACK,
+                    repo.getOtherHandlersUriStack(), UriStack.class, prismContext));
+            jaxb.setSchedule(RUtil.toJAXB(value, TaskType.F_SCHEDULE, repo.getSchedule(),
+                    ScheduleType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

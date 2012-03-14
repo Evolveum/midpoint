@@ -99,7 +99,8 @@ public class RConnectorHostType extends RObjectType {
         jaxb.setTimeout(repo.getTimeout());
 
         try {
-            jaxb.setSharedSecret(RUtil.toJAXB(repo.getSharedSecret(), ProtectedStringType.class, prismContext));
+            jaxb.setSharedSecret(RUtil.toJAXB(jaxb.asPrismContainerValue(), ConnectorHostType.F_SHARED_SECRET,
+                    repo.getSharedSecret(), ProtectedStringType.class, prismContext));
         } catch (Exception ex) {
             new DtoTranslationException(ex.getMessage(), ex);
         }

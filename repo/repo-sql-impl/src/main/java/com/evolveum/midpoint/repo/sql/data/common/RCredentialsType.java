@@ -63,7 +63,8 @@ public class RCredentialsType {
 
         try {
             jaxb.setAllowedIdmAdminGuiAccess(repo.isAllowedIdmAdminGuiAccess());
-            jaxb.setPassword(RUtil.toJAXB(repo.getPassword(), PasswordType.class, prismContext));
+            jaxb.setPassword(RUtil.toJAXB(jaxb.asPrismContainerValue(), CredentialsType.F_PASSWORD,
+                    repo.getPassword(), PasswordType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

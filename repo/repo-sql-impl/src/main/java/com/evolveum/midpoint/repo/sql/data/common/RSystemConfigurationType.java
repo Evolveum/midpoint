@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -104,11 +105,17 @@ public class RSystemConfigurationType extends RObjectType {
         }
 
         try {
-            jaxb.setConnectorFramework(RUtil.toJAXB(repo.getConnectorFramework(), ConnectorFrameworkType.class, prismContext));
-            jaxb.setGlobalAccountSynchronizationSettings(RUtil.toJAXB(repo.getGlobalAccountSynchronizationSettings(),
-                    AccountSynchronizationSettingsType.class, prismContext));
-            jaxb.setLogging(RUtil.toJAXB(repo.getLogging(), LoggingConfigurationType.class, prismContext));
-            jaxb.setModelHooks(RUtil.toJAXB(repo.getModelHooks(), ModelHooksType.class, prismContext));
+            PrismContainerValue value = jaxb.asPrismContainerValue();
+            jaxb.setConnectorFramework(RUtil.toJAXB(value, SystemConfigurationType.F_CONNECTOR_FRAMEWORK,
+                    repo.getConnectorFramework(), ConnectorFrameworkType.class, prismContext));
+            jaxb.setGlobalAccountSynchronizationSettings(RUtil.toJAXB(value,
+                    SystemConfigurationType.F_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS,
+                    repo.getGlobalAccountSynchronizationSettings(), AccountSynchronizationSettingsType.class,
+                    prismContext));
+            jaxb.setLogging(RUtil.toJAXB(value, SystemConfigurationType.F_LOGGING, repo.getLogging(),
+                    LoggingConfigurationType.class, prismContext));
+            jaxb.setModelHooks(RUtil.toJAXB(value, SystemConfigurationType.F_MODEL_HOOKS, repo.getModelHooks(),
+                    ModelHooksType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

@@ -141,7 +141,8 @@ public class RConnectorType extends RObjectType {
         jaxb.setNamespace(repo.getNamespace());
 
         try {
-            jaxb.setSchema(RUtil.toJAXB(repo.getXmlSchema(), XmlSchemaType.class, prismContext));
+            jaxb.setSchema(RUtil.toJAXB(jaxb.asPrismContainerValue(), ConnectorType.F_SCHEMA,
+                    repo.getXmlSchema(), XmlSchemaType.class, prismContext));
 
             if (repo.getConnectorHostRef() != null) {
                 jaxb.setConnectorHostRef(repo.getConnectorHostRef().toJAXB(prismContext));

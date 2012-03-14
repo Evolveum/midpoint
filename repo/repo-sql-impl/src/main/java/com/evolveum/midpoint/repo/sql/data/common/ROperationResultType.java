@@ -187,8 +187,8 @@ public class ROperationResultType implements Serializable {
         jaxb.setToken(repo.getToken());
 
         try {
-            jaxb.setLocalizedMessage(RUtil.toJAXB(repo.getLocalizedMessage(), LocalizedMessageType.class, prismContext));
-            jaxb.setParams(RUtil.toJAXB(repo.getParams(), ParamsType.class, prismContext));
+            jaxb.setLocalizedMessage(RUtil.toJAXB(null, null, repo.getLocalizedMessage(), LocalizedMessageType.class, prismContext));
+            jaxb.setParams(RUtil.toJAXB(null, null, repo.getParams(), ParamsType.class, prismContext));
 
 //            if (StringUtils.isNotEmpty(repo.getPartialResults())) {
 //                JAXBElement<OperationResultType> result = (JAXBElement<OperationResultType>)

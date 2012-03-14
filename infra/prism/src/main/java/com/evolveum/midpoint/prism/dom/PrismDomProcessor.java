@@ -209,7 +209,7 @@ public class PrismDomProcessor {
 		return parsePrismContainer(domElement, propertyContainerDefinition);
 	}
 
-	private <T extends Containerable> PrismContainer<T> parsePrismContainer(Element domElement, PrismContainerDefinition<T> propertyContainerDefinition) throws SchemaException {
+	public <T extends Containerable> PrismContainer<T> parsePrismContainer(Element domElement, PrismContainerDefinition<T> propertyContainerDefinition) throws SchemaException {
 		List<Object> valueElements = new ArrayList<Object>(1);
 		valueElements.add(domElement);
 		return parsePrismContainer(valueElements, DOMUtil.getQName(domElement), propertyContainerDefinition);

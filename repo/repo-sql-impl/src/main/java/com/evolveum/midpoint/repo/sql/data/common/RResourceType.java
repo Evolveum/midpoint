@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -143,13 +144,21 @@ public class RResourceType extends RObjectType {
         }
 
         try {
-            jaxb.setConfiguration(RUtil.toJAXB(repo.getConfiguration(), ResourceConfigurationType.class, prismContext));
-            jaxb.setSchema(RUtil.toJAXB(repo.getXmlSchema(), XmlSchemaType.class, prismContext));
-            jaxb.setSchemaHandling(RUtil.toJAXB(repo.getSchemaHandling(), SchemaHandlingType.class, prismContext));
-            jaxb.setSynchronization(RUtil.toJAXB(repo.getSynchronization(), SynchronizationType.class, prismContext));
-            jaxb.setCapabilities(RUtil.toJAXB(repo.getCapabilities(), CapabilitiesType.class, prismContext));
-            jaxb.setNativeCapabilities(RUtil.toJAXB(repo.getNativeCapabilities(), CapabilitiesType.class, prismContext));
-            jaxb.setScripts(RUtil.toJAXB(repo.getScripts(), ScriptsType.class, prismContext));
+            PrismContainerValue value = jaxb.asPrismContainerValue();
+            jaxb.setConfiguration(RUtil.toJAXB(value, ResourceType.F_CONFIGURATION, repo.getConfiguration(),
+                    ResourceConfigurationType.class, prismContext));
+            jaxb.setSchema(RUtil.toJAXB(value, ResourceType.F_SCHEMA, repo.getXmlSchema(),
+                    XmlSchemaType.class, prismContext));
+            jaxb.setSchemaHandling(RUtil.toJAXB(value, ResourceType.F_SCHEMA_HANDLING, repo.getSchemaHandling(),
+                    SchemaHandlingType.class, prismContext));
+            jaxb.setSynchronization(RUtil.toJAXB(value, ResourceType.F_SYNCHRONIZATION, repo.getSynchronization(),
+                    SynchronizationType.class, prismContext));
+            jaxb.setCapabilities(RUtil.toJAXB(value, ResourceType.F_CAPABILITIES, repo.getCapabilities(),
+                    CapabilitiesType.class, prismContext));
+            jaxb.setNativeCapabilities(RUtil.toJAXB(value, ResourceType.F_NATIVE_CAPABILITIES,
+                    repo.getNativeCapabilities(), CapabilitiesType.class, prismContext));
+            jaxb.setScripts(RUtil.toJAXB(value, ResourceType.F_SCRIPTS, repo.getScripts(),
+                    ScriptsType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

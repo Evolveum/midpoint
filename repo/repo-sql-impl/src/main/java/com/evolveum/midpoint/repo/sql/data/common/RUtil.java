@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -61,8 +62,8 @@ public final class RUtil {
         }
     }
 
-    public static <T> T toJAXB(String value, Class<T> clazz, PrismContext prismContext)
-            throws SchemaException, JAXBException {
+    public static <T> T toJAXB(PrismContainerValue parent, QName qname, String value,
+            Class<T> clazz, PrismContext prismContext) throws SchemaException, JAXBException {
         if (StringUtils.isEmpty(value)) {
             return null;
         }
@@ -78,7 +79,10 @@ public final class RUtil {
         if (Objectable.class.isAssignableFrom(clazz)) {
             return (T) domProcessor.parseObject(firstChild).asObjectable();
         } else if (Containerable.class.isAssignableFrom(clazz)) {
-            PrismContainer container = domProcessor.parsePrismContainer(firstChild);
+            PrismContainerDefinition parentDefinition = parent.getParent().getDefinition();
+            PrismContainerDefinition definition = parentDefinition.findContainerDefinition(CredentialsType.F_PASSWORD);
+
+            PrismContainer container = domProcessor.parsePrismContainer(firstChild, definition);
             return (T) container.getValue().asContainerable(clazz);
         }
 
