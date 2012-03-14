@@ -457,7 +457,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     	// the item with specified name does not exist, create it now
 		Item<?> newItem = null;
 		
-		if (itemDefinition == null && getParent().getDefinition() != null) {
+		if (itemDefinition == null && getParent() != null && getParent().getDefinition() != null) {
 			itemDefinition = getParent().getDefinition().findItemDefinition(name);
 			if (itemDefinition == null) {
 				throw new IllegalArgumentException("No definition for item "+name+" in "+getParent());

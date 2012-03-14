@@ -78,6 +78,7 @@ import static org.testng.AssertJUnit.*;
  */
 @ContextConfiguration(locations = {"classpath:application-context-model.xml",
         "classpath:application-context-repository.xml",
+        "classpath:application-context-repo-cache.xml",
         "classpath:application-context-configuration-test.xml",
         "classpath:application-context-provisioning.xml",
         "classpath:application-context-task.xml"})
