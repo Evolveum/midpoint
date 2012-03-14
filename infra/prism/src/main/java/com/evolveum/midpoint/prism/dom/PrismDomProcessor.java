@@ -735,8 +735,7 @@ public class PrismDomProcessor {
             throws SchemaException {
 
         DomSerializer domSerializer = new DomSerializer(getPrismContext());
-        domSerializer.serialize(object, parentElement);
-        return parentElement;
+        return domSerializer.serializeContainerValue(object, parentElement);
     }
 
 	public <T extends Objectable> String serializeObjectToString(PrismObject<T> object) throws SchemaException {

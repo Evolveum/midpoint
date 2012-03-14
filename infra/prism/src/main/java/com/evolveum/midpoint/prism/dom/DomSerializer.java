@@ -89,7 +89,15 @@ public class DomSerializer {
 		topElement = null;
 	}
 
-	public void serialize(PrismContainerValue<?> value, Element parentElement) throws SchemaException {
+    public Element serializeContainerValue(PrismContainerValue<?> value, Element parentElement) throws SchemaException {
+        initialize();
+        doc = parentElement.getOwnerDocument();
+
+        serialize(value, parentElement);
+        return parentElement;
+    }
+
+	private void serialize(PrismContainerValue<?> value, Element parentElement) throws SchemaException {
 		PrismContainerable parent = value.getParent();
 		QName elementQName = parent.getName();
 		Element element = createElement(elementQName);
