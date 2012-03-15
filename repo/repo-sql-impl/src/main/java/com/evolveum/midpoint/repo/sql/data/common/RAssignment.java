@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
@@ -100,9 +101,6 @@ public class RAssignment extends RContainer implements ROwnable {
 
     @Embedded
     public RActivation getActivation() {
-        if (activation == null) {
-            activation = new RActivation();
-        }
         return activation;
     }
 
@@ -180,22 +178,18 @@ public class RAssignment extends RContainer implements ROwnable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-//        jaxb.setId(Long.toString(repo.getContainerId()));
-//        try {
-//            jaxb.setAccountConstruction(RUtil.toJAXB(repo.getAccountConstruction(), AccountConstructionType.class, prismContext));
-//        } catch (Exception ex) {
-//            throw new DtoTranslationException(ex.getMessage(), ex);
-//        }
-//
-//        com.evolveum.midpoint.repo.sql.data.common.RActivationType activation = repo.getActivation();
-//        if (activation != null) {
-//            jaxb.setActivation(activation.toJAXB(prismContext));
-//        }
-//
-//        AnyContainer extension = repo.getExtension();
-//        if (extension != null) {
-//            jaxb.setExtension(extension.toJAXB(prismContext));
-//        }
+        if (repo.getExtension() != null) {
+            jaxb.setExtension(repo.getExtension().toJAXBExtension(prismContext));
+        }
+        if (repo.getActivation() != null) {
+            jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
+        }
+
+        try {
+            jaxb.setAccountConstruction(RUtil.toJAXB(repo.getAccountConstruction(), AccountConstructionType.class, prismContext));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
 
         if (repo.getTargetRef() != null) {
             jaxb.setTargetRef(repo.getTargetRef().toJAXB(prismContext));
@@ -207,30 +201,30 @@ public class RAssignment extends RContainer implements ROwnable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-//        repo.setContainerId(com.evolveum.midpoint.repo.sql.data.common.RUtil.getLongFromString(jaxb.getId()));
-//
-//        try {
-//            repo.setAccountConstruction(RUtil.toRepo(jaxb.getAccountConstruction(), prismContext));
-//        } catch (Exception ex) {
-//            throw new DtoTranslationException(ex.getMessage(), ex);
-//        }
-//
-//        if (jaxb.getActivation() != null) {
-//            com.evolveum.midpoint.repo.sql.data.common.RActivationType activation = new com.evolveum.midpoint.repo.sql.data.common.RActivationType();
-//            com.evolveum.midpoint.repo.sql.data.common.RActivationType.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
-//            repo.setActivation(activation);
-//        }
-//
-//        if (jaxb.getExtension() != null) {
-//            AnyContainer extension = new AnyContainer();
-//            AnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
-//            repo.setExtension(extension);
-//        }
-//
-//        if (jaxb.getTarget() != null) {
-//            LOGGER.warn("Target from assignment type won't be saved. It should be translated to target reference.");
-//        }
-//
+        if (jaxb.getExtension() != null) {
+            RAnyContainer extension = new RAnyContainer();
+            extension.setOwner(repo);
+            repo.setExtension(extension);
+
+            RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
+        }
+
+        if (jaxb.getActivation() != null) {
+            RActivation activation = new RActivation();
+            RActivation.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
+            repo.setActivation(activation);
+        }
+
+        try {
+            repo.setAccountConstruction(RUtil.toRepo(jaxb.getAccountConstruction(), prismContext));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
+
+        if (jaxb.getTarget() != null) {
+            LOGGER.warn("Target from assignment type won't be saved. It should be translated to target reference.");
+        }
+
         repo.setTargetRef(RUtil.jaxbRefToRepo(jaxb.getTargetRef(), repo, prismContext));
     }
 

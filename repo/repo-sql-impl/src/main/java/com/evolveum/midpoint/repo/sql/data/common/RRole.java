@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -30,6 +31,7 @@ import org.hibernate.annotations.ForeignKey;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -57,29 +59,27 @@ public class RRole extends RObject {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
-//        if (repo.getAssignment() == null) {
-//            return;
-//        }
-//
-//        for (RAssignmentType rAssignment : repo.getAssignment()) {
-//            jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
-//        }
+        if (repo.getAssignments() != null) {
+            for (RAssignment rAssignment : repo.getAssignments()) {
+                jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
+            }
+        }
     }
 
     public static void copyFromJAXB(RoleType jaxb, RRole repo, PrismContext prismContext) throws
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
-//        if (!jaxb.getAssignment().isEmpty()) {
-//            repo.setAssignment(new ArrayList<RAssignmentType>());
-//        }
-//
-//        for (AssignmentType assignment : jaxb.getAssignment()) {
-//            RAssignmentType rAssignment = new RAssignmentType();
-//            RAssignmentType.copyFromJAXB(assignment, rAssignment, prismContext);
-//
-//            repo.getAssignment().add(rAssignment);
-//        }
+        if (jaxb.getAssignment() != null && !jaxb.getAssignment().isEmpty()) {
+            repo.setAssignments(new HashSet<RAssignment>());
+        }
+        for (AssignmentType assignment : jaxb.getAssignment()) {
+            RAssignment rAssignment = new RAssignment();
+            rAssignment.setOwner(repo);
+            RAssignment.copyFromJAXB(assignment, rAssignment, prismContext);
+
+            repo.getAssignments().add(rAssignment);
+        }
     }
 
     @Override

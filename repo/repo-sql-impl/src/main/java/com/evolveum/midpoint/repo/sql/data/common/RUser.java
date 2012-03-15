@@ -284,6 +284,7 @@ public class RUser extends RObject {
         }
         for (AssignmentType assignment : jaxb.getAssignment()) {
             RAssignment rAssignment = new RAssignment();
+            rAssignment.setOwner(repo);
             RAssignment.copyFromJAXB(assignment, rAssignment, prismContext);
 
             repo.getAssignments().add(rAssignment);
@@ -303,9 +304,7 @@ public class RUser extends RObject {
         jaxb.setLocality(repo.getLocality());
 
         if (repo.getActivation() != null) {
-            ActivationType activation = new ActivationType();
-            RActivation.copyToJAXB(repo.getActivation(), activation, prismContext);
-            jaxb.setActivation(activation);
+            jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
         }
 
         if (repo.getCredentials() != null) {
