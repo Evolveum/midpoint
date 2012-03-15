@@ -82,7 +82,11 @@ public final class PrismForJAXBUtil {
         Validate.notNull(name, "QName must not be null.");
 
         PrismProperty property = container.findOrCreateProperty(name);
-        property.setValue(new PrismPropertyValue(value));
+        if (value == null) {
+        	property.clear();
+        } else {
+        	property.setValue(new PrismPropertyValue(value));
+        }
     }
 
     public static <T> void setPropertyValue(PrismContainer container, QName name, T value) {
@@ -90,7 +94,11 @@ public final class PrismForJAXBUtil {
         Validate.notNull(name, "QName must not be null.");
 
         PrismProperty property = container.findOrCreateProperty(name);
-        property.setValue(new PrismPropertyValue(value));
+        if (value == null) {
+        	property.clear();
+        } else {
+        	property.setValue(new PrismPropertyValue(value));
+        }
     }
 
     public static <T> List<T> getPropertyValues(PrismContainerValue container, QName name, Class<T> clazz) {

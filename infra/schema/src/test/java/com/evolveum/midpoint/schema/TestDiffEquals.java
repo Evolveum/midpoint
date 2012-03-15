@@ -49,18 +49,18 @@ public class TestDiffEquals {
 
     @Test
     public void testUserSimplePropertyDiff() {
-        UserType u1 = new UserType();
-        u1.setName("test name");
-        UserType u2 = new UserType();
-        u2.setName("test name");
+        UserType userType1 = new UserType();
+        userType1.setName("test name");
+        UserType userType2 = new UserType();
+        userType2.setName("test name");
 
-        ObjectDelta delta = u1.asPrismObject().diff(u2.asPrismObject());
+        ObjectDelta delta = userType1.asPrismObject().diff(userType2.asPrismObject());
         assertNotNull(delta);
         assertEquals(0, delta.getModifications().size());
 
-        u2.setDescription(null);
+        userType2.setDescription(null);
 
-        delta = u1.asPrismObject().diff(u2.asPrismObject());
+        delta = userType1.asPrismObject().diff(userType2.asPrismObject());
         assertNotNull(delta);
         assertEquals("Delta should be empty, nothing changed.", 0, delta.getModifications().size());
     }
