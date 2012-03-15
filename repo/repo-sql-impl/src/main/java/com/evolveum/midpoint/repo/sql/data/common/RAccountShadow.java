@@ -53,9 +53,6 @@ public class RAccountShadow extends RResourceObjectShadow {
 
     @Embedded
     public RActivation getActivation() {
-        if (activation == null) {
-            activation = new RActivation();
-        }
         return activation;
     }
 
@@ -65,9 +62,6 @@ public class RAccountShadow extends RResourceObjectShadow {
 
     @Embedded
     public RCredentials getCredentials() {
-        if (credentials == null) {
-            credentials = new RCredentials();
-        }
         return credentials;
     }
 
@@ -83,8 +77,10 @@ public class RAccountShadow extends RResourceObjectShadow {
 
         jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
 
-        PropertyPath path = new PropertyPath(AccountShadowType.F_CREDENTIALS);
-        jaxb.setCredentials(repo.getCredentials().toJAXB(jaxb, path, prismContext));
+        if (repo.getCredentials() != null) {
+            PropertyPath path = new PropertyPath(AccountShadowType.F_CREDENTIALS);
+            jaxb.setCredentials(repo.getCredentials().toJAXB(jaxb, path, prismContext));
+        }
     }
 
     public static void copyFromJAXB(AccountShadowType jaxb, RAccountShadow repo, PrismContext prismContext) throws
@@ -99,11 +95,11 @@ public class RAccountShadow extends RResourceObjectShadow {
         }
         repo.setActivation(activation);
 
-        RCredentials credentials = new RCredentials();
         if (jaxb.getCredentials() != null) {
+            RCredentials credentials = new RCredentials();
             RCredentials.copyFromJAXB(jaxb.getCredentials(), credentials, prismContext);
+            repo.setCredentials(credentials);
         }
-        repo.setCredentials(credentials);
     }
 
     public AccountShadowType toJAXB(PrismContext prismContext) throws DtoTranslationException {

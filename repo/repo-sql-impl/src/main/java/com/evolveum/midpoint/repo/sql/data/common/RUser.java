@@ -78,9 +78,6 @@ public class RUser extends RObject {
 
     @Embedded
     public RActivation getActivation() {
-        if (activation == null) {
-            activation = new RActivation();
-        }
         return activation;
     }
 
@@ -97,9 +94,6 @@ public class RUser extends RObject {
 
     @Embedded
     public RCredentials getCredentials() {
-        if (credentials == null) {
-            credentials = new RCredentials();
-        }
         return credentials;
     }
 
@@ -256,16 +250,17 @@ public class RUser extends RObject {
         repo.setEmployeeNumber(jaxb.getEmployeeNumber());
         repo.setLocality(jaxb.getLocality());
 
-        RActivation activation = new RActivation();
         if (jaxb.getActivation() != null) {
+            RActivation activation = new RActivation();
             RActivation.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
+            repo.setActivation(activation);
+
         }
-        repo.setActivation(activation);
-        RCredentials credentials = new RCredentials();
         if (jaxb.getCredentials() != null) {
+            RCredentials credentials = new RCredentials();
             RCredentials.copyFromJAXB(jaxb.getCredentials(), credentials, prismContext);
+            repo.setCredentials(credentials);
         }
-        repo.setCredentials(credentials);
 
         //sets
         repo.setAdditionalNames(RUtil.listToSet(jaxb.getAdditionalNames()));

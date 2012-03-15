@@ -142,7 +142,7 @@ public class RConnector extends RObject {
         jaxb.setNamespace(repo.getNamespace());
 
         try {
-            jaxb.setSchema(RUtil.toJAXB(RConnector.class, new PropertyPath(ConnectorType.F_SCHEMA),
+            jaxb.setSchema(RUtil.toJAXB(ConnectorType.class, new PropertyPath(ConnectorType.F_SCHEMA),
                     repo.getXmlSchema(), XmlSchemaType.class, prismContext));
 
             if (repo.getConnectorHostRef() != null) {

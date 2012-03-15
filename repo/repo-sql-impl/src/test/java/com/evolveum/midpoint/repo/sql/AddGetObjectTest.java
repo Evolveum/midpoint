@@ -279,6 +279,9 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
             count += delta.getModifications().size();
             LOGGER.error(">>> {} Found {} changes for {}\n{}", new Object[]{(i + 1), delta.getModifications().size(),
                     newObject.toString(), delta.debugDump(3)});
+            if (delta.getModifications().size() > 0) {
+                LOGGER.error("{}", prismContext.getPrismDomProcessor().serializeObjectToString(newObject));
+            }
         }
 
         AssertJUnit.assertEquals("Found changes during add/get test " + count, 0, count);

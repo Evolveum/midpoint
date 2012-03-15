@@ -30,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Type;
 
+import javax.persistence.Column;
 import javax.persistence.Embeddable;
 
 /**
@@ -39,17 +40,19 @@ import javax.persistence.Embeddable;
 public class RCredentials {
 
     private String password;
-    private boolean allowedIdmAdminGuiAccess = false;
+    private Boolean allowedIdmAdminGuiAccess;
 
-    public boolean isAllowedIdmAdminGuiAccess() {
+    @Column(nullable = true)
+    public Boolean isAllowedIdmAdminGuiAccess() {
         return allowedIdmAdminGuiAccess;
     }
 
-    public void setAllowedIdmAdminGuiAccess(boolean allowedIdmAdminGuiAccess) {
+    public void setAllowedIdmAdminGuiAccess(Boolean allowedIdmAdminGuiAccess) {
         this.allowedIdmAdminGuiAccess = allowedIdmAdminGuiAccess;
     }
 
     @Type(type = "org.hibernate.type.TextType")
+    @Column(nullable = true)
     public String getPassword() {
         return password;
     }
@@ -77,10 +80,8 @@ public class RCredentials {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        boolean allowed = jaxb.isAllowedIdmAdminGuiAccess() != null ? jaxb.isAllowedIdmAdminGuiAccess() : false;
-        repo.setAllowedIdmAdminGuiAccess(allowed);
-
         try {
+            repo.setAllowedIdmAdminGuiAccess(jaxb.isAllowedIdmAdminGuiAccess());
             repo.setPassword(RUtil.toRepo(jaxb.getPassword(), prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

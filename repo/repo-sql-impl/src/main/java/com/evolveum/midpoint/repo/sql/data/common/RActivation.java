@@ -27,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Index;
 
+import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -36,30 +37,34 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @Embeddable
 public class RActivation {
 
-    private boolean enabled = true;
+    private Boolean enabled;
     private XMLGregorianCalendar validFrom;
     private XMLGregorianCalendar validTo;
 
     @Index(name = "iEnabled")
-    public boolean isEnabled() {
+    @Column(nullable = true)
+    public Boolean isEnabled() {
         return enabled;
     }
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+    @Column(nullable = true)
+    public XMLGregorianCalendar getValidTo() {
+        return validTo;
     }
 
+    @Column(nullable = true)
     public XMLGregorianCalendar getValidFrom() {
         return validFrom;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
     }
 
     public void setValidFrom(XMLGregorianCalendar validFrom) {
         this.validFrom = validFrom;
     }
 
-    public XMLGregorianCalendar getValidTo() {
-        return validTo;
-    }
 
     public void setValidTo(XMLGregorianCalendar validTo) {
         this.validTo = validTo;
@@ -70,9 +75,7 @@ public class RActivation {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
 
-        boolean enabled = jaxb.isEnabled() != null ? jaxb.isEnabled() : true;
-        repo.setEnabled(enabled);
-
+        repo.setEnabled(jaxb.isEnabled());
         repo.setValidFrom(jaxb.getValidFrom());
         repo.setValidTo(repo.getValidTo());
     }
