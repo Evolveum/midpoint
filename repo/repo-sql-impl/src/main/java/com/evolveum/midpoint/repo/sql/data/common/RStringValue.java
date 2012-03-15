@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import org.hibernate.annotations.Index;
+
 import javax.persistence.Embeddable;
 import javax.xml.namespace.QName;
 
@@ -45,6 +47,7 @@ public class RStringValue extends RValue {
         setValue(value);
     }
 
+    @Index(name = "iString")
     public String getValue() {
         return value;
     }

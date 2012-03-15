@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import org.hibernate.annotations.Index;
+
 import javax.persistence.Embeddable;
 import javax.xml.namespace.QName;
 import java.util.Date;
@@ -46,6 +48,7 @@ public class RDateValue extends RValue {
         setValue(value);
     }
 
+    @Index(name = "iDate")
     public Date getValue() {
         return value;
     }

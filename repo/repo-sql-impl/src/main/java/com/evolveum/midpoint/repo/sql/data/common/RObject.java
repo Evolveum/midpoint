@@ -35,11 +35,7 @@ import org.hibernate.annotations.Type;
 import javax.persistence.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: lazyman
- * Date: 3/12/12
- * Time: 6:54 PM
- * To change this template use File | Settings | File Templates.
+ * @author lazyman
  */
 @Entity
 @Table(name = "object")

@@ -28,11 +28,7 @@ import javax.persistence.MappedSuperclass;
 import javax.xml.namespace.QName;
 
 /**
- * Created by IntelliJ IDEA.
- * User: lazyman
- * Date: 3/12/12
- * Time: 8:56 PM
- * To change this template use File | Settings | File Templates.
+ * @author lazyman
  */
 @MappedSuperclass
 public class RValue {

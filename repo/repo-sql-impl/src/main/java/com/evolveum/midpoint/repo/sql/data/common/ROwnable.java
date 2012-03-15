@@ -27,7 +27,8 @@ package com.evolveum.midpoint.repo.sql.data.common;
 public interface ROwnable {
 
     /**
-     * @return todo
+     * @return Returns owner of container. For example for {@link RAssignment} method must
+     *         return {@link RUser} or {@link RRole}
      */
     RContainer getContainerOwner();
 }

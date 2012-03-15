@@ -27,11 +27,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 /**
- * Created by IntelliJ IDEA.
- * User: lazyman
- * Date: 3/12/12
- * Time: 6:54 PM
- * To change this template use File | Settings | File Templates.
+ * @author lazyman
  */
 @Entity
 @IdClass(RContainerId.class)
