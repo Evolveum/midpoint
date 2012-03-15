@@ -176,7 +176,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		// Result type for this operation
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".getObject");
-		result.addParam("oid", oid);
+		result.addParam(OperationResult.PARAM_OID, oid);
+		result.addParam(OperationResult.PARAM_TYPE, type);
 		result.addParam("resolve", resolve);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 

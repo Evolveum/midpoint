@@ -739,7 +739,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			co = icfConnectorFacade.getObject(icfObjectClass, uid, optionsBuilder.build());
 
 			icfResult.recordSuccess();
-			icfResult.setReturnValue(co);
 		} catch (Exception ex) {
 			// ICF interface does not specify exceptions or other error
 			// conditions.
@@ -1272,6 +1271,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		OperationResult subresult = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".fetchChanges");
 		subresult.addContext("objectClass", objectClass);
+		subresult.addParam("lastToken", lastToken);
 
 		// create sync token from the property last token
 		SyncToken syncToken = null;
@@ -1283,7 +1283,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw new SchemaException(ex.getMessage(), ex);
 		}
 
-		final Set<SyncDelta> result = new HashSet<SyncDelta>();
+		final List<SyncDelta> result = new ArrayList<SyncDelta>();
 		// get icf object class
 		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
 
@@ -1307,6 +1307,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			icfConnectorFacade.sync(icfObjectClass, syncToken, syncHandler,
 					new OperationOptionsBuilder().build());
 			icfResult.recordSuccess();
+			icfResult.addReturn(OperationResult.RETURN_COUNT, result.size());
 		} catch (Exception ex) {
 			Exception midpointEx = processIcfException(ex, icfResult);
 			subresult.computeStatus();
@@ -1335,6 +1336,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		subresult.recordSuccess();
+		subresult.addReturn(OperationResult.RETURN_COUNT, changeList==null ? 0 : changeList.size());
 		return changeList;
 	}
 
@@ -1816,7 +1818,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	}
 
-	private List<Change> getChangesFromSyncDelta(Set<SyncDelta> result, PrismSchema schema,
+	private List<Change> getChangesFromSyncDelta(Collection<SyncDelta> result, PrismSchema schema,
 			OperationResult parentResult) throws SchemaException, GenericFrameworkException {
 		List<Change> changeList = new ArrayList<Change>();
 

@@ -219,7 +219,8 @@ public class XmlRepositoryService implements RepositoryService {
 
 		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName()
 				+ ".getObject");
-		result.addParam("oid", oid);
+		result.addParam(OperationResult.PARAM_OID, oid);
+		result.addParam(OperationResult.PARAM_TYPE, type);
 		result.addParam("resolve", resolve);
 
 		validateOid(oid);

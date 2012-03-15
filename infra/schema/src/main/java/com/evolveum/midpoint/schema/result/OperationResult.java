@@ -79,25 +79,27 @@ public class OperationResult implements Serializable, Dumpable {
 
 	private static final long serialVersionUID = -2467406395542291044L;
 	private static final String INDENT_STRING = "    ";
+	
 	public static final String CONTEXT_IMPLEMENTATION_CLASS = "implementationClass";
 	public static final String CONTEXT_PROGRESS = "progress";
 	public static final String CONTEXT_OID = "oid";
 	public static final String CONTEXT_OBJECT = "object";
 	public static final String CONTEXT_PROPERTY = "property";
+	public static final String CONTEXT_TASK = "task";
+	
 	public static final String PARAM_OID = "oid";
+	public static final String PARAM_TYPE = "type";
 	public static final String PARAM_TASK = "task";
 	public static final String PARAM_OBJECT = "object";
-	public static final String CONTEXT_TASK = "task";
+	
+	public static final String RETURN_COUNT = "count";
+	
 	private static long TOKEN_COUNT = 1000000000000000000L;
 	private String operation;
 	private OperationResultStatus status;
 	private Map<String, Object> params;
 	private Map<String, Object> context;
-	private Object returnValue;
-	// This is necessary as "null" may be a valid return value and we need to
-	// distinguish
-	// if the value of "null" was set or someone forgot to set the return value.
-	private boolean returnValueSet = false;
+	private Map<String, Object> returns;
 	private long token;
 	private String messageCode;
 	private String message;
@@ -441,13 +443,19 @@ public class OperationResult implements Serializable, Dumpable {
 		getContext().put(contextName, value);
 	}
 
-	public Object getReturnValue() {
-		return returnValue;
+	public Map<String, Object> getReturns() {
+		if (returns == null) {
+			returns = new HashMap<String, Object>();
+		}
+		return returns;
 	}
 
-	public void setReturnValue(Object returnValue) {
-		returnValueSet = true;
-		this.returnValue = returnValue;
+	public void addReturn(String returnName, Object value) {
+		getReturns().put(returnName, value);
+	}
+
+	public Object getReturn(String returnName) {
+		return getReturns().get(returnName);
 	}
 
 	/**
@@ -662,13 +670,15 @@ public class OperationResult implements Serializable, Dumpable {
 			sb.append(dumpEntry(entry.getValue()));
 			sb.append("\n");
 		}
-
-		if (returnValueSet) {
+		
+		for (Map.Entry<String, Object> entry : getReturns().entrySet()) {
 			for (int i = 0; i < indent + 2; i++) {
 				sb.append(INDENT_STRING);
 			}
-			sb.append("[r]=");
-			sb.append(dumpEntry(returnValue));
+			sb.append("[r]");
+			sb.append(entry.getKey());
+			sb.append("=");
+			sb.append(dumpEntry(entry.getValue()));
 			sb.append("\n");
 		}
 
