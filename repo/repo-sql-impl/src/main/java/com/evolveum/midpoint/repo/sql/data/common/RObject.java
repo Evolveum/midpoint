@@ -94,10 +94,7 @@ public abstract class RObject extends RContainer {
         jaxb.setVersion(Long.toString(repo.getVersion()));
 
         if (repo.getExtension() != null) {
-            ExtensionType extension = new ExtensionType();
-            jaxb.setExtension(extension);
-
-            RAnyContainer.copyToJAXB(repo.getExtension(), extension, prismContext);
+            jaxb.setExtension(repo.getExtension().toJAXBExtension(prismContext));
         }
     }
 

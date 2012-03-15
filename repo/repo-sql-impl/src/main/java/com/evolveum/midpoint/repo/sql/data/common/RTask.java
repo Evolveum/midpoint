@@ -280,7 +280,12 @@ public class RTask extends RObject {
         addReference(repo, jaxb.getObjectRef(), RObjectReferenceType.TASK_OBJECT, prismContext);
         addReference(repo, jaxb.getOwnerRef(), RObjectReferenceType.TASK_OWNER, prismContext);
 
-//        repo.setResult(RUtil.jaxbResultToRepo(repo, jaxb.getResult(), prismContext));
+        if (jaxb.getResult() != null) {
+            ROperationResult result = new ROperationResult();
+            result.setOwner(repo);
+            ROperationResult.copyFromJAXB(jaxb.getResult(), result, prismContext);
+            repo.setResult(result);
+        }
 
         try {
             repo.setModelOperationState(RUtil.toRepo(jaxb.getModelOperationState(), prismContext));

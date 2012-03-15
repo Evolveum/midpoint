@@ -41,7 +41,6 @@ public class RAccountShadow extends RResourceObjectShadow {
 
     private String accountType;
     private RCredentials credentials;
-    private RActivation activation;
 
     public String getAccountType() {
         return accountType;
@@ -49,15 +48,6 @@ public class RAccountShadow extends RResourceObjectShadow {
 
     public void setAccountType(String accountType) {
         this.accountType = accountType;
-    }
-
-    @Embedded
-    public RActivation getActivation() {
-        return activation;
-    }
-
-    public void setActivation(RActivation activation) {
-        this.activation = activation;
     }
 
     @Embedded
@@ -75,8 +65,6 @@ public class RAccountShadow extends RResourceObjectShadow {
 
         jaxb.setAccountType(repo.getAccountType());
 
-        jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
-
         if (repo.getCredentials() != null) {
             PropertyPath path = new PropertyPath(AccountShadowType.F_CREDENTIALS);
             jaxb.setCredentials(repo.getCredentials().toJAXB(jaxb, path, prismContext));
@@ -88,12 +76,6 @@ public class RAccountShadow extends RResourceObjectShadow {
         RResourceObjectShadow.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setAccountType(jaxb.getAccountType());
-
-        RActivation activation = new RActivation();
-        if (jaxb.getActivation() != null) {
-            RActivation.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
-        }
-        repo.setActivation(activation);
 
         if (jaxb.getCredentials() != null) {
             RCredentials credentials = new RCredentials();

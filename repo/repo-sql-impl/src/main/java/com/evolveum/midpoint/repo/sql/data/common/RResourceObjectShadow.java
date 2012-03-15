@@ -23,10 +23,15 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.FailedOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Columns;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import javax.xml.namespace.QName;
@@ -40,7 +45,14 @@ import javax.xml.namespace.QName;
 @ForeignKey(name = "fk_resource_object_shadow")
 public class RResourceObjectShadow extends RObject {
 
+    private static final Trace LOGGER = TraceManager.getTrace(RResourceObjectShadow.class);
     private QName objectClass;
+    private RActivation activation;
+    private ROperationResult result;
+    private RObjectReference resourceRef;
+    private String objectChange;
+    private Integer attemptNumber;
+    private FailedOperationTypeType failedOperationType;
     //attributes
     private RAnyContainer attributes;
 
@@ -60,9 +72,66 @@ public class RResourceObjectShadow extends RObject {
             @JoinColumn(name = "attrId", referencedColumnName = "owner_id"),
             @JoinColumn(name = "attrType", referencedColumnName = "ownerType")
     })
-
     public RAnyContainer getAttributes() {
         return attributes;
+    }
+
+    @Embedded
+    public RActivation getActivation() {
+        return activation;
+    }
+
+    @OneToOne(optional = true, mappedBy = "owner")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public ROperationResult getResult() {
+        return result;
+    }
+
+    @OneToOne(optional = true, mappedBy = "owner")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public RObjectReference getResourceRef() {
+        return resourceRef;
+    }
+
+    @Column(nullable = true)
+    public Integer getAttemptNumber() {
+        return attemptNumber;
+    }
+
+    @Enumerated(EnumType.ORDINAL)
+    @Column(nullable = true)
+    public FailedOperationTypeType getFailedOperationType() {
+        return failedOperationType;
+    }
+
+    @Type(type = "org.hibernate.type.TextType")
+    @Column(nullable = true)
+    public String getObjectChange() {
+        return objectChange;
+    }
+
+    public void setAttemptNumber(Integer attemptNumber) {
+        this.attemptNumber = attemptNumber;
+    }
+
+    public void setFailedOperationType(FailedOperationTypeType failedOperationType) {
+        this.failedOperationType = failedOperationType;
+    }
+
+    public void setObjectChange(String objectChange) {
+        this.objectChange = objectChange;
+    }
+
+    public void setResourceRef(RObjectReference resourceRef) {
+        this.resourceRef = resourceRef;
+    }
+
+    public void setResult(ROperationResult result) {
+        this.result = result;
+    }
+
+    public void setActivation(RActivation activation) {
+        this.activation = activation;
     }
 
     public void setAttributes(RAnyContainer attributes) {
@@ -80,49 +149,71 @@ public class RResourceObjectShadow extends RObject {
             PrismContext prismContext) throws DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
-//        jaxb.setAttemptNumber(repo.getAttemptNumber());
-//        jaxb.setObjectClass(repo.getObjectClass());
-//        jaxb.setFailedOperationType(repo.getFailedOperationType());
-//
-//        if (repo.getOpResult() != null) {
-//            jaxb.setResult(repo.getOpResult().toJAXB(prismContext));
-//        }
-//        if (repo.getResourceRef() != null) {
-//            jaxb.setResourceRef(repo.getResourceRef().toJAXB(prismContext));
-//        }
-//
-//        try {
-//            jaxb.setObjectChange(RUtil.toJAXB(repo.getObjectChange(), ObjectChangeType.class, prismContext));
-//        } catch (Exception ex) {
-//            throw new DtoTranslationException(ex.getMessage(), ex);
-//        }
+        jaxb.setObjectClass(repo.getObjectClass());
+        jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
 
-        //todo implement attributes
+        if (repo.getResult() != null) {
+            jaxb.setResult(repo.getResult().toJAXB(prismContext));
+        }
+
+        if (repo.getResourceRef() != null) {
+            jaxb.setResourceRef(repo.getResourceRef().toJAXB(prismContext));
+        }
+
+        jaxb.setAttemptNumber(repo.getAttemptNumber());
+        jaxb.setFailedOperationType(repo.getFailedOperationType());
+
+        try {
+            jaxb.setObjectChange(RUtil.toJAXB(repo.getObjectChange(), ObjectChangeType.class, prismContext));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
+
+        if (repo.getAttributes() != null) {
+            jaxb.setAttributes(repo.getAttributes().toJAXBAttributes(prismContext));
+        }
     }
 
     public static void copyFromJAXB(ResourceObjectShadowType jaxb, RResourceObjectShadow repo,
             PrismContext prismContext) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
-//        if (jaxb.getResource() != null) {
-//            LOGGER.warn("Resource from resource object shadow type won't be saved. It should be " +
-//                    "translated to resource reference.");
-//        }
-//
-//        repo.setAttemptNumber(jaxb.getAttemptNumber());
-//        repo.setObjectClass(jaxb.getObjectClass());
-//        repo.setFailedOperationType(jaxb.getFailedOperationType());
-//
-//        repo.setResourceRef(RUtil.jaxbRefToRepo(jaxb.getResourceRef(), jaxb, prismContext));
-//        repo.setOpResult(RUtil.jaxbResultToRepo(repo, jaxb.getResult(), prismContext));
-//
-//        try {
-//            repo.setObjectChange(RUtil.toRepo(jaxb.getObjectChange(), prismContext));
-//        } catch (Exception ex) {
-//            throw new DtoTranslationException(ex.getMessage(), ex);
-//        }
+        repo.setObjectClass(jaxb.getObjectClass());
+        if (jaxb.getActivation() != null) {
+            RActivation activation = new RActivation();
+            RActivation.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
+            repo.setActivation(activation);
+        }
 
-        //todo implement attributes
+        if (jaxb.getResult() != null) {
+            ROperationResult result = new ROperationResult();
+            result.setOwner(repo);
+            ROperationResult.copyFromJAXB(jaxb.getResult(), result, prismContext);
+            repo.setResult(result);
+        }
+
+        repo.setResourceRef(RUtil.jaxbRefToRepo(jaxb.getResourceRef(), repo, prismContext));
+        repo.setAttemptNumber(jaxb.getAttemptNumber());
+        repo.setFailedOperationType(jaxb.getFailedOperationType());
+
+        if (jaxb.getResource() != null) {
+            LOGGER.warn("Resource from resource object shadow type won't be saved. It should be " +
+                    "translated to resource reference.");
+        }
+
+        try {
+            repo.setObjectChange(RUtil.toRepo(jaxb.getObjectChange(), prismContext));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
+
+        if (jaxb.getAttributes() != null) {
+            RAnyContainer attributes = new RAnyContainer();
+            attributes.setOwner(repo);
+            repo.setAttributes(attributes);
+
+            RAnyContainer.copyFromJAXB(jaxb.getAttributes(), attributes, prismContext);
+        }
     }
 
     @Override

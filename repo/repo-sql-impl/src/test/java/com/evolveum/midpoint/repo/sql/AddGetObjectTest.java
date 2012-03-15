@@ -194,7 +194,6 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
      */
     @Test
     public void simpleInsertTest() {
-        Session session = null;
         Statistics stats = factory.getStatistics();
         stats.setStatisticsEnabled(true);
 
@@ -214,7 +213,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
             RConnector connector1 = simpleInsertConnector3();
 
             RUser user = simpleInsertUser(connector0, connector1);
-            RObjectReference reference = simpleInsertConnector2(user);
+            simpleInsertConnector2(user);
             RResourceObjectShadow shadow = simpleInsertShadow();
 
             if (0.1 < Math.random()) {
@@ -225,7 +224,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
                 cycles, (cycles * 5), (System.currentTimeMillis() - time)});
 
         if (oid != null) {
-            session = open();
+            Session session = open();
             Query query = session.createQuery("from RResourceObjectShadowType as s where s.oid = :oid");
             query.setString("oid", oid);
             RResourceObjectShadow shadow = (RResourceObjectShadow) query.uniqueResult();

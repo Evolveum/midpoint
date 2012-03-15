@@ -24,6 +24,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowAttributesType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -31,6 +32,7 @@ import org.hibernate.annotations.ForeignKey;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -148,32 +150,55 @@ public class RAnyContainer implements Serializable {
         this.owner = owner;
     }
 
+    public static void copyToJAXB(RAnyContainer repo, ResourceObjectShadowAttributesType jaxb,
+            PrismContext prismContext) throws
+            DtoTranslationException {
+        Validate.notNull(repo, "Repo object must not be null.");
+        Validate.notNull(jaxb, "JAXB object must not be null.");
+
+        copyToJAXB(repo, jaxb.getAny(), prismContext);
+    }
+
     public static void copyToJAXB(RAnyContainer repo, ExtensionType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
+        copyToJAXB(repo, jaxb.getAny(), prismContext);
+    }
+
+    private static void copyToJAXB(RAnyContainer repo, List<Object> anyList, PrismContext prismContext) throws
+            DtoTranslationException {
         RAnyConverter converter = new RAnyConverter(prismContext);
         if (repo.getClobs() != null) {
             for (RClobValue value : repo.getClobs()) {
-                jaxb.getAny().add(converter.convertFromValue(value));
+                anyList.add(converter.convertFromValue(value));
             }
         }
         if (repo.getDates() != null) {
             for (RDateValue value : repo.getDates()) {
-                jaxb.getAny().add(converter.convertFromValue(value));
+                anyList.add(converter.convertFromValue(value));
             }
         }
         if (repo.getLongs() != null) {
             for (RLongValue value : repo.getLongs()) {
-                jaxb.getAny().add(converter.convertFromValue(value));
+                anyList.add(converter.convertFromValue(value));
             }
         }
         if (repo.getStrings() != null) {
             for (RStringValue value : repo.getStrings()) {
-                jaxb.getAny().add(converter.convertFromValue(value));
+                anyList.add(converter.convertFromValue(value));
             }
         }
+    }
+
+    public static void copyFromJAXB(ResourceObjectShadowAttributesType jaxb, RAnyContainer repo,
+            PrismContext prismContext) throws
+            DtoTranslationException {
+        Validate.notNull(repo, "Repo object must not be null.");
+        Validate.notNull(jaxb, "JAXB object must not be null.");
+
+        copyFromJAXB(jaxb.getAny(), repo, prismContext);
     }
 
     public static void copyFromJAXB(ExtensionType jaxb, RAnyContainer repo, PrismContext prismContext) throws
@@ -181,11 +206,16 @@ public class RAnyContainer implements Serializable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
+        copyFromJAXB(jaxb.getAny(), repo, prismContext);
+    }
+
+    private static void copyFromJAXB(List<Object> anyList, RAnyContainer repo, PrismContext prismContext) throws
+            DtoTranslationException {
         RAnyConverter converter = new RAnyConverter(prismContext);
 
         Set<RValue> values = new HashSet<RValue>();
         try {
-            for (Object any : jaxb.getAny()) {
+            for (Object any : anyList) {
                 values.add(converter.convertToValue(any));
             }
         } catch (Exception ex) {
@@ -217,7 +247,15 @@ public class RAnyContainer implements Serializable {
         }
     }
 
-    public ExtensionType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+    public ResourceObjectShadowAttributesType toJAXBAttributes(PrismContext prismContext) throws
+            DtoTranslationException {
+        ResourceObjectShadowAttributesType attributes = new ResourceObjectShadowAttributesType();
+        RAnyContainer.copyToJAXB(this, attributes, prismContext);
+
+        return attributes;
+    }
+
+    public ExtensionType toJAXBExtension(PrismContext prismContext) throws DtoTranslationException {
         ExtensionType extension = new ExtensionType();
         RAnyContainer.copyToJAXB(this, extension, prismContext);
 

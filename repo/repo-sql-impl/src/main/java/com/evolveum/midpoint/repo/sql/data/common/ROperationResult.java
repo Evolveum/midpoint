@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.LocalizedMessageType
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ParamsType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Type;
@@ -194,11 +195,10 @@ public class ROperationResult implements Serializable {
             jaxb.setParams(RUtil.toJAXB(OperationResultType.class, new PropertyPath(OperationResultType.F_PARAMS),
                     repo.getParams(), ParamsType.class, prismContext));
 
-//            if (StringUtils.isNotEmpty(repo.getPartialResults())) {
-//                JAXBElement<OperationResultType> result = (JAXBElement<OperationResultType>)
-//                        JAXBUtil.unmarshal(repo.getPartialResults());
-//                jaxb.getPartialResults().addAll(result.getValue().getPartialResults());
-//            }
+            if (StringUtils.isNotEmpty(repo.getPartialResults())) {
+                OperationResultType result = RUtil.toJAXB(repo.getPartialResults(), OperationResultType.class, prismContext);
+                jaxb.getPartialResults().addAll(result.getPartialResults());
+            }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
