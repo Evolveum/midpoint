@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import org.hibernate.annotations.ForeignKey;
@@ -81,7 +82,9 @@ public class RAccountShadowType extends RResourceObjectShadowType {
         jaxb.setAccountType(repo.getAccountType());
 
         jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
-        jaxb.setCredentials(repo.getCredentials().toJAXB(prismContext));
+
+        PropertyPath path = new PropertyPath(AccountShadowType.F_CREDENTIALS);
+        jaxb.setCredentials(repo.getCredentials().toJAXB(jaxb, path, prismContext));
     }
 
     public static void copyFromJAXB(AccountShadowType jaxb, RAccountShadowType repo, PrismContext prismContext) throws

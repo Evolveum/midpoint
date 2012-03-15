@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -141,7 +142,7 @@ public class RConnectorType extends RObjectType {
         jaxb.setNamespace(repo.getNamespace());
 
         try {
-            jaxb.setSchema(RUtil.toJAXB(jaxb.asPrismContainerValue(), ConnectorType.F_SCHEMA,
+            jaxb.setSchema(RUtil.toJAXB(RConnectorType.class, new PropertyPath(ConnectorType.F_SCHEMA),
                     repo.getXmlSchema(), XmlSchemaType.class, prismContext));
 
             if (repo.getConnectorHostRef() != null) {

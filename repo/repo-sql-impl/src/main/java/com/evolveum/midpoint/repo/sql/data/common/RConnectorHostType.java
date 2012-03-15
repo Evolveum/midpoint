@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
@@ -99,7 +100,7 @@ public class RConnectorHostType extends RObjectType {
         jaxb.setTimeout(repo.getTimeout());
 
         try {
-            jaxb.setSharedSecret(RUtil.toJAXB(jaxb.asPrismContainerValue(), ConnectorHostType.F_SHARED_SECRET,
+            jaxb.setSharedSecret(RUtil.toJAXB(ConnectorHostType.class, new PropertyPath(ConnectorHostType.F_SHARED_SECRET),
                     repo.getSharedSecret(), ProtectedStringType.class, prismContext));
         } catch (Exception ex) {
             new DtoTranslationException(ex.getMessage(), ex);

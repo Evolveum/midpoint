@@ -22,8 +22,11 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Type;
@@ -56,15 +59,15 @@ public class RCredentialsType {
         this.password = password;
     }
 
-    public static void copyToJAXB(RCredentialsType repo, CredentialsType jaxb, PrismContext prismContext) throws
-            DtoTranslationException {
+    public static void copyToJAXB(RCredentialsType repo, CredentialsType jaxb, ObjectType parent, PropertyPath path,
+            PrismContext prismContext) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
         try {
             jaxb.setAllowedIdmAdminGuiAccess(repo.isAllowedIdmAdminGuiAccess());
-            jaxb.setPassword(RUtil.toJAXB(jaxb.asPrismContainerValue(), CredentialsType.F_PASSWORD,
-                    repo.getPassword(), PasswordType.class, prismContext));
+            PropertyPath passwordPath = new PropertyPath(path, CredentialsType.F_PASSWORD);
+            jaxb.setPassword(RUtil.toJAXB(parent.getClass(), passwordPath, repo.getPassword(), PasswordType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
@@ -85,9 +88,10 @@ public class RCredentialsType {
         }
     }
 
-    public CredentialsType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+    public CredentialsType toJAXB(ObjectType parent, PropertyPath path, PrismContext prismContext) throws
+            DtoTranslationException {
         CredentialsType credentials = new CredentialsType();
-        RCredentialsType.copyToJAXB(this, credentials, prismContext);
+        RCredentialsType.copyToJAXB(this, credentials, parent, path, prismContext);
         return credentials;
     }
 }

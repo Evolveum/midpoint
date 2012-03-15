@@ -22,8 +22,12 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -310,9 +314,8 @@ public class RUserType extends RObjectType {
         }
 
         if (repo.getCredentials() != null) {
-            CredentialsType credentials = new CredentialsType();
-            RCredentialsType.copyToJAXB(repo.getCredentials(), credentials, prismContext);
-            jaxb.setCredentials(credentials);
+            PropertyPath path = new PropertyPath(UserType.F_CREDENTIALS);
+            jaxb.setCredentials(repo.getCredentials().toJAXB(jaxb, path, prismContext));
         }
 
         jaxb.getAdditionalNames().addAll(RUtil.safeSetToList(repo.getAdditionalNames()));

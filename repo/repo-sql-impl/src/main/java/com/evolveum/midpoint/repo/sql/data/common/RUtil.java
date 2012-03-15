@@ -23,11 +23,11 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -62,7 +62,12 @@ public final class RUtil {
         }
     }
 
-    public static <T> T toJAXB(PrismContainerValue parent, QName qname, String value,
+    public static <T> T toJAXB(String value, Class<T> clazz, PrismContext prismContext) throws SchemaException,
+            JAXBException {
+        return toJAXB(null, null, value, clazz, prismContext);
+    }
+
+    public static <T> T toJAXB(Class<?> parentClass, PropertyPath path, String value,
             Class<T> clazz, PrismContext prismContext) throws SchemaException, JAXBException {
         if (StringUtils.isEmpty(value)) {
             return null;
@@ -71,23 +76,27 @@ public final class RUtil {
         Document document = DOMUtil.parseDocument(value);
         Element root = document.getDocumentElement();
         Element firstChild = getFirstSubElement(root);
-        if (firstChild == null) {
-            return null;
-        }
 
         PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
         if (Objectable.class.isAssignableFrom(clazz)) {
+            if (firstChild == null) {
+                return null;
+            }
             return (T) domProcessor.parseObject(firstChild).asObjectable();
         } else if (Containerable.class.isAssignableFrom(clazz)) {
-            PrismContainerDefinition parentDefinition = parent.getParent().getDefinition();
-            PrismContainerDefinition definition = parentDefinition.findContainerDefinition(CredentialsType.F_PASSWORD);
+            if (firstChild == null) {
+                return null;
+            }
+            SchemaRegistry registry = prismContext.getSchemaRegistry();
+            PrismContainerDefinition parentDefinition = registry.determineDefinitionFromClass(parentClass);
+            PrismContainerDefinition definition = parentDefinition.findContainerDefinition(path);
 
             PrismContainer container = domProcessor.parsePrismContainer(firstChild, definition);
             return (T) container.getValue().asContainerable(clazz);
         }
 
         PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
-        JAXBElement<T> element = jaxbProcessor.unmarshalElement(firstChild, clazz);
+        JAXBElement<T> element = jaxbProcessor.unmarshalElement(root, clazz);
         return element.getValue();
     }
 
