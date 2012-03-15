@@ -41,7 +41,7 @@ import java.util.Set;
 @Entity
 @Table(name = "task")
 @ForeignKey(name = "fk_task")
-public class RTaskType extends RObjectType {
+public class RTask extends RObject {
 
     private String taskIdentifier;
     private Set<RObjectReference> references;
@@ -51,7 +51,7 @@ public class RTaskType extends RObjectType {
     private XMLGregorianCalendar claimExpirationTimestamp;
     private String handlerUri;
     private String otherHandlersUriStack;
-    private ROperationResultType result;
+    private ROperationResult result;
     private XMLGregorianCalendar lastRunStartTimestamp;
     private XMLGregorianCalendar lastRunFinishTimestamp;
     private XMLGregorianCalendar nextRunStartTime;
@@ -105,7 +105,7 @@ public class RTaskType extends RObjectType {
 
     @OneToOne(optional = true, mappedBy = "owner")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public ROperationResultType getResult() {
+    public ROperationResult getResult() {
         return result;
     }
 
@@ -185,7 +185,7 @@ public class RTaskType extends RObjectType {
         this.recurrence = recurrence;
     }
 
-    public void setResult(ROperationResultType result) {
+    public void setResult(ROperationResult result) {
         this.result = result;
     }
 
@@ -209,9 +209,9 @@ public class RTaskType extends RObjectType {
         this.schedule = schedule;
     }
 
-    public static void copyToJAXB(RTaskType repo, TaskType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RTask repo, TaskType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        RObjectType.copyToJAXB(repo, jaxb, prismContext);
+        RObject.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setTaskIdentifier(repo.getTaskIdentifier());
         jaxb.setClaimExpirationTimestamp(repo.getClaimExpirationTimestamp());
@@ -257,9 +257,9 @@ public class RTaskType extends RObjectType {
         }
     }
 
-    public static void copyFromJAXB(TaskType jaxb, RTaskType repo, PrismContext prismContext) throws
+    public static void copyFromJAXB(TaskType jaxb, RTask repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setTaskIdentifier(jaxb.getTaskIdentifier());
         repo.setClaimExpirationTimestamp(jaxb.getClaimExpirationTimestamp());
@@ -291,7 +291,7 @@ public class RTaskType extends RObjectType {
         }
     }
 
-    private static void addReference(RTaskType repo, ObjectReferenceType reference, RObjectReferenceType type,
+    private static void addReference(RTask repo, ObjectReferenceType reference, RObjectReferenceType type,
             PrismContext prismContext) {
         RObjectReference ref = RUtil.jaxbRefToRepo(reference, repo, prismContext);
         if (ref != null) {
@@ -303,7 +303,7 @@ public class RTaskType extends RObjectType {
     @Override
     public TaskType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         TaskType object = new TaskType();
-        RTaskType.copyToJAXB(this, object, prismContext);
+        RTask.copyToJAXB(this, object, prismContext);
         RUtil.revive(object.asPrismObject(), TaskType.class, prismContext);
 
         return object;

@@ -40,10 +40,10 @@ import java.io.Serializable;
  */
 @Entity
 @Table(name = "operation_result")
-public class ROperationResultType implements Serializable {
+public class ROperationResult implements Serializable {
 
     //owner
-    private RObjectType owner;
+    private RObject owner;
     private String ownerOid;
     private Long ownerId;
     //other fields
@@ -65,7 +65,7 @@ public class ROperationResultType implements Serializable {
             @PrimaryKeyJoinColumn(name = "owner_oid", referencedColumnName = "oid"),
             @PrimaryKeyJoinColumn(name = "owner_id", referencedColumnName = "id")
     })
-    public RObjectType getOwner() {
+    public RObject getOwner() {
         return owner;
     }
 
@@ -107,7 +107,7 @@ public class ROperationResultType implements Serializable {
         return token;
     }
 
-    public void setOwner(RObjectType owner) {
+    public void setOwner(RObject owner) {
         this.owner = owner;
     }
 
@@ -175,7 +175,7 @@ public class ROperationResultType implements Serializable {
         this.token = token;
     }
 
-    public static void copyToJAXB(ROperationResultType repo, OperationResultType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(ROperationResult repo, OperationResultType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
@@ -204,7 +204,7 @@ public class ROperationResultType implements Serializable {
         }
     }
 
-    public static void copyFromJAXB(OperationResultType jaxb, ROperationResultType repo,
+    public static void copyFromJAXB(OperationResultType jaxb, ROperationResult repo,
             PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(jaxb, "JAXB object must not be null.");
@@ -233,7 +233,7 @@ public class ROperationResultType implements Serializable {
 
     public OperationResultType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         OperationResultType result = new OperationResultType();
-        ROperationResultType.copyToJAXB(this, result, prismContext);
+        ROperationResult.copyToJAXB(this, result, prismContext);
         return result;
     }
 }

@@ -24,7 +24,6 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
-import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordType;
@@ -37,7 +36,7 @@ import javax.persistence.Embeddable;
  * @author lazyman
  */
 @Embeddable
-public class RCredentialsType {
+public class RCredentials {
 
     private String password;
     private boolean allowedIdmAdminGuiAccess = false;
@@ -59,7 +58,7 @@ public class RCredentialsType {
         this.password = password;
     }
 
-    public static void copyToJAXB(RCredentialsType repo, CredentialsType jaxb, ObjectType parent, PropertyPath path,
+    public static void copyToJAXB(RCredentials repo, CredentialsType jaxb, ObjectType parent, PropertyPath path,
             PrismContext prismContext) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
@@ -73,7 +72,7 @@ public class RCredentialsType {
         }
     }
 
-    public static void copyFromJAXB(CredentialsType jaxb, RCredentialsType repo, PrismContext prismContext) throws
+    public static void copyFromJAXB(CredentialsType jaxb, RCredentials repo, PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
@@ -91,7 +90,7 @@ public class RCredentialsType {
     public CredentialsType toJAXB(ObjectType parent, PropertyPath path, PrismContext prismContext) throws
             DtoTranslationException {
         CredentialsType credentials = new CredentialsType();
-        RCredentialsType.copyToJAXB(this, credentials, parent, path, prismContext);
+        RCredentials.copyToJAXB(this, credentials, parent, path, prismContext);
         return credentials;
     }
 }

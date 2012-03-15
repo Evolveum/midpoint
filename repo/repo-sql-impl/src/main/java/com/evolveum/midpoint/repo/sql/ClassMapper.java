@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.sql.data.common.RContainerType;
-import com.evolveum.midpoint.repo.sql.data.common.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.Validate;
@@ -64,11 +64,11 @@ public final class ClassMapper {
         }
     }
 
-    public static Class<? extends RObjectType> getHQLTypeClass(Class<? extends ObjectType> clazz) {
+    public static Class<? extends RObject> getHQLTypeClass(Class<? extends ObjectType> clazz) {
         Validate.notNull(clazz, "Class must not be null.");
 
         ObjectTypes type = ObjectTypes.getObjectType(clazz);
-        Class<? extends RObjectType> hqlType = (Class<? extends RObjectType>) types.get(type).getClazz();
+        Class<? extends RObject> hqlType = (Class<? extends RObject>) types.get(type).getClazz();
         if (hqlType == null) {
             throw new IllegalStateException("Couldn't find DB type for '" + clazz + "'.");
         }
@@ -77,7 +77,7 @@ public final class ClassMapper {
     }
 
     public static String getHQLType(Class<? extends ObjectType> clazz) {
-        Class<? extends RObjectType> hqlType = getHQLTypeClass(clazz);
+        Class<? extends RObject> hqlType = getHQLTypeClass(clazz);
         return hqlType.getSimpleName();
     }
 

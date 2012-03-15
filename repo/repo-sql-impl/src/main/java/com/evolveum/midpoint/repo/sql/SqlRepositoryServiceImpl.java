@@ -82,7 +82,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             Query query = session.createQuery("from " + ClassMapper.getHQLType(type) + " o where o.oid = :oid and o.id = 0");
             query.setString("oid", oid);
 
-            RObjectType object = (RObjectType) query.uniqueResult();
+            RObject object = (RObject) query.uniqueResult();
             if (object == null) {
                 throw new ObjectNotFoundException("Object of type '" + type.getSimpleName() + "' with oid '"
                         + oid + "' was not found.", null, oid);
@@ -147,9 +147,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             query = updatePaging(query, paging);
 
             LOGGER.debug("Transforming data to JAXB types.");
-            List<? extends RObjectType> objects = query.list();
+            List<? extends RObject> objects = query.list();
             if (objects != null) {
-                for (RObjectType object : objects) {
+                for (RObject object : objects) {
                     ObjectType objectType = object.toJAXB(prismContext);
                     validateObjectType(objectType, type);
                     results.add(objectType.asPrismObject());
@@ -185,7 +185,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                     "as ref where ref.oid = :oid");
             query.setString("oid", accountOid);
 
-            List<RUserType> users = query.list();
+            List<RUser> users = query.list();
             LOGGER.debug("Found {} users, transforming data to JAXB types.",
                     new Object[]{(users != null ? users.size() : 0)});
 
@@ -199,7 +199,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                         new Object[]{users.size(), accountOid});
             }
 
-            RUserType user = users.get(0);
+            RUser user = users.get(0);
             userType = user.toJAXB(prismContext);
 
             session.getTransaction().commit();
@@ -234,7 +234,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         Session session = null;
         try {
             LOGGER.debug("Translating JAXB to data type.");
-            RObjectType rObject = createDataObjectFromJAXB(object.asObjectable());
+            RObject rObject = createDataObjectFromJAXB(object.asObjectable());
 
             LOGGER.debug("Saving object.");
             session = beginTransaction();
@@ -347,11 +347,11 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             criteria.setProjection(null);
             criteria = updatePaging(criteria, paging);
 
-            List<RObjectType> objects = criteria.list();
+            List<RObject> objects = criteria.list();
             LOGGER.debug("Found {} objects, translating to JAXB.",
                     new Object[]{(objects != null ? objects.size() : 0)});
 
-            for (RObjectType object : objects) {
+            for (RObject object : objects) {
                 ObjectType objectType = object.toJAXB(prismContext);
                 validateObjectType(objectType, type);
                 list.add(objectType.asPrismObject());
@@ -398,7 +398,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             }
 
             LOGGER.debug("Translating JAXB to data type.");
-            RObjectType rObject = createDataObjectFromJAXB(prismObject.asObjectable());
+            RObject rObject = createDataObjectFromJAXB(prismObject.asObjectable());
 
             session = beginTransaction();
             session.update(rObject);
@@ -439,13 +439,13 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                     + " as shadow left join shadow.resourceRef as ref where ref.oid = :oid");
             query.setString("oid", resourceOid);
 
-            List<RResourceObjectShadowType> shadows = query.list();
+            List<RResourceObjectShadow> shadows = query.list();
             LOGGER.debug("Query returned {} shadows, transforming to JAXB types.",
                     new Object[]{(shadows != null ? shadows.size() : 0)});
 
             if (shadows != null) {
                 list.setTotalResultCount(shadows.size());
-                for (RResourceObjectShadowType shadow : shadows) {
+                for (RResourceObjectShadow shadow : shadows) {
                     ResourceObjectShadowType jaxb = shadow.toJAXB(prismContext);
                     validateObjectType(jaxb, resourceObjectShadowType);
 
@@ -478,7 +478,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             Query query = session.createQuery("from RTaskType as task where task.oid = :oid");
             query.setString("oid", oid);
 
-            RTaskType task = (RTaskType) query.uniqueResult();
+            RTask task = (RTask) query.uniqueResult();
             if (task == null) {
                 throw new ObjectNotFoundException("Task with oid '" + oid + "' was not found.");
             }
@@ -527,11 +527,11 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         return criteria;
     }
 
-    private <T extends ObjectType> RObjectType createDataObjectFromJAXB(T object) throws InstantiationException,
+    private <T extends ObjectType> RObject createDataObjectFromJAXB(T object) throws InstantiationException,
             IllegalAccessException, NoSuchMethodException, InvocationTargetException {
 
-        RObjectType rObject;
-        Class<? extends RObjectType> clazz = ClassMapper.getHQLTypeClass(object.getClass());
+        RObject rObject;
+        Class<? extends RObject> clazz = ClassMapper.getHQLTypeClass(object.getClass());
         rObject = clazz.newInstance();
         Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz, PrismContext.class);
         method.invoke(clazz, object, rObject, prismContext);

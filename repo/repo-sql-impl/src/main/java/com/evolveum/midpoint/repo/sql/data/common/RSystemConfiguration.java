@@ -41,9 +41,9 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "system_configuration")
 @ForeignKey(name = "fk_system_configuration")
-public class RSystemConfigurationType extends RObjectType {
+public class RSystemConfiguration extends RObject {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RSystemConfigurationType.class);
+    private static final Trace LOGGER = TraceManager.getTrace(RSystemConfiguration.class);
     private String globalAccountSynchronizationSettings;
     private String modelHooks;
     private String logging;
@@ -96,9 +96,9 @@ public class RSystemConfigurationType extends RObjectType {
         this.modelHooks = modelHooks;
     }
 
-    public static void copyToJAXB(RSystemConfigurationType repo, SystemConfigurationType jaxb,
+    public static void copyToJAXB(RSystemConfiguration repo, SystemConfigurationType jaxb,
             PrismContext prismContext) throws DtoTranslationException {
-        RObjectType.copyToJAXB(repo, jaxb, prismContext);
+        RObject.copyToJAXB(repo, jaxb, prismContext);
 
         if (repo.getDefaultUserTemplateRef() != null) {
             jaxb.setDefaultUserTemplateRef(repo.getDefaultUserTemplateRef().toJAXB(prismContext));
@@ -120,9 +120,9 @@ public class RSystemConfigurationType extends RObjectType {
         }
     }
 
-    public static void copyFromJAXB(SystemConfigurationType jaxb, RSystemConfigurationType repo,
+    public static void copyFromJAXB(SystemConfigurationType jaxb, RSystemConfiguration repo,
             PrismContext prismContext) throws DtoTranslationException {
-        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         if (jaxb.getDefaultUserTemplate() != null) {
             LOGGER.warn("Default user template from system configuration type won't be saved. It should be " +
@@ -144,7 +144,7 @@ public class RSystemConfigurationType extends RObjectType {
     @Override
     public SystemConfigurationType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         SystemConfigurationType object = new SystemConfigurationType();
-        RSystemConfigurationType.copyToJAXB(this, object, prismContext);
+        RSystemConfiguration.copyToJAXB(this, object, prismContext);
 
         RUtil.revive(object.asPrismObject(), SystemConfigurationType.class, prismContext);
 

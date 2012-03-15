@@ -21,10 +21,10 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.repo.sql.data.common.RAssignmentType;
-import com.evolveum.midpoint.repo.sql.data.common.RObjectType;
-import com.evolveum.midpoint.repo.sql.data.common.RRoleType;
-import com.evolveum.midpoint.repo.sql.data.common.RUserType;
+import com.evolveum.midpoint.repo.sql.data.common.RAssignment;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.RRole;
+import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.id.IdentifierGenerator;
@@ -43,16 +43,16 @@ public class ContainerIdGenerator implements IdentifierGenerator {
 
     @Override
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
-        if (object instanceof RObjectType) {
+        if (object instanceof RObject) {
             return 0L;
-        } else if (object instanceof RAssignmentType) {
-            RAssignmentType assignment = (RAssignmentType) object;
-            RObjectType o = assignment.getOwner();
-            if (o instanceof RUserType) {
-                RUserType user = (RUserType) o;
+        } else if (object instanceof RAssignment) {
+            RAssignment assignment = (RAssignment) object;
+            RObject o = assignment.getOwner();
+            if (o instanceof RUser) {
+                RUser user = (RUser) o;
                 return getNextId(user.getAssignments());
-            } else if (o instanceof RRoleType) {
-                RRoleType role = (RRoleType) o;
+            } else if (o instanceof RRole) {
+                RRole role = (RRole) o;
                 return getNextId(role.getAssignments());
             }
         }
@@ -60,9 +60,9 @@ public class ContainerIdGenerator implements IdentifierGenerator {
         return null;
     }
 
-    private Long getNextId(Set<RAssignmentType> set) {
+    private Long getNextId(Set<RAssignment> set) {
         Long id = 0L;
-        for (RAssignmentType assignment : set) {
+        for (RAssignment assignment : set) {
             if (assignment.getId() != null && assignment.getId() > id) {
                 id = assignment.getId();
             }

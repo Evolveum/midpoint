@@ -37,11 +37,11 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "account_shadow")
 @ForeignKey(name = "fk_account_shadow")
-public class RAccountShadowType extends RResourceObjectShadowType {
+public class RAccountShadow extends RResourceObjectShadow {
 
     private String accountType;
-    private RCredentialsType credentials;
-    private RActivationType activation;
+    private RCredentials credentials;
+    private RActivation activation;
 
     public String getAccountType() {
         return accountType;
@@ -52,32 +52,32 @@ public class RAccountShadowType extends RResourceObjectShadowType {
     }
 
     @Embedded
-    public RActivationType getActivation() {
+    public RActivation getActivation() {
         if (activation == null) {
-            activation = new RActivationType();
+            activation = new RActivation();
         }
         return activation;
     }
 
-    public void setActivation(RActivationType activation) {
+    public void setActivation(RActivation activation) {
         this.activation = activation;
     }
 
     @Embedded
-    public RCredentialsType getCredentials() {
+    public RCredentials getCredentials() {
         if (credentials == null) {
-            credentials = new RCredentialsType();
+            credentials = new RCredentials();
         }
         return credentials;
     }
 
-    public void setCredentials(RCredentialsType credentials) {
+    public void setCredentials(RCredentials credentials) {
         this.credentials = credentials;
     }
 
-    public static void copyToJAXB(RAccountShadowType repo, AccountShadowType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RAccountShadow repo, AccountShadowType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        RResourceObjectShadowType.copyToJAXB(repo, jaxb, prismContext);
+        RResourceObjectShadow.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setAccountType(repo.getAccountType());
 
@@ -87,28 +87,28 @@ public class RAccountShadowType extends RResourceObjectShadowType {
         jaxb.setCredentials(repo.getCredentials().toJAXB(jaxb, path, prismContext));
     }
 
-    public static void copyFromJAXB(AccountShadowType jaxb, RAccountShadowType repo, PrismContext prismContext) throws
+    public static void copyFromJAXB(AccountShadowType jaxb, RAccountShadow repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RResourceObjectShadowType.copyFromJAXB(jaxb, repo, prismContext);
+        RResourceObjectShadow.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setAccountType(jaxb.getAccountType());
 
-        RActivationType activation = new RActivationType();
+        RActivation activation = new RActivation();
         if (jaxb.getActivation() != null) {
-            RActivationType.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
+            RActivation.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
         }
         repo.setActivation(activation);
 
-        RCredentialsType credentials = new RCredentialsType();
+        RCredentials credentials = new RCredentials();
         if (jaxb.getCredentials() != null) {
-            RCredentialsType.copyFromJAXB(jaxb.getCredentials(), credentials, prismContext);
+            RCredentials.copyFromJAXB(jaxb.getCredentials(), credentials, prismContext);
         }
         repo.setCredentials(credentials);
     }
 
     public AccountShadowType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         AccountShadowType shadow = new AccountShadowType();
-        RAccountShadowType.copyToJAXB(this, shadow, prismContext);
+        RAccountShadow.copyToJAXB(this, shadow, prismContext);
         RUtil.revive(shadow.asPrismObject(), AccountShadowType.class, prismContext);
         return shadow;
     }

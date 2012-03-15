@@ -37,7 +37,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "user_template")
 @ForeignKey(name = "fk_user_template")
-public class RUserTemplateType extends RObjectType {
+public class RUserTemplate extends RObject {
 
     private String propertyConstruction;
     private String accountConstruction;
@@ -62,9 +62,9 @@ public class RUserTemplateType extends RObjectType {
         this.propertyConstruction = propertyConstruction;
     }
 
-    public static void copyToJAXB(RUserTemplateType repo, UserTemplateType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RUserTemplate repo, UserTemplateType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        RObjectType.copyToJAXB(repo, jaxb, prismContext);
+        RObject.copyToJAXB(repo, jaxb, prismContext);
 
         try {
 //            if (StringUtils.isNotEmpty(repo.getAccountConstruction())) {
@@ -83,9 +83,9 @@ public class RUserTemplateType extends RObjectType {
         }
     }
 
-    public static void copyFromJAXB(UserTemplateType jaxb, RUserTemplateType repo, PrismContext prismContext) throws
+    public static void copyFromJAXB(UserTemplateType jaxb, RUserTemplate repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         try {
 //            if (!jaxb.getAccountConstruction().isEmpty()) {
@@ -107,7 +107,7 @@ public class RUserTemplateType extends RObjectType {
     @Override
     public UserTemplateType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         UserTemplateType object = new UserTemplateType();
-        RUserTemplateType.copyToJAXB(this, object, prismContext);
+        RUserTemplate.copyToJAXB(this, object, prismContext);
         RUtil.revive(object.asPrismObject(), UserTemplateType.class, prismContext);
 
         return object;

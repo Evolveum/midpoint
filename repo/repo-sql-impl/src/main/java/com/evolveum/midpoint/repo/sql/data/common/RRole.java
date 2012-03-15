@@ -42,24 +42,24 @@ import java.util.Set;
 @Entity
 @Table(name = "role")
 @ForeignKey(name = "fk_role")
-public class RRoleType extends RObjectType {
+public class RRole extends RObject {
 
-    private Set<RAssignmentType> assignments;
+    private Set<RAssignment> assignments;
 
     @OneToMany(mappedBy = "owner")
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAssignmentType> getAssignments() {
+    public Set<RAssignment> getAssignments() {
         return assignments;
     }
 
-    public void setAssignments(Set<RAssignmentType> assignments) {
+    public void setAssignments(Set<RAssignment> assignments) {
         this.assignments = assignments;
     }
 
-    public static void copyToJAXB(RRoleType repo, RoleType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RRole repo, RoleType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        RObjectType.copyToJAXB(repo, jaxb, prismContext);
+        RObject.copyToJAXB(repo, jaxb, prismContext);
 
 //        if (repo.getAssignment() == null) {
 //            return;
@@ -70,9 +70,9 @@ public class RRoleType extends RObjectType {
 //        }
     }
 
-    public static void copyFromJAXB(RoleType jaxb, RRoleType repo, PrismContext prismContext) throws
+    public static void copyFromJAXB(RoleType jaxb, RRole repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
 
 //        if (!jaxb.getAssignment().isEmpty()) {
 //            repo.setAssignment(new ArrayList<RAssignmentType>());
@@ -89,7 +89,7 @@ public class RRoleType extends RObjectType {
     @Override
     public RoleType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         RoleType object = new RoleType();
-        RRoleType.copyToJAXB(this, object, prismContext);
+        RRole.copyToJAXB(this, object, prismContext);
         RUtil.revive(object.asPrismObject(), RoleType.class, prismContext);
         return object;
     }

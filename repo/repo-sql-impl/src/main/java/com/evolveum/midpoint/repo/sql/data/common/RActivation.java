@@ -34,7 +34,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  * @author lazyman
  */
 @Embeddable
-public class RActivationType {
+public class RActivation {
 
     private boolean enabled = true;
     private XMLGregorianCalendar validFrom;
@@ -65,7 +65,7 @@ public class RActivationType {
         this.validTo = validTo;
     }
 
-    public static void copyFromJAXB(ActivationType jaxb, RActivationType repo, PrismContext prismContext) throws
+    public static void copyFromJAXB(ActivationType jaxb, RActivation repo, PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
@@ -77,7 +77,7 @@ public class RActivationType {
         repo.setValidTo(repo.getValidTo());
     }
 
-    public static void copyToJAXB(RActivationType repo, ActivationType jaxb, PrismContext prismContext) {
+    public static void copyToJAXB(RActivation repo, ActivationType jaxb, PrismContext prismContext) {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
 
@@ -88,7 +88,7 @@ public class RActivationType {
 
     public ActivationType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         ActivationType activation = new ActivationType();
-        RActivationType.copyToJAXB(this, activation, prismContext);
+        RActivation.copyToJAXB(this, activation, prismContext);
         return activation;
     }
 }

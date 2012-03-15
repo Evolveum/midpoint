@@ -24,31 +24,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 /**
  * @author lazyman
  */
-public enum RContainerType {
+public enum RObjectReferenceType {
 
-    ASSIGNMENT(RAssignment.class),
-
-    ACCOUNT(RAccountShadow.class),
-    CONNECTOR(RConnector.class),
-    CONNECTOR_HOST(RConnectorHost.class),
-    GENERIC_OBJECT(RGenericObject.class),
-    OBJECT(RObject.class),
-    PASSWORD_POLICY(RPasswordPolicy.class),
-    RESOURCE(RResource.class),
-    RESOURCE_OBJECT_SHADOW(RResourceObjectShadow.class),
-    ROLE(RRole.class),
-    SYSTEM_CONFIGURATION(RSystemConfiguration.class),
-    TASK(RTask.class),
-    USER(RUser.class),
-    USER_TEMPLATE(RUserTemplate.class);
-
-    private Class<? extends RContainer> clazz;
-
-    private RContainerType(Class<? extends RContainer> clazz) {
-        this.clazz = clazz;
-    }
-
-    public Class<? extends RContainer> getClazz() {
-        return clazz;
-    }
+    TASK_OWNER, TASK_OBJECT;
 }

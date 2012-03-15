@@ -62,8 +62,8 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
     @Autowired
     SessionFactory factory;
 
-    private RObjectReference simpleInsertConnector2(RUserType user) {
-        RConnectorType connector = new RConnectorType();
+    private RObjectReference simpleInsertConnector2(RUser user) {
+        RConnector connector = new RConnector();
         connector.setName("connector");
         connector.setFramework("framework");
         RObjectReference reference = new RObjectReference();
@@ -78,8 +78,8 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         return reference;
     }
 
-    private RConnectorType simpleInsertConnector3() {
-        RConnectorType connector = new RConnectorType();
+    private RConnector simpleInsertConnector3() {
+        RConnector connector = new RConnector();
         connector.setName("connector1");
 
         Session session = open();
@@ -89,8 +89,8 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         return connector;
     }
 
-    private RConnectorType simpleInsertConnector1() {
-        RConnectorType connector = new RConnectorType();
+    private RConnector simpleInsertConnector1() {
+        RConnector connector = new RConnector();
         connector.setName("connector0");
         connector.setFramework("framework");
 
@@ -101,8 +101,8 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         return connector;
     }
 
-    private RResourceObjectShadowType simpleInsertShadow() {
-        RResourceObjectShadowType shadow = new RResourceObjectShadowType();
+    private RResourceObjectShadow simpleInsertShadow() {
+        RResourceObjectShadow shadow = new RResourceObjectShadow();
         shadow.setObjectClass(new QName("object class", "local"));
         //extension
         RAnyContainer extension = new RAnyContainer();
@@ -134,16 +134,16 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         return shadow;
     }
 
-    private RUserType simpleInsertUser(RConnectorType connector0, RConnectorType connector1) {
-        RUserType user = new RUserType();
+    private RUser simpleInsertUser(RConnector connector0, RConnector connector1) {
+        RUser user = new RUser();
         user.setFullName("connector reference target");
         //assignment
-        Set<RAssignmentType> aset = new HashSet<RAssignmentType>();
-        RAssignmentType a = new RAssignmentType();
+        Set<RAssignment> aset = new HashSet<RAssignment>();
+        RAssignment a = new RAssignment();
         a.setAccountConstruction("a1");
         a.setOwner(user);
         aset.add(a);
-        a = new RAssignmentType();
+        a = new RAssignment();
         a.setAccountConstruction("a2");
         a.setOwner(user);
         aset.add(a);
@@ -210,12 +210,12 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
                 previousCycle = System.currentTimeMillis() - time;
             }
 
-            RConnectorType connector0 = simpleInsertConnector1();
-            RConnectorType connector1 = simpleInsertConnector3();
+            RConnector connector0 = simpleInsertConnector1();
+            RConnector connector1 = simpleInsertConnector3();
 
-            RUserType user = simpleInsertUser(connector0, connector1);
+            RUser user = simpleInsertUser(connector0, connector1);
             RObjectReference reference = simpleInsertConnector2(user);
-            RResourceObjectShadowType shadow = simpleInsertShadow();
+            RResourceObjectShadow shadow = simpleInsertShadow();
 
             if (0.1 < Math.random()) {
                 oid = shadow.getOid();
@@ -228,7 +228,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
             session = open();
             Query query = session.createQuery("from RResourceObjectShadowType as s where s.oid = :oid");
             query.setString("oid", oid);
-            RResourceObjectShadowType shadow = (RResourceObjectShadowType) query.uniqueResult();
+            RResourceObjectShadow shadow = (RResourceObjectShadow) query.uniqueResult();
 
             LOGGER.info("shadow\n{}", ReflectionToStringBuilder.toString(shadow));
             session.close();

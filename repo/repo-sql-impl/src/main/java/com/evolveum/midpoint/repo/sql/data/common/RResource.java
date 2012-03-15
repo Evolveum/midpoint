@@ -39,9 +39,9 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "resource")
-public class RResourceType extends RObjectType {
+public class RResource extends RObject {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RResourceType.class);
+    private static final Trace LOGGER = TraceManager.getTrace(RResource.class);
     private RObjectReference connectorRef;
     private String namespace;
     private String configuration;
@@ -133,9 +133,9 @@ public class RResourceType extends RObjectType {
         this.scripts = scripts;
     }
 
-    public static void copyToJAXB(RResourceType repo, ResourceType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RResource repo, ResourceType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        RObjectType.copyToJAXB(repo, jaxb, prismContext);
+        RObject.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setNamespace(repo.getNamespace());
 
@@ -163,9 +163,9 @@ public class RResourceType extends RObjectType {
         }
     }
 
-    public static void copyFromJAXB(ResourceType jaxb, RResourceType repo, PrismContext prismContext) throws
+    public static void copyFromJAXB(ResourceType jaxb, RResource repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setNamespace(jaxb.getNamespace());
         repo.setConnectorRef(RUtil.jaxbRefToRepo(jaxb.getConnectorRef(), repo, prismContext));
@@ -190,7 +190,7 @@ public class RResourceType extends RObjectType {
     @Override
     public ResourceType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         ResourceType object = new ResourceType();
-        RResourceType.copyToJAXB(this, object, prismContext);
+        RResource.copyToJAXB(this, object, prismContext);
         RUtil.revive(object.asPrismObject(), ResourceType.class, prismContext);
         return object;
     }

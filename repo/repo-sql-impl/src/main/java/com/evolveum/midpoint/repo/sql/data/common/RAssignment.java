@@ -39,17 +39,17 @@ import javax.persistence.*;
 @Entity
 @Table(name = "assignment")
 @ForeignKey(name = "fk_assignment")
-public class RAssignmentType extends RContainer implements ROwnable {
+public class RAssignment extends RContainer implements ROwnable {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RAssignmentType.class);
+    private static final Trace LOGGER = TraceManager.getTrace(RAssignment.class);
     //owner
-    private RObjectType owner;
+    private RObject owner;
     private String ownerOid;
     private Long ownerId;
     //extension
     private RAnyContainer extension;
     //assignment fields
-    private RActivationType activation;
+    private RActivation activation;
     private String accountConstruction;
     private RObjectReference targetRef;
 
@@ -60,7 +60,7 @@ public class RAssignmentType extends RContainer implements ROwnable {
             @JoinColumn(name = "oid", referencedColumnName = "oid"),
             @JoinColumn(name = "owner_id", referencedColumnName = "id")
     })
-    public RObjectType getOwner() {
+    public RObject getOwner() {
         return owner;
     }
 
@@ -99,9 +99,9 @@ public class RAssignmentType extends RContainer implements ROwnable {
     }
 
     @Embedded
-    public RActivationType getActivation() {
+    public RActivation getActivation() {
         if (activation == null) {
-            activation = new RActivationType();
+            activation = new RActivation();
         }
         return activation;
     }
@@ -111,7 +111,7 @@ public class RAssignmentType extends RContainer implements ROwnable {
         return accountConstruction;
     }
 
-    public void setActivation(RActivationType activation) {
+    public void setActivation(RActivation activation) {
         this.activation = activation;
     }
 
@@ -138,7 +138,7 @@ public class RAssignmentType extends RContainer implements ROwnable {
         this.targetRef = targetRef;
     }
 
-    public void setOwner(RObjectType owner) {
+    public void setOwner(RObject owner) {
         this.owner = owner;
     }
 
@@ -154,7 +154,7 @@ public class RAssignmentType extends RContainer implements ROwnable {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
-        RAssignmentType that = (RAssignmentType) o;
+        RAssignment that = (RAssignment) o;
 
         if (accountConstruction != null ? !accountConstruction.equals(that.accountConstruction) : that.accountConstruction != null)
             return false;
@@ -175,7 +175,7 @@ public class RAssignmentType extends RContainer implements ROwnable {
         return result;
     }
 
-    public static void copyToJAXB(RAssignmentType repo, AssignmentType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RAssignment repo, AssignmentType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
@@ -202,7 +202,7 @@ public class RAssignmentType extends RContainer implements ROwnable {
         }
     }
 
-    public static void copyFromJAXB(AssignmentType jaxb, RAssignmentType repo, PrismContext prismContext) throws
+    public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
@@ -236,7 +236,7 @@ public class RAssignmentType extends RContainer implements ROwnable {
 
     public AssignmentType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         AssignmentType object = new AssignmentType();
-        RAssignmentType.copyToJAXB(this, object, prismContext);
+        RAssignment.copyToJAXB(this, object, prismContext);
         return object;
     }
 }

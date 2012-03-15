@@ -38,7 +38,7 @@ import javax.xml.namespace.QName;
 @Entity
 @Table(name = "resource_shadow")
 @ForeignKey(name = "fk_resource_object_shadow")
-public class RResourceObjectShadowType extends RObjectType {
+public class RResourceObjectShadow extends RObject {
 
     private QName objectClass;
     //attributes
@@ -76,9 +76,9 @@ public class RResourceObjectShadowType extends RObjectType {
         this.objectClass = objectClass;
     }
 
-    public static void copyToJAXB(RResourceObjectShadowType repo, ResourceObjectShadowType jaxb,
+    public static void copyToJAXB(RResourceObjectShadow repo, ResourceObjectShadowType jaxb,
             PrismContext prismContext) throws DtoTranslationException {
-        RObjectType.copyToJAXB(repo, jaxb, prismContext);
+        RObject.copyToJAXB(repo, jaxb, prismContext);
 
 //        jaxb.setAttemptNumber(repo.getAttemptNumber());
 //        jaxb.setObjectClass(repo.getObjectClass());
@@ -100,9 +100,9 @@ public class RResourceObjectShadowType extends RObjectType {
         //todo implement attributes
     }
 
-    public static void copyFromJAXB(ResourceObjectShadowType jaxb, RResourceObjectShadowType repo,
+    public static void copyFromJAXB(ResourceObjectShadowType jaxb, RResourceObjectShadow repo,
             PrismContext prismContext) throws DtoTranslationException {
-        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
 
 //        if (jaxb.getResource() != null) {
 //            LOGGER.warn("Resource from resource object shadow type won't be saved. It should be " +
@@ -128,7 +128,7 @@ public class RResourceObjectShadowType extends RObjectType {
     @Override
     public ResourceObjectShadowType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         ResourceObjectShadowType object = new ResourceObjectShadowType();
-        RResourceObjectShadowType.copyToJAXB(this, object, prismContext);
+        RResourceObjectShadow.copyToJAXB(this, object, prismContext);
         RUtil.revive(object.asPrismObject(), ResourceObjectShadowType.class, prismContext);
         return object;
     }

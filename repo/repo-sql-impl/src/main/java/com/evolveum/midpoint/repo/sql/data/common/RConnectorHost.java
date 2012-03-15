@@ -39,7 +39,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "connector_host")
 @ForeignKey(name = "fk_connector_host")
-public class RConnectorHostType extends RObjectType {
+public class RConnectorHost extends RObject {
 
     private String hostname;
     private String port;
@@ -90,9 +90,9 @@ public class RConnectorHostType extends RObjectType {
         this.sharedSecret = sharedSecret;
     }
 
-    public static void copyToJAXB(RConnectorHostType repo, ConnectorHostType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RConnectorHost repo, ConnectorHostType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        RObjectType.copyToJAXB(repo, jaxb, prismContext);
+        RObject.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setHostname(repo.getHostname());
         jaxb.setPort(repo.getPort());
@@ -107,9 +107,9 @@ public class RConnectorHostType extends RObjectType {
         }
     }
 
-    public static void copyFromJAXB(ConnectorHostType jaxb, RConnectorHostType repo, PrismContext prismContext) throws
+    public static void copyFromJAXB(ConnectorHostType jaxb, RConnectorHost repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setHostname(jaxb.getHostname());
         repo.setPort(jaxb.getPort());
@@ -126,7 +126,7 @@ public class RConnectorHostType extends RObjectType {
     @Override
     public ConnectorHostType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         ConnectorHostType object = new ConnectorHostType();
-        RConnectorHostType.copyToJAXB(this, object, prismContext);
+        RConnectorHost.copyToJAXB(this, object, prismContext);
         RUtil.revive(object.asPrismObject(), ConnectorHostType.class, prismContext);
         return object;
     }

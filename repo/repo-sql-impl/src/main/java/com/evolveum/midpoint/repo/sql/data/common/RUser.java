@@ -42,7 +42,7 @@ import java.util.Set;
 @Entity
 @Table(name = "user")
 @ForeignKey(name = "fk_user")
-public class RUserType extends RObjectType {
+public class RUser extends RObject {
 
     private String fullName;
     private String givenName;
@@ -56,11 +56,11 @@ public class RUserType extends RObjectType {
     private Set<String> employeeType;
     private Set<String> organizationalUnit;
     private String locality;
-    private RCredentialsType credentials;
-    private RActivationType activation;
+    private RCredentials credentials;
+    private RActivation activation;
 
     private Set<RObjectReference> accountRefs;
-    private Set<RAssignmentType> assignments;
+    private Set<RAssignment> assignments;
 
     @OneToMany(mappedBy = "owner")
     @ForeignKey(name = "none")
@@ -72,14 +72,14 @@ public class RUserType extends RObjectType {
     @OneToMany(mappedBy = "owner")
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAssignmentType> getAssignments() {
+    public Set<RAssignment> getAssignments() {
         return assignments;
     }
 
     @Embedded
-    public RActivationType getActivation() {
+    public RActivation getActivation() {
         if (activation == null) {
-            activation = new RActivationType();
+            activation = new RActivation();
         }
         return activation;
     }
@@ -96,9 +96,9 @@ public class RUserType extends RObjectType {
     }
 
     @Embedded
-    public RCredentialsType getCredentials() {
+    public RCredentials getCredentials() {
         if (credentials == null) {
-            credentials = new RCredentialsType();
+            credentials = new RCredentials();
         }
         return credentials;
     }
@@ -180,7 +180,7 @@ public class RUserType extends RObjectType {
         return honorificSuffix;
     }
 
-    public void setActivation(RActivationType activation) {
+    public void setActivation(RActivation activation) {
         this.activation = activation;
     }
 
@@ -188,7 +188,7 @@ public class RUserType extends RObjectType {
         this.additionalNames = additionalNames;
     }
 
-    public void setCredentials(RCredentialsType credentials) {
+    public void setCredentials(RCredentials credentials) {
         this.credentials = credentials;
     }
 
@@ -232,7 +232,7 @@ public class RUserType extends RObjectType {
         this.telephoneNumber = telephoneNumber;
     }
 
-    public void setAssignments(Set<RAssignmentType> assignments) {
+    public void setAssignments(Set<RAssignment> assignments) {
         this.assignments = assignments;
     }
 
@@ -244,9 +244,9 @@ public class RUserType extends RObjectType {
         this.fullName = fullName;
     }
 
-    public static void copyFromJAXB(UserType jaxb, RUserType repo, PrismContext prismContext) throws
+    public static void copyFromJAXB(UserType jaxb, RUser repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setFullName(jaxb.getFullName());
         repo.setGivenName(jaxb.getGivenName());
@@ -256,14 +256,14 @@ public class RUserType extends RObjectType {
         repo.setEmployeeNumber(jaxb.getEmployeeNumber());
         repo.setLocality(jaxb.getLocality());
 
-        RActivationType activation = new RActivationType();
+        RActivation activation = new RActivation();
         if (jaxb.getActivation() != null) {
-            RActivationType.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
+            RActivation.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
         }
         repo.setActivation(activation);
-        RCredentialsType credentials = new RCredentialsType();
+        RCredentials credentials = new RCredentials();
         if (jaxb.getCredentials() != null) {
-            RCredentialsType.copyFromJAXB(jaxb.getCredentials(), credentials, prismContext);
+            RCredentials.copyFromJAXB(jaxb.getCredentials(), credentials, prismContext);
         }
         repo.setCredentials(credentials);
 
@@ -285,19 +285,19 @@ public class RUserType extends RObjectType {
         }
 
         if (jaxb.getAssignment() != null && !jaxb.getAssignment().isEmpty()) {
-            repo.setAssignments(new HashSet<RAssignmentType>());
+            repo.setAssignments(new HashSet<RAssignment>());
         }
         for (AssignmentType assignment : jaxb.getAssignment()) {
-            RAssignmentType rAssignment = new RAssignmentType();
-            RAssignmentType.copyFromJAXB(assignment, rAssignment, prismContext);
+            RAssignment rAssignment = new RAssignment();
+            RAssignment.copyFromJAXB(assignment, rAssignment, prismContext);
 
             repo.getAssignments().add(rAssignment);
         }
     }
 
-    public static void copyToJAXB(RUserType repo, UserType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RUser repo, UserType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        RObjectType.copyToJAXB(repo, jaxb, prismContext);
+        RObject.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setFullName(repo.getFullName());
         jaxb.setGivenName(repo.getGivenName());
@@ -309,7 +309,7 @@ public class RUserType extends RObjectType {
 
         if (repo.getActivation() != null) {
             ActivationType activation = new ActivationType();
-            RActivationType.copyToJAXB(repo.getActivation(), activation, prismContext);
+            RActivation.copyToJAXB(repo.getActivation(), activation, prismContext);
             jaxb.setActivation(activation);
         }
 
@@ -331,7 +331,7 @@ public class RUserType extends RObjectType {
         }
 
         if (repo.getAssignments() != null) {
-            for (RAssignmentType rAssignment : repo.getAssignments()) {
+            for (RAssignment rAssignment : repo.getAssignments()) {
                 jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
             }
         }
@@ -340,7 +340,7 @@ public class RUserType extends RObjectType {
     @Override
     public UserType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         UserType object = new UserType();
-        RUserType.copyToJAXB(this, object, prismContext);
+        RUser.copyToJAXB(this, object, prismContext);
         RUtil.revive(object.asPrismObject(), UserType.class, prismContext);
         return object;
     }

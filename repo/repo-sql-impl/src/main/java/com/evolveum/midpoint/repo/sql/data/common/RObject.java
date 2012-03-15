@@ -44,7 +44,7 @@ import javax.persistence.*;
 @Entity
 @Table(name = "object")
 @ForeignKey(name = "fk_container")
-public abstract class RObjectType extends RContainer {
+public abstract class RObject extends RContainer {
 
     private String name;
     private String description;
@@ -87,7 +87,7 @@ public abstract class RObjectType extends RContainer {
         }
     }
 
-    public static void copyToJAXB(RObjectType repo, ObjectType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RObject repo, ObjectType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
@@ -105,7 +105,7 @@ public abstract class RObjectType extends RContainer {
         }
     }
 
-    public static void copyFromJAXB(ObjectType jaxb, RObjectType repo, PrismContext prismContext) throws
+    public static void copyFromJAXB(ObjectType jaxb, RObject repo, PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");

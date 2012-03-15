@@ -45,9 +45,9 @@ import java.util.Set;
 @Entity
 @Table(name = "connector")
 @ForeignKey(name = "fk_connector")
-public class RConnectorType extends RObjectType {
+public class RConnector extends RObject {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RConnectorType.class);
+    private static final Trace LOGGER = TraceManager.getTrace(RConnector.class);
     private String framework;
     private RObjectReference connectorHostRef;
     private String connectorType;
@@ -131,9 +131,9 @@ public class RConnectorType extends RObjectType {
         this.xmlSchema = xmlSchema;
     }
 
-    public static void copyToJAXB(RConnectorType repo, ConnectorType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RConnector repo, ConnectorType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        RObjectType.copyToJAXB(repo, jaxb, prismContext);
+        RObject.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setConnectorBundle(repo.getConnectorBundle());
         jaxb.setConnectorType(repo.getConnectorType());
@@ -142,7 +142,7 @@ public class RConnectorType extends RObjectType {
         jaxb.setNamespace(repo.getNamespace());
 
         try {
-            jaxb.setSchema(RUtil.toJAXB(RConnectorType.class, new PropertyPath(ConnectorType.F_SCHEMA),
+            jaxb.setSchema(RUtil.toJAXB(RConnector.class, new PropertyPath(ConnectorType.F_SCHEMA),
                     repo.getXmlSchema(), XmlSchemaType.class, prismContext));
 
             if (repo.getConnectorHostRef() != null) {
@@ -155,9 +155,9 @@ public class RConnectorType extends RObjectType {
         }
     }
 
-    public static void copyFromJAXB(ConnectorType jaxb, RConnectorType repo, PrismContext prismContext) throws
+    public static void copyFromJAXB(ConnectorType jaxb, RConnector repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setConnectorBundle(jaxb.getConnectorBundle());
         repo.setConnectorType(jaxb.getConnectorType());
@@ -182,7 +182,7 @@ public class RConnectorType extends RObjectType {
     @Override
     public ConnectorType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         ConnectorType object = new ConnectorType();
-        RConnectorType.copyToJAXB(this, object, prismContext);
+        RConnector.copyToJAXB(this, object, prismContext);
         RUtil.revive(object.asPrismObject(), ConnectorType.class, prismContext);
 
         return object;

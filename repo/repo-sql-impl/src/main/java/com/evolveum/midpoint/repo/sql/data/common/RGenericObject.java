@@ -35,7 +35,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "generic_object")
 @ForeignKey(name = "fk_generic_object")
-public class RGenericObjectType extends RObjectType {
+public class RGenericObject extends RObject {
 
     private String objectType;
 
@@ -47,16 +47,16 @@ public class RGenericObjectType extends RObjectType {
         this.objectType = objectType;
     }
 
-    public static void copyToJAXB(RGenericObjectType repo, GenericObjectType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RGenericObject repo, GenericObjectType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        RObjectType.copyToJAXB(repo, jaxb, prismContext);
+        RObject.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setObjectType(repo.getObjectType());
     }
 
-    public static void copyFromJAXB(GenericObjectType jaxb, RGenericObjectType repo, PrismContext prismContext) throws
+    public static void copyFromJAXB(GenericObjectType jaxb, RGenericObject repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RObjectType.copyFromJAXB(jaxb, repo, prismContext);
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setObjectType(jaxb.getObjectType());
     }
@@ -64,7 +64,7 @@ public class RGenericObjectType extends RObjectType {
     @Override
     public GenericObjectType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         GenericObjectType object = new GenericObjectType();
-        RGenericObjectType.copyToJAXB(this, object, prismContext);
+        RGenericObject.copyToJAXB(this, object, prismContext);
         RUtil.revive(object.asPrismObject(), GenericObjectType.class, prismContext);
 
         return object;
