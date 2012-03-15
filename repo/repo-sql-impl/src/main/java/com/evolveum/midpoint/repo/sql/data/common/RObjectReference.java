@@ -39,12 +39,14 @@ import java.io.Serializable;
  */
 @Entity
 @Table(name = "reference")
-public class RObjectReferenceType implements Serializable {
+public class RObjectReference implements Serializable {
 
     //owner
     private RContainer owner;
     private String ownerOid;
     private Long ownerId;
+    //owner field disctinction
+    private RObjectReferenceType fieldType;
     //target
     private RContainer target;
     private String targetOid;
@@ -65,8 +67,7 @@ public class RObjectReferenceType implements Serializable {
         return owner;
     }
 
-    @ForeignKey(name = "none")  //todo disabled target oid FK check
-//    @ForeignKey(name = "fk_reference_target")
+    @ForeignKey(name = "none")
     @MapsId("target")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({
@@ -119,6 +120,12 @@ public class RObjectReferenceType implements Serializable {
     }
 
     @Enumerated(EnumType.ORDINAL)
+    @Column(nullable = true)
+    public RObjectReferenceType getFieldType() {
+        return fieldType;
+    }
+
+    @Enumerated(EnumType.ORDINAL)
     public RContainerType getType() {
         return type;
     }
@@ -163,13 +170,17 @@ public class RObjectReferenceType implements Serializable {
         this.targetOid = targetOid;
     }
 
+    public void setFieldType(RObjectReferenceType fieldType) {
+        this.fieldType = fieldType;
+    }
+
     //todo hash and equals
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RObjectReferenceType reference = (RObjectReferenceType) o;
+        RObjectReference reference = (RObjectReference) o;
 
 //        if (ownerId != null ? !ownerId.equals(reference.ownerId) : reference.ownerId != null) return false;
 //        if (ownerOid != null ? !ownerOid.equals(reference.ownerOid) : reference.ownerOid != null) return false;
@@ -190,7 +201,7 @@ public class RObjectReferenceType implements Serializable {
         return 31;
     }
 
-    public static void copyToJAXB(RObjectReferenceType repo, ObjectReferenceType jaxb, PrismContext prismContext) {
+    public static void copyToJAXB(RObjectReference repo, ObjectReferenceType jaxb, PrismContext prismContext) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
@@ -205,7 +216,7 @@ public class RObjectReferenceType implements Serializable {
         }
     }
 
-    public static void copyFromJAXB(ObjectReferenceType jaxb, RObjectReferenceType repo, PrismContext prismContext) {
+    public static void copyFromJAXB(ObjectReferenceType jaxb, RObjectReference repo, PrismContext prismContext) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 

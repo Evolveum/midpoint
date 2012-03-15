@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
@@ -48,7 +47,7 @@ public class RSystemConfigurationType extends RObjectType {
     private String globalAccountSynchronizationSettings;
     private String modelHooks;
     private String logging;
-    private RObjectReferenceType defaultUserTemplateRef;
+    private RObjectReference defaultUserTemplateRef;
     private String connectorFramework;
 
     @Type(type = "org.hibernate.type.TextType")
@@ -58,7 +57,7 @@ public class RSystemConfigurationType extends RObjectType {
 
     @OneToOne(optional = true, mappedBy = "owner")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public RObjectReferenceType getDefaultUserTemplateRef() {
+    public RObjectReference getDefaultUserTemplateRef() {
         return defaultUserTemplateRef;
     }
 
@@ -81,7 +80,7 @@ public class RSystemConfigurationType extends RObjectType {
         this.connectorFramework = connectorFramework;
     }
 
-    public void setDefaultUserTemplateRef(RObjectReferenceType defaultUserTemplateRef) {
+    public void setDefaultUserTemplateRef(RObjectReference defaultUserTemplateRef) {
         this.defaultUserTemplateRef = defaultUserTemplateRef;
     }
 

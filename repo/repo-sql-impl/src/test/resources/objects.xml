@@ -18,6 +18,7 @@
         <familyName>UserX00002</familyName>
         <emailAddress>testuserX00002@example.com</emailAddress>
         <locality>AreaX 00002</locality>
+        <employeeNumber>en1234</employeeNumber>
         <credentials>
             <password>
                 <protectedString>

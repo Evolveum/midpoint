@@ -51,7 +51,7 @@ public class RAssignmentType extends RContainer implements ROwnable {
     //assignment fields
     private RActivationType activation;
     private String accountConstruction;
-    private RObjectReferenceType targetRef;
+    private RObjectReference targetRef;
 
     @ForeignKey(name = "fk_assignment_owner")
     @MapsId("owner")
@@ -66,7 +66,7 @@ public class RAssignmentType extends RContainer implements ROwnable {
 
     @OneToOne(optional = true, mappedBy = "owner")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public RObjectReferenceType getTargetRef() {
+    public RObjectReference getTargetRef() {
         return targetRef;
     }
 
@@ -134,7 +134,7 @@ public class RAssignmentType extends RContainer implements ROwnable {
         this.ownerOid = ownerOid;
     }
 
-    public void setTargetRef(RObjectReferenceType targetRef) {
+    public void setTargetRef(RObjectReference targetRef) {
         this.targetRef = targetRef;
     }
 

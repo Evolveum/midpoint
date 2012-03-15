@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
@@ -33,6 +32,8 @@ import org.hibernate.annotations.Type;
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.math.BigInteger;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author lazyman
@@ -43,7 +44,7 @@ import java.math.BigInteger;
 public class RTaskType extends RObjectType {
 
     private String taskIdentifier;
-    private RObjectReferenceType ownerRef;
+    private Set<RObjectReference> references;
     private TaskExecutionStatusType executionStatus;
     private TaskExclusivityStatusType exclusivityStatus;
     private String node;
@@ -51,7 +52,6 @@ public class RTaskType extends RObjectType {
     private String handlerUri;
     private String otherHandlersUriStack;
     private ROperationResultType result;
-    private RObjectReferenceType objectRef;
     private XMLGregorianCalendar lastRunStartTimestamp;
     private XMLGregorianCalendar lastRunFinishTimestamp;
     private XMLGregorianCalendar nextRunStartTime;
@@ -76,16 +76,11 @@ public class RTaskType extends RObjectType {
         return schedule;
     }
 
-    @OneToOne(optional = true, mappedBy = "owner")
+    @OneToMany(mappedBy = "owner")
+    @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public RObjectReferenceType getOwnerRef() {
-        return ownerRef;
-    }
-
-    @OneToOne(optional = true, mappedBy = "owner")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public RObjectReferenceType getObjectRef() {
-        return objectRef;
+    public Set<RObjectReference> getReferences() {
+        return references;
     }
 
     @Enumerated(EnumType.ORDINAL)
@@ -198,12 +193,8 @@ public class RTaskType extends RObjectType {
         this.taskIdentifier = taskIdentifier;
     }
 
-    public void setObjectRef(RObjectReferenceType objectRef) {
-        this.objectRef = objectRef;
-    }
-
-    public void setOwnerRef(RObjectReferenceType ownerRef) {
-        this.ownerRef = ownerRef;
+    public void setReferences(Set<RObjectReference> references) {
+        this.references = references;
     }
 
     public void setModelOperationState(String modelOperationState) {
@@ -235,11 +226,20 @@ public class RTaskType extends RObjectType {
         jaxb.setNextRunStartTime(repo.getNextRunStartTime());
         jaxb.setRecurrence(repo.getRecurrence());
 
-        if (repo.getObjectRef() != null) {
-            jaxb.setObjectRef(repo.getObjectRef().toJAXB(prismContext));
-        }
-        if (repo.getOwnerRef() != null) {
-            jaxb.setOwnerRef(repo.getOwnerRef().toJAXB(prismContext));
+        if (repo.getReferences() != null) {
+            for (RObjectReference ref : repo.getReferences()) {
+                if (ref.getFieldType() == null) {
+                    throw new IllegalStateException("Reference field doesn't have field type defined - can find field for it.");
+                }
+                switch (ref.getFieldType()) {
+                    case TASK_OBJECT:
+                        jaxb.setObjectRef(ref.toJAXB(prismContext));
+                        break;
+                    case TASK_OWNER:
+                        jaxb.setOwnerRef(ref.toJAXB(prismContext));
+                        break;
+                }
+            }
         }
         if (repo.getResult() != null) {
             jaxb.setResult(repo.getResult().toJAXB(prismContext));
@@ -274,8 +274,12 @@ public class RTaskType extends RObjectType {
         repo.setNextRunStartTime(jaxb.getNextRunStartTime());
         repo.setRecurrence(jaxb.getRecurrence());
 
-        repo.setObjectRef(RUtil.jaxbRefToRepo(jaxb.getObjectRef(), repo, prismContext));
-        repo.setOwnerRef(RUtil.jaxbRefToRepo(jaxb.getOwnerRef(), repo, prismContext));
+        if (jaxb.getObjectRef() != null || jaxb.getOwnerRef() != null) {
+            repo.setReferences(new HashSet<RObjectReference>());
+        }
+        addReference(repo, jaxb.getObjectRef(), RObjectReferenceType.TASK_OBJECT, prismContext);
+        addReference(repo, jaxb.getOwnerRef(), RObjectReferenceType.TASK_OWNER, prismContext);
+
 //        repo.setResult(RUtil.jaxbResultToRepo(repo, jaxb.getResult(), prismContext));
 
         try {
@@ -284,6 +288,15 @@ public class RTaskType extends RObjectType {
             repo.setSchedule(RUtil.toRepo(jaxb.getSchedule(), prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
+        }
+    }
+
+    private static void addReference(RTaskType repo, ObjectReferenceType reference, RObjectReferenceType type,
+            PrismContext prismContext) {
+        RObjectReference ref = RUtil.jaxbRefToRepo(reference, repo, prismContext);
+        if (ref != null) {
+            ref.setFieldType(type);
+            repo.getReferences().add(ref);
         }
     }
 

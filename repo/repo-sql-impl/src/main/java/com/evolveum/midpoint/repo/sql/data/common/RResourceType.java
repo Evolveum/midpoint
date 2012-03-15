@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
@@ -43,7 +42,7 @@ import javax.persistence.Table;
 public class RResourceType extends RObjectType {
 
     private static final Trace LOGGER = TraceManager.getTrace(RResourceType.class);
-    private RObjectReferenceType connectorRef;
+    private RObjectReference connectorRef;
     private String namespace;
     private String configuration;
     private String xmlSchema;
@@ -75,7 +74,7 @@ public class RResourceType extends RObjectType {
 
     @OneToOne(optional = true, mappedBy = "owner")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public RObjectReferenceType getConnectorRef() {
+    public RObjectReference getConnectorRef() {
         return connectorRef;
     }
 
@@ -106,7 +105,7 @@ public class RResourceType extends RObjectType {
         this.xmlSchema = xmlSchema;
     }
 
-    public void setConnectorRef(RObjectReferenceType connectorRef) {
+    public void setConnectorRef(RObjectReference connectorRef) {
         this.connectorRef = connectorRef;
     }
 

@@ -62,11 +62,11 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
     @Autowired
     SessionFactory factory;
 
-    private RObjectReferenceType simpleInsertConnector2(RUserType user) {
+    private RObjectReference simpleInsertConnector2(RUserType user) {
         RConnectorType connector = new RConnectorType();
         connector.setName("connector");
         connector.setFramework("framework");
-        RObjectReferenceType reference = new RObjectReferenceType();
+        RObjectReference reference = new RObjectReference();
         reference.setOwner(connector);
         reference.setTarget(user);
         connector.setConnectorHostRef(reference);
@@ -156,12 +156,12 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         userExt.setStrings(userStrings);
         userStrings.add(new RStringValue(null, null, "ass ext"));
         //refs
-        Set<RObjectReferenceType> accountRefs = new HashSet<RObjectReferenceType>();
-        RObjectReferenceType reference = new RObjectReferenceType();
+        Set<RObjectReference> accountRefs = new HashSet<RObjectReference>();
+        RObjectReference reference = new RObjectReference();
         reference.setOwner(user);
         reference.setTarget(connector0);
         accountRefs.add(reference);
-        reference = new RObjectReferenceType();
+        reference = new RObjectReference();
         reference.setOwner(user);
         reference.setTarget(connector1);
         accountRefs.add(reference);
@@ -214,7 +214,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
             RConnectorType connector1 = simpleInsertConnector3();
 
             RUserType user = simpleInsertUser(connector0, connector1);
-            RObjectReferenceType reference = simpleInsertConnector2(user);
+            RObjectReference reference = simpleInsertConnector2(user);
             RResourceObjectShadowType shadow = simpleInsertShadow();
 
             if (0.1 < Math.random()) {
@@ -277,7 +277,8 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
             }
 
             count += delta.getModifications().size();
-            LOGGER.error("Found changes for\n{}\n", new Object[]{newObject.toString(), delta.debugDump(3)});
+            LOGGER.error(">>> {} Found {} changes for {}\n{}", new Object[]{(i + 1), delta.getModifications().size(),
+                    newObject.toString(), delta.debugDump(3)});
         }
 
         AssertJUnit.assertEquals("Found changes during add/get test " + count, 0, count);

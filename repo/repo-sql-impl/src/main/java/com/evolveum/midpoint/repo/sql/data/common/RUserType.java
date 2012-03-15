@@ -59,13 +59,13 @@ public class RUserType extends RObjectType {
     private RCredentialsType credentials;
     private RActivationType activation;
 
-    private Set<RObjectReferenceType> accountRefs;
+    private Set<RObjectReference> accountRefs;
     private Set<RAssignmentType> assignments;
 
     @OneToMany(mappedBy = "owner")
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RObjectReferenceType> getAccountRefs() {
+    public Set<RObjectReference> getAccountRefs() {
         return accountRefs;
     }
 
@@ -236,7 +236,7 @@ public class RUserType extends RObjectType {
         this.assignments = assignments;
     }
 
-    public void setAccountRefs(Set<RObjectReferenceType> accountRefs) {
+    public void setAccountRefs(Set<RObjectReference> accountRefs) {
         this.accountRefs = accountRefs;
     }
 
@@ -275,10 +275,10 @@ public class RUserType extends RObjectType {
         repo.setTelephoneNumber(RUtil.listToSet(jaxb.getTelephoneNumber()));
 
         if (jaxb.getAccountRef() != null && !jaxb.getAccountRef().isEmpty()) {
-            repo.setAccountRefs(new HashSet<RObjectReferenceType>());
+            repo.setAccountRefs(new HashSet<RObjectReference>());
         }
         for (ObjectReferenceType accountRef : jaxb.getAccountRef()) {
-            RObjectReferenceType ref = RUtil.jaxbRefToRepo(accountRef, repo, prismContext);
+            RObjectReference ref = RUtil.jaxbRefToRepo(accountRef, repo, prismContext);
             if (ref != null) {
                 repo.getAccountRefs().add(ref);
             }
@@ -325,7 +325,7 @@ public class RUserType extends RObjectType {
         jaxb.getOrganizationalUnit().addAll(RUtil.safeSetToList(repo.getOrganizationalUnit()));
 
         if (repo.getAccountRefs() != null) {
-            for (RObjectReferenceType repoRef : repo.getAccountRefs()) {
+            for (RObjectReference repoRef : repo.getAccountRefs()) {
                 jaxb.getAccountRef().add(repoRef.toJAXB(prismContext));
             }
         }

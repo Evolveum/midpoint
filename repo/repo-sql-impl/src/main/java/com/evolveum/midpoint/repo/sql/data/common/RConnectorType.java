@@ -49,7 +49,7 @@ public class RConnectorType extends RObjectType {
 
     private static final Trace LOGGER = TraceManager.getTrace(RConnectorType.class);
     private String framework;
-    private RObjectReferenceType connectorHostRef;
+    private RObjectReference connectorHostRef;
     private String connectorType;
     private String connectorVersion;
     private String connectorBundle;
@@ -59,7 +59,7 @@ public class RConnectorType extends RObjectType {
 
     @OneToOne(optional = true, mappedBy = "owner")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public RObjectReferenceType getConnectorHostRef() {
+    public RObjectReference getConnectorHostRef() {
         return connectorHostRef;
     }
 
@@ -103,7 +103,7 @@ public class RConnectorType extends RObjectType {
         this.framework = framework;
     }
 
-    public void setConnectorHostRef(RObjectReferenceType connectorHostRef) {
+    public void setConnectorHostRef(RObjectReference connectorHostRef) {
         this.connectorHostRef = connectorHostRef;
     }
 

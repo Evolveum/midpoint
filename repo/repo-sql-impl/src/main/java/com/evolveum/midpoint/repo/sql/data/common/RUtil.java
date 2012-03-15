@@ -158,16 +158,16 @@ public final class RUtil {
         return list;
     }
 
-    public static RObjectReferenceType jaxbRefToRepo(ObjectReferenceType ref, RContainer owner,
+    public static RObjectReference jaxbRefToRepo(ObjectReferenceType ref, RContainer owner,
             PrismContext prismContext) {
         if (ref == null) {
             return null;
         }
         Validate.notNull(owner, "Owner of reference must not be null.");
 
-        RObjectReferenceType reference = new RObjectReferenceType();
+        RObjectReference reference = new RObjectReference();
         reference.setOwner(owner);
-        RObjectReferenceType.copyFromJAXB(ref, reference, prismContext);
+        RObjectReference.copyFromJAXB(ref, reference, prismContext);
 
         return reference;
     }
