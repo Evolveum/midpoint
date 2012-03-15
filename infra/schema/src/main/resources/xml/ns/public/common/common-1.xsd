@@ -759,6 +759,8 @@
                 more details.
 
                 This should probably go to some kind of common schema.
+                
+                TODO: this should be renamed to ObjectDeltaType. Some elements must be added.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -777,6 +779,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Describe a change to a single attribute of an object.
+                        
+                        TODO: this should be renamed to "itemModification"
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -791,6 +795,8 @@
                 Describe a change to a single attribute.
                 In this case the path expression used in the "property"
                 attribute must select exactly one property.
+                
+                TODO: this should be renamed to ItemDeltaType
             </xsd:documentation>
         </xsd:annotation>
 

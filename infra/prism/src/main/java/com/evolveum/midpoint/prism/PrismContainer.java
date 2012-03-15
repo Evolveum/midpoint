@@ -327,7 +327,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     			return (I) this;
     		} else {
     			if (create) {
-    				throw new IllegalStateException("The " + type.getSimpleName() + " cannot be created because "
+    				throw new IllegalStateException("The " + type.getSimpleName() + " " + getName() + " cannot be created because "
     						+ this.getClass().getSimpleName() + " with the same name exists"); 
     			} else {
     				return null;

@@ -742,7 +742,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		//set the modificaion type
 		propMod.setModificationType(PropertyModificationTypeType.replace);
 		
-		PropertyDelta passDelta = DeltaConvertor.createPropertyDelta(propMod, shadow.getDefinition());
+		PropertyDelta passDelta = (PropertyDelta)DeltaConvertor.createItemDelta(propMod, shadow.getDefinition());
 		PropertyModificationOperation passwordModification = new PropertyModificationOperation(passDelta);
 		changes.add(passwordModification);
 		

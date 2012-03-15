@@ -79,7 +79,6 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
 	
-	protected SchemaRegistry schemaRegistry;
 	protected UserType userTypeJack;
 	protected UserType userTypeBarbossa;
 	protected ResourceType resourceType;
@@ -91,8 +90,6 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	@Override
 	public void initSystem(OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
-		schemaRegistry = new SchemaRegistry();
-		schemaRegistry.initialize();
 		
 		addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, initResult);
 		addObjectFromFile(USER_TEMPLATE_FILENAME, initResult);

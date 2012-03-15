@@ -385,6 +385,10 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
 		return delta;
 	}
 
+	/**
+     * Creates specific sublcass of ItemDelta appropriate for type of item that this definition
+     * represents (e.g. PropertyDelta, ContainerDelta, ...)
+     */
 	public abstract ItemDelta<V> createDelta(PropertyPath path);
     
 	/**

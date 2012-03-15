@@ -27,6 +27,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -70,8 +71,8 @@ public class DeltaConvertor {
         objectDelta.setOid(objectModification.getOid());
 
         for (PropertyModificationType propMod : objectModification.getPropertyModification()) {
-            PropertyDelta propDelta = createPropertyDelta(propMod, objDef);
-            objectDelta.addModification(propDelta);
+            ItemDelta itemDelta = createItemDelta(propMod, objDef);
+            objectDelta.addModification(itemDelta);
         }
 
         return objectDelta;
@@ -103,14 +104,14 @@ public class DeltaConvertor {
      * Creates delta from PropertyModificationType (XML). The values inside the PropertyModificationType are converted to java.
      * That's the reason this method needs schema and objectType (to locate the appropriate definitions).
      */
-    public static PropertyDelta createPropertyDelta(PropertyModificationType propMod,
+    public static ItemDelta createItemDelta(PropertyModificationType propMod,
             Class<? extends Objectable> objectType, PrismContext prismContext) throws SchemaException {
         PrismObjectDefinition<? extends Objectable> objectDefinition = prismContext.getSchemaRegistry().
         		findObjectDefinitionByCompileTimeClass(objectType);
-        return createPropertyDelta(propMod, objectDefinition);
+        return createItemDelta(propMod, objectDefinition);
     }
 
-    public static PropertyDelta createPropertyDelta(PropertyModificationType propMod, PrismContainerDefinition pcDef) throws
+    public static ItemDelta createItemDelta(PropertyModificationType propMod, PrismContainerDefinition pcDef) throws
             SchemaException {
         if (propMod.getValue() == null) {
             throw new IllegalArgumentException("No value in property modificiation (path " + propMod.getPath() + ") while creating a property delta");
@@ -123,28 +124,23 @@ public class DeltaConvertor {
         }
         Collection<? extends Item> items = pcDef.getPrismContext().getPrismDomProcessor().
         						parseContainerItems(containingPcd, propMod.getValue().getAny());
-//        Collection<? extends Item> items = containingPcd.parseItems(propMod.getValue().getAny(), parentPath);
         if (items.size() > 1) {
-            throw new SchemaException("Expected presence of a single property (path " + propMod.getPath() + ") in a object modification, but found " + items.size() + " instead");
+            throw new SchemaException("Expected presence of a single item (path " + propMod.getPath() + ") in a object modification, but found " + items.size() + " instead");
         }
         if (items.size() < 1) {
-            throw new SchemaException("Expected presence of a property value (path " + propMod.getPath() + ") in a object modification, but found nothing");
+            throw new SchemaException("Expected presence of a value (path " + propMod.getPath() + ") in a object modification, but found nothing");
         }
         Item item = items.iterator().next();
-        if (!(item instanceof PrismProperty)) {
-            throw new SchemaException("Expected presence of a property (" + item.getName() + ",path " + propMod.getPath() + ") in a object modification, but found " + item.getClass().getSimpleName() + " instead", item.getName());
-        }
-        PrismProperty prop = (PrismProperty) item;
-        PropertyDelta propDelta = new PropertyDelta(parentPath, prop.getName(), prop.getDefinition());
+        ItemDelta itemDelta = item.createDelta(parentPath.subPath(item.getName()));
         if (propMod.getModificationType() == PropertyModificationTypeType.add) {
-            propDelta.addValuesToAdd(prop.getValues());
+        	itemDelta.addValuesToAdd(item.getValues());
         } else if (propMod.getModificationType() == PropertyModificationTypeType.delete) {
-            propDelta.addValuesToDelete(prop.getValues());
+        	itemDelta.addValuesToDelete(item.getValues());
         } else if (propMod.getModificationType() == PropertyModificationTypeType.replace) {
-            propDelta.setValuesToReplace(prop.getValues());
+        	itemDelta.setValuesToReplace(item.getValues());
         }
 
-        return propDelta;
+        return itemDelta;
     }
 
     /**
