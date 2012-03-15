@@ -266,21 +266,27 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
         int count = 0;
         elements = prismContext.getPrismDomProcessor().parseObjects(OBJECTS_FILE);
         for (int i = 0; i < elements.size(); i++) {
-            PrismObject object = elements.get(i);
-            object.asObjectable().setOid(oids.get(i));
+            try {
+                PrismObject object = elements.get(i);
+                object.asObjectable().setOid(oids.get(i));
 
-            Class<? extends ObjectType> clazz = object.getCompileTimeClass();
-            PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), null, result);
-            ObjectDelta delta = object.diff(newObject);
-            if (delta == null) {
-                continue;
-            }
-
-            count += delta.getModifications().size();
-            LOGGER.error(">>> {} Found {} changes for {}\n{}", new Object[]{(i + 1), delta.getModifications().size(),
-                    newObject.toString(), delta.debugDump(3)});
-            if (delta.getModifications().size() > 0) {
+                Class<? extends ObjectType> clazz = object.getCompileTimeClass();
+                PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), null, result);
                 LOGGER.error("{}", prismContext.getPrismDomProcessor().serializeObjectToString(newObject));
+
+                ObjectDelta delta = object.diff(newObject);
+                if (delta == null) {
+                    continue;
+                }
+
+                count += delta.getModifications().size();
+                LOGGER.error(">>> {} Found {} changes for {}\n{}", new Object[]{(i + 1), delta.getModifications().size(),
+                        newObject.toString(), delta.debugDump(3)});
+                if (delta.getModifications().size() > 0) {
+                    LOGGER.error("{}", prismContext.getPrismDomProcessor().serializeObjectToString(newObject));
+                }
+            } catch (Exception ex) {
+                LOGGER.error("Exception occured", ex);
             }
         }
 

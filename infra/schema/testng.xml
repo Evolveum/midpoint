@@ -26,6 +26,7 @@
     </listeners>
     <test name="Schema" preserve-order="false" verbose="1">
         <classes>
+            <class name="com.evolveum.midpoint.schema.TestDiffEquals"/>
         	<class name="com.evolveum.midpoint.schema.TestSchemaSanity"/>
             <class name="com.evolveum.midpoint.schema.TestParseUser"/>
             <class name="com.evolveum.midpoint.schema.TestParseResource"/>
