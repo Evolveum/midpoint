@@ -772,18 +772,14 @@
     </resource>
 
     <userTemplate>
-
         <name>Default User Template</name>
-
         <description>
             User Template Object.
             This object is used when creating a new account, to set it up as needed.
         </description>
-
         <propertyConstruction>
             <property>i:fullName</property>
             <description>
-
                 Property construction.
                 Defines how properties of user object are set up.
                 This specific definition sets a full name as a concatenation
@@ -797,10 +793,8 @@
                         concat($i:user/i:givenName,' ',$i:user/i:familyName)
                     </code>
                 </expression>
-
             </valueConstruction>
         </propertyConstruction>
-
         <accountConstruction>
             <description>
                 Account construction.
@@ -812,9 +806,7 @@
             </description>
             <resourceRef oid="c0c010c0-d34d-b33f-f00d-333111111112" type="c:ResourceType"/>
             <type>default</type>
-
         </accountConstruction>
-
     </userTemplate>
 
     <userTemplate>

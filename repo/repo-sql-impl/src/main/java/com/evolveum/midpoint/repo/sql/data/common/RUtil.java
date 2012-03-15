@@ -75,15 +75,16 @@ public final class RUtil {
 
         Document document = DOMUtil.parseDocument(value);
         Element root = document.getDocumentElement();
-        Element firstChild = getFirstSubElement(root);
 
         PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
         if (Objectable.class.isAssignableFrom(clazz)) {
-            if (firstChild == null) {
+            if (root == null) {
                 return null;
             }
-            return (T) domProcessor.parseObject(firstChild).asObjectable();
+            PrismObject object = domProcessor.parseObject(root);
+            return (T) object.asObjectable();
         } else if (Containerable.class.isAssignableFrom(clazz)) {
+            Element firstChild = getFirstSubElement(root);
             if (firstChild == null) {
                 return null;
             }

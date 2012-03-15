@@ -24,12 +24,14 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.xml.bind.JAXBElement;
 
 /**
  * @author lazyman
@@ -67,17 +69,15 @@ public class RUserTemplate extends RObject {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
         try {
-//            if (StringUtils.isNotEmpty(repo.getAccountConstruction())) {
-//                JAXBElement<UserTemplateType> element = (JAXBElement<UserTemplateType>)
-//                        JAXBUtil.unmarshal(repo.getAccountConstruction());
-//                jaxb.getAccountConstruction().addAll(element.getValue().getAccountConstruction());
-//            }
-//
-//            if (StringUtils.isNotEmpty(repo.getPropertyConstruction())) {
-//                JAXBElement<UserTemplateType> element = (JAXBElement<UserTemplateType>)
-//                        JAXBUtil.unmarshal(repo.getPropertyConstruction());
-//                jaxb.getPropertyConstruction().addAll(element.getValue().getPropertyConstruction());
-//            }
+            if (StringUtils.isNotEmpty(repo.getAccountConstruction())) {
+                UserTemplateType holder = RUtil.toJAXB(repo.getAccountConstruction(), UserTemplateType.class, prismContext);
+                jaxb.getAccountConstruction().addAll(holder.getAccountConstruction());
+            }
+
+            if (StringUtils.isNotEmpty(repo.getPropertyConstruction())) {
+                UserTemplateType holder = RUtil.toJAXB(repo.getPropertyConstruction(), UserTemplateType.class, prismContext);
+                jaxb.getPropertyConstruction().addAll(holder.getPropertyConstruction());
+            }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
@@ -88,17 +88,17 @@ public class RUserTemplate extends RObject {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         try {
-//            if (!jaxb.getAccountConstruction().isEmpty()) {
-//                UserTemplateType template = new UserTemplateType();
-//                template.getAccountConstruction().addAll(jaxb.getAccountConstruction());
-//                repo.setAccountConstruction(RUtil.toRepo(template, prismContext));
-//            }
-//
-//            if (!jaxb.getPropertyConstruction().isEmpty()) {
-//                UserTemplateType template = new UserTemplateType();
-//                template.getPropertyConstruction().addAll(jaxb.getPropertyConstruction());
-//                repo.setPropertyConstruction(RUtil.toRepo(template, prismContext));
-//            }
+            if (!jaxb.getAccountConstruction().isEmpty()) {
+                UserTemplateType template = new UserTemplateType();
+                template.getAccountConstruction().addAll(jaxb.getAccountConstruction());
+                repo.setAccountConstruction(RUtil.toRepo(template, prismContext));
+            }
+
+            if (!jaxb.getPropertyConstruction().isEmpty()) {
+                UserTemplateType template = new UserTemplateType();
+                template.getPropertyConstruction().addAll(jaxb.getPropertyConstruction());
+                repo.setPropertyConstruction(RUtil.toRepo(template, prismContext));
+            }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
