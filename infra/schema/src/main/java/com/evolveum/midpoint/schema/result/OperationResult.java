@@ -32,7 +32,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -841,6 +840,17 @@ public class OperationResult implements Serializable, Dumpable {
 	}
 
 	/**
+	 * Temporary workaround, brutally hacked -- so that the conversion 
+	 * of OperationResult into OperationResultType 'somehow' works, at least to the point
+	 * where when we:
+	 * - have OR1
+	 * - serialize it into ORT1
+	 * - then deserialize into OR2
+	 * - serialize again into ORT2
+	 * so we get ORT1.equals(ORT2) - at least in our simple test case :)
+	 * 
+	 * FIXME: this should be definitely reworked
+	 * 
 	 * @param entry
 	 * @return
 	 */
@@ -853,6 +863,9 @@ public class OperationResult implements Serializable, Dumpable {
 				// Store only reference on the OID. This is faster and getObject can be used to retrieve
 				// the object if needed. Although is does not provide 100% accuracy, it is a good tradeoff.
 				setObjectReferenceEntry(entryType, ((ObjectType)value));
+			// these values should be put 'as they are', in order to be deserialized into themselves
+			} else if (value instanceof String || value instanceof Integer || value instanceof Long) {
+				entryType.setAny(new JAXBElement<Object>(SchemaConstants.C_VALUE, Object.class, value));
 			} else if (XmlTypeConverter.canConvert(value.getClass())) {
 				try {
 					entryType.setAny(XmlTypeConverter.toXsdElement(value, SchemaConstants.C_VALUE, doc, true));
@@ -860,6 +873,12 @@ public class OperationResult implements Serializable, Dumpable {
 					LOGGER.error("Cannot convert value {} to XML: {}",value,e.getMessage());
 					setUnknownJavaObjectEntry(entryType, value);
 				}
+			} else if (value instanceof Element || value instanceof JAXBElement<?>) {
+				entryType.setAny(value);
+			// FIXME: this is really bad code ... it means that 'our' JAXB object should be put as is
+			} else if ("com.evolveum.midpoint.xml.ns._public.common.common_1".equals(value.getClass().getPackage().getName())) {
+				Object o = new JAXBElement<Object>(SchemaConstants.C_VALUE, Object.class, value);
+				entryType.setAny(o);
 			} else {
 				setUnknownJavaObjectEntry(entryType, value);
 			}
