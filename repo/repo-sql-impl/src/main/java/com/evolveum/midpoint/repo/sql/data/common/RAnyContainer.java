@@ -31,7 +31,6 @@ import org.hibernate.annotations.ForeignKey;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -154,24 +153,25 @@ public class RAnyContainer implements Serializable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
+        RAnyConverter converter = new RAnyConverter(prismContext);
         if (repo.getClobs() != null) {
             for (RClobValue value : repo.getClobs()) {
-                //todo
+                jaxb.getAny().add(converter.convertFromValue(value));
             }
         }
         if (repo.getDates() != null) {
             for (RDateValue value : repo.getDates()) {
-                //todo
+                jaxb.getAny().add(converter.convertFromValue(value));
             }
         }
         if (repo.getLongs() != null) {
             for (RLongValue value : repo.getLongs()) {
-                //todo
+                jaxb.getAny().add(converter.convertFromValue(value));
             }
         }
         if (repo.getStrings() != null) {
             for (RStringValue value : repo.getStrings()) {
-                //todo
+                jaxb.getAny().add(converter.convertFromValue(value));
             }
         }
     }
@@ -181,14 +181,39 @@ public class RAnyContainer implements Serializable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        List<Object> anyList = jaxb.getAny();
-        Set<RValue> values = new HashSet<RValue>(); 
-        for (Object any : anyList) {
-            //todo add any to values
-        }
-        
-        for (RValue value : values) {
+        RAnyConverter converter = new RAnyConverter(prismContext);
 
+        Set<RValue> values = new HashSet<RValue>();
+        try {
+            for (Object any : jaxb.getAny()) {
+                values.add(converter.convertToValue(any));
+            }
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
+
+        for (RValue value : values) {
+            if (value instanceof RClobValue) {
+                if (repo.getClobs() == null) {
+                    repo.setClobs(new HashSet<RClobValue>());
+                }
+                repo.getClobs().add((RClobValue) value);
+            } else if (value instanceof RDateValue) {
+                if (repo.getDates() == null) {
+                    repo.setDates(new HashSet<RDateValue>());
+                }
+                repo.getDates().add((RDateValue) value);
+            } else if (value instanceof RLongValue) {
+                if (repo.getLongs() == null) {
+                    repo.setLongs(new HashSet<RLongValue>());
+                }
+                repo.getLongs().add((RLongValue) value);
+            } else if (value instanceof RStringValue) {
+                if (repo.getStrings() == null) {
+                    repo.setStrings(new HashSet<RStringValue>());
+                }
+                repo.getStrings().add((RStringValue) value);
+            }
         }
     }
 

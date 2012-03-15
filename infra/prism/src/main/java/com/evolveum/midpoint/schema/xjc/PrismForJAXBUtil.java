@@ -206,6 +206,7 @@ public final class PrismForJAXBUtil {
 	        		reference.add(new PrismReferenceValue());
 	        	}
 	            reference.getValue().setObject(value.getObject());
+                reference.getValue().setOid(value.getOid());
 	        }
         }
     }
