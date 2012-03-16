@@ -136,8 +136,11 @@ public class PrismJaxbProcessor {
 	}
 	
 	public boolean canConvert(QName xsdType) {
-		PrismSchema schema = getSchemaRegistry().findSchemaByNamespace(xsdType.getNamespaceURI());
-		if (schema == null) {
+		SchemaDescription schemaDesc = getSchemaRegistry().findSchemaDescriptionByNamespace(xsdType.getNamespaceURI());
+		if (schemaDesc == null) {
+			return false;
+		}
+		if (schemaDesc.getCompileTimeClassesPackage() == null) {
 			return false;
 		}
 		// We may be answering "yes" to a broader set of types that we can really convert.
@@ -172,6 +175,10 @@ public class PrismJaxbProcessor {
 	 */
 	public Object toJavaValue(Element element, QName xsdType) throws JAXBException {
 		Class<?> declaredType = getCompileTimeClass(xsdType);
+		if (declaredType == null) {
+			// This may happen if the schema is runtime and there is no associated compile-time class
+			throw new SystemException("Cannot determine Java type for "+xsdType);
+		}
 		JAXBElement<?> jaxbElement = createUnmarshaller().unmarshal(element, declaredType);
 		Object object = jaxbElement.getValue();
 		return object;
