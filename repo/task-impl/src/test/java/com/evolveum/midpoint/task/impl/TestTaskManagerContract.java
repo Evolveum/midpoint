@@ -23,8 +23,6 @@ package com.evolveum.midpoint.task.impl;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -44,6 +42,7 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -58,11 +57,9 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRecurrence;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -72,7 +69,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
@@ -188,7 +184,9 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
 
         System.out.println("Retrieving the task and setting its token...");
         
-        TaskImpl task000 = (TaskImpl) taskManager.getTask(TASK_WAITING_OID, result);
+        TaskImpl task = (TaskImpl) taskManager.getTask(TASK_WAITING_OID, result);
+        
+        // Create the token and insert it as an extension
 
         PrismPropertyDefinition propDef = new PrismPropertyDefinition(SchemaConstants.SYNC_TOKEN,
         	    SchemaConstants.SYNC_TOKEN, DOMUtil.XSD_INTEGER, prismContext);
@@ -198,7 +196,16 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
 
         PropertyDelta<?> tokenDelta = new PropertyDelta(new PropertyPath(TaskType.F_EXTENSION, token.getName()), token.getDefinition());
         tokenDelta.setValuesToReplace(token.getValues());
-        task000.modify(tokenDelta, result);
+        task.modify(tokenDelta, result);
+        
+        // Check the extension
+        
+        PrismContainer pc = task.getExtension();
+        AssertJUnit.assertNotNull("The task extension was not read back", pc);
+        
+        PrismProperty token2 = pc.findProperty(SchemaConstants.SYNC_TOKEN);
+        AssertJUnit.assertNotNull("Token in task extension was not read back", token2);
+        AssertJUnit.assertEquals("Token in task extension has an incorrect value", (Integer) 100, token2.getRealValue()); 
 
 //        PrismProperty<Integer> token = new PrismProperty<Integer>(SchemaConstants.SYNC_TOKEN);
 //        PrismContainer<?> ext = task000.getExtension();
