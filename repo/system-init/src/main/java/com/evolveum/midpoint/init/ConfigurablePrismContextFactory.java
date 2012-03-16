@@ -53,6 +53,10 @@ public class ConfigurablePrismContextFactory extends MidPointPrismContextFactory
     @Override
     protected void registerExtensionSchemas(SchemaRegistry schemaRegistry) throws SchemaException {
         Configuration config = configuration.getConfiguration(CONFIGURATION_GLOBAL);
+        if (config == null) {
+            LOGGER.warn("Global part 'midpoint.global' is not defined in configuration file.");
+            return;
+        }
         String extensionDir = config.getString(EXTENSION_DIR);
 
         if (StringUtils.isEmpty(extensionDir)) {
