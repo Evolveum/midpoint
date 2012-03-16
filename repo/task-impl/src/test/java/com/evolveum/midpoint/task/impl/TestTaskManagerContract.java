@@ -21,18 +21,14 @@
 package com.evolveum.midpoint.task.impl;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
+import java.util.Collection;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
 import org.opends.server.types.Attribute;
@@ -45,24 +41,28 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskRecurrence;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -71,8 +71,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
@@ -92,6 +92,8 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
     private static final String TASK_OWNER_FILENAME = "src/test/resources/repo/owner.xml";
     private static final String TASK_CYCLE_FILENAME = "src/test/resources/repo/cycle-task.xml";
     private static final String TASK_CYCLE_OID = "91919191-76e0-59e2-86d6-998877665544";
+    private static final String TASK_WAITING_FILENAME = "src/test/resources/repo/waiting-task.xml";
+    private static final String TASK_WAITING_OID = "91919190-76e0-59e2-86d6-556655665566";
     private static final String TASK_SINGLE_FILENAME = "src/test/resources/repo/single-task.xml";
     private static final String TASK_SINGLE_OID = "91919191-76e0-59e2-86d6-556655665566";
     private static final String TASK_SINGLE_MORE_HANDLERS_FILENAME = "src/test/resources/repo/single-task-more-handlers.xml";
@@ -112,7 +114,10 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
 
     @Autowired(required = true)
     private TaskManager taskManager;
-    
+
+    @Autowired(required = true)
+    private PrismContext prismContext;
+
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -169,6 +174,91 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         // assertEquals(RESOURCE_OPENDJ_OID, object.getOid());
     }
 
+    /**
+     * Here we only test setting various task properties.
+     */
+    
+    @Test(enabled = true)
+    public void test001TaskToken() throws Exception {
+
+        // Add single task. 
+        addObjectFromFile(TASK_WAITING_FILENAME);
+        
+        OperationResult result = new OperationResult(TestTaskManagerContract.class.getName() + ".test001TaskToken");
+
+        System.out.println("Retrieving the task and setting its token...");
+        
+        TaskImpl task000 = (TaskImpl) taskManager.getTask(TASK_WAITING_OID, result);
+
+        PrismPropertyDefinition propDef = new PrismPropertyDefinition(SchemaConstants.SYNC_TOKEN,
+        	    SchemaConstants.SYNC_TOKEN, DOMUtil.XSD_INTEGER, prismContext);
+        PrismProperty token = propDef.instantiate();
+        	  
+        token.setValue(new PrismPropertyValue<Integer>(100));
+
+        PropertyDelta<?> tokenDelta = new PropertyDelta(new PropertyPath(TaskType.F_EXTENSION, token.getName()), token.getDefinition());
+        tokenDelta.setValuesToReplace(token.getValues());
+        task000.modify(tokenDelta, result);
+
+//        PrismProperty<Integer> token = new PrismProperty<Integer>(SchemaConstants.SYNC_TOKEN);
+//        PrismContainer<?> ext = task000.getExtension();
+//        ext.add(token);
+        
+//		  PrismProperty<?> p = ext.findOrCreateProperty(SchemaConstants.SYNC_TOKEN);
+    }
+    
+//    @Test(enabled = true)
+//    public void test002TaskProperties() throws Exception {
+//
+//        task000.setBindingPersistent(TaskBinding.LOOSE, result);
+//        String newname = "Test task, name changed";
+//        task000.setNamePersistentBatched(newname);
+//        task000.setProgressPersistentBatched(10);
+//        long currentTime = System.currentTimeMillis();
+//        long currentTime1 = currentTime + 10000;
+//        long currentTime2 = currentTime + 25000;
+//        task000.setLastRunStartTimestampPersistentBatched(currentTime);
+//        task000.setLastRunFinishTimestampPersistentBatched(currentTime1);
+//        task000.setNextRunStartTimePersistentBatched(currentTime2);
+//        task000.setExclusivityStatusPersistentBatched(TaskExclusivityStatus.CLAIMED);
+//        task000.setExecutionStatusPersistentBatched(TaskExecutionStatus.SUSPENDED);
+//        task000.setHandlerUriPersistentBatched("http://no-handler.org/");
+//        task000.setRecurrenceStatusPersistentBatched(TaskRecurrence.RECURRING);
+//                
+//        OperationResultType ort = result.createOperationResultType();
+//        
+//        task000.setResultPersistentBatched(result);
+//        
+//        logger.trace("Saving modifications...");
+//        task000.savePendingModifications(result);
+//        
+//        logger.trace("Retrieving the task (second time) and comparing its properties...");
+//        
+//        Task task001 = taskManager.getTask(TASK_WAITING_OID, result);
+//        AssertJUnit.assertEquals(TaskBinding.LOOSE, task001.getBinding());
+//        AssertJUnit.assertEquals(newname, task001.getName());
+//        AssertJUnit.assertTrue(10 == task001.getProgress());
+//        AssertJUnit.assertNotNull(task001.getLastRunStartTimestamp());
+//        AssertJUnit.assertTrue(currentTime == task001.getLastRunStartTimestamp());
+//        AssertJUnit.assertNotNull(task001.getLastRunFinishTimestamp());
+//        AssertJUnit.assertTrue(currentTime1 == task001.getLastRunFinishTimestamp());        
+//        AssertJUnit.assertNotNull(task001.getNextRunStartTime());
+//        AssertJUnit.assertTrue(currentTime2 == task001.getNextRunStartTime());
+//        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task001.getExclusivityStatus());
+//        AssertJUnit.assertEquals(TaskExecutionStatus.SUSPENDED, task001.getExecutionStatus());
+//        AssertJUnit.assertEquals("http://no-handler.org/", task001.getHandlerUri());
+//        AssertJUnit.assertTrue(task001.isCycle());
+//        OperationResult r001 = task001.getResult();
+//        AssertJUnit.assertNotNull(r001);
+//        
+//        OperationResultType ort1 = r001.createOperationResultType();
+//        
+//        // handling of operation result in tasks is extremely fragile now... 
+//        // in case of problems, just uncomment the following line ;)
+//        AssertJUnit.assertEquals(ort, ort1);
+//        
+//    }
+
     @Test(enabled = false)
     public void test002Single() throws Exception {
 
@@ -177,24 +267,40 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
 
         // Add single task. This will get picked by task scanner and executed
         addObjectFromFile(TASK_SINGLE_FILENAME);
+        
+        OperationResult result = new OperationResult(TestTaskManagerContract.class.getName() + ".test002Single");
+
+        logger.trace("Retrieving the task...");
+        Task task000 = taskManager.getTask(TASK_SINGLE_OID, result);
+
+        task000.setProgressPersistent(10, result);
+        long currentTime = System.currentTimeMillis();
+        task000.setLastRunStartTimestampPersistent(currentTime, result);
+        
+        Task task001 = taskManager.getTask(TASK_SINGLE_OID, result);
+        AssertJUnit.assertTrue(10 == task001.getProgress());
+        AssertJUnit.assertNotNull(task001.getLastRunStartTimestamp());
+        AssertJUnit.assertTrue(currentTime == task001.getLastRunStartTimestamp());
+        
+        AssertJUnit.assertNotNull(task000);
+        logger.trace("Task retrieval OK.");
 
         // We need to wait for a sync interval, so the task scanner has a chance
         // to pick up this
         // task
-        System.out.println("Waiting for task manager to pick up the task and run it");
+        logger.info("Waiting for task manager to pick up the task and run it");
         Thread.sleep(2000);
-        System.out.println("... done");
+        logger.info("... done");
 
         // Check task status
-
-        OperationResult result = new OperationResult(TestTaskManagerContract.class.getName() + ".test002Single");
+        
         Task task = taskManager.getTask(TASK_SINGLE_OID, result);
 
         AssertJUnit.assertNotNull(task);
-        System.out.println(task.dump());
+        logger.trace("getTask returned: " + task.dump());
 
-        PrismObject<ObjectType> po = repositoryService.getObject(ObjectType.class, TASK_SINGLE_OID, null, result);
-        System.out.println(po.dump());
+        PrismObject<TaskType> po = repositoryService.getObject(TaskType.class, TASK_SINGLE_OID, null, result);
+        logger.trace("getObject returned: " + po.dump());
 
         // .. it should be closed
         AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
@@ -565,6 +671,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         } else {
             repositoryService.addObject(object, result);
         }
+        logger.trace("Object from " + filePath + " added to repository.");
         return object;
     }
 

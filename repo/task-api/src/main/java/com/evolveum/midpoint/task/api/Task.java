@@ -243,6 +243,14 @@ public interface Task extends Dumpable {
 	public Long getLastRunStartTimestamp();
 	public Long getLastRunFinishTimestamp();
 	public Long getNextRunStartTime();
+
+	public void setLastRunStartTimestampPersistent(Long value, OperationResult result) throws ObjectNotFoundException,
+	SchemaException;
+
+	public void setLastRunFinishTimestamp(Long value);
+
+	public void setNextRunStartTime(Long value);
+
 	
 	/**
 	 * Returns human-readable name of the task.
@@ -372,4 +380,61 @@ public interface Task extends Dumpable {
 	 * TODO this has to be thought out a bit. 
 	 */
 	public void finishHandler();
+	
+	/*
+	 * temporary... will be cleaned-up soon
+	 */
+
+	void setExecutionStatusPersistent(TaskExecutionStatus value, OperationResult result)
+			throws ObjectNotFoundException, SchemaException;
+
+	void setRecurrenceStatus(TaskRecurrence value);
+
+	void setBinding(TaskBinding value);
+
+	void setProgress(long value);
+
+	void setProgressPersistent(long value, OperationResult result) throws ObjectNotFoundException, SchemaException;
+
+	void setProgressPersistentBatched(long value);
+
+	void setResult(OperationResult result);
+
+	void setResultPersistent(OperationResult result, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException;
+
+	void setResultPersistentBatched(OperationResult result);
+
+	void setHandlerUriPersistent(String value, OperationResult parentResult) throws ObjectNotFoundException,
+			SchemaException;
+
+	void setHandlerUriPersistentBatched(String value);
+
+	void setExecutionStatusPersistentBatched(TaskExecutionStatus value);
+
+	void setExclusivityStatusPersistentBatched(TaskExclusivityStatus value);
+
+	void setExclusivityStatusPersistent(TaskExclusivityStatus value, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException;
+
+	void setRecurrenceStatusPersistent(TaskRecurrence value, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException;
+
+	void setRecurrenceStatusPersistentBatched(TaskRecurrence value);
+
+	void setBindingPersistentBatched(TaskBinding value);
+
+	void setNamePersistent(String value, OperationResult parentResult) throws ObjectNotFoundException,
+			SchemaException;
+
+	void setNamePersistentBatched(String value);
+
+	void setBindingPersistent(TaskBinding value, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException;
+
+	void savePendingModifications(OperationResult parentResult) throws ObjectNotFoundException,
+			SchemaException;
+
+
+	
 }

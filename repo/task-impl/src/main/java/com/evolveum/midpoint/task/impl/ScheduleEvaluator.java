@@ -129,12 +129,12 @@ public class ScheduleEvaluator {
 	 * @param taskImpl
 	 * @return
 	 */
-	public static long determineNextRunStartTime(Task task) {
-		long retval = 0L;
+	public static Long determineNextRunStartTime(Task task) {
+		Long retval = null;
 		if (task.isCycle())
 			retval = determineNextRunStartTime(task.getSchedule(), task.getLastRunStartTimestamp(), task.getName());
 		if (LOGGER.isTraceEnabled())
-			LOGGER.trace("determineNextRunStartTime for task " + task + " = " + retval + " (" + new Date(retval) + ")");
+			LOGGER.trace("determineNextRunStartTime for task " + task + " = " + retval + (retval!=null ? " (" + new Date(retval) + ")" : ""));
 		return retval;
 	}
 
@@ -154,7 +154,7 @@ public class ScheduleEvaluator {
 	}
 	
 	
-	private static long determineNextRunStartTime(ScheduleType schedule, long lastStarted, String taskName) {
+	private static Long determineNextRunStartTime(ScheduleType schedule, long lastStarted, String taskName) {
 		if (schedule.getInterval() != null) {
 			if (lastStarted == 0)
 				return System.currentTimeMillis();		// run now!
@@ -169,7 +169,7 @@ public class ScheduleEvaluator {
 //			LOGGER.error("Missing task schedule: no interval nor cron-like specification for recurring task: " + taskName + ", determining next run to be 'never'");
 //			return new Date(9999, 1, 1).getTime();		// run never, TODO: better handle "never run" situation
 			LOGGER.error("Missing task schedule: no interval nor cron-like specification for recurring task: " + taskName + ", determining next run to be 'now'");
-			return 0;
+			return 0L;
 		}
 	}
 

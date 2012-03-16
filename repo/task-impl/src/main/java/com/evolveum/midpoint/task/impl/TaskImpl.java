@@ -24,8 +24,9 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.GregorianCalendar;
-import java.util.List;
+import java.util.Vector;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
@@ -36,16 +37,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.ExtensionProcessor;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
@@ -59,12 +55,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskBindingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExclusivityStatusType;
@@ -179,6 +172,16 @@ public class TaskImpl implements Task {
 	void initialize(OperationResult initResult) throws SchemaException {
 		resolveOwnerRef(initResult);
 	}
+	
+	@Override
+	public PrismObject<TaskType> getTaskPrismObject() {
+				
+		if (result != null) {
+			taskPrism.asObjectable().setResult(result.createOperationResultType());
+		}				
+		
+		return taskPrism;
+	}
 
 	RepositoryService getRepositoryService() {
 		return repositoryService;
@@ -188,6 +191,197 @@ public class TaskImpl implements Task {
 		this.repositoryService = repositoryService;
 	}
 	
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.task.api.Task#isAsynchronous()
+	 */
+	@Override
+	public boolean isAsynchronous() {
+		// This is very simple now. It may complicate later.
+		return (persistenceStatus==TaskPersistenceStatus.PERSISTENT);
+	}
+	
+	
+	
+	private Collection<PropertyDelta<?>> pendingModifications = null;
+	
+	public void addPendingModification(PropertyDelta<?> delta) {
+		if (pendingModifications == null)
+			pendingModifications = new Vector<PropertyDelta<?>>();
+		pendingModifications.add(delta);
+	}
+	
+	@Override
+	public void savePendingModifications(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		if (pendingModifications != null && !pendingModifications.isEmpty()) {
+			repositoryService.modifyObject(TaskType.class, getOid(), pendingModifications, parentResult);
+		}
+	}
+
+	
+	private void processModificationNow(PropertyDelta<?> delta, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		if (delta != null) {
+			Collection<PropertyDelta<?>> deltas = new ArrayList<PropertyDelta<?>>(1);
+			deltas.add(delta);
+			repositoryService.modifyObject(TaskType.class, getOid(), deltas, parentResult);
+		}
+	}
+
+	private void processModificationBatched(PropertyDelta<?> delta) {
+		if (delta != null) {
+			addPendingModification(delta);
+		}
+	}
+
+
+	/*
+	 * Getters and setters
+	 * ===================
+	 */
+	
+	/*
+	 * Progress
+	 */
+	
+	@Override
+	public long getProgress() {
+		Integer value = taskPrism.getPropertyRealValue(TaskType.F_PROGRESS, Integer.class);		// TODO: change to Long when xsd:long will work
+		return value != null ? value : 0; 
+	}
+
+	@Override
+	public void setProgress(long value) {
+		taskPrism.setPropertyRealValue(TaskType.F_PROGRESS, Integer.valueOf((int) value));			// TODO: get rid of this cast when xsd:long will work
+	}
+
+	@Override
+	public void setProgressPersistent(long value, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		processModificationNow(setProgressAndPrepareDelta(value), result);
+	}
+	
+	@Override
+	public void setProgressPersistentBatched(long value) {
+		processModificationBatched(setProgressAndPrepareDelta(value));
+	}
+	
+	private PropertyDelta<?> setProgressAndPrepareDelta(long value) {
+		setProgress(value);
+		return isPersistent() ? PropertyDelta.createReplaceDelta(
+				taskManager.getTaskObjectDefinition(), TaskType.F_PROGRESS, value) : null;
+	}	
+
+	/*
+	 * Result
+	 */
+	
+	@Override
+	public OperationResult getResult() {
+		return result;
+	}
+
+	@Override
+	public void setResult(OperationResult result) {
+		this.result = result;
+	}
+
+	@Override
+	public void setResultPersistent(OperationResult result, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		processModificationNow(setResultAndPrepareDelta(result), parentResult);
+	}
+	
+	@Override
+	public void setResultPersistentBatched(OperationResult result) {
+		processModificationBatched(setResultAndPrepareDelta(result));
+	}
+	
+	private PropertyDelta<?> setResultAndPrepareDelta(OperationResult result) {
+		setResult(result);
+		if (isPersistent()) {
+			PropertyDelta<?> d = PropertyDelta.createReplaceDeltaOrEmptyDelta(taskManager.getTaskObjectDefinition(), 
+						TaskType.F_RESULT, result != null ? result.createOperationResultType() : null);
+			LOGGER.trace("setResult delta = " + d.debugDump());
+			return d;
+		} else {
+			return null;
+		}
+	}
+	
+	/*
+	 * Handler URI
+	 */
+	
+	
+	@Override
+	public String getHandlerUri() {
+		return taskPrism.getPropertyRealValue(TaskType.F_HANDLER_URI, String.class);
+	}
+
+	@Override
+	public void setHandlerUri(String handlerUri) {
+		taskPrism.setPropertyRealValue(TaskType.F_HANDLER_URI, handlerUri);
+	}
+
+	@Override
+	public void setHandlerUriPersistent(String value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		processModificationNow(setHandlerUriAndPrepareDelta(value), parentResult);
+	}
+	
+	@Override
+	public void setHandlerUriPersistentBatched(String value) {
+		processModificationBatched(setHandlerUriAndPrepareDelta(value));
+	}
+	
+	private PropertyDelta<?> setHandlerUriAndPrepareDelta(String value) {
+		setHandlerUri(value);
+		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+					taskManager.getTaskObjectDefinition(), TaskType.F_HANDLER_URI, value) : null;
+	}
+	
+	/*
+	 * Other handlers URI stack
+	 */
+
+	@Override
+	public UriStack getOtherHandlersUriStack() {
+		return taskPrism.getPropertyRealValue(TaskType.F_OTHER_HANDLERS_URI_STACK, UriStack.class);
+	}
+	
+	/*
+	 * Persistence status
+	 */
+
+	@Override
+	public TaskPersistenceStatus getPersistenceStatus() {
+		return persistenceStatus;
+	}
+	
+	@Override
+	public void setPersistenceStatus(TaskPersistenceStatus persistenceStatus) {
+		this.persistenceStatus = persistenceStatus;
+	}
+	
+	// obviously, there are no "persistent" versions of setPersistenceStatus
+
+	/*
+	 * Oid
+	 */
+	
+	@Override
+	public String getOid() {
+		return taskPrism.getOid();
+	}
+
+	@Override
+	public void setOid(String oid) {
+		taskPrism.setOid(oid);
+	}
+	
+	// obviously, there are no "persistent" versions of setOid
+
+	/*
+	 * Task identifier (again, without "persistent" versions)
+	 */
+	
 	@Override
 	public String getTaskIdentifier() {
 		return taskPrism.getPropertyRealValue(TaskType.F_TASK_IDENTIFIER, String.class);
@@ -196,10 +390,11 @@ public class TaskImpl implements Task {
 	private void setTaskIdentifier(String value) {
 		taskPrism.setPropertyRealValue(TaskType.F_TASK_IDENTIFIER, value);
 	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.task.api.Task#getExecutionStatus()
+	
+	/* 
+	 * Execution status
 	 */
+	
 	@Override
 	public TaskExecutionStatus getExecutionStatus() {
 		TaskExecutionStatusType xmlValue = taskPrism.getPropertyRealValue(TaskType.F_EXECUTION_STATUS, TaskExecutionStatusType.class);
@@ -214,17 +409,26 @@ public class TaskImpl implements Task {
 		taskPrism.setPropertyRealValue(TaskType.F_EXECUTION_STATUS, executionStatus.toTaskType());
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.task.api.Task#getPersistenceStatus()
-	 */
 	@Override
-	public TaskPersistenceStatus getPersistenceStatus() {
-		return persistenceStatus;
+	public void setExecutionStatusPersistent(TaskExecutionStatus value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		processModificationNow(setExecutionStatusAndPrepareDelta(value), parentResult);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.task.api.Task#getExclusivityStatus()
+	@Override
+	public void setExecutionStatusPersistentBatched(TaskExecutionStatus value) {
+		processModificationBatched(setExecutionStatusAndPrepareDelta(value));
+	}
+
+	private PropertyDelta<?> setExecutionStatusAndPrepareDelta(TaskExecutionStatus value) {
+		setExecutionStatus(value);
+		return isPersistent() ? PropertyDelta.createReplaceDelta(
+					taskManager.getTaskObjectDefinition(), TaskType.F_EXECUTION_STATUS, value.toTaskType()) : null;
+	}
+
+	/* 
+	 * Exclusivity status
 	 */
+	
 	@Override
 	public TaskExclusivityStatus getExclusivityStatus() {
 		TaskExclusivityStatusType xmlValue = taskPrism.getPropertyRealValue(TaskType.F_EXCLUSIVITY_STATUS, TaskExclusivityStatusType.class);
@@ -238,7 +442,27 @@ public class TaskImpl implements Task {
 	public void setExclusivityStatus(TaskExclusivityStatus exclusivityStatus) {
 		taskPrism.setPropertyRealValue(TaskType.F_EXCLUSIVITY_STATUS, exclusivityStatus.toTaskType());
 	}
+
+	@Override
+	public void setExclusivityStatusPersistent(TaskExclusivityStatus value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		processModificationNow(setExclusivityStatusAndPrepareDelta(value), parentResult);
+	}
 	
+	@Override
+	public void setExclusivityStatusPersistentBatched(TaskExclusivityStatus value) {
+		processModificationBatched(setExclusivityStatusAndPrepareDelta(value));
+	}
+	
+	private PropertyDelta<?> setExclusivityStatusAndPrepareDelta(TaskExclusivityStatus value) {
+		setExclusivityStatus(value);
+		return isPersistent() ? PropertyDelta.createReplaceDelta(
+					taskManager.getTaskObjectDefinition(), TaskType.F_EXCLUSIVITY_STATUS, value.toTaskType()) : null;
+	}
+	
+	/*
+	 * Recurrence status
+	 */
+
 	public TaskRecurrence getRecurrenceStatus() {
 		TaskRecurrenceType xmlValue = taskPrism.getPropertyRealValue(TaskType.F_RECURRENCE, TaskRecurrenceType.class);
 		if (xmlValue == null) {
@@ -247,9 +471,30 @@ public class TaskImpl implements Task {
 		return TaskRecurrence.fromTaskType(xmlValue);
 	}
 	
-	private void setRecurrenceStatus(TaskRecurrence value) {
+	@Override
+	public void setRecurrenceStatus(TaskRecurrence value) {
 		taskPrism.setPropertyRealValue(TaskType.F_RECURRENCE, value.toTaskType());
 	}
+	
+	@Override
+	public void setRecurrenceStatusPersistent(TaskRecurrence value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		processModificationNow(setRecurrenceStatusAndPrepareDelta(value), parentResult);
+	}
+	
+	@Override
+	public void setRecurrenceStatusPersistentBatched(TaskRecurrence value) {
+		processModificationBatched(setRecurrenceStatusAndPrepareDelta(value));
+	}
+	
+	private PropertyDelta<?> setRecurrenceStatusAndPrepareDelta(TaskRecurrence value) {
+		setRecurrenceStatus(value);
+		return isPersistent() ? PropertyDelta.createReplaceDelta(
+					taskManager.getTaskObjectDefinition(), TaskType.F_RECURRENCE, value.toTaskType()) : null;
+	}
+	
+	/*
+	 * Binding
+	 */
 
 	@Override
 	public TaskBinding getBinding() {
@@ -260,27 +505,30 @@ public class TaskImpl implements Task {
 		return TaskBinding.fromTaskType(xmlValue);
 	}
 	
-	private void setBinding(TaskBinding value) {
-		taskPrism.setPropertyRealValue(TaskType.F_BINDING, value.toTaskType());
-	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.task.api.Task#isAsynchronous()
-	 */
 	@Override
-	public boolean isAsynchronous() {
-		// This is very simple now. It may complicate later.
-		return (persistenceStatus==TaskPersistenceStatus.PERSISTENT);
+	public void setBinding(TaskBinding value) {
+		taskPrism.setPropertyRealValue(TaskType.F_BINDING, value.toTaskType());
 	}
 	
 	@Override
-	public long getProgress() {
-		return taskPrism.getPropertyRealValue(TaskType.F_PROGRESS, Long.class);
+	public void setBindingPersistent(TaskBinding value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		processModificationNow(setBindingAndPrepareDelta(value), parentResult);
 	}
-
-	private void setProgress(long value) {
-		taskPrism.setPropertyRealValue(TaskType.F_PROGRESS, value);
+	
+	@Override
+	public void setBindingPersistentBatched(TaskBinding value) {
+		processModificationBatched(setBindingAndPrepareDelta(value));
 	}
+	
+	private PropertyDelta<?> setBindingAndPrepareDelta(TaskBinding value) {
+		setBinding(value);
+		return isPersistent() ? PropertyDelta.createReplaceDelta(
+					taskManager.getTaskObjectDefinition(), TaskType.F_BINDING, value.toTaskType()) : null;
+	}
+	
+	/*
+	 * Owner
+	 */
 	
 	@Override
 	public PrismObject<UserType> getOwner() {
@@ -321,6 +569,10 @@ public class TaskImpl implements Task {
 		return objRefType;
 	}
 	
+	/*
+	 * Object
+	 */
+	
 	@Override
 	public void setObjectRef(ObjectReferenceType objectRefType) {
 		PrismReference objectRef = taskPrism.findOrCreateReference(TaskType.F_OBJECT_REF);
@@ -337,9 +589,6 @@ public class TaskImpl implements Task {
 		return objectRef.getValue().getOid();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.task.api.Task#getObject()
-	 */
 	@Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		
@@ -388,48 +637,9 @@ public class TaskImpl implements Task {
 		}
 	}
 
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.task.api.Task#getResult()
+	/*
+	 * Name
 	 */
-	@Override
-	public OperationResult getResult() {
-		return result;
-	}
-
-	public void setResult(OperationResult result) {
-		this.result = result;
-	}
-
-	@Override
-	public String getHandlerUri() {
-		return taskPrism.getPropertyRealValue(TaskType.F_HANDLER_URI, String.class);
-	}
-
-	@Override
-	public void setHandlerUri(String handlerUri) {
-		taskPrism.setPropertyRealValue(TaskType.F_HANDLER_URI, handlerUri);
-	}
-	
-	@Override
-	public UriStack getOtherHandlersUriStack() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void setPersistenceStatus(TaskPersistenceStatus persistenceStatus) {
-		this.persistenceStatus = persistenceStatus;
-	}
-
-	@Override
-	public String getOid() {
-		return taskPrism.getOid();
-	}
-
-	@Override
-	public void setOid(String oid) {
-		taskPrism.setOid(oid);
-	}
 
 	@Override
 	public String getName() {
@@ -440,6 +650,26 @@ public class TaskImpl implements Task {
 	public void setName(String name) {
 		taskPrism.asObjectable().setName(name);
 	}
+	
+	@Override
+	public void setNamePersistent(String value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		processModificationNow(setNameAndPrepareDelta(value), parentResult);
+	}
+	
+	@Override
+	public void setNamePersistentBatched(String value) {
+		processModificationBatched(setNameAndPrepareDelta(value));
+	}
+	
+	private PropertyDelta<?> setNameAndPrepareDelta(String value) {
+		setName(value);
+		return isPersistent() ? PropertyDelta.createReplaceDelta(
+					taskManager.getTaskObjectDefinition(), TaskType.F_NAME, value) : null;
+	}
+
+	/*
+	 * Extension
+	 */
 
 	@Override
 	public PrismContainer getExtension() {
@@ -451,45 +681,105 @@ public class TaskImpl implements Task {
 		return getExtension().findProperty(propertyName);
 	}
 	
-	@Override
-	public PrismObject<TaskType> getTaskPrismObject() {
-				
-		if (result != null) {
-			taskPrism.asObjectable().setResult(result.createOperationResultType());
-		}				
-		
-		return taskPrism;
-	}
-
+	/*
+	 * Last run start timestamp
+	 */
 	@Override
 	public Long getLastRunStartTimestamp() {
-		return new Long(XmlTypeConverter.toMillis(taskPrism.asObjectable().getLastRunStartTimestamp()));
+		XMLGregorianCalendar gc = taskPrism.asObjectable().getLastRunStartTimestamp();
+		return gc != null ? new Long(XmlTypeConverter.toMillis(gc)) : null;
 	}
 	
-	private void setLastRunStartTimestamp(Long value) {
+	public void setLastRunStartTimestamp(Long value) {
 		taskPrism.asObjectable().setLastRunStartTimestamp(
 				XmlTypeConverter.createXMLGregorianCalendar(value));
 	}
+	
+	public void setLastRunStartTimestampPersistent(Long value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		processModificationNow(setLastRunStartTimestampAndPrepareDelta(value), parentResult);
+	}
+
+	public void setLastRunStartTimestampPersistentBatched(Long value) {
+		processModificationBatched(setLastRunStartTimestampAndPrepareDelta(value));
+	}
+
+	private PropertyDelta<?> setLastRunStartTimestampAndPrepareDelta(Long value) {
+		setLastRunStartTimestamp(value);
+		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+									taskManager.getTaskObjectDefinition(), 
+									TaskType.F_LAST_RUN_START_TIMESTAMP, 
+									taskPrism.asObjectable().getLastRunStartTimestamp()) 
+							  : null;
+	}
+
+	/*
+	 * Last run finish timestamp
+	 */
 
 	@Override
 	public Long getLastRunFinishTimestamp() {
-		return new Long(XmlTypeConverter.toMillis(taskPrism.asObjectable().getLastRunFinishTimestamp()));
+		XMLGregorianCalendar gc = taskPrism.asObjectable().getLastRunFinishTimestamp();
+		return gc != null ? new Long(XmlTypeConverter.toMillis(gc)) : null;
 	}
 	
-	private void setLastRunFinishTimestamp(Long value) {
+	public void setLastRunFinishTimestamp(Long value) {
 		taskPrism.asObjectable().setLastRunFinishTimestamp(
 				XmlTypeConverter.createXMLGregorianCalendar(value));
 	}
+	
+	public void setLastRunFinishTimestampPersistent(Long value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		processModificationNow(setLastRunFinishTimestampAndPrepareDelta(value), parentResult);
+	}
+
+	public void setLastRunFinishTimestampPersistentBatched(Long value) {
+		processModificationBatched(setLastRunFinishTimestampAndPrepareDelta(value));
+	}
+
+	private PropertyDelta<?> setLastRunFinishTimestampAndPrepareDelta(Long value) {
+		setLastRunFinishTimestamp(value);
+		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+									taskManager.getTaskObjectDefinition(), 
+									TaskType.F_LAST_RUN_FINISH_TIMESTAMP, 
+									taskPrism.asObjectable().getLastRunFinishTimestamp()) 
+							  : null;
+	}
+
+	/*
+	 * Next run start time
+	 */
 
 	@Override
 	public Long getNextRunStartTime() {
-		return new Long(XmlTypeConverter.toMillis(taskPrism.asObjectable().getNextRunStartTime()));
+		XMLGregorianCalendar gc = taskPrism.asObjectable().getNextRunStartTime();
+		return gc != null ? new Long(XmlTypeConverter.toMillis(gc)) : null;
 	}
 	
-	private void setNextRunStartTime(Long value) {
+	public void setNextRunStartTime(Long value) {
 		taskPrism.asObjectable().setNextRunStartTime(
 				XmlTypeConverter.createXMLGregorianCalendar(value));
 	}
+	
+	public void setNextRunStartTimePersistent(Long value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		processModificationNow(setNextRunStartTimeAndPrepareDelta(value), parentResult);
+	}
+
+	public void setNextRunStartTimePersistentBatched(Long value) {
+		processModificationBatched(setNextRunStartTimeAndPrepareDelta(value));
+	}
+
+	private PropertyDelta<?> setNextRunStartTimeAndPrepareDelta(Long value) {
+		setNextRunStartTime(value);
+		
+		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+									taskManager.getTaskObjectDefinition(), 
+									TaskType.F_NEXT_RUN_START_TIME, 
+									taskPrism.asObjectable().getNextRunStartTime()) 
+							  : null;
+	}
+
+	
+	
+	
 	
 	@Override
 	public String dump() {
@@ -512,68 +802,38 @@ public class TaskImpl implements Task {
 	@Override
 	public void recordRunStart(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		// TODO 
-		long currentTimestamp = System.currentTimeMillis();
-		setLastRunStartTimestamp(currentTimestamp);
-		
-		setNextRunStartTime(ScheduleEvaluator.determineNextRunStartTime(this));
-		// This is all we need to do for transient tasks
-		if (!isPersistent()) {
-			return;
-		}
-		GregorianCalendar cal = new GregorianCalendar();
-		cal.setTimeInMillis(currentTimestamp);
-		Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
-				TaskType.F_LAST_RUN_START_TIMESTAMP, 
-				getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class),
-				cal);
 
-		Long nextRunStartTime = getNextRunStartTime();
-		// FIXME: if nextRunStartTime == 0 we should delete the corresponding element; however, this does not work as for now
-		if (nextRunStartTime > 0) {
-			((Collection)modifications).add(taskManager.createNextRunStartTimeModification(nextRunStartTime));
-		}
-		
-		repositoryService.modifyObject(TaskType.class, getOid(), modifications, parentResult);
+		long currentTimestamp = System.currentTimeMillis();
+		setLastRunStartTimestampPersistent(currentTimestamp, parentResult);
+		setNextRunStartTimePersistent(ScheduleEvaluator.determineNextRunStartTime(this), parentResult);
+
+//		// This is all we need to do for transient tasks
+//		if (!isPersistent()) {
+//			return;
+//		}
+//		GregorianCalendar cal = new GregorianCalendar();
+//		cal.setTimeInMillis(currentTimestamp);
+//		Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
+//				TaskType.F_LAST_RUN_START_TIMESTAMP, 
+//				getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class),
+//				cal);
+//
+//		Long nextRunStartTime = getNextRunStartTime();
+//		// FIXME: if nextRunStartTime == 0 we should delete the corresponding element; however, this does not work as for now
+//		if (nextRunStartTime > 0) {
+//			((Collection)modifications).add(taskManager.createNextRunStartTimeModification(nextRunStartTime));
+//		}
+//		
+//		repositoryService.modifyObject(TaskType.class, getOid(), modifications, parentResult);
 	}
 
 	@Override
 	public void recordRunFinish(TaskRunResult runResult, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		setProgress(runResult.getProgress()); 
+
+		setProgressPersistent(runResult.getProgress(), parentResult); 
 		long currentTimestamp = System.currentTimeMillis();
-		setLastRunFinishTimestamp(currentTimestamp);
-		// This is all we need to do for transient tasks
-		if (!isPersistent()) {
-			return;
-		}
-
-		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
-
-		// last run time modification
-		GregorianCalendar calLRFT = new GregorianCalendar();
-		calLRFT.setTimeInMillis(currentTimestamp);
-		PropertyDelta timestampModificationLRFT = PropertyDelta.createReplaceDelta(taskManager.getTaskObjectDefinition(), 
-				TaskType.F_LAST_RUN_FINISH_TIMESTAMP, calLRFT);
-		modifications.add(timestampModificationLRFT);
-		
-		// progress
-		PropertyDelta progressModification = PropertyDelta.createReplaceDelta(taskManager.getTaskObjectDefinition(), 
-				TaskType.F_PROGRESS, getProgress());
-		modifications.add(progressModification);
-		
-		// result
-		PropertyDelta resultModification = null;
-		if (runResult.getOperationResult() != null) {
-			resultModification = PropertyDelta.createReplaceDelta(taskManager.getTaskObjectDefinition(), 
-					TaskType.F_RESULT, runResult.getOperationResult().createOperationResultType());
-		} else {
-			resultModification = PropertyDelta.createReplaceEmptyDelta(taskManager.getTaskObjectDefinition(), TaskType.F_RESULT);
-		}
-//		// temporary - Pavol Mederly - make changes only if the task run result contains some OperationResult
-//		if (runResult.getOperationResult()!=null)
-		modifications.add(resultModification);
-			
-		// execute the modification
-		repositoryService.modifyObject(TaskType.class, getOid(), modifications, parentResult);
+		setLastRunFinishTimestampPersistent(currentTimestamp, parentResult);
+		setResultPersistent(runResult.getOperationResult(), parentResult);
 		
 		// TODO: Also save the OpResult
 	}
@@ -583,25 +843,7 @@ public class TaskImpl implements Task {
 	 */
 	@Override
 	public void recordProgress(long progress, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		// This is all we need to do for transient tasks
-		if (!isPersistent()) {
-			return;
-		}
-		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
-		PropertyDelta progressModification = PropertyDelta.createReplaceDelta(taskManager.getTaskObjectDefinition(), 
-				TaskType.F_PROGRESS, progress);
-		modifications.add(progressModification);
-		PropertyDelta resultModification = null;
-		if (result!=null) {
-			resultModification = PropertyDelta.createReplaceDelta(taskManager.getTaskObjectDefinition(), 
-				TaskType.F_RESULT, result.createOperationResultType());
-		} else {
-			// Make sure we replace any stale result that may be stored there
-			resultModification = PropertyDelta.createReplaceEmptyDelta(taskManager.getTaskObjectDefinition(), TaskType.F_RESULT);
-		}
-		modifications.add(resultModification);
-		repositoryService.modifyObject(TaskType.class, getOid(), modifications, parentResult);		
-		
+		setProgressPersistent(progress, parentResult);
 	}
 	
 	@Override
@@ -636,6 +878,12 @@ public class TaskImpl implements Task {
 		if (isPersistent()) {
 			getRepositoryService().modifyObject(TaskType.class, getOid(), modifications, parentResult);
 		}
+	}
+
+	public void modify(ItemDelta<?> modification, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
+		modifications.add(modification);
+		modify(modifications, parentResult);
 	}
 
 	private boolean isPersistent() {
