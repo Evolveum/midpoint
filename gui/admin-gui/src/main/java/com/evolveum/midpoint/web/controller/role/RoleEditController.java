@@ -24,6 +24,7 @@ import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
@@ -226,10 +227,10 @@ public class RoleEditController implements Serializable {
 		Validator validator = new Validator(prismContext, new EventHandler() {
 
 			@Override
-			public <T extends ObjectType> EventResult postMarshall(PrismObject<T> object, Element objectElement,
+			public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
 					OperationResult objectResult) {
 				if (objects.isEmpty()) {
-					objects.add(object.asObjectable());
+					objects.add((ObjectType) object.asObjectable());
 				}
 				return EventResult.cont();
 			}

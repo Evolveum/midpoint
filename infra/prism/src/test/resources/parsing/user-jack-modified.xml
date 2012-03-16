@@ -22,6 +22,7 @@
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
+		xmlns:t="http://midpoint.evolveum.com/xml/ns/public/common/types-1.xsd"
 		xmlns:ext="http://example.com/xml/ns/user-extension">
     <name>jack</name>
     <extension>
@@ -68,7 +69,22 @@
             </protectedString>
         </password>
     </credentials>
-        
-    <accountRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="AccountShadowType"/>
      -->
+     
+    <accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1111" type="AccountShadowType"/>
+    
+    <accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1112" type="AccountShadowType">
+    	<t:description>This is a reference with a filter</t:description>
+    	<t:filter>
+    		<equal>
+    			<value>
+    				<name>captain</name>
+    			</value>
+    		</equal>
+    	</t:filter>
+    </accountRef>
+    
+    <account oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1113">
+    	<name>jsparrow</name>
+    </account>
 </user>

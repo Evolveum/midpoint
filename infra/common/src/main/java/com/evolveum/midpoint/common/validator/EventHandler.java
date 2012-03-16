@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.common.validator;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -63,7 +64,7 @@ public interface EventHandler {
 	 * @param objectResult Operation result for this object
 	 * @return true if the process should continue, false if it should stop
 	 */
-    public <T extends ObjectType> EventResult postMarshall(PrismObject<T> object, Element objectElement, OperationResult objectResult);
+    public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement, OperationResult objectResult);
     
     /**
      * Call-back to handle global errors.

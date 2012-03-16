@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.util.PrismUtil;
@@ -69,7 +70,18 @@ public class DomSerializer {
 
 	public Element serialize(PrismObject<?> object) throws SchemaException {
 		initialize();		
-		Element topElement = createElement(object.getName()); 
+		Element topElement = createElement(object.getName());
+		serialize(object, topElement);
+		return topElement;
+	}
+		
+	private void serialize(PrismObject<?> object, QName elementName, Element parentElement) throws SchemaException {
+		Element topElement = createElement(elementName);
+		parentElement.appendChild(topElement);
+		serialize(object, topElement);
+	}
+	
+	private void serialize(PrismObject<?> object, Element topElement) throws SchemaException {
 		serializeItems(object.getValue().getItems(), topElement);
 		if (object.getOid() != null) {
 			topElement.setAttribute(PrismConstants.ATTRIBUTE_OID_LOCAL_NAME, object.getOid());
@@ -81,9 +93,8 @@ public class DomSerializer {
 				!prismContext.getSchemaRegistry().hasImplicitTypeDefinition(object.getName(), object.getDefinition().getTypeName())) {
 			DOMUtil.setXsiType(topElement, object.getDefinition().getTypeName());
 		}
-		return topElement;
 	}
-
+	
 	private void initialize() {
 		doc = DOMUtil.getDocument();
 		topElement = null;
@@ -170,6 +181,14 @@ public class DomSerializer {
 	}
 
 	private void serialize(PrismReferenceValue value, Element parentElement) throws SchemaException {
+		if (value.getObject() != null) {
+			serializeObject(value, parentElement);
+		} else {
+			serializeRef(value, parentElement);
+		}
+	}
+	
+	private void serializeRef(PrismReferenceValue value, Element parentElement) throws SchemaException {
 		Itemable parent = value.getParent();
 		Element element = createElement(parent.getName());
 		parentElement.appendChild(element);
@@ -181,8 +200,34 @@ public class DomSerializer {
 				throw new SchemaException(e.getMessage()+" in type field of reference "+parent.getName());
 			}
 		}
+		if (value.getDescription() != null) {
+			String namespace = prismContext.getPrismDomProcessor().determineElementNamespace(parent,
+					PrismConstants.ELEMENT_DESCRIPTION_LOCAL_NAME);
+			Document doc = element.getOwnerDocument();
+			Element descriptionElement = doc.createElementNS(namespace, PrismConstants.ELEMENT_DESCRIPTION_LOCAL_NAME);
+			element.appendChild(descriptionElement);
+			descriptionElement.setTextContent(value.getDescription());
+		}
+		if (value.getFilter() != null) {
+			String namespace = prismContext.getPrismDomProcessor().determineElementNamespace(parent,
+					PrismConstants.ELEMENT_FILTER_LOCAL_NAME);
+			Document doc = element.getOwnerDocument();
+			Element filterElement = doc.createElementNS(namespace, PrismConstants.ELEMENT_FILTER_LOCAL_NAME);
+			element.appendChild(filterElement);
+			Element adoptedElement = (Element)doc.adoptNode(value.getFilter().cloneNode(true));
+			filterElement.appendChild(adoptedElement);
+		}
 	}
-	
+
+	private void serializeObject(PrismReferenceValue value, Element parentElement) throws SchemaException {
+		Itemable parent = value.getParent();
+		PrismReferenceDefinition definition = (PrismReferenceDefinition) parent.getDefinition();
+		if (definition == null) {
+			throw new SchemaException("Cannot serialize object in reference "+parent+" as the reference has no definition");
+		}
+		serialize(value.getObject(), definition.getCompositeObjectElementName(), parentElement);
+	}
+
 	private void serializeItems(List<Item<?>> items, Element parentElement) throws SchemaException {
 		for (Item<?> item: items) {
 			serialize(item, parentElement);

@@ -171,16 +171,16 @@ public class AssignmentEvaluator {
 		if (targetRef.getType() != null) {
 			clazz = ObjectTypes.getObjectTypeFromTypeQName(targetRef.getType()).getClassDefinition();
 		}
-		ObjectType target = null;
+		PrismObject<? extends ObjectType> target = null;
 		try {
-			target = repository.getObject(clazz, oid, null, result).asObjectable();
+			target = repository.getObject(clazz, oid, null, result);
 			if (target == null) {
 				throw new IllegalArgumentException("Got null target from repository, oid:"+oid+", class:"+clazz+" (should not happen, probably a bug) in "+ObjectTypeUtil.toShortString(source));
 			}
 		} catch (ObjectNotFoundException ex) {
 			throw new ObjectNotFoundException(ex.getMessage()+" in assignment target reference in "+ObjectTypeUtil.toShortString(source),ex);
 		}
-		evaluateTarget(assignment, target, source, assignmentPath, result);
+		evaluateTarget(assignment, target.asObjectable(), source, assignmentPath, result);
 	}
 
 

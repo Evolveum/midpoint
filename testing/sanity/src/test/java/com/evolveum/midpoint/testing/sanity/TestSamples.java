@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.testing.sanity;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
@@ -102,14 +104,14 @@ public class TestSamples {
 			}
 
 			@Override
-			public <T extends ObjectType> EventResult postMarshall(PrismObject<T> object, Element objectElement,
+			public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
 					OperationResult objectResult) {
 				
 				// Try to marshall it back. This may detect some JAXB miscofiguration problems.
 				try {
-					String marshalledString = PrismTestUtil.marshalToString(object.asObjectable());
-				} catch (JAXBException e) {
-					objectResult.recordFatalError("Object marshalling failed", e);
+					String serializedString = PrismTestUtil.serializeObjectToString(object);
+				} catch (SchemaException e) {
+					objectResult.recordFatalError("Object serialization failed", e);
 				}
 				
 				return EventResult.cont();

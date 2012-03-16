@@ -116,6 +116,14 @@ public class PrismTestUtil {
     public static List<PrismObject<? extends Objectable>> parseObjects(File file) throws SchemaException {
     	return getPrismContext().getPrismDomProcessor().parseObjects(file);
     }
+
+    // ==========================
+    // == Serializing
+    // ==========================
+
+    public static String serializeObjectToString(PrismObject<? extends Objectable> object) throws SchemaException {
+    	return getPrismContext().getPrismDomProcessor().serializeObjectToString(object);
+    }
     
     // ==========================
     // == JAXB

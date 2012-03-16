@@ -86,6 +86,30 @@
             	<a:objectReference/>
             </xsd:appinfo>
         </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Free-form description of this reference. Usually used to describe the purpose of
+        				a search filter embedded in the reference.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="filter" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Filter that can be used to dynamically lookup the reference OID e.g. during imports.
+                        It must not be used for normal operations and references with the filter must not
+                        be stored in the repository.
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                	<xsd:sequence>
+                		<xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                	</xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
         <xsd:attribute name="oid" type="xsd:string" use="optional">
             <xsd:annotation>
                 <xsd:documentation>
@@ -111,7 +135,6 @@
             </xsd:annotation>
         </xsd:attribute>
     </xsd:complexType>
-
 
 </xsd:schema>
 

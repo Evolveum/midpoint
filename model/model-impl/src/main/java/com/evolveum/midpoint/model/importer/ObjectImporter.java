@@ -27,6 +27,7 @@ import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -98,9 +99,18 @@ public class ObjectImporter {
             }
 
             @Override
-            public <T extends ObjectType> EventResult postMarshall(PrismObject<T> object, Element objectElement, OperationResult objectResult) {
+            public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement, OperationResult objectResult) {
                 LOGGER.debug("Importing object {}", object);
-                T objectType = object.asObjectable();
+                
+                T objectable = object.asObjectable();
+                if (!(objectable instanceof ObjectType)) {
+                	String message = "Cannot process type "+objectable.getClass()+" as it is not a subtype of "+ObjectType.class;
+                	objectResult.recordFatalError(message);
+                    LOGGER.error("Import of object {} failed: {}",
+                            new Object[]{object, message});
+                    return EventResult.skipObject();
+                }
+                ObjectType objectType = (ObjectType)objectable;
                 
                 if (objectResult.isAcceptable()) {
                     resolveReferences(objectType, repository, 
@@ -270,8 +280,8 @@ public class ObjectImporter {
 
             // Check the resource configuration. The schema is in connector, so fetch the connector first
             String connectorOid = resource.getConnectorRef().getOid();
-            if (connectorOid == null) {
-                objectResult.recordFatalError("The connector reference (connectorRef) is null");
+            if (StringUtils.isBlank(connectorOid)) {
+                objectResult.recordFatalError("The connector reference (connectorRef) is null or empty");
                 return null;
             }
 

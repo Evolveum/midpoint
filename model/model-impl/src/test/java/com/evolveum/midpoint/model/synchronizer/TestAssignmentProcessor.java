@@ -26,6 +26,7 @@ import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.model.AccountSyncContext;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -410,13 +411,13 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         assertEquals(userOld.getOid(), userPrimaryDelta.getOid());
         assertEquals(ChangeType.MODIFY, userPrimaryDelta.getChangeType());
         assertNull(userPrimaryDelta.getObjectToAdd());
-        for (ItemDelta propMod : userPrimaryDelta.getModifications()) {
-            if (propMod.getValuesToDelete() != null) {
-                PrismProperty<?> property = userOld.findProperty(propMod.getPath());
-                assertNotNull("Deleted property " + propMod.getParentPath() + "/" + propMod.getName() + " not found in user", property);
-                for (Object valueToDelete : propMod.getValuesToDelete()) {
+        for (ItemDelta itemMod : userPrimaryDelta.getModifications()) {
+            if (itemMod.getValuesToDelete() != null) {
+                Item property = userOld.findItem(itemMod.getPath());
+                assertNotNull("Deleted item " + itemMod.getParentPath() + "/" + itemMod.getName() + " not found in user", property);
+                for (Object valueToDelete : itemMod.getValuesToDelete()) {
                     if (!property.getValues().contains(valueToDelete)) {
-                        display("Deleted value " + valueToDelete + " is not in user property " + propMod.getParentPath() + "/" + propMod.getName());
+                        display("Deleted value " + valueToDelete + " is not in user item " + itemMod.getParentPath() + "/" + itemMod.getName());
                         display("Deleted value", valueToDelete);
                         display("HASHCODE: " + valueToDelete.hashCode());
                         for (Object value : property.getValues()) {
@@ -424,7 +425,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
                             display("EQUALS: " + valueToDelete.equals(value));
                             display("HASHCODE: " + value.hashCode());
                         }
-                        AssertJUnit.fail("Deleted value " + valueToDelete + " is not in user property " + propMod.getParentPath() + "/" + propMod.getName());
+                        AssertJUnit.fail("Deleted value " + valueToDelete + " is not in user item " + itemMod.getParentPath() + "/" + itemMod.getName());
                     }
                 }
             }

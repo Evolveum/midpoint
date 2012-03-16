@@ -105,6 +105,15 @@ public class PrismReference extends Item {
     	return getValue().getOid();
     }
     
+    PrismReferenceValue findValueByOid(String oid) {
+    	for (PrismReferenceValue pval: getValues()) {
+    		if (oid.equals(pval.getOid())) {
+    			return pval;
+    		}
+    	}
+    	return null;
+    }
+    
     @Override
 	public ReferenceDelta createDelta(PropertyPath path) {
     	return new ReferenceDelta(path, getDefinition());

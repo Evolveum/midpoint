@@ -41,6 +41,8 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
     private String oid = null;
     private PrismObject object = null;
     private QName targetType = null;
+    private String description = null;
+    private Element filter = null;
     
     public PrismReferenceValue() {
         this(null,null,null);
@@ -107,7 +109,23 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 		this.targetType = targetType;
 	}
 
-    @Override
+    public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public Element getFilter() {
+		return filter;
+	}
+
+	public void setFilter(Element filter) {
+		this.filter = filter;
+	}
+
+	@Override
 	protected Element createDomElement() {
 		return new ElementPrismReferenceImpl(this);
 	}

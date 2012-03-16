@@ -39,6 +39,7 @@ import org.w3c.dom.NodeList;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -72,6 +73,9 @@ public class PrismDomProcessor {
 
 	private static final String JAVA_PROPERTY_OID = "oid";
 	private static final String JAVA_PROPERTY_TYPE = "type";
+	private static final String JAVA_PROPERTY_DESCRIPTION = "description";
+	private static final String JAVA_PROPERTY_FILTER = "filter";
+	private static final String JAVA_JAXB_PROPERTY_ANY = "any";
 	
 	private SchemaRegistry schemaRegistry;
 	private PrismContext prismContext;
@@ -619,6 +623,14 @@ public class PrismDomProcessor {
 		}
 		PrismReferenceValue refVal = new PrismReferenceValue(oid);
 		refVal.setTargetType(type);
+		Element descriptionElement = DOMUtil.getChildElement(element, PrismConstants.ELEMENT_DESCRIPTION_LOCAL_NAME);
+		if (descriptionElement != null) {
+			refVal.setDescription(descriptionElement.getTextContent());
+		}
+		Element filterElement = DOMUtil.getChildElement(element, PrismConstants.ELEMENT_FILTER_LOCAL_NAME);
+		if (filterElement != null) {
+			refVal.setFilter(DOMUtil.getFirstChildElement(filterElement));
+		}
 		return refVal;
 	}
 	
@@ -626,11 +638,25 @@ public class PrismDomProcessor {
 	 * The input is an object that represents the reference, most likely a JAXB object.
 	 * Pull out the information by reflection. 
 	 */
-	private PrismReferenceValue parseReferenceValueFromObject(Object referenceObject) {
+	private PrismReferenceValue parseReferenceValueFromObject(Object referenceObject) throws SchemaException {
 		String oid = MiscUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_OID, String.class);
 		QName type = MiscUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_TYPE, QName.class);
 		PrismReferenceValue refVal = new PrismReferenceValue(oid);
 		refVal.setTargetType(type);
+		String description = MiscUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_DESCRIPTION, String.class);
+		refVal.setDescription(description);
+		Object filterType = MiscUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_FILTER, Object.class);
+		if (filterType != null) {
+			List filterElementList = MiscUtil.getJavaProperty(filterType, JAVA_JAXB_PROPERTY_ANY, List.class);
+			if (filterElementList != null ) {
+				Object firstElement = filterElementList.get(0);
+				if (firstElement instanceof Element) {
+					refVal.setFilter((Element)firstElement);
+				} else {
+					throw new SchemaException("Unknown type of filter element "+firstElement.getClass());
+				}
+			}
+		}
 		return refVal;
 	}
 
@@ -748,4 +774,17 @@ public class PrismDomProcessor {
         Element element = serializeToDom(object, parentElement);
         return DOMUtil.serializeDOMToString(element);
     }
+
+	/**
+	 * Determines proper name for the element with specified local name.
+	 */
+	public String determineElementNamespace(Itemable parent, String elementDescriptionLocalName) {
+		ItemDefinition definition = parent.getDefinition();
+		if (definition == null) {
+			return parent.getName().getNamespaceURI();
+		}
+		// This is very simplistic now, it assumes that all elements are in the "tns" namespace.
+		// TODO: Improve it later.
+		return definition.getTypeName().getNamespaceURI();
+	}
 }

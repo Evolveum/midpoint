@@ -138,17 +138,17 @@ public class TestPrismParsing {
 	private void roundTrip(File file) throws SchemaException, SAXException, IOException {
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
-		PrismObject<UserType> user = prismContext.parseObject(file);
+		PrismObject<UserType> originalUser = prismContext.parseObject(file);
 	
 		System.out.println("Input parsed user:");
-		System.out.println(user.dump());
-		assertNotNull(user);
+		System.out.println(originalUser.dump());
+		assertNotNull(originalUser);
 		
 		// precondition
-		assertUser(user);
+		assertUser(originalUser);
 		
 		// WHEN
-		String userXml = prismContext.getPrismDomProcessor().serializeObjectToString(user);
+		String userXml = prismContext.getPrismDomProcessor().serializeObjectToString(originalUser);
 	
 		// THEN
 		System.out.println("Serialized user:");
@@ -156,14 +156,14 @@ public class TestPrismParsing {
 		assertNotNull(userXml);
 		
 		// WHEN
-		PrismObject<UserType> user2 = prismContext.parseObject(userXml);
+		PrismObject<UserType> parsedUser = prismContext.parseObject(userXml);
 		System.out.println("Re-parsed user:");
-		System.out.println(user2.dump());
-		assertNotNull(user2);
+		System.out.println(parsedUser.dump());
+		assertNotNull(parsedUser);
 
-		assertUser(user2);
+		assertUser(parsedUser);
 		
-		assertTrue("Users not equal", user.equals(user2));
+		assertTrue("Users not equal", originalUser.equals(parsedUser));
 	}
 
 	
@@ -243,7 +243,17 @@ public class TestPrismParsing {
 		PrismProperty a1Property = user.findProperty(a1Path);
 		assertNotNull("Property "+a1Path+" not found", a1Property);
 		PrismAsserts.assertPropertyValue(a1Property, "Assignment 1");
-
+		
+		PrismReference accountRef = user.findReference(USER_ACCOUNTREF_QNAME);
+		assertNotNull("Reference "+USER_ACCOUNTREF_QNAME+" not found", accountRef);
+		assertEquals("Wrong number of accountRef values", 3, accountRef.getValues().size());
+		PrismAsserts.assertReferenceValue(accountRef, "c0c010c0-d34d-b33f-f00d-aaaaaaaa1111");
+		PrismAsserts.assertReferenceValue(accountRef, "c0c010c0-d34d-b33f-f00d-aaaaaaaa1112");
+		PrismAsserts.assertReferenceValue(accountRef, "c0c010c0-d34d-b33f-f00d-aaaaaaaa1113");
+		PrismReferenceValue accountRefVal2 = accountRef.findValueByOid("c0c010c0-d34d-b33f-f00d-aaaaaaaa1112");
+		assertEquals("Wrong oid for accountRef", "c0c010c0-d34d-b33f-f00d-aaaaaaaa1112", accountRefVal2.getOid());
+		assertEquals("Wrong accountRef description", "This is a reference with a filter", accountRefVal2.getDescription());
+		assertNotNull("No filter in accountRef", accountRefVal2.getFilter());
 	}
 	
 	private void assertContainerDefinition(PrismContainer container, String contName, QName xsdType, int minOccurs,

@@ -106,7 +106,7 @@ public class TestDom {
 		assertElementName(USER_QNAME, userDom);
 //		String oid = userDom.getAttribute("oid");
 //		assertEquals("Wrong oid (getAttribute)", USER_JACK_OID, oid);
-		assertElementChildNodes(userDom, 10);
+		assertElementChildNodes(userDom, 13);
 		
 		NodeList fullNameDoms = userDom.getElementsByTagNameNS(USER_FULLNAME_QNAME.getNamespaceURI(), USER_FULLNAME_QNAME.getLocalPart());
 		assertSingleStringElement(USER_FULLNAME_QNAME, "cpt. Jack Sparrow", fullNameDoms);

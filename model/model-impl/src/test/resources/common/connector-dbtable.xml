@@ -34,6 +34,7 @@
    <connectorBundle>org.identityconnectors.databasetable</connectorBundle>
    <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector</namespace>
    <schema>
+     <definition>
       <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"
                   xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector"
@@ -224,5 +225,6 @@
          </xsd:complexType>
          <xsd:element name="configuration" type="tns:ConfigurationType"/>
       </xsd:schema>
+     </definition>
    </schema>
 </connector>

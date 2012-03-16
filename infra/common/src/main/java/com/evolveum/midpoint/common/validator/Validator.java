@@ -50,6 +50,7 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -195,6 +196,7 @@ public class Validator {
 
 			XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
 			stream = xmlInputFactory.createXMLStreamReader(inputStream);
+			
 			int eventType = stream.nextTag();
 			if (eventType == XMLStreamConstants.START_ELEMENT) {
 				if (!stream.getName().equals(SchemaConstants.C_OBJECTS)) {
@@ -315,66 +317,36 @@ public class Validator {
 				return EventResult.skipObject();
 			}
 
-			JAXBElement<?> jaxbElement = (JAXBElement<?>) createUnmarshaller(validatorResult).unmarshal(
-					objectDoc);
-			Object jaxbValue = jaxbElement.getValue();
-			ObjectType objectType = null;
+			PrismObject<? extends Objectable> object = prismContext.parseObject(objectElement);
+			Objectable objectType = null;
+			if (object != null) {
+				objectType = object.asObjectable();
+			}
 
-			if (jaxbValue instanceof ObjectType) {
-				objectType = (ObjectType) jaxbElement.getValue();
-				try {
-					prismContext.adopt(objectType);
-				} catch (SchemaException ex) {
+			prismContext.adopt(objectType);
+			
+			if (verbose) {
+				LOGGER.debug("Processing OID " + objectType.getOid());
+			}
 
-				}
-				if (verbose) {
-					LOGGER.debug("Processing OID " + objectType.getOid());
-				}
+			objectResult.addContext(OperationResult.CONTEXT_OBJECT, objectType);
 
-				objectResult.addContext(OperationResult.CONTEXT_OBJECT, objectType);
+			validateObject(objectType, objectResult);
 
-				validateObject(objectType, objectResult);
-
-				PrismObject object = objectType.asPrismObject();
-
-				object.revive(prismContext);
-
-				if (handler != null) {
-					EventResult cont = handler.postMarshall(object, objectElement, objectResult);
-					if (!cont.isCont()) {
-						return cont;
-					}
-				}
-
-				objectResult.recomputeStatus();
-
-			} else {
-				if (!allowAnyType) {
-					objectResult.recordFatalError("Found valid type that is not ObjectType: " + jaxbValue);
-				} else {
-					objectResult.recordSuccess();
+			if (handler != null) {
+				EventResult cont = handler.postMarshall(object, objectElement, objectResult);
+				if (!cont.isCont()) {
+					return cont;
 				}
 			}
+
+			objectResult.recomputeStatus();
 
 			return EventResult.cont();
 
-		} catch (JAXBException ex) {
+		} catch (SchemaException ex) {
 			if (verbose) {
 				ex.printStackTrace();
-			}
-			Throwable linkedException = ex.getLinkedException();
-			if (linkedException instanceof SAXParseException) {
-				SAXParseException saxex = (SAXParseException) linkedException;
-
-				validatorResult.recordFatalError(
-						"XML Parse error: " + saxex.getMessage() + " (line " + saxex.getLineNumber()
-								+ " col " + saxex.getColumnNumber() + ")", ex);
-
-			} else if (ex instanceof UnmarshalException) {
-				validatorResult.recordFatalError("Unmarshalling error: " + ex.getMessage(), ex);
-			} else {
-				validatorResult.recordFatalError("Unmarshalling error: "
-						+ (linkedException != null ? linkedException.getMessage() : "unknown: " + ex), ex);
 			}
 			if (handler != null) {
 				handler.handleGlobalError(validatorResult);
@@ -408,7 +380,7 @@ public class Validator {
 		return validationResult.getNode();
 	}
 
-	public void validateObject(ObjectType object, OperationResult objectResult) {
+	public void validateObject(Objectable object, OperationResult objectResult) {
 		// Check generic object properties
 
 		checkBasics(object, objectResult);
@@ -429,7 +401,7 @@ public class Validator {
 
 	// BIG checks - checks that create subresults
 
-	void checkBasics(ObjectType object, OperationResult objectResult) {
+	void checkBasics(Objectable object, OperationResult objectResult) {
 		OperationResult subresult = objectResult.createSubresult(OPERATION_RESOURCE_BASICS_CHECK);
 		checkName(object, object.getName(), "name", subresult);
 		subresult.recordSuccessIfUnknown();
@@ -443,7 +415,7 @@ public class Validator {
 
 	// Small checks - checks that don't create subresults
 
-	void checkName(ObjectType object, String value, String propertyName, OperationResult subResult) {
+	void checkName(Objectable object, String value, String propertyName, OperationResult subResult) {
 		// TODO: check for all whitespaces
 		// TODO: check for bad characters
 		if (value == null || value.isEmpty()) {
@@ -451,7 +423,7 @@ public class Validator {
 		}
 	}
 
-	void checkUri(ObjectType object, String value, String propertyName, OperationResult subResult) {
+	void checkUri(Objectable object, String value, String propertyName, OperationResult subResult) {
 		// TODO: check for all whitespaces
 		// TODO: check for bad characters
 		if (StringUtils.isEmpty(value)) {
@@ -469,12 +441,12 @@ public class Validator {
 
 	}
 
-	void error(String message, ObjectType object, OperationResult subResult) {
+	void error(String message, Objectable object, OperationResult subResult) {
 		subResult.addContext(OperationResult.CONTEXT_OBJECT, object);
 		subResult.recordFatalError(message);
 	}
 
-	void error(String message, ObjectType object, String propertyName, OperationResult subResult) {
+	void error(String message, Objectable object, String propertyName, OperationResult subResult) {
 		subResult.addContext(OperationResult.CONTEXT_OBJECT, object);
 		subResult.addContext(OperationResult.CONTEXT_PROPERTY, propertyName);
 		subResult.recordFatalError("<" + propertyName + ">: " + message);

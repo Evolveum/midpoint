@@ -688,6 +688,15 @@ public class DOMUtil {
 		return null;
 	}
 
+	public static Element getChildElement(Element element, String localPart) {
+		for (Element subelement: listChildElements(element)) {
+			if (subelement.getLocalName().equals(localPart)) {
+				return subelement;
+			}
+		}
+		return null;
+	}
+
 	public static Element getOrCreateAsFirstElement(Element parentElement, QName elementQName) {
 		Element element = getChildElement(parentElement, elementQName);
 		if (element != null) {

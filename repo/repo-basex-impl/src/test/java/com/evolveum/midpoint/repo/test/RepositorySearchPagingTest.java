@@ -49,6 +49,7 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -293,10 +294,10 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 		}
 
 		@Override
-		public <T extends ObjectType> EventResult postMarshall(PrismObject<T> object, Element objectElement, OperationResult objectResult) {
+		public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement, OperationResult objectResult) {
 			System.out.println("Handler processing " + object + ", result:");
 			try {
-				repositoryService.addObject(object, objectResult);
+				repositoryService.addObject((PrismObject<? extends ObjectType>)object, objectResult);
 			} catch (ObjectAlreadyExistsException e) {
 				throw new RuntimeException(e);
 			} catch (SchemaException e) {
