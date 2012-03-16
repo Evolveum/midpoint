@@ -47,7 +47,7 @@ import java.util.*;
  */
 public final class RUtil {
 
-    private static final QName CUSTOM_OBJECT = new QName("http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd", "sqlRepoObject");
+    static final QName CUSTOM_OBJECT = new QName("http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd", "sqlRepoObject");
 
     private RUtil() {
     }

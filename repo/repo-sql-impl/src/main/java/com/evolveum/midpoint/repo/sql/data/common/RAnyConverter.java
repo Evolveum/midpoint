@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -74,8 +75,7 @@ class RAnyConverter {
         List<PrismValue> values = item.getValues();
         for (PrismValue value : values) {
             if (value instanceof PrismContainerValue) {
-                rValue = new RClobValue();
-                //todo clobs
+                rValue = createClobValue((PrismContainerValue) value);
             } else if (value instanceof PrismPropertyValue) {
                 PrismPropertyValue propertyValue = (PrismPropertyValue) value;
                 switch (getValueType(definition.getTypeName())) {
@@ -91,10 +91,13 @@ class RAnyConverter {
                         break;
                     case STRING:
                     default:
-                        RStringValue strValue = new RStringValue();
-                        strValue.setValue(extractValue(propertyValue, String.class));
-                        rValue = strValue;
-                        //todo clobs
+                        if (definition.isSearchable()) {
+                            RStringValue strValue = new RStringValue();
+                            strValue.setValue(extractValue(propertyValue, String.class));
+                            rValue = strValue;
+                        } else {
+                            rValue = createClobValue(propertyValue);
+                        }
                 }
             }
 
@@ -104,6 +107,28 @@ class RAnyConverter {
         }
 
         return rValues;
+    }
+
+    private RClobValue createClobValue(PrismContainerValue containerValue) throws SchemaException {
+        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+        Element root = createElement(RUtil.CUSTOM_OBJECT);
+        String value = domProcessor.serializeObjectToString(containerValue, root);
+
+        return new RClobValue(value);
+
+    }
+
+    private RClobValue createClobValue(PrismPropertyValue propertyValue) {
+        String value;
+        Object object = propertyValue.getValue();
+        if (object instanceof Element) {
+            Element element = (Element) object;
+            value = DOMUtil.serializeDOMToString(element);
+        } else {
+            value = object.toString();
+        }
+
+        return new RClobValue(value);
     }
 
     private <T> T extractValue(PrismPropertyValue value, Class<T> returnType) throws SchemaException {
@@ -157,9 +182,16 @@ class RAnyConverter {
     void convertFromValue(RValue value, PrismContainerValue parent) {
         Validate.notNull(value, "Value for converting must not be null.");
         Validate.notNull(parent, "Parent prism container value must not be null.");
-//        Element element = createElement(value.getName());
-//        element.setTextContent(value.get);
+        
+        //extension item or something like that
+//        PrismContainerable containerable = parent.getParent();
 
+//        PrismContainerDefinition containerDefinition = containerable.getDefinition();
+//        ItemDefinition definition = containerDefinition.findItemDefinition(value.getName());
+
+//        Item item = parent.findOrCreateItem(value.getName());
+
+        
     }
 
     private Element createElement(QName name) {

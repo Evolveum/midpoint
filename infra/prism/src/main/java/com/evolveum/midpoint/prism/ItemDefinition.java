@@ -63,7 +63,7 @@ public abstract class ItemDefinition extends Definition implements Serializable 
     private boolean dynamic;
 
 	// TODO: annotations
-	
+
 	/**
 	 * The constructors should be used only occasionally (if used at all).
 	 * Use the factory methods in the ResourceObjectDefintion instead.
@@ -76,6 +76,20 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		super(defaultName, typeName, prismContext);
 		this.name = name;
 	}
+
+    /**
+     * If true values should be stored in repository and some kind of index should be created
+     * (based on repository implementation). Items with this flag can be used in queries.
+     *
+     * @return true if items of this kind should be searchable, otherwise false.
+     */
+    public boolean isSearchable() {
+        //todo read this from some annotation in xsd schema...
+        //todo probably add max. size or something...which can be stored by repo...
+        //todo implement
+
+        return false;
+    }
 
 	/**
 	 * Returns name of the defined entity.
