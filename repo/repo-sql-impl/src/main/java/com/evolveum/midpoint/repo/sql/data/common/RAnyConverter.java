@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -32,6 +32,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author lazyman
@@ -46,32 +49,50 @@ class RAnyConverter {
         this.prismContext = prismContext;
     }
 
-    RValue convertToValue(Object object) throws SchemaException {
-        Validate.notNull(object, "Object for converting must not be null.");
-        Validate.isTrue(object instanceof Element, "Can't convert '" + object.getClass().getSimpleName() + "' to value.");
+    Set<RValue> convertToValue(Item item) throws SchemaException {
+        Validate.notNull(item, "Object for converting must not be null.");
 
-        Element element = (Element) object;
+        Set<RValue> rValues = new HashSet<RValue>();
+
+        ItemDefinition definition = item.getDefinition();
+
+        RValue rValue = null;
+        List<PrismValue> values = item.getValues();
+        for (PrismValue value : values) {
+            if (value instanceof PrismContainerValue) {
+                rValue = new RClobValue();
+            } else if (value instanceof PrismPropertyValue) {
+                rValue = new RStringValue();
+                //todo other types
+            }
+
+            rValue.setName(definition.getName());
+            rValue.setType(definition.getTypeName());
+            rValues.add(rValue);
+        }
 
         XmlTypeConverter converter = new XmlTypeConverter();
-        Object javaValue = converter.toJavaValue(element);
-        LOGGER.info(">>>>>> value {}", new Object[]{javaValue});
 
-        return null;
+
+//        Object javaValue = converter.toJavaValue(element);
+//        LOGGER.info(">>>>>> value {}", new Object[]{javaValue});
+
+        return rValues;
     }
 
-    Object convertFromValue(RValue value) {
+    void convertFromValue(RValue value, PrismContainerValue parent) {
         Validate.notNull(value, "Value for converting must not be null.");
-        Element element = createElement(value.getName());
+        Validate.notNull(parent, "Parent prism container value must not be null.");
+//        Element element = createElement(value.getName());
 //        element.setTextContent(value.get);
 
-        return element;
     }
-    
+
     private Element createElement(QName name) {
         if (document == null) {
             document = DOMUtil.getDocument();
         }
-        
+
         return DOMUtil.createElement(document, name);
     }
 }

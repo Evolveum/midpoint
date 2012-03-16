@@ -69,4 +69,4 @@ public class RGenericObject extends RObject {
 
         return object;
     }
-}
+}                                                    

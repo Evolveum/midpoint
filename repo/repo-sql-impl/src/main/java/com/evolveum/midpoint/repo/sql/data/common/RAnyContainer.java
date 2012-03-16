@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
@@ -156,7 +158,7 @@ public class RAnyContainer implements Serializable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        copyToJAXB(repo, jaxb.getAny(), prismContext);
+        copyToJAXB(repo, jaxb.asPrismContainerValue(), prismContext);
     }
 
     public static void copyToJAXB(RAnyContainer repo, ExtensionType jaxb, PrismContext prismContext) throws
@@ -164,30 +166,31 @@ public class RAnyContainer implements Serializable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        copyToJAXB(repo, jaxb.getAny(), prismContext);
+        copyToJAXB(repo, jaxb.asPrismContainerValue(), prismContext);
     }
 
-    private static void copyToJAXB(RAnyContainer repo, List<Object> anyList, PrismContext prismContext) throws
+    private static void copyToJAXB(RAnyContainer repo, PrismContainerValue containerValue,
+            PrismContext prismContext) throws
             DtoTranslationException {
         RAnyConverter converter = new RAnyConverter(prismContext);
         if (repo.getClobs() != null) {
             for (RClobValue value : repo.getClobs()) {
-                anyList.add(converter.convertFromValue(value));
+                converter.convertFromValue(value, containerValue);
             }
         }
         if (repo.getDates() != null) {
             for (RDateValue value : repo.getDates()) {
-                anyList.add(converter.convertFromValue(value));
+                converter.convertFromValue(value, containerValue);
             }
         }
         if (repo.getLongs() != null) {
             for (RLongValue value : repo.getLongs()) {
-                anyList.add(converter.convertFromValue(value));
+                converter.convertFromValue(value, containerValue);
             }
         }
         if (repo.getStrings() != null) {
             for (RStringValue value : repo.getStrings()) {
-                anyList.add(converter.convertFromValue(value));
+                converter.convertFromValue(value, containerValue);
             }
         }
     }
@@ -198,7 +201,7 @@ public class RAnyContainer implements Serializable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        copyFromJAXB(jaxb.getAny(), repo, prismContext);
+        copyFromJAXB(jaxb.asPrismContainerValue(), repo, prismContext);
     }
 
     public static void copyFromJAXB(ExtensionType jaxb, RAnyContainer repo, PrismContext prismContext) throws
@@ -206,17 +209,19 @@ public class RAnyContainer implements Serializable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        copyFromJAXB(jaxb.getAny(), repo, prismContext);
+        copyFromJAXB(jaxb.asPrismContainerValue(), repo, prismContext);
     }
 
-    private static void copyFromJAXB(List<Object> anyList, RAnyContainer repo, PrismContext prismContext) throws
+    private static void copyFromJAXB(PrismContainerValue containerValue, RAnyContainer repo,
+            PrismContext prismContext) throws
             DtoTranslationException {
         RAnyConverter converter = new RAnyConverter(prismContext);
 
         Set<RValue> values = new HashSet<RValue>();
         try {
-            for (Object any : anyList) {
-                values.add(converter.convertToValue(any));
+            List<Item> items = containerValue.getItems();
+            for (Item item : items) {
+                values.addAll(converter.convertToValue(item));
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

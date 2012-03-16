@@ -74,7 +74,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             LOGGER.trace("Resolving\n{}", new Object[]{prismContext.silentMarshalObject(resolve)});
         }
 
-        ObjectType objectType = null;
+        PrismObject<T> objectType = null;
         OperationResult subResult = result.createSubresult(GET_OBJECT);
         Session session = null;
         try {
@@ -89,7 +89,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             }
 
             LOGGER.debug("Transforming data to JAXB type.");
-            objectType = object.toJAXB(prismContext);
+            objectType = object.toJAXB(prismContext).asPrismObject();
 
             if (resolve != null && !resolve.getProperty().isEmpty()) {
                 //todo we have to resolve something...
@@ -116,7 +116,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             cleanupSessionAndResult(session, subResult);
         }
 
-        return objectType.asPrismObject();
+        return objectType;
     }
 
     @Override
@@ -151,8 +151,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
             if (objects != null) {
                 for (RObject object : objects) {
                     ObjectType objectType = object.toJAXB(prismContext);
-                    validateObjectType(objectType, type);
-                    results.add(objectType.asPrismObject());
+                    PrismObject<T> prismObject = objectType.asPrismObject();
+                    validateObjectType(prismObject, type);
+                    results.add(prismObject);
                 }
             }
             session.getTransaction().commit();
@@ -353,8 +354,9 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
 
             for (RObject object : objects) {
                 ObjectType objectType = object.toJAXB(prismContext);
-                validateObjectType(objectType, type);
-                list.add(objectType.asPrismObject());
+                PrismObject<T> prismObject = objectType.asPrismObject();
+                validateObjectType(prismObject, type);
+                list.add(prismObject);
             }
 
             session.getTransaction().commit();
@@ -447,9 +449,10 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
                 list.setTotalResultCount(shadows.size());
                 for (RResourceObjectShadow shadow : shadows) {
                     ResourceObjectShadowType jaxb = shadow.toJAXB(prismContext);
-                    validateObjectType(jaxb, resourceObjectShadowType);
+                    PrismObject<T> prismObject = jaxb.asPrismObject();
+                    validateObjectType(prismObject, resourceObjectShadowType);
 
-                    list.add(jaxb.asPrismObject());
+                    list.add(prismObject);
                 }
             }
             session.getTransaction().commit();
@@ -505,11 +508,12 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         }
     }
 
-    private <T extends ObjectType> void validateObjectType(ObjectType objectType, Class<T> type) {
-        if (objectType == null || !(type.isAssignableFrom(objectType.getClass()))) {
-            throw new SystemException("Result ('" + objectType + "') is not assignable to '"
-                    + type.getSimpleName() + "' [really should not happen].");
-        }
+    private <T extends ObjectType> void validateObjectType(PrismObject<T> prismObject, Class<T> type) {
+        //todo probably will not be used anymore...
+//        if (prismObject == null || type.isAssignableFrom(prismObject.getCompileTimeClass())) {
+//            throw new SystemException("Result ('" + prismObject.toDebugName() + "') is not assignable to '"
+//                    + type.getSimpleName() + "' [really should not happen].");
+//        }
     }
 
     private Criteria updatePaging(Criteria criteria, PagingType paging) {
@@ -561,9 +565,10 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
     }
 
     private void rollbackTransaction(Session session) {
-        if (session == null || session.getTransaction() == null) {
+        if (session == null || session.getTransaction() == null || !session.getTransaction().isActive()) {
             return;
         }
+        
         session.getTransaction().rollback();
     }
 
