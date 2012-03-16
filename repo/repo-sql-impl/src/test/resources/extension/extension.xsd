@@ -27,7 +27,13 @@
 
     <xsd:element name="stringType" type="xsd:string"/>
 
-    <xsd:element name="intType" type="xsd:int"/>
+    <xsd:element name="doubleType" type="xsd:double"/>
+
+    <xsd:element name="intType" type="xsd:integer"/>
+
+    <xsd:element name="longType" type="xsd:long"/>
+
+    <xsd:element name="dateType" type="xsd:dateTime"/>
 
     <xsd:element name="locations" type="tns:LocationsType"/>
 

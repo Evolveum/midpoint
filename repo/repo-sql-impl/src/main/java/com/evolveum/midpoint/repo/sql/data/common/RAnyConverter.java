@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -31,19 +32,33 @@ import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author lazyman
  */
 class RAnyConverter {
 
+    private static enum ValueType {
+        LONG, STRING, DATE
+    }
+
     private static final Trace LOGGER = TraceManager.getTrace(RAnyConverter.class);
+    private static final Map<QName, ValueType> TYPE_MAP = new HashMap<QName, ValueType>();
     private PrismContext prismContext;
     private Document document;
+
+    static {
+        TYPE_MAP.put(DOMUtil.XSD_INTEGER, ValueType.LONG);
+        TYPE_MAP.put(DOMUtil.XSD_LONG, ValueType.LONG);
+        TYPE_MAP.put(DOMUtil.XSD_SHORT, ValueType.LONG);
+
+        TYPE_MAP.put(DOMUtil.XSD_STRING, ValueType.STRING);
+
+        TYPE_MAP.put(DOMUtil.XSD_DATETIME, ValueType.DATE);
+    }
 
     RAnyConverter(PrismContext prismContext) {
         this.prismContext = prismContext;
@@ -53,7 +68,6 @@ class RAnyConverter {
         Validate.notNull(item, "Object for converting must not be null.");
 
         Set<RValue> rValues = new HashSet<RValue>();
-
         ItemDefinition definition = item.getDefinition();
 
         RValue rValue = null;
@@ -61,9 +75,27 @@ class RAnyConverter {
         for (PrismValue value : values) {
             if (value instanceof PrismContainerValue) {
                 rValue = new RClobValue();
+                //todo clobs
             } else if (value instanceof PrismPropertyValue) {
-                rValue = new RStringValue();
-                //todo other types
+                PrismPropertyValue propertyValue = (PrismPropertyValue) value;
+                switch (getValueType(definition.getTypeName())) {
+                    case LONG:
+                        RLongValue longValue = new RLongValue();
+                        longValue.setValue(extractValue(propertyValue, Long.class));
+                        rValue = longValue;
+                        break;
+                    case DATE:
+                        RDateValue dateValue = new RDateValue();
+                        dateValue.setValue(extractValue(propertyValue, Date.class));
+                        rValue = dateValue;
+                        break;
+                    case STRING:
+                    default:
+                        RStringValue strValue = new RStringValue();
+                        strValue.setValue(extractValue(propertyValue, String.class));
+                        rValue = strValue;
+                        //todo clobs
+                }
             }
 
             rValue.setName(definition.getName());
@@ -71,13 +103,55 @@ class RAnyConverter {
             rValues.add(rValue);
         }
 
-        XmlTypeConverter converter = new XmlTypeConverter();
-
-
-//        Object javaValue = converter.toJavaValue(element);
-//        LOGGER.info(">>>>>> value {}", new Object[]{javaValue});
-
         return rValues;
+    }
+
+    private <T> T extractValue(PrismPropertyValue value, Class<T> returnType) throws SchemaException {
+        ItemDefinition definition = value.getParent().getDefinition();
+        ValueType willBeSaveAs = getValueType(definition.getTypeName());
+
+        Object object = value.getValue();
+        if (object instanceof Element) {
+            Element element = (Element) object;
+            if (ValueType.STRING.equals(willBeSaveAs)) {
+                return (T) element.getTextContent();
+            } else {
+                object = XmlTypeConverter.toJavaValue(element, definition.getTypeName());
+            }
+        }
+
+        //check short/integer to long
+        if (object instanceof Short) {
+            object = ((Short) object).longValue();
+        } else if (object instanceof Integer) {
+            object = ((Integer) object).longValue();
+        }
+
+        //check gregorian calendar, xmlgregorian calendar to date
+        if (object instanceof GregorianCalendar) {
+            object = ((GregorianCalendar) object).getTime();
+        } else if (object instanceof XMLGregorianCalendar) {
+            object = XMLGregorianCalendarType.asDate(((XMLGregorianCalendar) object));
+        }
+
+        if (returnType.isAssignableFrom(object.getClass())) {
+            return (T) object;
+        }
+
+        //todo raw types
+
+        throw new IllegalStateException("Can't extract value for saving from prism property value\n" + value);
+    }
+
+    private ValueType getValueType(QName qname) {
+        if (qname == null) {
+            return ValueType.STRING;
+        }
+        ValueType type = TYPE_MAP.get(qname);
+        if (type == null) {
+            return ValueType.STRING;
+        }
+        return type;
     }
 
     void convertFromValue(RValue value, PrismContainerValue parent) {

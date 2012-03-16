@@ -27,6 +27,7 @@ import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.type.StringType;
 import org.hibernate.usertype.UserType;
 
+import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.sql.PreparedStatement;
@@ -75,6 +76,11 @@ public class QNameType implements UserType {
         String namespaceURI = StringType.INSTANCE.nullSafeGet(rs, names[0], session);
         String localPart = StringType.INSTANCE.nullSafeGet(rs, names[1], session);
 
+        //default namespace is saved as null (we save at least some space)
+        if (namespaceURI == null) {
+            namespaceURI = XMLConstants.W3C_XML_SCHEMA_NS_URI;
+        }
+
         if (StringUtils.isEmpty(localPart)) {
             return null;
         }
@@ -88,6 +94,11 @@ public class QNameType implements UserType {
         QName qname = (QName) value;
         String namespaceURI = qname != null ? qname.getNamespaceURI() : null;
         String localPart = qname != null ? qname.getLocalPart() : null;
+
+        //default namespace will be saved as null (we save at least some space)
+        if (XMLConstants.W3C_XML_SCHEMA_NS_URI.equals(namespaceURI)) {
+            namespaceURI = null;
+        }
 
         StringType.INSTANCE.nullSafeSet(st, namespaceURI, index, session);
         StringType.INSTANCE.nullSafeSet(st, localPart, index + 1, session);

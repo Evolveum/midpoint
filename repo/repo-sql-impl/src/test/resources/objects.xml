@@ -860,6 +860,9 @@
         <extension xmlns:p="http://example.com/p">
             <p:stringType>some text in here</p:stringType>
             <p:intType>1234</p:intType>
+            <p:doubleType>456.789</p:doubleType>
+            <p:longType>567890</p:longType>
+            <p:dateType>2002-05-30T09:10:11</p:dateType>
             <p:locations>
                 <p:location key="home">Here</p:location>
                 <p:location key="work">There</p:location>
