@@ -21,7 +21,6 @@
 package com.evolveum.midpoint.task.api;
 
 import java.util.Collection;
-import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -29,8 +28,6 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -52,97 +49,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * The task implementation should be simple Java objects (POJOs). They are created also for a synchronous tasks, which means
  * they are created frequently. We want a low overhead for task management until the task is made asynchronous.
  * 
- * TODO: change model. How to propagate task changes down to the repository. attached or detached?
+ * API for modifying task properties works like this: 
+ * 
+ * - A getter (get<property-name>) reads data from the in-memory representation of a task.
+ * - A setter (set<property-name>) writes data to the in-memory representation, and prepares a PropertyDelta to be
+ *   written into repository later (of course, only for persistent tasks).
+ *   
+ * PropertyDeltas should be then written by calling savePendingModifications method.
+ * 
+ * In case you want to write property change into the repository immediately, you have to use
+ * set<property-name>Immediate method. In that case, the property change does not go into
+ * the list of pending modifications, but it is instantly written into the repository
+ * (so the method uses OperationResult as parameter, and can throw relevant exceptions as well).  
  * 
  * @author Radovan Semancik
  *
  */
 public interface Task extends Dumpable {
-	
-	/**
-	 * Returns execution status.
-	 * 
-	 * @see TaskExecutionStatus
-	 * 
-	 * @return execution status.
-	 */
-	public TaskExecutionStatus getExecutionStatus();
-	
-	/**
-	 * Sets task execution status.
-	 * 
-	 * @see TaskExecutionStatus
-	 * 
-	 * @param executionStatus new task execution status.
-	 */
-	public void setExecutionStatus(TaskExecutionStatus executionStatus);
-	
-	/**
-	 * Returns task persistence status.
-	 * 
-	 * @see TaskPersistenceStatus
-	 * 
-	 * @return task persistence status.
-	 */
-	public TaskPersistenceStatus getPersistenceStatus();
-	
-	/**
-	 * Sets task persistence status.
-	 * 
-	 * @see TaskPersistenceStatus
-	 * 
-	 * @param persistenceStatus new task persistence status.
-	 */
-	public void setPersistenceStatus(TaskPersistenceStatus persistenceStatus);
-	
-	/**
-	 * Returns task exclusivity status.
-	 * 
-	 * @see TaskExclusivityStatus
-	 * 
-	 * @return task exclusivity status.
-	 */
-	public TaskExclusivityStatus getExclusivityStatus();
-	
-	/**
-	 * Sets task exclusivity status.
-	 * 
-	 * @see TaskExclusivityStatus
-	 * 
-	 * @param exclusivityStatus new task exclusivity status.
-	 */
-	public void setExclusivityStatus(TaskExclusivityStatus exclusivityStatus);
-	
-	/**
-	 * Returns handler URI.
-	 * 
-	 * Handler URI indirectly specifies which class is responsible to handle the task. The handler will execute reaction to a task lifecycle events such as executing the task, task heartbeat, etc.
-	 * 
-	 * @return handler URI
-	 */
-	public String getHandlerUri();
-	
-	/**
-	 * Returns the stack of other handlers URIs.
-	 * 
-	 * The idea is that a task may have a chain of handlers, forming a stack. After a handler at the top
-	 * of the stack finishes its processing, TaskManager will remove it from the stack and invoke
-	 * the then-current handler. After that finishes, the next handler will be called, and so on,
-	 * until the stack is empty.
-	 *   
-	 * @return
-	 */
-	public UriStack getOtherHandlersUriStack();
-	
-	/**
-	 * Sets handler URI.
-	 * 
-	 * Handler URI indirectly specifies which class is responsible to handle the task. The handler will execute reaction to a task lifecycle events such as executing the task, task heartbeat, etc.
-	 * 
-	 * @param handlerUri new handler URI
-	 */
-	public void setHandlerUri(String handlerUri);
-	
+
 	/**
 	 * Returns true if the task is asynchronous.
 	 * 
@@ -154,9 +78,131 @@ public interface Task extends Dumpable {
 	 * @return true if the task is asynchronous.
 	 */
 	public boolean isAsynchronous();
+
+	/*
+	 * Standard getters and setters.
+	 */
 	
-	// TODO
-	public PrismObject<TaskType> getTaskPrismObject();
+	/**
+	 * Returns execution status.
+	 * 
+	 * @see TaskExecutionStatus
+	 * 
+	 * @return execution status.
+	 */
+	public TaskExecutionStatus getExecutionStatus();
+	
+	/**
+	 * Sets task execution status. It changes the in-memory task instance,
+	 * and (for persistent tasks) adds a property delta to the list of pending modifications
+	 * that will be written to the repository via @see Task#savePendingModifications(OperationResult)
+	 * method.
+	 * 
+	 * @see TaskExecutionStatus
+	 * 
+	 * @param executionStatus new task execution status.
+	 */
+	public void setExecutionStatus(TaskExecutionStatus value);
+
+	/**
+	 * Sets task execution status, in memory as well as in repository (for persistent tasks). 
+	 * 
+	 * @see TaskExecutionStatus
+	 * 
+	 * @param executionStatus new task execution status.
+	 */
+	public void setExecutionStatusImmediate(TaskExecutionStatus value, OperationResult result) throws ObjectNotFoundException, SchemaException;
+
+	/**
+	 * Returns task persistence status.
+	 * 
+	 * @see TaskPersistenceStatus
+	 * 
+	 * @return task persistence status.
+	 */
+	public TaskPersistenceStatus getPersistenceStatus();
+	
+	/**
+	 * Returns task exclusivity status.
+	 * 
+	 * @see TaskExclusivityStatus
+	 * 
+	 * @return task exclusivity status.
+	 */
+	public TaskExclusivityStatus getExclusivityStatus();
+	
+	void setExclusivityStatus(TaskExclusivityStatus value);
+
+	void setExclusivityStatusImmediate(TaskExclusivityStatus value, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException;
+
+
+
+	/**
+	 * Returns task recurrence status.
+	 * 
+	 * @return task recurrence status
+	 */
+	public TaskRecurrence getRecurrenceStatus();
+
+	/**
+	 * Checks whether the task is single-run.
+	 */
+	public boolean isSingle();
+
+	/**
+	 * Checks whether the task is a cyclic (recurrent) one.
+	 */
+	public boolean isCycle();
+
+//	void setRecurrenceStatus(TaskRecurrence value);
+//
+//	void setRecurrenceStatusImmediate(TaskRecurrence value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+	
+	public ScheduleType getSchedule();
+	
+	public TaskBinding getBinding();
+	
+	public boolean isTightlyBound();
+	
+	public boolean isLooselyBound();
+
+	void setBinding(TaskBinding value);
+
+	void setBindingImmediate(TaskBinding value, OperationResult parentResult)
+		throws ObjectNotFoundException, SchemaException;
+
+	/**
+	 * Returns handler URI.
+	 * 
+	 * Handler URI indirectly specifies which class is responsible to handle the task. The handler will execute reaction to a task lifecycle events such as executing the task, task heartbeat, etc.
+	 * 
+	 * @return handler URI
+	 */
+	public String getHandlerUri();
+
+	/**
+	 * Sets handler URI.
+	 * 
+	 * Handler URI indirectly specifies which class is responsible to handle the task. The handler will execute reaction to a task lifecycle events such as executing the task, task heartbeat, etc.
+	 * 
+	 * @param handlerUri new handler URI
+	 */
+	void setHandlerUri(String value);
+	
+	void setHandlerUriImmediate(String value, OperationResult parentResult) throws ObjectNotFoundException,	SchemaException;
+
+	/**
+	 * Returns the stack of other handlers URIs.
+	 * 
+	 * The idea is that a task may have a chain of handlers, forming a stack. After a handler at the top
+	 * of the stack finishes its processing, TaskManager will remove it from the stack and invoke
+	 * the then-current handler. After that finishes, the next handler will be called, and so on,
+	 * until the stack is empty.
+	 *   
+	 * @return
+	 */
+	public UriStack getOtherHandlersUriStack();
 	
 	/**
 	 * Returns task (lightweight) identifier. This is an unique identification of any task,
@@ -178,6 +224,7 @@ public interface Task extends Dumpable {
 	 */
 	public PrismObject<UserType> getOwner();
 	
+	// TODO: sets owner in-memory only (for now)
 	public void setOwner(PrismObject<UserType> owner);
 	
 	/**
@@ -189,18 +236,7 @@ public interface Task extends Dumpable {
 	 * 
 	 */
 	public String getOid();
-	
-	/**
-	 * Sets task OID.
-	 * 
-	 * This method should not be used outside task manager. The OID should be considered read-only.
-	 * 
-	 * TODO: be stricter and maybe do not publish this method at all.
-	 * 
-	 * @param oid new task OID.
-	 */
-	public void setOid(String oid);
-	
+		
 	/**
 	 * Returns object that the task is associated with.
 	 * 
@@ -223,6 +259,7 @@ public interface Task extends Dumpable {
 	 */
 	public ObjectReferenceType getObjectRef();
 	
+	// TODO: provide "persistent version" of this method
 	public void setObjectRef(ObjectReferenceType objectRef);
 	
 	/**
@@ -239,19 +276,16 @@ public interface Task extends Dumpable {
 	 * @return task operation result. 
 	 */
 	public OperationResult getResult();
+
+	public void setResult(OperationResult result);
+
+	public void setResultImmediate(OperationResult result, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException;
 		
 	public Long getLastRunStartTimestamp();
 	public Long getLastRunFinishTimestamp();
 	public Long getNextRunStartTime();
 
-	public void setLastRunStartTimestampPersistent(Long value, OperationResult result) throws ObjectNotFoundException,
-	SchemaException;
-
-	public void setLastRunFinishTimestamp(Long value);
-
-	public void setNextRunStartTime(Long value);
-
-	
 	/**
 	 * Returns human-readable name of the task.
 	 * 
@@ -264,23 +298,10 @@ public interface Task extends Dumpable {
 	 * 
 	 * @param name new human-readable name of the task.
 	 */
-	public void setName(String name);
+	public void setName(String value);
 	
-	public long getProgress();
-	
-	/**
-	 * Re-reads the task state from the persistent storage.
-	 * 
-	 * The task state may be synchronized with the repository all the time. But the specified timing is implementation-specific.
-	 * Call to this method will make sure that the task contains fresh data.
-	 * 
-	 * This has no effect on transient tasks.
-	 * @param result
-	 * @throws SchemaException 
-	 * @throws ObjectNotFoundException 
-	 */
-	public void refresh(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
-	
+	public void setNameImmediate(String value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
 	/**
 	 * Returns task extension.
 	 * 
@@ -293,15 +314,47 @@ public interface Task extends Dumpable {
 	 * set. The list is used to avoid unnecessary reordering of properties
 	 * in the storage (in case store is ordering-sensitive).
 	 * 
-	 * Returned list should be regarded as immutable. In case that the client
-	 * does any change, weird things may happen.
-	 * 
 	 * @return task extension
 	 */
 	public PrismContainer getExtension();
 	
 	public PrismProperty getExtension(QName propertyName);
-		
+
+	// TODO
+	public long getProgress();
+
+	/**
+	 * Record progress of the task, storing it persistently if needed.
+	 * @throws SchemaException 
+	 * @throws ObjectNotFoundException 
+	 */
+	public void setProgress(long value);
+
+	public void setProgressImmediate(long progress, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
+	/*
+	 * Other methods
+	 */
+	
+	// TODO
+	public PrismObject<TaskType> getTaskPrismObject();
+
+	/**
+	 * Re-reads the task state from the persistent storage.
+	 * 
+	 * The task state may be synchronized with the repository all the time. But the specified timing is implementation-specific.
+	 * Call to this method will make sure that the task contains fresh data.
+	 * 
+	 * This has no effect on transient tasks.
+	 * @param result
+	 * @throws SchemaException 
+	 * @throws ObjectNotFoundException 
+	 */
+	public void refresh(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
+	public void modify(Collection<? extends ItemDelta> modifications, OperationResult parentResult) 
+			throws ObjectNotFoundException, SchemaException;
+
 	/**
 	 * Record finish of the last "run" of the task
 	 * 
@@ -315,13 +368,7 @@ public interface Task extends Dumpable {
 	
 	public void recordRunStart(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
-	/**
-	 * Record progress of the task, storing it persistently if needed.
-	 * @throws SchemaException 
-	 * @throws ObjectNotFoundException 
-	 */
-	public void recordProgress(long progress, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
-
+	
 	/**
 	 * Return human-readable representation of the task content.
 	 * Useful for diagnostics. May return multi-line string.
@@ -341,21 +388,6 @@ public interface Task extends Dumpable {
 	 * @throws SchemaException 
 	 */
 	public void close(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
-
-	public boolean isSingle();
-
-	public boolean isCycle();
-
-	public TaskBinding getBinding();
-	
-	public boolean isTightlyBound();
-	
-	public boolean isLooselyBound();
-
-	public ScheduleType getSchedule();
-	
-	public void modify(Collection<? extends ItemDelta> modifications, OperationResult parentResult) 
-			throws ObjectNotFoundException, SchemaException;
 
 	/**
 	 * Signal the task to shut down.
@@ -379,62 +411,12 @@ public interface Task extends Dumpable {
 	 * returns from run() method) or explicitly by task handler, in case of CycleRunner.
 	 * TODO this has to be thought out a bit. 
 	 */
-	public void finishHandler();
+	public void finishHandler(OperationResult parentResult) throws ObjectNotFoundException,
+	SchemaException;
 	
-	/*
-	 * temporary... will be cleaned-up soon
-	 */
-
-	void setExecutionStatusPersistent(TaskExecutionStatus value, OperationResult result)
-			throws ObjectNotFoundException, SchemaException;
-
-	void setRecurrenceStatus(TaskRecurrence value);
-
-	void setBinding(TaskBinding value);
-
-	void setProgress(long value);
-
-	void setProgressPersistent(long value, OperationResult result) throws ObjectNotFoundException, SchemaException;
-
-	void setProgressPersistentBatched(long value);
-
-	void setResult(OperationResult result);
-
-	void setResultPersistent(OperationResult result, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException;
-
-	void setResultPersistentBatched(OperationResult result);
-
-	void setHandlerUriPersistent(String value, OperationResult parentResult) throws ObjectNotFoundException,
-			SchemaException;
-
-	void setHandlerUriPersistentBatched(String value);
-
-	void setExecutionStatusPersistentBatched(TaskExecutionStatus value);
-
-	void setExclusivityStatusPersistentBatched(TaskExclusivityStatus value);
-
-	void setExclusivityStatusPersistent(TaskExclusivityStatus value, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException;
-
-	void setRecurrenceStatusPersistent(TaskRecurrence value, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException;
-
-	void setRecurrenceStatusPersistentBatched(TaskRecurrence value);
-
-	void setBindingPersistentBatched(TaskBinding value);
-
-	void setNamePersistent(String value, OperationResult parentResult) throws ObjectNotFoundException,
-			SchemaException;
-
-	void setNamePersistentBatched(String value);
-
-	void setBindingPersistent(TaskBinding value, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException;
-
+	// TODO
 	void savePendingModifications(OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException;
-
 
 	
 }

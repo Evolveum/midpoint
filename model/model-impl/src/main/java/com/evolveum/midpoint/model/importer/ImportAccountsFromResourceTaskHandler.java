@@ -146,6 +146,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         objectClassDelta.setValueToReplace(new PrismPropertyValue<Object>(objectclass));
         ((Collection)modifications).add(objectClassDelta);
         try {
+        	task.savePendingModifications(result);		// just to be sure (if the task was already persistent)
             task.modify(modifications, result);
         } catch (ObjectNotFoundException e) {
             LOGGER.error("Task object not found, expecting it to exist (task {})", task, e);

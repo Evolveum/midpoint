@@ -82,7 +82,7 @@ public class SingleRunner extends TaskRunner {
 				// FIXME do a better run result reporting! (currently only the last runResult gets reported)
 				while (handler != null && task.canRun()) {
 					runResult = handler.run(task);
-					task.finishHandler();
+					task.finishHandler(runnerRunOpResult);
 					handler = taskManager.getHandler(task.getHandlerUri());
 				}
 

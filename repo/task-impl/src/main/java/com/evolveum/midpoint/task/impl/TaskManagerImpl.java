@@ -48,16 +48,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
@@ -72,11 +68,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExclusivityStatusType;
@@ -206,7 +198,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	public Task createTaskInstance(String operationName) {
 		LightweightIdentifier taskIdentifier = generateTaskIdentifier();
 		TaskImpl taskImpl = new TaskImpl(this, taskIdentifier);
-		taskImpl.setResult(new OperationResult(operationName));
+		taskImpl.setResultTransient(new OperationResult(operationName));
 		return taskImpl;
 	}
 	
@@ -231,7 +223,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		RepositoryService repoService = (RepositoryService) this.beanFactory.getBean("repositoryService");
 		TaskImpl taskImpl = (TaskImpl)createTaskInstance(taskPrism, parentResult);
 		if (taskImpl.getResult()==null) {
-			taskImpl.setResult(new OperationResult(operationName));
+			taskImpl.setResultTransient(new OperationResult(operationName));
 		}
 		return taskImpl;
 	}
@@ -302,7 +294,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		result.addParam(OperationResult.PARAM_OID, task.getOid());
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerImpl.class);
 
-		task.setExclusivityStatus(TaskExclusivityStatus.RELEASED);
+		((TaskImpl) task).setExclusivityStatusTransient(TaskExclusivityStatus.RELEASED);
 		
 		// if the task is transient, we have to persist it first
 		if (task.getPersistenceStatus() == TaskPersistenceStatus.TRANSIENT)
@@ -360,11 +352,11 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 			throw new IllegalArgumentException("Transient task must not have OID (task:"+task+")");
 		}
 		
-		task.setPersistenceStatus(TaskPersistenceStatus.PERSISTENT);
+		((TaskImpl) task).setPersistenceStatusTransient(TaskPersistenceStatus.PERSISTENT);
 		PrismObject<TaskType> taskPrism = task.getTaskPrismObject();
 		try {
 			String oid = repositoryService.addObject(taskPrism, parentResult);
-			task.setOid(oid);
+			((TaskImpl) task).setOid(oid);
 		} catch (ObjectAlreadyExistsException ex) {
 			// This should not happen. If it does, it is a bug. It is OK to convert to a runtime exception
 			throw new IllegalStateException("Got ObjectAlreadyExistsException while not expecting it (task:"+task+")",ex);

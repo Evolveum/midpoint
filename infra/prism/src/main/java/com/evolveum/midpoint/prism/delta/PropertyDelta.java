@@ -146,6 +146,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 			throw new IllegalArgumentException("No definition for "+propertyName+" in "+objectDefinition);
 		}
 		PropertyDelta delta = new PropertyDelta(propertyName, propertyDefinition);
+		delta.setValuesToReplace(new ArrayList<PrismPropertyValue>());
 		return delta;
 	}
 	

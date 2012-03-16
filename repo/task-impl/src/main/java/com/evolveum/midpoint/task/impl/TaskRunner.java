@@ -94,7 +94,7 @@ public abstract class TaskRunner implements Runnable {
 		if (progress != null) {
 			try {
 				
-				task.recordProgress(progress, result);
+				task.setProgressImmediate(progress, result);
 				
 			} catch (ObjectNotFoundException e) {
 				LOGGER.error("Error saving progress to task "+task+": Object not found: "+e.getMessage()+", the task will be stopped",e);
