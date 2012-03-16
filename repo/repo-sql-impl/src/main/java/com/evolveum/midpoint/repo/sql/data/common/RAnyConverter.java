@@ -23,10 +23,15 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.commons.lang.Validate;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -35,26 +40,38 @@ class RAnyConverter {
 
     private static final Trace LOGGER = TraceManager.getTrace(RAnyConverter.class);
     private PrismContext prismContext;
+    private Document document;
 
     RAnyConverter(PrismContext prismContext) {
         this.prismContext = prismContext;
     }
 
     RValue convertToValue(Object object) throws SchemaException {
-        if (!(object instanceof Element)) {
-            throw new IllegalArgumentException("Can't convert to value.");
-        }
+        Validate.notNull(object, "Object for converting must not be null.");
+        Validate.isTrue(object instanceof Element, "Can't convert '" + object.getClass().getSimpleName() + "' to value.");
 
         Element element = (Element) object;
 
-//        XmlTypeConverter converter = new XmlTypeConverter();
-//        Object javaValue = converter.toJavaValue(element);
-//        LOGGER.info(">>>>>> value {}", new Object[]{javaValue});
+        XmlTypeConverter converter = new XmlTypeConverter();
+        Object javaValue = converter.toJavaValue(element);
+        LOGGER.info(">>>>>> value {}", new Object[]{javaValue});
 
         return null;
     }
 
     Object convertFromValue(RValue value) {
-        return null;
+        Validate.notNull(value, "Value for converting must not be null.");
+        Element element = createElement(value.getName());
+//        element.setTextContent(value.get);
+
+        return element;
+    }
+    
+    private Element createElement(QName name) {
+        if (document == null) {
+            document = DOMUtil.getDocument();
+        }
+        
+        return DOMUtil.createElement(document, name);
     }
 }

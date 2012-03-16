@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.ClassMapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.hibernate.Criteria;
@@ -31,6 +32,12 @@ import org.w3c.dom.Element;
  * @author lazyman
  */
 public class QueryProcessor {
+
+    private PrismContext prismContext;
+
+    public QueryProcessor(PrismContext prismContext) {
+        this.prismContext = prismContext;
+    }
 
     public <T extends ObjectType> Criteria createFilterCriteria(Session session, Class<T> type, Element filter) {
         Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));

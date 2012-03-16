@@ -21,6 +21,9 @@
   -->
 <configuration>
     <midpoint>
+        <global>
+            <extensionDir>${midpoint.home}/src/test/resources/extension</extensionDir>
+        </global>
         <repository>
             <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
             <embedded>true</embedded>

@@ -336,7 +336,7 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         try {
             session = beginTransaction();
             LOGGER.debug("Updating query criteria.");
-            Criteria criteria = new QueryProcessor().createFilterCriteria(session, type, query.getFilter());
+            Criteria criteria = new QueryProcessor(prismContext).createFilterCriteria(session, type, query.getFilter());
             criteria.setProjection(Projections.rowCount());
 
             LOGGER.debug("Selecting total count.");

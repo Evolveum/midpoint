@@ -67,8 +67,13 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		schemaRegistry.setObjectSchemaNamespace(SchemaConstants.NS_COMMON);
 		schemaRegistry.setNamespacePrefixMapper(new GlobalDynamicNamespacePrefixMapper());
 		registerBuiltinSchemas(schemaRegistry);
+        registerExtensionSchemas(schemaRegistry);
 		return schemaRegistry;
 	}
+    
+    protected void registerExtensionSchemas(SchemaRegistry schemaRegistry) throws SchemaException {
+
+    }
 	
 	private void registerBuiltinSchemas(SchemaRegistry schemaRegistry) throws SchemaException {
 		

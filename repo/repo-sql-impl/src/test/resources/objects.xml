@@ -857,27 +857,15 @@
             extension part. They are supposed to hold data structures that parametrize
             the IDM custom business logic or IDM expressions.
         </description>
-        <extension>
-            <p:stringType xmlns:p="http://example.com/p" xsi:type="xsd:string">some text in here</p:stringType>
-            <p:intType xmlns:p="http://example.com/p" xsi:type="xsd:integer">1234</p:intType>
-
-            <!-- This additional level of depth (the "locations" element) is needed now
-                 because current repository does not support generic multi-valued
-                 properties. This might be fixed in next releases. -->
-            <my:locations xsi:type="p:LocationsType" xmlns:p="http://example.com/p">
-                <!-- Lookup table. The "key" attribute is a key, the element content
-                     is a value. However, the data structure may be structured differently,
-                     it depends on a specific XPath that is used for lookup (see the
-                     definition of outbound expression for "l" attribute in the resource
-                     definition above). -->
-                <my:location key="home" xsi:type="xsd:string">Here</my:location>
-
-                <my:location key="work">There</my:location>
-                <my:location key="somewhere">There there over the corner</my:location>
-            </my:locations>
+        <extension xmlns:p="http://example.com/p">
+            <p:stringType>some text in here</p:stringType>
+            <p:intType>1234</p:intType>
+            <p:locations>
+                <p:location key="home">Here</p:location>
+                <p:location key="work">There</p:location>
+                <p:location key="somewhere">There there over the corner</p:location>
+            </p:locations>
         </extension>
-        <!-- This is generic object, it must have an "application level" type.
-             However, this is not used in the current business logic. Can be anything. -->
         <objectType>http://myself.me/schemas/objects#SampleConfigType</objectType>
     </genericObject>
 

@@ -22,13 +22,24 @@
 package com.evolveum.midpoint.init;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang.StringUtils;
+
+import java.io.File;
 
 /**
  * @author lazyman
  */
 public class ConfigurablePrismContextFactory extends MidPointPrismContextFactory {
 
+    private static final Trace LOGGER = TraceManager.getTrace(ConfigurablePrismContextFactory.class);
+    private static final String CONFIGURATION_GLOBAL = "midpoint.global";        //todo move somewhere else
+    private static final String EXTENSION_DIR = "extensionDir";
     private MidpointConfiguration configuration;
 
     public MidpointConfiguration getConfiguration() {
@@ -37,5 +48,37 @@ public class ConfigurablePrismContextFactory extends MidPointPrismContextFactory
 
     public void setConfiguration(MidpointConfiguration configuration) {
         this.configuration = configuration;
+    }
+
+    @Override
+    protected void registerExtensionSchemas(SchemaRegistry schemaRegistry) throws SchemaException {
+        Configuration config = configuration.getConfiguration(CONFIGURATION_GLOBAL);
+        String extensionDir = config.getString(EXTENSION_DIR);
+
+        if (StringUtils.isEmpty(extensionDir)) {
+            if (StringUtils.isNotEmpty(configuration.getMidpointHome())) {
+                extensionDir = configuration.getMidpointHome() + "/schema";
+            }
+        }
+
+        if (StringUtils.isNotEmpty(extensionDir)) {
+            LOGGER.info("Loading extension schemas from folder '{}'.", new Object[]{extensionDir});
+        } else {
+            LOGGER.warn("Not loading extension schemas, extensionDir or even midpoint.home is not defined.");
+            return;
+        }
+
+        try {
+            File file = new File(extensionDir);
+            if (!file.exists() || !file.isDirectory()) {
+                LOGGER.warn("Extension dir '{}' does not exist, or is not a directory, skipping extension loading.",
+                        new Object[]{extensionDir});
+                return;
+            }
+
+            schemaRegistry.registerPrismSchemasFromDirectory(file);
+        } catch (Exception ex) {
+            throw new SchemaException(ex.getMessage(), ex);
+        }
     }
 }

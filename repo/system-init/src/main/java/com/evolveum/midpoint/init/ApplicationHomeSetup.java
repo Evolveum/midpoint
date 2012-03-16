@@ -18,105 +18,96 @@
 
 package com.evolveum.midpoint.init;
 
-import java.io.File;
-
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import java.io.File;
+
 public class ApplicationHomeSetup {
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(ApplicationHomeSetup.class);
-	private String MIDPOINT_HOME;
+    private static final transient Trace LOGGER = TraceManager.getTrace(ApplicationHomeSetup.class);
+    private String MIDPOINT_HOME;
 
-	public void init(String midpointHome) {
+    public void init(String midpointHome) {
 
-		MIDPOINT_HOME = midpointHome;
-		
-		LOGGER.info(MIDPOINT_HOME +" = " + System.getProperty(MIDPOINT_HOME));
-		System.out.println(MIDPOINT_HOME + " = " + System.getProperty(MIDPOINT_HOME));
+        MIDPOINT_HOME = midpointHome;
 
-		String mh = System.getProperty(MIDPOINT_HOME);
+        LOGGER.info(MIDPOINT_HOME + " = " + System.getProperty(MIDPOINT_HOME));
+        System.out.println(MIDPOINT_HOME + " = " + System.getProperty(MIDPOINT_HOME));
 
-		if (!checkDirectoryExistence(mh)) {
-			createDir(mh);
-		}
+        String mh = System.getProperty(MIDPOINT_HOME);
 
-		directorySetup(mh);
+        if (!checkDirectoryExistence(mh)) {
+            createDir(mh);
+        }
 
-	}
+        directorySetup(mh);
 
-	/**
-	 * Creates directory structure under root
-	 * 
-	 * @param dir
-	 */
+    }
 
-	protected void directorySetup(String dir) {
+    /**
+     * Creates directory structure under root
+     * <p/>
+     * Directory information based on: http://wiki.evolveum.com/display/midPoint/midpoint.home+-+directory+structure
+     *
+     * @param midpointHomeDir
+     */
 
-		/*
-		 * Directory information based on:
-		 * http://wiki.evolveum.com/display/midPoint
-		 * /midpoint.home+-+directory+structure
-		 */
+    protected void directorySetup(String midpointHomeDir) {
+        String[] directories = {
+                midpointHomeDir + "/icf-connectors",
+                midpointHomeDir + "/idm-legacy",
+                midpointHomeDir + "/log",
+                midpointHomeDir + "/schema",
+        };
 
-		if (!checkDirectoryExistence(dir + "/icf-connectors")) {
-			LOGGER.warn("Missing directory " + dir + "/icf-connectors/. Regeneration in progress...");
-			createDir(dir + "/icf-connectors");
-			System.setProperty("midpoint.dir.icf", dir + "/icf-connectors");
-		}
+        for (String directory : directories) {
+            if (checkDirectoryExistence(directory)) {
+                continue;
+            }
+            LOGGER.warn("Missing directory '{}'. Regeneration in progress...", new Object[]{directory});
+            createDir(directory);
+        }
+    }
 
-		if (!checkDirectoryExistence(dir + "/idm-legacy")) {
-			LOGGER.warn("Missing directory " + dir + "/idm-legacy/. Regeneration in progress...");
-			createDir(dir + "/idm-legacy");
-			System.setProperty("midpoint.dir.legacy", dir + "/idm-legacy");
-		}
+    /**
+     * Checking directory existence
+     *
+     * @param dir
+     * @return
+     */
+    private boolean checkDirectoryExistence(String dir) {
+        File d = new File(dir);
+        if (d.isFile()) {
+            LOGGER.error(dir + " is file and NOT a directory.");
+            throw new SystemException(dir + " is file and NOT a directory !!!");
+        }
 
-		if (!checkDirectoryExistence(dir + "/log")) {
-			LOGGER.warn("Missing directory " + dir + "/log/. Regeneration in progress...");
-			createDir(dir + "/log");
-		}
-	}
+        if (d.isDirectory()) {
+            LOGGER.info("Directory " + dir + " already exists. Reusing it.");
+            return true;
+        } else {
+            return false;
+        }
 
-	/**
-	 * Checking directory existence
-	 * 
-	 * @param dir
-	 * @return
-	 */
-	private boolean checkDirectoryExistence(String dir) {
-		File d = new File(dir);
-		if (d.isFile()) {
-			LOGGER.error(dir + " is file and NOT a directory.");
-			throw new SystemException(dir + " is file and NOT a directory !!!");
-		}
+    }
 
-		if (d.isDirectory()) {
-			LOGGER.info("Directory " + dir + " already exists. Reusing it.");
-			return true;
-		} else {
-			return false;
-		}
-
-	}
-
-	/**
-	 * Creates directory
-	 * 
-	 * @param dir
-	 */
-	private void createDir(String dir) {
-		File d = new File(dir);
-		if ( d.exists() && d.isDirectory()) {
-			return;
-		}
-		Boolean st = d.mkdirs();
-		if (!st) {
-			LOGGER.error("Unable to create directory " + dir + " as user " + System.getProperty("user.name"));
-			//throw new SystemException("Unable to create directory " + dir + " as user "
-			//		+ System.getProperty("user.name"));
-		}
-	}
-
-	
+    /**
+     * Creates directory
+     *
+     * @param dir
+     */
+    private void createDir(String dir) {
+        File d = new File(dir);
+        if (d.exists() && d.isDirectory()) {
+            return;
+        }
+        Boolean st = d.mkdirs();
+        if (!st) {
+            LOGGER.error("Unable to create directory " + dir + " as user " + System.getProperty("user.name"));
+            //throw new SystemException("Unable to create directory " + dir + " as user "
+            //		+ System.getProperty("user.name"));
+        }
+    }
 }

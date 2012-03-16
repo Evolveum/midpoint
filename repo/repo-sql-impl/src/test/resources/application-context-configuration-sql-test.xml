@@ -59,7 +59,5 @@
     <bean name="protector" class="com.evolveum.midpoint.common.crypto.Protector" factory-bean="keyStoreFactory"
           factory-method="getProtector" />
 
-    <!--<context:component-scan base-package="com.evolveum.midpoint.init" />-->
-    <!--<context:annotation-config />-->
 </beans>
 
