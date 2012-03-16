@@ -551,6 +551,14 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     }
     
     @Override
+	public void accept(Visitor visitor) {
+		super.accept(visitor);
+		for (Item<?> item: getItems()) {
+			item.accept(visitor);
+		}
+	}
+
+	@Override
 	protected Element createDomElement() {
 		return new ElementPrismContainerImpl<T>(this);
 	}

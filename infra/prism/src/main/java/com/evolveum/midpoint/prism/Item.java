@@ -54,7 +54,7 @@ import java.util.Map;
  *
  * @author Radovan Semancik
  */
-public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, DebugDumpable, Serializable {
+public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, DebugDumpable, Visitable, Serializable {
 
 	// The object should basically work without definition and prismContext. This is the
 	// usual case when it is constructed "out of the blue", e.g. as a new JAXB object
@@ -390,25 +390,15 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
      * represents (e.g. PropertyDelta, ContainerDelta, ...)
      */
 	public abstract ItemDelta<V> createDelta(PropertyPath path);
-    
-	/**
-     * Serializes property to DOM or JAXB element(s).
-     * <p/>
-     * The property name will be used as an element QName.
-     * The values will be in the element content. Single-value
-     * properties will produce one element (on none), multi-valued
-     * properies may produce several elements. All of the elements will
-     * have the same QName.
-     * <p/>
-     * The property must have a definition (getDefinition() must not
-     * return null).
-     *
-     * @param parentNode DOM Document
-     * @return property serialized to DOM Element or JAXBElement
-     * @throws SchemaException No definition or inconsistent definition
-     */
-//    abstract public void serializeToDom(Node parentNode) throws SchemaException;
-    
+
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+		for(PrismValue value: getValues()) {
+			value.accept(visitor);
+		}
+	}
+	
 	void applyDefinition(ItemDefinition definition) throws SchemaException {
 		this.definition = definition;
 		for (PrismValue pval: getValues()) {

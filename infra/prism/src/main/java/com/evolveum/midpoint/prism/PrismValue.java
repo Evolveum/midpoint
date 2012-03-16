@@ -30,7 +30,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
-public abstract class PrismValue {
+public abstract class PrismValue implements Visitable {
 	
 	private SourceType type;
     private Objectable source;
@@ -82,6 +82,11 @@ public abstract class PrismValue {
 		// Do nothing by default
 	}
 	
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+	}
+
 	public Element asDomElement() {
 		if (domElement == null) {
 			domElement = createDomElement();

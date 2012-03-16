@@ -29,7 +29,9 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.bind.JAXBException;
@@ -172,6 +174,11 @@ public class TestPrismParsing {
 //	}
 	
 	private void assertUser(PrismObject<UserType> user) {
+		assertUserContent(user);
+		assertVisitor(user);
+	}
+	
+	private void assertUserContent(PrismObject<UserType> user) {
 		
 		assertEquals("Wrong oid", USER_JACK_OID, user.getOid());
 		assertEquals("Wrong version", "42", user.getVersion());
@@ -254,6 +261,19 @@ public class TestPrismParsing {
 		assertEquals("Wrong oid for accountRef", "c0c010c0-d34d-b33f-f00d-aaaaaaaa1112", accountRefVal2.getOid());
 		assertEquals("Wrong accountRef description", "This is a reference with a filter", accountRefVal2.getDescription());
 		assertNotNull("No filter in accountRef", accountRefVal2.getFilter());
+	}
+	
+	private void assertVisitor(PrismObject<UserType> user) {
+		final List<Visitable> visits = new ArrayList<Visitable>();
+		Visitor visitor = new Visitor() {
+			@Override
+			public void visit(Visitable visitable) {
+				visits.add(visitable);
+				System.out.println("Visiting: "+visitable);
+			}
+		};
+		user.accept(visitor);
+		assertEquals("Wrong number of visits", 42, visits.size());
 	}
 	
 	private void assertContainerDefinition(PrismContainer container, String contName, QName xsdType, int minOccurs,
