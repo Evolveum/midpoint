@@ -272,7 +272,9 @@ public interface TaskManager {
 	 * @param task task instance to claim
 	 * @throws SchemaException 
 	 * @throws ConcurrencyException 
-	 * @throws ObjectNotFoundException 
+	 * @throws ObjectNotFoundException
+	 * 
+	 * @returns true if the task was stopped in the 'waitTime' interval, false if it is still running
 	 */
 	public boolean suspendTask(Task task, long waitTime, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 

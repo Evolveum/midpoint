@@ -151,36 +151,56 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		//we will wait for all tasks to finish correctly till we proceed with shutdown procedure
 		LOGGER.info("Wait for Task Manager's tasks finish");
 		for (TaskRunner runner : runners) {
-			shutdownAndRemoveRunner(runner);
+			shutdownRunnerAndWait(runner, 0);
+			removeRunner(runner);
 		}
 		LOGGER.info("All Task Manager's tasks finished");
 	}
+	
+	/*
+	 * Shutting down runner works like this:
+	 * 
+	 * TaskManagerImpl.shutdownRunnerAndWait:
+	 *  -> runner.signalShutdown()
+	 *     -> (log)
+	 *     -> task.signalShutdown() [sets canRun:=false, expects that the task will finish (*)] + thread.interrupt()
+	 *  -> runner.thead.join()
+	 *  
+	 *  (*) meanwhile, the concrete task handler will finish its processing (for longer-running handlers
+	 *  it's their responsibility to watch canRun flag)
+	 *  
+	 *  SingleRunner.run, after getting control back from handler.run(task):
+	 *   -> task.finishHandler (removes the handler from stack)
+	 *   -> task.recordRunFinish (stores progress, last run finish time, operation result; on ObjectNotFound error it explicitly calls removeRunner)
+	 *   -> taskManager.finishRunnableTask (releases task, removes the runner)
+	 *   -> logRunFinish (logs the 'FINISH' event)
+	 *  
+	 *  CycleRunner.run, after getting control back from handler.run(task):
+	 *   -> task.recordRunFinish
+	 *   -> taskManager.finishRunnableTask (releases task, removes the runner)
+	 *   -> logRunFinish (logs the 'FINISH' event)
+	 *      
+	 *   
+	 */
 
-	void shutdownRunner(TaskRunner runner, long waitTime) {
-		runner.shutdown();
+	void shutdownRunnerAndWait(TaskRunner runner, long waitTime) {
+		runner.signalShutdown();
 		try {
-			runner.thread.join(waitTime);
-//			runners.remove(runner);					// removal from runners is done by finishRunnableTask
+			runner.thread.join(waitTime);			// note: removal from runners is done by finishRunnableTask
 		} catch (InterruptedException e) {
 			// Safe to ignore. 
 			LOGGER.trace("TaskManager waiting for join task threads got InterruptedException: " + e);
 		}
 	}
 
-	void shutdownRunner(TaskRunner runner) {
-		shutdownRunner(runner, 0);
-	}
-
-	/**
-	 * Shutdowns and explicitly removes a runner. Used in emergency situations, where we cannot 
-	 * expect that finishRunnableTask will remove the runner for us.
-	 * 
-	 * @param runner
-	 */
-	void shutdownAndRemoveRunner(TaskRunner runner) {
-		shutdownRunner(runner, 0);
+//	void shutdownRunner(TaskRunner runner) {
+//		shutdownRunner(runner, 0);
+//	}
+	
+	void removeRunner(TaskRunner runner) {
 		runners.remove(runner);
 	}
+	
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.task.api.TaskManager#createTaskInstance()
@@ -198,7 +218,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	public Task createTaskInstance(String operationName) {
 		LightweightIdentifier taskIdentifier = generateTaskIdentifier();
 		TaskImpl taskImpl = new TaskImpl(this, taskIdentifier);
-		taskImpl.setResultTransient(new OperationResult(operationName));
+		taskImpl.setResult(new OperationResult(operationName));
 		return taskImpl;
 	}
 	
@@ -501,6 +521,11 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 				
 		if (task.isCycle()) {
 			
+			if (((TaskImpl) task).getHandlersCount() > 1) {
+				LOGGER.error("Recurrent tasks cannot have more than one task handler; task = {}", task);
+				throw new IllegalStateException("Recurrent tasks cannot have more than one task handler; task = " + task);
+			}
+			
 			// CYCLE task
 			runner = new CycleRunner(handler,task, this);
 				
@@ -513,7 +538,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		} else {
 			
 			// Not supported yet
-			LOGGER.error("Tightly bound tasks (cycles) are the only supported reccuring tasks for now. Sorry.");
+			LOGGER.error("Tightly bound tasks (cycles) are the only supported for reccuring tasks for now. Sorry.");
 			// Ignore otherwise. Nothing else to do.
 			
 		}
@@ -539,7 +564,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 			task.refresh(parentResult);
 		}
 		finally {
-			runners.remove(runner);
+			removeRunner(runner);
 		}
 	}
 	
@@ -604,7 +629,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		LOGGER.warn("DEACTIVATING Task Manager service threads (RISK OF SYSTEM MALFUNCTION)");
 		stopInternalThreads();
 		for (TaskRunner runner : runners) {
-			runner.shutdown();
+			runner.signalShutdown();
 		}
 		threadsRunning=false;
 	}
@@ -695,7 +720,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		TaskRunner runner = findRunner(task.getTaskIdentifier());
 		LOGGER.trace("Suspending task " + task + ", runner = " + runner);
 		if (runner != null) {
-			shutdownRunner(runner, waitTime);
+			shutdownRunnerAndWait(runner, waitTime);
 			LOGGER.trace("Suspending task " + task + ", runner.thread = " + runner.thread + ", isAlive: " + runner.thread.isAlive());
 		}
 		
@@ -745,7 +770,9 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 			result.recordPartialError("Cannot resume task due to schema error", ex);
 			throw ex;
 		}
-
+		
+		// Wake up scanner thread, this task may need to be processed
+		scannerThread.scan();
 	}
 
 	PropertyDelta createNextRunStartTimeModification(long time) {

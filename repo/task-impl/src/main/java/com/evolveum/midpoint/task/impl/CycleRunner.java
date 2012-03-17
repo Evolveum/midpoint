@@ -55,7 +55,7 @@ public class CycleRunner extends TaskRunner {
 	 */
 	@Override
 	public void run() {
-		runStart();
+		logRunStart();
 
 		OperationResult cycleRunnerOpResult = new OperationResult(CycleRunner.class.getName() + ".run");
 		
@@ -111,7 +111,7 @@ public class CycleRunner extends TaskRunner {
 						LOGGER.error("Unable to record run finish: {}", ex.getMessage(), ex);
 						// The task object in repo is gone. Therefore this task should not run any more.
 						// Therefore commit sepukku
-						taskManager.shutdownAndRemoveRunner(this);
+						taskManager.removeRunner(this);
 						RepositoryCache.exit();
 						return;
 					} catch (SchemaException ex) {
@@ -150,7 +150,7 @@ public class CycleRunner extends TaskRunner {
 					LOGGER.error("Error saving progress to task "+task+": Object not found: "+ex.getMessage(),ex);
 					// The task object in repo is gone. Therefore this task should not run any more.
 					// Therefore commit sepukku
-					taskManager.shutdownAndRemoveRunner(this);
+					taskManager.removeRunner(this);
 					return;
 				}
 				LOGGER.trace("CycleRunner loop: end");
@@ -159,7 +159,7 @@ public class CycleRunner extends TaskRunner {
 			// Call back task manager to clean up things
 			taskManager.finishRunnableTask(this,task,cycleRunnerOpResult);
 			
-			runFinish();
+			logRunFinish();
 		} catch (Throwable t) {
 			// This is supposed to run in a thread, so this kind of heavy artillery is needed. If throwable won't be
 			// caught here, nobody will catch it and it won't even get logged.

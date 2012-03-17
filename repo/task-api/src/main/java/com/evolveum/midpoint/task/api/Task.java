@@ -393,7 +393,7 @@ public interface Task extends Dumpable {
 	 * Signal the task to shut down.
 	 * It may not stop immediately, but it should stop eventually.
 	 */
-	public void shutdown();
+	public void signalShutdown();
 
 	/**
 	 * Returns true if the task can run (was not interrupted).

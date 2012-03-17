@@ -372,6 +372,12 @@ public class TaskImpl implements Task {
 		return retval;
 	}
 
+	public int getHandlersCount() {
+		int main = getHandlerUri() != null ? 1 : 0;
+		int others = getOtherHandlersUriStack() != null ? getOtherHandlersUriStack().getUri().size() : 0;
+		return main + others;
+	}
+
 	
 	/*
 	 * Persistence status
@@ -977,7 +983,7 @@ public class TaskImpl implements Task {
 	
 	
 	@Override
-	public void shutdown() {
+	public void signalShutdown() {
 		canRun = false;
 	}
 
@@ -1058,5 +1064,6 @@ public class TaskImpl implements Task {
 	private PrismContext getPrismContext() {
 		return taskManager.getPrismContext();
 	}
+
 
 }

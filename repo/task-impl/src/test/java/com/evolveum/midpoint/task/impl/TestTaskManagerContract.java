@@ -23,6 +23,7 @@ package com.evolveum.midpoint.task.impl;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -43,6 +44,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -103,6 +105,12 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
     private static final String TASK_CYCLE_CRON_OID = "91919191-76e0-59e2-86d6-9988776655aa";
     private static final String TASK_CYCLE_CRON_LOOSE_FILENAME = "src/test/resources/repo/cycle-cron-loose-task.xml";
     private static final String TASK_CYCLE_CRON_LOOSE_OID = "91919191-76e0-59e2-86d6-9988776655bb";
+    private static final String TASK_SUSPEND_FILENAME = "src/test/resources/repo/suspend-task.xml";
+    private static final String TASK_SUSPEND_OID = "91919191-76e0-59e2-86d6-998877665533";
+    private static final String TASK_SUSPEND_LOOSELY_BOUND_FILENAME = "src/test/resources/repo/suspend-task-loosely-bound.xml";
+    private static final String TASK_SUSPEND_LOOSELY_BOUND_OID = "91919191-76e0-59e2-86d6-998877665522";
+    private static final String TASK_SUSPEND_LONG_RUNNING_FILENAME = "src/test/resources/repo/suspend-task-long-running.xml";
+    private static final String TASK_SUSPEND_LONG_RUNNING_OID = "91919191-76e0-59e2-86d6-998877665511";
 
     private static final String CYCLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/cycle-task-handler";
     private static final String SINGLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/single-task-handler";
@@ -386,7 +394,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertTrue(singleHandler1.hasRun());
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test004Cycle() throws Exception {
         // Add cycle task. This will get picked by task scanner and executed
 
@@ -449,31 +457,48 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertTrue(taskResult.isSuccess());
     }
 
-//    @Test(enabled = false)
-//    public void test004Extension() throws Exception {
-//
-//        OperationResult result = new OperationResult(TestTaskManagerContract.class.getName() + ".test004Extension");
-//        Task task = taskManager.getTask(TASK_CYCLE_OID, result);
-//        AssertJUnit.assertNotNull(task);
-//
-//        // Test for extension. This will also roughly test extension processor
-//        // and schema processor
-//        PrismContainer taskExtension = task.getExtension();
-//        AssertJUnit.assertNotNull(taskExtension);
-//        System.out.println(taskExtension.dump());
-//
-//        PrismProperty shipStateProp = taskExtension
-//                .findProperty(new QName("http://myself.me/schemas/whatever", "shipState"));
-//        AssertJUnit.assertEquals("capsized", shipStateProp.getValue(String.class).getValue());
-//
-//        PrismProperty deadProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever", "dead"));
-//        AssertJUnit.assertEquals(Integer.class, deadProp.getValues().iterator().next().getValue().getClass());
-//        AssertJUnit.assertEquals(Integer.valueOf(42), deadProp.getValue(Integer.class).getValue());
-//
-//        List<PropertyModification> mods = new ArrayList<PropertyModification>();
+    
+    @Test(enabled = false)			// does not work for now
+    public void test005Extension() throws Exception {
+
+        OperationResult result = new OperationResult(TestTaskManagerContract.class.getName() + ".test005Extension");
+        
+        addObjectFromFile(TASK_CYCLE_FILENAME, true);
+        Task task = taskManager.getTask(TASK_CYCLE_OID, result);
+        AssertJUnit.assertNotNull(task);
+
+        // Test for extension. This will also roughly test extension processor
+        // and schema processor
+        PrismContainer taskExtension = task.getExtension();
+        AssertJUnit.assertNotNull(taskExtension);
+        System.out.println(taskExtension.dump());
+
+        PrismProperty shipStateProp = taskExtension
+                .findProperty(new QName("http://myself.me/schemas/whatever", "shipState"));
+        AssertJUnit.assertEquals("capsized", shipStateProp.getValue(String.class).getValue());
+
+        QName deadPropName = new QName("http://myself.me/schemas/whatever", "dead");
+        PrismProperty<Integer> deadProp = taskExtension.findProperty(deadPropName);
+        AssertJUnit.assertEquals(Integer.class, deadProp.getRealValue().getClass()); 
+        		//deadProp.getValues().iterator().next().getValue().getClass());
+        AssertJUnit.assertEquals(Integer.valueOf(42), deadProp.getRealValue()); 
+        		//deadProp.getValue(Integer.class).getValue());
+
+        // now let us change the content of the extension
+        
+        List<PropertyDelta<?>> mods = new ArrayList<PropertyDelta<?>>();
+        
+        PrismContainerDefinition definition = prismContext.getSchemaRegistry().findContainerDefinitionByElementName(SchemaConstants.C_EXTENSION);
+        logger.trace("definition = " + definition);
+        
+        Integer newDead = deadProp.getRealValue() + 1;
+        mods.add(PropertyDelta.createReplaceDelta(definition, deadPropName, newDead));
+
+        task.modify(mods, result);
+        
+//        
 //        // One more mariner drowned
-//        int newDead = deadProp.getValue(Integer.class).getValue().intValue() + 1;
-//        mods.add(deadProp.createModification(PropertyModification.ModificationType.REPLACE, new PrismPropertyValue<Object>(Integer.valueOf(newDead))));
+//        
 //        // ... then the ship was lost
 //        mods.add(shipStateProp.createModification(PropertyModification.ModificationType.REPLACE, new PrismPropertyValue<Object>("sunk")));
 //        // ... so remember the date
@@ -484,37 +509,37 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
 //        mods.add(dateProp.createModification(PropertyModification.ModificationType.REPLACE, new PrismPropertyValue<Object>(sinkDate)));
 //
 //        task.modifyExtension(mods, result);
-//
-//        // Debug: display the real repository state
-//        ObjectType o = repositoryService.getObject(ObjectType.class, TASK_CYCLE_OID, null, result);
-//        System.out.println(ObjectTypeUtil.dump(o));
-//
-//        // Refresh the task
-//        task.refresh(result);
-//
-//        // get the extension again ... and test it ... again
-//        taskExtension = task.getExtension();
-//        AssertJUnit.assertNotNull(taskExtension);
-//        System.out.println(taskExtension.dump());
-//
-//        shipStateProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever", "shipState"));
-//        AssertJUnit.assertEquals("sunk", shipStateProp.getValue(String.class).getValue());
-//
-//        deadProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever", "dead"));
-//        AssertJUnit.assertEquals(Integer.class, deadProp.getValues().iterator().next().getValue().getClass());
-//        AssertJUnit.assertEquals(Integer.valueOf(43), deadProp.getValue(Integer.class).getValue());
-//
+
+        // Debug: display the real repository state
+        TaskType o = repositoryService.getObject(TaskType.class, TASK_CYCLE_OID, null, result).getValue().getValue();
+        System.out.println(ObjectTypeUtil.dump(o));
+
+        // Refresh the task
+        task.refresh(result);
+
+        // get the extension again ... and test it ... again
+        taskExtension = task.getExtension();
+        AssertJUnit.assertNotNull(taskExtension);
+        System.out.println(taskExtension.dump());
+
+        deadProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever", "dead"));
+        AssertJUnit.assertEquals(Integer.class, deadProp.getRealValue().getClass()); 
+        AssertJUnit.assertEquals(Integer.valueOf(43), deadProp.getRealValue(Integer.class)); 
+
+        shipStateProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever", "shipState"));
+        AssertJUnit.assertEquals("sunk", shipStateProp.getValue(String.class).getValue());
+
+
 //        dateProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever", "sinkTimestamp"));
 //        AssertJUnit.assertNotNull("sinkTimestamp is null", dateProp);
 //        AssertJUnit.assertEquals(GregorianCalendar.class, dateProp.getValues().iterator().next().getValue().getClass());
 //        PrismPropertyValue<GregorianCalendar> fetchedDate = dateProp.getValue(GregorianCalendar.class);
 //        AssertJUnit.assertTrue(fetchedDate.getValue().compareTo(sinkDate) == 0);
-//
-//        // stop the task to keep the log clean
-//        task.close(result);
-//        task.shutdown();
-//        LOGGER.info("Cycle Task (15sec) has been shut down.");
-//    }
+
+        // stop the task to keep the log clean
+        task.signalShutdown();
+        LOGGER.info("Cycle Task has been told to shut down.");
+    }
 
     @Test(enabled = true)
     public void test006MoreHandlers() throws Exception {
@@ -679,6 +704,189 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         OperationResult taskResult = task.getResult();
         AssertJUnit.assertNotNull(taskResult);
         AssertJUnit.assertTrue(taskResult.isSuccess());
+    }
+
+    @Test(enabled = true)
+    public void test009CycleMoreHandlers() throws Exception {
+        // Add cycle task. This will get picked by task scanner and executed
+
+        // But before that check sanity ... a known problem with xsi:type
+    	addObjectFromFile(TASK_CYCLE_FILENAME);
+        
+        OperationResult result = new OperationResult(TestTaskManagerContract.class.getName() + ".test009CycleMoreHandlers");
+
+        // We need to wait for a sync interval, so the task scanner has a chance
+        // to pick up this
+        // task
+        System.out.println("Waiting for task manager to pick up the task");
+        Thread.sleep(2000);
+        System.out.println("... done");
+
+        // Check task status
+
+        Task task = taskManager.getTask(TASK_CYCLE_OID, result);
+
+        AssertJUnit.assertNotNull(task);
+        System.out.println(task.dump());
+
+        PrismObject<TaskType> t = repositoryService.getObject(TaskType.class, TASK_CYCLE_OID, null, result);
+        System.out.println(t.dump());
+
+        // .. it should be running
+        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
+
+        // .. and claimed
+        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
+
+        // .. and last run start time and finish time be null
+        AssertJUnit.assertNull(task.getLastRunStartTimestamp());
+        AssertJUnit.assertNull(task.getLastRunFinishTimestamp());
+
+        // The progress should be 0
+        AssertJUnit.assertTrue(task.getProgress() == 0);
+    }
+
+    @Test(enabled = true)
+    public void test010Suspend() throws Exception {
+
+    	addObjectFromFile(TASK_SUSPEND_FILENAME);
+    	
+        OperationResult result = new OperationResult(TestTaskManagerContract.class.getName() + ".test010Suspend");
+
+        // We need to wait for a sync interval, so the task scanner has a chance
+        // to pick up this
+        // task
+        System.out.println("Waiting for task manager to pick up the task");
+        Thread.sleep(2000);
+        System.out.println("... done");
+
+        // Check task status
+
+        Task task = taskManager.getTask(TASK_SUSPEND_OID, result);
+        
+        AssertJUnit.assertNotNull(task);
+        System.out.println(task.dump());
+
+        boolean stopped = taskManager.suspendTask(task, 0, result);
+        
+        task.refresh(result);
+        System.out.println("After suspend and refresh: " + task.dump());
+        
+        AssertJUnit.assertTrue("Task is not stopped", stopped);
+        
+        AssertJUnit.assertEquals(TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
+
+        AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
+        AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
+
+        // The progress should be more than 0
+        AssertJUnit.assertTrue(task.getProgress() > 0);
+    }
+
+    @Test(enabled = true)
+    public void test011ReleaseAndSuspendLooselyBound() throws Exception {
+
+    	addObjectFromFile(TASK_SUSPEND_LOOSELY_BOUND_FILENAME);
+        
+        OperationResult result = new OperationResult(TestTaskManagerContract.class.getName() + ".test011SuspendLooselyBound");
+        
+        Task task = taskManager.getTask(TASK_SUSPEND_LOOSELY_BOUND_OID, result);
+        System.out.println("After setup: " + task.dump());
+        
+        // let us resume (i.e. start the task)
+        taskManager.resumeTask(task, result);
+
+        System.out.println("Waiting for task manager to pick up the task");
+        Thread.sleep(3000);
+        System.out.println("... done");
+
+        task.refresh(result);
+        
+        System.out.println("After refresh: " + task.dump());
+        
+        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());		// task cycle is 1000 ms, so it should be released now 
+
+        AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
+        AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
+        AssertJUnit.assertNotNull(task.getLastRunFinishTimestamp());
+        AssertJUnit.assertFalse(task.getLastRunFinishTimestamp().longValue() == 0);
+        AssertJUnit.assertTrue(task.getProgress() > 0);
+        
+        // now let us suspend it (occurs during wait cycle, so we can put short timeout here)
+        
+        boolean stopped = taskManager.suspendTask(task, 300, result);
+        
+        task.refresh(result);
+        
+        AssertJUnit.assertTrue("Task is not stopped", stopped);
+        
+        AssertJUnit.assertEquals(TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
+
+        AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
+        AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
+        AssertJUnit.assertNotNull(task.getLastRunFinishTimestamp());
+        AssertJUnit.assertFalse(task.getLastRunFinishTimestamp().longValue() == 0);
+        AssertJUnit.assertTrue(task.getProgress() > 0);
+    }
+
+    @Test(enabled = true)
+    public void test012SuspendLongRunning() throws Exception {
+
+    	addObjectFromFile(TASK_SUSPEND_LONG_RUNNING_FILENAME);
+        
+        OperationResult result = new OperationResult(TestTaskManagerContract.class.getName() + ".test012SuspendLongRunning");
+        
+        Task task = taskManager.getTask(TASK_SUSPEND_LONG_RUNNING_OID, result);
+        System.out.println("After setup: " + task.dump());
+        
+        System.out.println("Waiting for task manager to pick up the task");
+        Thread.sleep(2000);		// task itself takes 8 seconds to finish
+        System.out.println("... done");
+
+        task.refresh(result);
+        
+        System.out.println("After refresh: " + task.dump());
+        
+        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
+
+        AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
+        AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
+        
+        // now let us suspend it, without long waiting
+        
+        boolean stopped = taskManager.suspendTask(task, 1000, result);
+        
+        task.refresh(result);
+        
+        AssertJUnit.assertFalse("Task is stopped (it should be running for now)", stopped);
+        
+        AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
+        AssertJUnit.assertEquals("Task should be claimed, as it is not definitely stopped.", TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
+
+        AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
+        AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
+        AssertJUnit.assertNull(task.getLastRunFinishTimestamp());
+        
+        // now let us wait for the finish
+        
+        stopped = taskManager.suspendTask(task, 0, result);
+        
+        task.refresh(result);
+        
+        AssertJUnit.assertTrue("Task is not stopped", stopped);
+        
+        AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
+        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
+
+        AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
+        AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
+        AssertJUnit.assertNotNull("Last run finish time is null", task.getLastRunStartTimestamp());
+        AssertJUnit.assertFalse("Last run finish time is zero", task.getLastRunStartTimestamp().longValue() == 0);
+        AssertJUnit.assertTrue("Progress is not reported", task.getProgress() > 0);
     }
 
     // UTILITY METHODS

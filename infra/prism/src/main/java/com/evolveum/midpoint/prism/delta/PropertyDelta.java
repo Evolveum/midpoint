@@ -21,30 +21,22 @@
 
 package com.evolveum.midpoint.prism.delta;
 
-import com.evolveum.midpoint.prism.Item;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
-import javax.xml.namespace.QName;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.GregorianCalendar;
-import java.util.HashSet;
-import java.util.Iterator;
 
 /**
  * Relative difference (delta) of a property values.
@@ -119,11 +111,12 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     }
 
     // TODO: the same as createModificationReplaceProperty?
-    public static <O extends Objectable> PropertyDelta createReplaceDelta(PrismObjectDefinition<O> objectDefinition,
+    // btw, why was here 'PrismObjectDefinition'?
+    public static <O extends Objectable> PropertyDelta createReplaceDelta(PrismContainerDefinition<O> containerDefinition,
 			QName propertyName, Object... realValues) {
-		PrismPropertyDefinition propertyDefinition = objectDefinition.findPropertyDefinition(propertyName);
+		PrismPropertyDefinition propertyDefinition = containerDefinition.findPropertyDefinition(propertyName);
 		if (propertyDefinition == null) {
-			throw new IllegalArgumentException("No definition for "+propertyName+" in "+objectDefinition);
+			throw new IllegalArgumentException("No definition for "+propertyName+" in "+containerDefinition);
 		}
 		PropertyDelta delta = new PropertyDelta(propertyName, propertyDefinition);
 		Collection<PrismPropertyValue> valuesToReplace = delta.getValuesToReplace();

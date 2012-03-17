@@ -51,7 +51,7 @@ public class SingleRunner extends TaskRunner {
 	 */
 	@Override
 	public void run() {
-		runStart();
+		logRunStart();
 
 		try {
 			
@@ -117,7 +117,7 @@ public class SingleRunner extends TaskRunner {
 					LOGGER.error("Unable to record run finish: {}", ex.getMessage(), ex);
 					// The task object in repo is gone. Therefore this task should not run any more.
 					// Therefore commit sepukku
-					taskManager.shutdownAndRemoveRunner(this);
+					taskManager.removeRunner(this);		// originally here was shutdownAndRemoveRunner - however, we cannot wait for completion of the thread we are executed in :)
 					RepositoryCache.exit();
 					return;
 				} catch (SchemaException ex) {
@@ -128,7 +128,7 @@ public class SingleRunner extends TaskRunner {
 			// Call back task manager to clean up things
 			taskManager.finishRunnableTask(this, task, runnerRunOpResult);
 
-			runFinish();
+			logRunFinish();
 
 		} catch (Throwable t) {
 			// This is supposed to run in a thread, so this kind of heavy artillery is needed. If throwable won't be

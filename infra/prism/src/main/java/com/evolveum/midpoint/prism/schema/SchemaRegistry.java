@@ -19,8 +19,6 @@
  */
 package com.evolveum.midpoint.prism.schema;
 
-import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -34,10 +32,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
@@ -61,6 +57,7 @@ import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -73,7 +70,6 @@ import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 
 /**
  * Registry and resolver of schema files and resources.
@@ -652,6 +648,24 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		return schema.findObjectDefinitionByType(typeName);
 	}
 	
+	public PrismContainerDefinition findContainerDefinitionByType(QName typeName) {
+		PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
+		if (schema == null) {
+			return null;
+		}
+		return schema.findContainerDefinitionByType(typeName);
+	}
+	
+	public PrismContainerDefinition findContainerDefinitionByElementName(QName elementName) {
+		PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
+		if (schema == null) {
+			return null;
+		}
+		return schema.findContainerDefinitionByElementName(elementName);
+	}
+
+
+	
 	public ComplexTypeDefinition findComplexTypeDefinition(QName typeName) {
 		PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
 		if (schema == null) {
@@ -715,5 +729,5 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		return propDef;
 	}
 
-	
+
 }
