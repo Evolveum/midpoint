@@ -179,10 +179,11 @@ class RAnyConverter {
         return type;
     }
 
-    void convertFromValue(RValue value, PrismContainerValue parent) {
+    void convertFromValue(RValue value, PrismContainerValue any) {
         Validate.notNull(value, "Value for converting must not be null.");
-        Validate.notNull(parent, "Parent prism container value must not be null.");
+        Validate.notNull(any, "Parent prism container value must not be null.");
         
+
         //extension item or something like that
 //        PrismContainerable containerable = parent.getParent();
 
@@ -191,7 +192,8 @@ class RAnyConverter {
 
 //        Item item = parent.findOrCreateItem(value.getName());
 
-        
+        //todo we have to some definitions to parent...
+        // prismContext.adopt(((PrismObject) (((PrismContainer)any.getParent()).getParent()).getParent()).asObjectable());
     }
 
     private Element createElement(QName name) {

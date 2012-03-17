@@ -259,11 +259,4 @@ public class RAnyContainer implements Serializable {
 
         return attributes;
     }
-
-    public ExtensionType toJAXBExtension(PrismContext prismContext) throws DtoTranslationException {
-        ExtensionType extension = new ExtensionType();
-        RAnyContainer.copyToJAXB(this, extension, prismContext);
-
-        return extension;
-    }
 }

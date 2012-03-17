@@ -64,8 +64,8 @@ public class RGenericObject extends RObject {
     @Override
     public GenericObjectType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         GenericObjectType object = new GenericObjectType();
-        RGenericObject.copyToJAXB(this, object, prismContext);
         RUtil.revive(object.asPrismObject(), GenericObjectType.class, prismContext);
+        RGenericObject.copyToJAXB(this, object, prismContext);
 
         return object;
     }

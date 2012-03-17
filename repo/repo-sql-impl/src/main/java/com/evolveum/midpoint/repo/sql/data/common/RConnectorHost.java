@@ -126,8 +126,9 @@ public class RConnectorHost extends RObject {
     @Override
     public ConnectorHostType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         ConnectorHostType object = new ConnectorHostType();
-        RConnectorHost.copyToJAXB(this, object, prismContext);
         RUtil.revive(object.asPrismObject(), ConnectorHostType.class, prismContext);
+        RConnectorHost.copyToJAXB(this, object, prismContext);
+
         return object;
     }
 }

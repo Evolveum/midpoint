@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import org.apache.commons.lang.Validate;
@@ -179,7 +180,9 @@ public class RAssignment extends RContainer implements ROwnable {
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
         if (repo.getExtension() != null) {
-            jaxb.setExtension(repo.getExtension().toJAXBExtension(prismContext));
+            ExtensionType extension = new ExtensionType();
+            jaxb.setExtension(extension);
+            RAnyContainer.copyToJAXB(repo.getExtension(), extension, prismContext);
         }
         if (repo.getActivation() != null) {
             jaxb.setActivation(repo.getActivation().toJAXB(prismContext));

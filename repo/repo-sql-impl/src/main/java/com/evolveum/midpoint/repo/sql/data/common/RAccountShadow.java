@@ -86,8 +86,9 @@ public class RAccountShadow extends RResourceObjectShadow {
 
     public AccountShadowType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         AccountShadowType shadow = new AccountShadowType();
-        RAccountShadow.copyToJAXB(this, shadow, prismContext);
         RUtil.revive(shadow.asPrismObject(), AccountShadowType.class, prismContext);
+        RAccountShadow.copyToJAXB(this, shadow, prismContext);
+
         return shadow;
     }
 }

@@ -192,7 +192,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
     /**
      * Test just to check some parts of annotations mapping (for obvious errors)
      */
-    @Test
+//    @Test
     public void simpleInsertTest() {
         Statistics stats = factory.getStatistics();
         stats.setStatisticsEnabled(true);
@@ -245,6 +245,31 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
     private void close(Session session) {
         session.getTransaction().commit();
         session.close();
+    }
+
+    //    @Test
+    public <T extends ObjectType> void perfTest() throws Exception {
+        Statistics stats = factory.getStatistics();
+        stats.setStatisticsEnabled(true);
+
+        final File OBJECTS_FILE = new File("./src/test/resources/10k-users.xml");
+        List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(OBJECTS_FILE);
+
+        long previousCycle = 0;
+        long time = System.currentTimeMillis();
+        for (int i = 0; i < elements.size(); i++) {
+            if (i % 500 == 0) {
+                LOGGER.info("Previous cycle time {}. Next cycle: {}", new Object[]{
+                        (System.currentTimeMillis() - time - previousCycle), i});
+                previousCycle = System.currentTimeMillis() - time;
+            }
+
+            PrismObject<T> object = (PrismObject<T>) elements.get(i);
+            repositoryService.addObject(object, new OperationResult("add performance test"));
+        }
+        LOGGER.info("Time to add objects ({}): {}", new Object[]{elements.size(), (System.currentTimeMillis() - time)});
+
+        stats.logSummary();
     }
 
     @Test

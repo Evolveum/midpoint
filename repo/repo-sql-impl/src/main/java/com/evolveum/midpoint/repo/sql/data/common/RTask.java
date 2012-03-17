@@ -308,8 +308,8 @@ public class RTask extends RObject {
     @Override
     public TaskType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         TaskType object = new TaskType();
-        RTask.copyToJAXB(this, object, prismContext);
         RUtil.revive(object.asPrismObject(), TaskType.class, prismContext);
+        RTask.copyToJAXB(this, object, prismContext);
 
         return object;
     }
