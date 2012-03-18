@@ -83,7 +83,7 @@ public class OperationResult implements Serializable, Dumpable {
 	public static final String CONTEXT_PROGRESS = "progress";
 	public static final String CONTEXT_OID = "oid";
 	public static final String CONTEXT_OBJECT = "object";
-	public static final String CONTEXT_PROPERTY = "property";
+	public static final String CONTEXT_ITEM = "item";
 	public static final String CONTEXT_TASK = "task";
 	
 	public static final String PARAM_OID = "oid";

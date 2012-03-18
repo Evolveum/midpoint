@@ -22,8 +22,10 @@ package com.evolveum.midpoint.schema.util;
 import javax.xml.namespace.QName;
 
 /**
- * @author semancik
- *
+ * Constants for use in tests. DO NOT USE IN "MAIN" CODE. This is placed in "main" just for conveniece, so the
+ * tests in other components can see it.
+ * 
+ * @author Radovan Semancik
  */
 public class SchemaTestConstants {
 

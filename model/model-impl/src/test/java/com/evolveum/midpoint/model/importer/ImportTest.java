@@ -37,23 +37,29 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.derby.impl.sql.compile.TestConstraintNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -155,18 +161,27 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Import has failed (result)", result, 2);
 
 		// Check import with fixed OID
-		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result).asObjectable();
-		assertNotNull(resource);
-		display("Imported resource",resource);
-		assertEquals("Embedded Test Derby", resource.getName());
-		assertEquals("http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-999902d3abab", resource.getNamespace());
-		assertEquals(CONNECOTR_LDAP_OID,resource.getConnectorRef().getOid());
+		PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result);
+		ResourceType resourceType = resource.asObjectable();
+		assertNotNull(resourceType);
+		display("Imported resource",resourceType);
+		assertEquals("Embedded Test Derby", resourceType.getName());
+		assertEquals("http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-999902d3abab", resourceType.getNamespace());
+		assertEquals(CONNECOTR_LDAP_OID,resourceType.getConnectorRef().getOid());
 		
 		// The password in the resource configuration should be encrypted after import
-		Element configurationProperties = (Element) JAXBUtil.findElement(resource.getConfiguration().getAny(), new QName(CONNECTOR_NAMESPACE,"configurationProperties"));
-		Element password = (Element) configurationProperties.getElementsByTagNameNS(CONNECTOR_NAMESPACE, "password").item(0);
-		assertTrue("Password was not encrypted (clearValue)",password.getElementsByTagNameNS(SchemaConstants.NS_C, "clearValue").getLength()==0);
-		assertTrue("Password was not encrypted (no EncryptedData)",password.getElementsByTagNameNS(DOMUtil.NS_XML_ENC,"EncryptedData").getLength()==1);
+		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
+		PrismContainer<Containerable> configurationPropertiesContainer = 
+			configurationContainer.findContainer(SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES);
+		assertNotNull("No configurationProperties in resource", configurationPropertiesContainer);
+		PrismProperty<Object> passwordProperty = configurationPropertiesContainer.findProperty(new QName(CONNECTOR_NAMESPACE, "password"));
+		Object passwordValue = passwordProperty.getValue().getValue();
+		if (!(passwordValue instanceof ProtectedStringType)) {
+			AssertJUnit.fail("Expected password value of type "+ProtectedStringType.class+" but got "+passwordValue.getClass());
+		}
+		ProtectedStringType passwordProtectedString = (ProtectedStringType)passwordValue;
+		assertTrue("Password was not encrypted (clearValue)", passwordProtectedString.getClearValue() == null);
+		assertTrue("Password was not encrypted (no EncryptedData)", passwordProtectedString.getEncryptedData() != null);
 	}
 	
 	@Test

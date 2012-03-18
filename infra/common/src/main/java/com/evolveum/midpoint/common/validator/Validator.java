@@ -448,7 +448,7 @@ public class Validator {
 
 	void error(String message, Objectable object, String propertyName, OperationResult subResult) {
 		subResult.addContext(OperationResult.CONTEXT_OBJECT, object);
-		subResult.addContext(OperationResult.CONTEXT_PROPERTY, propertyName);
+		subResult.addContext(OperationResult.CONTEXT_ITEM, propertyName);
 		subResult.recordFatalError("<" + propertyName + ">: " + message);
 	}
 

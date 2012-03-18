@@ -27,12 +27,17 @@ import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -99,44 +104,45 @@ public class ObjectImporter {
             }
 
             @Override
-            public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement, OperationResult objectResult) {
-                LOGGER.debug("Importing object {}", object);
+            public <T extends Objectable> EventResult postMarshall(PrismObject<T> objectableObject, Element objectElement, OperationResult objectResult) {
+                LOGGER.debug("Importing object {}", objectableObject);
                 
-                T objectable = object.asObjectable();
+                T objectable = objectableObject.asObjectable();
                 if (!(objectable instanceof ObjectType)) {
                 	String message = "Cannot process type "+objectable.getClass()+" as it is not a subtype of "+ObjectType.class;
                 	objectResult.recordFatalError(message);
                     LOGGER.error("Import of object {} failed: {}",
-                            new Object[]{object, message});
+                            new Object[]{objectableObject, message});
                     return EventResult.skipObject();
                 }
                 ObjectType objectType = (ObjectType)objectable;
+                PrismObject<? extends ObjectType> object = (PrismObject<? extends ObjectType>) objectableObject;
                 
                 if (objectResult.isAcceptable()) {
-                    resolveReferences(objectType, repository, 
+                    resolveReferences(object, repository, 
                     		options.isReferentialIntegrity() == null ? false : options.isReferentialIntegrity(), objectResult);
                 }
                 
                 if (objectResult.isAcceptable()) {
-                    generateIdentifiers(objectType, repository,  objectResult);
+                    generateIdentifiers(object, repository,  objectResult);
                 }
 
                 PrismContainer dynamicPart = null;
                 if (BooleanUtils.isTrue(options.isValidateDynamicSchema()) && objectResult.isAcceptable()) {
-                    dynamicPart = validateWithDynamicSchemas(objectType, objectElement, repository, objectResult);
+                    dynamicPart = validateWithDynamicSchemas(object, objectElement, repository, objectResult);
                 }
 
                 if (BooleanUtils.isTrue(options.isEncryptProtectedValues()) && objectResult.isAcceptable()) {
-                    encryptValuesInStaticPart(objectType, objectResult);
+                    encryptValuesInStaticPart(object, objectResult);
                     if (dynamicPart != null) {
-                        encryptValuesInDynamicPart(dynamicPart, objectType, objectResult);
+                        encryptValuesInDynamicPart(dynamicPart, object, objectResult);
                     }
                 }
 
                 if (objectResult.isAcceptable()) {
                     try {
 
-                        importObjectToRepository(objectType, options, repository, objectResult);
+                        importObjectToRepository(object, options, repository, objectResult);
 
                         LOGGER.info("Imported object {}", object);
 
@@ -183,14 +189,14 @@ public class ObjectImporter {
 
     }
 
-    private void importObjectToRepository(ObjectType object, ImportOptionsType options, RepositoryService repository,
+    private <T extends ObjectType> void importObjectToRepository(PrismObject<T> object, ImportOptionsType options, RepositoryService repository,
                                           OperationResult objectResult) throws SchemaException, ObjectAlreadyExistsException {
 
         OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".importObjectToRepository");
 
         try {
 
-            repository.addObject(object.asPrismObject(), result);
+            repository.addObject(object, result);
             result.recordSuccess();
 
         } catch (ObjectAlreadyExistsException e) {
@@ -201,7 +207,7 @@ public class ObjectImporter {
                     if (BooleanUtils.isTrue(options.isKeepOid())) {
                         object.setOid(deletedOid);
                     }
-                    repository.addObject(object.asPrismObject(), result);
+                    repository.addObject(object, result);
                     result.recordSuccess();
                 } else {
                     // cannot delete, throw original exception
@@ -219,11 +225,11 @@ public class ObjectImporter {
     /**
      * @return OID of the deleted object or null (if nothing was deleted)
      */
-    private String deleteObject(ObjectType object, RepositoryService repository, OperationResult objectResult) throws SchemaException {
+    private <T extends ObjectType> String deleteObject(PrismObject<T> object, RepositoryService repository, OperationResult objectResult) throws SchemaException {
         if (object.getOid() != null) {
             // The conflict is either UID or we should not proceed as we could delete wrong object
             try {
-                repository.deleteObject(object.getClass(), object.getOid(), objectResult);
+                repository.deleteObject(object.getCompileTimeClass(), object.getOid(), objectResult);
             } catch (ObjectNotFoundException e) {
                 // Cannot delete. The conflicting thing was obviously not OID. Just throw the original exception
                 return null;
@@ -234,15 +240,16 @@ public class ObjectImporter {
             // The conflict was obviously name. As we have no explicit OID in the object to import
             // it is pretty safe to try to delete the conflicting object
             // look for an object by name and type and delete it
-            QueryType query = QueryUtil.createNameQuery(object);
-            List<PrismObject<? extends ObjectType>> objects = (List) repository.searchObjects(object.getClass(), query, null, objectResult);
+            QueryType query = QueryUtil.createNameQuery(object.asObjectable());
+            List<PrismObject<? extends ObjectType>> objects = (List) repository.searchObjects(object.getCompileTimeClass(),
+            		query, null, objectResult);
             if (objects.size() != 1) {
                 // too few or too much results, not safe to delete
                 return null;
             }
             String oidToDelete = objects.get(0).getOid();
             try {
-                repository.deleteObject(object.getClass(), oidToDelete, objectResult);
+                repository.deleteObject(object.getCompileTimeClass(), oidToDelete, objectResult);
             } catch (ObjectNotFoundException e) {
                 // Cannot delete. Some strange conflict ...
                 return null;
@@ -251,26 +258,23 @@ public class ObjectImporter {
         }
     }
 
-    protected PrismContainer validateWithDynamicSchemas(ObjectType object, Element objectElement,
+    protected <T extends ObjectType> PrismContainer validateWithDynamicSchemas(PrismObject<T> object, Element objectElement,
                                                            RepositoryService repository, OperationResult objectResult) {
 
-//        if (object instanceof ExtensibleObjectType) {
-            // TODO: check extension schema (later)
-            //objectResult.computeStatus("Extension schema error");
-//        }
+        // TODO: check extension schema (later)
 
-        if (object instanceof ConnectorType) {
-            ConnectorType connector = (ConnectorType) object;
+        if (object.canRepresent(ConnectorType.class)) {
+            ConnectorType connector = (ConnectorType) object.asObjectable();
             checkSchema(connector.getSchema(), "connector", objectResult);
             objectResult.computeStatus("Connector schema error");
 
-        } else if (object instanceof ResourceType) {
+        } else if (object.canRepresent(ResourceType.class)) {
 
 
             // Only two object types have XML snippets that conform to the dynamic schema
 
 
-            ResourceType resource = (ResourceType) object;
+            ResourceType resource = (ResourceType) object.asObjectable();
             List<Object> configurationElements = resource.getConfiguration().getAny();
             if (configurationElements.isEmpty()) {
                 // Nothing to check
@@ -309,7 +313,7 @@ public class ObjectImporter {
             objectResult.computeStatus("Dynamic schema error");
             return propertyContainer;
 
-        } else if (object instanceof ResourceObjectShadowType) {
+        } else if (object.canRepresent(ResourceObjectShadowType.class)) {
             // TODO
 
             //objectResult.computeStatus("Dynamic schema error");
@@ -420,87 +424,54 @@ public class ObjectImporter {
 //		result.recordSuccess();
     }
 
-    protected void resolveReferences(ObjectType object, RepositoryService repository,
-    		boolean enforceReferentialIntegrity, OperationResult result) {
-        // We need to look up all object references. Probably the only efficient
-        // way to do it is to use reflection.
-        Class<?> type = object.getClass();
-        Method[] methods = type.getMethods();
-        for (int i = 0; i < methods.length; i++) {
-            Method method = methods[i];
-            Class<?> returnType = method.getReturnType();
-            if (ObjectReferenceType.class.isAssignableFrom(returnType)) {
-                // we have a method that returns ObjectReferenceType, try to
-                // resolve it.
-                String propName = parseGetterPropName(method);
-                if (propName != null) {
-                    LOGGER.trace("Found reference property {}, method {}", propName, method.getName());
-                    try {
-                        Object returnVal = method.invoke(object);
-                        ObjectReferenceType ref = (ObjectReferenceType) returnVal;
-                        resolveRef(ref, propName, repository, enforceReferentialIntegrity, result);
-                        if (!result.isAcceptable()) {
-                            LOGGER.error("Error resolving reference {}: {}", propName, result.getMessage());
-                            return;
-                        }
-                    } catch (IllegalArgumentException e) {
-                        // Should not happen, getters have no arguments
-                        result.recordFatalError("Cannot invoke getter " + method.getName()
-                                + " due to IllegalArgumentException", e);
-                        return;
-                    } catch (IllegalAccessException e) {
-                        // Should not happen, getters have no arguments
-                        result.recordFatalError("Cannot invoke getter " + method.getName()
-                                + " due to IllegalAccessException", e);
-                        return;
-                    } catch (InvocationTargetException e) {
-                        // Should not happen, getters have no arguments
-                        result.recordFatalError("Cannot invoke getter " + method.getName()
-                                + " due to InvocationTargetException", e);
-                        return;
-                    }
-                    LOGGER.trace("Reference {} processed", propName);
-                }
+    protected <T extends ObjectType> void resolveReferences(PrismObject<T> object, final RepositoryService repository,
+    		final boolean enforceReferentialIntegrity, final OperationResult result) {
+    	
+    	Visitor visitor = new Visitor() {
+			@Override
+			public void visit(Visitable visitable) {
+				if (!(visitable instanceof PrismReferenceValue)) {
+					return;
+				}
+				resolveRef((PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, result);
+			}
+		};
+		object.accept(visitor);
+    }
+    
+    
+    private void resolveRef(PrismReferenceValue refVal, RepositoryService repository, 
+    				boolean enforceReferentialIntegrity, OperationResult parentResult) {
+    	PrismReference reference = (PrismReference) refVal.getParent();
+    	QName refName = reference.getName();
+        OperationResult result = parentResult.createSubresult(OPERATION_RESOLVE_REFERENCE);
+        result.addContext(OperationResult.CONTEXT_ITEM, refName);
+
+        Class<? extends ObjectType> type = ObjectType.class;
+        if (refVal.getTargetType() != null) {
+        	type = (Class<? extends ObjectType>) prismContext.getSchemaRegistry().determineCompileTimeClass(refVal.getTargetType());
+            if (type == null) {
+                result.recordWarning("Unknown type specified in reference " + refName + ": "
+                        + refVal.getType());
+                type = ObjectType.class;
             }
         }
-    }
-
-    private void resolveRef(ObjectReferenceType ref, String propName, RepositoryService repository, 
-    				boolean enforceReferentialIntegrity, OperationResult parentResult) {
-        if (ref == null) {
-            // Nothing to do
-            return;
-        }
-
-        OperationResult result = parentResult.createSubresult(OPERATION_RESOLVE_REFERENCE);
-        result.addContext(OperationResult.CONTEXT_PROPERTY, propName);
-
-        Element filter = ref.getFilter();
-        if (ref.getOid() != null && !ref.getOid().isEmpty()) {
+        Element filter = refVal.getFilter();
+        if (!StringUtils.isBlank(refVal.getOid())) {
             // We have OID
             if (filter != null) {
                 // We have both filter and OID. We will choose OID, but let's at
                 // least log a warning
-                result.appendDetail("Both OID and filter for property " + propName);
-                result.recordPartialError("Both OID and filter for property " + propName);
-                ref.setFilter(null);
+                result.appendDetail("Both OID and filter for property " + refName);
+                result.recordPartialError("Both OID and filter for property " + refName);
+                refVal.setFilter(null);
             }
             // Nothing to resolve, but let's check if the OID exists
-            Class<? extends ObjectType> type = ObjectType.class;
-            if (ref.getType() != null) {
-                ObjectTypes refType = ObjectTypes.getObjectTypeFromTypeQName(ref.getType());
-                if (refType == null) {
-                    result.recordWarning("Unknown type specified in reference " + propName + ": "
-                            + ref.getType());
-                } else {
-                    type = refType.getClassDefinition();
-                }
-            }
-            ObjectType object = null;
+            PrismObject<? extends ObjectType> object = null;
             try {
-                object = repository.getObject(type, ref.getOid(), null, result).asObjectable();
+                object = repository.getObject(type, refVal.getOid(), null, result);
             } catch (ObjectNotFoundException e) {
-            	String message = "Reference " + propName + " refers to a non-existing object " + ref.getOid();
+            	String message = "Reference " + refName + " refers to a non-existing object " + refVal.getOid();
             	if (enforceReferentialIntegrity) {
             		LOGGER.error(message);
             		result.recordFatalError(message);
@@ -510,18 +481,18 @@ public class ObjectImporter {
             	}
             } catch (SchemaException e) {
             	
-                result.recordPartialError("Schema error while trying to retrieve object " + ref.getOid()
+                result.recordPartialError("Schema error while trying to retrieve object " + refVal.getOid()
                         + " : " + e.getMessage(), e);
                 LOGGER.error(
-                        "Schema error while trying to retrieve object " + ref.getOid() + " : "
+                        "Schema error while trying to retrieve object " + refVal.getOid() + " : "
                                 + e.getMessage(), e);
                 // But continue otherwise
             }
-            if (object != null && ref.getType() != null) {
+            if (object != null && refVal.getType() != null) {
                 // Check if declared and actual type matches
                 if (!object.getClass().equals(type)) {
-                    result.recordWarning("Type mismatch on property " + propName + ": declared:"
-                            + ref.getType() + ", actual: " + object.getClass());
+                    result.recordWarning("Type mismatch on property " + refName + ": declared:"
+                            + refVal.getType() + ", actual: " + object.getClass());
                 }
             }
             result.recordSuccessIfUnknown();
@@ -530,7 +501,7 @@ public class ObjectImporter {
         }
         if (filter == null) {
             // No OID and no filter. We are lost.
-            result.recordFatalError("Neither OID nor filter for property " + propName
+            result.recordFatalError("Neither OID nor filter for property " + refName
                     + ": cannot resolve reference");
             return;
         }
@@ -538,65 +509,64 @@ public class ObjectImporter {
         LOGGER.trace("Resolving using filter {}", DOMUtil.serializeDOMToString(filter));
         NodeList childNodes = filter.getChildNodes();
         if (childNodes.getLength() == 0) {
-            result.recordFatalError("OID not specified and filter is empty for property " + propName);
+            result.recordFatalError("OID not specified and filter is empty for property " + refName);
             return;
         }
         // Let's do resolving
         QueryType query = new QueryType();
         query.setFilter(filter);
         List<PrismObject<? extends ObjectType>> objects = null;
-        QName objectType = ref.getType();
+        QName objectType = refVal.getTargetType();
         if (objectType == null) {
-            result.recordFatalError("Missing definition of type of reference " + propName);
+            result.recordFatalError("Missing definition of type of reference " + refName);
             return;
         }
         try {
 
-            objects = (List)repository.searchObjects(ObjectTypes.getObjectTypeFromTypeQName(objectType)
-                    .getClassDefinition(), query, null, result);
+            objects = (List)repository.searchObjects(type, query, null, result);
 
         } catch (SchemaException e) {
             // This is unexpected, but may happen. Record fatal error
-            result.recordFatalError("Repository schema error during resolution of reference " + propName, e);
+            result.recordFatalError("Repository schema error during resolution of reference " + refName, e);
             return;
         } catch (SystemException e) {
             // We don't want this to tear down entire import.
-            result.recordFatalError("Repository system error during resolution of reference " + propName, e);
+            result.recordFatalError("Repository system error during resolution of reference " + refName, e);
             return;
         }
         if (objects.isEmpty()) {
-            result.recordFatalError("Repository reference " + propName
+            result.recordFatalError("Repository reference " + refName
                     + " cannot be resolved: filter matches no object");
             return;
         }
         if (objects.size() > 1) {
-            result.recordFatalError("Repository reference " + propName
+            result.recordFatalError("Repository reference " + refName
                     + " cannot be resolved: filter matches " + objects.size() + " objects");
             return;
         }
         // Bingo. We have exactly one object.
         String oid = objects.get(0).getOid();
-        ref.setOid(oid);
+        refVal.setOid(oid);
         result.recordSuccessIfUnknown();
     }
 
-    private void generateIdentifiers(ObjectType object, RepositoryService repository,
+    private <T extends ObjectType> void generateIdentifiers(PrismObject<T> object, RepositoryService repository,
 			OperationResult objectResult) {
-		if (object instanceof TaskType) {
-			TaskType task = (TaskType)object;
+		if (object.canRepresent(TaskType.class)) {
+			TaskType task = (TaskType)object.asObjectable();
 			if (task.getTaskIdentifier() == null || task.getTaskIdentifier().isEmpty()) {
 				task.setTaskIdentifier(lightweightIdentifierGenerator.generate().toString());
 			}
 		}
 	}
     
-    private void encryptValuesInStaticPart(ObjectType object, OperationResult objectResult) {
+    private <T extends ObjectType> void encryptValuesInStaticPart(PrismObject<T> object, OperationResult objectResult) {
         OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".encryptValues");
         encryptValuesInStaticPartRecursive(object, object, result);
         result.recordSuccessIfUnknown();
     }
 
-    private void encryptValuesInStaticPartRecursive(Object object, ObjectType objectType, OperationResult result) {
+    private <T extends ObjectType> void encryptValuesInStaticPartRecursive(Object object, PrismObject<T> objectType, OperationResult result) {
         // We need to look up all object references. Probably the only efficient
         // way to do it is to use reflection.
         Class<?> type = object.getClass();
@@ -639,15 +609,15 @@ public class ObjectImporter {
         }
     }
 
-    private void encryptValueInStaticPartAndRecurse(Object value, String propName, ObjectType objectType, OperationResult result) {
+    private <T extends ObjectType> void encryptValueInStaticPartAndRecurse(Object value, String propName, PrismObject<T> objectType, OperationResult result) {
         if (value instanceof ProtectedStringType) {
             ProtectedStringType ps = (ProtectedStringType) value;
             if (ps.getClearValue() != null) {
                 try {
-                    LOGGER.info("Encrypting cleartext value for field " + propName + " while importing " + ObjectTypeUtil.toShortString(objectType));
+                    LOGGER.info("Encrypting cleartext value for field " + propName + " while importing " + objectType);
                     protector.encrypt(ps);
                 } catch (EncryptionException e) {
-                    LOGGER.info("Faild to encrypt cleartext value for field " + propName + " while importing " + ObjectTypeUtil.toShortString(objectType));
+                    LOGGER.info("Faild to encrypt cleartext value for field " + propName + " while importing " + objectType);
                     result.recordFatalError("Faild to encrypt value for field " + propName + ": " + e.getMessage(), e);
                     return;
                 }
@@ -671,14 +641,14 @@ public class ObjectImporter {
     }
 
 
-    private void encryptValuesInDynamicPart(PrismContainer dynamicPart, ObjectType objectType,
+    private <T extends ObjectType> void encryptValuesInDynamicPart(PrismContainer dynamicPart, PrismObject<T> objectType,
                                             OperationResult objectResult) {
         OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".encryptValues");
         encryptValuesInDynamicPartRecursive(dynamicPart, objectType, result);
         result.recordSuccessIfUnknown();
     }
 
-    private void encryptValuesInDynamicPartRecursive(PrismContainer dynamicPart, ObjectType objectType,
+    private <T extends ObjectType> void encryptValuesInDynamicPartRecursive(PrismContainer dynamicPart, PrismObject<T> objectType,
                                                      OperationResult result) {
 //        for (Item i : dynamicPart.getItems()) {
 //            if (i instanceof PrismProperty) {
@@ -691,7 +661,7 @@ public class ObjectImporter {
 //        }
     }
 
-    private void encryptProperty(PrismProperty property, ObjectType objectType, OperationResult result) {
+    private <T extends ObjectType> void encryptProperty(PrismProperty property, PrismObject<T> objectType, OperationResult result) {
         if (!property.getDefinition().getTypeName().equals(SchemaConstants.R_PROTECTED_STRING_TYPE)) {
             return;
         }
@@ -700,7 +670,7 @@ public class ObjectImporter {
         try {
             protector.encrypt(ps);
         } catch (EncryptionException e) {
-            LOGGER.info("Faild to encrypt cleartext value for field " + property.getName() + " while importing " + ObjectTypeUtil.toShortString(objectType));
+            LOGGER.info("Faild to encrypt cleartext value for field " + property.getName() + " while importing " + objectType);
             result.recordFatalError("Faild to encrypt value for field " + property.getName() + ": " + e.getMessage(), e);
             return;
         }
