@@ -212,7 +212,9 @@ public class RObjectReference implements Serializable {
         String filter = repo.getFilter();
         if (StringUtils.isNotEmpty(filter)) {
             Element element = DOMUtil.parseDocument(filter).getDocumentElement();
-            jaxb.setFilter(element);
+            ObjectReferenceType.Filter jaxbFilter = new ObjectReferenceType.Filter();
+            jaxbFilter.setFilter(element);
+            jaxb.setFilter(jaxbFilter);
         }
     }
 
@@ -227,7 +229,8 @@ public class RObjectReference implements Serializable {
         repo.setTargetOid(jaxb.getOid());
 
         if (jaxb.getFilter() != null) {
-            repo.setFilter(DOMUtil.printDom(jaxb.getFilter()).toString());
+            ObjectReferenceType.Filter filter = jaxb.getFilter();
+            repo.setFilter(DOMUtil.printDom(filter.getFilter()).toString());
         }
     }
 
