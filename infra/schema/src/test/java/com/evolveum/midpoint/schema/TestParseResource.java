@@ -57,7 +57,7 @@ import static org.testng.AssertJUnit.assertNotNull;
  */
 public class TestParseResource {
 	
-	public static final File RESOURCE_FILE = new File("src/test/resources/schema/resource-opendj.xml");
+	public static final File RESOURCE_FILE = new File("src/test/resources/common/resource-opendj.xml");
 	
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {

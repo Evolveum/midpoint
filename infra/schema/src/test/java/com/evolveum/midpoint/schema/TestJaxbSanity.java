@@ -61,7 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionTyp
  */
 public class TestJaxbSanity {
 
-	public static final String TEST_DIR = "src/test/resources/schema";
+	public static final String TEST_DIR = "src/test/resources/common";
 	public static final String USER_BARBOSSA_FILENAME = TEST_DIR + "/user-barbossa.xml";
 	public static final String RESOURCE_OPENDJ_FILENAME = TEST_DIR + "/resource-opendj.xml";
 	

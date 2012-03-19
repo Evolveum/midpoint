@@ -398,7 +398,7 @@ public class TestResourceSchema {
 	public void testUnmarshallResource() throws JAXBException, SchemaException, FileNotFoundException {
 		System.out.println("===[ testUnmarshallResource ]===");
 		// WHEN
-		ResourceType resource = PrismTestUtil.unmarshalObject(new File("src/test/resources/schema/resource-opendj.xml"), ResourceType.class);
+		ResourceType resource = PrismTestUtil.unmarshalObject(new File("src/test/resources/common/resource-opendj.xml"), ResourceType.class);
 		
 		// THEN
 		
