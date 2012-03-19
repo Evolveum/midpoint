@@ -23,7 +23,7 @@ package com.evolveum.midpoint.repo.sql.query;
 
 import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.Criterion;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
@@ -41,33 +41,32 @@ public class LogicalOp extends Op {
     }
 
     @Override
-    public void interpret(Element filterPart, boolean pushNot) throws QueryInterpreterException {
+    public Criterion interpret(Element filterPart, boolean pushNot) throws QueryInterpreterException {
         validate(filterPart);
 
         Operation operation = getOperationType(filterPart);
-        if (operation == null) {
-            return;
-        }
-
         List<Element> elements = DOMUtil.listChildElements(filterPart);
         switch (elements.size()) {
             case 0:
-                return;
+                throw new QueryInterpreterException("Can't have logical filter '"
+                        + DOMUtil.getQNameWithoutPrefix(filterPart) + "' without filter children.");
             case 1:
                 boolean newPushNot = pushNot;
                 if (Operation.NOT.equals(operation)) {
                     newPushNot = !newPushNot;
                 }
-                getInterpreter().interpret(elements.get(0), newPushNot);
+                return getInterpreter().interpret(elements.get(0), newPushNot);
             default:
                 if (Operation.NOT.equals(operation)) {
                     throw new QueryInterpreterException("Can't create filter NOT (unary) with more than one element.");
                 }
                 //todo do and or on interpretation results
         }
+
+        return null;
     }
 
-    private Operation getOperationType(Element filterPart) {
+    private Operation getOperationType(Element filterPart) throws QueryInterpreterException {
         if (DOMUtil.isElementName(filterPart, SchemaConstants.C_AND)) {
             return Operation.AND;
         } else if (DOMUtil.isElementName(filterPart, SchemaConstants.C_OR)) {
@@ -76,7 +75,7 @@ public class LogicalOp extends Op {
             return Operation.NOT;
         }
 
-        return null;
+        throw new QueryInterpreterException("Unknown filter type '" + DOMUtil.getQNameWithoutPrefix(filterPart) + "'.");
     }
 
     @Override

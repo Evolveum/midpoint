@@ -22,10 +22,13 @@
 package com.evolveum.midpoint.repo.sql.query;
 
 import com.evolveum.midpoint.util.DOMUtil;
+import org.hibernate.Criteria;
+import org.hibernate.criterion.Criterion;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -69,5 +72,5 @@ abstract class Op {
 
     protected abstract QName[] canHandle();
 
-    public abstract void interpret(Element filter, boolean pushNot) throws QueryInterpreterException;
+    public abstract Criterion interpret(Element filter, boolean pushNot) throws QueryInterpreterException;
 }

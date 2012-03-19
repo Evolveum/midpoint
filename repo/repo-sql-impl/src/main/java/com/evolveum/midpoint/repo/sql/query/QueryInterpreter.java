@@ -24,9 +24,11 @@ package com.evolveum.midpoint.repo.sql.query;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.ClassMapper;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
+import org.hibernate.criterion.Criterion;
 import org.w3c.dom.Element;
 
 /**
@@ -47,36 +49,27 @@ public class QueryInterpreter {
     }
 
     public Criteria interpret(Element filter) throws QueryInterpreterException {
-        interpret(filter, false);
+        Criterion criterion = interpret(filter, false);
 
-        //todo create sub criterions based on paths in filter
+        Criteria criteria = getContext().getCriteria(null);
+        criteria.add(criterion);
 
-//        //only example
-//        Criteria main = getContext().getCriteria(null);
-//
-//        Criteria attributes = main.createCriteria("attributes");
-//        Criteria stringAttr = attributes.createCriteria("strings");
-//        stringAttr.add(Restrictions.eq("elements", "uid=test,dc=example,dc=com"));
-//
-//        Criteria resourceRef = main.createCriteria("resourceRef");
-//        resourceRef.add(Restrictions.eq("targetOid", "0001092019091029301923012"));
-
-        //returning base criteria
-        return getContext().getCriteria(null);
+        return criteria;
     }
 
-    public void interpret(Element filter, boolean pushNot) throws QueryInterpreterException {
+    public Criterion interpret(Element filter, boolean pushNot) throws QueryInterpreterException {
         //todo fix operation choosing and initialization...
         Op operation = new LogicalOp(this);
         if (operation.canHandle(filter)) {
-            operation.interpret(filter, pushNot);
+            return operation.interpret(filter, pushNot);
         }
         operation = new EqualOp(this);
         if (operation.canHandle(filter)) {
-            operation.interpret(filter, pushNot);
+            return operation.interpret(filter, pushNot);
         }
 
-        //todo throw exception
+        throw new QueryInterpreterException("Unsupported query filter '"
+                + DOMUtil.getQNameWithoutPrefix(filter) + "'.");
     }
 
     public Class<? extends ObjectType> getType() {
