@@ -21,20 +21,16 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * This annotation is used for mapping attribute from JAXB classes to Hibernate classes in sql-impl repository
- *
  * @author lazyman
  */
-@Target({ElementType.FIELD})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface QueryAttribute {
+public class QueryInterpreterException extends Exception {
 
-    String name() default "";
-    String namespace() default "";
+    public QueryInterpreterException(String s) {
+        super(s);
+    }
+
+    public QueryInterpreterException(String s, Throwable throwable) {
+        super(s, throwable);
+    }
 }

@@ -190,7 +190,11 @@ class RAnyConverter {
 //        PrismContainerDefinition containerDefinition = containerable.getDefinition();
 //        ItemDefinition definition = containerDefinition.findItemDefinition(value.getName());
 
+        try {
         Item item = any.findOrCreateItem(value.getName());
+        } catch (Exception ex) {
+            LOGGER.info(ex.getMessage(), ex);
+        }
 //        System.out.println(item);
 
         //todo we have to some definitions to parent...

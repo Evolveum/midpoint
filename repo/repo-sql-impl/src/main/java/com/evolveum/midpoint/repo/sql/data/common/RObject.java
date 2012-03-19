@@ -23,6 +23,8 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
+import com.evolveum.midpoint.repo.sql.query.QueryContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.StringUtils;
@@ -42,8 +44,11 @@ import javax.persistence.*;
 @ForeignKey(name = "fk_container")
 public abstract class RObject extends RContainer {
 
+    @QueryAttribute
     private String name;
+    @QueryAttribute
     private String description;
+    @QueryContainer
     private RAnyContainer extension;
 
     @ManyToOne(optional = true)

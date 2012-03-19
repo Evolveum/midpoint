@@ -23,15 +23,11 @@
          xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
          xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
          xsi:schemaLocation="/standard/XMLSchema.xsd
-   http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-1.xsd"
-        >
-
-	<!-- Query filter example -->
+   http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-1.xsd">
 
 	<c:equal>
 		<c:value>
 			<i:fullName>Cpt. Jack Sparrow</i:fullName>
 		</c:value>
 	</c:equal>
-
 </c:query>

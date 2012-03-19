@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql.query;
 
 import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
+import org.hibernate.criterion.Restrictions;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
@@ -40,10 +41,9 @@ public class LogicalOp extends Op {
     }
 
     @Override
-    public void interpret(Element filterPart, boolean pushNot) {
-        if (!canHandle(filterPart)) {
-            //todo exception
-        }
+    public void interpret(Element filterPart, boolean pushNot) throws QueryInterpreterException {
+        validate(filterPart);
+
         Operation operation = getOperationType(filterPart);
         if (operation == null) {
             return;
@@ -54,13 +54,14 @@ public class LogicalOp extends Op {
             case 0:
                 return;
             case 1:
+                boolean newPushNot = pushNot;
                 if (Operation.NOT.equals(operation)) {
-                    //todo Restrictions.not(elements.get(0));
+                    newPushNot = !newPushNot;
                 }
-                //todo other only interpret
+                getInterpreter().interpret(elements.get(0), newPushNot);
             default:
                 if (Operation.NOT.equals(operation)) {
-                    //todo throw exception
+                    throw new QueryInterpreterException("Can't create filter NOT (unary) with more than one element.");
                 }
                 //todo do and or on interpretation results
         }

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
+import java.util.Arrays;
 
 /**
  * @author lazyman
@@ -51,11 +52,22 @@ abstract class Op {
         return false;
     }
 
+    protected void validate(Element filter) throws QueryInterpreterException {
+        if (!canHandle(filter)) {
+            throw new QueryInterpreterException("Can't handle filter '" + DOMUtil.getQNameWithoutPrefix(filter)
+                    + "', only: " + Arrays.toString(canHandle()));
+        }
+    }
+
+    protected QueryInterpreter getInterpreter() {
+        return interpreter;
+    }
+
     protected QueryContext getContext() {
         return interpreter.getContext();
     }
 
     protected abstract QName[] canHandle();
 
-    public abstract void interpret(Element filter, boolean pushNot);
+    public abstract void interpret(Element filter, boolean pushNot) throws QueryInterpreterException;
 }

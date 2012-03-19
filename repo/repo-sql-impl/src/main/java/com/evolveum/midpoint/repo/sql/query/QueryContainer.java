@@ -31,10 +31,10 @@ import java.lang.annotation.Target;
  *
  * @author lazyman
  */
-@Target({ElementType.TYPE})
+@Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface QueryContainer {
 
-    String name();
-    String namespace();
+    String name() default "";
+    String namespace() default "";
 }

@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.data.common.RAccountShadow;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -59,7 +61,28 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
     SessionFactory factory;
 
     @Test
-    public void simpeQueryTest() {
+    public void a() {
+        Session session = open();
+        Criteria main = session.createCriteria(RAccountShadow.class, "a");
+
+        Criteria extension = main.createCriteria("extension","e");
+        Criteria stringAttr = extension.createCriteria("strings", "s");
+//        stringAttr.add(Restrictions.eq("value", "uid=test,dc=example,dc=com"));
+
+        Criteria resourceRef = main.createCriteria("resourceRef", "r");
+//        resourceRef.add(Restrictions.eq("targetOid", "0001092019091029301923012"));
+
+        main.add(Restrictions.or(Restrictions.eq("s.value", "uid=test,dc=example,dc=com"),
+                Restrictions.eq("r.targetOid", "0001092019091029301923012")));
+        
+        String sql = HibernateToSqlTranslator.toSql(main);
+        LOGGER.info("aaaa>>>>SQL QUERY\n{}\nEND SQL", new Object[]{sql});
+
+        close(session);
+    }
+
+    @Test
+    public void simpeUserQueryTest() throws Exception {
         Session session = open();
         QueryInterpreter interpreter = new QueryInterpreter(session, UserType.class, prismContext);
 
@@ -67,7 +90,21 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
         Element filter = DOMUtil.listChildElements(document.getDocumentElement()).get(0);
         Criteria criteria = interpreter.interpret(filter);
         String sql = HibernateToSqlTranslator.toSql(criteria);
-        LOGGER.info(">>>>SQL QUERY\n{}\nEND SQL", new Object[]{sql});
+        LOGGER.info("user>>>>SQL QUERY\n{}\nEND SQL", new Object[]{sql});
+
+        close(session);
+    }
+
+    @Test
+    public void simpeAccountQueryTest() throws Exception {
+        Session session = open();
+        QueryInterpreter interpreter = new QueryInterpreter(session, AccountShadowType.class, prismContext);
+
+        Document document = DOMUtil.parseFile(new File("./src/test/resources/query/query-account-by-attributes.xml"));
+        Element filter = DOMUtil.listChildElements(document.getDocumentElement()).get(0);
+        Criteria criteria = interpreter.interpret(filter);
+        String sql = HibernateToSqlTranslator.toSql(criteria);
+        LOGGER.info("account>>>>SQL QUERY\n{}\nEND SQL", new Object[]{sql});
 
         close(session);
     }

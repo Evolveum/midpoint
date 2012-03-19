@@ -46,8 +46,10 @@ public class QueryInterpreter {
         getContext().setCriteria(null, criteria);
     }
 
-    public Criteria interpret(Element filter) {
+    public Criteria interpret(Element filter) throws QueryInterpreterException {
         interpret(filter, false);
+
+        //todo create sub criterions based on paths in filter
 
 //        //only example
 //        Criteria main = getContext().getCriteria(null);
@@ -63,7 +65,7 @@ public class QueryInterpreter {
         return getContext().getCriteria(null);
     }
 
-    private void interpret(Element filter, boolean pushNot) {
+    public void interpret(Element filter, boolean pushNot) throws QueryInterpreterException {
         //todo fix operation choosing and initialization...
         Op operation = new LogicalOp(this);
         if (operation.canHandle(filter)) {

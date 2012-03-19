@@ -45,10 +45,8 @@ public class EqualOp extends Op {
     }
 
     @Override
-    public void interpret(Element filter, boolean pushNot) {
-        if (!canHandle(filter)) {
-            throw new IllegalArgumentException("Can't handle filter.....todo");
-        }
+    public void interpret(Element filter, boolean pushNot) throws QueryInterpreterException {
+        validate(filter);
 
         List<Element> children = DOMUtil.listChildElements(filter);
         Element value = children.get(0);
