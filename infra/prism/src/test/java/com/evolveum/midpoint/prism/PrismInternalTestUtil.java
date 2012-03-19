@@ -54,6 +54,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	
 	// Files
 	public static final String OBJECT_DIR_PATH = "src/test/resources/parsing";
+	public static File SCHEMA_DIR = new File("src/test/resources/schema");
 	public static File EXTRA_SCHEMA_DIR = new File("src/test/resources/schema-extra");
 	
 	// User: jack
@@ -131,7 +132,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		schemaRegistry.setNamespacePrefixMapper(prefixMapper);
 		schemaRegistry.registerPrismSchemaResource("xml/ns/test/foo-1.xsd", "foo", ObjectFactory.class.getPackage());
 		schemaRegistry.registerSchemaResource("xml/ns/standard/XMLSchema.xsd", "xsd");
-		schemaRegistry.registerPrismSchemasFromDirectory(new File("src/test/resources/schema"));
+		schemaRegistry.registerPrismSchemasFromDirectory(SCHEMA_DIR);
 		prefixMapper.registerPrefix(PrismConstants.NS_ANNOTATION, PrismConstants.PREFIX_NS_ANNOTATION);
 		schemaRegistry.setObjectSchemaNamespace(NS_FOO);
 		PrismContext context = PrismContext.create(schemaRegistry);
