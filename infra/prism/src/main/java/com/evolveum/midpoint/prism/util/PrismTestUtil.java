@@ -73,7 +73,7 @@ public class PrismTestUtil {
 		prismContext = createInitializedPrismContext();
 	}
 
-	public static PrismContext createPrismContext() throws SchemaException {
+	public static PrismContext createPrismContext() throws SchemaException, FileNotFoundException {
     	if (prismContextFactory == null) {
     		throw new IllegalStateException("Cannot create prism context, no prism factory is set");
     	}

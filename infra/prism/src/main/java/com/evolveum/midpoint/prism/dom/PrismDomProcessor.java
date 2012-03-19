@@ -540,16 +540,7 @@ public class PrismDomProcessor {
 			List<? extends Object> valueElements) {
 		Object firstElement = valueElements.get(0);
 		QName elementQName = JAXBUtil.getElementQName(firstElement);
-		String elementNamespace = elementQName.getNamespaceURI();
-		if (elementNamespace == null) {
-			return null;
-		}
-		PrismSchema schema = getPrismContext().getSchemaRegistry().findSchemaByNamespace(elementNamespace);
-		if (schema == null) {
-			return null;
-		}
-		ItemDefinition itemDefinition = schema.findItemDefinition(elementQName, ItemDefinition.class);
-		return itemDefinition;
+		return getPrismContext().getSchemaRegistry().resolveGlobalItemDefinition(elementQName);
 	}
 
 	public PrismReference parsePrismReference(List<? extends Object> valueElements, QName propName, PrismReferenceDefinition referenceDefinition) throws SchemaException {

@@ -78,6 +78,13 @@ public abstract class PrismValue implements Visitable {
 		this.parent = parent;
 	}
 	
+	public PrismContext getPrismContext() {
+		if (parent != null) {
+			return parent.getPrismContext();
+		}
+		return null;
+	}
+	
 	public void applyDefinition(ItemDefinition definition) throws SchemaException {
 		// Do nothing by default
 	}

@@ -47,6 +47,7 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -241,7 +242,7 @@ class DomToSchemaProcessor {
 		// As this is a top-level complex type definition, attempt to create object or container definition
 		// from it
 		
-		PrismContainerDefinition defFromComplexType = getDefinitionFactory().createExtraDefinitionFromComplexType(complexType, complexTypeDefinition, prismContext, 
+		PrismContainerDefinition<?> defFromComplexType = getDefinitionFactory().createExtraDefinitionFromComplexType(complexType, complexTypeDefinition, prismContext, 
 				complexType.getAnnotation());
 		
 		if (defFromComplexType != null) {
@@ -348,8 +349,7 @@ class DomToSchemaProcessor {
 			
 				if (isObjectReference(xsType, annotation)) {
 				
-					PrismReferenceDefinition propDef = processObjectReferenceDefinition(xsType, elementName, annotation, ctd, p);					
-					setMultiplicity(propDef, p);
+					processObjectReferenceDefinition(xsType, elementName, annotation, ctd, p);					
 				
 				} else if (isObjectDefinition(xsType)) {					
 					// This is object reference. It also has its *Ref equivalent which will get parsed.
@@ -360,13 +360,12 @@ class DomToSchemaProcessor {
 					if (isAny(xsType)) {
 						if (isPropertyContainer(elementDecl)) {
 							XSAnnotation containerAnnotation = xsType.getAnnotation();
-							PrismContainerDefinition containerDefinition = createPropertyContainerDefinition(xsType, p,
-									null, containerAnnotation);
+							PrismContainerDefinition<?> containerDefinition = createPropertyContainerDefinition(xsType, p,
+									null, containerAnnotation, false);
 							ctd.getDefinitions().add(containerDefinition);
 						} else {
 							PrismPropertyDefinition propDef = createPropertyDefinition(xsType, elementName, DOMUtil.XSD_ANY,
 									ctd, annotation, p);
-							setMultiplicity(propDef, p);
 							ctd.getDefinitions().add(propDef);
 						}
 					}
@@ -374,7 +373,6 @@ class DomToSchemaProcessor {
 				} else if (isPropertyContainer(elementDecl)) {
 					
 					// Create an inner PropertyContainer. It is assumed that this is a XSD complex type
-					// TODO: check cast
 					XSComplexType complexType = (XSComplexType)xsType;
 					ComplexTypeDefinition complexTypeDefinition = null;
 					if (typeFromAnnotation != null && complexType != null && !typeFromAnnotation.equals(getType(xsType))) {
@@ -393,8 +391,8 @@ class DomToSchemaProcessor {
 						complexTypeDefinition = createComplexTypeDefinition(complexType);
 					}
 					XSAnnotation containerAnnotation = complexType.getAnnotation();
-					PrismContainerDefinition containerDefinition = createPropertyContainerDefinition(xsType, p, 
-							complexTypeDefinition, containerAnnotation);
+					PrismContainerDefinition<?> containerDefinition = createPropertyContainerDefinition(xsType, p, 
+							complexTypeDefinition, containerAnnotation, false);
 					if (isAny(xsType)) {
 						containerDefinition.setRuntimeSchema(true);
 					}
@@ -406,8 +404,6 @@ class DomToSchemaProcessor {
 					QName typeName = new QName(xsType.getTargetNamespace(), xsType.getName());
 
 					PrismPropertyDefinition propDef = createPropertyDefinition(xsType, elementName, typeName, ctd, annotation, p);
-					
-					setMultiplicity(propDef, p);
 					
 					ctd.add(propDef);
 				}
@@ -450,12 +446,18 @@ class DomToSchemaProcessor {
 			QName targetType = DOMUtil.getQNameValue(targetTypeAnnotationElement);
 			definition.setTargetTypeName(targetType);
 		}
+		setMultiplicity(definition, elementParticle, false);
 		return definition;
 	}
 
-	private void setMultiplicity(ItemDefinition propDef, XSParticle p) {
-		propDef.setMinOccurs(p.getMinOccurs());
-		propDef.setMaxOccurs(p.getMaxOccurs());
+	private void setMultiplicity(ItemDefinition itemDef, XSParticle particle, boolean topLevel) {
+		if (topLevel || particle == null) {
+			itemDef.setMinOccurs(0);
+			itemDef.setMaxOccurs(-1);
+		} else {
+			itemDef.setMinOccurs(particle.getMinOccurs());
+			itemDef.setMaxOccurs(particle.getMaxOccurs());
+		}
 	}
 
 	/**
@@ -490,14 +492,13 @@ class DomToSchemaProcessor {
 				if (isPropertyContainer(xsElementDecl) || isObjectDefinition(xsType)) {
 					
 					ComplexTypeDefinition complexTypeDefinition = schema.findComplexTypeDefinition(typeQName);
-					PrismContainerDefinition propertyContainerDefinition = createPropertyContainerDefinition(xsType, xsElementDecl,
-							complexTypeDefinition, annotation, null);
+					PrismContainerDefinition<?> propertyContainerDefinition = createPropertyContainerDefinition(xsType, xsElementDecl,
+							complexTypeDefinition, annotation, null, true);
 					schema.getDefinitions().add(propertyContainerDefinition);
 					
 				} else {
 					
 					// Create a top-level property definition (even if this is a XSD complex type)
-					// This is not really useful, just for the sake of completeness
 					PrismPropertyDefinition propDef = createPropertyDefinition(xsType, elementName, typeQName, null, annotation, null);
 					schema.getDefinitions().add(propDef);
 				}
@@ -653,23 +654,23 @@ class DomToSchemaProcessor {
 	 * @param createResourceObject true if ResourceObjectDefinition should be created
 	 * @return appropriate PropertyContainerDefinition instance
 	 */
-	private PrismContainerDefinition createPropertyContainerDefinition(XSType xsType, XSParticle elementParticle, 
-			ComplexTypeDefinition complexTypeDefinition, XSAnnotation annotation) throws SchemaException {	
+	private PrismContainerDefinition<?> createPropertyContainerDefinition(XSType xsType, XSParticle elementParticle, 
+			ComplexTypeDefinition complexTypeDefinition, XSAnnotation annotation, boolean topLevel) throws SchemaException {	
 		XSTerm elementTerm = elementParticle.getTerm();
 		XSElementDecl elementDecl = elementTerm.asElementDecl();
 		
-		PrismContainerDefinition pcd = createPropertyContainerDefinition(xsType, elementDecl, complexTypeDefinition, 
-				annotation, elementParticle);
-		pcd.setMinOccurs(elementParticle.getMinOccurs());
-		pcd.setMaxOccurs(elementParticle.getMaxOccurs());
+		PrismContainerDefinition<?> pcd = createPropertyContainerDefinition(xsType, elementDecl, complexTypeDefinition, 
+				annotation, elementParticle, topLevel);
 		return pcd;
 	}
 	
-	private PrismContainerDefinition createPropertyContainerDefinition(XSType xsType, XSElementDecl elementDecl, 
-			ComplexTypeDefinition complexTypeDefinition, XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private PrismContainerDefinition<?> createPropertyContainerDefinition(XSType xsType, XSElementDecl elementDecl, 
+			ComplexTypeDefinition complexTypeDefinition, XSAnnotation annotation, XSParticle elementParticle,
+			boolean topLevel) throws SchemaException {
 		
 		QName elementName = new QName(elementDecl.getTargetNamespace(), elementDecl.getName());
-		PrismContainerDefinition pcd = null;
+		PrismContainerDefinition<?> pcd = null;
 		
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
 		
@@ -680,12 +681,14 @@ class DomToSchemaProcessor {
 			}
 			pcd = definitionFactory.createObjectDefinition(elementName, complexTypeDefinition, prismContext, 
 					compileTimeClass, annotation, elementParticle);
+			// Multiplicity is fixed to a single-value here
+			pcd.setMinOccurs(1);
+			pcd.setMaxOccurs(1);
 		} else {
 			pcd = definitionFactory.createContainerDefinition(elementName, complexTypeDefinition, prismContext, 
 					annotation, elementParticle);
+			setMultiplicity(pcd, elementParticle, topLevel);
 		}
-		
-		// TODO: parse generic annotations
 		
 		// ignore		
 		List<Element> ignore = SchemaProcessorUtil.getAnnotationElements(annotation, A_IGNORE);
@@ -717,6 +720,8 @@ class DomToSchemaProcessor {
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
 		
 		prodDef = definitionFactory.createPropertyDefinition(elementName, typeName, ctd, prismContext, annotation, elementParticle);
+		
+		setMultiplicity(prodDef, elementParticle, ctd == null);
 		
 		// Process generic annotations
 		

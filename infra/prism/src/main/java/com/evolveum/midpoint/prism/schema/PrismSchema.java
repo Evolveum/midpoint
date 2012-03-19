@@ -238,7 +238,25 @@ public class PrismSchema implements Dumpable, DebugDumpable, Serializable {
 		return null;
 	}
 
+	public PrismPropertyDefinition findPropertyDefinitionByElementName(QName elementName) {
+		return findPropertyDefinitionByElementName(elementName, PrismPropertyDefinition.class);
+	}
 
+	private <T extends PrismPropertyDefinition> T findPropertyDefinitionByElementName(QName elementName, Class<T> type) {
+		if (elementName == null) {
+			throw new IllegalArgumentException("elementName must be supplied");
+		}
+		// TODO: check for multiple definition with the same type
+		for (Definition definition : definitions) {
+			if (type.isAssignableFrom(definition.getClass())
+					&& elementName.equals(definition.getDefaultName())) {
+				return (T) definition;
+			}
+		}
+		return null;
+	}
+
+	
 	/**
 	 * Finds complex type definition by type name.
 	 */

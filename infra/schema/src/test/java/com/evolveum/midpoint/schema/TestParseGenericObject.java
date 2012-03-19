@@ -26,8 +26,10 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
@@ -36,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfiguratio
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
+import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -235,15 +238,28 @@ public class TestParseGenericObject {
 
 		assertPropertyValue(generic, "name", "My Sample Config Object");
 		assertPropertyDefinition(generic, "name", DOMUtil.XSD_STRING, 0, 1);		
-		assertPropertyValue(generic, "objectType", "http://myself.me/schemas/objects#SampleConfigType");
+		assertPropertyValue(generic, "objectType", QNameUtil.qNameToUri(
+				new QName(SchemaTestConstants.NS_EXTENSION, "SampleConfigType")));
 		assertPropertyDefinition(generic, "objectType", DOMUtil.XSD_ANYURI, 1, 1);
 				
 		PrismContainer<?> extensionContainer = generic.findContainer(GenericObjectType.F_EXTENSION);
 		assertContainerDefinition(extensionContainer, "extension", ExtensionType.COMPLEX_TYPE, 0, 1);
 		PrismContainerValue<?> extensionContainerValue = extensionContainer.getValue();
-		List<Item<?>> configItems = extensionContainerValue.getItems();
-		assertEquals("Wrong number of extension items", 1, configItems.size());
+		List<Item<?>> extensionItems = extensionContainerValue.getItems();
+		assertEquals("Wrong number of extension items", 1, extensionItems.size());
 
+		Item<?> locationsItem = extensionItems.get(0);
+		if (!(locationsItem instanceof PrismProperty)) {
+			AssertJUnit.fail("Expected the extension item to be of type "+PrismProperty.class+
+					"but it was of type "+locationsItem.getClass());
+		}
+		PrismProperty<?> locationsProperty = (PrismProperty<?>)locationsItem;
+		assertEquals("Wrong name of <locations>", SchemaTestConstants.EXTENSION_LOCATIONS_ELEMENT, locationsProperty.getName());
+		PrismPropertyDefinition locationsDefinition = locationsProperty.getDefinition();
+		assertNotNull("No definition for <locations>", locationsDefinition);
+		PrismAsserts.assertDefinition(locationsDefinition, SchemaTestConstants.EXTENSION_LOCATIONS_ELEMENT, 
+				SchemaTestConstants.EXTENSION_LOCATIONS_TYPE, 0, -1);
+		
 		// TODO
 						
 	}

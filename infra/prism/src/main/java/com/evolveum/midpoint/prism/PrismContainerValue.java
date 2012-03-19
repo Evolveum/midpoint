@@ -679,7 +679,12 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 			ItemDefinition itemDefinition = definition.findItemDefinition(item.getName());
 			if (itemDefinition == null) {
 				if (definition.isRuntimeSchema) {
-					// This is OK, there may not be a complete definition for runtime schema
+					// If we have prism context, try to locate global definition. But even if that is not
+					// found it is still OK. This is runtime container. We tolerate quite a lot here.
+					PrismContext prismContext = getPrismContext();
+					if (prismContext != null) {
+						itemDefinition = prismContext.getSchemaRegistry().resolveGlobalItemDefinition(item.getName());
+					}
 				} else {
 					throw new SchemaException("No definition for item "+item.getName()+" in "+getParent());
 				}

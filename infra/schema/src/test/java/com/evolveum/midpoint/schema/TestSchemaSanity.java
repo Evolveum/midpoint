@@ -241,9 +241,32 @@ public class TestSchemaSanity {
 		
 		
 		PrismContainerDefinition configurationPropertiesContainer = icfSchema.findContainerDefinitionByElementName(ICFC_CONFIGURATION_PROPERTIES);
-		PrismAsserts.assertDefinition(configurationPropertiesContainer, ICFC_CONFIGURATION_PROPERTIES, ICFC_CONFIGURATION_PROPERTIES_TYPE, 1, 1);
+		PrismAsserts.assertDefinition(configurationPropertiesContainer, ICFC_CONFIGURATION_PROPERTIES, ICFC_CONFIGURATION_PROPERTIES_TYPE, 0, -1);
 		assertTrue("configurationPropertiesContainer definition is NOT marked as runtime", configurationPropertiesContainer.isRuntimeSchema());
 				
+	}
+	
+	/**
+	 * Extension schema should be loaded from src/test/resources/schema during test initialization.
+	 */
+	@Test
+	public void testExtensionSchema() {
+		System.out.println("===[ testExtensionSchema ]===");
+
+		// WHEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		assertNotNull("No prism context", prismContext);
+		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
+		assertNotNull("No schema registry in context", schemaRegistry);
+		
+		PrismSchema extensionSchema = schemaRegistry.findSchemaByNamespace(SchemaTestConstants.NS_EXTENSION);
+		assertNotNull("No extension schema", extensionSchema);
+		System.out.println("Extension schema:");
+		System.out.println(extensionSchema.dump());
+		
+		
+		PrismPropertyDefinition locationsProperty = extensionSchema.findPropertyDefinitionByElementName(EXTENSION_LOCATIONS_ELEMENT);
+		PrismAsserts.assertDefinition(locationsProperty, EXTENSION_LOCATIONS_ELEMENT, EXTENSION_LOCATIONS_TYPE, 0, -1);
 	}
 		
 	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {

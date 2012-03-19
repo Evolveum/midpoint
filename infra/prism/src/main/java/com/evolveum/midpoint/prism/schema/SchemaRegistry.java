@@ -729,5 +729,21 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		return propDef;
 	}
 
+	/**
+	 * Looks for a top-level definition for the specified element name (in all schemas). 
+	 */
+	public ItemDefinition resolveGlobalItemDefinition(QName elementQName) {
+		String elementNamespace = elementQName.getNamespaceURI();
+		if (elementNamespace == null) {
+			return null;
+		}
+		PrismSchema schema = findSchemaByNamespace(elementNamespace);
+		if (schema == null) {
+			return null;
+		}
+		ItemDefinition itemDefinition = schema.findItemDefinition(elementQName, ItemDefinition.class);
+		return itemDefinition;
+	}
+
 
 }
