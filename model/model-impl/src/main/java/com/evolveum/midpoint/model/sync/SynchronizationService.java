@@ -219,7 +219,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
      * @throws SynchronizationException
      */
     private SynchronizationSituation checkSituationWithCorrelation(
-            ResourceObjectShadowChangeDescription change, OperationResult result) throws SynchronizationException {
+            ResourceObjectShadowChangeDescription change, OperationResult result) throws SynchronizationException, SchemaException {
 
         if (ChangeType.DELETE.equals(getModificationType(change))) {
             //account was deleted and we know it didn't have owner

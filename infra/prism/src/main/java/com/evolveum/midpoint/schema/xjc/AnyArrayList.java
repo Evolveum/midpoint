@@ -112,7 +112,13 @@ public class AnyArrayList<T extends Containerable> extends AbstractList<Object> 
     		return getElements().add(element);
     	} else {
 	    	QName elementName = JAXBUtil.getElementQName(element);
-	    	Item<?> item = containerValue.findOrCreateItem(elementName);
+	    	Item<?> item;
+			try {
+				item = containerValue.findOrCreateItem(elementName);
+			} catch (SchemaException e1) {
+				// this should not happen
+				throw new IllegalStateException("Internal schema error: "+e1.getMessage(),e1);
+			}
 	    	try {
 				return getPrismContext().getPrismDomProcessor().addItemValue(item, element, getContainer());
 			} catch (SchemaException e) {

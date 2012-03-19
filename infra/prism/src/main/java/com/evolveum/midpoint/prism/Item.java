@@ -278,7 +278,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     }
 
     
-    public boolean addAll(Collection<V> newValues) {
+    public boolean addAll(Collection<V> newValues) throws SchemaException {
     	boolean changed = false;
     	for (V val: newValues) {
     		if (add(val)) {
@@ -288,7 +288,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     	return changed;
     }
     
-    public boolean add(V newValue) {
+    public boolean add(V newValue) throws SchemaException {
     	newValue.setParent(this);
     	return values.add(newValue);
     }
@@ -305,7 +305,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     	return values.remove(index);
     }
 
-    public void replaceAll(Collection<V> newValues) {
+    public void replaceAll(Collection<V> newValues) throws SchemaException {
     	values.clear();
     	addAll(newValues);
     }
@@ -400,9 +400,13 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
 	}
 	
 	void applyDefinition(ItemDefinition definition) throws SchemaException {
+		applyDefinition(definition, true);
+	}
+	
+	void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException {
 		this.definition = definition;
 		for (PrismValue pval: getValues()) {
-			pval.applyDefinition(definition);
+			pval.applyDefinition(definition, force);
 		}
 	}
     

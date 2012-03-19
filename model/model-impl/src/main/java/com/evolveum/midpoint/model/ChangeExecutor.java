@@ -109,7 +109,7 @@ public class ChangeExecutor {
         }
     }
 
-    private String getOidFromContext(AccountSyncContext context) {
+    private String getOidFromContext(AccountSyncContext context) throws SchemaException {
         if (context.getAccountDelta() != null && context.getAccountDelta().getOid() != null) {
             return context.getAccountDelta().getOid();
         }

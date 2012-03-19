@@ -245,9 +245,10 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
      * Adds an item to a property container.
      *
      * @param item item to add.
+     * @throws SchemaException 
      * @throws IllegalArgumentException an attempt to add value that already exists
      */
-    public void add(Item<?> item) {
+    public void add(Item<?> item) throws SchemaException {
     	if (item.getName() == null) {
     		throw new IllegalArgumentException("Cannot add item without a name to value of container "+getParent());
     	}
@@ -255,6 +256,9 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
             throw new IllegalArgumentException("Item " + item.getName() + " is already present in " + this.getClass().getSimpleName());
         }
         item.setParent(this);
+        if (getParent() != null && getParent().getDefinition() != null && item.getDefinition() == null) {
+        	item.applyDefinition(determineItemDefinition(item, getParent().getDefinition()), false);
+        }
         items.add(item);
     }
 
@@ -263,7 +267,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
      *
      * @param item item to add.
      */
-    public void addReplaceExisting(Item<?> item) {
+    public void addReplaceExisting(Item<?> item) throws SchemaException {
         Item<?> existingItem = findItem(item.getName(), Item.class);
         if (existingItem != null) {
             items.remove(existingItem);
@@ -297,7 +301,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
      * @param itemsToAdd items to add
      * @throws IllegalArgumentException an attempt to add value that already exists
      */
-    public void addAll(Collection<? extends Item<?>> itemsToAdd) {
+    public void addAll(Collection<? extends Item<?>> itemsToAdd) throws SchemaException {
         for (Item<?> item : itemsToAdd) {
         	add(item);
         }
@@ -319,7 +323,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
         items.addAll(itemsToAdd);
     }
     
-	public void replace(Item<?> oldItem, Item<?> newItem) {
+	public void replace(Item<?> oldItem, Item<?> newItem) throws SchemaException {
 		remove(oldItem);
 		add(newItem);
 	}
@@ -364,15 +368,25 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     }
     
     public <I extends Item<?>> I findItem(QName itemName, Class<I> type) {
-    	return findCreateItem(itemName, type, null, false);
+    	try {
+			return findCreateItem(itemName, type, null, false);
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new SystemException("Internal Error: "+e.getMessage(),e);
+		}
     }
     
     public Item<?> findItem(QName itemName) {
-    	return findCreateItem(itemName, Item.class, null, false);
+    	try {
+			return findCreateItem(itemName, Item.class, null, false);
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new SystemException("Internal Error: "+e.getMessage(),e);
+		}
     }
     
     @SuppressWarnings("unchecked")
-	<I extends Item<?>> I findCreateItem(QName itemName, Class<I> type, ItemDefinition itemDefinition, boolean create) {
+	<I extends Item<?>> I findCreateItem(QName itemName, Class<I> type, ItemDefinition itemDefinition, boolean create) throws SchemaException {
     	for (Item<?> item : items) {
             if (itemName.equals(item.getName())) {
             	if (type.isAssignableFrom(item.getClass())) {
@@ -404,7 +418,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 
     // Expects that "self" path is NOT present in propPath
     @SuppressWarnings("unchecked")
-	<I extends Item<?>> I findCreateItem(PropertyPath propPath, Class<I> type, ItemDefinition itemDefinition, boolean create) {
+	<I extends Item<?>> I findCreateItem(PropertyPath propPath, Class<I> type, ItemDefinition itemDefinition, boolean create) throws SchemaException {
     	PropertyPathSegment first = propPath.first();
     	PropertyPath rest = propPath.rest();
     	for (Item<?> item : items) {
@@ -453,7 +467,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     }
     
     @SuppressWarnings("unchecked")
-	private <I extends Item<?>> I createSubItem(QName name, Class<I> type, ItemDefinition itemDefinition) {
+	private <I extends Item<?>> I createSubItem(QName name, Class<I> type, ItemDefinition itemDefinition) throws SchemaException {
     	// the item with specified name does not exist, create it now
 		Item<?> newItem = null;
 		
@@ -479,23 +493,23 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     	}
     }
 
-    public <T extends Containerable> PrismContainer<T> findOrCreateContainer(QName containerName) {
+    public <T extends Containerable> PrismContainer<T> findOrCreateContainer(QName containerName) throws SchemaException {
     	return findCreateItem(containerName, PrismContainer.class, null, true);
     }
     
-    public PrismReference findOrCreateReference(QName referenceName) {
+    public PrismReference findOrCreateReference(QName referenceName) throws SchemaException {
     	return findCreateItem(referenceName, PrismReference.class, null, true);
     }
     
-    public Item<?> findOrCreateItem(QName containerName) {
+    public Item<?> findOrCreateItem(QName containerName) throws SchemaException {
     	return findCreateItem(containerName, Item.class, null, true);
     }
     
-    public <X extends Item> X findOrCreateItem(QName containerName, Class<X> type) {
+    public <X extends Item> X findOrCreateItem(QName containerName, Class<X> type) throws SchemaException {
     	return findCreateItem(containerName, type, null, true);
     }
 
-    public <X> PrismProperty<X> findOrCreateProperty(QName propertyQName) {
+    public <X> PrismProperty<X> findOrCreateProperty(QName propertyQName) throws SchemaException {
         PrismProperty<X> property = findItem(propertyQName, PrismProperty.class);
         if (property != null) {
             return property;
@@ -511,7 +525,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 //        return container.findOrCreateProperty(propertyQName, valueClass);
 //    }
 
-    public <X extends Containerable> PrismContainer<X> createContainer(QName containerName) {
+    public <X extends Containerable> PrismContainer<X> createContainer(QName containerName) throws SchemaException {
         if (getParent().getDefinition() == null) {
             throw new IllegalStateException("No definition of container "+containerName);
         }
@@ -524,7 +538,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
         return container;
     }
 
-    public <X> PrismProperty<X> createProperty(QName propertyName) {
+    public <X> PrismProperty<X> createProperty(QName propertyName) throws SchemaException {
         PrismPropertyDefinition propertyDefinition = null;
         if (getParent() != null && getParent().getDefinition() != null) {
         	propertyDefinition = getParent().getDefinition().findPropertyDefinition(propertyName);
@@ -662,21 +676,31 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	
 	
 	
+//	@Override
+//	public void applyDefinition(ItemDefinition definition) throws SchemaException {
+//		applyDefinition(definition, true);
+//	}
+	
 	@Override
-	public void applyDefinition(ItemDefinition definition) throws SchemaException {
+	public void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException {
 		if (!(definition instanceof PrismContainerDefinition)) {
     		throw new IllegalArgumentException("Cannot apply "+definition+" to container " + this);
     	}
-		applyDefinition((PrismContainerDefinition)definition);
+		applyDefinition((PrismContainerDefinition)definition, force);
 	}
 
-	public void applyDefinition(PrismContainerDefinition definition) throws SchemaException {
+	public void applyDefinition(PrismContainerDefinition definition, boolean force) throws SchemaException {
 		if (rawElements != null) {
 			// There are DOM/JAXB elements that needs to be parsed while the schema is being applied
 			parseElements(definition);
 		}
 		for (Item<?> item: items) {
-			ItemDefinition itemDefinition = definition.findItemDefinition(item.getName());
+			if (!force && item.getDefinition() != null) {
+				// Item has a definition already, no need to apply it
+				continue;
+			}
+			ItemDefinition itemDefinition = determineItemDefinition(item, definition); 
+				definition.findItemDefinition(item.getName());
 			if (itemDefinition == null) {
 				if (definition.isRuntimeSchema) {
 					// If we have prism context, try to locate global definition. But even if that is not
@@ -691,6 +715,27 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 			}
 			item.applyDefinition(itemDefinition);
 		}
+	}
+
+	/**
+	 * This method can both return null and throws exception. It returns null in case there is no definition
+	 * but it is OK (e.g. runtime schema). It throws exception if there is no definition and it is not OK.
+	 */
+	private ItemDefinition determineItemDefinition(Item<?> item, PrismContainerDefinition<T> containerDefinition) throws SchemaException {
+		ItemDefinition itemDefinition = containerDefinition.findItemDefinition(item.getName());
+		if (itemDefinition == null) {
+			if (containerDefinition.isRuntimeSchema) {
+				// If we have prism context, try to locate global definition. But even if that is not
+				// found it is still OK. This is runtime container. We tolerate quite a lot here.
+				PrismContext prismContext = getPrismContext();
+				if (prismContext != null) {
+					itemDefinition = prismContext.getSchemaRegistry().resolveGlobalItemDefinition(item.getName());
+				}
+			} else {
+				throw new SchemaException("No definition for item "+item.getName()+" in "+getParent());
+			}
+		}
+		return itemDefinition;
 	}
 
 	private void parseElements(PrismContainerDefinition definition) throws SchemaException {

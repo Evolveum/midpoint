@@ -122,7 +122,7 @@ public class ReconciliationProcessor {
     }
 
     private void reconcileAccount(AccountSyncContext accCtx,
-            Map<QName, DeltaSetTriple<ValueConstruction>> tripleMap, RefinedAccountDefinition accountDefinition) {
+            Map<QName, DeltaSetTriple<ValueConstruction>> tripleMap, RefinedAccountDefinition accountDefinition) throws SchemaException {
 
     	PrismObject<AccountShadowType> account = accCtx.getAccountNew();
 
@@ -181,7 +181,7 @@ public class ReconciliationProcessor {
         }
     }
 
-	private void recordDelta(AccountSyncContext accCtx, ResourceAttributeDefinition attrDef, ChangeType changeType, Object value) {
+	private void recordDelta(AccountSyncContext accCtx, ResourceAttributeDefinition attrDef, ChangeType changeType, Object value) throws SchemaException {
 		LOGGER.trace("Reconciliation will {} value of attribute {}: {}", new Object[]{changeType, attrDef, value});
 		
 		PropertyDelta attrDelta = new PropertyDelta(SchemaConstants.PATH_ATTRIBUTES, attrDef.getName(), attrDef);

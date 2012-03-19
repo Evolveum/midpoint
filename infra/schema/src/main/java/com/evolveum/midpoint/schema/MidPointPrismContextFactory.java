@@ -50,11 +50,11 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 	
 	private File extraSchemaDir;
 		
-	MidPointPrismContextFactory() {
+	public MidPointPrismContextFactory() {
 		this.extraSchemaDir = null;
 	}
 
-	MidPointPrismContextFactory(File extraSchemaDir) {
+	public MidPointPrismContextFactory(File extraSchemaDir) {
 		this.extraSchemaDir = extraSchemaDir;
 	}
 

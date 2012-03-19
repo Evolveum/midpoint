@@ -292,7 +292,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	/**
 	 * Apply this delta (path) to a property container.
 	 */
-	public void applyTo(PrismContainer<?> propertyContainer) {
+	public void applyTo(PrismContainer<?> propertyContainer) throws SchemaException {
 		Item<?> item = propertyContainer.findOrCreateItem(getPath(), getItemClass(), getDefinition());
 		applyTo(item);
 		if (item.isEmpty()) {
@@ -300,7 +300,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		}
 	}
 
-	public static void applyTo(Collection<? extends ItemDelta> deltas, PrismContainer propertyContainer) {
+	public static void applyTo(Collection<? extends ItemDelta> deltas, PrismContainer propertyContainer) throws SchemaException {
 		for (ItemDelta delta : deltas) {
 			delta.applyTo(propertyContainer);
 		}
@@ -309,7 +309,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	/**
 	 * Apply this delta (path) to a property.
 	 */
-	public void applyTo(Item item) {
+	public void applyTo(Item item) throws SchemaException {
 		if (valuesToReplace != null) {
 			item.replaceAll(valuesToReplace);
 			return;

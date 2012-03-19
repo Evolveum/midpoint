@@ -28,6 +28,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
@@ -70,9 +71,16 @@ public class ConnectorTypeUtil {
 	}
 	
 	public static void setConnectorXsdSchema(PrismObject<ConnectorType> connector, Element xsdElement) {
-		PrismContainer<XmlSchemaType> schemaContainer = connector.findOrCreateContainer(ConnectorType.F_SCHEMA);
-		PrismProperty<Element> definitionProperty = schemaContainer.findOrCreateProperty(XmlSchemaType.F_DEFINITION);
-		ObjectTypeUtil.setXsdSchemaDefinition(definitionProperty, xsdElement);
+		PrismContainer<XmlSchemaType> schemaContainer;
+		try {
+			schemaContainer = connector.findOrCreateContainer(ConnectorType.F_SCHEMA);
+			PrismProperty<Element> definitionProperty = schemaContainer.findOrCreateProperty(XmlSchemaType.F_DEFINITION);
+			ObjectTypeUtil.setXsdSchemaDefinition(definitionProperty, xsdElement);
+		} catch (SchemaException e) {
+			// Should not happen
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
+		
 	}
 	
 }

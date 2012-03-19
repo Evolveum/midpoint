@@ -249,7 +249,7 @@ public class PrismDomProcessor {
 	/**
 	 * Adds all the value to the container value, merging with existing values if necessary.
 	 */
-	private <T extends Containerable> void addValuesToContainerValue(PrismContainerValue<T> containerValue, Collection<? extends Item> newContainerItems) {
+	private <T extends Containerable> void addValuesToContainerValue(PrismContainerValue<T> containerValue, Collection<? extends Item> newContainerItems) throws SchemaException {
 		for (Item<?> newItem: newContainerItems) {
 			Item existingItem = containerValue.findItem(newItem.getName());
 			if (existingItem == null) {
@@ -397,7 +397,7 @@ public class PrismDomProcessor {
 		return propDef;
 	}
 		
-	private <T> PrismProperty<T> parsePrismPropertyRaw(List<? extends Object> valueElements, QName itemName) {
+	private <T> PrismProperty<T> parsePrismPropertyRaw(List<? extends Object> valueElements, QName itemName) throws SchemaException {
 		Object firstElement = valueElements.get(0);
 		QName propertyName = JAXBUtil.getElementQName(firstElement);
 		PrismProperty<T> property = new PrismProperty<T>(propertyName);

@@ -137,16 +137,26 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 
 	@Override
 	public <I extends Item<?>> I findItem(PropertyPath path, Class<I> type) {
-		return findCreateItem(path, type, null, false);
+		try {
+			return findCreateItem(path, type, null, false);
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new SystemException("Internal Error: "+e.getMessage(),e);
+		}
 	}
 
 	@Override
 	public Item<?> findItem(PropertyPath path) {
-		return findCreateItem(path, Item.class, null, false);
+		try {
+			return findCreateItem(path, Item.class, null, false);
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new SystemException("Internal Error: "+e.getMessage(),e);
+		}
 	}
 
 	@Override
-	<I extends Item<?>> I findCreateItem(PropertyPath path, Class<I> type, ItemDefinition itemDefinition, boolean create) {
+	<I extends Item<?>> I findCreateItem(PropertyPath path, Class<I> type, ItemDefinition itemDefinition, boolean create) throws SchemaException {
 		// Objects are only a single-valued containers. The path of the object itself is "empty".
 		// Fix this special behavior here.
 		PropertyPathSegment first = path.first();
@@ -167,7 +177,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 		}
 	}
 
-	public void addReplaceExisting(Item<?> item) {
+	public void addReplaceExisting(Item<?> item) throws SchemaException {
 		getValue().addReplaceExisting(item);
 	}
 

@@ -227,7 +227,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
      * Merge provided delta into this delta.
      * This delta is assumed to be chronologically earlier.
      */
-    public void merge(ObjectDelta<T> deltaToMerge) {
+    public void merge(ObjectDelta<T> deltaToMerge) throws SchemaException {
         if (changeType == ChangeType.ADD) {
             if (deltaToMerge.changeType == ChangeType.ADD) {
                 // Maybe we can, be we do not want. This is usually an error anyway.
@@ -266,7 +266,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
      * Union of several object deltas. The deltas are merged to create a single delta
      * that contains changes from all the deltas.
      */
-    public static <T extends Objectable> ObjectDelta<T> union(ObjectDelta<T>... deltas) {
+    public static <T extends Objectable> ObjectDelta<T> union(ObjectDelta<T>... deltas) throws SchemaException {
         List<ObjectDelta<T>> modifyDeltas = new ArrayList<ObjectDelta<T>>(deltas.length);
         ObjectDelta<T> addDelta = null;
         ObjectDelta<T> deleteDelta = null;
@@ -311,7 +311,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     }
 
     private static <T extends Objectable> ObjectDelta<T> mergeToDelta(ObjectDelta<T> firstDelta,
-            List<ObjectDelta<T>> modifyDeltas) {
+            List<ObjectDelta<T>> modifyDeltas) throws SchemaException {
         if (modifyDeltas.size() == 0) {
             return firstDelta;
         }
@@ -328,7 +328,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         return delta;
     }
 
-    private void mergeModifications(Collection<? extends ItemDelta> modificationsToMerge) {
+    private void mergeModifications(Collection<? extends ItemDelta> modificationsToMerge) throws SchemaException {
         for (ItemDelta propDelta : modificationsToMerge) {
             if (changeType == ChangeType.ADD) {
                 propDelta.applyTo(objectToAdd);
@@ -348,7 +348,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
      * Applies this object delta to specified object, returns updated object.
      * It modifies the provided object.
      */
-    public void applyTo(PrismObject<T> targetObject) {
+    public void applyTo(PrismObject<T> targetObject) throws SchemaException {
     	if (isEmpty()) {
     		// nothing to do
     		return;
@@ -368,7 +368,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
      * @param objectOld object before change
      * @return object with applied changes or null if the object should not exit (was deleted)
      */
-    public PrismObject<T> computeChangedObject(PrismObject<T> objectOld) {
+    public PrismObject<T> computeChangedObject(PrismObject<T> objectOld) throws SchemaException {
         if (objectOld == null) {
             if (getChangeType() == ChangeType.ADD) {
                 objectOld = getObjectToAdd();
@@ -393,7 +393,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
      * Incorporates the property delta into the existing property deltas
      * (regardless of the change type).
      */
-    public void swallow(PropertyDelta newPropertyDelta) {
+    public void swallow(PropertyDelta newPropertyDelta) throws SchemaException {
         if (changeType == ChangeType.MODIFY) {
             // TODO: check for conflict
             addModification(newPropertyDelta);

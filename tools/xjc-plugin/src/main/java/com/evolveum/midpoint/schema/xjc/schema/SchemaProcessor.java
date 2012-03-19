@@ -100,10 +100,12 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_PRISM_UTIL_GET_FIELD_CONTAINER_VALUE = "getFieldContainerValue";
     private static final String METHOD_PRISM_UTIL_GET_CONTAINER_VALUES = "getContainerValues";
     private static final String METHOD_PRISM_UTIL_SET_FIELD_CONTAINER_VALUE = "setFieldContainerValue";
+    private static final String METHOD_PRISM_UTIL_GET_REFERENCE = "getReference";
     private static final String METHOD_PRISM_UTIL_GET_REFERENCE_VALUE = "getReferenceValue";
     private static final String METHOD_PRISM_UTIL_SET_REFERENCE_VALUE = "setReferenceValue";
     private static final String METHOD_PRISM_UTIL_SET_REFERENCE_OBJECT = "setReferenceObject";
     private static final String METHOD_PRISM_UTIL_OBJECTABLE_AS_REFERENCE_VALUE = "objectableAsReferenceValue";
+	private static final String METHOD_PRISM_UTIL_SETUP_CONTAINER_VALUE = "setupContainerValue";
     
     // ???
     private static final String METHOD_PRISM_GET_ANY = "getAny";
@@ -616,7 +618,8 @@ public class SchemaProcessor implements Processor {
         JVar containerValue = setContainerValue.param(PrismContainerValue.class, "containerValue");
         //create method body
         JBlock body = setContainerValue.body();
-        JInvocation invocation = JExpr.invoke(METHOD_AS_PRISM_CONTAINER).invoke(METHOD_CONTAINER_SET_VALUE);
+        JInvocation invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_SETUP_CONTAINER_VALUE);
+        invocation.arg(JExpr.invoke(METHOD_AS_PRISM_CONTAINER));
         invocation.arg(containerValue);
         body.add(invocation);
     }
@@ -1027,7 +1030,8 @@ public class SchemaProcessor implements Processor {
         JFieldRef qnameRef = JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name()));
         if (isList) {
             //if it's List<ObjectReferenceType> ...
-            JInvocation invoke = JExpr.invoke(JExpr.invoke(METHOD_AS_PRISM_CONTAINER_VALUE), "findOrCreateReference");
+            JInvocation invoke = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_REFERENCE); 
+            invoke.arg(JExpr.invoke(METHOD_AS_PRISM_CONTAINER_VALUE));
             invoke.arg(qnameRef);
             JVar ref = body.decl(CLASS_MAP.get(PrismReference.class), REFERENCE_LOCAL_VARIABLE_NAME, invoke);
 
@@ -1127,9 +1131,10 @@ public class SchemaProcessor implements Processor {
         JFieldRef qnameRef = JExpr.ref(fieldFPrefixUnderscoredUpperCase(refField.name()));
 
         if (isList) {
-            JInvocation invoke = JExpr.invoke(JExpr.invoke(METHOD_AS_PRISM_CONTAINER_VALUE), "findOrCreateReference");
-            invoke.arg(qnameRef);
-            JVar ref = body.decl(CLASS_MAP.get(PrismReference.class), REFERENCE_LOCAL_VARIABLE_NAME, invoke);
+        	JInvocation invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_REFERENCE);
+            invocation.arg(JExpr.invoke(METHOD_AS_PRISM_CONTAINER_VALUE));
+            invocation.arg(qnameRef);
+            JVar ref = body.decl(CLASS_MAP.get(PrismReference.class), REFERENCE_LOCAL_VARIABLE_NAME, invocation);
 
             JDefinedClass anonymous = createFieldReferenceGetterListAnon(field, classOutline);
             createFieldReferenceUseCreateItemBody(field, findMethod(anonymous, "createItem"));

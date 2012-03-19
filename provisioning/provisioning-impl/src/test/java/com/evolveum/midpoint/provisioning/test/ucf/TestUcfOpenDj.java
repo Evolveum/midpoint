@@ -761,7 +761,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		System.out.println("Account password: " + passwordAfter);
 	}
 	
-	private ResourceAttributeContainer createResourceObject(String dn, String sn, String cn) {
+	private ResourceAttributeContainer createResourceObject(String dn, String sn, String cn) throws SchemaException {
 		// Account type is hardcoded now
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema
 				.findObjectClassDefinition(new QName(resourceType.getNamespace(), "AccountObjectClass"));
@@ -787,7 +787,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		return resourceObject;
 	}
 	
-	private <T extends ResourceObjectShadowType> PrismObject<T> wrapInShadow(Class<T> type, ResourceAttributeContainer resourceObject) {
+	private <T extends ResourceObjectShadowType> PrismObject<T> wrapInShadow(Class<T> type, ResourceAttributeContainer resourceObject) throws SchemaException {
 		PrismObjectDefinition<T> shadowDefinition = getShadowDefinition(type);
 		PrismObject<T> shadow = shadowDefinition.instantiate();
 		resourceObject.setName(ResourceObjectShadowType.F_ATTRIBUTES);

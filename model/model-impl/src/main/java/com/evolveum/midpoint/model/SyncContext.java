@@ -234,7 +234,7 @@ public class SyncContext implements Dumpable, DebugDumpable {
      * Returns user delta, both primary and secondary (merged together).
      * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
      */
-    public ObjectDelta<UserType> getUserDelta() {
+    public ObjectDelta<UserType> getUserDelta() throws SchemaException {
         return ObjectDelta.union(userPrimaryDelta, userSecondaryDelta);
     }
 
@@ -254,7 +254,7 @@ public class SyncContext implements Dumpable, DebugDumpable {
      * Recompute new user state and new account states. It applies the deltas (both secondary and primary)
      * to the old states (userOld, accountOld), creating a new state (userNew, accountNew).
      */
-    public void recomputeNew() {
+    public void recomputeNew() throws SchemaException {
         recomputeUserNew();
         recomputeAccountsNew();
     }
@@ -263,7 +263,7 @@ public class SyncContext implements Dumpable, DebugDumpable {
      * Recompute new user state.
      * Assuming that oldUser is already set (or is null if it does not exist)
      */
-    public void recomputeUserNew() {
+    public void recomputeUserNew() throws SchemaException {
         ObjectDelta<UserType> userDelta = getUserDelta();
         if (userDelta == null) {
             // No change
@@ -276,7 +276,7 @@ public class SyncContext implements Dumpable, DebugDumpable {
     /**
      * Recompute new account state.
      */
-    public void recomputeAccountsNew() {
+    public void recomputeAccountsNew() throws SchemaException {
         for (AccountSyncContext accCtx : getAccountContexts()) {
             accCtx.recomputeAccountNew();
         }
@@ -286,7 +286,7 @@ public class SyncContext implements Dumpable, DebugDumpable {
      * Returns delta of user assignments, both primary and secondary (merged together).
      * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
      */
-    public ContainerDelta<AssignmentType> getAssignmentDelta() {
+    public ContainerDelta<AssignmentType> getAssignmentDelta() throws SchemaException {
         ObjectDelta<UserType> userDelta = getUserDelta();
         if (userDelta == null) {
             return createEmptyAssignmentDelta();
@@ -314,7 +314,7 @@ public class SyncContext implements Dumpable, DebugDumpable {
 	}
 	
 
-	public void addPrimaryUserDelta(ObjectDelta<UserType> userDelta) {
+	public void addPrimaryUserDelta(ObjectDelta<UserType> userDelta) throws SchemaException {
         if (userPrimaryDelta == null) {
             userPrimaryDelta = userDelta;
         } else {

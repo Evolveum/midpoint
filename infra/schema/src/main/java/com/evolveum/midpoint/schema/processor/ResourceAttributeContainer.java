@@ -77,7 +77,7 @@ public final class ResourceAttributeContainer extends PrismContainer {
 		return (Set) getValue().getProperties();
 	}
 
-	public void add(ResourceAttribute<?> attribute) {
+	public void add(ResourceAttribute<?> attribute) throws SchemaException {
 		super.add(attribute);
 	}
 

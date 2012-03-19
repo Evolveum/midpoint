@@ -209,7 +209,7 @@ public abstract class BaseAction implements Action {
         return accountContext;
     }
 
-    private void updateAccountActivation(AccountSyncContext accContext, ActivationDecision activationDecision) {
+    private void updateAccountActivation(AccountSyncContext accContext, ActivationDecision activationDecision) throws SchemaException {
         PrismObject<AccountShadowType> object = accContext.getAccountOld();
         if (object == null) {
             LOGGER.debug("Account object is null, skipping activation property check/update.");

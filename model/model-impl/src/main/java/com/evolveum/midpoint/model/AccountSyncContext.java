@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -183,7 +184,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
         this.accountSecondaryDelta = accountSecondaryDelta;
     }
 
-    public void addToSecondaryDelta(PropertyDelta accountPasswordDelta) {
+    public void addToSecondaryDelta(PropertyDelta accountPasswordDelta) throws SchemaException {
         if (accountSecondaryDelta == null) {
             accountSecondaryDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY);
             accountSecondaryDelta.setOid(oid);
@@ -191,7 +192,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
         accountSecondaryDelta.swallow(accountPasswordDelta);
     }
 
-    public ObjectDelta<AccountShadowType> getAccountDelta() {
+    public ObjectDelta<AccountShadowType> getAccountDelta() throws SchemaException {
         return ObjectDelta.union(accountPrimaryDelta, accountSecondaryDelta);
     }
 
@@ -266,7 +267,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
      * Recomputes the new state of account (accountNew). It is computed by applying deltas to the old state (accountOld).
      * Assuming that oldAccount is already set (or is null if it does not exist)
      */
-    public void recomputeAccountNew() {
+    public void recomputeAccountNew() throws SchemaException {
         ObjectDelta<AccountShadowType> accDelta = getAccountDelta();
 
         PrismObject<AccountShadowType> oldAccount = accountOld;

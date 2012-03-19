@@ -86,6 +86,10 @@ public abstract class PrismValue implements Visitable {
 	}
 	
 	public void applyDefinition(ItemDefinition definition) throws SchemaException {
+		applyDefinition(definition, true);
+	}
+	
+	public void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException {
 		// Do nothing by default
 	}
 	

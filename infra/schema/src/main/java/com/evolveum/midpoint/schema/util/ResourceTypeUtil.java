@@ -105,9 +105,15 @@ public class ResourceTypeUtil {
 	}
 	
 	public static void setResourceXsdSchema(PrismObject<ResourceType> resource, Element xsdElement) {
-		PrismContainer<XmlSchemaType> schemaContainer = resource.findOrCreateContainer(ResourceType.F_SCHEMA);
-		PrismProperty<Element> definitionProperty = schemaContainer.findOrCreateProperty(XmlSchemaType.F_DEFINITION);
-		ObjectTypeUtil.setXsdSchemaDefinition(definitionProperty, xsdElement);
+		try {
+			PrismContainer<XmlSchemaType> schemaContainer = resource.findOrCreateContainer(ResourceType.F_SCHEMA);
+			PrismProperty<Element> definitionProperty = schemaContainer.findOrCreateProperty(XmlSchemaType.F_DEFINITION);
+			ObjectTypeUtil.setXsdSchemaDefinition(definitionProperty, xsdElement);
+		} catch (SchemaException e) {
+			// Should not happen
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
+		
 	}
 
 

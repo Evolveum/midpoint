@@ -37,10 +37,14 @@ import java.io.File;
  */
 public class ConfigurablePrismContextFactory extends MidPointPrismContextFactory {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ConfigurablePrismContextFactory.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ConfigurablePrismContextFactory.class);
     private static final String CONFIGURATION_GLOBAL = "midpoint.global";        //todo move somewhere else
     private static final String EXTENSION_DIR = "extensionDir";
     private MidpointConfiguration configuration;
+
+	ConfigurablePrismContextFactory() {
+		super();
+	}
 
     public MidpointConfiguration getConfiguration() {
         return configuration;

@@ -258,7 +258,12 @@ public class TaskImpl implements Task {
 	}
 
 	public void setProgressTransient(long value) {
-		taskPrism.setPropertyRealValue(TaskType.F_PROGRESS, Integer.valueOf((int) value));			// TODO: get rid of this cast when xsd:long will work
+		try {
+			taskPrism.setPropertyRealValue(TaskType.F_PROGRESS, Integer.valueOf((int) value)); // TODO: get rid of this cast when xsd:long will work
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}			
 	}
 	
 	private PropertyDelta<?> setProgressAndPrepareDelta(long value) {
@@ -313,7 +318,12 @@ public class TaskImpl implements Task {
 	}
 
 	public void setHandlerUriTransient(String handlerUri) {
-		taskPrism.setPropertyRealValue(TaskType.F_HANDLER_URI, handlerUri);
+		try {
+			taskPrism.setPropertyRealValue(TaskType.F_HANDLER_URI, handlerUri);
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
 	}
 
 	@Override
@@ -342,7 +352,12 @@ public class TaskImpl implements Task {
 	}
 	
 	public void setOtherHandlersUriStackTransient(UriStack value) {
-		taskPrism.setPropertyRealValue(TaskType.F_OTHER_HANDLERS_URI_STACK, value);
+		try {
+			taskPrism.setPropertyRealValue(TaskType.F_OTHER_HANDLERS_URI_STACK, value);
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
 	}
 
 	public void setOtherHandlersUriStackImmediate(UriStack value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
@@ -419,7 +434,12 @@ public class TaskImpl implements Task {
 	}
 	
 	private void setTaskIdentifier(String value) {
-		taskPrism.setPropertyRealValue(TaskType.F_TASK_IDENTIFIER, value);
+		try {
+			taskPrism.setPropertyRealValue(TaskType.F_TASK_IDENTIFIER, value);
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
 	}
 	
 	/* 
@@ -436,7 +456,12 @@ public class TaskImpl implements Task {
 	}
 	
 	public void setExecutionStatusTransient(TaskExecutionStatus executionStatus) {
-		taskPrism.setPropertyRealValue(TaskType.F_EXECUTION_STATUS, executionStatus.toTaskType());
+		try {
+			taskPrism.setPropertyRealValue(TaskType.F_EXECUTION_STATUS, executionStatus.toTaskType());
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
 	}
 
 	@Override
@@ -479,7 +504,12 @@ public class TaskImpl implements Task {
 	}
 
 	public void setExclusivityStatusTransient(TaskExclusivityStatus exclusivityStatus) {
-		taskPrism.setPropertyRealValue(TaskType.F_EXCLUSIVITY_STATUS, exclusivityStatus.toTaskType());
+		try {
+			taskPrism.setPropertyRealValue(TaskType.F_EXCLUSIVITY_STATUS, exclusivityStatus.toTaskType());
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
 	}
 	
 	private PropertyDelta<?> setExclusivityStatusAndPrepareDelta(TaskExclusivityStatus value) {
@@ -520,7 +550,12 @@ public class TaskImpl implements Task {
 	}
 
 	public void setRecurrenceStatusTransient(TaskRecurrence value) {
-		taskPrism.setPropertyRealValue(TaskType.F_RECURRENCE, value.toTaskType());
+		try {
+			taskPrism.setPropertyRealValue(TaskType.F_RECURRENCE, value.toTaskType());
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
 	}
 	
 	private PropertyDelta<?> setRecurrenceStatusAndPrepareDelta(TaskRecurrence value) {
@@ -590,7 +625,12 @@ public class TaskImpl implements Task {
 	}
 	
 	public void setBindingTransient(TaskBinding value) {
-		taskPrism.setPropertyRealValue(TaskType.F_BINDING, value.toTaskType());
+		try {
+			taskPrism.setPropertyRealValue(TaskType.F_BINDING, value.toTaskType());
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
 	}
 	
 	private PropertyDelta<?> setBindingAndPrepareDelta(TaskBinding value) {
@@ -614,7 +654,13 @@ public class TaskImpl implements Task {
 
 	@Override
 	public void setOwner(PrismObject<UserType> owner) {
-		PrismReference ownerRef = taskPrism.findOrCreateReference(TaskType.F_OWNER_REF);
+		PrismReference ownerRef;
+		try {
+			ownerRef = taskPrism.findOrCreateReference(TaskType.F_OWNER_REF);
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
 		ownerRef.getValue().setObject(owner);
 	}
 	
@@ -648,7 +694,13 @@ public class TaskImpl implements Task {
 	
 	@Override
 	public void setObjectRef(ObjectReferenceType objectRefType) {
-		PrismReference objectRef = taskPrism.findOrCreateReference(TaskType.F_OBJECT_REF);
+		PrismReference objectRef;
+		try {
+			objectRef = taskPrism.findOrCreateReference(TaskType.F_OBJECT_REF);
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
 		objectRef.getValue().setOid(objectRefType.getOid());
 		objectRef.getValue().setTargetType(objectRefType.getType());
 	}
@@ -705,7 +757,13 @@ public class TaskImpl implements Task {
 				taskPrism.getValue().remove(objectRef);
 			}
 		} else {
-			PrismReference objectRef = taskPrism.findOrCreateReference(TaskType.F_OBJECT_REF);
+			PrismReference objectRef;
+			try {
+				objectRef = taskPrism.findOrCreateReference(TaskType.F_OBJECT_REF);
+			} catch (SchemaException e) {
+				// This should not happen
+				throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+			}
 			objectRef.getValue().setObject(object);
 		}
 	}

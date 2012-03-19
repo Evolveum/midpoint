@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.schema.xjc;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.commons.lang.Validate;
 
@@ -42,7 +43,13 @@ public final class PrismForJAXBUtil {
         Validate.notNull(name, "QName must not be null.");
         Validate.notNull(clazz, "Class type must not be null.");
 
-        PrismProperty property = container.findOrCreateProperty(name);
+        PrismProperty property;
+		try {
+			property = container.findOrCreateProperty(name);
+		} catch (SchemaException e) {
+			// This should not happen. Code generator and compiler should take care of that.
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
         return new PropertyArrayList<T>(property);
     }
 
@@ -81,7 +88,13 @@ public final class PrismForJAXBUtil {
         Validate.notNull(container, "Container must not be null.");
         Validate.notNull(name, "QName must not be null.");
 
-        PrismProperty property = container.findOrCreateProperty(name);
+        PrismProperty property;
+		try {
+			property = container.findOrCreateProperty(name);
+		} catch (SchemaException e) {
+			// This should not happen. Code generator and compiler should take care of that.
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
         if (value == null) {
         	property.clear();
         } else {
@@ -93,7 +106,13 @@ public final class PrismForJAXBUtil {
         Validate.notNull(container, "Container must not be null.");
         Validate.notNull(name, "QName must not be null.");
 
-        PrismProperty property = container.findOrCreateProperty(name);
+        PrismProperty property;
+		try {
+			property = container.findOrCreateProperty(name);
+		} catch (SchemaException e) {
+			// This should not happen. Code generator and compiler should take care of that.
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
         if (value == null) {
         	property.clear();
         } else {
@@ -106,7 +125,13 @@ public final class PrismForJAXBUtil {
         Validate.notNull(name, "QName must not be null.");
         Validate.notNull(clazz, "Class type must not be null.");
 
-        PrismProperty property = container.findOrCreateProperty(name);
+        PrismProperty property;
+		try {
+			property = container.findOrCreateProperty(name);
+		} catch (SchemaException e) {
+			// This should not happen. Code generator and compiler should take care of that.
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
         return new PropertyArrayList<T>(property);
     }
 
@@ -145,31 +170,36 @@ public final class PrismForJAXBUtil {
         Validate.notNull(parent, "Prism container value must not be null.");
         Validate.notNull(fieldName, "QName must not be null.");
 
-        PrismContainer<T> fieldContainer = null;
-        if (fieldContainerValue == null) {
-            fieldContainer = parent.findOrCreateContainer(fieldName);
-            if (fieldContainer != null) {
-                fieldContainer.clear();
-            }
-        } else {
-            fieldContainer = new PrismContainer<T>(fieldName);
-            fieldContainer.add(fieldContainerValue);
-            if (parent.getContainer() == null) {
-                parent.add(fieldContainer);
-            } else {
-                parent.getContainer().getValue().addReplaceExisting(fieldContainer);
-            }
-        }
-        // Make sure that the definition from parent is applied to new field container
-        if (fieldContainer.getDefinition() == null) {
-        	PrismContainer<?> parentContainer = parent.getContainer();
-        	if (parentContainer != null) {
-	        	PrismContainerDefinition<?> parentDefinition = parentContainer.getDefinition();
-	        	if (parentDefinition != null) {
-	        		PrismContainerDefinition<T> fieldDefinition = parentDefinition.findContainerDefinition(fieldName);
-	        		fieldContainer.setDefinition(fieldDefinition);
-	        	}
-        	}
+        try {
+	        PrismContainer<T> fieldContainer = null;
+	        if (fieldContainerValue == null) {
+	            fieldContainer = parent.findOrCreateContainer(fieldName);
+	            if (fieldContainer != null) {
+	                fieldContainer.clear();
+	            }
+	        } else {
+	            fieldContainer = new PrismContainer<T>(fieldName);
+	            fieldContainer.add(fieldContainerValue);
+	            if (parent.getContainer() == null) {
+	                parent.add(fieldContainer);
+	            } else {
+	                parent.getContainer().getValue().addReplaceExisting(fieldContainer);
+	            }
+	        }
+//	        // Make sure that the definition from parent is applied to new field container
+//	        if (fieldContainer.getDefinition() == null) {
+//	        	PrismContainer<?> parentContainer = parent.getContainer();
+//	        	if (parentContainer != null) {
+//		        	PrismContainerDefinition<?> parentDefinition = parentContainer.getDefinition();
+//		        	if (parentDefinition != null) {
+//		        		PrismContainerDefinition<T> fieldDefinition = parentDefinition.findContainerDefinition(fieldName);
+//		        		fieldContainer.setDefinition(fieldDefinition);
+//		        	}
+//	        	}
+//	        }
+        } catch (SchemaException e) {
+        	// This should not happen. Code generator and compiler should take care of that.
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
         }
         return true;
     }
@@ -206,7 +236,13 @@ public final class PrismForJAXBUtil {
         Validate.notNull(parent, "Prism container value must not be null.");
         Validate.notNull(name, "QName must not be null.");
 
-        PrismReference reference = parent.findOrCreateItem(name, PrismReference.class);
+        PrismReference reference;
+		try {
+			reference = parent.findOrCreateItem(name, PrismReference.class);
+		} catch (SchemaException e) {
+			// This should not happen. Code generator and compiler should take care of that.
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
         if (reference != null) {
             if (value == null) {
             	if (reference.getValue() != null) {
@@ -231,7 +267,13 @@ public final class PrismForJAXBUtil {
         Validate.notNull(parentValue, "Prism container value must not be null.");
         Validate.notNull(referenceQName, "QName must not be null.");
 
-        PrismReference reference = parentValue.findOrCreateReference(referenceQName);
+        PrismReference reference;
+		try {
+			reference = parentValue.findOrCreateReference(referenceQName);
+		} catch (SchemaException e) {
+			// This should not happen. Code generator and compiler should take care of that.
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
         if (reference == null) {
         	throw new IllegalArgumentException("No reference "+referenceQName+" in "+parentValue);
         }
@@ -268,11 +310,35 @@ public final class PrismForJAXBUtil {
         Validate.notNull(parent, "Container must not be null.");
         Validate.notNull(name, "QName must not be null.");
         
-        PrismContainer container = parent.findOrCreateContainer(name);
+        PrismContainer container;
+		try {
+			container = parent.findOrCreateContainer(name);
+		} catch (SchemaException e) {
+			// This should not happen. Code generator and compiler should take care of that.
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
         return container.getValues();
     }
     
     public static <T> List<T> getAny(PrismContainerValue value, Class<T> clazz) {
     	return new AnyArrayList(value);
     }
+
+	public static void setupContainerValue(PrismContainer prismContainer, PrismContainerValue containerValue) {
+		try {
+			prismContainer.setValue(containerValue);
+		} catch (SchemaException e) {
+			// This should not happen. Code generator and compiler should take care of that.
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
+	}
+
+	public static PrismReference getReference(PrismContainerValue parent, QName fieldName) {
+		try {
+			return parent.findOrCreateReference(fieldName);
+		} catch (SchemaException e) {
+			// This should not happen. Code generator and compiler should take care of that.
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
+	}
 }

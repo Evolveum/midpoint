@@ -508,7 +508,7 @@ public class ShadowConverter {
 	}
 
 	private void applyAfterOperationAttributes(ResourceObjectShadowType shadow,
-			Set<ResourceAttribute> resourceAttributesAfterOperation) {
+			Set<ResourceAttribute> resourceAttributesAfterOperation) throws SchemaException {
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
 		for (ResourceAttribute attributeAfter: resourceAttributesAfterOperation) {
 			ResourceAttribute attributeBefore = attributesContainer.findAttribute(attributeAfter.getName());

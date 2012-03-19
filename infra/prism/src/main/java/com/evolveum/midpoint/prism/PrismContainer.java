@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.w3c.dom.Document;
@@ -117,7 +118,12 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 				// Insert first empty value. This simulates empty single-valued container. It the container exists
 		        // it is clear that it has at least one value (and that value is empty).
 				PrismContainerValue<V> pValue = new PrismContainerValue<V>(null, null, this, null);
-		        add(pValue);
+		        try {
+					add(pValue);
+				} catch (SchemaException e) {
+					// This should not happen
+					throw new SystemException("Internal Error: "+e.getMessage(),e);
+				}
 		        return pValue;
 			} else {
 				throw new IllegalStateException("Attempt to get single value from a multivalued container "+getName());
@@ -126,12 +132,17 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 			// Insert first empty value. This simulates empty single-valued container. It the container exists
 	        // it is clear that it has at least one value (and that value is empty).
 			PrismContainerValue<V> pValue = new PrismContainerValue<V>(null, null, this, null);
-	        add(pValue);
+	        try {
+				add(pValue);
+			} catch (SchemaException e) {
+				// This should not happen
+				throw new SystemException("Internal Error: "+e.getMessage(),e);
+			}
 	        return pValue;
 		}
     }
     
-    public void setValue(PrismContainerValue<V> value) {
+    public void setValue(PrismContainerValue<V> value) throws SchemaException {
     	if (getDefinition() != null) {
 			if (getDefinition().isSingleValue()) {
 				clear();
@@ -177,7 +188,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     	return null;
     }
     
-    public void setPropertyRealValue(QName propertyName, Object realValue) {
+    public void setPropertyRealValue(QName propertyName, Object realValue) throws SchemaException {
     	PrismProperty<?> property = findOrCreateProperty(propertyName);
     	property.setRealValue(realValue);
     }
@@ -190,15 +201,18 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     	return property.getRealValue(type);
     }
     
-    public boolean add(PrismContainerValue<V> pValue) {
+    public boolean add(PrismContainerValue<V> pValue) throws SchemaException {
     	pValue.setParent(this);
+    	if (getDefinition() != null) {
+    		pValue.applyDefinition(getDefinition(), false);
+    	}
     	return getValues().add(pValue);
     }
     
     /**
      * Convenience method. Works only on single-valued containers.
      */
-    public void add(Item<?> item) {
+    public void add(Item<?> item) throws SchemaException {
     	getValue().add(item);
     }
     
@@ -211,7 +225,12 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     
     public PrismContainerValue<V> createNewValue() {
     	PrismContainerValue<V> pValue = new PrismContainerValue<V>();
-    	add(pValue);
+    	try {
+			add(pValue);
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new SystemException("Internal Error: "+e.getMessage(),e);
+		}
     	return pValue;
     }
     
@@ -292,27 +311,47 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 	}
 
 	public <I extends Item<?>> I findItem(QName itemQName, Class<I> type) {
-    	return findCreateItem(itemQName, type, false);
+    	try {
+			return findCreateItem(itemQName, type, false);
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new SystemException("Internal Error: "+e.getMessage(),e);
+		}
     }
 	
 	public Item<?> findItem(QName itemQName) {
-    	return findCreateItem(itemQName, Item.class, false);
+    	try {
+			return findCreateItem(itemQName, Item.class, false);
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new SystemException("Internal Error: "+e.getMessage(),e);
+		}
     }
     
-    <I extends Item<?>> I findCreateItem(QName itemQName, Class<I> type, boolean create) {
+    <I extends Item<?>> I findCreateItem(QName itemQName, Class<I> type, boolean create) throws SchemaException {
    		return getValue().findCreateItem(itemQName, type, null, create);
     }
         
     public <I extends Item<?>> I findItem(PropertyPath propPath, Class<I> type) {
-    	return findCreateItem(propPath, type, null, false);
+    	try {
+			return findCreateItem(propPath, type, null, false);
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new SystemException("Internal Error: "+e.getMessage(),e);
+		}
     }
     
     public Item<?> findItem(PropertyPath propPath) {
-    	return findCreateItem(propPath, Item.class, null, false);
+    	try {
+			return findCreateItem(propPath, Item.class, null, false);
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new SystemException("Internal Error: "+e.getMessage(),e);
+		}
     }
     
     // Expects that "self" path IS present in propPath
-    <I extends Item<?>> I findCreateItem(PropertyPath propPath, Class<I> type, ItemDefinition itemDefinition, boolean create) {
+    <I extends Item<?>> I findCreateItem(PropertyPath propPath, Class<I> type, ItemDefinition itemDefinition, boolean create) throws SchemaException {
     	if (propPath == null || propPath.isEmpty()) {
     		throw new IllegalArgumentException("Empty path specified");
     	}
@@ -375,37 +414,37 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     	return findItem(referenceQName, PrismReference.class);
     }
     
-    public <T extends Item<?>> T findOrCreateItem(PropertyPath containerPath, Class<T> type) {
+    public <T extends Item<?>> T findOrCreateItem(PropertyPath containerPath, Class<T> type) throws SchemaException {
         return findCreateItem(containerPath, type, null, true);
     }
     
     // The "definition" parameter provides definition of item to create, in case that the container does not have
     // the definition (e.g. in case of "extension" containers)
-    public <T extends Item<?>> T findOrCreateItem(PropertyPath containerPath, Class<T> type, ItemDefinition definition) {
+    public <T extends Item<?>> T findOrCreateItem(PropertyPath containerPath, Class<T> type, ItemDefinition definition) throws SchemaException {
         return findCreateItem(containerPath, type, definition, true);
     }
     
-    public <T extends Containerable> PrismContainer<T> findOrCreateContainer(PropertyPath containerPath) {
+    public <T extends Containerable> PrismContainer<T> findOrCreateContainer(PropertyPath containerPath) throws SchemaException {
         return findCreateItem(containerPath, PrismContainer.class, null, true);
     }
     
-    public <T extends Containerable> PrismContainer<T> findOrCreateContainer(QName containerName) {
+    public <T extends Containerable> PrismContainer<T> findOrCreateContainer(QName containerName) throws SchemaException {
         return findCreateItem(containerName, PrismContainer.class, true);
     }
     
-    public <T> PrismProperty<T> findOrCreateProperty(PropertyPath propertyPath) {
+    public <T> PrismProperty<T> findOrCreateProperty(PropertyPath propertyPath) throws SchemaException {
         return findCreateItem(propertyPath, PrismProperty.class, null, true);
     }
     
-    public <T> PrismProperty<T> findOrCreateProperty(QName propertyName) {
+    public <T> PrismProperty<T> findOrCreateProperty(QName propertyName) throws SchemaException {
         return findCreateItem(propertyName, PrismProperty.class, true);
     }
 
-    public PrismReference findOrCreateReference(PropertyPath propertyPath) {
+    public PrismReference findOrCreateReference(PropertyPath propertyPath) throws SchemaException {
         return findCreateItem(propertyPath, PrismReference.class, null, true);
     }
     
-    public PrismReference findOrCreateReference(QName propertyName) {
+    public PrismReference findOrCreateReference(QName propertyName) throws SchemaException {
         return findCreateItem(propertyName, PrismReference.class, true);
     }
 
@@ -486,7 +525,12 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     protected void copyValues(PrismContainer<V> clone) {
         super.copyValues(clone);
         for (PrismContainerValue<V> pval : getValues()) {
-            clone.add(pval.clone());
+            try {
+				clone.add(pval.clone());
+			} catch (SchemaException e) {
+				// This should not happen
+				throw new SystemException("Internal Error: "+e.getMessage(),e);
+			}
         }
     }
 
