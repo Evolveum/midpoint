@@ -111,6 +111,9 @@ public class RObjectReference implements Serializable {
         if (targetOid == null && target != null) {
             targetOid = target.getOid();
         }
+        if (targetOid == null) {
+            targetOid = "";
+        }
         return targetOid;
     }
 
@@ -207,7 +210,9 @@ public class RObjectReference implements Serializable {
 
         jaxb.setDescription(repo.getDescription());
         jaxb.setType(ClassMapper.getQNameForHQLType(repo.getType()));
-        jaxb.setOid(repo.getTargetOid());
+        if (StringUtils.isNotEmpty(repo.getTargetOid())) {
+            jaxb.setOid(repo.getTargetOid());
+        }
 
         String filter = repo.getFilter();
         if (StringUtils.isNotEmpty(filter)) {
