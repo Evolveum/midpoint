@@ -14,6 +14,9 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+
 
 /**
  * <p>Java class for AssignmentType complex type.
@@ -42,7 +45,7 @@ import javax.xml.bind.annotation.XmlType;
     "accountConstruction"
 })
 public class AssignmentType
-    implements Serializable
+    implements Serializable, Containerable
 {
 
     private final static long serialVersionUID = 201202081233L;
@@ -122,5 +125,21 @@ public class AssignmentType
     public void setId(String value) {
         this.id = value;
     }
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.prism.Containerable#asPrismContainerValue()
+	 */
+	@Override
+	public PrismContainerValue asPrismContainerValue() {
+		throw new UnsupportedOperationException();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.prism.Containerable#setupContainerValue(com.evolveum.midpoint.prism.PrismContainerValue)
+	 */
+	@Override
+	public void setupContainerValue(PrismContainerValue container) {
+		throw new UnsupportedOperationException();
+	}
 
 }

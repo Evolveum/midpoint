@@ -23,6 +23,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.GregorianCalendar;
 import java.util.Set;
@@ -53,7 +54,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	
 	// Files
 	public static final String OBJECT_DIR_PATH = "src/test/resources/parsing";
-	public static File EXTRA_SCHEMA_DIR = new File("src/test/resources/schema");
+	public static File EXTRA_SCHEMA_DIR = new File("src/test/resources/schema-extra");
 	
 	// User: jack
 	public static final File USER_JACK_FILE = new File(OBJECT_DIR_PATH, "user-jack.xml");
@@ -67,6 +68,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
 	public static final String NS_USER_EXT = "http://example.com/xml/ns/user-extension";
 	public static final String NS_ROOT = "http://example.com/xml/ns/test/root.xsd";
+	public static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extesion";
 	
 	// FOO schema
 	public static final QName USER_QNAME = new QName(NS_FOO,"user");
@@ -111,6 +113,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final QName ACCOUNT_ATTRIBUTES_QNAME = new QName(NS_FOO,"attributes");
 	
 	public static final QName ATTRIBUTES_TYPE_QNAME = new QName(NS_FOO,"AttributesType");
+	
+	// extension.xsd
+	public static final QName EXTENSION_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "stringType");
 
 	
 	public static PrismContext constructInitializedPrismContext() throws SchemaException, SAXException, IOException {
@@ -119,13 +124,14 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		return context;
 	}
 		
-	public static PrismContext constructPrismContext() throws SchemaException {
+	public static PrismContext constructPrismContext() throws SchemaException, FileNotFoundException {
 		SchemaRegistry schemaRegistry = new SchemaRegistry();
 		DynamicNamespacePrefixMapper prefixMapper = new GlobalDynamicNamespacePrefixMapper();
 		// Set default namespace?
 		schemaRegistry.setNamespacePrefixMapper(prefixMapper);
 		schemaRegistry.registerPrismSchemaResource("xml/ns/test/foo-1.xsd", "foo", ObjectFactory.class.getPackage());
 		schemaRegistry.registerSchemaResource("xml/ns/standard/XMLSchema.xsd", "xsd");
+		schemaRegistry.registerPrismSchemasFromDirectory(new File("src/test/resources/schema"));
 		prefixMapper.registerPrefix(PrismConstants.NS_ANNOTATION, PrismConstants.PREFIX_NS_ANNOTATION);
 		schemaRegistry.setObjectSchemaNamespace(NS_FOO);
 		PrismContext context = PrismContext.create(schemaRegistry);
@@ -136,7 +142,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	 * @see com.evolveum.midpoint.prism.PrismContextFactory#createPrismContext()
 	 */
 	@Override
-	public PrismContext createPrismContext() throws SchemaException {
+	public PrismContext createPrismContext() throws SchemaException, FileNotFoundException {
 		return constructPrismContext();
 	}
 

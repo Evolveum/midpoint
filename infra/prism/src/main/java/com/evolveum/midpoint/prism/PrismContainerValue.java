@@ -257,7 +257,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
         }
         item.setParent(this);
         if (getParent() != null && getParent().getDefinition() != null && item.getDefinition() == null) {
-        	item.applyDefinition(determineItemDefinition(item, getParent().getDefinition()), false);
+        	item.applyDefinition(determineItemDefinition(item.getName(), getParent().getDefinition()), false);
         }
         items.add(item);
     }
@@ -472,9 +472,9 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		Item<?> newItem = null;
 		
 		if (itemDefinition == null && getParent() != null && getParent().getDefinition() != null) {
-			itemDefinition = getParent().getDefinition().findItemDefinition(name);
+			itemDefinition = determineItemDefinition(name, getParent().getDefinition());
 			if (itemDefinition == null) {
-				throw new IllegalArgumentException("No definition for item "+name+" in "+getParent());
+				throw new SchemaException("No definition for item "+name+" in "+getParent());
 			}
 		}
 		
@@ -699,7 +699,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 				// Item has a definition already, no need to apply it
 				continue;
 			}
-			ItemDefinition itemDefinition = determineItemDefinition(item, definition); 
+			ItemDefinition itemDefinition = determineItemDefinition(item.getName(), definition); 
 				definition.findItemDefinition(item.getName());
 			if (itemDefinition == null) {
 				if (definition.isRuntimeSchema) {
@@ -721,18 +721,18 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	 * This method can both return null and throws exception. It returns null in case there is no definition
 	 * but it is OK (e.g. runtime schema). It throws exception if there is no definition and it is not OK.
 	 */
-	private ItemDefinition determineItemDefinition(Item<?> item, PrismContainerDefinition<T> containerDefinition) throws SchemaException {
-		ItemDefinition itemDefinition = containerDefinition.findItemDefinition(item.getName());
+	private ItemDefinition determineItemDefinition(QName itemName, PrismContainerDefinition<T> containerDefinition) throws SchemaException {
+		ItemDefinition itemDefinition = containerDefinition.findItemDefinition(itemName);
 		if (itemDefinition == null) {
 			if (containerDefinition.isRuntimeSchema) {
 				// If we have prism context, try to locate global definition. But even if that is not
 				// found it is still OK. This is runtime container. We tolerate quite a lot here.
 				PrismContext prismContext = getPrismContext();
 				if (prismContext != null) {
-					itemDefinition = prismContext.getSchemaRegistry().resolveGlobalItemDefinition(item.getName());
+					itemDefinition = prismContext.getSchemaRegistry().resolveGlobalItemDefinition(itemName);
 				}
 			} else {
-				throw new SchemaException("No definition for item "+item.getName()+" in "+getParent());
+				throw new SchemaException("No definition for item " + itemName + " in " + getParent());
 			}
 		}
 		return itemDefinition;

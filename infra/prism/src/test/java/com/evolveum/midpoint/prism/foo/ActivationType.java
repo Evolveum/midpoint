@@ -15,6 +15,9 @@ import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+
 
 /**
  * 
@@ -49,7 +52,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
     "validTo"
 })
 public class ActivationType
-    implements Serializable
+    implements Serializable, Containerable
 {
 
     private final static long serialVersionUID = 201202081233L;
@@ -122,5 +125,21 @@ public class ActivationType
     public void setValidTo(XMLGregorianCalendar value) {
         this.validTo = value;
     }
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.prism.Containerable#asPrismContainerValue()
+	 */
+	@Override
+	public PrismContainerValue asPrismContainerValue() {
+		throw new UnsupportedOperationException();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.prism.Containerable#setupContainerValue(com.evolveum.midpoint.prism.PrismContainerValue)
+	 */
+	@Override
+	public void setupContainerValue(PrismContainerValue container) {
+		throw new UnsupportedOperationException();
+	}
 
 }
