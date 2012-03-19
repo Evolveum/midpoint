@@ -26,7 +26,9 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -34,16 +36,20 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
@@ -127,16 +133,12 @@ public class ObjectImporter {
                     generateIdentifiers(object, repository,  objectResult);
                 }
 
-                PrismContainer dynamicPart = null;
                 if (BooleanUtils.isTrue(options.isValidateDynamicSchema()) && objectResult.isAcceptable()) {
-                    dynamicPart = validateWithDynamicSchemas(object, objectElement, repository, objectResult);
+                    validateWithDynamicSchemas(object, objectElement, repository, objectResult);
                 }
 
                 if (BooleanUtils.isTrue(options.isEncryptProtectedValues()) && objectResult.isAcceptable()) {
-                    encryptValuesInStaticPart(object, objectResult);
-                    if (dynamicPart != null) {
-                        encryptValuesInDynamicPart(dynamicPart, object, objectResult);
-                    }
+                    encryptValues(object, objectResult);
                 }
 
                 if (objectResult.isAcceptable()) {
@@ -226,7 +228,7 @@ public class ObjectImporter {
      * @return OID of the deleted object or null (if nothing was deleted)
      */
     private <T extends ObjectType> String deleteObject(PrismObject<T> object, RepositoryService repository, OperationResult objectResult) throws SchemaException {
-        if (object.getOid() != null) {
+        if (!StringUtils.isBlank(object.getOid())) {
             // The conflict is either UID or we should not proceed as we could delete wrong object
             try {
                 repository.deleteObject(object.getCompileTimeClass(), object.getOid(), objectResult);
@@ -258,7 +260,7 @@ public class ObjectImporter {
         }
     }
 
-    protected <T extends ObjectType> PrismContainer validateWithDynamicSchemas(PrismObject<T> object, Element objectElement,
+    protected <T extends ObjectType> void validateWithDynamicSchemas(PrismObject<T> object, Element objectElement,
                                                            RepositoryService repository, OperationResult objectResult) {
 
         // TODO: check extension schema (later)
@@ -273,45 +275,62 @@ public class ObjectImporter {
 
             // Only two object types have XML snippets that conform to the dynamic schema
 
-
-            ResourceType resource = (ResourceType) object.asObjectable();
-            List<Object> configurationElements = resource.getConfiguration().getAny();
-            if (configurationElements.isEmpty()) {
+        	PrismObject<ResourceType> resource = (PrismObject<ResourceType>)object;
+            ResourceType resourceType = resource.asObjectable();
+            PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
+            if (configurationContainer == null || configurationContainer.isEmpty()) {
                 // Nothing to check
                 objectResult.recordWarning("The resource has no configuration");
-                return null;
+                return;
             }
 
             // Check the resource configuration. The schema is in connector, so fetch the connector first
-            String connectorOid = resource.getConnectorRef().getOid();
+            String connectorOid = resourceType.getConnectorRef().getOid();
             if (StringUtils.isBlank(connectorOid)) {
                 objectResult.recordFatalError("The connector reference (connectorRef) is null or empty");
-                return null;
+                return;
             }
 
-            ConnectorType connector = null;
+            PrismObject<ConnectorType> connector = null;
+            ConnectorType connectorType = null;
             try {
-                connector = repository.getObject(ConnectorType.class, connectorOid, null, objectResult).asObjectable();
+                connector = repository.getObject(ConnectorType.class, connectorOid, null, objectResult);
+                connectorType = connector.asObjectable();
             } catch (ObjectNotFoundException e) {
                 // No connector, no fun. We can't check the schema. But this is referential integrity problem.
                 // Mark the error ... there is nothing more to do
                 objectResult.recordFatalError("Connector (OID:" + connectorOid + ") referenced from the resource is not in the repository", e);
-                return null;
+                return;
             } catch (SchemaException e) {
                 // Probably a malformed connector. To be kind of robust, lets allow the import.
                 // Mark the error ... there is nothing more to do
                 objectResult.recordPartialError("Connector (OID:" + connectorOid + ") referenced from the resource has schema problems: " + e.getMessage(), e);
-                LOGGER.error("Connector (OID:{}) referenced from the imported resource \"{}\" has schema problems: {}", new Object[]{connectorOid, resource.getName(), e.getMessage(), e});
-                return null;
+                LOGGER.error("Connector (OID:{}) referenced from the imported resource \"{}\" has schema problems: {}", new Object[]{connectorOid, resourceType.getName(), e.getMessage(), e});
+                return;
             }
-            QName configurationElementRef = new QName(connector.getNamespace(), SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_ELEMENT_LOCAL_NAME);
-            PrismContainer propertyContainer = validateDynamicSchema(configurationElements, configurationElementRef, connector.getSchema(), "resourceConfiguration", objectResult);
-
+            
+            Element connectorSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(connector);
+            PrismSchema connectorSchema;
+			try {
+				connectorSchema = PrismSchema.parse(connectorSchemaElement, prismContext);
+			} catch (SchemaException e) {
+				objectResult.recordFatalError("Error parsing connector schema for " + connector + ": "+e.getMessage(), e);
+				return;
+			}
+            QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONFIGURATION.getLocalPart());
+    		PrismContainerDefinition<?> configContainerDef = connectorSchema.findContainerDefinitionByElementName(configContainerQName);
+            
+            try {
+				configurationContainer.applyDefinition(configContainerDef);
+			} catch (SchemaException e) {
+				objectResult.recordFatalError("Configuration error in " + resource + ": "+e.getMessage(), e);
+                return;
+			}
+            
             // Also check integrity of the resource schema
-            checkSchema(resource.getSchema(), "resource", objectResult);
+            checkSchema(resourceType.getSchema(), "resource", objectResult);
 
             objectResult.computeStatus("Dynamic schema error");
-            return propertyContainer;
 
         } else if (object.canRepresent(ResourceObjectShadowType.class)) {
             // TODO
@@ -319,7 +338,7 @@ public class ObjectImporter {
             //objectResult.computeStatus("Dynamic schema error");
         }
 
-        return null;
+        return;
     }
 
     /**
@@ -340,7 +359,7 @@ public class ObjectImporter {
         }
 
         try {
-            com.evolveum.midpoint.prism.schema.PrismSchema.parse(xsdElement, prismContext);
+            PrismSchema.parse(xsdElement, prismContext);
         } catch (SchemaException e) {
             result.recordFatalError("Error during " + schemaName + " schema integrity check: " + e.getMessage(), e);
             return;
@@ -560,127 +579,47 @@ public class ObjectImporter {
 		}
 	}
     
-    private <T extends ObjectType> void encryptValuesInStaticPart(PrismObject<T> object, OperationResult objectResult) {
-        OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".encryptValues");
-        encryptValuesInStaticPartRecursive(object, object, result);
+    private <T extends ObjectType> void encryptValues(final PrismObject<T> object, OperationResult objectResult) {
+        final OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".encryptValues");
+        Visitor visitor = new Visitor() {
+			@Override
+			public void visit(Visitable visitable) {
+				if (!(visitable instanceof PrismPropertyValue)) {
+					return;
+				}
+				PrismPropertyValue pval = (PrismPropertyValue)visitable;
+				encryptValue(object, pval, result);
+			}
+		};
+		object.accept(visitor);
         result.recordSuccessIfUnknown();
     }
-
-    private <T extends ObjectType> void encryptValuesInStaticPartRecursive(Object object, PrismObject<T> objectType, OperationResult result) {
-        // We need to look up all object references. Probably the only efficient
-        // way to do it is to use reflection.
-        Class<?> type = object.getClass();
-        Method[] methods = type.getMethods();
-        for (int i = 0; i < methods.length; i++) {
-            Method method = methods[i];
-            String propName = parseGetterPropName(method);
-//            if (propName != null) {
-//                // It has to return a value in JAXB package or List to be interesting
-//                Class<?> returnType = method.getReturnType();
-//                if (JAXBUtil.isJaxbClass(returnType) || returnType.equals(List.class)) {
-//                    Object fieldValue;
-//                    try {
-//                        fieldValue = method.invoke(object);
-//                    } catch (IllegalArgumentException e) {
-//                        result.recordFatalError("Access to field " + propName + " failed (illegal argument): " + e.getMessage(), e);
-//                        return;
-//                    } catch (IllegalAccessException e) {
-//                        result.recordFatalError("Access to field " + propName + " failed (illegal access): " + e.getMessage(), e);
-//                        return;
-//                    } catch (InvocationTargetException e) {
-//                        result.recordFatalError("Access to field " + propName + " failed (invocation target): " + e.getMessage(), e);
-//                        return;
-//                    }
-//                    if (fieldValue == null) {
-//                        continue;
-//                    }
-//                    if (returnType.equals(List.class)) {
-//                        List<?> valueList = (List<?>) fieldValue;
-//                        for (Object value : valueList) {
-//                            if (value != null && JAXBUtil.isJaxbClass(value.getClass())) {
-//                                encryptValueInStaticPartAndRecurse(value, propName, objectType, result);
-//                            }
-//                        }
-//                    } else {
-//                        encryptValueInStaticPartAndRecurse(fieldValue, propName, objectType, result);
-//                    }
-//                }
-//            }
-        }
-    }
-
-    private <T extends ObjectType> void encryptValueInStaticPartAndRecurse(Object value, String propName, PrismObject<T> objectType, OperationResult result) {
-        if (value instanceof ProtectedStringType) {
-            ProtectedStringType ps = (ProtectedStringType) value;
-            if (ps.getClearValue() != null) {
-                try {
-                    LOGGER.info("Encrypting cleartext value for field " + propName + " while importing " + objectType);
-                    protector.encrypt(ps);
-                } catch (EncryptionException e) {
-                    LOGGER.info("Faild to encrypt cleartext value for field " + propName + " while importing " + objectType);
-                    result.recordFatalError("Faild to encrypt value for field " + propName + ": " + e.getMessage(), e);
-                    return;
-                }
+    
+    private <T extends ObjectType> void encryptValue(PrismObject<T> object, PrismPropertyValue pval, OperationResult result) {
+    	Itemable item = pval.getParent();
+    	if (item == null) {
+    		return;
+    	}
+    	ItemDefinition itemDef = item.getDefinition();
+    	if (itemDef == null || itemDef.getTypeName() == null) {
+    		return;
+    	}
+    	if (!itemDef.getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
+    		return;
+    	}
+    	QName propName = item.getName();
+    	PrismPropertyValue<ProtectedStringType> psPval = (PrismPropertyValue<ProtectedStringType>)pval;
+    	ProtectedStringType ps = psPval.getValue();
+    	if (ps.getClearValue() != null) {
+            try {
+                LOGGER.info("Encrypting cleartext value for field " + propName + " while importing " + object);
+                protector.encrypt(ps);
+            } catch (EncryptionException e) {
+                LOGGER.info("Faild to encrypt cleartext value for field " + propName + " while importing " + object);
+                result.recordFatalError("Faild to encrypt value for field " + propName + ": " + e.getMessage(), e);
+                return;
             }
         }
-        encryptValuesInStaticPartRecursive(value, objectType, result);
-    }
-
-    private String parseGetterPropName(Method method) {
-        if (method.getParameterTypes().length != 0) {
-            // Has parameters -> not getter
-            return null;
-        }
-        String methodName = method.getName();
-        if (methodName.startsWith("get") && methodName.length() > 3 && Character.isUpperCase(methodName.charAt(3))) {
-            String suffix = methodName.substring(3);
-            String propName = suffix.substring(0, 1).toLowerCase() + suffix.substring(1);
-            return propName;
-        }
-        return null;
-    }
-
-
-    private <T extends ObjectType> void encryptValuesInDynamicPart(PrismContainer dynamicPart, PrismObject<T> objectType,
-                                            OperationResult objectResult) {
-        OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".encryptValues");
-        encryptValuesInDynamicPartRecursive(dynamicPart, objectType, result);
-        result.recordSuccessIfUnknown();
-    }
-
-    private <T extends ObjectType> void encryptValuesInDynamicPartRecursive(PrismContainer dynamicPart, PrismObject<T> objectType,
-                                                     OperationResult result) {
-//        for (Item i : dynamicPart.getItems()) {
-//            if (i instanceof PrismProperty) {
-//                encryptProperty((PrismProperty) i, objectType, result);
-//            } else if (i instanceof PrismContainer) {
-//                encryptValuesInDynamicPartRecursive((PrismContainer) i, objectType, result);
-//            } else {
-//                throw new IllegalArgumentException("Unexpected item in property container: " + i);
-//            }
-//        }
-    }
-
-    private <T extends ObjectType> void encryptProperty(PrismProperty property, PrismObject<T> objectType, OperationResult result) {
-        if (!property.getDefinition().getTypeName().equals(SchemaConstants.R_PROTECTED_STRING_TYPE)) {
-            return;
-        }
-        LOGGER.debug("Encrypting property {}", property.getName());
-        ProtectedStringType ps = (ProtectedStringType) property.getValue().getValue();
-        try {
-            protector.encrypt(ps);
-        } catch (EncryptionException e) {
-            LOGGER.info("Faild to encrypt cleartext value for field " + property.getName() + " while importing " + objectType);
-            result.recordFatalError("Faild to encrypt value for field " + property.getName() + ": " + e.getMessage(), e);
-            return;
-        }
-//        try {
-//            property.applyValueToElement();
-//        } catch (SchemaException e) {
-//            LOGGER.info("Faild to apply encrypted value for field " + property.getName() + " while importing " + ObjectTypeUtil.toShortString(objectType));
-//            result.recordFatalError("Faild to apply encrypted value for field " + property.getName() + ": " + e.getMessage(), e);
-//            return;
-//        }
     }
 }
  

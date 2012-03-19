@@ -54,6 +54,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -175,13 +176,16 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 			configurationContainer.findContainer(SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES);
 		assertNotNull("No configurationProperties in resource", configurationPropertiesContainer);
 		PrismProperty<Object> passwordProperty = configurationPropertiesContainer.findProperty(new QName(CONNECTOR_NAMESPACE, "password"));
-		Object passwordValue = passwordProperty.getValue().getValue();
-		if (!(passwordValue instanceof ProtectedStringType)) {
-			AssertJUnit.fail("Expected password value of type "+ProtectedStringType.class+" but got "+passwordValue.getClass());
+		// The resource was pulled from the repository. Therefore it does not have the right schema here. We should proceed with caution
+		// and inspect the DOM elements there
+		PrismPropertyValue<Object> passwordPVal = passwordProperty.getValue();
+		Object passwordRawElement = passwordPVal.getRawElement();
+		if (!(passwordRawElement instanceof Element)) {
+			AssertJUnit.fail("Expected password value of type "+Element.class+" but got "+passwordRawElement.getClass());
 		}
-		ProtectedStringType passwordProtectedString = (ProtectedStringType)passwordValue;
-		assertTrue("Password was not encrypted (clearValue)", passwordProtectedString.getClearValue() == null);
-		assertTrue("Password was not encrypted (no EncryptedData)", passwordProtectedString.getEncryptedData() != null);
+		Element passwordDomElement = (Element)passwordRawElement;
+		assertTrue("Password was not encrypted (clearValue)",passwordDomElement.getElementsByTagNameNS(SchemaConstants.NS_C, "clearValue").getLength()==0);
+        assertTrue("Password was not encrypted (no EncryptedData)",passwordDomElement.getElementsByTagNameNS(DOMUtil.NS_XML_ENC,"EncryptedData").getLength()==1);		
 	}
 	
 	@Test

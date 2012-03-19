@@ -273,7 +273,11 @@ public class PrismDomProcessor {
 	}
 
 	private String getOid(Element element) {
-		return element.getAttribute(PrismConstants.ATTRIBUTE_OID_LOCAL_NAME);
+		String oid = element.getAttribute(PrismConstants.ATTRIBUTE_OID_LOCAL_NAME);
+		if (StringUtils.isBlank(oid)) {
+			return null;
+		}
+		return oid;
 	}
 	
 	private String getContainerId(Element element) {
