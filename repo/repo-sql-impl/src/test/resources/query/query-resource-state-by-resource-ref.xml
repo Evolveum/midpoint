@@ -19,13 +19,21 @@
   ~
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
-<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
-<suite name="unit" parallel="false">
-	<test name="Spring Context Test" parallel="false" preserve-order="true" verbose="10">
-		<classes>
-			<class name="com.evolveum.midpoint.repo.sql.SpringApplicationContextTest" />
-            <class name="com.evolveum.midpoint.repo.sql.QueryInterpreterTest" />
-            <class name="com.evolveum.midpoint.repo.sql.AddGetObjectTest" />
-		</classes>
-	</test>
-</suite>
+<c:query xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+         xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+         xsi:schemaLocation="/standard/XMLSchema.xsd
+   http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-1.xsd"
+        >
+
+   <!-- Query filter example -->
+
+    <c:and>
+        <c:equal>
+            <c:value>
+                <i:resourceRef oid="d0db5be9-cb93-401f-b6c1-86ffffe4cd5e"/>
+            </c:value>
+        </c:equal>
+    </c:and>
+
+</c:query>

@@ -21,28 +21,41 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.ClassMapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import org.hibernate.Criteria;
-import org.hibernate.Session;
+import com.evolveum.midpoint.util.DOMUtil;
 import org.w3c.dom.Element;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
  */
-public class QueryProcessor {
+abstract class Op {
 
-    private PrismContext prismContext;
+    private QueryInterpreter interpreter;
 
-    public QueryProcessor(PrismContext prismContext) {
-        this.prismContext = prismContext;
+    public Op(QueryInterpreter interpreter) {
+        this.interpreter = interpreter;
     }
 
-    public <T extends ObjectType> Criteria createFilterCriteria(Session session, Class<T> type, Element filter) {
-        Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
+    public boolean canHandle(Element filter) {
+        if (canHandle() == null || filter == null) {
+            return false;
+        }
 
+        for (QName qname : canHandle()) {
+            if (DOMUtil.isElementName(filter, qname)) {
+                return true;
+            }
+        }
 
-        return criteria;
+        return false;
     }
+
+    protected QueryContext getContext() {
+        return interpreter.getContext();
+    }
+
+    protected abstract QName[] canHandle();
+
+    public abstract void interpret(Element filter, boolean pushNot);
 }

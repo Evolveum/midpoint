@@ -190,7 +190,8 @@ class RAnyConverter {
 //        PrismContainerDefinition containerDefinition = containerable.getDefinition();
 //        ItemDefinition definition = containerDefinition.findItemDefinition(value.getName());
 
-//        Item item = any.findOrCreateItem(value.getName());
+        Item item = any.findOrCreateItem(value.getName());
+//        System.out.println(item);
 
         //todo we have to some definitions to parent...
         // prismContext.adopt(((PrismObject) (((PrismContainer)any.getParent()).getParent()).getParent()).asObjectable());

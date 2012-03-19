@@ -1171,8 +1171,8 @@
                     <xsd:element ref="c:path" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                XPath to the containing XML element for the queried propoerty. 
-                                If not specified, defatults to "." (which is also the most usual value).
+                                XPath to the containing XML element for the queried property.
+                                If not specified, defaults to "." (which is also the most usual value).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

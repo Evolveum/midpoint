@@ -27,7 +27,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.*;
-import com.evolveum.midpoint.repo.sql.query.QueryProcessor;
+import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.schema.ResultArrayList;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -337,7 +337,8 @@ public class SqlRepositoryServiceImpl implements RepositoryService {
         try {
             session = beginTransaction();
             LOGGER.debug("Updating query criteria.");
-            Criteria criteria = new QueryProcessor(prismContext).createFilterCriteria(session, type, query.getFilter());
+            QueryInterpreter interpreter = new QueryInterpreter(session, type, prismContext);
+            Criteria criteria = interpreter.interpret(query.getFilter());
             criteria.setProjection(Projections.rowCount());
 
             LOGGER.debug("Selecting total count.");

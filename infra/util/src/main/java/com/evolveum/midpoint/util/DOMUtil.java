@@ -63,8 +63,8 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
- * 
- * 
+ *
+ *
  * @author Igor Farinic
  * @author Radovan Semancik
  * @version $Revision$ $Date$
@@ -74,7 +74,7 @@ public class DOMUtil {
 
 	public static final String W3C_XML_SCHEMA_XMLNS_URI = "http://www.w3.org/2000/xmlns/";
 	public static final String W3C_XML_SCHEMA_XMLNS_PREFIX = "xmlns";
-	
+
 	public static final String W3C_XML_XML_URI = "http://www.w3.org/XML/1998/namespace";
 	public static final String W3C_XML_XML_PREFIX = "xml";
 
@@ -89,10 +89,10 @@ public class DOMUtil {
 			NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_APPINFO_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "appinfo",
 			NS_W3C_XML_SCHEMA_PREFIX);
-	
+
 	public static final QName XSD_ATTR_TARGET_NAMESPACE = new QName(W3C_XML_SCHEMA_NS_URI, "targetNamespace",
 			NS_W3C_XML_SCHEMA_PREFIX);
-	
+
 	public static final QName XSD_STRING = new QName(W3C_XML_SCHEMA_NS_URI, "string",
 			NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_INTEGER = new QName(W3C_XML_SCHEMA_NS_URI, "integer",
@@ -109,7 +109,7 @@ public class DOMUtil {
 			NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_QNAME = new QName(W3C_XML_SCHEMA_NS_URI, "QName", NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_ANYURI = new QName(W3C_XML_SCHEMA_NS_URI, "anyURI", NS_W3C_XML_SCHEMA_PREFIX);
-	
+
 	public static final QName XSD_ANY = new QName(W3C_XML_SCHEMA_NS_URI, "any", NS_W3C_XML_SCHEMA_PREFIX);
 
 	public static final String NS_XML_ENC = "http://www.w3.org/2001/04/xmlenc#";
@@ -119,8 +119,8 @@ public class DOMUtil {
 	private static final int RANDOM_ATTR_PREFIX_RND = 1000;
 	// To generate random namespace prefixes
 	private static Random rnd = new Random();
-	private static final DocumentBuilder loader;	
-	
+	private static final DocumentBuilder loader;
+
 	static {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -164,7 +164,7 @@ public class DOMUtil {
 	public static Document parseFile(String filePath) {
 		return parseFile(new File(filePath));
 	}
-	
+
 	public static Document parseFile(File file) {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -179,7 +179,7 @@ public class DOMUtil {
 			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
 		}
 	}
-	
+
 	public static Document parse(InputStream inputStream) throws IOException {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -539,7 +539,7 @@ public class DOMUtil {
 		}
 		return prefix;
 	}
-	
+
 	public static boolean isNamespaceDefinition(Attr attr) {
 			if(W3C_XML_SCHEMA_XMLNS_URI.equals(attr.getNamespaceURI())) {
 				return true;
@@ -570,7 +570,7 @@ public class DOMUtil {
 			setNamespaceDeclaration(element, entry.getKey(), entry.getValue());
 		}
 	}
-	
+
 	/**
 	 * Take all the namespace declaration of parent elements and put them to this element.
 	 */
@@ -618,7 +618,7 @@ public class DOMUtil {
 		for (int i=0; i<childNodes.getLength(); i++) {
 			Node node = childNodes.item(i);
 			if (node instanceof Element) {
-				Element element = (Element)node; 
+				Element element = (Element)node;
 				if (isPrefixUsed(element, prefix)) {
 					return true;
 				}
@@ -626,7 +626,7 @@ public class DOMUtil {
 		}
 		return false;
 	}
-	
+
 	public static boolean hasNamespaceDeclarationForPrefix(Element targetElement, String prefix) {
 		return getNamespaceDeclarationForPrefix(targetElement, prefix) != null;
 	}
@@ -659,7 +659,7 @@ public class DOMUtil {
 		}
 		throw new IllegalStateException("Attempt to get prefix from a attribute that is not a namespace declaration, it is "+attrName);
 	}
-	
+
 	public static String getNamespaceDeclarationNamespace(Attr attr) {
 		if(!W3C_XML_SCHEMA_XMLNS_URI.equals(attr.getNamespaceURI())) {
 			throw new IllegalStateException("Attempt to get namespace from a attribute that is not a namespace declaration, it has namespace "
@@ -682,7 +682,7 @@ public class DOMUtil {
 		}
 		return prefixA.equals(prefixB);
 	}
-	
+
 	public static Element getChildElement(Element element, QName qname) {
 		for (Element subelement: listChildElements(element)) {
 			if (qname.equals(getQName(subelement))) {
@@ -725,7 +725,7 @@ public class DOMUtil {
 	public static QName getQNameValue(Element element) {
 		return resolveQName(element, element.getTextContent());
 	}
-	
+
 	public static QName getQNameAttribute(Element element, String attributeName) {
 		String attrContent = element.getAttribute(attributeName);
 		if (StringUtils.isBlank(attrContent)) {
@@ -733,7 +733,7 @@ public class DOMUtil {
 		}
 		return resolveQName(element, attrContent);
 	}
-	
+
 	public static QName getQNameAttribute(Element element, QName attributeName) {
 		String attrContent = element.getAttributeNS(attributeName.getNamespaceURI(), attributeName.getLocalPart());
 		if (StringUtils.isBlank(attrContent)) {
@@ -770,7 +770,7 @@ public class DOMUtil {
 		return createElement(document, qname);
 	}
 
-		
+
 	public static boolean compareElement(Element a, Element b, boolean considerNamespacePrefixes) {
 		if (a==b) {
 			return true;
@@ -803,11 +803,11 @@ public class DOMUtil {
 		if (a == null || b == null) {
 			return false;
 		}
-		
+
 		return (compareAttributesIsSubset(a,b,considerNamespacePrefixes)
 				&& compareAttributesIsSubset(b,a,considerNamespacePrefixes));
 	}
-		
+
 	private static boolean compareAttributesIsSubset(NamedNodeMap subset, NamedNodeMap superset, boolean considerNamespacePrefixes) {
 		for (int i = 0; i < subset.getLength(); i++) {
 			Node aItem = subset.item(i);
@@ -849,14 +849,14 @@ public class DOMUtil {
 		if (a == null || b == null) {
 			return false;
 		}
-		
+
 		List<Node> aList = canonizeNodeList(a);
 		List<Node> bList = canonizeNodeList(b);
-		
+
 		if (aList.size() != bList.size()) {
 			return false;
 		}
-		
+
 		Iterator<Node> aIterator = aList.iterator();
 		Iterator<Node> bIterator = bList.iterator();
 		while (aIterator.hasNext()) {
@@ -948,5 +948,13 @@ public class DOMUtil {
 		}
 		return null;
 	}
+    
+    public static QName getQNameWithoutPrefix(Node node) {
+        QName qname = getQName(node);
+        return new QName(qname.getNamespaceURI(), qname.getLocalPart());
+    }
 
+    public static boolean isElementName(Element element, QName name) {
+        return name.equals(getQNameWithoutPrefix(element));
+    }
 }
