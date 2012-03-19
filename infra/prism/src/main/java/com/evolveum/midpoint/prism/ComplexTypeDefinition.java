@@ -23,7 +23,10 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -36,7 +39,7 @@ import javax.xml.namespace.QName;
  */
 public class ComplexTypeDefinition extends Definition {
 	private static final long serialVersionUID = 2655797837209175037L;
-	private Set<ItemDefinition> itemDefinitions;
+	private List<ItemDefinition> itemDefinitions;
 	private QName superType;
 	private boolean containerMarker;
 	private boolean objectMarker;
@@ -46,12 +49,12 @@ public class ComplexTypeDefinition extends Definition {
 
 	public ComplexTypeDefinition(QName defaultName, QName typeName, PrismContext prismContext) {
 		super(defaultName, typeName, prismContext);
-		itemDefinitions = new HashSet<ItemDefinition>();
+		itemDefinitions = new ArrayList<ItemDefinition>();
 	}
 	
 	public ComplexTypeDefinition(QName defaultName, QName typeName, PrismContext prismContext, Class<?> compileTimeClass) {
 		super(defaultName, typeName, prismContext);
-		itemDefinitions = new HashSet<ItemDefinition>();
+		itemDefinitions = new ArrayList<ItemDefinition>();
 		this.compileTimeClass = compileTimeClass;
 	}
 
@@ -67,9 +70,9 @@ public class ComplexTypeDefinition extends Definition {
 	 * 
 	 * @return set of definitions
 	 */
-	public Set<ItemDefinition> getDefinitions() {
+	public List<ItemDefinition> getDefinitions() {
 		if (itemDefinitions == null) {
-			itemDefinitions = new HashSet<ItemDefinition>();
+			itemDefinitions = new ArrayList<ItemDefinition>();
 		}
 		return itemDefinitions;
 	}

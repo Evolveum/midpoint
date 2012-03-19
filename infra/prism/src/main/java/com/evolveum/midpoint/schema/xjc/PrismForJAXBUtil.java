@@ -145,21 +145,32 @@ public final class PrismForJAXBUtil {
         Validate.notNull(parent, "Prism container value must not be null.");
         Validate.notNull(fieldName, "QName must not be null.");
 
+        PrismContainer<T> fieldContainer = null;
         if (fieldContainerValue == null) {
-            PrismContainer<T> container = parent.findOrCreateContainer(fieldName);
-            if (container != null) {
-                container.clear();
+            fieldContainer = parent.findOrCreateContainer(fieldName);
+            if (fieldContainer != null) {
+                fieldContainer.clear();
             }
         } else {
-            PrismContainer<T> newValue = new PrismContainer<T>(fieldName);
-            newValue.add(fieldContainerValue);
+            fieldContainer = new PrismContainer<T>(fieldName);
+            fieldContainer.add(fieldContainerValue);
             if (parent.getContainer() == null) {
-                parent.getItems().add(newValue);
+                parent.add(fieldContainer);
             } else {
-                parent.getContainer().getValue().addReplaceExisting(newValue);
+                parent.getContainer().getValue().addReplaceExisting(fieldContainer);
             }
         }
-
+        // Make sure that the definition from parent is applied to new field container
+        if (fieldContainer.getDefinition() == null) {
+        	PrismContainer<?> parentContainer = parent.getContainer();
+        	if (parentContainer != null) {
+	        	PrismContainerDefinition<?> parentDefinition = parentContainer.getDefinition();
+	        	if (parentDefinition != null) {
+	        		PrismContainerDefinition<T> fieldDefinition = parentDefinition.findContainerDefinition(fieldName);
+	        		fieldContainer.setDefinition(fieldDefinition);
+	        	}
+        	}
+        }
         return true;
     }
 
