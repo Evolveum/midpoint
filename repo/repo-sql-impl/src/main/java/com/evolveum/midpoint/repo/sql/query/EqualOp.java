@@ -24,14 +24,11 @@ package com.evolveum.midpoint.repo.sql.query;
 import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author lazyman
@@ -60,9 +57,7 @@ public class EqualOp extends Op {
 
         Element path = DOMUtil.getChildElement(filter, SchemaConstants.C_PATH);
         if (path != null && StringUtils.isNotEmpty(path.getTextContent())) {
-            //todo createCriteria for path items with aliases, also save these in some map as <path, prefix>
-            //check path with some schema stuff as well as check it against query annotations in data.common package
-            //add this mappings to query context...
+            updateQueryContext(path);
         }
 
         Element value = DOMUtil.getChildElement(filter, SchemaConstants.C_VALUE);
@@ -81,5 +76,12 @@ public class EqualOp extends Op {
         }
 
         return equal;
+    }
+
+    //todo createCriteria for path items with aliases, also save these in some map as <path, prefix>
+    //check path with some schema stuff as well as check it against query annotations in data.common package
+    //add this mappings to query context...
+    private void updateQueryContext(Element path) throws QueryInterpreterException {
+
     }
 }

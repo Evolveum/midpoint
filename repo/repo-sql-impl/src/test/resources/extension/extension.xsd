@@ -39,11 +39,11 @@
     <xsd:element name="locations" type="tns:LocationsType"/>
 
     <xsd:complexType name="LocationsType">
-        <annotation>
-            <appinfo>
+        <xsd:annotation>
+            <xsd:appinfo>
                 <a:extension ref="c:GenericObjectType"/>
-            </appinfo>
-        </annotation>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="location" type="tns:LocationType"/>
         </xsd:sequence>

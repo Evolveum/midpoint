@@ -33,7 +33,8 @@ import java.util.Map;
  */
 public class QueryContext {
 
-    private Map<PropertyPath, Criteria> criterions = new HashMap<PropertyPath, Criteria>();;
+    private Map<PropertyPath, Criteria> criterions = new HashMap<PropertyPath, Criteria>();
+    private Map<PropertyPath, String> aliases = new HashMap<PropertyPath, String>();
 
     public Criteria getCriteria(PropertyPath path) {
         return criterions.get(path);

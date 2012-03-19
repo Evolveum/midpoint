@@ -24,24 +24,30 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.RAccountShadow;
+import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
+import com.evolveum.midpoint.repo.sql.query.QueryInterpreterException;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import javax.xml.namespace.QName;
 import java.io.File;
 
 /**
@@ -61,52 +67,61 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
     SessionFactory factory;
 
     @Test
-    public void a() {
+    public void queryOrComposite() throws Exception {
         Session session = open();
         Criteria main = session.createCriteria(RAccountShadow.class, "a");
 
-        Criteria extension = main.createCriteria("extension","e");
-        Criteria stringAttr = extension.createCriteria("strings", "s");
-//        stringAttr.add(Restrictions.eq("value", "uid=test,dc=example,dc=com"));
-
         Criteria resourceRef = main.createCriteria("resourceRef", "r");
-//        resourceRef.add(Restrictions.eq("targetOid", "0001092019091029301923012"));
 
-        main.add(Restrictions.or(Restrictions.eq("s.value", "uid=test,dc=example,dc=com"),
-                Restrictions.eq("r.targetOid", "0001092019091029301923012")));
-        
-        String sql = HibernateToSqlTranslator.toSql(main);
-        LOGGER.info("aaaa>>>>SQL QUERY\n{}\nEND SQL", new Object[]{sql});
+        Criteria extension = main.createCriteria("extension", "e");
+        Criteria stringAttr = extension.createCriteria("strings", "s");
+
+        //first
+        Conjunction and = Restrictions.conjunction();
+        and.add(Restrictions.eq("s.value", "uid=test,dc=example,dc=com"));
+        and.add(Restrictions.eq("s.name", new QName("http://example.com/p", "stringType")));
+        and.add(Restrictions.eq("s.type", new QName("http://www.w3.org/2001/XMLSchema", "string")));
+        //or second
+        main.add(Restrictions.or(and, Restrictions.eq("r.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e")));
+
+        String expected = HibernateToSqlTranslator.toSql(main);
+
+
+        String real = getInterpretedQuery(session, AccountShadowType.class,
+                new File("./src/test/resources/query/query-or-composite.xml"));
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
 
         close(session);
     }
 
     @Test
-    public void simpeUserQueryTest() throws Exception {
+    public void queryUserFullName() throws Exception {
         Session session = open();
-        QueryInterpreter interpreter = new QueryInterpreter(session, UserType.class, prismContext);
 
-        Document document = DOMUtil.parseFile(new File("./src/test/resources/query/query-user-by-fullName.xml"));
-        Element filter = DOMUtil.listChildElements(document.getDocumentElement()).get(0);
-        Criteria criteria = interpreter.interpret(filter);
-        String sql = HibernateToSqlTranslator.toSql(criteria);
-        LOGGER.info("user>>>>SQL QUERY\n{}\nEND SQL", new Object[]{sql});
+        Criteria main = session.createCriteria(RUser.class, "u");
+        main.add(Restrictions.eq("fullName", "Cpt. Jack Sparrow"));
+        String expected = HibernateToSqlTranslator.toSql(main);
+
+        String real = getInterpretedQuery(session, UserType.class,
+                new File("./src/test/resources/query/query-user-by-fullName.xml"));
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
 
         close(session);
     }
 
-    @Test
-    public void simpeAccountQueryTest() throws Exception {
-        Session session = open();
-        QueryInterpreter interpreter = new QueryInterpreter(session, AccountShadowType.class, prismContext);
+    private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, File file) throws
+            QueryInterpreterException {
 
-        Document document = DOMUtil.parseFile(new File("./src/test/resources/query/query-account-by-attributes.xml"));
+        QueryInterpreter interpreter = new QueryInterpreter(session, type, prismContext);
+
+        Document document = DOMUtil.parseFile(file);
         Element filter = DOMUtil.listChildElements(document.getDocumentElement()).get(0);
         Criteria criteria = interpreter.interpret(filter);
-        String sql = HibernateToSqlTranslator.toSql(criteria);
-        LOGGER.info("account>>>>SQL QUERY\n{}\nEND SQL", new Object[]{sql});
-
-        close(session);
+        return HibernateToSqlTranslator.toSql(criteria);
     }
 
     private Session open() {
