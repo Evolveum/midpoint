@@ -69,7 +69,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
 	public static final String NS_USER_EXT = "http://example.com/xml/ns/user-extension";
 	public static final String NS_ROOT = "http://example.com/xml/ns/test/root.xsd";
-	public static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extesion";
+	public static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";
 	
 	// FOO schema
 	public static final QName USER_QNAME = new QName(NS_FOO,"user");
