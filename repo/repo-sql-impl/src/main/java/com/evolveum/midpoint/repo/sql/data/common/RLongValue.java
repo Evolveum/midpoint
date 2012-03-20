@@ -30,7 +30,7 @@ import javax.xml.namespace.QName;
  * @author lazyman
  */
 @Embeddable
-public class RLongValue extends RValue {
+public class RLongValue extends RValue<Long> {
     
     private Long value;
 
@@ -48,6 +48,7 @@ public class RLongValue extends RValue {
     }
 
     @Index(name = "iLong")
+    @Override
     public Long getValue() {
         return value;
     }

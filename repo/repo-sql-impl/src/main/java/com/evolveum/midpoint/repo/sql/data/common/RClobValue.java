@@ -30,7 +30,7 @@ import javax.xml.namespace.QName;
  * @author lazyman
  */
 @Embeddable
-public class RClobValue extends RValue {
+public class RClobValue extends RValue<String> {
 
     private String value;
 
@@ -48,6 +48,7 @@ public class RClobValue extends RValue {
     }
 
     @Type(type = "org.hibernate.type.MaterializedClobType")
+    @Override
     public String getValue() {
         return value;
     }

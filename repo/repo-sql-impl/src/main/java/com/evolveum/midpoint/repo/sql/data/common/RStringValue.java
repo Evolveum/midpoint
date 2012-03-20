@@ -30,7 +30,7 @@ import javax.xml.namespace.QName;
  * @author lazyman
  */
 @Embeddable
-public class RStringValue extends RValue {
+public class RStringValue extends RValue<String> {
 
     private String value;
 
@@ -48,6 +48,7 @@ public class RStringValue extends RValue {
     }
 
     @Index(name = "iString")
+    @Override
     public String getValue() {
         return value;
     }

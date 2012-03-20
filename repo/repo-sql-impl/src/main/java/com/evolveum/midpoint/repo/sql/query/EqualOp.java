@@ -21,14 +21,21 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
+import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.PropertyPathSegment;
 import com.evolveum.midpoint.schema.SchemaConstants;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.util.DOMUtil;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -66,7 +73,7 @@ public class EqualOp extends Op {
         }
 
         Element condition = DOMUtil.listChildElements(value).get(0);
-        String conditionItem = condition.getLocalName();    //todo fix with mapping
+        String conditionItem = updateConditionItem(DOMUtil.getQNameWithoutPrefix(condition), path);
 
         Criterion equal;
         if (pushNot) {
@@ -77,11 +84,55 @@ public class EqualOp extends Op {
 
         return equal;
     }
+    
+    private String updateConditionItem(QName conditionItem, Element path) {
+        //todo fix with mapping
+        StringBuilder item = new StringBuilder();
+        
+        if (path != null && StringUtils.isNotEmpty(path.getTextContent())) {
+            XPathHolder holder = new XPathHolder(path);
+            PropertyPath propertyPath = holder.toPropertyPath();
+            
+            String alias = getContext().getAlias(propertyPath);
+            if (StringUtils.isNotEmpty(alias)) {
+                item.append(alias);
+            }
+        }
+        
+        if (item.length() != 0) {
+            item.append(".");
+        }
+        item.append(conditionItem.getLocalPart());
+
+        return item.toString();
+    }
 
     //todo createCriteria for path items with aliases, also save these in some map as <path, prefix>
     //check path with some schema stuff as well as check it against query annotations in data.common package
     //add this mappings to query context...
     private void updateQueryContext(Element path) throws QueryInterpreterException {
+        XPathHolder holder = new XPathHolder(path);
+        List<XPathSegment> segments = holder.toSegments();
 
+        List<PropertyPathSegment> propPathSegments = new ArrayList<PropertyPathSegment>();
+        PropertyPath lastPropPath = null;
+        PropertyPath propPath;
+        for (XPathSegment segment : segments) {
+            QName qname = segment.getQName();
+            propPathSegments.add(new PropertyPathSegment(qname));
+            
+            propPath = new PropertyPath(propPathSegments);
+            
+            Criteria pCriteria = getContext().getCriteria(lastPropPath);
+            Criteria criteria = pCriteria.createCriteria(qname.getLocalPart(), 
+                    Character.toString(qname.getLocalPart().charAt(0))); 
+            getContext().setCriteria(propPath, criteria);   
+            getContext().setAlias(propPath, createAlias(propPath.last()));
+        }
+    }
+    
+    private String createAlias(PropertyPathSegment segment) {
+        //todo reimplement
+        return Character.toString(segment.getName().getLocalPart().charAt(0));
     }
 }

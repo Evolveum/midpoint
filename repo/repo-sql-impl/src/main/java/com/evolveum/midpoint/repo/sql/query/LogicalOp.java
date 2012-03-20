@@ -23,7 +23,10 @@ package com.evolveum.midpoint.repo.sql.query;
 
 import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
+import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Disjunction;
+import org.hibernate.criterion.Restrictions;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
@@ -57,13 +60,27 @@ public class LogicalOp extends Op {
                 }
                 return getInterpreter().interpret(elements.get(0), newPushNot);
             default:
-                if (Operation.NOT.equals(operation)) {
-                    throw new QueryInterpreterException("Can't create filter NOT (unary) with more than one element.");
+                switch (operation) {
+                    case NOT:
+                        throw new QueryInterpreterException("Can't create filter NOT (unary) with more than one element.");
+                    case AND:
+                        Conjunction conjunction = Restrictions.conjunction();
+                        for (Element element : elements) {
+                            conjunction.add(getInterpreter().interpret(element, pushNot));
+                        }
+
+                        return conjunction;
+                    case OR:
+                        Disjunction disjunction = Restrictions.disjunction();
+                        for (Element element : elements) {
+                            disjunction.add(getInterpreter().interpret(element, pushNot));
+                        }
+
+                        return disjunction;
                 }
-                //todo do and or on interpretation results
         }
 
-        return null;
+        throw new QueryInterpreterException("bla bla");//todo message
     }
 
     private Operation getOperationType(Element filterPart) throws QueryInterpreterException {

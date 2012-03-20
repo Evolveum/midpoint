@@ -24,6 +24,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.sql.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -65,48 +66,63 @@ class RAnyConverter {
         this.prismContext = prismContext;
     }
 
-    Set<RValue> convertToValue(Item item) throws SchemaException {
+    Set<RValue> convertToValue(Item item) throws DtoTranslationException {
         Validate.notNull(item, "Object for converting must not be null.");
 
         Set<RValue> rValues = new HashSet<RValue>();
-        ItemDefinition definition = item.getDefinition();
+        try {
+            ItemDefinition definition = item.getDefinition();
 
-        RValue rValue = null;
-        List<PrismValue> values = item.getValues();
-        for (PrismValue value : values) {
-            if (value instanceof PrismContainerValue) {
-                rValue = createClobValue((PrismContainerValue) value);
-            } else if (value instanceof PrismPropertyValue) {
-                PrismPropertyValue propertyValue = (PrismPropertyValue) value;
-                switch (getValueType(definition.getTypeName())) {
-                    case LONG:
-                        RLongValue longValue = new RLongValue();
-                        longValue.setValue(extractValue(propertyValue, Long.class));
-                        rValue = longValue;
-                        break;
-                    case DATE:
-                        RDateValue dateValue = new RDateValue();
-                        dateValue.setValue(extractValue(propertyValue, Date.class));
-                        rValue = dateValue;
-                        break;
-                    case STRING:
-                    default:
-                        if (definition.isSearchable()) {
-                            RStringValue strValue = new RStringValue();
-                            strValue.setValue(extractValue(propertyValue, String.class));
-                            rValue = strValue;
-                        } else {
-                            rValue = createClobValue(propertyValue);
-                        }
+            RValue rValue = null;
+            List<PrismValue> values = item.getValues();
+            for (PrismValue value : values) {
+                if (value instanceof PrismContainerValue) {
+                    rValue = createClobValue((PrismContainerValue) value);
+                } else if (value instanceof PrismPropertyValue) {
+                    PrismPropertyValue propertyValue = (PrismPropertyValue) value;
+                    switch (getValueType(definition.getTypeName())) {
+                        case LONG:
+                            RLongValue longValue = new RLongValue();
+                            longValue.setValue(extractValue(propertyValue, Long.class));
+                            rValue = longValue;
+                            break;
+                        case DATE:
+                            RDateValue dateValue = new RDateValue();
+                            dateValue.setValue(extractValue(propertyValue, Date.class));
+                            rValue = dateValue;
+                            break;
+                        case STRING:
+                        default:
+                            if (definition.isSearchable()) {
+                                RStringValue strValue = new RStringValue();
+                                strValue.setValue(extractValue(propertyValue, String.class));
+                                rValue = strValue;
+                            } else {
+                                rValue = createClobValue(propertyValue);
+                            }
+                    }
                 }
-            }
 
-            rValue.setName(definition.getName());
-            rValue.setType(definition.getTypeName());
-            rValues.add(rValue);
+                rValue.setName(definition.getName());
+                rValue.setType(definition.getTypeName());
+                rValue.setValueType(getValueType(value.getParent()));
+
+                rValues.add(rValue);
+            }
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
         }
 
         return rValues;
+    }
+
+    private RValueType getValueType(Itemable itemable) {
+        Validate.notNull(itemable, "Value parent must not be null.");
+        if (!(itemable instanceof Item)) {
+            throw new IllegalArgumentException("Item type '" + itemable.getClass() + "' not supported in 'any' now.");
+        }
+
+        return RValueType.getTypeFromItemClass(((Item) itemable).getClass());
     }
 
     private RClobValue createClobValue(PrismContainerValue containerValue) throws SchemaException {
@@ -179,27 +195,19 @@ class RAnyConverter {
         return type;
     }
 
-    void convertFromValue(RValue value, PrismContainerValue any) {
+    void convertFromValue(RValue value, PrismContainerValue any) throws DtoTranslationException {
         Validate.notNull(value, "Value for converting must not be null.");
         Validate.notNull(any, "Parent prism container value must not be null.");
 
-
-        //extension item or something like that
-//        PrismContainerable containerable = parent.getParent();
-
-//        PrismContainerDefinition containerDefinition = containerable.getDefinition();
-//        ItemDefinition definition = containerDefinition.findItemDefinition(value.getName());
-
         try {
-        Item item = any.findOrCreateItem(value.getName());
+            Item item = any.findOrCreateItem(value.getName(), value.getValueType().getItemClass());
+            if (item != null) {
+                item.add(new PrismPropertyValue(value.getValue(), null, null));      //todo create through reflection
+            }
             System.out.println("");
         } catch (Exception ex) {
             LOGGER.info(ex.getMessage(), ex);
         }
-//        System.out.println(item);
-
-        //todo we have to some definitions to parent...
-        // prismContext.adopt(((PrismObject) (((PrismContainer)any.getParent()).getParent()).getParent()).asObjectable());
     }
 
     private Element createElement(QName name) {

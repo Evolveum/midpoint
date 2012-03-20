@@ -23,18 +23,18 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import org.hibernate.annotations.Columns;
 
-import javax.persistence.Column;
-import javax.persistence.MappedSuperclass;
+import javax.persistence.*;
 import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
  */
 @MappedSuperclass
-public class RValue {
+public abstract class RValue<T> {
 
     private QName name;
     private QName type;
+    private RValueType valueType;
 
     @Columns(columns = {
             @Column(name = "name_namespace"),
@@ -50,6 +50,15 @@ public class RValue {
     })
     public QName getType() {
         return type;
+    }
+
+    @Enumerated(EnumType.ORDINAL)
+    public RValueType getValueType() {
+        return valueType;
+    }
+
+    public void setValueType(RValueType valueType) {
+        this.valueType = valueType;
     }
 
     public void setName(QName name) {
@@ -79,4 +88,7 @@ public class RValue {
         result = 31 * result + (type != null ? type.hashCode() : 0);
         return result;
     }
+
+    @Transient
+    public abstract T getValue();
 }

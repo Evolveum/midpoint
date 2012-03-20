@@ -31,7 +31,7 @@ import java.util.Date;
  * @author lazyman
  */
 @Embeddable
-public class RDateValue extends RValue {
+public class RDateValue extends RValue<Date> {
 
     private Date value;
 
@@ -49,6 +49,7 @@ public class RDateValue extends RValue {
     }
 
     @Index(name = "iDate")
+    @Override
     public Date getValue() {
         return value;
     }

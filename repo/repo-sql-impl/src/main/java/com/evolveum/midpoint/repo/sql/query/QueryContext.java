@@ -45,7 +45,20 @@ public class QueryContext {
         if (criterions.containsKey(path)) {
             throw new IllegalArgumentException("Already has criteria with this path '" + path + "'");
         }
-        
+
         criterions.put(path, criteria);
+    }
+
+    public String getAlias(PropertyPath path) {
+        return aliases.get(path);
+    }
+
+    public void setAlias(PropertyPath path, String alias) {
+        Validate.notNull(alias, "Alias must not be null.");
+        if (aliases.containsValue(alias)) {
+            throw new IllegalArgumentException("Already has alias '" + alias + "' with this path '" + path + "'.");
+        }
+
+        aliases.put(path, alias);
     }
 }
