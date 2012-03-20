@@ -348,7 +348,8 @@ public class TaskImpl implements Task {
 
 	@Override
 	public UriStack getOtherHandlersUriStack() {
-		return taskPrism.getPropertyRealValue(TaskType.F_OTHER_HANDLERS_URI_STACK, UriStack.class);
+		checkHandlerUriConsistency();
+		return taskPrism.asObjectable().getOtherHandlersUriStack();
 	}
 	
 	public void setOtherHandlersUriStackTransient(UriStack value) {
@@ -358,14 +359,17 @@ public class TaskImpl implements Task {
 			// This should not happen
 			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
 		}
+		checkHandlerUriConsistency();
 	}
 
 	public void setOtherHandlersUriStackImmediate(UriStack value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		processModificationNow(setOtherHandlersUriStackAndPrepareDelta(value), parentResult);
+		checkHandlerUriConsistency();
 	}
 
 	public void setOtherHandlersUriStack(UriStack value) {
 		processModificationBatched(setOtherHandlersUriStackAndPrepareDelta(value));
+		checkHandlerUriConsistency();
 	}
 
 	private PropertyDelta<?> setOtherHandlersUriStackAndPrepareDelta(UriStack value) {
@@ -375,6 +379,8 @@ public class TaskImpl implements Task {
 	}
 	
 	private String popFromOtherHandlersUriStack() {
+		
+		checkHandlerUriConsistency();
 		
 		UriStack stack = taskPrism.getPropertyRealValue(TaskType.F_OTHER_HANDLERS_URI_STACK, UriStack.class);
 		if (stack == null || stack.getUri().isEmpty())
@@ -386,11 +392,41 @@ public class TaskImpl implements Task {
 		
 		return retval;
 	}
+	
+	public void pushHandlerUri(String uri) {
+		
+		checkHandlerUriConsistency();
+		
+		if (getHandlerUri() == null) {
+			setHandlerUri(uri);
+		} else {
+		
+			UriStack stack = taskPrism.getPropertyRealValue(TaskType.F_OTHER_HANDLERS_URI_STACK, UriStack.class);
+			if (stack == null)
+				stack = new UriStack();
+			
+			stack.getUri().add(getHandlerUri());
+			setHandlerUri(uri);
+			setOtherHandlersUriStack(stack);
+		}
+	}
 
 	public int getHandlersCount() {
+		checkHandlerUriConsistency();
 		int main = getHandlerUri() != null ? 1 : 0;
 		int others = getOtherHandlersUriStack() != null ? getOtherHandlersUriStack().getUri().size() : 0;
 		return main + others;
+	}
+	
+	private boolean isOtherHandlersUriStackEmpty() {
+		UriStack stack = taskPrism.asObjectable().getOtherHandlersUriStack();
+		return stack == null || stack.getUri().isEmpty();
+	}
+	
+	
+	private void checkHandlerUriConsistency() {
+		if (getHandlerUri() == null && !isOtherHandlersUriStackEmpty())
+			throw new IllegalStateException("Handler URI is null but there is at least one 'other' handler (otherHandlerUriStack size = " + getOtherHandlersUriStack().getUri().size() + ")");
 	}
 
 	

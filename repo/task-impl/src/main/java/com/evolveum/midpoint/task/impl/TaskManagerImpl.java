@@ -538,7 +538,8 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		} else {
 			
 			// Not supported yet
-			LOGGER.error("Tightly bound tasks (cycles) are the only supported for reccuring tasks for now. Sorry.");
+			//LOGGER.error("Tightly bound tasks (cycles) are the only supported for reccuring tasks for now. Sorry.");
+			LOGGER.error("Tasks must be either recurrent or single-run. This one is neither. Sorry.");
 			// Ignore otherwise. Nothing else to do.
 			
 		}

@@ -30,6 +30,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import org.apache.cxf.continuations.SuspendedInvocationException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,6 +96,8 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
     private static final String TASK_OWNER_FILENAME = "src/test/resources/repo/owner.xml";
     private static final String TASK_CYCLE_FILENAME = "src/test/resources/repo/cycle-task.xml";
     private static final String TASK_CYCLE_OID = "91919191-76e0-59e2-86d6-998877665544";
+    private static final String TASK_CYCLE_MORE_HANDLERS_FILENAME = "src/test/resources/repo/cycle-task-more-handlers.xml";
+    private static final String TASK_CYCLE_MORE_HANDLERS_OID = "91919191-76e0-59e2-86d6-998877665500";
     private static final String TASK_WAITING_FILENAME = "src/test/resources/repo/waiting-task.xml";
     private static final String TASK_WAITING_OID = "91919190-76e0-59e2-86d6-556655665566";
     private static final String TASK_SINGLE_FILENAME = "src/test/resources/repo/single-task.xml";
@@ -330,7 +333,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test003Single() throws Exception {
 
         // reset 'has run' flag on the handler
@@ -394,7 +397,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertTrue(singleHandler1.hasRun());
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test004Cycle() throws Exception {
         // Add cycle task. This will get picked by task scanner and executed
 
@@ -455,6 +458,9 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         OperationResult taskResult = task.getResult();
         AssertJUnit.assertNotNull(taskResult);
         AssertJUnit.assertTrue(taskResult.isSuccess());
+        
+        // Stop the task (in order to keep logs clean)
+        task.signalShutdown();
     }
 
     
@@ -541,7 +547,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         LOGGER.info("Cycle Task has been told to shut down.");
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test006MoreHandlers() throws Exception {
 
         // reset 'has run' flag on handlers
@@ -706,47 +712,47 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertTrue(taskResult.isSuccess());
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test009CycleMoreHandlers() throws Exception {
-        // Add cycle task. This will get picked by task scanner and executed
 
-        // But before that check sanity ... a known problem with xsi:type
-    	addObjectFromFile(TASK_CYCLE_FILENAME);
+    	// Add cycle task. This will get picked by task scanner and executed
+    	
+    	OperationResult result = new OperationResult(TestTaskManagerContract.class.getName() + ".test009CycleMoreHandlers");
+
+    	addObjectFromFile(TASK_CYCLE_MORE_HANDLERS_FILENAME);
+    	
+        TaskImpl task = (TaskImpl) taskManager.getTask(TASK_CYCLE_MORE_HANDLERS_OID, result);
+        task.pushHandlerUri(CYCLE_TASK_HANDLER_URI);									
+        task.savePendingModifications(result);
         
-        OperationResult result = new OperationResult(TestTaskManagerContract.class.getName() + ".test009CycleMoreHandlers");
-
-        // We need to wait for a sync interval, so the task scanner has a chance
-        // to pick up this
-        // task
+        taskManager.resumeTask(task, result);
+        
         System.out.println("Waiting for task manager to pick up the task");
         Thread.sleep(2000);
         System.out.println("... done");
 
         // Check task status
 
-        Task task = taskManager.getTask(TASK_CYCLE_OID, result);
+        task.refresh(result);
 
         AssertJUnit.assertNotNull(task);
         System.out.println(task.dump());
+        
+        // Check whether there are really 2 handlers
+        AssertJUnit.assertEquals("There are not 2 task handlers", 2, task.getHandlersCount());
 
-        PrismObject<TaskType> t = repositoryService.getObject(TaskType.class, TASK_CYCLE_OID, null, result);
-        System.out.println(t.dump());
-
-        // .. it should be running
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
-
-        // .. and claimed
         AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
 
-        // .. and last run start time and finish time be null
+        // Task manager should reject this task
         AssertJUnit.assertNull(task.getLastRunStartTimestamp());
         AssertJUnit.assertNull(task.getLastRunFinishTimestamp());
-
-        // The progress should be 0
         AssertJUnit.assertTrue(task.getProgress() == 0);
+        
+
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test010Suspend() throws Exception {
 
     	addObjectFromFile(TASK_SUSPEND_FILENAME);
@@ -784,7 +790,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertTrue(task.getProgress() > 0);
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test011ReleaseAndSuspendLooselyBound() throws Exception {
 
     	addObjectFromFile(TASK_SUSPEND_LOOSELY_BOUND_FILENAME);
@@ -832,7 +838,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertTrue(task.getProgress() > 0);
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test012SuspendLongRunning() throws Exception {
 
     	addObjectFromFile(TASK_SUSPEND_LONG_RUNNING_FILENAME);
