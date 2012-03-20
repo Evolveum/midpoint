@@ -644,6 +644,11 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	
 	void diffRepresentation(PrismContainerValue<T> otherValue, PropertyPath pathPrefix,
 			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata) {
+		if (this.rawElements != null || otherValue.rawElements != null) {
+			if (this.rawElements == null || this.rawElements == null) {
+				throw new IllegalArgumentException("Attempt to diff container " + getParent() + " values with different parsing states (raw elements)");
+			}
+		}
 		// TODO 
 		diffItems(otherValue, pathPrefix, deltas, ignoreMetadata);
 	}

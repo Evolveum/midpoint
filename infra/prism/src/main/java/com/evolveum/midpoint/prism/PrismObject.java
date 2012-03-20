@@ -160,7 +160,21 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 		// Objects are only a single-valued containers. The path of the object itself is "empty".
 		// Fix this special behavior here.
 		PropertyPathSegment first = path.first();
-		Item<?> subitem = getValue().findCreateItem(first.getName(), Item.class, itemDefinition, create);
+		PropertyPath rest = path.rest();
+		Item<?> subitem = null; 
+		if (rest.isEmpty()) {
+			subitem = getValue().findCreateItem(first.getName(), Item.class, itemDefinition, create);
+		} else {
+			// This is intermediary item
+			PrismContainerDefinition contDef = null;
+			if (getDefinition() != null) {
+				contDef = getDefinition().findContainerDefinition(first.getName());
+				if (contDef == null) {
+					throw new SchemaException("No definition for container " + first.getName() + " in " + this);
+				}
+			}
+			subitem = getValue().findCreateItem(first.getName(), PrismContainer.class, contDef, create);
+		}
 		if (subitem == null) {
 			return null;
 		}

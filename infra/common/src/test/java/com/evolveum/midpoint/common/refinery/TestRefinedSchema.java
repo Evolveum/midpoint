@@ -20,8 +20,10 @@
  */
 package com.evolveum.midpoint.common.refinery;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -168,6 +171,34 @@ public class TestRefinedSchema {
         assertEquals("JAXB class name doesn't match (1)", AccountShadowType.class, accObject.getCompileTimeClass());
 
 
+    }
+    
+    @Test
+    public void testCreateShadow() throws JAXBException, SchemaException, SAXException, IOException {
+
+        // GIVEN
+    	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
+
+        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "resource.xml"));
+        ResourceType resourceType = resource.asObjectable();
+
+        RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
+        assertNotNull("Refined schema is null", rSchema);
+        assertFalse("No account definitions", rSchema.getAccountDefinitions().isEmpty());
+        RefinedAccountDefinition rAccount = rSchema.getAccountDefinition("user");
+        
+        // WHEN
+        PrismObject<AccountShadowType> blankShadow = rAccount.createBlankShadow();
+        
+        // THEN
+        assertNotNull("No blank shadow", blankShadow);
+        assertNotNull("No prism context in blank shadow", blankShadow.getPrismContext());
+        PrismObjectDefinition<AccountShadowType> objectDef = blankShadow.getDefinition();
+        assertNotNull("Blank shadow has no definition", objectDef);
+        PrismContainerDefinition<?> attrDef = objectDef.findContainerDefinition(AccountShadowType.F_ATTRIBUTES);
+        assertNotNull("Blank shadow has no definition for attributes", attrDef);
+        assertTrue("Wrong class for attributes definition: "+attrDef.getClass(), attrDef instanceof ResourceAttributeContainerDefinition);
+        
     }
 
     private void assertProperty(PrismContainer cont, QName propName, Object value) {

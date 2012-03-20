@@ -275,10 +275,9 @@ public class PrismAsserts {
 		if (delta.isEmpty()) {
 			suffix += ": Empty delta. The difference is most likely in meta-data";
 		}
-		LOGGER.trace("ASSERT: {} and {} not equals, delta:\n{}", new Object[]{
-				expected, actual, delta.dump()
+		LOGGER.error("ASSERT: {}: {} and {} not equals, delta:\n{}", new Object[]{
+				message, expected, actual, delta.dump()
 		});
-		// TODO: log the delta?
 		assert false: message + ": " + suffix;
 	}
 	public static void assertEquivalent(String message, File expectedFile, PrismObject actual) throws SchemaException {
@@ -306,7 +305,9 @@ public class PrismAsserts {
 		if (delta.isEmpty()) {
 			suffix += ": Empty delta. This is not expected. Somethig has got quite wrong here.";
 		}
-		// TODO: log the delta?
+		LOGGER.error("ASSERT: {}: {} and {} not equivalent, delta:\n{}", new Object[]{
+				message, expected, actual, delta.dump()
+		});
 		assert false: message + ": " + suffix;
 	}
 

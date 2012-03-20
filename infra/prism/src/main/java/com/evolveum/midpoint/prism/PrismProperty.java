@@ -507,7 +507,7 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
 
 	@Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + DebugUtil.prettyPrint(getName()) + "):" + getValues();
+        return getDebugDumpClassName() + "(" + DebugUtil.prettyPrint(getName()) + "):" + getValues();
     }
 
     @Override

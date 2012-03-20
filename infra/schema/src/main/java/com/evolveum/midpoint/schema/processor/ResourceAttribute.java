@@ -104,7 +104,7 @@ public class ResourceAttribute<T> extends PrismProperty<T> {
      * Return a human readable name of this class suitable for logs.
      */
     protected String getDebugDumpClassName() {
-        return "ROA";
+        return "RA";
     }
 
 }

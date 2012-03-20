@@ -406,7 +406,8 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     }
 
     private Collection<PropertyDelta> createEmptyModifications() {
-        return new HashSet<PropertyDelta>();
+    	// Lists are easier to debug
+        return new ArrayList<PropertyDelta>();
     }
     
     /**

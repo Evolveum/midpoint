@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -66,6 +67,14 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue> {
 			throw new IllegalArgumentException("Cannot apply definition "+definition+" to reference delta "+this);
 		}
 		super.applyDefinition(definition);
+	}
+
+	@Override
+	public void applyTo(Item item) throws SchemaException {
+		if (!(item instanceof PrismReference)) {
+			throw new SchemaException("Cannot apply reference delta "+this+" to item "+item+" of type "+item.getClass());
+		}
+		super.applyTo(item);
 	}
 
 	/**

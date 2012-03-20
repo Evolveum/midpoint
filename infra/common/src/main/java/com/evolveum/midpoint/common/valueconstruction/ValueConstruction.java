@@ -327,7 +327,7 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 
 	@Override
 	public String toString() {
-		return "ValueConstruction(" + SchemaDebugUtil.prettyPrint(outputDefinition.getName()) + " = " + output + ")";
+		return "VC(" + SchemaDebugUtil.prettyPrint(outputDefinition.getName()) + " = " + output + ")";
 	}
 	
 }

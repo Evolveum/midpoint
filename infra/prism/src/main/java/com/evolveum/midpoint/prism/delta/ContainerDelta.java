@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PropertyPath;
@@ -75,6 +76,14 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 			return getDefinition().getCompileTimeClass();
 		}
 		return null;
+	}
+	
+	@Override
+	public void applyTo(Item item) throws SchemaException {
+		if (!(item instanceof PrismContainer)) {
+			throw new SchemaException("Cannot apply container delta "+this+" to item "+item+" of type "+item.getClass());
+		}
+		super.applyTo(item);
 	}
 
 	public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createDelta(PrismContext prismContext, Class<O> type,

@@ -23,6 +23,7 @@ package com.evolveum.midpoint.common.refinery;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 
 import javax.xml.namespace.QName;
@@ -480,12 +482,25 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         return debugDump(0);
     }
 
-    public AccountShadowType createBlankShadow() {
-        AccountShadowType accountShadowType = new AccountShadowType();
-        accountShadowType.setAccountType(getAccountTypeName());
+    public PrismObject<AccountShadowType> createBlankShadow() {
+    	PrismObject<AccountShadowType> accountShadow;
+		try {
+			accountShadow = prismContext.getSchemaRegistry().instantiate(AccountShadowType.class);
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new SystemException("Internal error instantiating account shadow: "+e.getMessage(), e);
+		}
+    	AccountShadowType accountShadowType = accountShadow.asObjectable();
+        
+    	accountShadowType.setAccountType(getAccountTypeName());
         accountShadowType.setObjectClass(objectClassDefinition.getTypeName());
         accountShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(resourceType));
-        return accountShadowType;
+        
+        // Setup definition
+        PrismObjectDefinition<AccountShadowType> newDefinition = accountShadow.getDefinition().cloneWithReplacedDefinition(AccountShadowType.F_ATTRIBUTES, this);
+        accountShadow.setDefinition(newDefinition);
+        
+        return accountShadow;
     }
 
     public ResourceAccountType getResourceAccountType() {

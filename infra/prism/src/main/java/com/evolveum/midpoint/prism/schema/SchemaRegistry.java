@@ -744,6 +744,14 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		ItemDefinition itemDefinition = schema.findItemDefinition(elementQName, ItemDefinition.class);
 		return itemDefinition;
 	}
+	
+	public <T extends Objectable> PrismObject<T> instantiate(Class<T> compileTimeClass) throws SchemaException {
+		PrismObjectDefinition<T> objDef = findObjectDefinitionByCompileTimeClass(compileTimeClass);
+		if (objDef == null) {
+			throw new SchemaException("No definition for compile time class "+compileTimeClass);
+		}
+		return objDef.instantiate();
+	}
 
 
 }

@@ -26,6 +26,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -109,8 +110,16 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     	}
     	return (P) propertyDefinition.instantiate(getName());
     }
+    
+    @Override
+	public void applyTo(Item item) throws SchemaException {
+		if (!(item instanceof PrismProperty)) {
+			throw new SchemaException("Cannot apply property delta "+this+" to item "+item+" of type "+item.getClass());
+		}
+		super.applyTo(item);
+	}
 
-    // TODO: the same as createModificationReplaceProperty?
+	// TODO: the same as createModificationReplaceProperty?
     // btw, why was here 'PrismObjectDefinition'?
     public static <O extends Objectable> PropertyDelta createReplaceDelta(PrismContainerDefinition<O> containerDefinition,
 			QName propertyName, Object... realValues) {

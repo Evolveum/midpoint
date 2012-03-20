@@ -362,7 +362,7 @@ public class AccountSyncContext implements Dumpable, DebugDumpable {
             sb.append(" null");
         } else {
             sb.append("\n");
-            SchemaDebugUtil.debugDumpMapSingleLine(sb, attributeValueDeltaSetTripleMap, indent + 1);
+            SchemaDebugUtil.debugDumpMapMultiLine(sb, attributeValueDeltaSetTripleMap, indent + 1);
         }
 
         return sb.toString();

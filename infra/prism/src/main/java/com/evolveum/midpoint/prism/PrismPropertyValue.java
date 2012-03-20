@@ -171,6 +171,22 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		}
 		return result;
 	}
+    
+    
+
+	@Override
+	public boolean equals(PrismValue value, boolean ignoreMetadata) {
+		if (value instanceof PrismPropertyValue) {
+			PrismPropertyValue other = (PrismPropertyValue)value;
+			if (this.rawElement != null || other.rawElement != null) {
+				if (this.rawElement == null || other.rawElement == null) {
+					throw new IllegalArgumentException("Attempt to diff property " + getParent() + " values with different parsing states (raw elements)");
+				}
+			}
+		}
+		
+		return super.equals(value, ignoreMetadata);
+	}
 
 	@Override
 	public boolean equals(Object obj) {
