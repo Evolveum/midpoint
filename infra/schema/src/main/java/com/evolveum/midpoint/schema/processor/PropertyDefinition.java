@@ -93,6 +93,10 @@ public class PropertyDefinition extends ItemDefinition {
         return allowedValues;
     }
 
+    public void setAllowedValues(Object[] values) {
+        this.allowedValues = values;
+    }
+
     /**
      * TODO:
      *
