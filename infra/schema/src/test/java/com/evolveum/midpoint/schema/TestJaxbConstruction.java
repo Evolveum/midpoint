@@ -28,18 +28,14 @@ import java.lang.reflect.Method;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -95,5 +91,22 @@ public class TestJaxbConstruction {
 		assertNotNull("No extension definition after setExtension (prism)", extensionValueFromJaxb.getParent().getDefinition());
 
 	}
-		
+    
+    @Test
+    public void testExtensionTypeConstruction() throws Exception {
+        GenericObjectType object = new GenericObjectType();
+
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
+        prismContext.adopt(object.asPrismObject(), GenericObjectType.class);
+
+        ExtensionType extension = new ExtensionType();
+        object.setExtension(extension);
+        
+        PrismContainerValue extValue = extension.asPrismContainerValue();
+
+        QName testElement = new QName("http://midpoint.evolveum.com/xml/ns/test/extesion", "stringType");
+        Item item = extValue.findOrCreateItem(testElement);
+
+        assertNotNull(item);
+    }
 }
