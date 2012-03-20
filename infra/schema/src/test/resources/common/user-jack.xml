@@ -78,6 +78,6 @@
     </account>
     
     <!-- Account as reference -->
-    <accountRef oid="2f9b9299-6f45-498f-aaaa-000000003333"/>
+    <accountRef oid="2f9b9299-6f45-498f-aaaa-000000003333" type="AccountShadowType"/>
     
 </object>

@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.model.controller;
 
 import com.evolveum.midpoint.model.test.util.ModelTUtil;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -102,25 +103,28 @@ public class TestAssignment extends AbstractTestNGSpringContextTests {
 
         ModelTUtil.mockGetSystemConfiguration(repository, new File(
                 TEST_FOLDER_COMMON, "system-configuration.xml"));
-        final UserType user = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "user.xml"), UserType.class);
-        final RoleType role = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "role.xml"), RoleType.class);
-        final ResourceType resource = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON, "resource-opendj.xml"), ResourceType.class);
+        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_FOLDER, "user.xml"));
+        final UserType userType = user.asObjectable();
+        PrismObject<RoleType> role = PrismTestUtil.parseObject(new File(TEST_FOLDER, "role.xml"));
+        final RoleType roleType = role.asObjectable();
+        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(TEST_FOLDER_COMMON, "resource-opendj.xml"));
+        final ResourceType resourceType = resource.asObjectable();
 
         when(
-                repository.getObject(eq(RoleType.class), eq(role.getOid()),
-                        any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(role.asPrismObject());
+                repository.getObject(eq(RoleType.class), eq(roleType.getOid()),
+                        any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(roleType.asPrismObject());
         when(
-                provisioning.getObject(eq(ResourceType.class), eq(resource.getOid()),
+                provisioning.getObject(eq(ResourceType.class), eq(resourceType.getOid()),
                         any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
-                resource.asPrismObject());
+                resourceType.asPrismObject());
 
         when(
                 provisioning.addObject(any(PrismObject.class), any(ScriptsType.class),
                         any(OperationResult.class))).thenAnswer(new Answer<String>() {
             @Override
             public String answer(InvocationOnMock invocation) throws Throwable {
-                AccountShadowType account = (AccountShadowType) invocation.getArguments()[0];
-                LOGGER.info("Created account:\n{}", account);
+                PrismObject<AccountShadowType> account = (PrismObject<AccountShadowType>) invocation.getArguments()[0];
+                LOGGER.info("Created account:\n{}", account.dump());
                 PrismAsserts.assertEquals(new File(TEST_FOLDER, "account-expected.xml"), account);
 
                 return "12345678-d34d-b33f-f00d-987987987989";
@@ -142,7 +146,7 @@ public class TestAssignment extends AbstractTestNGSpringContextTests {
         try {
 
             //WHEN
-            model.addObject(user.asPrismObject(), task, result);
+            model.addObject(userType.asPrismObject(), task, result);
 
         } finally {
             LOGGER.debug(result.dump());

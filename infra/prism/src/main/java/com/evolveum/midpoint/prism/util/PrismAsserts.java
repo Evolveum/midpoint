@@ -52,6 +52,8 @@ import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Set of prism-related asserts.
@@ -62,6 +64,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  *
  */
 public class PrismAsserts {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(PrismAsserts.class);
 	
 	// VALUE asserts
 		
@@ -271,6 +275,9 @@ public class PrismAsserts {
 		if (delta.isEmpty()) {
 			suffix += ": Empty delta. The difference is most likely in meta-data";
 		}
+		LOGGER.trace("ASSERT: {} and {} not equals, delta:\n{}", new Object[]{
+				expected, actual, delta.dump()
+		});
 		// TODO: log the delta?
 		assert false: message + ": " + suffix;
 	}

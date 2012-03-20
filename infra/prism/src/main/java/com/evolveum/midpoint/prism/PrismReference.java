@@ -105,7 +105,7 @@ public class PrismReference extends Item {
     	return getValue().getOid();
     }
     
-    PrismReferenceValue findValueByOid(String oid) {
+    public PrismReferenceValue findValueByOid(String oid) {
     	for (PrismReferenceValue pval: getValues()) {
     		if (oid.equals(pval.getOid())) {
     			return pval;

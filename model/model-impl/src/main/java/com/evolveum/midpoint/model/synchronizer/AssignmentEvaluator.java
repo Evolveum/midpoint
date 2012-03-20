@@ -167,9 +167,14 @@ public class AssignmentEvaluator {
 			throw new SchemaException("The OID is null in assignment targetRef in "+ObjectTypeUtil.toShortString(source));
 		}
 		// Target is referenced, need to fetch it
-		Class<? extends ObjectType> clazz = ObjectType.class;
+		Class<? extends ObjectType> clazz = null;
 		if (targetRef.getType() != null) {
-			clazz = ObjectTypes.getObjectTypeFromTypeQName(targetRef.getType()).getClassDefinition();
+			clazz = (Class<? extends ObjectType>) prismContext.getSchemaRegistry().determineCompileTimeClass(targetRef.getType());
+			if (clazz == null) {
+				throw new SchemaException("Cannot determine type from " + targetRef.getType() + " in target reference in " + assignment + " in " + source);
+			}
+		} else {
+			throw new SchemaException("Missing type in target reference in " + assignment + " in " + source);
 		}
 		PrismObject<? extends ObjectType> target = null;
 		try {

@@ -24,10 +24,13 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.testng.annotations.BeforeSuite;
@@ -41,6 +44,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -52,6 +57,10 @@ import static org.testng.AssertJUnit.assertNotNull;
 public class TestParseUser {
 	
 	public static final File USER_FILE = new File("src/test/resources/common/user-jack.xml");
+	
+	private static final String USER_ACCOUNT_REF_1_OID = "2f9b9299-6f45-498f-aaaa-000000001111";
+	private static final String USER_ACCOUNT_REF_2_OID = "2f9b9299-6f45-498f-aaaa-000000002222";
+	private static final String USER_ACCOUNT_REF_3_OID = "2f9b9299-6f45-498f-aaaa-000000003333";
 	
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -183,6 +192,11 @@ public class TestParseUser {
 
 	
 	private void assertUser(PrismObject<UserType> user) {
+		assertUserPrism(user);
+		assertUserJaxb(user.asObjectable());
+	}
+
+	private void assertUserPrism(PrismObject<UserType> user) {
 		
 		assertEquals("Wrong oid", "2f9b9299-6f45-498f-bc8e-8d17c6b93b20", user.getOid());
 //		assertEquals("Wrong version", "42", user.getVersion());
@@ -194,14 +208,14 @@ public class TestParseUser {
 		UserType userType = user.asObjectable();
 		assertNotNull("asObjectable resulted in null", userType);
 		
+		assertPropertyValue(user, "name", "jack");
+		assertPropertyDefinition(user, "name", DOMUtil.XSD_STRING, 0, 1);
 		assertPropertyValue(user, "fullName", "Jack Sparrow");
 		assertPropertyDefinition(user, "fullName", DOMUtil.XSD_STRING, 1, 1);
 		assertPropertyValue(user, "givenName", "Jack");
 		assertPropertyDefinition(user, "givenName", DOMUtil.XSD_STRING, 1, 1);
 		assertPropertyValue(user, "familyName", "Sparrow");
 		assertPropertyDefinition(user, "familyName", DOMUtil.XSD_STRING, 1, 1);
-		assertPropertyValue(user, "name", "jack");
-		assertPropertyDefinition(user, "name", DOMUtil.XSD_STRING, 0, 1);
 		
 //		PrismContainer extension = user.getExtension();
 //		assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
@@ -221,11 +235,32 @@ public class TestParseUser {
 		
 		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
 		assertEquals("Wrong number of accountRef values", 3, accountRef.getValues().size());
-		PrismAsserts.assertReferenceValue(accountRef, "2f9b9299-6f45-498f-aaaa-000000001111");
-		PrismAsserts.assertReferenceValue(accountRef, "2f9b9299-6f45-498f-aaaa-000000002222");
-		PrismAsserts.assertReferenceValue(accountRef, "2f9b9299-6f45-498f-aaaa-000000003333");
+		PrismAsserts.assertReferenceValue(accountRef, USER_ACCOUNT_REF_1_OID);
+		PrismAsserts.assertReferenceValue(accountRef, USER_ACCOUNT_REF_2_OID);
+		PrismAsserts.assertReferenceValue(accountRef, USER_ACCOUNT_REF_3_OID);
+		PrismReferenceValue accountRef3Val = accountRef.findValueByOid(USER_ACCOUNT_REF_3_OID);
+		assertEquals("Wrong ref3 oid (prism)", accountRef3Val.getOid(), USER_ACCOUNT_REF_3_OID);
+		assertEquals("Wrong ref3 type (prism)", accountRef3Val.getTargetType(), AccountShadowType.COMPLEX_TYPE);
 	}
 	
+	private void assertUserJaxb(UserType userType) {
+		assertEquals("Wrong name", "jack", userType.getName());
+		assertEquals("Wrong fullName", "Jack Sparrow", userType.getFullName());
+		assertEquals("Wrong givenName", "Jack", userType.getGivenName());
+		assertEquals("Wrong familyName", "Sparrow", userType.getFamilyName());
+
+		ActivationType activation = userType.getActivation();
+		assertNotNull("No activation", activation);
+		assertEquals("User not enabled", Boolean.TRUE, activation.isEnabled());
+		
+		List<ObjectReferenceType> accountRefs = userType.getAccountRef();
+		assertNotNull("No accountRef list", accountRefs);
+		assertEquals("Wrong number of list entries", 3, accountRefs.size());
+		ObjectReferenceType ref3 = ObjectTypeUtil.findRef(USER_ACCOUNT_REF_3_OID, accountRefs);
+		assertEquals("Wrong ref3 oid (jaxb)", ref3.getOid(), USER_ACCOUNT_REF_3_OID);
+		assertEquals("Wrong ref3 type (jaxb)", ref3.getType(), AccountShadowType.COMPLEX_TYPE);
+	}
+
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
 			int maxOccurs) {
 		QName propQName = new QName(SchemaConstants.NS_COMMON, propName);
