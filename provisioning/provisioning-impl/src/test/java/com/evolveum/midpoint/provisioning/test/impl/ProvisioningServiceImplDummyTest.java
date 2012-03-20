@@ -208,11 +208,19 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 			assertNotNull("xmlSchemaType is null", xmlSchemaType);
 			Element connectorXsdSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(conn);
 			assertNotNull("No schema", connectorXsdSchemaElement);
+			
+			display("XML connector schema", DOMUtil.serializeDOMToString(connectorXsdSchemaElement));
+			
 			// Try to parse the schema
 			PrismSchema schema = PrismSchema.parse(connectorXsdSchemaElement, prismContext);
 			assertNotNull("Cannot parse schema", schema);
 			assertFalse("Empty schema", schema.isEmpty());
+			
 			display("Parsed connector schema", schema);
+			
+			QName configurationElementQname = new QName(conn.getNamespace(), "configuration");
+			PrismContainerDefinition configurationContainer = schema.findContainerDefinitionByElementName(configurationElementQname);
+			assertNotNull("No "+configurationElementQname+" element in schema of "+conn, configurationContainer);
 			PrismContainerDefinition definition = schema.findItemDefinition("configuration",
 					PrismContainerDefinition.class);
 			assertNotNull("Definition of <configuration> property container not found", definition);

@@ -319,6 +319,10 @@ public class ObjectImporter {
 			}
             QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONFIGURATION.getLocalPart());
     		PrismContainerDefinition<?> configContainerDef = connectorSchema.findContainerDefinitionByElementName(configContainerQName);
+    		if (configContainerDef == null) {
+    			objectResult.recordFatalError("Definition of configuration container " + configContainerQName + " not found in the schema of of " + connector);
+                return;
+    		}
             
             try {
 				configurationContainer.applyDefinition(configContainerDef);

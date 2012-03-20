@@ -95,7 +95,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 	private static final String USER_WILL_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
 	private static final File IMPORT_CONNECTOR_FILE = new File(TEST_FOLDER_COMMON, "connector-dbtable.xml");
 	private static final String CONNECOTR_LDAP_OID = "7d3ebd6f-6113-4833-8a6a-596b73a5e434";
-	private static final String CONNECTOR_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector";
+	private static final String CONNECTOR_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector";
 	private static final File IMPORT_RESOURCE_FILE = new File(TEST_FOLDER_COMMON, "resource-derby.xml");
 	private static final String RESOURCE_DERBY_OID = "ef2bc95b-76e0-59e2-86d6-999902d3abab";
 	
@@ -178,6 +178,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		PrismProperty<Object> passwordProperty = configurationPropertiesContainer.findProperty(new QName(CONNECTOR_NAMESPACE, "password"));
 		// The resource was pulled from the repository. Therefore it does not have the right schema here. We should proceed with caution
 		// and inspect the DOM elements there
+		assertNotNull("No password property in configuration properties", passwordProperty);
 		PrismPropertyValue<Object> passwordPVal = passwordProperty.getValue();
 		Object passwordRawElement = passwordPVal.getRawElement();
 		if (!(passwordRawElement instanceof Element)) {
