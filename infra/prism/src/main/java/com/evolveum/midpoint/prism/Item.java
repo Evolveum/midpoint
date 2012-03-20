@@ -176,7 +176,11 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     	return prismContext;
     }
     
-    public PrismValue getParent() {
+    public void setPrismContext(PrismContext prismContext) {
+		this.prismContext = prismContext;
+	}
+
+	public PrismValue getParent() {
     	return parent;
     }
     

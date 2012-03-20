@@ -28,7 +28,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
 	xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
-	xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extesion"
+	xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension"
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd
 						http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 
@@ -50,5 +50,5 @@
 		</c:extension>
         <!-- This is generic object, it must have an "application level" type.
              However, this is not used in the current business logic. Can be anything. -->
-		<c:objectType>http://midpoint.evolveum.com/xml/ns/test/extesion#SampleConfigType</c:objectType>
+		<c:objectType>http://midpoint.evolveum.com/xml/ns/test/extension#SampleConfigType</c:objectType>
 	</c:genericObject>

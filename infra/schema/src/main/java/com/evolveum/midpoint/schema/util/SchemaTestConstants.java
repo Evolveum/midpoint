@@ -39,7 +39,8 @@ public class SchemaTestConstants {
 	public static final QName ICFS_UID = new QName(NS_ICFS, "uid");
 	
 	// Extension schema loaded at runtime from the schema/src/test/resource/schema dir
-	public static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extesion";
+	public static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";
 	public static final QName EXTENSION_LOCATIONS_ELEMENT = new QName(NS_EXTENSION, "locations");
 	public static final QName EXTENSION_LOCATIONS_TYPE = new QName(NS_EXTENSION, "LocationsType");
+	public static final QName EXTENSION_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "stringType");
 }

@@ -39,6 +39,7 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -80,8 +81,11 @@ public class TestJaxbConstruction {
 		PrismObject<GenericObjectType> generic = genericType.asPrismObject();
 		assertNotNull("No object definition after adopt", generic.getDefinition());
 		
+		// WHEN
 		ExtensionType extension = new ExtensionType();
 		genericType.setExtension(extension);
+		
+		// THEN
 		PrismContainer<Containerable> extensionContainer = generic.findContainer(GenericObjectType.F_EXTENSION);
 		assertNotNull("No extension container after setExtension (prism)", extensionContainer);
 		assertNotNull("No extension definition after setExtension (prism)", extensionContainer.getDefinition());
@@ -94,19 +98,24 @@ public class TestJaxbConstruction {
     
     @Test
     public void testExtensionTypeConstruction() throws Exception {
+    	System.out.println("\n\n ===[ testExtensionTypeConstruction ]===\n");
+    	
+    	// GIVEN
+    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+        
         GenericObjectType object = new GenericObjectType();
-
-        PrismContext prismContext = PrismTestUtil.getPrismContext();
         prismContext.adopt(object.asPrismObject(), GenericObjectType.class);
 
         ExtensionType extension = new ExtensionType();
         object.setExtension(extension);
         
         PrismContainerValue extValue = extension.asPrismContainerValue();
+        assertNotNull("No extension definition", extValue.getParent().getDefinition());
 
-        QName testElement = new QName("http://midpoint.evolveum.com/xml/ns/test/extesion", "stringType");
-        Item item = extValue.findOrCreateItem(testElement);
+        // WHEN
+        Item item = extValue.findOrCreateItem(SchemaTestConstants.EXTENSION_STRING_TYPE_ELEMENT);
 
+        // THEN
         assertNotNull(item);
     }
 }

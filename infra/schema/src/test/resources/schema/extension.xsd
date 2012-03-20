@@ -25,8 +25,8 @@
       test initialization (creation of prism context). -->
       
 <xsd:schema elementFormDefault="qualified"
-            targetNamespace="http://midpoint.evolveum.com/xml/ns/test/extesion"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/test/extesion"
+            targetNamespace="http://midpoint.evolveum.com/xml/ns/test/extension"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/test/extension"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 

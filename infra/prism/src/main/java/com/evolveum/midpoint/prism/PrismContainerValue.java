@@ -256,6 +256,10 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
             throw new IllegalArgumentException("Item " + item.getName() + " is already present in " + this.getClass().getSimpleName());
         }
         item.setParent(this);
+        PrismContext prismContext = getPrismContext();
+        if (prismContext != null) {
+        	item.setPrismContext(prismContext);
+        }
         if (getParent() != null && getParent().getDefinition() != null && item.getDefinition() == null) {
         	item.applyDefinition(determineItemDefinition(item.getName(), getParent().getDefinition()), false);
         }
