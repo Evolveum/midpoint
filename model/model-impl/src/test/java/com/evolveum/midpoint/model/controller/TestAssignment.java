@@ -104,7 +104,7 @@ public class TestAssignment extends AbstractTestNGSpringContextTests {
                 TEST_FOLDER_COMMON, "system-configuration.xml"));
         final UserType user = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "user.xml"), UserType.class);
         final RoleType role = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "role.xml"), RoleType.class);
-        final ResourceType resource = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON, "resource.xml"), ResourceType.class);
+        final ResourceType resource = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON, "resource-opendj.xml"), ResourceType.class);
 
         when(
                 repository.getObject(eq(RoleType.class), eq(role.getOid()),
@@ -164,7 +164,7 @@ public class TestAssignment extends AbstractTestNGSpringContextTests {
                     "user-account-assignment.xml"), UserType.class);
 
             final ResourceType resource = PrismTestUtil.unmarshalObject(new File(
-                    TEST_FOLDER_COMMON, "resource.xml"), ResourceType.class);
+                    TEST_FOLDER_COMMON, "resource-opendj.xml"), ResourceType.class);
 
             when(
                     provisioning.getObject(eq(ResourceType.class), eq(resource.getOid()),

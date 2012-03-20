@@ -155,8 +155,12 @@ public class ResourceTypeManager {
 		Element xsdElement = ResourceTypeUtil.getResourceXsdSchema(resource);
 
 		ResourceType newResource = null;
-
-		ConnectorInstance connector = getConnectorInstance(resource, result);
+		ConnectorInstance connector = null;
+		try {
+			connector = getConnectorInstance(resource, result);
+		} catch (ObjectNotFoundException e) {
+			throw new ObjectNotFoundException("Error resolving connector reference in " + resource + ": " + e.getMessage(), e);
+		}
 
 		if (xsdElement == null) {
 			// There is no schema, we need to pull it from the resource
@@ -700,6 +704,13 @@ public class ResourceTypeManager {
 
 	private void addNativeCapabilities(ResourceType resource, ConnectorInstance connector,
 			OperationResult result) throws CommunicationException {
+		
+		// This is not really clean now. We need to add caching metadata and things like that
+		// FIXME
+		if (resource.getNativeCapabilities() != null) {
+			return;
+		}
+		
 		Set<Object> capabilities = null;
 		try {
 

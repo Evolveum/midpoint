@@ -86,7 +86,7 @@ public class TestSynchronizerAddUser extends AbstractTestNGSpringContextTests {
 	public void addUserWithSimpleTemplate() throws Exception {
 		UserType userType = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON, "user-drake.xml"), UserType.class);
 		UserTemplateType userTemplate = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON, "user-template.xml"), UserTemplateType.class);
-		ResourceType resource = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON, "resource.xml"), ResourceType.class);
+		ResourceType resource = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON, "resource-opendj.xml"), ResourceType.class);
 
 		final String userOid = "10000000-0000-0000-0000-000000000001";
 		final String resourceOid = "10000000-0000-0000-0000-000000000003";

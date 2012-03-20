@@ -137,11 +137,15 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 			if (accountConstructionType.getResource() != null) {
 				resource = accountConstructionType.getResource();
 			} else if (accountConstructionType.getResourceRef() != null) {
-				resource = (ResourceType) objectResolver.resolve(accountConstructionType.getResourceRef(),
-						"account construction in "+ObjectTypeUtil.toShortString(source), result);
+				try {
+					resource = objectResolver.resolve(accountConstructionType.getResourceRef(), ResourceType.class,
+							"account construction in "+ source , result);
+				} catch (ObjectNotFoundException e) {
+					throw new ObjectNotFoundException("Resource reference seems to be invalid in account construction in " + source + ": "+e.getMessage(), e);
+				}
 			}
 			if (resource == null) {
-				throw new SchemaException("No resource set in account construction in "+ObjectTypeUtil.toShortString(source));
+				throw new SchemaException("No resource set in account construction in " + source);
 			}
 		}
 		return resource;

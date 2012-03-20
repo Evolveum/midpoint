@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -58,18 +59,24 @@ public class ModelObjectResolver implements ObjectResolver {
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 	
+	@Autowired(required = true)
+	private transient PrismContext prismContext;
+	
 	private static final Trace LOGGER = TraceManager.getTrace(ModelObjectResolver.class);
 	
 	@Override
-	public ObjectType resolve(ObjectReferenceType ref, String contextDescription, OperationResult result)
-			throws ObjectNotFoundException, SchemaException {
+	public <T extends ObjectType> T resolve(ObjectReferenceType ref, Class<T> expectedType, String contextDescription, 
+			OperationResult result) throws ObjectNotFoundException, SchemaException {
 				String oid = ref.getOid();
-				Class<? extends ObjectType> typeClass = ObjectType.class;
+				Class<?> typeClass = null;
 				QName typeQName = ref.getType();
 				if (typeQName != null) {
-					typeClass = ObjectTypes.getObjectTypeFromTypeQName(typeQName).getClassDefinition();
+					typeClass = prismContext.getSchemaRegistry().determineCompileTimeClass(typeQName);
 				}
-				return getObject(typeClass, oid, null, result);
+				if (typeClass != null && expectedType.isAssignableFrom(typeClass)) {
+					expectedType = (Class<T>) typeClass;
+				}
+				return getObject(expectedType, oid, null, result);
 	}
 
 	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, PropertyReferenceListType resolve,
@@ -102,15 +109,15 @@ public class ModelObjectResolver implements ObjectResolver {
 		} catch (ObjectNotFoundException ex) {
 			throw ex;
 		} catch (CommonException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get object with oid {}", ex, oid);
+			LoggingUtils.logException(LOGGER, "Error resolving object with oid {}", ex, oid);
 			// Add to result only a short version of the error, the details will be in subresults
 			result.recordFatalError(
 					"Couldn't get object with oid '" + oid + "': "+ex.getOperationResultMessage(), ex);
-			throw new SystemException("Couldn't get object with oid '" + oid + "'.", ex);
+			throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get object with oid {}, expected type was {}.", ex,
+			LoggingUtils.logException(LOGGER, "Error resolving object with oid {}, expected type was {}.", ex,
 					oid, clazz);
-			throw new SystemException("Couldn't get object with oid '" + oid + "'.", ex);
+			throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
 		} finally {
 			result.computeStatus();
 		}

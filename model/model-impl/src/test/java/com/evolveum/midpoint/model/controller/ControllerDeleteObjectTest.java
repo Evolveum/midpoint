@@ -138,7 +138,7 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 	public void testDeleteCorrectProvisioning() throws FaultMessage, JAXBException, ObjectNotFoundException,
 			SchemaException, CommunicationException, ConsistencyViolationException, FileNotFoundException, ConfigurationException {
 		final ResourceType expectedResource = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON,
-				"resource.xml"), ResourceType.class);
+				"resource-opendj.xml"), ResourceType.class);
 
 		final String oid = "abababab-abab-abab-abab-000000000001";
 		when(

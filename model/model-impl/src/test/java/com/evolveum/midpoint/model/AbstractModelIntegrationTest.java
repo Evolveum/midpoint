@@ -36,6 +36,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -55,9 +56,12 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	protected static final String USER_TEMPLATE_FILENAME = COMMON_DIR_NAME + "/user-template.xml";
 	protected static final String USER_TEMPLATE_OID = "c0c010c0-d34d-b33f-f00d-777111111111";
+
+	protected static final String CONNECTOR_LDAP_FILENAME = COMMON_DIR_NAME + "/connector-ldap.xml";
+	protected static final String CONNECTOR_DBTABLE_FILENAME = COMMON_DIR_NAME + "/connector-dbtable.xml";
 	
-	protected static final String RESOURCE_OPENDJ_FILENAME = COMMON_DIR_NAME + "/resource.xml";
-	protected static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+	protected static final String RESOURCE_OPENDJ_FILENAME = COMMON_DIR_NAME + "/resource-opendj.xml";
+	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
 	
 	protected static final String ROLE_ALPHA_FILENAME = COMMON_DIR_NAME + "/role-alpha.xml";
 	protected static final String ROLE_ALPHA_OID = "12345678-d34d-b33f-f00d-55555555aaaa";
@@ -93,13 +97,22 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		
 		addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, initResult);
 		addObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
+
+		// Connectors
+		addObjectFromFile(CONNECTOR_LDAP_FILENAME, ConnectorType.class, initResult);
+		addObjectFromFile(CONNECTOR_DBTABLE_FILENAME, ConnectorType.class, initResult);
+		
+		// Resources
+		resourceType = addObjectFromFile(RESOURCE_OPENDJ_FILENAME, ResourceType.class, initResult).asObjectable();
+
+		// Users
 		userTypeJack = addObjectFromFile(USER_JACK_FILENAME, UserType.class, initResult).asObjectable();
 		userTypeBarbossa = addObjectFromFile(USER_BARBOSSA_FILENAME, UserType.class, initResult).asObjectable();
+		
+		// Accounts
 		addObjectFromFile(ACCOUNT_HBARBOSSA_OPENDJ_FILENAME, initResult);
 		
-		resourceType = addObjectFromFile(RESOURCE_OPENDJ_FILENAME, ResourceType.class, initResult).asObjectable();
-		// TODO
-		//importObjectFromFile(RESOURCE_OPENDJ_FILENAME, initResult);
+
 	}
 	
 	private void importObjectFromFile(String filename, OperationResult result) throws FileNotFoundException {

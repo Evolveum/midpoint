@@ -76,8 +76,8 @@ public class ResourceTypeUtil {
 		if (resource.getConnector() != null) {
 			return resource.getConnector();
 		} else if (resource.getConnectorRef() != null) {
-			return (ConnectorType) resolver.resolve(resource.getConnectorRef(),
-					"resolving connector in "+ObjectTypeUtil.toShortString(resource) ,parentResult);
+			return resolver.resolve(resource.getConnectorRef(), ConnectorType.class,
+					"resolving connector in " + resource ,parentResult);
 		} else {
 			return null;
 		}

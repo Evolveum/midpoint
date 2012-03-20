@@ -51,6 +51,6 @@ public interface ObjectResolver {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 */
-	public ObjectType resolve(ObjectReferenceType ref, String contextDescription, OperationResult result) throws ObjectNotFoundException, SchemaException;
+	public <T extends ObjectType> T resolve(ObjectReferenceType ref, Class<T> expectedType, String contextDescription, OperationResult result) throws ObjectNotFoundException, SchemaException;
 	
 }

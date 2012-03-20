@@ -473,7 +473,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
     	Collection<V> values = new HashSet<V>();
         for (PrismPropertyValue<ValueConstruction> value: set) {
 	        ValueConstruction vc = value.getValue();
-	        Set<PrismPropertyValue<V>> propValues = (Set<PrismPropertyValue<V>>) vc.getOutput().getValues();
+	        Collection<PrismPropertyValue<V>> propValues = (Collection<PrismPropertyValue<V>>) vc.getOutput().getValues();
 	        for (PrismPropertyValue<V> pval: propValues) {
 	        	values.add(pval.getValue());
 	        }

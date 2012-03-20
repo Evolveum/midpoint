@@ -132,7 +132,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 	public void testEvaluateExpression() throws Exception {
 		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(TEST_FOLDER, "expr/account.xml"));
 		AccountShadowType accountType = account.asObjectable();
-		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(TEST_FOLDER_COMMON, "resource.xml"));
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(TEST_FOLDER_COMMON, "resource-opendj.xml"));
 		ResourceType resourceType = resource.asObjectable();
 		accountType.setResource(resourceType);
 

@@ -143,10 +143,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected <T extends ObjectType> PrismObject<T> addObjectFromFile(String filePath, Class<T> type,
-			OperationResult result) throws Exception {
-		OperationResult subResult = result.createSubresult(AbstractIntegrationTest.class.getName()
+			OperationResult parentResult) throws Exception {
+		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
 				+ ".addObjectFromFile");
-		subResult.addParam("filePath", filePath);
+		result.addParam("filePath", filePath);
 		LOGGER.trace("addObjectFromFile: {}", filePath);
 		PrismObject<T> object = prismContext.getPrismDomProcessor().parseObject(new File(filePath), type);
 		System.out.println("obj: " + object.getName());
@@ -156,12 +156,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (object.canRepresent(TaskType.class)) {
 			Assert.assertNotNull(taskManager, "Task manager is not initialized");
 			try {
-				taskManager.addTask((PrismObject<TaskType>) object, subResult);
+				taskManager.addTask((PrismObject<TaskType>) object, result);
 			} catch (ObjectAlreadyExistsException ex) {
-				subResult.recordFatalError(ex.getMessage(), ex);
+				result.recordFatalError(ex.getMessage(), ex);
 				throw ex;
 			} catch (SchemaException ex) {
-				subResult.recordFatalError(ex.getMessage(), ex);
+				result.recordFatalError(ex.getMessage(), ex);
 				throw ex;
 			}
 		} else {
@@ -169,14 +169,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			try{
 			repositoryService.addObject(object, result);
 			} catch(ObjectAlreadyExistsException ex){
-				subResult.recordFatalError(ex.getMessage(), ex);
+				result.recordFatalError(ex.getMessage(), ex);
 				throw ex;
 			} catch(SchemaException ex){
-				subResult.recordFatalError(ex.getMessage(), ex);
+				result.recordFatalError(ex.getMessage(), ex);
 				throw ex;
 			}
 		}
-		subResult.recordSuccess();
+		result.recordSuccess();
 		return object;
 	}
 	

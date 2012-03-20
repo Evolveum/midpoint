@@ -251,7 +251,9 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 		ResourceType resourceAfter = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result).asObjectable();
 		
-		display("Resource after testResource",resourceAfter);
+		display("Resource after testResource (repository)",resourceAfter);
+		
+		display("Resource after testResource (repository, XML)", PrismTestUtil.serializeObjectToString(resourceAfter.asPrismObject()));
 		
 		XmlSchemaType xmlSchemaTypeAfter = resourceAfter.getSchema();
 		assertNotNull("No schema after test connection",xmlSchemaTypeAfter);
@@ -264,7 +266,6 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		assertNotNull("No serialNumber",cachingMetadata.getSerialNumber());
 		
 		Element xsdElement = ResourceTypeUtil.getResourceXsdSchema(resourceAfter);
-		display("Resource schema as stored in discovered resource", DOMUtil.serializeDOMToString(xsdElement));
 		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, prismContext);
 		assertNotNull("No schema after parsing",parsedSchema);
 		
@@ -288,6 +289,8 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		
 		// THEN
 		display("Resource from provisioninig", resource);
+		display("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject()));
+		
 		CapabilitiesType nativeCapabilities = resource.getNativeCapabilities();
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
         assertFalse("Empty capabilities returned",nativeCapabilitiesList.isEmpty());

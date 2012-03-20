@@ -200,7 +200,7 @@ public class ModelController implements ModelService {
 			ObjectReferenceType ref = new ObjectReferenceType();
 			ref.setOid(oid);
 			ref.setType(ObjectTypes.getObjectType(clazz).getTypeQName());
-			object = (T) objectResolver.resolve(ref, "getObject", subResult);
+			object = objectResolver.resolve(ref, clazz, "getObject", subResult);
 
 			// todo will be fixed after another interface cleanup
 			// fix for resolving object properties.

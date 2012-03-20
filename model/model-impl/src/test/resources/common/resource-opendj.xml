@@ -28,16 +28,18 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
 	<name>Localhost OpenDJ</name>
 	<connectorRef oid="14e63399-8869-4787-9369-93f9d1311671" type="ConnectorType">
-		<and xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:my="http://myself.me/schemas/whatever">
-			<c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType" />
-			<c:equal>
-				<c:value>
-					<c:connectorType>org.identityconnectors.ldap.LdapConnector</c:connectorType>
-				</c:value>
-			</c:equal>
-		</and>
+	    <filter>
+			<and xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+				xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:my="http://myself.me/schemas/whatever">
+				<c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType" />
+				<c:equal>
+					<c:value>
+						<c:connectorType>org.identityconnectors.ldap.LdapConnector</c:connectorType>
+					</c:value>
+				</c:equal>
+			</and>
+		</filter>
 	</connectorRef>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003</namespace>
 	<configuration>
@@ -45,7 +47,7 @@
 			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
+			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
 			xmlns:my="http://myself.me/schemas/whatever">
 			<icfcldap:port>1389</icfcldap:port>
 			<icfcldap:host>localhost</icfcldap:host>
@@ -105,23 +107,31 @@
 		</icfc:timeouts>
 	</configuration>
 	<schema>
+		<!-- Storing schema here and don't letting midpoint to generate it. Some tests work without running resource,
+			generating a schema would fail. -->
+		<cachingMetadata>
+         <retrievalTimestamp>2012-03-20T13:02:29.275+01:00</retrievalTimestamp>
+         <serialNumber>1798eed6def9f54c-3d4bce63faa79272</serialNumber>
+      </cachingMetadata>
 	  <definition>
 		<xsd:schema elementFormDefault="qualified"
 			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-			xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+			xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-1"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" />
 			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" />
 			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd" />
 			<xsd:complexType name="GroupObjectClass">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<a:propertyContainer />
-						<r:resourceObject />
-						<r:identifier ref="icfs:uid" />
-						<r:displayName ref="icfs:name" />
-						<r:namingAttribute ref="icfs:name" />
-						<r:nativeObjectClass>__GROUP__</r:nativeObjectClass>
+						<ra:resourceObject/>
+	                     <ra:identifier>icfs:uid</ra:identifier>
+	                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+	                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
+	                     <ra:nativeObjectClass>__GROUP__</ra:nativeObjectClass>
 					</xsd:appinfo>
 				</xsd:annotation>
 				<xsd:sequence>
@@ -141,13 +151,13 @@
 			<xsd:complexType name="AccountObjectClass">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<a:propertyContainer />
-						<r:resourceObject />
-						<r:identifier ref="icfs:uid" />
-						<r:displayName ref="icfs:name" />
-						<r:namingAttribute ref="icfs:name" />
-						<r:nativeObjectClass>__ACCOUNT__</r:nativeObjectClass>
-						<r:accountType default="true" />
+						 <ra:resourceObject/>
+	                     <ra:identifier>icfs:uid</ra:identifier>
+	                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+	                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
+	                     <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
+	                     <ra:account/>
+	                     <ra:default/>
 					</xsd:appinfo>
 				</xsd:annotation>
 				<xsd:sequence>
@@ -210,6 +220,22 @@
 		</xsd:schema>
 	  </definition>
 	</schema>
+
+	<!-- Storing native capabilities here and don't letting midpoint to fetch it from the resource.
+		Some tests work without running resource, generating fetching capabilities would fail. -->	
+	<nativeCapabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd">
+      <cap:credentials>
+         <cap:password/>
+      </cap:credentials>
+      <cap:liveSync/>
+      <cap:testConnection/>
+      <cap:script>
+         <cap:host>
+            <cap:type>connector</cap:type>
+         </cap:host>
+      </cap:script>
+   </nativeCapabilities>
+	
 	<schemaHandling>
 		<accountType>
 			<name>user</name>

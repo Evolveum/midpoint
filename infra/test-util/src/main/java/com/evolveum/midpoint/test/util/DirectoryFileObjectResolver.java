@@ -50,13 +50,13 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
 	}
 
 	@Override
-	public ObjectType resolve(ObjectReferenceType ref, String contextDescription, OperationResult result)
+	public <T extends ObjectType> T resolve(ObjectReferenceType ref, Class<T> expectedType, String contextDescription, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
 		File file = new File( directory, oidToFilename(ref.getOid()));
 		if (file.exists()) {
 			try {
 				try {
-					return PrismTestUtil.unmarshalObject(file, ObjectType.class);
+					return PrismTestUtil.unmarshalObject(file, expectedType);
 				} catch (FileNotFoundException e) {
 					throw new ObjectNotFoundException(e);
 				}
