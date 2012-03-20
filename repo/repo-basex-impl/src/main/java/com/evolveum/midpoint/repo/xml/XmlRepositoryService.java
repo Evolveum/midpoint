@@ -710,7 +710,7 @@ public class XmlRepositoryService implements RepositoryService {
 				while (cq.more()) {
 					String c = cq.next();
 
-					PrismObject<T> object = prismContext.getPrismDomProcessor().parseObject(c, clazz);
+					PrismObject<T> object = prismContext.getPrismDomProcessor().parseObject(UglyHacks.forceXsiNsDeclaration(c), clazz);
 					if (object != null) {
 						objectList.add(object);
 					}
