@@ -58,6 +58,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.EscapeStringBuilder;
+import com.evolveum.midpoint.util.UglyHacks;
 import com.evolveum.midpoint.util.XQueryEscapeStringBuilder;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -253,7 +254,9 @@ public class XmlRepositoryService implements RepositoryService {
 						throw new SystemException("More than one object with oid " + oid + " found");
 					}
 
-					object = prismContext.getPrismDomProcessor().parseObject(c, type);
+					// BaseX sometimes forgets xmlns:xsi declaration. This is an ugly and brutal way how to
+					// make it remember
+					object = prismContext.getPrismDomProcessor().parseObject(UglyHacks.forceXsiNsDeclaration(c), type);
 
 					// JAXBElement<T> o = (JAXBElement<T>)
 					// JAXBUtil.unmarshal(type, c);
@@ -272,7 +275,7 @@ public class XmlRepositoryService implements RepositoryService {
 			errorLogRecordAndRethrow("No BaseX Client session in the pool", result, ex);
 		} catch (IllegalStateException ex) {
 			errorLogRecordAndRethrow(
-					"Illegal state of BaseX Client session pool while borrowing client session", result, ex);
+					"Illegal state", result, ex);
 		} catch (Exception ex) {
 			errorLogRecordAndRethrow("Error borrowing BaseX Client session from the pool", result, ex);
 		} finally {
