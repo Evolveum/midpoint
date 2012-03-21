@@ -69,6 +69,7 @@ public class PrismPropertyDefinition extends ItemDefinition {
     private boolean create = true;
     private boolean read = true;
     private boolean update = true;
+    private Boolean indexed = null;
 
     public PrismPropertyDefinition(QName name, QName defaultName, QName typeName, PrismContext prismContext) {
         super(name, defaultName, typeName, prismContext);
@@ -127,8 +128,28 @@ public class PrismPropertyDefinition extends ItemDefinition {
         this.valueType = valueType;
     }
 
+    /**
+     * This is XSD annotation that specifies whether a property should 
+     * be indexed in the storage. It can only apply to properties. It
+     * has following meaning:
+     * 
+     * true: the property must be indexed. If the storage is not able to
+     * index the value, it should indicate an error.
+     * 
+     * false: the property should not be indexed.
+     * 
+     * null: data store decides whether to index the property or
+     * not.
+     */
+    public Boolean isIndexed() {
+		return indexed;
+	}
 
-    @Override
+	public void setIndexed(Boolean indexed) {
+		this.indexed = indexed;
+	}
+
+	@Override
     public PrismProperty instantiate() {
         return instantiate(getNameOrDefaultName());
     }

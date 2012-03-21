@@ -46,7 +46,6 @@
         </xsd:annotation>
     </xsd:element>
 
-    <!-- REFACTOR THIS, TAKE PROPERTY CONTAINER ANNOTATION INTO ACCOUNT -->
     <xsd:element name="object">
         <xsd:annotation>
             <xsd:documentation>
@@ -58,6 +57,25 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
+    
+    <xsd:element name="indexed" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                This is XSD annotation that specifies whether a property should
+                be indexed in the storage. It can only apply to properties. It
+                has following meaning:
+                
+                true: the property must be indexed. If the storage is not able to
+                index the value, it should indicate an error.
+                
+                false: the property should not be indexed.
+		
+				not present: data store decides whether to index the property or
+				not.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
 
 </xsd:schema>
 

@@ -77,20 +77,6 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		this.name = name;
 	}
 
-    /**
-     * If true values should be stored in repository and some kind of index should be created
-     * (based on repository implementation). Items with this flag can be used in queries.
-     *
-     * @return true if items of this kind should be searchable, otherwise false.
-     */
-    public Boolean isIndexable() {
-        //todo read this from some annotation in xsd schema...
-        //todo probably add max. size or something...which can be stored by repo...
-        //todo implement
-
-        return false;
-    }
-
 	/**
 	 * Returns name of the defined entity.
 	 * 
