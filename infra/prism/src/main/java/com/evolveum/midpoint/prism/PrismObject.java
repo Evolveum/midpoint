@@ -205,6 +205,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	protected void copyValues(PrismObject<T> clone) {
 		super.copyValues(clone);
 		clone.oid = this.oid;
+		clone.version = this.version;
 	}
 
 	public ObjectDelta<T> diff(PrismObject<T> other) {

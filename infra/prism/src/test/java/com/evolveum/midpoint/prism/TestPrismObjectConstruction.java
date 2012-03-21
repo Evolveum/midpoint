@@ -138,6 +138,42 @@ public class TestPrismObjectConstruction {
 		assertUserDrake(user, true);
 
 	}
+	
+	@Test
+	public void testClone() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testClone ]===");
+		
+		// GIVEN
+		PrismContext ctx = constructInitializedPrismContext();
+		PrismObjectDefinition<UserType> userDefinition = ctx.getSchemaRegistry().getObjectSchema().findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+		PrismObject<UserType> user = userDefinition.instantiate();
+		fillInUserDrake(user, true);
+
+		// WHEN
+		PrismObject<UserType> clone = user.clone();
+		
+		// THEN
+		System.out.println("Cloned user:");
+		System.out.println(clone.dump());
+		// Check if the values are correct, also checking definitions
+		assertUserDrake(clone, true);
+	}
+
+	@Test
+	public void testCloneEquals() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testCloneEquals ]===");
+		
+		// GIVEN
+		PrismContext ctx = constructInitializedPrismContext();
+		PrismObjectDefinition<UserType> userDefinition = ctx.getSchemaRegistry().getObjectSchema().findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+		PrismObject<UserType> user = userDefinition.instantiate();
+		fillInUserDrake(user, true);
+		PrismObject<UserType> clone = user.clone();
+		
+		// WHEN, THEN
+		assertTrue("Clone not equal", clone.equals(user));
+		assertTrue("Clone not equivalent", clone.equivalent(user));
+	}
 
 	
 	private void fillInUserDrake(PrismObject<UserType> user, boolean assertDefinitions) throws SchemaException {

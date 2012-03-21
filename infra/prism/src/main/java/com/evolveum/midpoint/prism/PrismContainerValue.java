@@ -801,7 +801,9 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		super.copyValues(clone);
 		clone.id = this.id;
         for (Item<?> item: this.items) {
-        	clone.items.add(item.clone());
+        	Item<?> clonedItem = item.clone();
+        	clonedItem.setParent(clone);
+        	clone.items.add(clonedItem);
         }
         // TODO: deep clonning?
         clone.rawElements = this.rawElements;
