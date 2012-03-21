@@ -201,6 +201,7 @@ public interface TaskManager {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 */
+	@Deprecated			// tasks should be modified using Task interface
 	public void modifyTask(String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
 
@@ -218,6 +219,7 @@ public interface TaskManager {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 */
+	@Deprecated		// tasks should not be deleted in this way
 	public void deleteTask(String oid, OperationResult parentResult) throws ObjectNotFoundException;
 
 		
@@ -241,6 +243,7 @@ public interface TaskManager {
 	 * @throws ConcurrencyException 
 	 * @throws ObjectNotFoundException 
 	 */
+	@Deprecated		// tasks are claimed only from within TaskScanner, not through public TaskManager API
 	public void claimTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, ConcurrencyException, SchemaException;
 	
 	/**
@@ -260,6 +263,7 @@ public interface TaskManager {
 	 * @throws SchemaException 
 	 * @throws IllegalArgumentException attempt to release a task that is not claimed.
 	 */
+	@Deprecated		// the same as for claimTask
 	public void releaseTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
 	/**
@@ -373,7 +377,7 @@ public interface TaskManager {
 	 * Helper function, used to determine when this task
 	 * should run next (0 if it is not a recurring task).
 	 */
-	public long determineNextRunStartTime(TaskType taskType);
+	public Long determineNextRunStartTime(TaskType taskType);
 
 	/**
 	 * Indicates whether execution thread for this task is active (i.e. whether it exists).

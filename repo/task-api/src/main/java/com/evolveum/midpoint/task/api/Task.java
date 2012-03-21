@@ -159,6 +159,12 @@ public interface Task extends Dumpable {
 //
 //	void setRecurrenceStatusImmediate(TaskRecurrence value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 	
+	/**
+	 * Returns the schedule. Note that if the task is 'single-run' (not recurrent), the schedule is ignored.
+	 * And the other way around, if the task is recurrent, the schedule must be present (otherwise the results
+	 * are unpredictable).
+	 */
+	
 	public ScheduleType getSchedule();
 	
 	public TaskBinding getBinding();
@@ -281,9 +287,21 @@ public interface Task extends Dumpable {
 
 	public void setResultImmediate(OperationResult result, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
-		
+	
+	/**
+	 * Returns the time when the task last run was started (or null if the task was never started).
+	 */
 	public Long getLastRunStartTimestamp();
+	
+	/**
+	 * Returns the time when the task last run was finished (or null if the task was not finished yet).
+	 */
 	public Long getLastRunFinishTimestamp();
+	
+	/**
+	 * Returns the time when the task should start again. (For non-recurrent tasks it is ignored. For recurrent tasks,
+	 * null value means 'start immediately', if missed schedule tolerance does not prevent it.)  
+	 */
 	public Long getNextRunStartTime();
 
 	/**
@@ -316,9 +334,13 @@ public interface Task extends Dumpable {
 	 * 
 	 * @return task extension
 	 */
-	public PrismContainer getExtension();
+	public PrismContainer<?> getExtension();
 	
-	public PrismProperty getExtension(QName propertyName);
+	public PrismProperty<?> getExtension(QName propertyName);
+	
+	public void setExtensionProperty(PrismProperty<?> property) throws SchemaException;
+	
+	public void setExtensionPropertyImmediate(PrismProperty<?> property, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
 	// TODO
 	public long getProgress();
@@ -352,6 +374,10 @@ public interface Task extends Dumpable {
 	 */
 	public void refresh(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
+	/*
+	 * Please do not use this method; use specific setters (e.g. setName, setExtensionProperty, and so on) instead.
+	 */
+	@Deprecated
 	public void modify(Collection<? extends ItemDelta> modifications, OperationResult parentResult) 
 			throws ObjectNotFoundException, SchemaException;
 

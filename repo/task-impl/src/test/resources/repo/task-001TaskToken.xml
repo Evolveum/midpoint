@@ -22,7 +22,7 @@
 
 <!-- Testing single task -->
 
-<task oid="91919190-76e0-59e2-86d6-556655665566"
+<task oid="91919191-76e0-59e2-86d6-556655660001"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -32,9 +32,9 @@
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
-	<name>Passive task</name>
+	<name>Passive task 0001</name>
 	
-	<taskIdentifier>91919190-76e0-59e2-86d6-3d4f02d3fff0</taskIdentifier>
+	<taskIdentifier>91919190-76e0-59e2-86d6-3d4f02d30001</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
 	
 	<executionStatus>waiting</executionStatus>

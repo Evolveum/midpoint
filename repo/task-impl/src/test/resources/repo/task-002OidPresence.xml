@@ -22,7 +22,7 @@
 
 <!-- Testing single task -->
 
-<task oid="91919191-76e0-59e2-86d6-556655665567"
+<task oid="91919191-76e0-59e2-86d6-556655660002"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -32,19 +32,14 @@
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
-	<name>Testing single task with more handlers</name>
+	<name>Passive task 0002</name>
 	
-	<taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ff33</taskIdentifier>
+	<taskIdentifier>91919190-76e0-59e2-86d6-3d4f02d30002</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
 	
-	<executionStatus>running</executionStatus>
+	<executionStatus>waiting</executionStatus>
 	<exclusivityStatus>released</exclusivityStatus>
 	<handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
-	<otherHandlersUriStack>
-		<c:uri>http://midpoint.evolveum.com/test/single-task-handler-2</c:uri>
-		<c:uri>http://midpoint.evolveum.com/test/single-task-handler-3</c:uri>
-	</otherHandlersUriStack>
 	<objectRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
 	<recurrence>single</recurrence>
-	<!-- No schedule - will execute immediately -->
 </task>

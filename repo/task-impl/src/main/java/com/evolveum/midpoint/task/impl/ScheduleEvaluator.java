@@ -50,9 +50,9 @@ public class ScheduleEvaluator {
 	 * @param taskType
 	 * @return
 	 */
-	public static boolean shouldRun(TaskType taskType) {
-		if (TaskRecurrenceType.RECURRING.equals(taskType.getRecurrence()))
-			return determineSleepTime(taskType) <= 0;
+	public static boolean shouldRun(Task task) {
+		if (task.isCycle())
+			return determineSleepTime(task) <= 0;
 		else
 			return true;
 	}
@@ -64,20 +64,19 @@ public class ScheduleEvaluator {
 	 * @param taskType
 	 * @return
 	 */
-	public static boolean missedScheduledStart(TaskType taskType) {
-		if (TaskRecurrenceType.RECURRING.equals(taskType.getRecurrence()) &&
-				taskType.getSchedule() != null &&
-				taskType.getSchedule().getCronLikePattern() != null &&
-				taskType.getSchedule().getMissedScheduleTolerance() != null) {
+	public static boolean missedScheduledStart(Task task) {
+		if (task.isCycle() &&
+				task.getSchedule() != null &&
+				task.getSchedule().getMissedScheduleTolerance() != null) {
 			
-			if (taskType.getNextRunStartTime() == null) {
+			Long nextRunTime = task.getNextRunStartTime(); 
+			if (nextRunTime == null || nextRunTime == 0) {
 				return true;	// if it was not scheduled yet, and we have (any) defined tolerance, we should reschedule
+			} else {
+				// otherwise let us look whether we are behind tolerance window
+				long tolerance = task.getSchedule().getMissedScheduleTolerance().longValue() * 1000L;
+				return System.currentTimeMillis() > nextRunTime + tolerance;
 			}
-			
-			// otherwise let us look whether we are behind tolerance window
-			long nextRunTime = XmlTypeConverter.toMillis(taskType.getNextRunStartTime());
-			long tolerance = taskType.getSchedule().getMissedScheduleTolerance().longValue() * 1000L;
-			return System.currentTimeMillis() > nextRunTime + tolerance;
 			
 		} else {
 			return false;		// ok, we have not missed the scheduled start (perhaps there was none :)
@@ -89,7 +88,7 @@ public class ScheduleEvaluator {
 	 * Uses pre-computed nextRunStartTime.
 	 * 
 	 * @param task
-	 * @return 0 when nextRunStartTime is not defined
+	 * @return 0 (meaning "run now") when nextRunStartTime is not defined
 	 */
 	public static long determineSleepTime(Task task) {
 		return determineSleepTime(task.getNextRunStartTime(), task.getName());
@@ -102,23 +101,14 @@ public class ScheduleEvaluator {
 	 * @param task
 	 * @return 0 when nextRunStartTime is not defined
 	 */
-	public static long determineSleepTime(TaskType taskType) {
-		long nextRunTime;
-		if (taskType.getNextRunStartTime() != null)
-			nextRunTime = taskType.getNextRunStartTime().toGregorianCalendar().getTimeInMillis();
-		else
-			nextRunTime = 0;
-		return determineSleepTime(nextRunTime, taskType.getName());
-	}
-	
-	private static long determineSleepTime(long nextRunTime, String taskName) {
+	private static long determineSleepTime(Long nextRunTime, String taskName) {
 		long delta;
-		if (nextRunTime > 0)
+		if (nextRunTime != null && nextRunTime > 0)
 			delta = nextRunTime - System.currentTimeMillis();
 		else
 			delta = 0;			// if nextRunTime is 0L, run immediately
 		if (LOGGER.isTraceEnabled())
-			LOGGER.trace("determineSleepTime for " + taskName + " = " + delta + " (next run time: " + new Date(nextRunTime) + ")");
+			LOGGER.trace("determineSleepTime for " + taskName + " = " + delta + " (next run time: " + (nextRunTime != null ? new Date(nextRunTime) : "(null)") + ")");
 		return delta > 0 ? delta : 0;
 	}
 
@@ -133,13 +123,17 @@ public class ScheduleEvaluator {
 		Long retval = null;
 		if (task.isCycle())
 			retval = determineNextRunStartTime(task.getSchedule(), task.getLastRunStartTimestamp(), task.getName());
+		
 		if (LOGGER.isTraceEnabled())
-			LOGGER.trace("determineNextRunStartTime for task " + task + " = " + retval + (retval!=null ? " (" + new Date(retval) + ")" : ""));
+			LOGGER.trace("determineNextRunStartTime for task " + task + " = " + retval + 
+					(retval!=null ? " (" + new Date(retval) + ")" : ""));
+		
 		return retval;
 	}
 
-	public static long determineNextRunStartTime(TaskType taskType) {
-		long retval = 0L;
+	// this is called only from gui (to display this information) 
+	public static Long determineNextRunStartTime(TaskType taskType) {
+		Long retval = null;
 		if (TaskRecurrenceType.RECURRING.equals(taskType.getRecurrence())) {
 			long lastStarted;
 			if (taskType.getLastRunStartTimestamp() != null)
@@ -149,19 +143,20 @@ public class ScheduleEvaluator {
 			retval = determineNextRunStartTime(taskType.getSchedule(), lastStarted, taskType.getName());
 		}
 		if (LOGGER.isTraceEnabled())
-			LOGGER.trace("determineNextRunStartTime for taskType " + taskType.getName() + " = " + retval + " (" + new Date(retval) + ")");
+			LOGGER.trace("determineNextRunStartTime for taskType " + taskType.getName() + " = " + 
+					(retval != null ? retval + " (" + new Date(retval) + ")" : "(null)"));
 		return retval;
 	}
 	
 	
 	private static Long determineNextRunStartTime(ScheduleType schedule, long lastStarted, String taskName) {
-		if (schedule.getInterval() != null) {
+		if (schedule != null && schedule.getInterval() != null) {
 			if (lastStarted == 0)
 				return System.currentTimeMillis();		// run now!
 			else
 				return lastStarted + schedule.getInterval().longValue() * 1000; 
 		}
-		else if (schedule.getCronLikePattern() != null) {
+		else if (schedule != null && schedule.getCronLikePattern() != null) {
 			Predictor p = new Predictor(schedule.getCronLikePattern());
 			return p.nextMatchingTime();
 		}
@@ -169,7 +164,7 @@ public class ScheduleEvaluator {
 //			LOGGER.error("Missing task schedule: no interval nor cron-like specification for recurring task: " + taskName + ", determining next run to be 'never'");
 //			return new Date(9999, 1, 1).getTime();		// run never, TODO: better handle "never run" situation
 			LOGGER.error("Missing task schedule: no interval nor cron-like specification for recurring task: " + taskName + ", determining next run to be 'now'");
-			return 0L;
+			return System.currentTimeMillis();
 		}
 	}
 

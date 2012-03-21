@@ -20,9 +20,9 @@
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 
-<!-- Testing cycle task -->
+<!-- Testing single task -->
 
-<task oid="91919191-76e0-59e2-86d6-998877665544"
+<task oid="91919191-76e0-59e2-86d6-556655660004"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -32,23 +32,14 @@
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
-	<name>Testing cycle task</name>
+	<name>Passive task 0004</name>
 	
-	<extension>
-		<my:shipState>capsized</my:shipState>
-		<my:dead xsi:type="xsd:integer">42</my:dead>
-	</extension>
-	
-    <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
+	<taskIdentifier>91919190-76e0-59e2-86d6-3d4f02d30004</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
-    <executionStatus>running</executionStatus>
+	
+	<executionStatus>waiting</executionStatus>
 	<exclusivityStatus>released</exclusivityStatus>
-	<handlerUri>http://midpoint.evolveum.com/test/cycle-task-handler</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
 	<objectRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
-	<recurrence>recurring</recurrence>
-	<binding>tight</binding>
-	<schedule>
-		<interval>15</interval>
-	</schedule>
-
+	<recurrence>single</recurrence>
 </task>

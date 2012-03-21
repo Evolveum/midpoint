@@ -561,6 +561,9 @@ public class XmlRepositoryService implements RepositoryService {
 	public void claimTask(String oid, OperationResult parentResult) throws ObjectNotFoundException,
 			ConcurrencyException, SchemaException {
 
+		if (true)
+			throw new UnsupportedOperationException("claimTask should be called on TaskManager, not RepositoryService.");
+		
 		// TODO: atomicity
 
 		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName()
@@ -568,7 +571,7 @@ public class XmlRepositoryService implements RepositoryService {
 		result.addParam(OperationResult.PARAM_OID, oid);
 
 		// Check whether the task is claimed
-
+		
 		PrismObject<TaskType> task = getObject(TaskType.class, oid, null, result);
 		TaskType taskType = task.asObjectable();
 
@@ -594,6 +597,9 @@ public class XmlRepositoryService implements RepositoryService {
 	@Override
 	public void releaseTask(String oid, OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException {
+		
+		if (true)
+			throw new UnsupportedOperationException("releaseTask should be called on TaskManager, not RepositoryService.");
 
 		OperationResult result = parentResult.createSubresult(RepositoryService.class.getName()
 				+ ".releaseTask");

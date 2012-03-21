@@ -33,9 +33,11 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
@@ -55,6 +57,8 @@ public class TaskScanner extends Thread {
 	private int sleepInterval = 5000;
 	private boolean enabled = true;
 	private long lastLoopRun = 0;
+	
+	private long sleepAfterCriticalError = 10000;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(TaskScanner.class);
 
@@ -90,11 +94,13 @@ public class TaskScanner extends Thread {
 
 	@Override
 	public void run() {
-		try {
-			MDC.put("subsystem", "TASKMANAGER");
+		MDC.put("subsystem", "TASKMANAGER");
 			
-			LOGGER.info("Task scanner starting (enabled:{})", enabled);
-			while (enabled) {
+		LOGGER.info("Task scanner starting (enabled:{})", enabled);
+		while (enabled) {
+			
+			try {
+
 				LOGGER.trace("Task scanner loop: start");
 				lastLoopRun = System.currentTimeMillis();
 
@@ -108,21 +114,26 @@ public class TaskScanner extends Thread {
 					LOGGER.error("Task scanner cannot search for tasks", e);
 					// TODO: better error handling
 				}
-
+				
 				if (tasks != null) {
+					
 					LOGGER.trace("Task scanner found {} runnable tasks", tasks.size());
-					for (PrismObject<TaskType> task : tasks) {
-						TaskType taskType = task.asObjectable();
-							LOGGER.trace("Task scanner: Start processing task " + taskType.getName() + " (OID: " + 
-									taskType.getOid() + ", next run time: " + taskType.getNextRunStartTime() + ")");
+					for (PrismObject<TaskType> taskPrism : tasks) {
+						
+						TaskImpl task = (TaskImpl) taskManagerImpl.createTaskInstance(taskPrism, loopResult);
+						
+						LOGGER.trace("Task scanner: Start processing task " + task.getName() + " (OID: " + 
+									task.getOid() + ", next run time: " + task.getNextRunStartTime() + ")");
+						
 						if (canHandle(task)) {
+							
 							// should run = has the 'nextRunStartTime' arrived?
-							if (ScheduleEvaluator.shouldRun(taskType)) {	// TODO in the future we can implement shouldRun as part of the search criteria
-								if (!ScheduleEvaluator.missedScheduledStart(taskType)) {
+							if (ScheduleEvaluator.shouldRun(task)) {	// TODO in the future we can implement shouldRun as part of the search criteria
+								if (!ScheduleEvaluator.missedScheduledStart(task)) {
+
 									boolean claimed = false;
 									try {
-										repositoryService.claimTask(task.getOid(), loopResult);
-										taskType.setExclusivityStatus(TaskExclusivityStatusType.CLAIMED);
+										taskManagerImpl.claimTask(task, loopResult);
 										claimed = true;
 									} catch (ConcurrencyException ex) {
 										// Claim failed. This means that the task was claimed by another
@@ -131,7 +142,7 @@ public class TaskScanner extends Thread {
 										// task. Just log warning for now. This can be switched to DEBUG later.
 										LOGGER.warn(
 												"Task scanner: Claiming of task {} failed due to concurrency exception \"{}\", skipping it.",
-												SchemaDebugUtil.prettyPrint(task), ex.getMessage());
+												SchemaDebugUtil.prettyPrint(taskPrism), ex.getMessage());
 									}
 	
 									if (claimed) {
@@ -139,11 +150,9 @@ public class TaskScanner extends Thread {
 										try {
 	
 											LOGGER.debug("Task scanner is passing task to task manager:  "
-													+ SchemaDebugUtil.prettyPrint(task));
+													+ SchemaDebugUtil.prettyPrint(taskPrism));
 	
-											taskManagerImpl.processRunnableTaskType(task, loopResult);
-	
-											// TODO: Remember the start time only if the call is successful (note: really? beware of new scheduling algorithm) 
+											taskManagerImpl.processRunnableTask(task);
 	
 											// We do not release the task here. Task manager should do it.
 											// We don't know the state of the task. The task manage may have
@@ -164,20 +173,22 @@ public class TaskScanner extends Thread {
 									} // claimed
 								} else {
 									// we have missed scheduled start => reschedule
-									long nextRunTime = ScheduleEvaluator.determineNextRunStartTime(taskType);
-									LOGGER.info("Task scanner: missed or non-existing scheduled start (" + taskType.getNextRunStartTime() + ") for " + SchemaDebugUtil.prettyPrint(task) + ", rescheduling to " + new Date(nextRunTime));
-									taskManagerImpl.recordNextRunStartTime(task.getOid(), nextRunTime, loopResult);
+									Long nextRunTime = ScheduleEvaluator.determineNextRunStartTime(task);
+									LOGGER.info("Task scanner: missed or non-existing scheduled start (" + task.getNextRunStartTime() + 
+											") for " + SchemaDebugUtil.prettyPrint(taskPrism) + ", rescheduling to " 
+											+ (nextRunTime != null ? new Date(nextRunTime) : "(null)"));
+									task.setNextRunStartTimeImmediate(nextRunTime, loopResult);
 								}
 							} else {
-								LOGGER.trace("Task scanner: skipping task " + SchemaDebugUtil.prettyPrint(task)
+								LOGGER.trace("Task scanner: skipping task " + SchemaDebugUtil.prettyPrint(taskPrism)
 										+ " because it should not run yet");
 							}
 						} else {
-							LOGGER.trace("Task scanner: skipping task " + SchemaDebugUtil.prettyPrint(task)
+							LOGGER.trace("Task scanner: skipping task " + SchemaDebugUtil.prettyPrint(taskPrism)
 									+ " because there is no handler for it on this node");
 						}
 
-						LOGGER.trace("Task scanner: End processing task " + SchemaDebugUtil.prettyPrint(task));
+						LOGGER.trace("Task scanner: End processing task " + SchemaDebugUtil.prettyPrint(taskPrism));
 					}
 				}
 
@@ -196,11 +207,19 @@ public class TaskScanner extends Thread {
 					}
 				}
 				LOGGER.trace("Task scanner loop: end");
+				
+			} catch (Throwable t) {
+				LoggingUtils.logException(LOGGER, "Task scanner: Critical error: {}, continuing after {} ms", t, t, sleepAfterCriticalError);
+				try {
+					Thread.sleep(sleepAfterCriticalError);
+				} catch (InterruptedException e) {
+					LOGGER.trace("Task scanner got InterruptedException: " + e);
+					// Safe to ignore
+				}
 			}
-			LOGGER.info("Task scanner stopping");
-		} catch (Throwable t) {
-			LOGGER.error("Task scanner: Critical error: {}: {}", new Object[] { t, t.getMessage(), t });
+
 		}
+		LOGGER.info("Task scanner stopping");
 	}
 	
 	/**
@@ -213,8 +232,8 @@ public class TaskScanner extends Thread {
 		this.interrupt();
 	}
 
-	private boolean canHandle(PrismObject<TaskType> task) {
-		if (taskManagerImpl.getHandler(task.asObjectable().getHandlerUri()) != null) {
+	private boolean canHandle(Task task) {
+		if (taskManagerImpl.getHandler(task.getHandlerUri()) != null) {
 			return true;
 		}
 		return false;

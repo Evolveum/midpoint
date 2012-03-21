@@ -20,9 +20,9 @@
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 
-<!-- Testing cycle task -->
+<!-- Testing single task -->
 
-<task oid="91919191-76e0-59e2-86d6-9988776655bb"
+<task oid="91919191-76e0-59e2-86d6-556655660008"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -32,18 +32,19 @@
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
-	<name>Testing cycle task - cron - loose</name>
-		
-    <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffbb</taskIdentifier>
+	<name>Testing single task with more handlers</name>
+	
+	<taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d30008</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
-    <executionStatus>running</executionStatus>
+	
+	<executionStatus>running</executionStatus>
 	<exclusivityStatus>released</exclusivityStatus>
-	<handlerUri>http://midpoint.evolveum.com/test/cycle-task-handler</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
+	<otherHandlersUriStack>
+		<c:uri>http://midpoint.evolveum.com/test/single-task-handler-2</c:uri>
+		<c:uri>http://midpoint.evolveum.com/test/single-task-handler-3</c:uri>
+	</otherHandlersUriStack>
 	<objectRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
-	<recurrence>recurring</recurrence>
-	<binding>loose</binding>
-	<schedule>
-		<cronLikePattern>* * * * *</cronLikePattern>
-	</schedule>
-
+	<recurrence>single</recurrence>
+	<!-- No schedule - will execute immediately -->
 </task>

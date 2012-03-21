@@ -58,6 +58,7 @@ import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
@@ -292,7 +293,22 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerImpl.class);
 		
 		try {
-			repositoryService.claimTask(task.getOid(), result);
+			
+			task.refresh(parentResult);
+
+			// Check whether the task is claimed
+			
+			if (task.getExclusivityStatus() != TaskExclusivityStatus.RELEASED) {
+				// TODO: check whether the claim is not expired yet
+				throw new ConcurrencyException("Attempt to claim already claimed task (OID:" + task.getOid() + ")");
+			}
+
+			// Modify the status to claim the task.
+			// TODO: mark node identifier and claim expiration (later)
+			
+			task.setExclusivityStatus(TaskExclusivityStatus.CLAIMED);
+			task.savePendingModifications(parentResult);
+
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Task not found", ex);
 			throw ex;
@@ -313,27 +329,23 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		OperationResult result = parentResult.createSubresult(TaskManager.class.getName()+".releaseTask");
 		result.addParam(OperationResult.PARAM_OID, task.getOid());
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerImpl.class);
-
-		((TaskImpl) task).setExclusivityStatusTransient(TaskExclusivityStatus.RELEASED);
 		
-		// if the task is transient, we have to persist it first
-		if (task.getPersistenceStatus() == TaskPersistenceStatus.TRANSIENT)
-			persist(task, result);
-
-		releaseTaskByOid(task.getOid(), result);
+		task.refresh(parentResult);
+		task.setExclusivityStatus(TaskExclusivityStatus.RELEASED);
+		task.savePendingModifications(parentResult);
 	}
 	
-	private void releaseTaskByOid(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		try {
-			repositoryService.releaseTask(oid, result);
-		} catch (ObjectNotFoundException ex) {
-			result.recordFatalError("Cannot release task, as it was not found", ex);
-			throw ex;
-		} catch (SchemaException ex) {
-			result.recordPartialError("Cannot release task due to schema error", ex);
-			throw ex;
-		}
-	}
+//	private void releaseTaskByOid(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+//		try {
+//			repositoryService.releaseTask(oid, result);
+//		} catch (ObjectNotFoundException ex) {
+//			result.recordFatalError("Cannot release task, as it was not found", ex);
+//			throw ex;
+//		} catch (SchemaException ex) {
+//			result.recordPartialError("Cannot release task due to schema error", ex);
+//			throw ex;
+//		}
+//	}
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.task.api.TaskManager#switchToBackground(com.evolveum.midpoint.task.api.Task)
@@ -348,12 +360,10 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		try {
 			
 			result.recordSuccess();
-			persist(task,result);
-		
-			// TODO: The task should be released and claimed again here - to let other nodes participate
-		
-			// No result is passed here ... as this is just a kind of async notification
-			processRunnableTask(task);
+			task.setExclusivityStatus(TaskExclusivityStatus.RELEASED);
+			persist(task, result);
+			
+			scannerThread.scan();			// or perhaps not, to give other nodes a chance to get the task :)
 			
 		} catch (RuntimeException ex) {
 			result.recordFatalError("Unexpected problem: "+ex.getMessage(),ex);
@@ -491,19 +501,19 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	}
 
 	/**
-	 * Process runnable task with TaskType XML object as an argument.
+	 * Process runnable task with Task object as an argument.
 	 * 
 	 * This is called by a task scanner or anyone that has a runnable task.
 	 * 
 	 * Precondition: claimed, runnable task
 	 * As the task is claimed as it enters this methods, all we need is to execute it.
 	 * 
-	 * @param task XML TaskType object 
+	 * @param task Task object 
 	 */
-	public void processRunnableTaskType(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws SchemaException {
-		Task task = createTaskInstance(taskPrism, parentResult);
-		processRunnableTask(task);
-	}
+//	public void processRunnableTaskType(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws SchemaException {
+//		Task task = createTaskInstance(taskPrism, parentResult);
+//		processRunnableTask(task);
+//	}
 
 	
 	public void processRunnableTask(Task task) {
@@ -561,7 +571,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		
 		// We have claimed the task before, therefore we need to release the task here.
 		try {
-			releaseTask(task,parentResult);
+			releaseTask(task, parentResult);
 			task.refresh(parentResult);
 		}
 		finally {
@@ -611,6 +621,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	}
 
 	@Override
+	@Deprecated			// specific task setters should be used instead
 	public void modifyTask(String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException {
 		// TODO: result
@@ -620,6 +631,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	}
 
 	@Override
+	@Deprecated
 	public void deleteTask(String oid, OperationResult parentResult) throws ObjectNotFoundException {
 		// TODO: result
 		repositoryService.deleteObject(TaskType.class, oid, parentResult);
@@ -673,7 +685,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 				TaskType taskType = taskPrism.asObjectable();
 				LOGGER.info("Releasing task " + taskType.getName() + " (OID: " + taskPrism.getOid() + ")");
 				try {
-					releaseTaskByOid(taskPrism.getOid(), result);
+					releaseTask(createTaskInstance(taskPrism, result), result);
 				} catch (Exception e) {
 					LOGGER.error("Task manager cannot release a task that was left claimed; OID = " + taskPrism.getOid(), e);
 				}
@@ -699,7 +711,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	}
 
 	@Override
-	public long determineNextRunStartTime(TaskType taskType) {
+	public Long determineNextRunStartTime(TaskType taskType) {
 		return ScheduleEvaluator.determineNextRunStartTime(taskType);
 	}
 
@@ -716,7 +728,9 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 
 		if (task.getOid() == null)
 			throw new IllegalArgumentException("Only persistent tasks can be suspended (for now).");
-		suspendTaskByOid(task.getOid(), parentResult);
+
+		task.setExecutionStatus(TaskExecutionStatus.SUSPENDED);
+		task.savePendingModifications(parentResult);
 		
 		TaskRunner runner = findRunner(task.getTaskIdentifier());
 		LOGGER.trace("Suspending task " + task + ", runner = " + runner);
@@ -730,21 +744,21 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		return retval;
 	}
 
-	private void suspendTaskByOid(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		try {
-			Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
-					SchemaConstants.C_TASK_EXECUTION_STATUS, 
-					prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class),
-					TaskExecutionStatusType.SUSPENDED.value());
-			repositoryService.modifyObject(TaskType.class, oid, modifications, result);
-		} catch (ObjectNotFoundException ex) {
-			result.recordFatalError("Cannot suspend task, as it was not found", ex);
-			throw ex;
-		} catch (SchemaException ex) {
-			result.recordPartialError("Cannot suspend task due to schema error", ex);
-			throw ex;
-		}
-	}
+//	private void suspendTaskByOid(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+//		try {
+//			Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
+//					SchemaConstants.C_TASK_EXECUTION_STATUS, 
+//					prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class),
+//					TaskExecutionStatusType.SUSPENDED.value());
+//			repositoryService.modifyObject(TaskType.class, oid, modifications, result);
+//		} catch (ObjectNotFoundException ex) {
+//			result.recordFatalError("Cannot suspend task, as it was not found", ex);
+//			throw ex;
+//		} catch (SchemaException ex) {
+//			result.recordPartialError("Cannot suspend task due to schema error", ex);
+//			throw ex;
+//		}
+//	}
 
 	@Override
 	public void resumeTask(Task task, OperationResult result) throws ObjectNotFoundException,
@@ -758,61 +772,63 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		// TODO: check whether task is suspended
 		// TODO: recompute next running time
 		
-		try {
-			Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
-				SchemaConstants.C_TASK_EXECUTION_STATUS, 
-				prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class),
-				TaskExecutionStatusType.RUNNING.value());
-			repositoryService.modifyObject(TaskType.class, oid, modifications, result);
-		} catch (ObjectNotFoundException ex) {
-			result.recordFatalError("Cannot resume task, as it was not found", ex);
-			throw ex;
-		} catch (SchemaException ex) {
-			result.recordPartialError("Cannot resume task due to schema error", ex);
-			throw ex;
-		}
+//		try {
+//			Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(
+//				SchemaConstants.C_TASK_EXECUTION_STATUS, 
+//				prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class),
+//				TaskExecutionStatusType.RUNNING.value());
+//			repositoryService.modifyObject(TaskType.class, oid, modifications, result);
+//		} catch (ObjectNotFoundException ex) {
+//			result.recordFatalError("Cannot resume task, as it was not found", ex);
+//			throw ex;
+//		} catch (SchemaException ex) {
+//			result.recordPartialError("Cannot resume task due to schema error", ex);
+//			throw ex;
+//		}
+		
+		task.setExecutionStatusImmediate(TaskExecutionStatus.RUNNING, result);
 		
 		// Wake up scanner thread, this task may need to be processed
 		scannerThread.scan();
 	}
 
-	PropertyDelta createNextRunStartTimeModification(long time) {
-		PrismPropertyDefinition nextRunStartTimePropDef = getTaskObjectDefinition().findPropertyDefinition(TaskType.F_NEXT_RUN_START_TIME);
-		if (time != 0) {
-			GregorianCalendar cal = new GregorianCalendar();
-			cal.setTimeInMillis(time);
-			PropertyDelta delta = new PropertyDelta(TaskType.F_NEXT_RUN_START_TIME, nextRunStartTimePropDef);
-			delta.setValueToReplace(new PrismPropertyValue<Object>(cal));
-			return delta;
-			//return ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_NEXT_RUN_START_TIME, cal);
-		} else {
-			PropertyDelta delta = new PropertyDelta(TaskType.F_NEXT_RUN_START_TIME, nextRunStartTimePropDef);
-			// replace delta with no value, this will clear the property
-			return delta;
-			//return ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.delete, null, SchemaConstants.C_TASK_NEXT_RUN_START_TIME);
-		}
-	}
+//	private PropertyDelta createNextRunStartTimeModification(long time) {
+//		PrismPropertyDefinition nextRunStartTimePropDef = getTaskObjectDefinition().findPropertyDefinition(TaskType.F_NEXT_RUN_START_TIME);
+//		if (time != 0) {
+//			GregorianCalendar cal = new GregorianCalendar();
+//			cal.setTimeInMillis(time);
+//			PropertyDelta delta = new PropertyDelta(TaskType.F_NEXT_RUN_START_TIME, nextRunStartTimePropDef);
+//			delta.setValueToReplace(new PrismPropertyValue<Object>(cal));
+//			return delta;
+//			//return ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_NEXT_RUN_START_TIME, cal);
+//		} else {
+//			PropertyDelta delta = new PropertyDelta(TaskType.F_NEXT_RUN_START_TIME, nextRunStartTimePropDef);
+//			// replace delta with no value, this will clear the property
+//			return delta;
+//			//return ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.delete, null, SchemaConstants.C_TASK_NEXT_RUN_START_TIME);
+//		}
+//	}
 	
-	public void recordNextRunStartTime(String oid, long time, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		
-		// FIXME: if nextRunStartTime == 0 we should delete the corresponding element; however, this does not work as for now
-		// so we just exit here, leaving nextRunStartTime as it is
-		if (time == 0)
-			return;
-		
-		try {
-			Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>(1);
-			modifications.add(createNextRunStartTimeModification(time));
-			repositoryService.modifyObject(TaskType.class, oid, modifications, result);
-		} catch (ObjectNotFoundException ex) {
-			result.recordFatalError("Cannot record next run start time, as the task object was not found", ex);
-			throw ex;
-		} catch (SchemaException ex) {
-			result.recordPartialError("Cannot record next run start time due to schema error", ex);
-			throw ex;
-		}
-
-	}
+//	public void recordNextRunStartTime(String oid, long time, OperationResult result) throws ObjectNotFoundException, SchemaException {
+//		
+//		// FIXME: if nextRunStartTime == 0 we should delete the corresponding element; however, this does not work as for now
+//		// so we just exit here, leaving nextRunStartTime as it is
+//		if (time == 0)
+//			return;
+//		
+//		try {
+//			Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>(1);
+//			modifications.add(createNextRunStartTimeModification(time));
+//			repositoryService.modifyObject(TaskType.class, oid, modifications, result);
+//		} catch (ObjectNotFoundException ex) {
+//			result.recordFatalError("Cannot record next run start time, as the task object was not found", ex);
+//			throw ex;
+//		} catch (SchemaException ex) {
+//			result.recordPartialError("Cannot record next run start time due to schema error", ex);
+//			throw ex;
+//		}
+//
+//	}
 
 	@Override
 	public boolean isTaskThreadActive(String taskIdentifier) {

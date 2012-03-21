@@ -121,15 +121,18 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
         // TODO: bind task to this node
 
         // Set filename
-        Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
-        PropertyDelta objectClassDelta = new PropertyDelta<Object>(
-        		new PropertyPath(TaskType.F_EXTENSION, filenamePropertyDefinition.getName()),
-        		filenamePropertyDefinition);
-        objectClassDelta.setValueToReplace(new PrismPropertyValue<Object>(input.getAbsolutePath()));
-        ((Collection)modifications).add(objectClassDelta);        
+//        Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
+//        PropertyDelta objectClassDelta = new PropertyDelta<Object>(
+//        		new PropertyPath(TaskType.F_EXTENSION, filenamePropertyDefinition.getName()),
+//        		filenamePropertyDefinition);
+//        objectClassDelta.setValueToReplace(new PrismPropertyValue<Object>(input.getAbsolutePath()));
+//        ((Collection)modifications).add(objectClassDelta);        
         try {
-        	task.savePendingModifications(result);		// just to be sure (if the task was already persistent)
-            task.modify(modifications, result);
+        	PrismProperty filenameProp = filenamePropertyDefinition.instantiate();
+        	filenameProp.setRealValue(input.getAbsolutePath());
+        	task.setExtensionProperty(filenameProp);
+        	task.savePendingModifications(result);
+//            task.modify(modifications, result);
         } catch (ObjectNotFoundException e) {
             LOGGER.error("Task object not found, expecting it to exist (task {})", task, e);
             result.recordFatalError("Task object not found", e);
@@ -165,7 +168,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 
         // Determine the input file from task extension
 
-        PrismProperty<String> filenameProperty = task.getExtension(ImportConstants.FILENAME_PROPERTY_NAME);
+        PrismProperty<String> filenameProperty = (PrismProperty<String>) task.getExtension(ImportConstants.FILENAME_PROPERTY_NAME);
         if (filenameProperty == null) {
             LOGGER.error("Import: No file specified");
             opResult.recordFatalError("No file specified");

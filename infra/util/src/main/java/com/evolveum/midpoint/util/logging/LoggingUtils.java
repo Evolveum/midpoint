@@ -33,7 +33,7 @@ import org.apache.commons.lang.Validate;
  */
 public class LoggingUtils {
 
-	public static void logException(Trace LOGGER, String message, Exception ex, Object... objects) {
+	public static void logException(Trace LOGGER, String message, Throwable ex, Object... objects) {
 		Validate.notNull(LOGGER, "Logger can't be null.");
 		Validate.notNull(ex, "Exception can't be null.");
 		

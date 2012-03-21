@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -838,14 +839,42 @@ public class TaskImpl implements Task {
 	 */
 
 	@Override
-	public PrismContainer getExtension() {
+	public PrismContainer<?> getExtension() {
 		return taskPrism.getExtension();
 	}
 	
 	@Override
-	public PrismProperty getExtension(QName propertyName) {
+	public PrismProperty<?> getExtension(QName propertyName) {
 		return getExtension().findProperty(propertyName);
 	}
+
+	@Override
+	public void setExtensionProperty(PrismProperty<?> property) throws SchemaException {
+		processModificationBatched(setExtensionPropertyAndPrepareDelta(property));
+	}
+	
+	@Override
+	public void setExtensionPropertyImmediate(PrismProperty<?> property, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		processModificationNow(setExtensionPropertyAndPrepareDelta(property), parentResult);
+	}
+	
+	public void setExtensionPropertyTransient(PrismProperty<?> property) throws SchemaException {
+		setExtensionPropertyAndPrepareDelta(property);
+	}
+	
+	private PropertyDelta<?> setExtensionPropertyAndPrepareDelta(PrismProperty<?> property) throws SchemaException {
+		
+        PropertyDelta delta = new PropertyDelta(new PropertyPath(TaskType.F_EXTENSION, property.getName()), property.getDefinition());
+        delta.setValuesToReplace(property.getValues());
+        
+		Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
+		modifications.add(delta);
+        PropertyDelta.applyTo(modifications, taskPrism);		// i.e. here we apply changes only locally (in memory)
+        
+		return isPersistent() ? delta : null;
+	}
+
+
 	
 	/*
 	 * Last run start timestamp
@@ -1037,11 +1066,11 @@ public class TaskImpl implements Task {
 		}
 	}
 
-	public void modify(ItemDelta<?> modification, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
-		modifications.add(modification);
-		modify(modifications, parentResult);
-	}
+//	public void modify(ItemDelta<?> modification, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+//		Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
+//		modifications.add(modification);
+//		modify(modifications, parentResult);
+//	}
 
 	private boolean isPersistent() {
 		return persistenceStatus == TaskPersistenceStatus.PERSISTENT;
@@ -1158,6 +1187,7 @@ public class TaskImpl implements Task {
 	private PrismContext getPrismContext() {
 		return taskManager.getPrismContext();
 	}
+
 
 
 }

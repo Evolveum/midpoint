@@ -22,7 +22,7 @@
 
 <!-- Testing cycle task -->
 
-<task oid="91919191-76e0-59e2-86d6-9988776655aa"
+<task oid="91919191-76e0-59e2-86d6-556655660010"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -32,16 +32,16 @@
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
-	<name>Testing cycle task - cron</name>
+	<name>Testing cycle task - cron - loose</name>
 		
-    <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffaa</taskIdentifier>
+    <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d30010</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
     <executionStatus>running</executionStatus>
 	<exclusivityStatus>released</exclusivityStatus>
 	<handlerUri>http://midpoint.evolveum.com/test/cycle-task-handler</handlerUri>
 	<objectRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
 	<recurrence>recurring</recurrence>
-	<binding>tight</binding>
+	<binding>loose</binding>
 	<schedule>
 		<cronLikePattern>* * * * *</cronLikePattern>
 	</schedule>

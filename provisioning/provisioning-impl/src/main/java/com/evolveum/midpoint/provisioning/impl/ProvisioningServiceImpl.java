@@ -368,7 +368,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						SchemaDebugUtil.prettyPrint(tokenProperty));
 			}
 
-			Collection<PropertyDelta> taskModifications = new ArrayList<PropertyDelta>();
+//			Collection<PropertyDelta> taskModifications = new ArrayList<PropertyDelta>();
 			List<Change> changes = null;
 
 			LOGGER.trace("Calling shadow cache to fetch changes.");
@@ -384,9 +384,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				// created in the resource was deleted before the sync run
 				// such a change should be skipped to process consistent changes
 				if (change.getOldShadow() == null) {
-					PrismProperty newToken = change.getToken();
-					PropertyDelta modificatedToken = getTokenModification(newToken);
-					taskModifications.add(modificatedToken);
+					PrismProperty<?> newToken = change.getToken();
+					task.setExtensionProperty(newToken);
+//					PropertyDelta modificatedToken = getTokenModification(newToken);
+//					taskModifications.add(modificatedToken);
 					processedChanges++;
 					LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was deleted on the resource meantime).");
 					continue;
@@ -419,9 +420,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					// get updated token from change,
 					// create property modification from new token
 					// and replace old token with the new one
-					PrismProperty newToken = change.getToken();
-					PropertyDelta modificatedToken = getTokenModification(newToken);
-					taskModifications.add(modificatedToken);
+					PrismProperty<?> newToken = change.getToken();
+					task.setExtensionProperty(newToken);
+//					PropertyDelta modificatedToken = getTokenModification(newToken);
+//					taskModifications.add(modificatedToken);
 					processedChanges++;
 
 				} else {
@@ -432,10 +434,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// also if no changes was detected, update token
 			if (changes.isEmpty()) {
 				LOGGER.trace("No changes to synchronize on " + ObjectTypeUtil.toShortString(resourceType));
-				PropertyDelta modificatedToken = getTokenModification(tokenProperty);
-				taskModifications.add(modificatedToken);
+				task.setExtensionProperty(tokenProperty);
+//				PropertyDelta modificatedToken = getTokenModification(tokenProperty);
+//				taskModifications.add(modificatedToken);
 			}
-			task.modify(taskModifications, result);
+//			task.modify(taskModifications, result);
+			task.savePendingModifications(result);
 
 			// This happens in the (scheduled async) task. Recording of results
 			// in the task is still not

@@ -139,15 +139,18 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         task.setObjectRef(ObjectTypeUtil.createObjectRef(resource));
 
         // Set objectclass
-        Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
-        PropertyDelta objectClassDelta = new PropertyDelta<Object>(
-        		new PropertyPath(TaskType.F_EXTENSION, objectclassPropertyDefinition.getName()),
-        		objectclassPropertyDefinition);
-        objectClassDelta.setValueToReplace(new PrismPropertyValue<Object>(objectclass));
-        ((Collection)modifications).add(objectClassDelta);
+//        Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
+//        PropertyDelta objectClassDelta = new PropertyDelta<Object>(
+//        		new PropertyPath(TaskType.F_EXTENSION, objectclassPropertyDefinition.getName()),
+//        		objectclassPropertyDefinition);
+//        objectClassDelta.setValueToReplace(new PrismPropertyValue<Object>(objectclass));
+//        ((Collection)modifications).add(objectClassDelta);
         try {
+        	PrismProperty<?> objectclassProp = objectclassPropertyDefinition.instantiate();
+        	objectclassProp.setRealValue(objectclass);
+        	task.setExtensionProperty(objectclassProp);
         	task.savePendingModifications(result);		// just to be sure (if the task was already persistent)
-            task.modify(modifications, result);
+//          task.modify(modifications, result);
         } catch (ObjectNotFoundException e) {
             LOGGER.error("Task object not found, expecting it to exist (task {})", task, e);
             result.recordFatalError("Task object not found", e);
@@ -223,7 +226,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         }
 
         // Determine object class to import
-        PrismProperty<QName> objectclassProperty = task.getExtension(ImportConstants.OBJECTCLASS_PROPERTY_NAME);
+        PrismProperty<QName> objectclassProperty = (PrismProperty<QName>) task.getExtension(ImportConstants.OBJECTCLASS_PROPERTY_NAME);
         if (objectclassProperty == null) {
             LOGGER.error("Import: No objectclass specified");
             opResult.recordFatalError("No objectclass specified");

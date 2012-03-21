@@ -204,9 +204,11 @@ public class TaskItem extends SelectableBean {
 
         // here we must compute when the task is to be run next (for recurring tasks);
         // beware that the schedule & recurring type must be known for this taskType
-        long nextRunTime = taskManager.determineNextRunStartTime(taskType);		// for single-run tasks returns 0
-        if (nextRunTime > 0)
-        	taskType.setNextRunStartTime(XmlTypeConverter.createXMLGregorianCalendar(nextRunTime));
+        {
+        	Long nextRunTime = taskManager.determineNextRunStartTime(taskType);		// for single-run tasks returns 0
+        	if (nextRunTime != null && nextRunTime > 0)
+        		taskType.setNextRunStartTime(XmlTypeConverter.createXMLGregorianCalendar(nextRunTime));
+        }
         
         if (getResult() != null) {
             taskType.setResult(getResult().createOperationResultType());
