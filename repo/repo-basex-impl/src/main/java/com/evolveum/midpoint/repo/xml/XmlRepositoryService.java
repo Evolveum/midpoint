@@ -166,12 +166,13 @@ public class XmlRepositoryService implements RepositoryService {
 						.append("return insert node $x into //c:objects");
 			} else {
 				// FIXME?
-
+				
 				String containerName = object.getDefinition().getName().getLocalPart();
+				String name = object.findProperty(ObjectType.F_NAME).getRealValue(String.class);
+				String separator = getSeparator(name);
 				query.append(DECLARE_NAMESPACE_C).append("if (every $object in //c:objects/c:")
-						.append(containerName).append(" satisfies $object/c:name !='")
-						.eappend(object.findProperty(ObjectType.F_NAME).getRealValue())
-						.append("' and $object[@oid!='").eappend(oid).append("']")
+						.append(containerName).append(" satisfies $object/c:name !=").append(separator)
+						.eappend(name).append(separator).append(" and $object[@oid!='").eappend(oid).append("']")
 						.append(" ) then  let $x := ").eappend(serializedObject).append("\n")
 						.append("return insert node $x into //c:objects else (fn:error(null,'")
 						.append(OBJECT_ALREADY_EXISTS).append("'))");
@@ -201,6 +202,14 @@ public class XmlRepositoryService implements RepositoryService {
 		// throw ex;
 		// }
 
+	}
+	
+	private String getSeparator(String name){
+		if (name.contains("'")){
+			return "\"";
+		} else {
+			return "'";
+		}
 	}
 
 	/*
