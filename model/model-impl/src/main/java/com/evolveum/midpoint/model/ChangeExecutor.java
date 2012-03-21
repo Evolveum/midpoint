@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.model;
 
 import com.evolveum.midpoint.model.controller.ModelUtils;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -49,6 +50,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
+import javax.annotation.PostConstruct;
+
 /**
  * @author semancik
  */
@@ -66,6 +69,16 @@ public class ChangeExecutor {
 
     @Autowired(required = true)
     private ProvisioningService provisioning;
+    
+    @Autowired(required = true)
+    private PrismContext prismContext;
+    
+    private PrismObjectDefinition<UserType> userDefinition = null;
+    
+    @PostConstruct
+    private void locateUserDefinition() {
+    	userDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+    }
 
     public void executeChanges(Collection<ObjectDelta<? extends ObjectType>> changes, OperationResult result) throws
             ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
@@ -174,8 +187,7 @@ public class ChangeExecutor {
     }
 
 	private PrismObjectDefinition<UserType> getUserDefinition() {
-		// TODO Auto-generated method stub
-		return null;
+		return userDefinition;
 	}
 
 	private void unlinkAccount(String userOid, String accountOid, OperationResult result) throws

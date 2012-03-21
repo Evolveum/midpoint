@@ -852,8 +852,17 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 
 	@Override
     public String toString() {
-        return "PCV[" + getId() + "]:"
-                + getItems();
+		StringBuilder sb = new StringBuilder();
+		sb.append("PCV(");
+		sb.append(getId());
+		if (getRawElements() != null) {
+			sb.append(", ");
+			sb.append(getRawElements().size());
+			sb.append(" raw elements");
+		}
+		sb.append("):");
+        sb.append(getItems());
+        return sb.toString();
     }
 
     @Override

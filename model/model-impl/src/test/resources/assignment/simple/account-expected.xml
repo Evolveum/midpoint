@@ -20,12 +20,14 @@
   ~
   ~ Portions Copyrighted 2011 [name of copyright owner]
   -->
-<object xsi:type="AccountShadowType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<object xsi:type="AccountShadowType" 
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
-    <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">ri:AccountObjectClass</objectClass>
-    <attributes xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-                xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">
+    <objectClass>ri:AccountObjectClass</objectClass>
+    <attributes>
         <icfs:name>uid=johny,ou=people,dc=example,dc=com</icfs:name>
         <ri:cn>Jan Prvy</ri:cn>
         <ri:sn>Prvy</ri:sn>

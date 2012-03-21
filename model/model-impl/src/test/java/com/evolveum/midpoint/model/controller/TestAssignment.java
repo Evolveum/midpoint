@@ -39,6 +39,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -125,7 +126,7 @@ public class TestAssignment extends AbstractTestNGSpringContextTests {
             public String answer(InvocationOnMock invocation) throws Throwable {
                 PrismObject<AccountShadowType> account = (PrismObject<AccountShadowType>) invocation.getArguments()[0];
                 LOGGER.info("Created account:\n{}", account.dump());
-                PrismAsserts.assertEquals(new File(TEST_FOLDER, "account-expected.xml"), account);
+                PrismAsserts.assertEquivalent("Unexpected account as argument in provisionig.addObject", new File(TEST_FOLDER, "account-expected.xml"), account);
 
                 return "12345678-d34d-b33f-f00d-987987987989";
             }
@@ -135,8 +136,8 @@ public class TestAssignment extends AbstractTestNGSpringContextTests {
                 new Answer<String>() {
                     @Override
                     public String answer(InvocationOnMock invocation) throws Throwable {
-                        UserType user = (UserType) invocation.getArguments()[0];
-                        PrismAsserts.assertEquals(new File(TEST_FOLDER, "user-expected.xml"), user);
+                        PrismObject<UserType> user = (PrismObject<UserType>) invocation.getArguments()[0];
+                        PrismAsserts.assertEquivalent("Unexpected user as argument in repository.addObject", new File(TEST_FOLDER, "user-expected.xml"), user);
                         return "12345678-d34d-b33f-f00d-987987987988";
                     }
                 });

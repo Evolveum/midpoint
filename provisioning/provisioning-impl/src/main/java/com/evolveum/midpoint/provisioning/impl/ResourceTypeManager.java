@@ -156,17 +156,17 @@ public class ResourceTypeManager {
 
 		ResourceType newResource = null;
 		ConnectorInstance connector = null;
-		try {
-			connector = getConnectorInstance(resource, result);
-		} catch (ObjectNotFoundException e) {
-			throw new ObjectNotFoundException("Error resolving connector reference in " + resource + ": " + e.getMessage(), e);
-		}
 
 		if (xsdElement == null) {
 			// There is no schema, we need to pull it from the resource
 
 			if (resourceSchema == null) { // unless it has been already pulled
 				LOGGER.trace("Fetching resource schema for " + ObjectTypeUtil.toShortString(resource));
+				try {
+					connector = getConnectorInstance(resource, result);
+				} catch (ObjectNotFoundException e) {
+					throw new ObjectNotFoundException("Error resolving connector reference in " + resource + ": Error creating connector instace: " + e.getMessage(), e);
+				}
 				try {
 					// Fetch schema from connector, UCF will convert it to
 					// Schema Processor format and add all
@@ -703,7 +703,7 @@ public class ResourceTypeManager {
 	}
 
 	private void addNativeCapabilities(ResourceType resource, ConnectorInstance connector,
-			OperationResult result) throws CommunicationException {
+			OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException {
 		
 		// This is not really clean now. We need to add caching metadata and things like that
 		// FIXME
@@ -713,11 +713,14 @@ public class ResourceTypeManager {
 		
 		Set<Object> capabilities = null;
 		try {
-
+			
+			if (connector == null) {
+				connector = getConnectorInstance(resource, result);
+			}
 			capabilities = connector.getCapabilities(result);
 
 		} catch (CommunicationException ex) {
-			throw new CommunicationException("Cannot fetch resource schema: " + ex.getMessage(), ex);
+			throw new CommunicationException("Cannot fetch resource native capabilities: " + ex.getMessage(), ex);
 		} catch (GenericFrameworkException ex) {
 			throw new GenericConnectorException("Generic error in connector " + connector + ": "
 					+ ex.getMessage(), ex);

@@ -571,7 +571,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 
 	@Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + getName() + "):"
+        return getDebugDumpClassName() + "(" + getName() + "):"
                 + getValues();
     }
 

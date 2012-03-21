@@ -153,6 +153,9 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	        builder.append(", source: ");
 	        builder.append(getSource());
         }
+        if (getRawElement() != null) {
+	        builder.append(", raw element");
+        }
         builder.append(")");
 
         return builder.toString();
@@ -267,11 +270,11 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
             return false;
         }
         
-        if (this.rawElement != null && otherValue.rawElement != null) {
+        if (thisValue.rawElement != null && otherValue.rawElement != null) {
         	return equalsRawElements(otherValue);
         }
-        if (this.rawElement != null || otherValue.rawElement != null) {
-        	return false;
+        if (thisValue.rawElement != null || otherValue.rawElement != null) {
+        	throw new IllegalStateException("Attempt to comapre property values with mis-matching parse states (probably a prism bug)");
         }
         
         T otherRealValue = otherValue.getValue();
