@@ -91,7 +91,11 @@ public class PrismReference extends Item {
                     + " with multiple values");
         }
         if (getValues().isEmpty()) {
-            return null;
+        	// Insert first empty value. This simulates empty single-valued reference. It the reference exists
+	        // it is clear that it has at least one value (and that value is empty).
+        	PrismReferenceValue rval = new PrismReferenceValue();
+            add(rval);
+            return rval;
         }
         return getValues().iterator().next();
     }
