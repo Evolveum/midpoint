@@ -51,6 +51,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -259,6 +260,10 @@ public class SchemaToDomProcessor {
 			if (definition.canUpdate()) {
 				addAnnotation(A_ACCESS, A_ACCESS_UPDATE, appinfo);
 			}
+		}
+		
+		if (definition.isIndexed() != null) {
+			addAnnotation(A_INDEXED, XmlTypeConverter.toXmlTextContent(definition.isIndexed(), A_INDEXED), appinfo);
 		}
 		
 		if (!appinfo.hasChildNodes()) {

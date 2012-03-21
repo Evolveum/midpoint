@@ -16,10 +16,22 @@
 			</appinfo>
 		</annotation>
 		<sequence>
-			<element name="bar" type="string"/>
+			<element name="bar" type="string">
+				<annotation>
+					<appinfo>
+						<a:indexed>true</a:indexed>
+					</appinfo>
+				</annotation>
+			</element>
 			<element name="foobar" type="string" minOccurs="0"/>
 			<element name="num" type="integer" minOccurs="0"/>
-			<element name="multi" type="string" minOccurs="0" maxOccurs="unbounded"/>
+			<element name="multi" type="string" minOccurs="0" maxOccurs="unbounded">
+				<annotation>
+					<appinfo>
+						<a:indexed>false</a:indexed>
+					</appinfo>
+				</annotation>			
+			</element>
 		</sequence>
 	</complexType>
 </schema>

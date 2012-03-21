@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.prism;
 
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.NS_USER_EXT;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -117,6 +118,12 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	
 	// extension.xsd
 	public static final QName EXTENSION_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "stringType");
+	
+	// user-extension
+	public static final QName USER_EXT_BAR_ELEMENT = new QName(NS_USER_EXT, "bar");
+	public static final QName USER_EXT_FOOBAR_ELEMENT = new QName(NS_USER_EXT, "foobar");
+	public static final QName USER_EXT_NUM_ELEMENT = new QName(NS_USER_EXT, "num");
+	public static final QName USER_EXT_MULTI_ELEMENT = new QName(NS_USER_EXT, "multi");
 
 	
 	public static PrismContext constructInitializedPrismContext() throws SchemaException, SAXException, IOException {

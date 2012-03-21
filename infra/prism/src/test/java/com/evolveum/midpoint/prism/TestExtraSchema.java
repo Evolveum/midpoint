@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.prism;
 
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNull;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -21,6 +23,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -87,10 +90,16 @@ public class TestExtraSchema {
 		schema = reg.getObjectSchema();
 		System.out.println("Object schema:");
 		System.out.println(schema.dump());
+		
 		PrismObjectDefinition userDef = schema.findObjectDefinitionByType(USER_TYPE_QNAME);
+		
+		System.out.println("User definition:");
+		System.out.println(userDef.dump());
+		
 		PrismContainerDefinition extDef = userDef.findContainerDefinition(USER_EXTENSION_QNAME);
 		assertTrue("Extension is not dynamic", extDef.isRuntimeSchema());
 		assertEquals("Wrong extension type", userExtTypeQName, extDef.getTypeName());
+		assertUserExtensionDefinition(extDef);
 		
 		// Try javax schemas by validating a XML file
 		Schema javaxSchema = reg.getJavaxSchema();
@@ -102,6 +111,23 @@ public class TestExtraSchema {
 //		System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
 	}
 	
+	private void assertUserExtensionDefinition(PrismContainerDefinition<?> extDef) {
+		PrismPropertyDefinition barPropDef = extDef.findPropertyDefinition(USER_EXT_BAR_ELEMENT);
+		assertNotNull("No 'bar' definition in user extension", barPropDef);
+		PrismAsserts.assertDefinition(barPropDef, USER_EXT_BAR_ELEMENT, DOMUtil.XSD_STRING, 1, 1);
+		assertTrue("'bar' not indexed", barPropDef.isIndexed());
+		
+		PrismPropertyDefinition foobarPropDef = extDef.findPropertyDefinition(USER_EXT_FOOBAR_ELEMENT);
+		assertNotNull("No 'foobar' definition in user extension", foobarPropDef);
+		PrismAsserts.assertDefinition(foobarPropDef, USER_EXT_FOOBAR_ELEMENT, DOMUtil.XSD_STRING, 0, 1);
+		assertNull("'foobar' has non-null indexed flag", foobarPropDef.isIndexed());
+
+		PrismPropertyDefinition multiPropDef = extDef.findPropertyDefinition(USER_EXT_MULTI_ELEMENT);
+		assertNotNull("No 'multi' definition in user extension", multiPropDef);
+		PrismAsserts.assertDefinition(multiPropDef, USER_EXT_MULTI_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
+		assertFalse("'multi' not indexed", multiPropDef.isIndexed());
+	}
+
 	/**
 	 * Test if a schema directory can be loaded to the schema registry. This contains definition of
 	 * user extension, therefore check if it is applied to the user definition. 

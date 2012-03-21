@@ -299,6 +299,7 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		if (isDynamic()) {
 			sb.append(",dyn");
 		}
+		extendToString(sb);
 		return sb.toString();
 	}
 	

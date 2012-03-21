@@ -210,6 +210,9 @@ public class PrismPropertyDefinition extends ItemDefinition {
 		} else {
 			sb.append("-");
 		}
+		if (indexed != null && indexed) {
+			sb.append(",I");
+		}
 	}
 
 	@Override

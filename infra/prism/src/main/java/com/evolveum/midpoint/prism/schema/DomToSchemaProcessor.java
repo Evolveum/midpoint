@@ -54,6 +54,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -715,18 +716,18 @@ class DomToSchemaProcessor {
 	 */
 	private PrismPropertyDefinition createPropertyDefinition(XSType xsType, QName elementName, QName typeName, 
 			ComplexTypeDefinition ctd, XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
-		PrismPropertyDefinition prodDef;
+		PrismPropertyDefinition propDef;
 		
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
 		
-		prodDef = definitionFactory.createPropertyDefinition(elementName, typeName, ctd, prismContext, annotation, elementParticle);
+		propDef = definitionFactory.createPropertyDefinition(elementName, typeName, ctd, prismContext, annotation, elementParticle);
 		
-		setMultiplicity(prodDef, elementParticle, ctd == null);
+		setMultiplicity(propDef, elementParticle, ctd == null);
 		
 		// Process generic annotations
 		
 		if (annotation == null || annotation.getAnnotation() == null) {
-			return prodDef;
+			return propDef;
 		}
 		
 		// ignore		
@@ -738,57 +739,63 @@ class DomToSchemaProcessor {
 			String ignoreString = ignore.get(0).getTextContent();
 			if (StringUtils.isEmpty(ignoreString)) {
 				// Element is present but no content: defaults to "true"
-				prodDef.setIgnored(true);
+				propDef.setIgnored(true);
 			} else {
-				prodDef.setIgnored(Boolean.parseBoolean(ignoreString));
+				propDef.setIgnored(Boolean.parseBoolean(ignoreString));
 			}
 		}
 		
 		// access
 		List<Element> accessList = SchemaProcessorUtil.getAnnotationElements(annotation, A_ACCESS);
 		if (accessList != null && !accessList.isEmpty()) {
-			prodDef.setCreate(containsAccessFlag("create", accessList));
-			prodDef.setRead(containsAccessFlag("read", accessList));
-			prodDef.setUpdate(containsAccessFlag("update", accessList));
+			propDef.setCreate(containsAccessFlag("create", accessList));
+			propDef.setRead(containsAccessFlag("read", accessList));
+			propDef.setUpdate(containsAccessFlag("update", accessList));
 		}
 		
 		// attributeDisplayName
 		Element attributeDisplayName = SchemaProcessorUtil.getAnnotationElement(annotation, A_DISPLAY_NAME);
 		if (attributeDisplayName != null) {
-			prodDef.setDisplayName(attributeDisplayName.getTextContent());
+			propDef.setDisplayName(attributeDisplayName.getTextContent());
 		}
 		
 		// help
 		Element help = SchemaProcessorUtil.getAnnotationElement(annotation, A_HELP);
 		if (help != null) {
-			prodDef.setHelp(help.getTextContent());
+			propDef.setHelp(help.getTextContent());
 		}
 		
 		List<Element> accessElements = SchemaProcessorUtil.getAnnotationElements(annotation, A_ACCESS);
 		if (accessElements == null || accessElements.isEmpty()) {
 			// Default access is read-write-create
-			prodDef.setCreate(true);
-			prodDef.setUpdate(true);
-			prodDef.setRead(true);
+			propDef.setCreate(true);
+			propDef.setUpdate(true);
+			propDef.setRead(true);
 		} else {
-			prodDef.setCreate(false);
-			prodDef.setUpdate(false);
-			prodDef.setRead(false);
+			propDef.setCreate(false);
+			propDef.setUpdate(false);
+			propDef.setRead(false);
 			for (Element e : accessElements) {
 				String access = e.getTextContent();
 				if (access.equals(A_ACCESS_CREATE)) {
-					prodDef.setCreate(true);
+					propDef.setCreate(true);
 				}
 				if (access.equals(A_ACCESS_UPDATE)) {
-					prodDef.setUpdate(true);
+					propDef.setUpdate(true);
 				}
 				if (access.equals(A_ACCESS_READ)) {
-					prodDef.setRead(true);
+					propDef.setRead(true);
 				}
 			}
 		}
 		
-		return prodDef;
+		Element indexableElement = SchemaProcessorUtil.getAnnotationElement(annotation, A_INDEXED);
+		if (indexableElement != null) {
+			Boolean indexable = XmlTypeConverter.toJavaValue(indexableElement, Boolean.class);
+			propDef.setIndexed(indexable);
+		}
+		
+		return propDef;
 	}
 
 
