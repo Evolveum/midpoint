@@ -27,33 +27,26 @@ package com.evolveum.midpoint.schema;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
+import java.util.GregorianCalendar;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -65,17 +58,17 @@ public class TestJaxbParsing {
 
     private static final String TEST_DIR = "src/test/resources/schema-registry/";
     private static final String NS_FOO = "http://www.example.com/foo";
-    
+
     @BeforeSuite
-	public void setup() throws SchemaException, SAXException, IOException {
-		DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-	}
+    public void setup() throws SchemaException, SAXException, IOException {
+        DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+    }
 
     @Test
     public void testParseUserFromJaxb() throws SchemaException, SAXException, IOException, JAXBException {
 
-    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // Try to use the schema to validate Jack
         UserType userType = PrismTestUtil.unmarshalObject(new File(TEST_DIR, "user-jack.xml"), UserType.class);
@@ -121,7 +114,7 @@ public class TestJaxbParsing {
     @Test(enabled = true)
     public void testParseAccountFromJaxb() throws SchemaException, SAXException, IOException, JAXBException {
 
-    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // Try to use the schema to validate Jack
         AccountShadowType accType = PrismTestUtil.unmarshalObject(new File(TEST_DIR, "account-jack.xml"), AccountShadowType.class);
@@ -131,10 +124,10 @@ public class TestJaxbParsing {
 
         System.out.println("Parsed account:");
         System.out.println(account.dump());
-        
+
         assertProperty(account, SchemaConstants.C_NAME, "jack");
         assertProperty(account, AccountShadowType.F_ACCOUNT_TYPE, "user");
-        
+
         // TODO: more asserts
     }
 
@@ -145,4 +138,34 @@ public class TestJaxbParsing {
         assertEquals(propName + " has wrong value", value, prop.getValue().getValue());
     }
 
+    @Test
+    public void testParseGenericObjectFromJaxb() throws Exception {
+        System.out.println("\n\n ===[ testParseGenericObjectFromJaxb ]===\n");
+
+        final String NS_P = "http://example.com/p";
+        
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
+
+        GenericObjectType object = PrismTestUtil.unmarshalObject(new File(TEST_DIR, "generic-object.xml"),
+                GenericObjectType.class);
+
+        PrismObject<GenericObjectType> prism = object.asPrismObject();
+        prism.revive(prismContext);
+
+        assertProperty(prism, GenericObjectType.F_NAME, "My Sample Config Object");
+        assertProperty(prism, GenericObjectType.F_DESCRIPTION, "Sample description");
+        assertProperty(prism, GenericObjectType.F_OBJECT_TYPE, "http://myself.me/schemas/objects#SampleConfigType");
+        //assert extension
+        PrismContainer extension = prism.findContainer(GenericObjectType.F_EXTENSION);
+        assertNotNull(extension);
+        assertProperty(extension, new QName(NS_P, "stringType"), "some text in here");
+        assertProperty(extension, new QName(NS_P, "intType"),1234 );
+        assertProperty(extension, new QName(NS_P, "doubleType"), 456.789D);
+        assertProperty(extension, new QName(NS_P, "longType"), 567890L);
+
+        XMLGregorianCalendar calendar = DatatypeFactory.newInstance().newXMLGregorianCalendar("2002-05-30T09:10:11");
+        assertProperty(extension, new QName(NS_P, "dateType"), calendar);
+
+        //todo locations ????? how to test DOM ??????
+    }
 }
