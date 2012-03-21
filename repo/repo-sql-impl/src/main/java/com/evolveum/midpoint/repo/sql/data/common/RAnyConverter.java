@@ -115,14 +115,25 @@ class RAnyConverter {
 
         return rValues;
     }
-    
+
     private boolean isIndexable(ItemDefinition definition) {
-        if (definition.isIndexable() != null) {
-            return definition.isIndexable();
+        if (definition instanceof PrismContainerDefinition) {
+            return false;
+        } else if (definition instanceof PrismReferenceDefinition) {
+            return true;
         }
-        
+        if (!(definition instanceof PrismPropertyDefinition)) {
+            throw new UnsupportedOperationException("Unknown definition type '"
+                    + definition + "', can't say if it's indexed or not.");
+        }
+
+        PrismPropertyDefinition pDefinition = (PrismPropertyDefinition) definition;
+        if (pDefinition.isIndexed() != null) {
+            return pDefinition.isIndexed();
+        }
+
         QName type = definition.getTypeName();
-        return DOMUtil.XSD_DATETIME.equals(type) 
+        return DOMUtil.XSD_DATETIME.equals(type)
                 || DOMUtil.XSD_LONG.equals(type)
                 || DOMUtil.XSD_SHORT.equals(type)
                 || DOMUtil.XSD_INTEGER.equals(type)
@@ -174,6 +185,13 @@ class RAnyConverter {
             } else {
                 object = XmlTypeConverter.toJavaValue(element, definition.getTypeName());
             }
+        }
+
+        //check float/double to string
+        if (object instanceof Float) {
+            object = ((Float) object).toString();
+        } else if (object instanceof Double) {
+            object = ((Double) object).toString();
         }
 
         //check short/integer to long
