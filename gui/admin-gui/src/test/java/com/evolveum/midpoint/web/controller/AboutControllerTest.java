@@ -39,6 +39,7 @@ import static org.testng.AssertJUnit.assertNotNull;
         "file:src/main/webapp/WEB-INF/application-context-init.xml",
         "file:src/main/webapp/WEB-INF/application-context-security.xml",
         "classpath:application-context-test.xml",
+        "classpath:application-context-repo-cache.xml",
         "classpath:application-context-repository.xml",
         "classpath:application-context-task.xml",
         "classpath:application-context-configuration-test.xml"})

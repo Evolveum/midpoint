@@ -47,12 +47,15 @@ import static org.testng.AssertJUnit.assertNotNull;
         "file:src/main/webapp/WEB-INF/application-context-init.xml",
         "file:src/main/webapp/WEB-INF/application-context-security.xml",
         "classpath:application-context-test.xml",
-        // TODO: if these two contexts are initilized then the test fails for
-        // unknown reason
-        // "classpath:application-context-provisioning.xml",
+        "classpath:application-context-repo-cache.xml",
         "classpath:application-context-repository.xml",
         "classpath:application-context-task.xml",
         "classpath:application-context-configuration-test.xml"})
+//        // TODO: if these two contexts are initilized then the test fails for
+//        // unknown reason
+        //		"classpath:application-context-model.xml",
+//        // "classpath:application-context-provisioning.xml",
+
 public class SpringApplicationContextTest extends AbstractTestNGSpringContextTests {
 
     @Autowired(required = true)
