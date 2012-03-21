@@ -61,4 +61,8 @@ public class QueryContext {
 
         aliases.put(path, alias);
     }
+    
+    public boolean hasAlias(String alias) {
+        return aliases.containsValue(alias);
+    }
 }

@@ -99,6 +99,8 @@ public class XmlTypeConverter {
             return (T) Integer.valueOf(stringContent);
         } else if (type.equals(int.class)) {
             return (T) Integer.valueOf(stringContent);
+        } else if (type.equals(Short.class) || type.equals(short.class)) {
+            return (T) Short.valueOf(stringContent);
         } else if (type.equals(Long.class)) {
             return (T) Long.valueOf(stringContent);
         } else if (type.equals(long.class)) {

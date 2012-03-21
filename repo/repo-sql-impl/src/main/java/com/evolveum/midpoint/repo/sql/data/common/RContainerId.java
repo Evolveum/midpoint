@@ -46,4 +46,29 @@ public class RContainerId implements Serializable {
     public void setOid(String oid) {
         this.oid = oid;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        if (oid == null && id == null) {
+            return false;
+        }
+
+        RContainerId that = (RContainerId) o;
+
+        if (id != null ? !id.equals(that.id) : that.id != null) return false;
+        if (oid != null ? !oid.equals(that.oid) : that.oid != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+//        int result = oid != null ? oid.hashCode() : 0;
+//        result = 31 * result + (id != null ? id.hashCode() : 0);
+//        return result;
+    }
 }

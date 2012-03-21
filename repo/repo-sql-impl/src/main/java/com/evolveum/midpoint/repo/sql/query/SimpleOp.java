@@ -40,9 +40,9 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class EqualOp extends Op {
+public class SimpleOp extends Op {
 
-    public EqualOp(QueryInterpreter interpreter) {
+    public SimpleOp(QueryInterpreter interpreter) {
         super(interpreter);
     }
 
@@ -75,6 +75,8 @@ public class EqualOp extends Op {
         Element condition = DOMUtil.listChildElements(value).get(0);
         String conditionItem = updateConditionItem(DOMUtil.getQNameWithoutPrefix(condition), path);
 
+        //todo if we're querying extension value create conjunction on qname name and type and value also get type right
+
         Criterion equal;
         if (pushNot) {
             equal = Restrictions.ne(conditionItem, condition.getTextContent());
@@ -84,21 +86,25 @@ public class EqualOp extends Op {
 
         return equal;
     }
-    
+
     private String updateConditionItem(QName conditionItem, Element path) {
         //todo fix with mapping
         StringBuilder item = new StringBuilder();
-        
+
         if (path != null && StringUtils.isNotEmpty(path.getTextContent())) {
             XPathHolder holder = new XPathHolder(path);
             PropertyPath propertyPath = holder.toPropertyPath();
-            
+
+            // todo check if propPath is extension (RAnyContainer association) and than we have to create one more
+            // criteria based on definition to string/long/date (clob throws exception). and if it is extension
+            // look for that path alias and user "value" as conditionItem
+
             String alias = getContext().getAlias(propertyPath);
             if (StringUtils.isNotEmpty(alias)) {
                 item.append(alias);
             }
         }
-        
+
         if (item.length() != 0) {
             item.append(".");
         }
@@ -120,19 +126,35 @@ public class EqualOp extends Op {
         for (XPathSegment segment : segments) {
             QName qname = segment.getQName();
             propPathSegments.add(new PropertyPathSegment(qname));
-            
+
             propPath = new PropertyPath(propPathSegments);
-            
+
+            //todo check if propPath is extension (RAnyContainer association) and than we have to create one more criteria
+            //based on definition to string/long/date (clob throws exception) . Also add it as new property path to context
+
             Criteria pCriteria = getContext().getCriteria(lastPropPath);
-            Criteria criteria = pCriteria.createCriteria(qname.getLocalPart(), 
-                    Character.toString(qname.getLocalPart().charAt(0))); 
-            getContext().setCriteria(propPath, criteria);   
+            Criteria criteria = pCriteria.createCriteria(qname.getLocalPart(),
+                    Character.toString(qname.getLocalPart().charAt(0)));
+            getContext().setCriteria(propPath, criteria);
             getContext().setAlias(propPath, createAlias(propPath.last()));
         }
     }
-    
-    private String createAlias(PropertyPathSegment segment) {
-        //todo reimplement
-        return Character.toString(segment.getName().getLocalPart().charAt(0));
+
+    private String createAlias(PropertyPathSegment segment) throws QueryInterpreterException {
+        String prefix = Character.toString(segment.getName().getLocalPart().charAt(0));
+        int index = 0;
+
+        String alias = prefix;
+        while (getContext().hasAlias(alias)) {
+            alias = prefix + Integer.toString(index);
+            index++;
+
+            if (index > 40) {
+                throw new QueryInterpreterException("Alias index for segment '" + segment.getName()
+                        + "' is more than 100? Should not happen.");
+            }
+        }
+
+        return alias;
     }
 }

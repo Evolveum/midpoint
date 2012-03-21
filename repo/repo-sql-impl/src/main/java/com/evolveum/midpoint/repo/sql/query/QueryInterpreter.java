@@ -63,7 +63,7 @@ public class QueryInterpreter {
         if (operation.canHandle(filter)) {
             return operation.interpret(filter, pushNot);
         }
-        operation = new EqualOp(this);
+        operation = new SimpleOp(this);
         if (operation.canHandle(filter)) {
             return operation.interpret(filter, pushNot);
         }

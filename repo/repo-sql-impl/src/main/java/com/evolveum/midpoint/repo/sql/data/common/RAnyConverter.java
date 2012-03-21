@@ -173,6 +173,7 @@ class RAnyConverter {
             object = ((GregorianCalendar) object).getTime();
         } else if (object instanceof XMLGregorianCalendar) {
             object = XMLGregorianCalendarType.asDate(((XMLGregorianCalendar) object));
+            LOGGER.info("%%% " + ((Date)object).getTime());
         }
 
         if (returnType.isAssignableFrom(object.getClass())) {
@@ -201,12 +202,15 @@ class RAnyConverter {
 
         try {
             Item item = any.findOrCreateItem(value.getName(), value.getValueType().getItemClass());
-            if (item != null) {
-                item.add(new PrismPropertyValue(value.getValue(), null, null));      //todo create through reflection
+            if (item == null) {
+                throw new DtoTranslationException("Couldn't create item for value '" + value.getName() + "'.");
             }
-            System.out.println("");
+
+            addValueToItem(value, item);
+        } catch (DtoTranslationException ex) {
+            throw ex;
         } catch (Exception ex) {
-            LOGGER.info(ex.getMessage(), ex);
+            throw new DtoTranslationException(ex.getMessage(), ex);
         }
     }
 
@@ -216,5 +220,40 @@ class RAnyConverter {
         }
 
         return DOMUtil.createElement(document, name);
+    }
+
+    private void addValueToItem(RValue value, Item item) throws SchemaException {
+        Object realValue = createRealValue(value, item.getDefinition());
+
+        switch (value.getValueType()) {
+            case REFERENCE:
+                //todo implement
+                // PrismReferenceValue referenceValue = new PrismReferenceValue();
+                // item.add(referenceValue);
+                throw new UnsupportedOperationException("Not implemented yet.");
+            case PROPERTY:
+                PrismPropertyValue propertyValue = new PrismPropertyValue(realValue, null, null);
+                item.add(propertyValue);
+                break;
+            case OBJECT:
+            case CONTAINER:
+                //todo implement
+                // PrismContainerValue containerValue = new PrismContainerValue();
+                // item.add(containerValue);
+                throw new UnsupportedOperationException("Not implemented yet.");
+        }
+    }
+
+    private Object createRealValue(RValue rValue, ItemDefinition definition) throws SchemaException {
+        Object value = rValue.getValue();
+        if (value instanceof Date) {
+            LOGGER.info("%%%1 " + ((Date)value).getTime());
+            value = XMLGregorianCalendarType.asXMLGregorianCalendar((Date) value);
+        }
+        value = XmlTypeConverter.toXsdElement(value, rValue.getName(), rValue.getType(), DOMUtil.getDocument(), false);
+        if (value instanceof Element) {
+            value = XmlTypeConverter.toJavaValue((Element) value, rValue.getType());
+        }
+        return value;
     }
 }
