@@ -855,9 +855,9 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		StringBuilder sb = new StringBuilder();
 		sb.append("PCV(");
 		sb.append(getId());
-		if (getRawElements() != null) {
+		if (rawElements != null) {
 			sb.append(", ");
-			sb.append(getRawElements().size());
+			sb.append(rawElements.size());
 			sb.append(" raw elements");
 		}
 		sb.append("):");

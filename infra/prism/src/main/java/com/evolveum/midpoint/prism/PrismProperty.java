@@ -521,9 +521,13 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
             sb.append("null");
         } else {
             sb.append("[ ");
-            for (Object value : getValues()) {
+            Iterator<PrismPropertyValue<V>> iterator = getValues().iterator();
+            while(iterator.hasNext()) {
+            	PrismPropertyValue<V> value = iterator.next();
                 sb.append(DebugUtil.prettyPrint(value));
-                sb.append(", ");
+                if (iterator.hasNext()) {
+                	sb.append(", ");
+                }
             }
             sb.append(" ]");
         }
