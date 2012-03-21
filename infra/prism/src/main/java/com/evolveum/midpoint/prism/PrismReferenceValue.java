@@ -148,42 +148,53 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 		if (getClass() != obj.getClass())
 			return false;
 		PrismReferenceValue other = (PrismReferenceValue) obj;
-		if (oid == null) {
-			if (other.oid != null)
+		return equals(this, other);
+	}
+	
+	public boolean equals(PrismValue thisValue, PrismValue otherValue) {
+		if (thisValue instanceof PrismReferenceValue && otherValue instanceof PrismReferenceValue) {
+			return equals((PrismReferenceValue)thisValue, (PrismReferenceValue)otherValue);
+		}
+		return false;
+	}
+	
+	public boolean equals(PrismReferenceValue thisValue, PrismReferenceValue otherValue) {
+		if (thisValue.oid == null) {
+			if (otherValue.oid != null)
 				return false;
-		} else if (!oid.equals(other.oid))
+		} else if (!thisValue.oid.equals(otherValue.oid))
 			return false;
-		if (targetType == null) {
-			if (other.targetType != null)
+		if (thisValue.targetType == null) {
+			if (otherValue.targetType != null)
 				return false;
-		} else if (!targetType.equals(other.targetType))
+		} else if (!thisValue.targetType.equals(otherValue.targetType))
 			return false;
 		return true;
 	}
 	
 	@Override
-	public boolean equalsRealValue(PrismValue value) {
-		if (value instanceof PrismReferenceValue) {
-			return equalsRealValue((PrismReferenceValue)value);
+	public boolean equalsRealValue(PrismValue thisValue, PrismValue otherValue) {
+		if (thisValue instanceof PrismReferenceValue && otherValue instanceof PrismReferenceValue) {
+			return equalsRealValue((PrismReferenceValue)thisValue, (PrismReferenceValue)otherValue);
 		} else {
 			return false;
 		}
 	}
 
-	public boolean equalsRealValue(PrismReferenceValue pValueToCompare) {
-        if (pValueToCompare == null) {
+	public boolean equalsRealValue(PrismReferenceValue thisValue, PrismReferenceValue otherValue) {
+        if (otherValue == null) {
             return false;
         }
         
-        String valueToCompare = pValueToCompare.getOid();
-        if (valueToCompare == null && getOid() == null) {
+        String valueToCompare = otherValue.getOid();
+        if (valueToCompare == null && thisValue.getOid() == null) {
         	return true;
         }
-        if (valueToCompare == null || getOid() == null) {
+        if (valueToCompare == null || thisValue.getOid() == null) {
         	return false;
         }
 
-        return getOid().equals(pValueToCompare.getOid());
+        return thisValue.getOid().equals(otherValue.getOid());
     }
 	
 	@Override
@@ -204,8 +215,12 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 
 	@Override
 	public String toString() {
-		return "PRV[oid=" + oid + ", targetType=" + targetType + ", type=" + getType()
+		if (object == null) {
+			return "PRV[oid=" + oid + ", targetType=" + targetType + ", type=" + getType()
 				+ ", source=" + getSource() + "]";
+		} else {
+			return "PRV[object=" + object + ", source=" + getSource() + "]";
+		}
 	}
 
 	@Override

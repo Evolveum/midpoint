@@ -121,15 +121,23 @@ public abstract class PrismValue implements Visitable {
 		return false;
 	}
 
-	public boolean equals(PrismValue value, boolean ignoreMetadata) {
+	public boolean equals(PrismValue otherValue, boolean ignoreMetadata) {
+		return equals(this, otherValue, ignoreMetadata);
+	}
+	
+	public boolean equals(PrismValue thisValue, PrismValue otherValue, boolean ignoreMetadata) {
 		if (ignoreMetadata) {
-			return equalsRealValue(value);
+			return equalsRealValue(thisValue, otherValue);
 		} else {
-			return equals(value);
+			return equals(thisValue, otherValue);
 		}
 	}
 	
-	public abstract boolean equalsRealValue(PrismValue value);
+	public boolean equalsRealValue(PrismValue otherValue) {
+		return equalsRealValue(this, otherValue);
+	}
+	
+	public abstract boolean equalsRealValue(PrismValue thisValue, PrismValue otherValue);
 	
 	public abstract PrismValue clone();
 	
@@ -154,13 +162,17 @@ public abstract class PrismValue implements Visitable {
 		if (getClass() != obj.getClass())
 			return false;
 		PrismValue other = (PrismValue) obj;
+		return equals(this, other);
+	}
+	
+	public boolean equals(PrismValue thisValue, PrismValue otherValue) {
 		// parent is not considered at all. it is not relevant.
 		if (source == null) {
-			if (other.source != null)
+			if (otherValue.source != null)
 				return false;
-		} else if (!source.equals(other.source))
+		} else if (!source.equals(otherValue.source))
 			return false;
-		if (type != other.type)
+		if (type != otherValue.type)
 			return false;
 		return true;
 	}

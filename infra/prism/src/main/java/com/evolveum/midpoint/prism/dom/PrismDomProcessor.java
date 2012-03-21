@@ -488,7 +488,7 @@ public class PrismDomProcessor {
 	 * valueElements may contain DOM and JAXB values
 	 * @throws SchemaException 
 	 */
-	public <T extends Containerable> Collection<? extends Item> parseContainerItems(PrismContainerDefinition<T> containingPcd,
+	public <T extends Containerable> Collection<? extends Item<?>> parseContainerItems(PrismContainerDefinition<T> containingPcd,
 			List<Object> valueElements) throws SchemaException {
 		Collection<Item<?>> items = new ArrayList<Item<?>>(valueElements.size());
 		for (int i=0; i < valueElements.size(); i++) {

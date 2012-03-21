@@ -111,8 +111,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	@Override
 	public void applyDefinition(ItemDefinition definition) throws SchemaException {
 		if (definition != null && rawElement !=null) {
-			PrismDomProcessor domProcessor = definition.getPrismContext().getPrismDomProcessor();
-			value = (T) domProcessor.parsePrismPropertyRealValue(rawElement, (PrismPropertyDefinition) definition);
+			value = parseRawElementToNewRealValue(this, (PrismPropertyDefinition) definition);
 			rawElement = null;
 		}
 	}
@@ -170,23 +169,53 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 			result = prime * result + ((value == null) ? 0 : value.hashCode());
 		}
 		return result;
-	}
-    
-    
+	}  
 
 	@Override
-	public boolean equals(PrismValue value, boolean ignoreMetadata) {
-		if (value instanceof PrismPropertyValue) {
-			PrismPropertyValue other = (PrismPropertyValue)value;
-			if (this.rawElement != null || other.rawElement != null) {
-				if (this.rawElement == null || other.rawElement == null) {
-					throw new IllegalArgumentException("Attempt to diff property " + getParent() + " values with different parsing states (raw elements)");
+	public boolean equals(PrismValue otherValue, boolean ignoreMetadata) {
+		PrismPropertyValue<T> thisValue = this;
+		if (otherValue instanceof PrismPropertyValue) {
+			PrismPropertyValue<T> otherPropertyValue = (PrismPropertyValue)otherValue;
+			if (this.rawElement != null || otherPropertyValue.rawElement != null) {
+				try {
+					if (this.rawElement == null) {
+						otherValue = parseRawElementToNewValue(otherPropertyValue, this);
+					} else if (otherPropertyValue.rawElement == null) {
+						thisValue = parseRawElementToNewValue(this, otherPropertyValue);
+					}
+				} catch (SchemaException e) {
+					// TODO: Maybe just return false?
+					throw new IllegalArgumentException("Error parsing the value of property "+getParent()+" using the 'other' definition "+
+							"during a compare: "+e.getMessage(),e);
 				}
 			}
 		}
 		
-		return super.equals(value, ignoreMetadata);
+		return super.equals(thisValue, otherValue, ignoreMetadata);
 	}
+
+	/**
+	 * Takes the definition from the definitionSource parameter and uses it to parse raw elements in origValue.
+	 * It returns a new parsed value without touching the original value.
+	 */
+	private PrismPropertyValue<T> parseRawElementToNewValue(PrismPropertyValue<T> origValue, PrismPropertyValue<T> definitionSource) throws SchemaException {
+		if (definitionSource.getParent() != null && definitionSource.getParent().getDefinition() != null) {
+			T parsedRealValue = parseRawElementToNewRealValue(origValue, 
+					(PrismPropertyDefinition) definitionSource.getParent().getDefinition());
+			PrismPropertyValue<T> newPVal = new PrismPropertyValue<T>(parsedRealValue);
+			return newPVal;
+		} else {
+			throw new IllegalArgumentException("Attempt to use property " + origValue.getParent() + 
+					" values in a raw parsing state (raw elements) with parsed value that has no definition");
+		}
+	}
+	
+	private T parseRawElementToNewRealValue(PrismPropertyValue<T> prismPropertyValue, PrismPropertyDefinition definition) 
+				throws SchemaException {
+		PrismDomProcessor domProcessor = definition.getPrismContext().getPrismDomProcessor();
+		return (T) domProcessor.parsePrismPropertyRealValue(prismPropertyValue.rawElement, (PrismPropertyDefinition) definition);
+	}
+
 
 	@Override
 	public boolean equals(Object obj) {
@@ -197,10 +226,21 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		if (getClass() != obj.getClass())
 			return false;
 		PrismPropertyValue other = (PrismPropertyValue) obj;
-		if (value == null) {
-			if (other.value != null)
+		return equals(this, other);
+	}
+	
+	public boolean equals(PrismValue thisValue, PrismValue otherValue) {
+		if (thisValue instanceof PrismPropertyValue && otherValue instanceof PrismPropertyValue) {
+			return equals((PrismPropertyValue)thisValue, (PrismPropertyValue)otherValue);
+		}
+		return false;
+	}
+	
+	public boolean equals(PrismPropertyValue<T> thisValue, PrismPropertyValue<T> otherValue) {
+		if (thisValue.value == null) {
+			if (otherValue.value != null)
 				return false;
-		} else if (!compareRealValues(value,other.value))
+		} else if (!compareRealValues(thisValue.value,otherValue.value))
 			return false;
 		return true;
 	}
@@ -214,27 +254,27 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	}
 
 	@Override
-	public boolean equalsRealValue(PrismValue value) {
-		if (value instanceof PrismPropertyValue) {
-			return equalsRealValue((PrismPropertyValue<T>)value);
+	public boolean equalsRealValue(PrismValue thisValue, PrismValue otherValue) {
+		if (otherValue instanceof PrismPropertyValue && thisValue instanceof PrismPropertyValue) {
+			return equalsRealValue((PrismPropertyValue<T>)thisValue, (PrismPropertyValue<T>)otherValue);
 		} else {
 			return false;
 		}
 	}
 	
-	public boolean equalsRealValue(PrismPropertyValue<T> other) {
-        if (other == null) {
+	public boolean equalsRealValue(PrismPropertyValue<T> thisValue, PrismPropertyValue<T> otherValue) {
+        if (otherValue == null) {
             return false;
         }
         
-        if (this.rawElement != null && other.rawElement != null) {
-        	return equalsRawElements(other);
+        if (this.rawElement != null && otherValue.rawElement != null) {
+        	return equalsRawElements(otherValue);
         }
-        if (this.rawElement != null || other.rawElement != null) {
+        if (this.rawElement != null || otherValue.rawElement != null) {
         	return false;
         }
         
-        T otherRealValue = other.getValue();
+        T otherRealValue = otherValue.getValue();
         if (otherRealValue == null && getValue() == null) {
         	return true;
         }

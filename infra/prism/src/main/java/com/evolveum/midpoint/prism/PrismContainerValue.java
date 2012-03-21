@@ -586,24 +586,24 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     }
     
 	@Override
-	public boolean equalsRealValue(PrismValue value) {
-		if (value instanceof PrismContainerValue) {
-			return equalsRealValue((PrismContainerValue<T>)value);
+	public boolean equalsRealValue(PrismValue thisValue, PrismValue value) {
+		if (value instanceof PrismContainerValue && thisValue instanceof PrismContainerValue) {
+			return equalsRealValue((PrismContainerValue<T>)thisValue, (PrismContainerValue<T>)value);
 		} else {
 			return false;
 		}
 	}
 	
-	public boolean equalsRealValue(PrismContainerValue<T> other) {
-		if (this.getId() != null && other.getId() != null) {
-			if (!(this.getId().equals(other.getId()))) {
+	public boolean equalsRealValue(PrismContainerValue<T> thisValue, PrismContainerValue<T> otherValue) {
+		if (thisValue.getId() != null && otherValue.getId() != null) {
+			if (!(thisValue.getId().equals(otherValue.getId()))) {
 				return false;
 			}
 		}
-		if (this.getId() != null || other.getId() != null) {
+		if (thisValue.getId() != null || otherValue.getId() != null) {
 			return false;
 		}
-		return equalsItems(other, true);
+		return equalsItems(thisValue, otherValue, true);
 	}
 	
 	@Override
@@ -644,34 +644,66 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	
 	void diffRepresentation(PrismContainerValue<T> otherValue, PropertyPath pathPrefix,
 			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata) {
+		PrismContainerValue<T> thisValue = this;
 		if (this.rawElements != null || otherValue.rawElements != null) {
-			if (this.rawElements == null || this.rawElements == null) {
-				throw new IllegalArgumentException("Attempt to diff container " + getParent() + " values with different parsing states (raw elements)");
+			try {
+				if (this.rawElements == null) {
+					otherValue = parseRawElementsToNewValue(otherValue, thisValue);
+				} else if (otherValue.rawElements == null) {
+					thisValue = parseRawElementsToNewValue(thisValue, otherValue);
+				}
+			} catch (SchemaException e) {
+				// TODO: Maybe just return false?
+				throw new IllegalArgumentException("Error parsing the value of container "+getParent()+" using the 'other' definition "+
+						"during a compare: "+e.getMessage(),e);
 			}
+		} 
+		diffItems(thisValue, otherValue, pathPrefix, deltas, ignoreMetadata);
+	}
+	
+	private PrismContainerValue<T> parseRawElementsToNewValue(PrismContainerValue<T> origCVal, PrismContainerValue<T> definitionSource) throws SchemaException {
+		List<Object> rawElements = origCVal.rawElements;
+		if (definitionSource.getParent() == null || definitionSource.getParent().getDefinition() == null) {
+			throw new IllegalArgumentException("Attempt to use container " + origCVal.getParent() + 
+			" values in a raw parsing state (raw elements) with parsed value that has no definition");
 		}
-		// TODO 
-		diffItems(otherValue, pathPrefix, deltas, ignoreMetadata);
+		PrismContainerDefinition<T> definition = definitionSource.getParent().getDefinition();
+		Collection<? extends Item<?>> parsedItems = parseRawElementsToItems(rawElements, definition);
+		PrismContainerValue<T> newCVal = new PrismContainerValue<T>();
+		newCVal.setParent(origCVal.getParent());
+		newCVal.addAll(parsedItems);
+		return newCVal;
+	}
+	
+	private Collection<? extends Item<?>> parseRawElementsToItems(List<Object> rawElements, PrismContainerDefinition<T> definition) throws SchemaException {
+		PrismDomProcessor domProcessor = definition.getPrismContext().getPrismDomProcessor();
+		Collection<? extends Item<?>> parsedItems = domProcessor.parseContainerItems(definition, rawElements);
+		return parsedItems;
 	}
 	
 	boolean equalsItems(PrismContainerValue<T> other, boolean ignoreMetadata) {
+		return equalsItems(this, other, ignoreMetadata);
+	}
+	
+	boolean equalsItems(PrismContainerValue<T> thisValue, PrismContainerValue<T> other, boolean ignoreMetadata) {
 		Collection<? extends ItemDelta> deltas = new ArrayList<ItemDelta>();
 		// The EMPTY_PATH is a lie. We don't really care if the returned deltas have correct path or not
 		// we only care whether some deltas are returned or not.
-		diffItems(other, PropertyPath.EMPTY_PATH, deltas, ignoreMetadata);
+		diffItems(thisValue, other, PropertyPath.EMPTY_PATH, deltas, ignoreMetadata);
 		return deltas.isEmpty();
 	}
 	
-	void diffItems(PrismContainerValue<T> other, PropertyPath pathPrefix,
+	void diffItems(PrismContainerValue<T> thisValue, PrismContainerValue<T> other, PropertyPath pathPrefix,
 			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata) {
 		
-		for (Item thisItem: this.getItems()) {
+		for (Item thisItem: thisValue.getItems()) {
 			Item otherItem = other.findItem(thisItem.getName());
 			// The "delete" delta will also result from the following diff
 			thisItem.diffInternal(otherItem, getPath(pathPrefix), deltas, ignoreMetadata);
 		}
 		
 		for (Item otherItem: other.getItems()) {
-			Item thisItem = this.findItem(otherItem.getName());
+			Item thisItem = thisValue.findItem(otherItem.getName());
 			if (thisItem == null) {
 				// Other has an item that we don't have, this must be an add
 				ItemDelta itemDelta = otherItem.createDelta(otherItem.getPath(pathPrefix));
@@ -701,7 +733,9 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	public void applyDefinition(PrismContainerDefinition definition, boolean force) throws SchemaException {
 		if (rawElements != null) {
 			// There are DOM/JAXB elements that needs to be parsed while the schema is being applied
-			parseElements(definition);
+			Collection<? extends Item<?>> parsedItems = parseRawElementsToItems(rawElements, definition);
+			addAll(parsedItems);
+			rawElements = null;
 		}
 		for (Item<?> item: items) {
 			if (!force && item.getDefinition() != null) {
@@ -745,13 +779,6 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 			}
 		}
 		return itemDefinition;
-	}
-
-	private void parseElements(PrismContainerDefinition definition) throws SchemaException {
-		PrismDomProcessor domProcessor = definition.getPrismContext().getPrismDomProcessor();
-		Collection<? extends Item> parsedItems = domProcessor.parseContainerItems(definition, rawElements);
-		addAll((Collection)parsedItems);
-		rawElements = null;
 	}
 
 	public void revive(PrismContext prismContext) {
@@ -798,15 +825,26 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		if (getClass() != obj.getClass())
 			return false;
 		PrismContainerValue<?> other = (PrismContainerValue<?>) obj;
-		if (id == null) {
-			if (other.id != null)
+		return equals(this, other);
+	}
+	
+	public boolean equals(PrismValue thisValue, PrismValue otherValue) {
+		if (thisValue instanceof PrismContainerValue && otherValue instanceof PrismContainerValue) {
+			return equals((PrismContainerValue)thisValue, (PrismContainerValue)otherValue);
+		}
+		return false;
+	}
+	
+	public boolean equals(PrismContainerValue<T> thisValue, PrismContainerValue<T> otherValue) {
+		if (thisValue.id == null) {
+			if (otherValue.id != null)
 				return false;
-		} else if (!id.equals(other.id))
+		} else if (!thisValue.id.equals(otherValue.id))
 			return false;
-		if (items == null) {
-			if (other.items != null)
+		if (thisValue.items == null) {
+			if (otherValue.items != null)
 				return false;
-		} else if (!this.equalsItems((PrismContainerValue<T>) other, false)) {
+		} else if (!this.equalsItems(thisValue, (PrismContainerValue<T>) otherValue, false)) {
 			return false;
 		}
 		return true;
@@ -848,4 +886,5 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
         }
         return sb.toString();
     }
+
 }

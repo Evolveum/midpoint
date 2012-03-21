@@ -358,11 +358,13 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     					thisValue.diffMatchingRepresentation(otherValue, pathPrefix, deltas, ignoreMetadata);
     					// No need to process this value again
     					iterator.remove();
+    					break;
     				} else if (thisValue.equals(otherValue, ignoreMetadata)) {
     					found = true;
     					// same values. No delta
     					// No need to process this value again
     					iterator.remove();
+    					break;
     				}
     			}
 				if (!found) {
