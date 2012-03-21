@@ -23,6 +23,7 @@
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
    xmlns:dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ"
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
    xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
    http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-1.xsd'
    xmlns:foo="http://foo.com/">
@@ -33,7 +34,7 @@
         <c:equal>
             <c:path>c:attributes</c:path>
             <c:value>
-                <s:__NAME__ xmlns:s='http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd'>uid=jbond,ou=People,dc=example,dc=com</s:__NAME__>
+                <icfs:name>uid=jbond,ou=People,dc=example,dc=com</icfs:name>
             </c:value>
         </c:equal>
         <c:equal>
