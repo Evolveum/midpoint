@@ -83,7 +83,7 @@ public abstract class ItemDefinition extends Definition implements Serializable 
      *
      * @return true if items of this kind should be searchable, otherwise false.
      */
-    public boolean isSearchable() {
+    public Boolean isIndexable() {
         //todo read this from some annotation in xsd schema...
         //todo probably add max. size or something...which can be stored by repo...
         //todo implement

@@ -93,7 +93,7 @@ class RAnyConverter {
                             break;
                         case STRING:
                         default:
-                            if (definition.isSearchable()) {
+                            if (isIndexable(definition)) {
                                 RStringValue strValue = new RStringValue();
                                 strValue.setValue(extractValue(propertyValue, String.class));
                                 rValue = strValue;
@@ -114,6 +114,21 @@ class RAnyConverter {
         }
 
         return rValues;
+    }
+    
+    private boolean isIndexable(ItemDefinition definition) {
+        if (definition.isIndexable() != null) {
+            return definition.isIndexable();
+        }
+        
+        QName type = definition.getTypeName();
+        return DOMUtil.XSD_DATETIME.equals(type) 
+                || DOMUtil.XSD_LONG.equals(type)
+                || DOMUtil.XSD_SHORT.equals(type)
+                || DOMUtil.XSD_INTEGER.equals(type)
+                || DOMUtil.XSD_DOUBLE.equals(type)
+                || DOMUtil.XSD_FLOAT.equals(type)
+                || DOMUtil.XSD_STRING.equals(type);
     }
 
     private RValueType getValueType(Itemable itemable) {
@@ -173,7 +188,6 @@ class RAnyConverter {
             object = ((GregorianCalendar) object).getTime();
         } else if (object instanceof XMLGregorianCalendar) {
             object = XMLGregorianCalendarType.asDate(((XMLGregorianCalendar) object));
-            LOGGER.info("%%% " + ((Date)object).getTime());
         }
 
         if (returnType.isAssignableFrom(object.getClass())) {
@@ -245,9 +259,14 @@ class RAnyConverter {
     }
 
     private Object createRealValue(RValue rValue, ItemDefinition definition) throws SchemaException {
+        if (rValue instanceof RClobValue) {
+            RClobValue clob = (RClobValue) rValue;
+            //todo maybe use prismcontext parser to get value from clob...
+            return DOMUtil.parseDocument(clob.getValue()).getDocumentElement();
+        }
+
         Object value = rValue.getValue();
         if (value instanceof Date) {
-            LOGGER.info("%%%1 " + ((Date)value).getTime());
             value = XMLGregorianCalendarType.asXMLGregorianCalendar((Date) value);
         }
         value = XmlTypeConverter.toXsdElement(value, rValue.getName(), rValue.getType(), DOMUtil.getDocument(), false);
