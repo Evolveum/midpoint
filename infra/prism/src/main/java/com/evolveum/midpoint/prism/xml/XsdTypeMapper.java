@@ -67,6 +67,10 @@ public class XsdTypeMapper {
         addMapping(File.class, DOMUtil.XSD_STRING, false);
         addMapping(int.class, DOMUtil.XSD_INTEGER, true);
         addMapping(Integer.class, DOMUtil.XSD_INTEGER, false);
+        addMapping(double.class, DOMUtil.XSD_DOUBLE, true);
+        addMapping(Double.class, DOMUtil.XSD_DOUBLE, false);
+        addMapping(float.class, DOMUtil.XSD_FLOAT, true);
+        addMapping(Float.class, DOMUtil.XSD_FLOAT, false);
         //maybe this is not a great idea
         addMapping(long.class, DOMUtil.XSD_LONG, true);
         addMapping(Long.class, DOMUtil.XSD_LONG, false);

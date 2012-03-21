@@ -47,11 +47,15 @@ import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import static com.evolveum.midpoint.prism.util.PrismAsserts.assertPropertyValue;
 import static com.evolveum.midpoint.schema.util.SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -72,7 +76,7 @@ public class TestParseGenericObject {
 	
 	
 	@Test
-	public void testParseGenericFile() throws SchemaException {
+	public void testParseGenericFile() throws SchemaException, DatatypeConfigurationException {
 		System.out.println("===[ testParseGenericFile ]===");
 
 		// GIVEN
@@ -89,7 +93,7 @@ public class TestParseGenericObject {
 	}
 
 	@Test
-	public void testParseGenericDom() throws SchemaException {
+	public void testParseGenericDom() throws SchemaException, DatatypeConfigurationException {
 		System.out.println("===[ testParseGenericDom ]===");
 
 		// GIVEN
@@ -109,7 +113,7 @@ public class TestParseGenericObject {
 	}
 
 	@Test
-	public void testPrismParseJaxb() throws JAXBException, SchemaException, SAXException, IOException {
+	public void testPrismParseJaxb() throws JAXBException, SchemaException, SAXException, IOException, DatatypeConfigurationException {
 		System.out.println("===[ testPrismParseJaxb ]===");
 		
 		// GIVEN
@@ -126,9 +130,10 @@ public class TestParseGenericObject {
 	/**
 	 * The definition should be set properly even if the declared type is ObjectType. The Prism should determine
 	 * the actual type.
+	 * @throws DatatypeConfigurationException 
 	 */
 	@Test
-	public void testPrismParseJaxbObjectType() throws JAXBException, SchemaException, SAXException, IOException {
+	public void testPrismParseJaxbObjectType() throws JAXBException, SchemaException, SAXException, IOException, DatatypeConfigurationException {
 		System.out.println("===[ testPrismParseJaxbObjectType ]===");
 		
 		// GIVEN
@@ -144,9 +149,10 @@ public class TestParseGenericObject {
 	
 	/**
 	 * Parsing in form of JAXBELement
+	 * @throws DatatypeConfigurationException 
 	 */
 	@Test
-	public void testPrismParseJaxbElement() throws JAXBException, SchemaException, SAXException, IOException {
+	public void testPrismParseJaxbElement() throws JAXBException, SchemaException, SAXException, IOException, DatatypeConfigurationException {
 		System.out.println("===[ testPrismParseJaxbElement ]===");
 		
 		// GIVEN
@@ -163,9 +169,10 @@ public class TestParseGenericObject {
 
 	/**
 	 * Parsing in form of JAXBELement, with declared ObjectType
+	 * @throws DatatypeConfigurationException 
 	 */
 	@Test
-	public void testPrismParseJaxbElementObjectType() throws JAXBException, SchemaException, SAXException, IOException {
+	public void testPrismParseJaxbElementObjectType() throws JAXBException, SchemaException, SAXException, IOException, DatatypeConfigurationException {
 		System.out.println("===[ testPrismParseJaxbElementObjectType ]===");
 		
 		// GIVEN
@@ -182,7 +189,7 @@ public class TestParseGenericObject {
 
 	
 	@Test
-	public void testParseGenericRoundtrip() throws SchemaException {
+	public void testParseGenericRoundtrip() throws SchemaException, DatatypeConfigurationException {
 		System.out.println("===[ testParseGenericRoundtrip ]===");
 
 		// GIVEN
@@ -224,7 +231,7 @@ public class TestParseGenericObject {
 //		PrismContainer<?> reparsedSchemaContainer = reparsedResource.findContainer(ResourceType.F_SCHEMA);
 	}
 	
-	private void assertGenericObject(PrismObject<GenericObjectType> generic) {
+	private void assertGenericObject(PrismObject<GenericObjectType> generic) throws DatatypeConfigurationException {
 		
 		assertEquals("Wrong oid", "c0c010c0-d34d-b33f-f00d-999111111111", generic.getOid());
 //		assertEquals("Wrong version", "42", resource.getVersion());
@@ -246,9 +253,9 @@ public class TestParseGenericObject {
 		assertContainerDefinition(extensionContainer, "extension", ExtensionType.COMPLEX_TYPE, 0, 1);
 		PrismContainerValue<?> extensionContainerValue = extensionContainer.getValue();
 		List<Item<?>> extensionItems = extensionContainerValue.getItems();
-		assertEquals("Wrong number of extension items", 1, extensionItems.size());
+		assertEquals("Wrong number of extension items", 6, extensionItems.size());
 
-		Item<?> locationsItem = extensionItems.get(0);
+		Item<?> locationsItem = extensionContainerValue.findItem(SchemaTestConstants.EXTENSION_LOCATIONS_ELEMENT);
 		if (!(locationsItem instanceof PrismProperty)) {
 			AssertJUnit.fail("Expected the extension item to be of type "+PrismProperty.class+
 					"but it was of type "+locationsItem.getClass());
@@ -260,7 +267,12 @@ public class TestParseGenericObject {
 		PrismAsserts.assertDefinition(locationsDefinition, SchemaTestConstants.EXTENSION_LOCATIONS_ELEMENT, 
 				SchemaTestConstants.EXTENSION_LOCATIONS_TYPE, 0, -1);
 		
-		// TODO
+		PrismAsserts.assertPropertyValue(extensionContainerValue, SchemaTestConstants.EXTENSION_STRING_TYPE_ELEMENT, "X marks the spot");
+		PrismAsserts.assertPropertyValue(extensionContainerValue, SchemaTestConstants.EXTENSION_INT_TYPE_ELEMENT, 1234);
+		PrismAsserts.assertPropertyValue(extensionContainerValue, SchemaTestConstants.EXTENSION_DOUBLE_TYPE_ELEMENT, 456.789D);
+		PrismAsserts.assertPropertyValue(extensionContainerValue, SchemaTestConstants.EXTENSION_LONG_TYPE_ELEMENT, 567890L);
+		XMLGregorianCalendar calendar = DatatypeFactory.newInstance().newXMLGregorianCalendar("2002-05-30T09:10:11");
+		PrismAsserts.assertPropertyValue(extensionContainerValue, SchemaTestConstants.EXTENSION_DATE_TYPE_ELEMENT, calendar);
 						
 	}
 	

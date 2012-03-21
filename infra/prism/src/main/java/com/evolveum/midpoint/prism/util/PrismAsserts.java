@@ -69,21 +69,25 @@ public class PrismAsserts {
 	
 	// VALUE asserts
 		
-	public static void assertPropertyValue(PrismContainer<?> container, QName propQName, Object realPropValue) {
+	public static <T> void assertPropertyValue(PrismContainer<?> container, QName propQName, T realPropValue) {
 		PrismContainerValue<?> containerValue = container.getValue();
 		assertSame("Wrong parent for value of container "+container, container, containerValue.getParent());
-		PrismProperty<?> property = containerValue.findProperty(propQName);
-		assertNotNull("Property "+propQName+" not found in "+container, property);
-		assertSame("Wrong parent for property "+property, containerValue, property.getParent());
+		assertPropertyValue(containerValue, propQName, realPropValue);
+	}
+		
+	public static <T> void assertPropertyValue(PrismContainerValue<?> containerValue, QName propQName, T realPropValue) {
+		PrismProperty<T> property = containerValue.findProperty(propQName);
+		assertNotNull("Property " + propQName + " not found in " + containerValue.getParent(), property);
+		assertSame("Wrong parent for property " + property, containerValue, property.getParent());
 		assertPropertyValue(property, realPropValue);
 	}
-	
-	public static void assertPropertyValue(PrismProperty property, Object propValue) {
-		Collection<PrismPropertyValue<Object>> pvals = property.getValues();
+		
+	public static <T> void assertPropertyValue(PrismProperty<T> property, T propValue) {
+		Collection<PrismPropertyValue<T>> pvals = property.getValues();
 		QName propQName = property.getName();
 		assert pvals != null && !pvals.isEmpty() : "Empty property "+propQName;
 		assertEquals("Numver of values of property "+propQName, 1, pvals.size());
-		PrismPropertyValue<Object> pval = pvals.iterator().next();
+		PrismPropertyValue<T> pval = pvals.iterator().next();
 		assertEquals("Values of property "+propQName, propValue, pval.getValue());
 		assertSame("Wrong parent for value of property "+property, property, pval.getParent());
 	}

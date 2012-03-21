@@ -101,6 +101,10 @@ public class DOMUtil {
             NS_W3C_XML_SCHEMA_PREFIX);
     public static final QName XSD_SHORT = new QName(W3C_XML_SCHEMA_NS_URI, "short",
             NS_W3C_XML_SCHEMA_PREFIX);
+    public static final QName XSD_FLOAT = new QName(W3C_XML_SCHEMA_NS_URI, "float",
+            NS_W3C_XML_SCHEMA_PREFIX);
+    public static final QName XSD_DOUBLE = new QName(W3C_XML_SCHEMA_NS_URI, "double",
+            NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_BOOLEAN = new QName(W3C_XML_SCHEMA_NS_URI, "boolean",
 			NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_BASE64BINARY = new QName(W3C_XML_SCHEMA_NS_URI, "base64Binary",

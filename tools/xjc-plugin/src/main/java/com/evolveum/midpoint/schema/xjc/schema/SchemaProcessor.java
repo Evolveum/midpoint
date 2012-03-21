@@ -220,7 +220,9 @@ public class SchemaProcessor implements Processor {
         JFieldVar filter = definedClass.fields().get("filter");
         copyAnnotations(findMethod(definedClass, "getFilter"), filter);
         List<JAnnotationUse> existingAnnotations = getAnnotations(filter, false);
-        existingAnnotations.clear();
+        if (existingAnnotations != null) {
+        	existingAnnotations.clear();
+        }
     }
 
     private void updateObjectReferenceType(JDefinedClass definedClass, JMethod getReference) {

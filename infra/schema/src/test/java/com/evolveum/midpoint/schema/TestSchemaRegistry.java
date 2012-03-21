@@ -64,7 +64,7 @@ public class TestSchemaRegistry {
 		assertNotNull(javaxSchema);
 		
 		// Try to use the schema to validate Jack
-		Document document = DOMUtil.parseFile("src/test/resources/schema-registry/user-jack.xml");
+		Document document = DOMUtil.parseFile("src/test/resources/common/user-jack.xml");
 		Validator validator = javaxSchema.newValidator();
 		DOMResult validationResult = new DOMResult();
 		validator.validate(new DOMSource(document),validationResult);
