@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.task.impl;
 
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertEquals;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -53,6 +55,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -95,6 +98,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
 	private static final transient Trace LOGGER = TraceManager.getTrace(TestTaskManagerContract.class);
 
     private static final String TASK_OWNER_FILENAME = "src/test/resources/repo/owner.xml";
+    private static final String NS_WHATEVER = "http://myself.me/schemas/whatever";
     
     private static String taskFilename(String test) {
     	return "src/test/resources/repo/task-" + test + ".xml";
@@ -167,16 +171,12 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
      */
     @Test
     public void test000Integrity() {
-        AssertJUnit.assertNotNull(repositoryService);
-        AssertJUnit.assertNotNull(taskManager);
-
-        // OperationResult result = new
-        // OperationResult(TestTaskManagerContract.class.getName() +
-        // ".test000Integrity");
-        // ObjectType object = repositoryService.getObject(RESOURCE_OPENDJ_OID,
-        // null, result);
-        // assertTrue(object instanceof ResourceType);
-        // assertEquals(RESOURCE_OPENDJ_OID, object.getOid());
+        assertNotNull(repositoryService);
+        assertNotNull(taskManager);
+        assertNotNull(prismContext);
+        PrismSchema whateverSchema = prismContext.getSchemaRegistry().findSchemaByNamespace(NS_WHATEVER);
+//        PrismSchema whateverSchema = PrismTestUtil.getPrismContext().getSchemaRegistry().findSchemaByNamespace(NS_WHATEVER);
+        assertNotNull("Whatever schema was not loaded", whateverSchema);
     }
 
     /**
@@ -231,7 +231,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
     	String test = "002OidPresence";
     	
         PrismObject<ObjectType> objectType = addObjectFromFile(taskFilename(test));
-        TaskType addedTask = (TaskType) objectType.getValue().getValue();
+        TaskType addedTask = (TaskType) objectType.asObjectable();
 
         AssertJUnit.assertNotNull("Oid is null", addedTask.getOid());
     }
@@ -409,8 +409,9 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
 
     @Test(enabled = true)
     public void test006Cycle() throws Exception {
-
     	String test = "006Cycle";
+    	System.out.println("===[ "+test+" ]===");
+    	
         OperationResult result = createResult(test);
     	
         // But before that check sanity ... a known problem with xsi:type
@@ -418,23 +419,36 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
     	
         ObjectType objectType = object.asObjectable();
         TaskType addedTask = (TaskType) objectType;
-        Element ext2 = (Element) addedTask.getExtension().getAny().get(0);
-        if (!ext2.getLocalName().equals("dead"))		// not a very nice code...
-        	ext2 = (Element) addedTask.getExtension().getAny().get(1);
-        QName xsiType = DOMUtil.resolveXsiType(ext2, "d");
-        System.out.println("######################1# " + xsiType);
-        AssertJUnit.assertEquals("Bad xsi:type before adding task", DOMUtil.XSD_INTEGER, xsiType);
+        System.out.println("Added task");
+        System.out.println(object.dump());
+        
+        PrismContainer<?> extensionContainer = object.getExtension();
+        PrismProperty<Object> deadProperty = extensionContainer.findProperty(new QName(NS_WHATEVER, "dead"));
+        assertEquals("Bad typed of 'dead' property (add result)", DOMUtil.XSD_INTEGER, deadProperty.getDefinition().getTypeName());
+        
+//        Element ext2 = (Element) addedTask.getExtension().getAny().get(0);
+//        if (!ext2.getLocalName().equals("dead"))		// not a very nice code...
+//        	ext2 = (Element) addedTask.getExtension().getAny().get(1);
+//        QName xsiType = DOMUtil.resolveXsiType(ext2, "d");
+//        System.out.println("######################1# " + xsiType);
+//        AssertJUnit.assertEquals("Bad xsi:type before adding task", DOMUtil.XSD_INTEGER, xsiType);
 
         // Read from repo
         
         PrismObject<TaskType> repoTask = repositoryService.getObject(TaskType.class, addedTask.getOid(), null, result);
         TaskType repoTaskType = repoTask.asObjectable();
-        ext2 = (Element) addedTask.getExtension().getAny().get(0);
-        if (!ext2.getLocalName().equals("dead"))		// not a very nice code...
-        	ext2 = (Element) addedTask.getExtension().getAny().get(1);
-        xsiType = DOMUtil.resolveXsiType(ext2, "d");
-        System.out.println("######################2# " + xsiType);
-        AssertJUnit.assertEquals("Bad xsi:type after adding task", DOMUtil.XSD_INTEGER, xsiType);
+        
+        extensionContainer = repoTask.getExtension();
+        deadProperty = extensionContainer.findProperty(new QName(NS_WHATEVER, "dead"));
+        assertEquals("Bad typed of 'dead' property (from repo)", DOMUtil.XSD_INTEGER, deadProperty.getDefinition().getTypeName());
+
+        
+//        ext2 = (Element) addedTask.getExtension().getAny().get(0);
+//        if (!ext2.getLocalName().equals("dead"))		// not a very nice code...
+//        	ext2 = (Element) addedTask.getExtension().getAny().get(1);
+//        xsiType = DOMUtil.resolveXsiType(ext2, "d");
+//        System.out.println("######################2# " + xsiType);
+//        AssertJUnit.assertEquals("Bad xsi:type after adding task", DOMUtil.XSD_INTEGER, xsiType);
 
         // We need to wait for a sync interval, so the task scanner has a chance
         // to pick up this
@@ -496,10 +510,10 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
         System.out.println(taskExtension.dump());
 
         PrismProperty shipStateProp = taskExtension
-                .findProperty(new QName("http://myself.me/schemas/whatever", "shipState"));
+                .findProperty(new QName(NS_WHATEVER, "shipState"));
         AssertJUnit.assertEquals("capsized", shipStateProp.getValue(String.class).getValue());
 
-        QName deadPropName = new QName("http://myself.me/schemas/whatever", "dead");
+        QName deadPropName = new QName(NS_WHATEVER, "dead");
         PrismProperty<Integer> deadProp = taskExtension.findProperty(deadPropName);
         AssertJUnit.assertEquals(Integer.class, deadProp.getRealValue().getClass()); 
         AssertJUnit.assertEquals(Integer.valueOf(42), deadProp.getRealValue()); 
@@ -517,7 +531,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
 
         // ... so remember the date
         
-        QName sinkDateName = new QName("http://myself.me/schemas/whatever", "sinkTimestamp");
+        QName sinkDateName = new QName(NS_WHATEVER, "sinkTimestamp");
         GregorianCalendar sinkDate = new GregorianCalendar();
         
         // we have to create a new property definition
