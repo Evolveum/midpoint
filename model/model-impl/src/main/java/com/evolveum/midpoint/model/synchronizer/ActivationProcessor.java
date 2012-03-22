@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -123,12 +124,12 @@ public class ActivationProcessor {
                 continue;
             }
             
-            ValueConstruction enabledConstruction =
+            ValueConstruction<PrismPropertyValue<Boolean>> enabledConstruction =
             	valueConstructionFactory.createValueConstruction(outbound, accountEnabledPropertyDefinition, 
             		"outbound activation in account type " + rat);
             enabledConstruction.setInput(userEnabledNew);
             enabledConstruction.evaluate(result);
-            PrismProperty accountEnabledNew = enabledConstruction.getOutput();
+            PrismProperty<Boolean> accountEnabledNew = (PrismProperty<Boolean>) enabledConstruction.getOutput();
             if (accountEnabledNew == null || accountEnabledNew.isEmpty()) {
                 LOGGER.trace("Activation 'enable' expression resulted in null or empty value, skipping activation processing for {}", rat);
                 continue;

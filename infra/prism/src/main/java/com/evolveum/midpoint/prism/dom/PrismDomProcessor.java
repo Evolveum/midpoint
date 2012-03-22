@@ -660,13 +660,13 @@ public class PrismDomProcessor {
      * This gets definition of an unspecified type. It has to find the right method to call.
      * Value elements have the same element name. They may be elements of a property or a container. 
      */
-	private Item parseItem(List<? extends Object> valueElements, QName itemName, ItemDefinition def) throws SchemaException {
+	public Item<?> parseItem(List<? extends Object> valueElements, QName itemName, ItemDefinition def) throws SchemaException {
 		if (def == null) {
 			// Assume property in a container with runtime definition
 			return parsePrismPropertyRaw(valueElements, itemName);
 		}
 		if (def instanceof PrismContainerDefinition) {
-			return parsePrismContainer(valueElements, itemName, (PrismContainerDefinition)def);
+			return parsePrismContainer(valueElements, itemName, (PrismContainerDefinition<?>)def);
 		} else if (def instanceof PrismPropertyDefinition) {
 			return parsePrismProperty(valueElements, itemName, (PrismPropertyDefinition)def);
 		} if (def instanceof PrismReferenceDefinition) {

@@ -401,7 +401,7 @@ public class ConsolidationProcessor {
 
     private void collectAllValuesFromValueConstruction(Collection<PrismPropertyValue<Object>> allValues,
             PrismPropertyValue<ValueConstruction> valConstr) {
-        PrismProperty output = valConstr.getValue().getOutput();
+        PrismProperty output = (PrismProperty) valConstr.getValue().getOutput();
         if (output == null) {
             return;
         }
@@ -419,7 +419,7 @@ public class ConsolidationProcessor {
             Collection<PrismPropertyValue<ValueConstruction>> set) {
         Collection<PrismPropertyValue<ValueConstruction>> contructions = new HashSet<PrismPropertyValue<ValueConstruction>>();
         for (PrismPropertyValue<ValueConstruction> valConstr : set) {
-            PrismProperty output = valConstr.getValue().getOutput();
+            PrismProperty output = (PrismProperty) valConstr.getValue().getOutput();
             if (output == null) {
                 continue;
             }

@@ -338,7 +338,7 @@ public class InboundProcessor {
                     valueConstruction, property.getDefinition(), "Inbound value construction");
             construction.setInput(input);
             construction.evaluate(opResult);
-            result = construction.getOutput();
+            result = (PrismProperty) construction.getOutput();
         } catch (SchemaException ex) {
             throw ex;
         } catch (Exception ex) {

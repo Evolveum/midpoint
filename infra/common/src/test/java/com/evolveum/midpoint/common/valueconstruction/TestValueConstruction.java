@@ -120,12 +120,12 @@ public class TestValueConstruction {
         OperationResult opResult = new OperationResult("testConstructionValue");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "literal construction");
+        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "literal value construction");
         construction.evaluate(opResult);
-        PrismProperty result = construction.getOutput();
+        PrismProperty<String> result = (PrismProperty<String>) construction.getOutput();
 
         // THEN
-        assertEquals("foobar", result.getValue(String.class).getValue());
+        assertEquals("foobar", result.getValue().getValue());
     }
 
     @Test
@@ -141,9 +141,9 @@ public class TestValueConstruction {
         OperationResult opResult = new OperationResult("testConstructionValueMulti");
 
         // WHEN
-        ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "literal multi construction");
+        ValueConstruction<PrismPropertyValue<String>> construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "literal value multi construction");
         construction.evaluate(opResult);
-        PrismProperty result = construction.getOutput();
+        PrismProperty<String> result = (PrismProperty<String>) construction.getOutput();
 
         // THEN
         Set<String> expected = new HashSet<String>();
@@ -172,10 +172,10 @@ public class TestValueConstruction {
         ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "asis construction");
         construction.setInput(givenName);
         construction.evaluate(opResult);
-        PrismProperty result = construction.getOutput();
+        PrismProperty<String> result = (PrismProperty<String>) construction.getOutput();
 
         // THEN
-        assertEquals("barbar", result.getValue(String.class).getValue());
+        assertEquals("barbar", result.getValue().getValue());
     }
 
     @Test
@@ -193,9 +193,9 @@ public class TestValueConstruction {
         // WHEN
         ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "simple expression construction");
         construction.evaluate(opResult);
-        PrismProperty result = construction.getOutput();
+        PrismProperty<String> result = (PrismProperty<String>) construction.getOutput();
         // THEN
-        assertEquals("fooBAR", result.getValue(String.class).getValue());
+        assertEquals("fooBAR", result.getValue().getValue());
     }
 
     @Test
@@ -213,10 +213,10 @@ public class TestValueConstruction {
         // WHEN
         ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "variables expression construction");
         construction.evaluate(opResult);
-        PrismProperty result = construction.getOutput();
+        PrismProperty<String> result = (PrismProperty<String>) construction.getOutput();
 
         // THEN
-        assertEquals("Captain Jack Sparrow", result.getValue(String.class).getValue());
+        assertEquals("Captain Jack Sparrow", result.getValue().getValue());
     }
 
     @Test
@@ -240,10 +240,10 @@ public class TestValueConstruction {
         construction.addVariableDefinition(ExpressionConstants.VAR_USER, ref);
 
         construction.evaluate(opResult);
-        PrismProperty result = construction.getOutput();
+        PrismProperty<String> result = (PrismProperty<String>) construction.getOutput();
 
         // THEN
-        assertEquals("Captain Jack Sparrow", result.getValue(String.class).getValue());
+        assertEquals("Captain Jack Sparrow", result.getValue().getValue());
     }
 
     @Test
@@ -268,10 +268,10 @@ public class TestValueConstruction {
         construction.addVariableDefinition(ExpressionConstants.VAR_USER, userType);
 
         construction.evaluate(opResult);
-        PrismProperty result = construction.getOutput();
+        PrismProperty<String> result = (PrismProperty<String>) construction.getOutput();
 
         // THEN
-        assertEquals("Captain Jack Sparrow", result.getValue(String.class).getValue());
+        assertEquals("Captain Jack Sparrow", result.getValue().getValue());
     }
 
     @Test
@@ -296,10 +296,10 @@ public class TestValueConstruction {
         construction.addVariableDefinition(ExpressionConstants.VAR_USER, userType.asPrismObject());
 
         construction.evaluate(opResult);
-        PrismProperty result = construction.getOutput();
+        PrismProperty<String> result = (PrismProperty<String>) construction.getOutput();
 
         // THEN
-        assertEquals("Captain Jack Sparrow", result.getValue(String.class).getValue());
+        assertEquals("Captain Jack Sparrow", result.getValue().getValue());
     }
 
     @Test
@@ -323,7 +323,7 @@ public class TestValueConstruction {
         construction.setRootNode(ref);
 
         construction.evaluate(opResult);
-        PrismProperty result = construction.getOutput();
+        PrismProperty<String> result = (PrismProperty<String>) construction.getOutput();
 
         // THEN
         Set<String> expected = new HashSet<String>();
@@ -347,7 +347,7 @@ public class TestValueConstruction {
         // WHEN
         ValueConstruction construction = factory.createValueConstruction(valueConstructionType, ouDef, "list expression construction");
         construction.evaluate(opResult);
-        PrismProperty result = construction.getOutput();
+        PrismProperty<String> result = (PrismProperty<String>) construction.getOutput();
 
         // THEN
         Set<String> expected = new HashSet<String>();
@@ -377,7 +377,7 @@ public class TestValueConstruction {
         // WHEN
         ValueConstruction construction = factory.createValueConstruction(valueConstructionType, ouDef, "scalar list expression construction");
         construction.evaluate(opResult);
-        PrismProperty result = construction.getOutput();
+        PrismProperty<String> result = (PrismProperty<String>) construction.getOutput();
 
         // THEN
         Set<String> expected = new HashSet<String>();
@@ -404,7 +404,7 @@ public class TestValueConstruction {
         ValueConstruction construction = factory.createValueConstruction(valueConstructionType, givenNameDef, "generate construction");
         construction.setInput(givenName);
         construction.evaluate(opResult);
-        PrismProperty<String> result = construction.getOutput();
+        PrismProperty<String> result = (PrismProperty<String>) construction.getOutput();
 
         // THEN (1)
         String value1 = result.getValue().getValue();
@@ -413,7 +413,7 @@ public class TestValueConstruction {
 
         // WHEN (2)
         construction.evaluate(opResult);
-        result = construction.getOutput();
+        result = (PrismProperty<String>) construction.getOutput();
 
         // THEN (2)
         String value2 = result.getValue().getValue();
@@ -442,7 +442,7 @@ public class TestValueConstruction {
         ValueConstruction construction = factory.createValueConstruction(valueConstructionType, propDef, "generate protected construction");
         construction.setInput(prop);
         construction.evaluate(opResult);
-        PrismProperty<ProtectedStringType> result = construction.getOutput();
+        PrismProperty<ProtectedStringType> result = (PrismProperty<ProtectedStringType>) construction.getOutput();
 
         // THEN
         ProtectedStringType value1 = result.getValue().getValue();

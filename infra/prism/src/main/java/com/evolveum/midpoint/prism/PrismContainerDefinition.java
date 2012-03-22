@@ -180,6 +180,10 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
     public ItemDefinition findItemDefinition(QName name) {
         return findItemDefinition(name, ItemDefinition.class);
     }
+    
+    public ItemDefinition findItemDefinition(PropertyPath path) {
+        return findItemDefinition(path, ItemDefinition.class);
+    }
 
     /**
      * Finds a PropertyDefinition by looking at the property name.

@@ -31,6 +31,8 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -59,20 +61,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.VariableDefinitionTy
  * @author Radovan Semancik
  *
  */
-public class ValueConstruction implements Dumpable, DebugDumpable {
+public class ValueConstruction<V extends PrismValue> implements Dumpable, DebugDumpable {
 
 	private Map<QName,ValueConstructor> constructors;
 	private Map<QName,Object> variables;
 	private String shortDesc;
 	private ValueConstructionType valueConstructionType;
 	private ObjectResolver objectResolver;
-	private PrismProperty input;
-	private PrismProperty output;
-	private PrismPropertyDefinition outputDefinition;
+	private Item<V> input;
+	private Item<V> output;
+	private ItemDefinition outputDefinition;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ValueConstruction.class);
 	
-	ValueConstruction(ValueConstructionType valueConstructionType, PrismPropertyDefinition outputDefinition,
+	ValueConstruction(ValueConstructionType valueConstructionType, ItemDefinition outputDefinition,
 			String shortDesc, Map<QName,ValueConstructor> constructors) {
 		this.shortDesc = shortDesc;
 		this.valueConstructionType = valueConstructionType;
@@ -92,7 +94,7 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 		this.objectResolver = objectResolver;
 	}
 	
-	public void setInput(PrismProperty input) {
+	public void setInput(Item<V> input) {
 		this.input = input;
 	}
 	
@@ -231,7 +233,7 @@ public class ValueConstruction implements Dumpable, DebugDumpable {
 		return constructors.get(valueConstructorElement.getName());
 	}
 
-	public PrismProperty getOutput() {
+	public Item<V> getOutput() {
 		return output;
 	}
 	

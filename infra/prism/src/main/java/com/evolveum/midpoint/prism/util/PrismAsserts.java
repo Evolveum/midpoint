@@ -92,11 +92,11 @@ public class PrismAsserts {
 		assertSame("Wrong parent for value of property "+property, property, pval.getParent());
 	}
 	
-	public static void assertPropertyValues(String message, Collection expected, Collection<PrismPropertyValue<Object>> results) {
+	public static <T> void assertPropertyValues(String message, Collection<T> expected, Collection<PrismPropertyValue<T>> results) {
 		assertEquals(message, expected.size(), results.size());
 
         Set<Object> values = new HashSet<Object>();
-        for (PrismPropertyValue result : results) {
+        for (PrismPropertyValue<T> result : results) {
             values.add(result.getValue());
         }
         assertEquals(message, expected, values);

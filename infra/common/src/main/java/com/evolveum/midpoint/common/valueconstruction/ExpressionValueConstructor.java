@@ -22,8 +22,11 @@ package com.evolveum.midpoint.common.valueconstruction;
 
 import com.evolveum.midpoint.common.expression.Expression;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -54,9 +57,9 @@ public class ExpressionValueConstructor implements ValueConstructor {
       * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property)
       */
     @Override
-    public PrismProperty construct(JAXBElement<?> constructorElement, PrismPropertyDefinition outputDefinition,
-            PrismProperty input, Map<QName, Object> variables, String contextDescription, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    public <V extends PrismValue> Item<V> construct(JAXBElement<?> constructorElement, ItemDefinition outputDefinition,
+			Item<V> input, Map<QName, Object> variables, String contextDescription, OperationResult result) throws SchemaException,
+			ExpressionEvaluationException, ObjectNotFoundException {
 
         Object constructorTypeObject = constructorElement.getValue();
         if (!(constructorTypeObject instanceof ExpressionType)) {
@@ -70,19 +73,24 @@ public class ExpressionValueConstructor implements ValueConstructor {
 
         QName typeName = outputDefinition.getTypeName();
         Class<Object> type = XsdTypeMapper.toJavaType(typeName);
-        PrismProperty output = outputDefinition.instantiate();
+        Item<V> output = outputDefinition.instantiate();
+        if (!(output instanceof PrismProperty)) {
+        	throw new UnsupportedOperationException("Expression can only result in a property, not "+output.getClass());
+        }
+        
+        PrismProperty<Object> outputProperty = (PrismProperty)output; 
 
         if (outputDefinition.isMultiValue()) {
             List<PrismPropertyValue<Object>> resultValues = expression.evaluateList(type, result);
-            output.getValues().addAll(resultValues);
+            outputProperty.addAll(resultValues);
         } else {
             PrismPropertyValue<Object> resultValue = expression.evaluateScalar(type, result);
             if (resultValue != null) {
-                output.getValues().add(resultValue);
+                outputProperty.add(resultValue);
             }
         }
 
-        return output;
+        return (Item<V>) outputProperty;
     }
 
 }

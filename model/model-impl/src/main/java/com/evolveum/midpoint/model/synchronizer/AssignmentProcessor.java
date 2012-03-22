@@ -307,7 +307,7 @@ public class AssignmentProcessor {
             AccountConstruction ac = propertyValue.getValue();
             for (ValueConstruction attrConstr : ac.getAttributeConstructions()) {
 
-                PrismProperty output = attrConstr.getOutput();
+                Item<?> output = attrConstr.getOutput();
                 QName attrName = output.getName();
                 DeltaSetTriple<ValueConstruction> valueTriple = attrMap.get(attrName);
                 if (valueTriple == null) {

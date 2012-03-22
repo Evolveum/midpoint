@@ -24,8 +24,11 @@ import java.util.Map;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -43,9 +46,9 @@ public class AsIsValueConstructor implements ValueConstructor {
       * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property)
       */
     @Override
-    public PrismProperty construct(JAXBElement<?> constructorElement, PrismPropertyDefinition outputDefinition,
-            PrismProperty input, Map<QName, Object> variables, String contextDescription, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    public <V extends PrismValue> Item<V> construct(JAXBElement<?> constructorElement, ItemDefinition outputDefinition,
+			Item<V> input, Map<QName, Object> variables, String contextDescription, OperationResult result) throws SchemaException,
+			ExpressionEvaluationException, ObjectNotFoundException {
 
         Object constructorTypeObject = constructorElement.getValue();
         if (!(constructorTypeObject instanceof AsIsValueConstructorType)) {

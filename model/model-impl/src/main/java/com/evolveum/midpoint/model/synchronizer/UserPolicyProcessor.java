@@ -25,12 +25,15 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.SyncContext;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -86,44 +89,44 @@ public class UserPolicyProcessor {
 		ObjectDelta<UserType> userSecondaryDelta = context.getUserSecondaryDelta();
 		for (PropertyConstructionType propConstr: userTemplate.getPropertyConstruction()) {
 			XPathHolder propertyXPath = new XPathHolder(propConstr.getProperty());
-			PropertyPath propertyPath = propertyXPath.toPropertyPath();
+			PropertyPath itemPath = propertyXPath.toPropertyPath();
 
 			PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
-			PrismPropertyDefinition propertyDefinition = userDefinition.findPropertyDefinition(propertyPath);
-			if (propertyDefinition == null) {
-				throw new SchemaException("The property "+propertyPath+" is not a valid user property, defined in "
+			ItemDefinition itemDefinition = userDefinition.findItemDefinition(itemPath);
+			if (itemDefinition == null) {
+				throw new SchemaException("The property "+itemPath+" is not a valid user property, defined in "
                         +ObjectTypeUtil.toShortString(userTemplate));
 			}
 
 			ValueConstructionType valueConstructionType = propConstr.getValueConstruction();
 			// TODO: is the parentPath correct (null)?
 			ValueConstruction valueConstruction = valueConstructionFactory.createValueConstruction(valueConstructionType,
-					propertyDefinition,
-					"user template expression for "+propertyDefinition.getName()+" while processing user " + context.getUserNew());
+					itemDefinition,
+					"user template expression for "+itemDefinition.getName()+" while processing user " + context.getUserNew());
 
-			PrismProperty existingValue = context.getUserNew().findProperty(propertyPath);
+			PrismProperty existingValue = context.getUserNew().findProperty(itemPath);
 			if (existingValue != null && !existingValue.isEmpty() && valueConstruction.isInitial()) {
 				// This valueConstruction only applies if the property does not have a value yet.
 				// ... but it does
 				continue;
 			}
 
-			evaluateUserTemplateValueConstruction(valueConstruction, propertyDefinition, context, result);
+			evaluateUserTemplateValueConstruction(valueConstruction, itemDefinition, context, result);
 
-			PrismProperty output = valueConstruction.getOutput();
-			PropertyDelta propDelta = PropertyDelta.createDelta(propertyPath, UserType.class, prismContext);
+			Item output = valueConstruction.getOutput();
+			ItemDelta itemDelta = output.createDelta(itemPath);
 
-			if (propertyDefinition.isMultiValue()) {
-				propDelta.addValuesToAdd(output.getValues());
+			if (itemDefinition.isMultiValue()) {
+				itemDelta.addValuesToAdd(output.getValues());
 			} else {
-				propDelta.setValuesToReplace(output.getValues());
+				itemDelta.setValuesToReplace(output.getValues());
 			}
 
 			if (userSecondaryDelta == null) {
 				userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY);
 				context.setUserSecondaryDelta(userSecondaryDelta);
 			}
-			userSecondaryDelta.addModification(propDelta);
+			userSecondaryDelta.addModification(itemDelta);
 		}
 
 	}
@@ -133,7 +136,7 @@ public class UserPolicyProcessor {
 	}
 
 	private void evaluateUserTemplateValueConstruction(ValueConstruction valueConstruction,
-            PrismPropertyDefinition propertyDefinition, SyncContext context, OperationResult result)
+            ItemDefinition propertyDefinition, SyncContext context, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
 		valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, context.getUserNew());

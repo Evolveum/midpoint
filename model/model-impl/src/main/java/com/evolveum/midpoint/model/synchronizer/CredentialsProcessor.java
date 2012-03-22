@@ -124,7 +124,7 @@ public class CredentialsProcessor {
             		accountPasswordPropertyDefinition, "outbound password in account type " + rat);
             passwordConstruction.setInput(userPasswordNew);
             passwordConstruction.evaluate(result);
-            PrismProperty accountPasswordNew = passwordConstruction.getOutput();
+            PrismProperty accountPasswordNew = (PrismProperty) passwordConstruction.getOutput();
             if (accountPasswordNew == null) {
                 LOGGER.trace("Credentials 'password' expression resulted in null, skipping credentials processing for {}", rat);
                 continue;

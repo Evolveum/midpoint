@@ -161,7 +161,7 @@ public class ReconciliationProcessor {
         			// "initial" value and the attribute already has a value. Skip it.
         			continue;
         		}
-        		PrismProperty<?> shoudlBeProperty = shouldBeVc.getOutput();
+        		PrismProperty<?> shoudlBeProperty = (PrismProperty<?>) shouldBeVc.getOutput();
         		for (PrismPropertyValue<?> shouldBePPValue: shoudlBeProperty.getValues()) {
         			Object shouldBeValue = shouldBePPValue.getValue();
         			// Make sure this value is in the values
@@ -212,7 +212,7 @@ public class ReconciliationProcessor {
 	private boolean isInValurConstructionValues(Object value, Collection<PrismPropertyValue<ValueConstruction>> shouldBePValues) {
 		for (PrismPropertyValue<ValueConstruction> shouldBePValue: shouldBePValues) {
     		ValueConstruction shouldBeVc = shouldBePValue.getValue();
-    		PrismProperty<?> shoudlBeProperty = shouldBeVc.getOutput();
+    		PrismProperty<?> shoudlBeProperty = (PrismProperty<?>) shouldBeVc.getOutput();
     		for (PrismPropertyValue<?> shouldBePPValue: shoudlBeProperty.getValues()) {
     			Object shouldBeValue = shouldBePPValue.getValue();
     			if (shouldBeValue.equals(value)) {

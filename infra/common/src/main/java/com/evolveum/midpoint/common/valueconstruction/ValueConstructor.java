@@ -24,8 +24,11 @@ import java.util.Map;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -38,8 +41,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public interface ValueConstructor {
 
-	PrismProperty construct(JAXBElement<?> constructorElement, PrismPropertyDefinition outputDefinition,
-			PrismProperty input, Map<QName, Object> variables, String contextDescription, OperationResult result) throws SchemaException,
+	<V extends PrismValue> Item<V> construct(JAXBElement<?> constructorElement, ItemDefinition outputDefinition,
+			Item<V> input, Map<QName, Object> variables, String contextDescription, OperationResult result) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException;
 
 }

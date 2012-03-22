@@ -29,8 +29,11 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -62,9 +65,9 @@ public class GenerateValueConstructor implements ValueConstructor {
 	 * @see com.evolveum.midpoint.common.valueconstruction.ValueConstructor#construct(javax.xml.bind.JAXBElement, com.evolveum.midpoint.schema.processor.PropertyDefinition, com.evolveum.midpoint.schema.processor.Property, java.util.Map, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public PrismProperty construct(JAXBElement<?> constructorElement, PrismPropertyDefinition outputDefinition,
-			PrismProperty input, Map<QName, Object> variables, String contextDescription, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+	public <V extends PrismValue> Item<V> construct(JAXBElement<?> constructorElement, ItemDefinition outputDefinition,
+			Item<V> input, Map<QName, Object> variables, String contextDescription, OperationResult result) throws SchemaException,
+			ExpressionEvaluationException, ObjectNotFoundException {
 		
 		Object constructorTypeObject = constructorElement.getValue();
         if (!(constructorTypeObject instanceof GenerateValueConstructorType)) {
@@ -93,9 +96,13 @@ public class GenerateValueConstructor implements ValueConstructor {
 			}
         }
         
-		PrismProperty output = outputDefinition.instantiate();
-		PrismPropertyValue<Object> pValue = new PrismPropertyValue<Object>(value);
-		output.setValue(pValue);
+		Item<V> output = outputDefinition.instantiate();
+		if (output instanceof PrismProperty) {
+			PrismPropertyValue<Object> pValue = new PrismPropertyValue<Object>(value);
+			((PrismProperty<Object>)output).add(pValue);
+		} else {
+			throw new UnsupportedOperationException("Can only generate values of property, not "+output.getClass());
+		}
 		
 		return output;
 		
