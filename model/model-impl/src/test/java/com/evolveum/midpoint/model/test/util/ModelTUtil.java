@@ -83,7 +83,9 @@ public class ModelTUtil {
 
 	public static void assertObjectNotFoundFault(FaultMessage ex) throws FaultMessage {
 		if (!(ex.getFaultInfo() instanceof ObjectNotFoundFaultType)) {
-			Assert.fail("not object not found fault.");
+			System.err.println("Assertion error: not object not found fault");
+			ex.printStackTrace();
+			Assert.fail("not object not found fault, it is: "+ex.getFaultInfo());
 		}
 		throw ex;
 	}

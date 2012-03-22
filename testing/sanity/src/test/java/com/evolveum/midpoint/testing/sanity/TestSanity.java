@@ -2785,7 +2785,8 @@ public class TestSanity extends AbstractIntegrationTest {
         // The role assignment will not be executed and this created an inconsistent state.
         ObjectModificationType changeAddRoleCaptain = unmarshallJaxbFromFile(
                 REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_1_FILENAME, ObjectModificationType.class);
-        Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(changeAddRoleCaptain);
+        Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(changeAddRoleCaptain,
+        		UserType.class, prismContext);
         repositoryService.modifyObject(UserType.class, changeAddRoleCaptain.getOid(), modifications, result);
 
 

@@ -78,6 +78,26 @@ public class DeltaConvertor {
         return objectDelta;
     }
     
+    public static <T extends Objectable> Collection<? extends ItemDelta> toModifications(ObjectModificationType objectModification,
+			Class<T> type, PrismContext prismContext) throws SchemaException {
+		PrismObjectDefinition<T> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+		if (objectDefinition == null) {
+			throw new SchemaException("No object definition for class "+type);
+		}
+        return toModifications(objectModification, objectDefinition);
+    }
+    
+    public static <T extends Objectable> Collection<? extends ItemDelta> toModifications(ObjectModificationType objectModification, 
+    		PrismObjectDefinition<T> objDef) throws SchemaException {
+    	Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
+    	
+    	for (PropertyModificationType propMod : objectModification.getPropertyModification()) {
+            ItemDelta itemDelta = createItemDelta(propMod, objDef);
+            modifications.add(itemDelta);
+        }
+    	return modifications;
+	}
+    
     /**
      * Converts this delta to ObjectModificationType (XML).
      */
@@ -202,12 +222,5 @@ public class DeltaConvertor {
             modValue.getAny().add(xmlValue);
         }
     }
-
-	public static Collection<? extends ItemDelta> toModifications(ObjectModificationType change) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException();
-	}
-
-
 
 }

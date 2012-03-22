@@ -155,7 +155,8 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 				changeNotificationDispatcher.notifyChange(change, null, handleErrorResult);
 				
 				ObjectModificationType shadowModifications  = ((ObjectChangeModificationType) shadow.getObjectChange()).getObjectModification();
-				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(shadowModifications);
+				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(shadowModifications,
+						shadow.asPrismObject().getDefinition());
 				
 				try{
 					provisioningService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications, null, parentResult);

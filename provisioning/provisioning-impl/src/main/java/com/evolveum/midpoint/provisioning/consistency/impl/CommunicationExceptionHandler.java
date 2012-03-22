@@ -103,7 +103,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 								"objectChange"), shadow.getObjectChange());
 				shadowModification.getPropertyModification().add(propertyModification);
 
-				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(shadowModification);
+				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(shadowModification, 
+						shadow.asPrismObject().getDefinition());
 				getCacheRepositoryService().modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
 						operationResult);
 			} else {
@@ -119,7 +120,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 								SchemaConstants.C_FAILED_OPERATION_TYPE, FailedOperationTypeType.DELETE);
 				shadowModification.getPropertyModification().add(propertyModification);
 
-				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(shadowModification);
+				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(shadowModification, 
+						shadow.asPrismObject().getDefinition());
 				getCacheRepositoryService().modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
 						operationResult);
 

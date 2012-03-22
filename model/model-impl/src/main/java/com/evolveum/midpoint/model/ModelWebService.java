@@ -83,7 +83,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		OperationResult operationResult = task.getResult();
 		try {
 			PrismObject object = objectType.asPrismObject();
-			object.revive(prismContext);
+			prismContext.adopt(objectType);
 			String oid = model.addObject(object, task, operationResult);
 			handleOperationResult(operationResult, result);
 			oidHolder.value = oid;
@@ -168,8 +168,9 @@ public class ModelWebService implements ModelPortType, ModelPort {
         setTaskOwner(task);
 		OperationResult operationResult = task.getResult();
 		try {
-			Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(change);
-			model.modifyObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), change.getOid(),
+			Class<? extends ObjectType> type = ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition();
+			Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(change, type, prismContext);
+			model.modifyObject(type, change.getOid(),
 					modifications , task, operationResult);
 			return handleOperationResult(operationResult);
 		} catch (Exception ex) {
