@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -154,19 +155,19 @@ public class TestRefinedSchema {
         System.out.println("Parsed account:");
         System.out.println(accObject.dump());
 
-        assertProperty(accObject, SchemaConstants.C_NAME, "jack");
-        assertProperty(accObject, SchemaConstants.I_OBJECT_CLASS, new QName(resourceType.getNamespace(), "AccountObjectClass"));
-        assertProperty(accObject, new QName(SchemaConstants.NS_C, "accountType"), "user");
+        PrismAsserts.assertPropertyValue(accObject, SchemaConstants.C_NAME, "jack");
+        PrismAsserts.assertPropertyValue(accObject, SchemaConstants.I_OBJECT_CLASS, new QName(resourceType.getNamespace(), "AccountObjectClass"));
+        PrismAsserts.assertPropertyValue(accObject, new QName(SchemaConstants.NS_C, "accountType"), "user");
 
-        PrismContainer attributes = accObject.findOrCreateContainer(SchemaConstants.I_ATTRIBUTES);
+        PrismContainer<?> attributes = accObject.findOrCreateContainer(SchemaConstants.I_ATTRIBUTES);
         RefinedAccountDefinition attrDef = (RefinedAccountDefinition) attributes.getDefinition();
         assertAttributeDefs(attrDef, resourceType);
 
-        assertProperty(attributes, ICFS_NAME, "uid=jack,ou=People,dc=example,dc=com");
-        assertProperty(attributes, new QName(resourceType.getNamespace(), "cn"), "Jack Sparrow");
-        assertProperty(attributes, new QName(resourceType.getNamespace(), "givenName"), "Jack");
-        assertProperty(attributes, new QName(resourceType.getNamespace(), "sn"), "Sparrow");
-        assertProperty(attributes, new QName(resourceType.getNamespace(), "uid"), "jack");
+        PrismAsserts.assertPropertyValue(attributes, ICFS_NAME, "uid=jack,ou=People,dc=example,dc=com");
+        PrismAsserts.assertPropertyValue(attributes, new QName(resourceType.getNamespace(), "cn"), "Jack Sparrow");
+        PrismAsserts.assertPropertyValue(attributes, new QName(resourceType.getNamespace(), "givenName"), "Jack");
+        PrismAsserts.assertPropertyValue(attributes, new QName(resourceType.getNamespace(), "sn"), "Sparrow");
+        PrismAsserts.assertPropertyValue(attributes, new QName(resourceType.getNamespace(), "uid"), "jack");
 
         assertEquals("JAXB class name doesn't match (1)", AccountShadowType.class, accObject.getCompileTimeClass());
 
@@ -199,13 +200,6 @@ public class TestRefinedSchema {
         assertNotNull("Blank shadow has no definition for attributes", attrDef);
         assertTrue("Wrong class for attributes definition: "+attrDef.getClass(), attrDef instanceof ResourceAttributeContainerDefinition);
         
-    }
-
-    private void assertProperty(PrismContainer cont, QName propName, Object value) {
-        PrismProperty prop = cont.findProperty(propName);
-        assertNotNull(propName + " in null", prop);
-        assertEquals(propName + " has wrong name", propName, prop.getName());
-        assertEquals(propName + " has wrong value", value, prop.getValue().getValue());
     }
 
 }
