@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.dom.ElementPrismReferenceImpl;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.io.Serializable;
 
@@ -96,7 +97,13 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 	 * @return the target type name
 	 */
 	public QName getTargetType() {
-		return targetType;
+		if (targetType != null) {
+			return targetType;
+		}
+		if (object != null && object.getDefinition() != null) {
+			return object.getDefinition().getTypeName();
+		}
+		return null;
 	}
 
 	public void setTargetType(QName targetType) {
@@ -123,6 +130,38 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 
 	public void setFilter(Element filter) {
 		this.filter = filter;
+	}
+	
+	
+	@Override
+	public void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException {
+		if (!(definition instanceof PrismReferenceDefinition)) {
+			throw new IllegalArgumentException("Cannot apply "+definition+" to a reference value");
+		}
+		applyDefinition((PrismReferenceDefinition)definition, force);
+	}
+
+	public void applyDefinition(PrismReferenceDefinition definition, boolean force) throws SchemaException {
+		super.applyDefinition(definition, force);
+		if (object == null) {
+			return;
+		}
+		if (object.getDefinition() != null && !force) {
+			return;
+		}
+		PrismContext prismContext = definition.getPrismContext();
+		QName targetTypeName = definition.getTargetTypeName();
+		if (targetTypeName == null) {
+			throw new SchemaException("Cannot apply definition to composite object in reference "+getParent()
+					+": the target type name is not specified in the reference schema");
+		}
+		PrismObjectDefinition<Objectable> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(targetTypeName);
+		if (objectDefinition == null) {
+			throw new SchemaException("Cannot apply definition to composite object in reference "+getParent()
+					+": no definition for object type "+targetTypeName);
+		}
+		// this should do it
+		object.applyDefinition(objectDefinition, force);
 	}
 
 	@Override

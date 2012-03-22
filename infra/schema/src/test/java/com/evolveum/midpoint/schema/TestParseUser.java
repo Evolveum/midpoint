@@ -238,9 +238,16 @@ public class TestParseUser {
 		PrismAsserts.assertReferenceValue(accountRef, USER_ACCOUNT_REF_1_OID);
 		PrismAsserts.assertReferenceValue(accountRef, USER_ACCOUNT_REF_2_OID);
 		PrismAsserts.assertReferenceValue(accountRef, USER_ACCOUNT_REF_3_OID);
+		
+		PrismReferenceValue accountRef1Val = accountRef.findValueByOid(USER_ACCOUNT_REF_1_OID);
+		assertNotNull("No object in ref1 (prism)", accountRef1Val.getObject());
+		assertNotNull("No object definition in ref1 (prism)", accountRef1Val.getObject().getDefinition());
+		assertEquals("Wrong ref1 oid (prism)", USER_ACCOUNT_REF_1_OID, accountRef1Val.getOid());
+		assertEquals("Wrong ref1 type (prism)", AccountShadowType.COMPLEX_TYPE, accountRef1Val.getTargetType());
+		
 		PrismReferenceValue accountRef3Val = accountRef.findValueByOid(USER_ACCOUNT_REF_3_OID);
-		assertEquals("Wrong ref3 oid (prism)", accountRef3Val.getOid(), USER_ACCOUNT_REF_3_OID);
-		assertEquals("Wrong ref3 type (prism)", accountRef3Val.getTargetType(), AccountShadowType.COMPLEX_TYPE);
+		assertEquals("Wrong ref3 oid (prism)",  USER_ACCOUNT_REF_3_OID, accountRef3Val.getOid());
+		assertEquals("Wrong ref3 type (prism)", AccountShadowType.COMPLEX_TYPE, accountRef3Val.getTargetType());
 	}
 	
 	private void assertUserJaxb(UserType userType) {
@@ -256,9 +263,18 @@ public class TestParseUser {
 		List<ObjectReferenceType> accountRefs = userType.getAccountRef();
 		assertNotNull("No accountRef list", accountRefs);
 		assertEquals("Wrong number of list entries", 3, accountRefs.size());
+		
+		ObjectReferenceType ref1 = ObjectTypeUtil.findRef(USER_ACCOUNT_REF_1_OID, accountRefs);
+		assertEquals("Wrong ref1 oid (jaxb)", USER_ACCOUNT_REF_1_OID, ref1.getOid());
+		assertEquals("Wrong ref1 type (jaxb)", AccountShadowType.COMPLEX_TYPE, ref1.getType());
+
+		ObjectReferenceType ref2 = ObjectTypeUtil.findRef(USER_ACCOUNT_REF_2_OID, accountRefs);
+		assertEquals("Wrong ref2 oid (jaxb)", USER_ACCOUNT_REF_2_OID, ref2.getOid());
+		assertEquals("Wrong ref2 type (jaxb)", AccountShadowType.COMPLEX_TYPE, ref2.getType());
+		
 		ObjectReferenceType ref3 = ObjectTypeUtil.findRef(USER_ACCOUNT_REF_3_OID, accountRefs);
-		assertEquals("Wrong ref3 oid (jaxb)", ref3.getOid(), USER_ACCOUNT_REF_3_OID);
-		assertEquals("Wrong ref3 type (jaxb)", ref3.getType(), AccountShadowType.COMPLEX_TYPE);
+		assertEquals("Wrong ref3 oid (jaxb)", USER_ACCOUNT_REF_3_OID, ref3.getOid());
+		assertEquals("Wrong ref3 type (jaxb)", AccountShadowType.COMPLEX_TYPE, ref3.getType());
 	}
 
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,

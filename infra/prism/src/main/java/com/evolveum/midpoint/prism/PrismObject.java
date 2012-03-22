@@ -335,7 +335,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	 * system administrator).
 	 */
 	public String toDebugName() {
-		return toDebugType()+": "+getOid()+"("+getNamePropertyValue()+")";
+		return toDebugType()+":"+getOid()+"("+getNamePropertyValue()+")";
 	}
 	
 	private PrismProperty<String> getNameProperty() {
