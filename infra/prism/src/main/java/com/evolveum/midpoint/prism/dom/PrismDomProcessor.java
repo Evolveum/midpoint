@@ -451,6 +451,8 @@ public class PrismDomProcessor {
 					realValue = jaxbProcessor.toJavaValue(element, typeName);
 				} catch (JAXBException e) {
 					throw new SchemaException("Attempt to unmarshal value of property "+propertyDefinition.getName()+" failed: "+e.getMessage(), e);
+				} catch (IllegalArgumentException e) {
+					throw new SchemaException(e.getMessage()+ " in property "+propertyDefinition.getName(), e);
 				}
         	} else {
         		// fallback to storing DOM in value

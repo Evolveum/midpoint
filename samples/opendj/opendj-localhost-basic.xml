@@ -46,14 +46,13 @@ This resource definition contains only the very basic definitions for midPoint t
      
      	<!-- Reference to the ICF LDAP connector. OID is "virtual" for now. -->
 		<connectorRef type="ConnectorType">
-			<and>
-		        <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
+			<filter>
 		        <equal>
 		          <value>
 		              <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
 		          </value>
 		        </equal>
-		      </and>
+		   </filter>
 		</connectorRef>
 
         <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
@@ -62,20 +61,20 @@ This resource definition contains only the very basic definitions for midPoint t
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
 		<configuration
-			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
+			xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
 
             <!-- Configuration specific for the LDAP connector -->
-			<icfcldap:configurationProperties>
-				<icfcldap:port>1389</icfcldap:port>
-				<icfcldap:host>localhost</icfcldap:host>
-				<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
-				<icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
-				<icfcldap:credentials><clearValue>secret</clearValue></icfcldap:credentials>
-				<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
-				<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-				<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
-			</icfcldap:configurationProperties>
+			<icfc:configurationProperties>
+				<icfi:port>1389</icfi:port>
+				<icfi:host>localhost</icfi:host>
+				<icfi:baseContexts>dc=example,dc=com</icfi:baseContexts>
+				<icfi:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfi:principal>
+				<icfi:credentials><clearValue>secret</clearValue></icfi:credentials>
+				<icfi:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfi:modifiersNamesToFilterOut>
+				<icfi:vlvSortAttribute>uid</icfi:vlvSortAttribute>
+				<icfi:usePagedResultControl>true</icfi:usePagedResultControl>
+			</icfc:configurationProperties>
 		
 		</configuration>
 

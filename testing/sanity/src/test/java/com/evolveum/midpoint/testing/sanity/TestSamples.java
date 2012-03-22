@@ -53,7 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 public class TestSamples {
 
 	public static final String SAMPLES_DIRECTORY_NAME = "../../samples/";
-	public static final String[] IGNORE_PATTERNS = new String[]{ "\\.svn", "old", "experimental" };
+	public static final String[] IGNORE_PATTERNS = new String[]{ "\\.svn", "old", "experimental", "misc" };
 	public static final String[] CHECK_PATTERNS = new String[]{ ".*.xml" };
 	public static final String OBJECT_RESULT_OPERATION_NAME = TestSamples.class.getName()+".validateObject";
 	private static final String RESULT_OPERATION_NAME = TestSamples.class.getName()+".validateFile";

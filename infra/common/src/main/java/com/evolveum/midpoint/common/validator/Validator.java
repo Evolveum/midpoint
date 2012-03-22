@@ -206,15 +206,27 @@ public class Validator {
 					progress++;
 					objectResult.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 
-					EventResult cont = readFromStreamAndValidate(stream, objectResult,
-							rootNamespaceDeclarations, validatorResult);
+					EventResult cont = null;
+					try {
+						cont = readFromStreamAndValidate(stream, objectResult,
+								rootNamespaceDeclarations, validatorResult);
+					} catch (RuntimeException e) {
+						// Make sure that unexpected error is recorded.
+						objectResult.recordFatalError(e);
+						throw e;
+					}
 
 					if (!cont.isCont()) {
+						String message = null;
 						if (cont.getReason() != null) {
-							validatorResult.recordFatalError(cont.getReason());
+							message = cont.getReason();
 						} else {
-							validatorResult.recordFatalError("Object validation failed");
+							message = "Object validation failed (no reason given)";
 						}
+						if (objectResult.isUnknown()) {
+							objectResult.recordFatalError(message);
+						}
+						validatorResult.recordFatalError(message);
 						return;
 					}
 					// return to avoid processing objects in loop
@@ -237,9 +249,16 @@ public class Validator {
 					progress++;
 					objectResult.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 
-					// Read and validate individual object from the stream
-					EventResult cont = readFromStreamAndValidate(stream, objectResult,
-							rootNamespaceDeclarations, validatorResult);
+					EventResult cont = null;
+					try {
+						// Read and validate individual object from the stream
+						cont = readFromStreamAndValidate(stream, objectResult,
+								rootNamespaceDeclarations, validatorResult);
+					} catch (RuntimeException e) {
+						// Make sure that unexpected error is recorded.
+						objectResult.recordFatalError(e);
+						throw e;
+					}
 
 					if (objectResult.isError()) {
 						errors++;
@@ -307,6 +326,9 @@ public class Validator {
 			if (handler != null) {
 				EventResult cont = handler.preMarshall(objectElement, postValidationTree, objectResult);
 				if (!cont.isCont()) {
+					if (objectResult.isUnknown()) {
+						objectResult.recordFatalError("Stopped after preMarshall, no reason given");
+					}
 					return cont;
 				}
 			}
@@ -314,6 +336,9 @@ public class Validator {
 			if (!objectResult.isAcceptable()) {
 				// Schema validation or preMarshall has failed. No point to
 				// continue with this object.
+				if (objectResult.isUnknown()) {
+					objectResult.recordFatalError("Result not acceptable after preMarshall, no reason given");
+				}
 				return EventResult.skipObject();
 			}
 
@@ -334,8 +359,18 @@ public class Validator {
 			validateObject(objectType, objectResult);
 
 			if (handler != null) {
-				EventResult cont = handler.postMarshall(object, objectElement, objectResult);
+				EventResult cont;
+				try {
+					cont = handler.postMarshall(object, objectElement, objectResult);
+				} catch (RuntimeException e) {
+					// Make sure that unhandled exceptions are recorded in object result before they are rethrown
+					objectResult.recordFatalError(e);
+					throw e;
+				}
 				if (!cont.isCont()) {
+					if (objectResult.isUnknown()) {
+						objectResult.recordFatalError("Stopped after postMarshall, no reason given");
+					}
 					return cont;
 				}
 			}
@@ -351,6 +386,7 @@ public class Validator {
 			if (handler != null) {
 				handler.handleGlobalError(validatorResult);
 			}
+			objectResult.recordFatalError(ex);
 			return EventResult.skipObject();
 
 		} catch (XMLStreamException ex) {
@@ -358,6 +394,7 @@ public class Validator {
 			if (handler != null) {
 				handler.handleGlobalError(validatorResult);
 			}
+			objectResult.recordFatalError(ex);
 			return EventResult.skipObject();
 		}
 	}

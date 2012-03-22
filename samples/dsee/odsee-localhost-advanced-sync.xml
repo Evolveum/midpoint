@@ -50,14 +50,13 @@ object.
         <!-- Reference to the ICF LDAP connector. This is dynamic reference, it will be translated to
            OID during import. -->
         <connectorRef type="ConnectorType">
-            <and>
-                <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
+            <filter>
                 <equal>
                     <value>
                         <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
                     </value>
                 </equal>
-            </and>
+            </filter>
         </connectorRef>
 
         <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
@@ -70,7 +69,7 @@ object.
                 xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
 
             <!-- Configuration specific for the LDAP connector -->
-            <icfcldap:configurationProperties>
+            <icfc:configurationProperties>
                 <icfcldap:port>11389</icfcldap:port>
                 <icfcldap:host>localhost</icfcldap:host>
                 <icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
@@ -84,7 +83,7 @@ object.
                 <icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
                 <icfcldap:uidAttribute>nsUniqueId</icfcldap:uidAttribute>
                 <icfcldap:accountOperationalAttributes>nsAccountLock</icfcldap:accountOperationalAttributes>
-            </icfcldap:configurationProperties>
+            </icfc:configurationProperties>
 
             <!-- Generic ICF configuration -->
 

@@ -120,23 +120,35 @@ public class IntegrationTestTools {
 	 * @param level
 	 */
 	public static void assertSuccess(String message, OperationResult result, int level) {
-		assertSuccess(message, result, level, 0);
+		assertSuccess(message, result, level, 0, false);
 	}
 	
-	private static void assertSuccess(String message, OperationResult result, int stopLevel, int currentLevel) {
+	public static void assertSuccessOrWarning(String message, OperationResult result, int level) {
+		assertSuccess(message, result, level, 0, true);
+	}
+	
+	private static void assertSuccess(String message, OperationResult result, int stopLevel, int currentLevel, boolean warningOk) {
 		if (!checkResults) {
 			return;
 		}
 		if (result.getStatus() == null || result.getStatus().equals(OperationResultStatus.UNKNOWN)) {
 			fail(message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation());
 		}
-		assertTrue(message + ": " + result.getMessage(), result.isSuccess());
+		
+		if (result.isSuccess()) {
+			// OK
+		} else if (warningOk && result.getStatus() == OperationResultStatus.WARNING) {
+			// OK
+		} else {
+			assert false : message + ": " + result.getMessage();	
+		}
+		
 		if (stopLevel == currentLevel) {
 			return;
 		}
 		List<OperationResult> partialResults = result.getSubresults();
 		for (OperationResult subResult : partialResults) {
-			assertSuccess(message, subResult, stopLevel, currentLevel + 1);
+			assertSuccess(message, subResult, stopLevel, currentLevel + 1, warningOk);
 		}
 	}
 

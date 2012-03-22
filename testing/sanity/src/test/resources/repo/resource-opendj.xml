@@ -40,16 +40,13 @@
     <!-- Reference to the ICF LDAP connector. This is dynamic reference, it will be translated to
           OID during import. -->
     <connectorRef type="ConnectorType">
-
-        <and>
-            <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
+		<filter>
             <equal>
                 <value>
                     <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
                 </value>
             </equal>
-        </and>
-
+        </filter>
     </connectorRef>
 
     <!-- Connector namespace -->
@@ -61,7 +58,7 @@
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
 
         <!-- Configuration specific for the LDAP connector -->
-        <icfcldap:configurationProperties>
+        <icfc:configurationProperties>
 
             <icfcldap:port>10389</icfcldap:port>
             <icfcldap:host>localhost</icfcldap:host>
@@ -73,7 +70,7 @@
             </icfcldap:credentials>
             <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
             <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
-        </icfcldap:configurationProperties>
+        </icfc:configurationProperties>
 
         <!-- Generic ICF configuration -->
 

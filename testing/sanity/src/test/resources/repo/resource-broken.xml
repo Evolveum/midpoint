@@ -33,14 +33,13 @@
 								  
 	<name>Broken Resource</name>
 	<connectorRef type="ConnectorType">
-		<and>
-	        <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
+		<filter>
 	        <equal>
 	          <value>
 	              <connectorType>this.connector.type.does.not.Exist</connectorType>
 	          </value>
 	        </equal>
-	    </and>
+	    </filter>
 	</connectorRef>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-ffff-ffffffffffff</namespace>
 	<configuration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/non.existent.connector.bundle"

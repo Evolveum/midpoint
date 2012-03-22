@@ -424,6 +424,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     		Class<T> objectTypeClass) {
     	ObjectDelta<T> objectDelta = new ObjectDelta<T>(objectTypeClass, ChangeType.MODIFY);
     	objectDelta.addModifications(modifications);
+    	objectDelta.setOid(oid);
     	return objectDelta;
     }
 

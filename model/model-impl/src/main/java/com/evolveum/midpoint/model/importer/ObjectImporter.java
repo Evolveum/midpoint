@@ -157,6 +157,7 @@ public class ObjectImporter {
                         LOGGER.error("Import of object {} failed: Unexpected problem: {}",
                                 new Object[]{object, e.getMessage(), e});
                     } catch (ObjectAlreadyExistsException e) {
+                    	objectResult.recordFatalError("Object already exists", e);
                         LOGGER.error("Import of object {} failed: Object already exists: {}",
                                 new Object[]{object, e.getMessage(), e});
                         LOGGER.error("Object already exists", e);
@@ -310,7 +311,11 @@ public class ObjectImporter {
             }
             
             Element connectorSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(connector);
-            PrismSchema connectorSchema;
+            PrismSchema connectorSchema = null;
+            if (connectorSchemaElement == null) {
+            	// No schema to validate with
+            	return;
+            }
 			try {
 				connectorSchema = PrismSchema.parse(connectorSchemaElement, prismContext);
 			} catch (SchemaException e) {

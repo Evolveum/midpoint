@@ -28,20 +28,19 @@
 								  
 	<name>Embedded Test Derby</name>
 	<connectorRef type="ConnectorType">
-		<and>
-	        <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
+		<filter>
 	        <equal>
 	          <value>
 	              <connectorType>org.identityconnectors.databasetable.DatabaseTableConnector</connectorType>
 	          </value>
 	        </equal>
-	    </and>
+	    </filter>
 	</connectorRef>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-999902d3abab</namespace>
 	<configuration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
 					   
-		<icfi:configurationProperties>
+		<icfc:configurationProperties>
 			<icfi:jdbcDriver>org.apache.derby.jdbc.ClientDriver</icfi:jdbcDriver>
 			<icfi:jdbcUrlTemplate>jdbc:derby://%h:%p/%d</icfi:jdbcUrlTemplate>
 			<icfi:keyColumn>login</icfi:keyColumn>
@@ -52,7 +51,7 @@
 			<icfi:database>target/derbyMidPointTest</icfi:database>
 			<icfi:host>localhost</icfi:host>
 			<icfi:port>11527</icfi:port>
-		</icfi:configurationProperties>
+		</icfc:configurationProperties>
 
 	</configuration>
 	<c:schema>

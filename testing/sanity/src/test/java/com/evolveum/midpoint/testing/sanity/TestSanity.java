@@ -118,8 +118,11 @@ import static org.testng.AssertJUnit.*;
  * @author Radovan Semancik
  */
 @ContextConfiguration(locations = {"classpath:application-context-model.xml",
-        "classpath:application-context-provisioning.xml", "classpath:application-context-sanity-test.xml",
-        "classpath:application-context-task.xml", "classpath:application-context-repository.xml",
+        "classpath:application-context-provisioning.xml",
+        "classpath:application-context-sanity-test.xml",
+        "classpath:application-context-task.xml", 
+        "classpath:application-context-repository.xml",
+        "classpath:application-context-repo-cache.xml",
         "classpath:application-context-configuration-test.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSanity extends AbstractIntegrationTest {

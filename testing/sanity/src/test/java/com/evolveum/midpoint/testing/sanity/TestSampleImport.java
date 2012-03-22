@@ -56,8 +56,11 @@ import static org.testng.AssertJUnit.assertEquals;
  *
  */
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-provisioning.xml", "classpath:application-context-sanity-test.xml",
-		"classpath:application-context-task.xml", "classpath:application-context-repository.xml",
+		"classpath:application-context-provisioning.xml", 
+		"classpath:application-context-sanity-test.xml",
+		"classpath:application-context-task.xml", 
+		"classpath:application-context-repository.xml",
+		"classpath:application-context-repo-cache.xml",
 		"classpath:application-context-configuration-test.xml" })
 @DirtiesContext(classMode=ClassMode.AFTER_CLASS)
 public class TestSampleImport extends AbstractIntegrationTest {
@@ -114,7 +117,7 @@ public class TestSampleImport extends AbstractIntegrationTest {
 		// THEN
 		result.computeStatus();
 		display("Result after good import", result);
-		assertSuccess("Import has failed (result)", result,1);
+		assertSuccessOrWarning("Import has failed (result)", result,1);
 
 		QueryType query = QueryUtil.createNameQuery(objectName);
 		

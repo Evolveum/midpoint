@@ -62,15 +62,13 @@ object.
                 Reference to the ICF LDAP connector. This is dynamic reference, it will be translated to
                 OID during import.
             </description>
-            <and>
-                <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
-
+            <filter>
                 <equal>
                     <value>
                         <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
                     </value>
                 </equal>
-            </and>
+            </filter>
         </connectorRef>
 
         <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
@@ -84,7 +82,7 @@ object.
                 xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
 
             <!-- Configuration specific for the LDAP connector -->
-            <icfcldap:configurationProperties>
+            <icfc:configurationProperties>
                 <icfcldap:port>1389</icfcldap:port>
                 <icfcldap:host>localhost</icfcldap:host>
 
@@ -99,7 +97,7 @@ object.
 
                 <icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
                 <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
-            </icfcldap:configurationProperties>
+            </icfc:configurationProperties>
 
             <!-- Generic ICF configuration -->
 
@@ -146,7 +144,7 @@ object.
              This example has a schema definition to show how it looks like and also to
              demonstrate that it can be provided during import if needed. -->
         <schema>
-
+		  <definition>
             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
                         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
@@ -289,6 +287,7 @@ object.
                     </xsd:complexContent>
                 </xsd:complexType>
             </xsd:schema>
+          </definition>
         </schema>
 
 

@@ -48,6 +48,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -211,6 +212,9 @@ public class UserSynchronizer {
             return;
         }
         String userOid = userPrimaryDelta.getOid();
+        if (StringUtils.isBlank(userOid)) {
+        	throw new IllegalArgumentException("No OID in primary user delta");
+        }
 
         PrismObject<UserType> user = cacheRepositoryService.getObject(UserType.class, userOid, null, result);
         context.setUserOld(user);
@@ -249,6 +253,9 @@ public class UserSynchronizer {
             OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
         for (ObjectReferenceType accountRef : userType.getAccountRef()) {
             String oid = accountRef.getOid();
+            if (StringUtils.isBlank(oid)) {
+            	throw new SchemaException("Null or empty oid in account reference in "+userType);
+            }
             if (accountContextAlreadyExists(oid, context)) {
                 continue;
             }
