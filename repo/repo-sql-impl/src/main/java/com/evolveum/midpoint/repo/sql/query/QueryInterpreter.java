@@ -27,6 +27,8 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.sql.ClassMapper;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -45,6 +47,7 @@ import java.util.Map;
  */
 public class QueryInterpreter {
 
+    private static final Trace LOGGER = TraceManager.getTrace(QueryInterpreter.class);
     private PrismContext prismContext;
     //query context stuff
     private Class<? extends ObjectType> type;
@@ -60,12 +63,26 @@ public class QueryInterpreter {
     }
 
     public Criteria interpret(Element filter) throws QueryException {
-        Criterion criterion = interpret(filter, false);
+        Validate.notNull(filter, "Element filter must not be null.");
 
-        Criteria criteria = getCriteria(null);
-        criteria.add(criterion);
+        LOGGER.debug("Interpreting query '{}', query on trace level.",
+                new Object[]{DOMUtil.getQNameWithoutPrefix(filter)});
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Query filter:\n{}", new Object[]{DOMUtil.printDom(filter).toString()});
+        }
 
-        return criteria;
+        try {
+            Criterion criterion = interpret(filter, false);
+
+            Criteria criteria = getCriteria(null);
+            criteria.add(criterion);
+
+            return criteria;
+        } catch (QueryException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new QueryException(ex.getMessage(), ex);
+        }
     }
 
     public Criterion interpret(Element filter, boolean pushNot) throws QueryException {
@@ -99,23 +116,21 @@ public class QueryInterpreter {
         if (propertyPath == null) {
             propertyPath = PropertyPath.EMPTY_PATH;
         }
-        
+
         List<PropertyPathSegment> segments = propertyPath.getSegments();
         segments.add(new PropertyPathSegment(name));
-        propertyPath = new PropertyPath(segments); 
-
-        //todo reimplement...
+        propertyPath = new PropertyPath(segments);
 
         return objectDef.findItemDefinition(propertyPath);
     }
-    
+
     public PropertyPath createPropertyPath(Element path) {
         PropertyPath propertyPath = null;
         if (path != null && StringUtils.isNotEmpty(path.getTextContent())) {
             propertyPath = new XPathHolder(path).toPropertyPath();
         }
 
-        return propertyPath; 
+        return propertyPath;
     }
 
     public Criteria getCriteria(PropertyPath path) {

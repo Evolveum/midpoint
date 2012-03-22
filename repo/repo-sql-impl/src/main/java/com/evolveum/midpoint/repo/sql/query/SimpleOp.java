@@ -28,6 +28,8 @@ import com.evolveum.midpoint.repo.sql.data.common.RUtil;
 import com.evolveum.midpoint.repo.sql.type.QNameType;
 import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
@@ -45,6 +47,8 @@ import java.util.List;
  */
 public class SimpleOp extends Op {
 
+    private static final Trace LOGGER = TraceManager.getTrace(SimpleOp.class);
+
     public SimpleOp(QueryInterpreter interpreter) {
         super(interpreter);
     }
@@ -54,15 +58,9 @@ public class SimpleOp extends Op {
         return new QName[]{SchemaConstants.C_EQUAL};
     }
 
-//        <c:equal>
-//            <c:path>c:extension</c:path>
-//            <c:value>
-//                <s:foo xmlns:s="http://example.com/foo">bar</s:foo>
-//            </c:value>
-//        </c:equal>
-
     @Override
     public Criterion interpret(Element filter, boolean pushNot) throws QueryException {
+        LOGGER.debug("Interpreting '{}', pushNot '{}'", new Object[]{DOMUtil.getQNameWithoutPrefix(filter), pushNot});
         validate(filter);
 
         Element path = DOMUtil.getChildElement(filter, SchemaConstants.C_PATH);
@@ -79,15 +77,21 @@ public class SimpleOp extends Op {
         Element condition = DOMUtil.listChildElements(value).get(0);
         QName condQName = DOMUtil.getQNameWithoutPrefix(condition);
         SimpleItem conditionItem = updateConditionItem(condQName, propertyPath);
+        LOGGER.trace("Condition item updated, updating value type.");
+        //todo change to real value....
+        Object testedValue = condition.getTextContent();
+        LOGGER.trace("Value updated to type '{}'",
+                new Object[]{(testedValue == null ? null : testedValue.getClass().getName())});
 
         Criterion criterion;
         if (pushNot) {
-            criterion = Restrictions.ne(conditionItem.getQueryableItem(), condition.getTextContent());
+            criterion = Restrictions.ne(conditionItem.getQueryableItem(), testedValue);
         } else {
-            criterion = Restrictions.eq(conditionItem.getQueryableItem(), condition.getTextContent());
+            criterion = Restrictions.eq(conditionItem.getQueryableItem(), testedValue);
         }
 
         if (conditionItem.isAny) {
+            LOGGER.trace("Condition is type of any, creating conjunction for value and QName name, type");
             ItemDefinition itemDefinition = getInterpreter().findDefinition(path, condQName);
             QName name, type;
             if (itemDefinition == null) {
@@ -114,31 +118,30 @@ public class SimpleOp extends Op {
     }
 
     private SimpleItem updateConditionItem(QName conditionItem, PropertyPath propertyPath) throws QueryException {
+        LOGGER.debug("Updating condition item '{}' on property path\n{}",
+                new Object[]{conditionItem, propertyPath});
         SimpleItem item = new SimpleItem();
         EntityDefinition definition = findDefinition(getInterpreter().getType(), propertyPath);
 
         if (propertyPath != null) {
             if (definition.isAny()) {
                 item.isAny = true;
-
                 List<PropertyPathSegment> segments = propertyPath.getSegments();
                 //todo get from somewhere - from RAnyConverter, somehow
                 //strings | longs | dates | clobs
                 String anyTypeName = "strings";
                 segments.add(new PropertyPathSegment(new QName(RUtil.NS_SQL_REPO, anyTypeName)));
 
-                PropertyPath extPath = new PropertyPath(segments);
-                addNewCriteriaToContext(extPath, anyTypeName);
+                propertyPath = new PropertyPath(segments);
+                LOGGER.trace("Condition item is from 'any' container, adding new criteria based on any type '{}'",
+                        new Object[]{anyTypeName});
+                addNewCriteriaToContext(propertyPath, anyTypeName);
+            }
 
-                String alias = getInterpreter().getAlias(extPath);
-                if (StringUtils.isNotEmpty(alias)) {
-                    item.alias = alias;
-                }
-            } else {
-                String alias = getInterpreter().getAlias(propertyPath);
-                if (StringUtils.isNotEmpty(alias)) {
-                    item.alias = alias;
-                }
+            String alias = getInterpreter().getAlias(propertyPath);
+            LOGGER.trace("Found alias '{}' for path.", new Object[]{alias});
+            if (StringUtils.isNotEmpty(alias)) {
+                item.alias = alias;
             }
         }
 
@@ -187,6 +190,7 @@ public class SimpleOp extends Op {
     }
 
     private void updateQueryContext(PropertyPath path) throws QueryException {
+        LOGGER.debug("Updating query context based on path\n{}", new Object[]{path.toString()});
         Class<? extends ObjectType> type = getInterpreter().getType();
         Definition definition = getClassTypeDefinition(type);
 
@@ -209,9 +213,13 @@ public class SimpleOp extends Op {
             EntityDefinition entityDefinition = (EntityDefinition) definition;
             if (entityDefinition.isEmbedded()) {
                 //for embedded relationships we don't have to create new criteria
+                LOGGER.trace("Skipping segment '{}' because it's embedded, sub path\n{}",
+                        new Object[]{qname, propPath.toString()});
                 continue;
             }
 
+            LOGGER.trace("Adding criteria '{}' to context based on sub path\n{}",
+                    new Object[]{definition.getRealName(), propPath.toString()});
             addNewCriteriaToContext(propPath, definition.getRealName());
         }
     }

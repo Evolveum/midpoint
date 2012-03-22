@@ -23,6 +23,8 @@ package com.evolveum.midpoint.repo.sql.query;
 
 import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Disjunction;
@@ -39,16 +41,22 @@ public class LogicalOp extends Op {
 
     private static enum Operation {AND, OR, NOT}
 
+    private static final Trace LOGGER = TraceManager.getTrace(LogicalOp.class);
+
     public LogicalOp(QueryInterpreter interpreter) {
         super(interpreter);
     }
 
     @Override
     public Criterion interpret(Element filterPart, boolean pushNot) throws QueryException {
+        LOGGER.debug("Interpreting '{}', pushNot '{}'",
+                new Object[]{DOMUtil.getQNameWithoutPrefix(filterPart), pushNot});
         validate(filterPart);
 
         Operation operation = getOperationType(filterPart);
         List<Element> elements = DOMUtil.listChildElements(filterPart);
+        LOGGER.debug("It's {} with {} sub elements.", new Object[]{operation, elements.size()});
+
         switch (elements.size()) {
             case 0:
                 throw new QueryException("Can't have logical filter '"
@@ -80,7 +88,7 @@ public class LogicalOp extends Op {
                 }
         }
 
-        throw new QueryException("bla bla");//todo message
+        throw new QueryException("Unknown state in logical filter.");
     }
 
     private Operation getOperationType(Element filterPart) throws QueryException {
