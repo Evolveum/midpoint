@@ -84,9 +84,12 @@ public class TestSynchronizerAddUser extends AbstractTestNGSpringContextTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void addUserWithSimpleTemplate() throws Exception {
-		UserType userType = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON, "user-drake.xml"), UserType.class);
-		UserTemplateType userTemplate = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON, "user-template.xml"), UserTemplateType.class);
-		ResourceType resource = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON, "resource-opendj.xml"), ResourceType.class);
+		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_FOLDER_COMMON, "user-drake.xml"));
+		UserType userType = user.asObjectable();
+		PrismObject<UserTemplateType> userTemplate = PrismTestUtil.parseObject(new File(TEST_FOLDER_COMMON, "user-template.xml"));
+		UserTemplateType userTemplateType = userTemplate.asObjectable();
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(TEST_FOLDER_COMMON, "resource-opendj.xml"));
+		ResourceType resourceType = resource.asObjectable();
 
 		final String userOid = "10000000-0000-0000-0000-000000000001";
 		final String resourceOid = "10000000-0000-0000-0000-000000000003";
@@ -95,7 +98,7 @@ public class TestSynchronizerAddUser extends AbstractTestNGSpringContextTests {
 		when(
 				provisioning.getObject(eq(ResourceType.class), eq(resourceOid),
 						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
-				resource.asPrismObject());
+				resourceType.asPrismObject());
 		when(
 				provisioning.addObject(any(PrismObject.class), any(ScriptsType.class),
 						any(OperationResult.class))).thenAnswer(new Answer<String>() {
@@ -122,14 +125,13 @@ public class TestSynchronizerAddUser extends AbstractTestNGSpringContextTests {
 		SyncContext syncContext = new SyncContext(PrismTestUtil.getPrismContext());
 
 		ObjectDelta<UserType> objectDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD);
-		PrismObject<UserType> user = userType.asPrismObject();
 		objectDelta.setObjectToAdd(user);
 		
 		syncContext.setUserOld(null);
-		syncContext.setUserNew((PrismObject<UserType>) user);
-		syncContext.setUserPrimaryDelta((ObjectDelta<UserType>) objectDelta);
+		syncContext.setUserNew(user);
+		syncContext.setUserPrimaryDelta(objectDelta);
 		
-		syncContext.setUserTemplate(userTemplate);
+		syncContext.setUserTemplate(userTemplateType);
 
 		try {
 			LOGGER.info("provisioning: " + provisioning.getClass());

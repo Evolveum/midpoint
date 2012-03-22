@@ -2655,7 +2655,7 @@
 			            <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="strict">
 			                <xsd:annotation>
 			                    <xsd:appinfo>
-			                        <xjc:dom/>
+			                        <jaxb:dom/>
 			                    </xsd:appinfo>
 			                </xsd:annotation>
 			            </xsd:any>
