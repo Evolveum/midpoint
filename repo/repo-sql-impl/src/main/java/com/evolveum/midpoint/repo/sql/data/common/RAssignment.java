@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.query.QueryEntity;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensionType;
@@ -49,8 +50,10 @@ public class RAssignment extends RContainer implements ROwnable {
     private String ownerOid;
     private Long ownerId;
     //extension
+    @QueryEntity(extension = true)
     private RAnyContainer extension;
     //assignment fields
+    @QueryEntity(embedded = true)
     private RActivation activation;
     private String accountConstruction;
     private RObjectReference targetRef;

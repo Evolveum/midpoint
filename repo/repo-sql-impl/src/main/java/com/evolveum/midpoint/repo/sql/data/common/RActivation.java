@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Index;
@@ -37,8 +38,11 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @Embeddable
 public class RActivation {
 
+    @QueryAttribute
     private Boolean enabled;
+    @QueryAttribute
     private XMLGregorianCalendar validFrom;
+    @QueryAttribute
     private XMLGregorianCalendar validTo;
 
     @Index(name = "iEnabled")

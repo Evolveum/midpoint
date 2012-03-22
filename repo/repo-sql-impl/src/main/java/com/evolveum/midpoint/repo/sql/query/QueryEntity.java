@@ -33,8 +33,10 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface QueryContainer {
+public @interface QueryEntity {
 
     String name() default "";
     String namespace() default "";
+    boolean any() default false;
+    boolean embedded() default false;
 }

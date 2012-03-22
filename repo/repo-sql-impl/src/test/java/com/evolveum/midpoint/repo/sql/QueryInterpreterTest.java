@@ -38,6 +38,8 @@ import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Conjunction;
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -71,21 +73,38 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
         Session session = open();
         Criteria main = session.createCriteria(RAccountShadow.class, "a");
 
+        Criteria attributes = main.createCriteria("attributes", "at");
+        Criteria stringAttr = attributes.createCriteria("strings", "s");
+
         Criteria resourceRef = main.createCriteria("resourceRef", "r");
 
         Criteria extension = main.createCriteria("extension", "e");
-        Criteria stringAttr = extension.createCriteria("strings", "s");
+        Criteria stringExt = extension.createCriteria("strings", "s1");
 
-        //first
-        Conjunction and = Restrictions.conjunction();
-        and.add(Restrictions.eq("s.value", "uid=test,dc=example,dc=com"));
-        and.add(Restrictions.eq("s.name", new QName("http://example.com/p", "stringType")));
-        and.add(Restrictions.eq("s.type", new QName("http://www.w3.org/2001/XMLSchema", "string")));
-        //or second
-        main.add(Restrictions.or(and, Restrictions.eq("r.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e")));
+        //or
+        Criterion c1 = Restrictions.eq("accountType", "some account type");
+        //or
+        Conjunction c2 = Restrictions.conjunction();
+        c2.add(Restrictions.eq("s.value", "foo value"));
+        c2.add(Restrictions.eq("s.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
+        c2.add(Restrictions.eq("s.type", new QName("http://www.w3.org/2001/XMLSchema", "string")));
+        //or
+        Conjunction c3 = Restrictions.conjunction();
+        c3.add(Restrictions.eq("s1.value", "uid=test,dc=example,dc=com"));
+        c3.add(Restrictions.eq("s1.name", new QName("http://example.com/p", "stringType")));
+        c3.add(Restrictions.eq("s1.type", new QName("http://www.w3.org/2001/XMLSchema", "string")));
+        //or
+        Criterion c4 = Restrictions.eq("r.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e");
+
+        Disjunction disjunction = Restrictions.disjunction();
+        disjunction.add(c1);
+        disjunction.add(c2);
+        disjunction.add(c3);
+        disjunction.add(c4);
+        main.add(disjunction);
 
         String expected = HibernateToSqlTranslator.toSql(main);
-
+        LOGGER.info("#### " + expected);
 
         String real = getInterpretedQuery(session, AccountShadowType.class,
                 new File("./src/test/resources/query/query-or-composite.xml"));

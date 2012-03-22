@@ -24,17 +24,17 @@
        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
 
     <or>
-        <!--<equal>-->
-            <!--<value>-->
-                <!--<fullName>Cpt. Jack Sparrow</fullName>-->
-            <!--</value>-->
-        <!--</equal>-->
-        <!--<equal>-->
-            <!--<path>c:attributes</path>-->
-            <!--<value>-->
-                <!--<f:foo xmlns:f="http://midpoint.evolveum.com/blabla">foo value</f:foo>-->
-            <!--</value>-->
-        <!--</equal>-->
+        <equal>
+            <value>
+                <accountType>some account type</accountType>
+            </value>
+        </equal>
+        <equal>
+            <path>c:attributes</path>
+            <value>
+                <f:foo xmlns:f="http://midpoint.evolveum.com/blabla">foo value</f:foo>
+            </value>
+        </equal>
         <equal>
             <path>c:extension</path>
             <value>
@@ -48,3 +48,99 @@
         </equal>
     </or>
 </query>
+
+<!--
+SQL query for this looks like this...
+
+SELECT this_.id                       AS id0_4_,
+       this_.oid                      AS oid0_4_,
+       this_3_.version                AS version0_4_,
+       this_2_.DESCRIPTION            AS descript1_1_4_,
+       this_2_.exttype                AS exttype1_4_,
+       this_2_.extoid                 AS extoid1_4_,
+       this_2_.extid                  AS extid1_4_,
+       this_2_.name                   AS name1_4_,
+       this_1_.enabled                AS enabled2_4_,
+       this_1_.validfrom              AS validfrom2_4_,
+       this_1_.validto                AS validto2_4_,
+       this_1_.attemptnumber          AS attemptn4_2_4_,
+       this_1_.attrtype               AS attrtype2_4_,
+       this_1_.attroid                AS attroid2_4_,
+       this_1_.attrid                 AS attrid2_4_,
+       this_1_.failedoperationtype    AS failedop5_2_4_,
+       this_1_.objectchange           AS objectch6_2_4_,
+       this_1_.class_namespace        AS class7_2_4_,
+       this_1_.class_localpart        AS class8_2_4_,
+       this_.accounttype              AS accountt1_3_4_,
+       this_.allowedidmadminguiaccess AS allowedi2_3_4_,
+       this_.password                 AS password3_4_,
+       e4_.ownertype                  AS ownertype17_0_,
+       e4_.owner_oid                  AS owner2_17_0_,
+       e4_.owner_id                   AS owner3_17_0_,
+       at1_.ownertype                 AS ownertype17_1_,
+       at1_.owner_oid                 AS owner2_17_1_,
+       at1_.owner_id                  AS owner3_17_1_,
+       r3_.target_oid                 AS target1_11_2_,
+       r3_.target_id                  AS target2_11_2_,
+       r3_.owner_oid                  AS owner3_11_2_,
+       r3_.owner_id                   AS owner4_11_2_,
+       r3_.DESCRIPTION                AS descript5_11_2_,
+       r3_.fieldtype                  AS fieldtype11_2_,
+       r3_.filter                     AS filter11_2_,
+       r3_.TYPE                       AS type11_2_,
+       roperation12_.owner_oid        AS owner1_16_3_,
+       roperation12_.owner_id         AS owner2_16_3_,
+       roperation12_.details          AS details16_3_,
+       roperation12_.localizedmessage AS localize4_16_3_,
+       roperation12_.MESSAGE          AS message16_3_,
+       roperation12_.messagecode      AS messagec6_16_3_,
+       roperation12_.operation        AS operation16_3_,
+       roperation12_.params           AS params16_3_,
+       roperation12_.partialresults   AS partialr9_16_3_,
+       roperation12_.status           AS status16_3_,
+       roperation12_.token            AS token16_3_
+FROM   account_shadow this_
+       INNER JOIN resource_shadow this_1_
+         ON this_.id = this_1_.id
+            AND this_.oid = this_1_.oid
+       INNER JOIN OBJECT this_2_
+         ON this_.id = this_2_.id
+            AND this_.oid = this_2_.oid
+       INNER JOIN container this_3_
+         ON this_.id = this_3_.id
+            AND this_.oid = this_3_.oid
+       INNER JOIN any e4_
+         ON this_2_.exttype = e4_.ownertype
+            AND this_2_.extoid = e4_.owner_oid
+            AND this_2_.extid = e4_.owner_id
+       INNER JOIN any_string s1x5_
+         ON e4_.ownertype = s1x5_.owner_oid
+            AND e4_.owner_oid = s1x5_.owner_id
+            AND e4_.owner_id = s1x5_.ownertype
+       INNER JOIN any at1_
+         ON this_1_.attrtype = at1_.ownertype
+            AND this_1_.attroid = at1_.owner_oid
+            AND this_1_.attrid = at1_.owner_id
+       INNER JOIN any_string s2_
+         ON at1_.ownertype = s2_.owner_oid
+            AND at1_.owner_oid = s2_.owner_id
+            AND at1_.owner_id = s2_.ownertype
+       INNER JOIN reference r3_
+         ON this_.id = r3_.owner_id
+            AND this_.oid = r3_.owner_oid
+       LEFT OUTER JOIN operation_result roperation12_
+         ON this_.id = roperation12_.owner_id
+            AND this_.oid = roperation12_.owner_oid
+WHERE  ( this_.accounttype = ?
+          OR ( s2_.VALUE = ?
+               AND ( s2_.name_namespace = ?
+                     AND s2_.name_localpart = ? )
+               AND ( s2_.type_namespace = ?
+                     AND s2_.type_localpart = ? ) )
+          OR ( s1x5_.VALUE = ?
+               AND ( s1x5_.name_namespace = ?
+                     AND s1x5_.name_localpart = ? )
+               AND ( s1x5_.type_namespace = ?
+                     AND s1x5_.type_localpart = ? ) )
+          OR r3_.target_oid = ? )
+-->

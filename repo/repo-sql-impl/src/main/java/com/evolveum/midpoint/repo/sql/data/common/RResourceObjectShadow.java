@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.query.QueryEntity;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.FailedOperationTypeType;
@@ -54,6 +55,7 @@ public class RResourceObjectShadow extends RObject {
     private Integer attemptNumber;
     private FailedOperationTypeType failedOperationType;
     //attributes
+    @QueryEntity(any = true)
     private RAnyContainer attributes;
 
     @Columns(columns = {

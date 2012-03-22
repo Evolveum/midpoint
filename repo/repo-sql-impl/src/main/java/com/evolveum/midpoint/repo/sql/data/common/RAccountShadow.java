@@ -24,6 +24,8 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
+import com.evolveum.midpoint.repo.sql.query.QueryEntity;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import org.hibernate.annotations.ForeignKey;
 
@@ -39,7 +41,9 @@ import javax.persistence.Table;
 @ForeignKey(name = "fk_account_shadow")
 public class RAccountShadow extends RResourceObjectShadow {
 
+    @QueryAttribute
     private String accountType;
+    @QueryEntity(embedded = true)
     private RCredentials credentials;
 
     public String getAccountType() {
