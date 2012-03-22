@@ -1444,6 +1444,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	// UTILITY METHODS
 
 	private QName convertAttributeNameToQName(String icfAttrName) {
+		LOGGER.trace("icf attribute: {}", icfAttrName);
 		QName attrXsdName = new QName(getSchemaNamespace(), icfAttrName,
 				ConnectorFactoryIcfImpl.NS_ICF_RESOURCE_INSTANCE_PREFIX);
 		// Handle special cases
@@ -1453,6 +1454,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// so convert to something more friendly such as icfs:name
 			attrXsdName = ConnectorFactoryIcfImpl.ICFS_NAME;
 		}
+		LOGGER.trace("attr xsd name: {}", attrXsdName);
 		return attrXsdName;
 	}
 
@@ -1624,13 +1626,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw new SchemaException("No definition");
 		}
 		
-		LOGGER.trace("Instantiated prism object {} from connector object.", shadowPrism.dump());
+//		LOGGER.trace("Instantiated prism object {} from connector object.", shadowPrism.dump());
 
 		T shadow = shadowPrism.asObjectable();
 		ResourceAttributeContainer attributesContainer = (ResourceAttributeContainer) shadowPrism
 				.findOrCreateContainer(ResourceObjectShadowType.F_ATTRIBUTES);
 		ResourceAttributeContainerDefinition attributesDefinition = attributesContainer.getDefinition();
 
+		LOGGER.trace("Resource attribute container definition {}.", attributesDefinition.dump());
+		
+		
 		// Uid is always there
 		Uid uid = co.getUid();
 		// PropertyDefinition propDef = new
@@ -1674,9 +1679,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 
 			QName qname = convertAttributeNameToQName(icfAttr.getName());
+			
+		
+			
 			ResourceAttributeDefinition attributeDefinition = attributesDefinition
 					.findAttributeDefinition(qname);
-
+			
+			if (attributeDefinition == null){
+				throw new SchemaException("Unknown attribute {}. Cannot create definition.", qname);
+			}
+			
 			ResourceAttribute roa = attributeDefinition.instantiate(qname);
 
 			// if true, we need to convert whole connector object to the
@@ -1842,6 +1854,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// FIXME: we are hadcoding Account here, but we should not
 			PrismObjectDefinition<AccountShadowType> objectDefinition = toShadowDefinition(objClassDefinition);
 
+			LOGGER.trace("Object definition: {}", objectDefinition);
+			
 			if (SyncDeltaType.DELETE.equals(delta.getDeltaType())) {
 				LOGGER.debug("START creating delta of type DELETE");
 				ObjectDelta<ResourceObjectShadowType> objectDelta = new ObjectDelta<ResourceObjectShadowType>(

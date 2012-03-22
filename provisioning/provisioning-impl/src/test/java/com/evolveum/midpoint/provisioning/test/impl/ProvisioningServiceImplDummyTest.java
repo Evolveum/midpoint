@@ -98,7 +98,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.TestConnecti
  * 
  */
 @ContextConfiguration(locations = { "classpath:application-context-provisioning.xml",
-		"classpath:application-context-provisioning-test.xml", "classpath:application-context-task.xml",
+		"classpath:application-context-provisioning-test.xml",
+		"classpath:application-context-task.xml",
 		"classpath:application-context-repository.xml",
 		"classpath:application-context-repo-cache.xml",
 		"classpath:application-context-configuration-test.xml" })
@@ -691,8 +692,9 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		displayTestTile("test101LiveSyncAdd");
 		// GIVEN
 		Task task = taskManager.createTaskInstance(ProvisioningServiceImplDummyTest.class.getName() + ".test101LiveSyncAdd");
-		OperationResult result = task.getResult();
-		
+		//maybe we should create a new result..
+		//OperationResult result = task.getResult();
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName() + "test101LiveSyncAdd");
 		// Dry run to remember the current sync token in the task instance. Otherwise a last sync token whould be used and
 		// no change would be detected
 		provisioningService.synchronize(RESOURCE_DUMMY_OID, task, result);
@@ -700,7 +702,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		syncServiceMock.reset();
 		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
 		DummyAccount newAccount = new DummyAccount("blackbeard");
-		newAccount.addAttributeValues("fullnameame", "Edward Teach");
+		newAccount.addAttributeValues("fullname", "Edward Teach");
 		newAccount.setEnabled(true);
 		newAccount.setPassword("shiverMEtimbers");
 		dummyResource.addAccount(newAccount);
