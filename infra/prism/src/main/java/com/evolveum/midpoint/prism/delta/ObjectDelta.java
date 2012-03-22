@@ -195,6 +195,14 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         }
         return null;
     }
+    
+    private  <D extends ItemDelta> D findModification(QName itemName, Class<D> deltaType) {
+    	return findModification(new PropertyPath(itemName), deltaType);
+    }
+    
+    public ReferenceDelta findReferenceModification(QName itemName) {
+    	return findModification(itemName, ReferenceDelta.class);
+    }
 
     public boolean isEmpty() {
         return (objectToAdd == null && (modifications == null || modifications.isEmpty()));

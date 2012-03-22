@@ -43,6 +43,7 @@
             <class name="com.evolveum.midpoint.schema.TestJaxbParsing"/>
             <class name="com.evolveum.midpoint.schema.TestJaxbConstruction"/>
             <class name="com.evolveum.midpoint.schema.TestParseDiffPatch"/>
+            <class name="com.evolveum.midpoint.schema.TestDeltaConverter"/>
         </classes>
     </test>
 </suite>

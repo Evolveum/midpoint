@@ -1,0 +1,80 @@
+/*
+ * Copyright (c) 2012 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ *
+ * Portions Copyrighted 2012 [name of copyright owner]
+ */
+
+package com.evolveum.midpoint.schema;
+
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Collection;
+
+import javax.xml.bind.JAXBException;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+/**
+ * @author Radovan Semancik
+ */
+public class TestDeltaConverter {
+	
+	private static final File TEST_DIR = new File("src/test/resources/deltaconverter");
+
+    @BeforeSuite
+    public void setup() throws SchemaException, SAXException, IOException {
+        DebugUtil.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+    }
+
+    @Test
+    public void testRefWithObject() throws SchemaException, FileNotFoundException, JAXBException {
+    	System.out.println("===[ testRefWithObject ]====");
+    	
+    	ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(new File(TEST_DIR, "user-modify-add-account.xml"),
+    			ObjectModificationType.class);
+    	
+    	ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class, 
+    			PrismTestUtil.getPrismContext());
+    	
+    	assertNotNull("No object delta", objectDelta);
+    	assertEquals("Wrong OID", "c0c010c0-d34d-b33f-f00d-111111111111", objectDelta.getOid());
+    	ReferenceDelta accoutRefDelta = objectDelta.findReferenceModification(UserType.F_ACCOUNT_REF);
+    	assertNotNull("No accountRef delta", accoutRefDelta);
+    	Collection<PrismReferenceValue> valuesToAdd = accoutRefDelta.getValuesToAdd();
+    	assertEquals("Wrong number of values to add", 1, valuesToAdd.size());
+    	PrismReferenceValue accountRefVal = valuesToAdd.iterator().next();
+    	assertNotNull("No object in accountRef value", accountRefVal.getObject());
+    }
+}
