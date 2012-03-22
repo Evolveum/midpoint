@@ -21,7 +21,10 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.RAccountShadow;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
@@ -33,6 +36,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
@@ -45,6 +49,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -87,12 +92,12 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
         Conjunction c2 = Restrictions.conjunction();
         c2.add(Restrictions.eq("s.value", "foo value"));
         c2.add(Restrictions.eq("s.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
-        c2.add(Restrictions.eq("s.type", new QName("http://www.w3.org/2001/XMLSchema", "string")));
+        c2.add(Restrictions.eq("s.type", new QName(null, "string")));
         //or
         Conjunction c3 = Restrictions.conjunction();
         c3.add(Restrictions.eq("s1.value", "uid=test,dc=example,dc=com"));
         c3.add(Restrictions.eq("s1.name", new QName("http://example.com/p", "stringType")));
-        c3.add(Restrictions.eq("s1.type", new QName("http://www.w3.org/2001/XMLSchema", "string")));
+        c3.add(Restrictions.eq("s1.type", new QName(null, "string")));
         //or
 //        Criterion c4 = Restrictions.eq("r.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e");
 

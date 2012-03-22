@@ -21,7 +21,9 @@
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
 <query xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
     <or>
         <equal>
@@ -32,7 +34,7 @@
         <equal>
             <path>c:attributes</path>
             <value>
-                <f:foo xmlns:f="http://midpoint.evolveum.com/blabla">foo value</f:foo>
+                <f:foo xsi:type="xsd:string" xmlns:f="http://midpoint.evolveum.com/blabla">foo value</f:foo>
             </value>
         </equal>
         <equal>

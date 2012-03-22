@@ -89,8 +89,18 @@ public class SimpleOp extends Op {
 
         if (conditionItem.isAny) {
             ItemDefinition itemDefinition = getInterpreter().findDefinition(path, condQName);
-            QName name = itemDefinition.getName();
-            QName type = itemDefinition.getTypeName();
+            QName name, type;
+            if (itemDefinition == null) {
+                name = condQName;
+                type = DOMUtil.resolveXsiType(condition);
+            } else {
+                name = itemDefinition.getName();
+                type = itemDefinition.getTypeName();
+            }
+
+            if (name == null || type == null) {
+                throw new QueryException("Couldn't get name or type for queried item '" + condQName + "'");
+            }
 
             Conjunction conjunction = Restrictions.conjunction();
             conjunction.add(criterion);
@@ -223,7 +233,7 @@ public class SimpleOp extends Op {
 
     private String createAlias(PropertyPathSegment segment) throws QueryException {
         String prefix = Character.toString(segment.getName().getLocalPart().charAt(0));
-        int index = 0;
+        int index = 1;
 
         String alias = prefix;
         while (getInterpreter().hasAlias(alias)) {
