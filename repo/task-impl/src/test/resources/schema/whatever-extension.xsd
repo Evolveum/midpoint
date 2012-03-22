@@ -30,9 +30,9 @@
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-    <xsd:element name="sinkTimestamp" type="xsd:dateTime"/>
+    <xsd:element name="sinkTimestamp" type="xsd:dateTime" />
 
-	<xsd:element name="shipState" type="xsd:string"/>
+	<xsd:element name="shipState" type="xsd:string" />
 	
 	<xsd:element name="dead" type="xsd:int"/>
 

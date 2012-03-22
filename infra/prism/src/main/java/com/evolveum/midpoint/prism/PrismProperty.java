@@ -110,6 +110,12 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
     }
     
     public PrismPropertyValue<V> getValue() {
+    	if (getDefinition() != null) {
+    		if (getDefinition().isMultiValue()) {
+    			throw new IllegalStateException("Attempt to get single value from property " + getName()
+                        + " with multiple values");
+    		}
+    	}
         List<PrismPropertyValue<V>> values = getValues();
         if (values == null || values.isEmpty()) {
         	return null;
