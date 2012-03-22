@@ -409,7 +409,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				} catch (RuntimeException ex) {
 					notifyChangeResult.recordFatalError("Runtime exception occur: " + ex.getMessage(), ex);
 					saveAccountResult(shadowChangeDescription, change, notifyChangeResult, parentResult);
-					new RuntimeException(ex.getMessage(), ex);
+					LOGGER.error("Synchronization error: "+ ex.getMessage(), ex);
+					throw new SystemException("Synchronization error: "+ ex.getMessage(), ex);
 				}
 
 				notifyChangeResult.computeStatus("Error by notify change operation.");
@@ -462,6 +463,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throw e;
 		} catch (ConfigurationException e) {
 			LOGGER.error("Synchronization error: configuration problem: {}", e.getMessage(), e);
+			result.recordFatalError(e.getMessage(), e);
+			throw e;
+		} catch (RuntimeException e){
+			LOGGER.error("Synchronization error: unexpected problem: {}", e.getMessage(), e);
 			result.recordFatalError(e.getMessage(), e);
 			throw e;
 		}

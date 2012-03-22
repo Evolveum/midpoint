@@ -400,7 +400,7 @@ public class ShadowConverter {
 		Validate.notNull(parentResult, "Operation result must not be null.");
 		Validate.notNull(lastToken, "Token property must not be null.");
 
-		LOGGER.trace("Shadow cache, fetch changes");
+		LOGGER.trace("Shadow converter, START fetch changes");
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
@@ -427,6 +427,7 @@ public class ShadowConverter {
 			throw ex;
 		}
 		parentResult.recordSuccess();
+		LOGGER.trace("Shadow converter, END fetch changes");
 		return changes;
 	}
 

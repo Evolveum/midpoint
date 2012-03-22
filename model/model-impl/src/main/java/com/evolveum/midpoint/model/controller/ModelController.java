@@ -290,6 +290,8 @@ public class ModelController implements ModelService {
 		Validate.notNull(parentResult, "Result type must not be null.");
 		
 		T objectType = object.asObjectable();
+		//FIXME?? 
+		prismContext.adopt(objectType);
 		if (!(objectType instanceof ResourceObjectShadowType)) {
 			Validate.notEmpty(objectType.getName(), "Object name must not be null or empty.");
 		}

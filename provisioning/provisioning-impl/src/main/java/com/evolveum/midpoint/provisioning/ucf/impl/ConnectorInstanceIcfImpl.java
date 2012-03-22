@@ -70,6 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCa
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ScriptCapabilityType.Host;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.Validate;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
 import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
@@ -1283,7 +1284,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw new SchemaException(ex.getMessage(), ex);
 		}
 
-		final List<SyncDelta> result = new ArrayList<SyncDelta>();
+		final List<SyncDelta> syncDeltas = new ArrayList<SyncDelta>();
 		// get icf object class
 		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
 
@@ -1292,7 +1293,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			@Override
 			public boolean handle(SyncDelta delta) {
 				LOGGER.trace("Detected sync delta: {}", delta);
-				return result.add(delta);
+				return syncDeltas.add(delta);
 
 			}
 		};
@@ -1307,7 +1308,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			icfConnectorFacade.sync(icfObjectClass, syncToken, syncHandler,
 					new OperationOptionsBuilder().build());
 			icfResult.recordSuccess();
-			icfResult.addReturn(OperationResult.RETURN_COUNT, result.size());
+			icfResult.addReturn(OperationResult.RETURN_COUNT, syncDeltas.size());
 		} catch (Exception ex) {
 			Exception midpointEx = processIcfException(ex, icfResult);
 			subresult.computeStatus();
@@ -1329,7 +1330,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		List<Change> changeList = null;
 		try {
 			PrismSchema schema = getResourceSchema(subresult);
-			changeList = getChangesFromSyncDelta(result, schema, subresult);
+			changeList = getChangesFromSyncDelta(syncDeltas, schema, subresult);
 		} catch (SchemaException ex) {
 			subresult.recordFatalError(ex.getMessage(), ex);
 			throw new SchemaException(ex.getMessage(), ex);
@@ -1622,6 +1623,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		} else {
 			throw new SchemaException("No definition");
 		}
+		
+		LOGGER.trace("Instantiated prism object {} from connector object.", shadowPrism.dump());
 
 		T shadow = shadowPrism.asObjectable();
 		ResourceAttributeContainer attributesContainer = (ResourceAttributeContainer) shadowPrism
@@ -1822,6 +1825,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			OperationResult parentResult) throws SchemaException, GenericFrameworkException {
 		List<Change> changeList = new ArrayList<Change>();
 
+		Validate.notNull(result, "Sync result must not be null.");
 		for (SyncDelta delta : result) {
 
 			ObjectClass objClass = delta.getObject().getObjectClass();
@@ -1839,6 +1843,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			PrismObjectDefinition<AccountShadowType> objectDefinition = toShadowDefinition(objClassDefinition);
 
 			if (SyncDeltaType.DELETE.equals(delta.getDeltaType())) {
+				LOGGER.debug("START creating delta of type DELETE");
 				ObjectDelta<ResourceObjectShadowType> objectDelta = new ObjectDelta<ResourceObjectShadowType>(
 						ResourceObjectShadowType.class, ChangeType.DELETE);
 				ResourceAttribute uidAttribute = createUidAttribute(delta.getUid(),
@@ -1847,9 +1852,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				identifiers.add(uidAttribute);
 				Change change = new Change(identifiers, objectDelta, getToken(delta.getToken()));
 				changeList.add(change);
+				LOGGER.debug("END creating delta of type DELETE");
 
 			} else if (SyncDeltaType.CREATE_OR_UPDATE.equals(delta.getDeltaType())) {
 
+				LOGGER.debug("START creating delta of type CREATE_OR_UPDATE");
 				PrismObject<AccountShadowType> currentShadow = convertToResourceObject(delta.getObject(),
 						objectDefinition, false);
 
@@ -1861,6 +1868,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 				Change change = new Change(identifiers, currentShadow, getToken(delta.getToken()));
 				changeList.add(change);
+				LOGGER.debug("END creating delta of type CREATE_OR_UPDATE");
 
 			} else {
 				throw new GenericFrameworkException("Unexpected sync delta type " + delta.getDeltaType());

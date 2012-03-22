@@ -153,7 +153,7 @@ public class ShadowCache {
 	 *             problem communicating with the resource
 	 * @throws SchemaException
 	 *             problem processing schema or schema violation
-	 * @throws ConfigurationException 
+	 * @throws ConfigurationException
 	 */
 	public <T extends ResourceObjectShadowType> T getShadow(Class<T> type, String oid, T repositoryShadow,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
@@ -170,8 +170,7 @@ public class ShadowCache {
 		// for accessing the object by UCF.
 		// Later, the repository object may have a fully cached object from.
 		if (repositoryShadow == null) {
-			 PrismObject<T> repositoryPrism = getRepositoryService().getObject(type, oid, null,
-					parentResult);
+			PrismObject<T> repositoryPrism = getRepositoryService().getObject(type, oid, null, parentResult);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Found shadow object:\n{}", repositoryPrism.dump());
 			}
@@ -209,8 +208,7 @@ public class ShadowCache {
 			// ex);
 			throw ex;
 		} catch (ConfigurationException ex) {
-			parentResult.recordFatalError(
-					"Configuration error. Reason: " + ex.getMessage(), ex);
+			parentResult.recordFatalError("Configuration error. Reason: " + ex.getMessage(), ex);
 			throw ex;
 		}
 		parentResult.recordSuccess();
@@ -226,13 +224,15 @@ public class ShadowCache {
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Start adding shadow object:\n{}", shadow.asPrismObject().dump());
-			LOGGER.trace("Scripts: {}", SchemaDebugUtil.dumpJaxbObject(scripts, "scripts", shadow.asPrismObject().getPrismContext()));
+			LOGGER.trace("Scripts: {}", SchemaDebugUtil.dumpJaxbObject(scripts, "scripts", shadow
+					.asPrismObject().getPrismContext()));
 		}
 
 		if (resource == null) {
 			String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
 			if (StringUtils.isEmpty(resourceOid)) {
-				throw new SchemaException("Shadow "+shadow+" does not have an resource OID, cannot add it.");
+				throw new SchemaException("Shadow " + shadow
+						+ " does not have an resource OID, cannot add it.");
 			}
 			resource = getResource(resourceOid, parentResult);
 		}
@@ -246,7 +246,7 @@ public class ShadowCache {
 				PasswordType password = account.getCredentials().getPassword();
 				ProtectedStringType protectedString = password.getProtectedString();
 				if (protectedString != null) {
-//					Passw	
+					// Passw
 					PasswordChangeOperation passOp = new PasswordChangeOperation(protectedString);
 					additionalOperations.add(passOp);
 				}
@@ -255,12 +255,13 @@ public class ShadowCache {
 		}
 		addExecuteScriptOperation(additionalOperations, OperationTypeType.ADD, scripts, parentResult);
 
-		OperationResult shadowConverterResult = parentResult.createSubresult(ShadowConverter.class.getName() +".addShadow");
-		
+		OperationResult shadowConverterResult = parentResult.createSubresult(ShadowConverter.class.getName()
+				+ ".addShadow");
+
 		try {
 			shadow = shadowConverter.addShadow(resource, shadow, additionalOperations, shadowConverterResult);
 		} catch (Exception ex) {
-			
+
 			ErrorHandler handler = errorHandlerFactory.createErrorHandler(ex);
 			shadow.setFailedOperationType(FailedOperationTypeType.ADD);
 			shadow.setResult(shadowConverterResult.createOperationResultType());
@@ -270,7 +271,7 @@ public class ShadowCache {
 			} else {
 				// FIXME
 				parentResult.recordFatalError("Error without a handler. Reason: " + ex.getMessage(), ex);
-				throw new SystemException(ex.getMessage(),ex);
+				throw new SystemException(ex.getMessage(), ex);
 			}
 		}
 		// } catch (CommunicationException ex) {
@@ -391,29 +392,33 @@ public class ShadowCache {
 				resource = getResource(ResourceObjectShadowUtil.getResourceOid(shadow), parentResult);
 
 			}
-			
-//			ResourceAttributeContainerDefinition objectClassDefinition = ResourceObjectShadowUtil.getObjectClassDefinition(shadow);;
+
+			// ResourceAttributeContainerDefinition objectClassDefinition =
+			// ResourceObjectShadowUtil.getObjectClassDefinition(shadow);;
 
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Modifying resource with oid {}, object:\n{}", resource.getOid(), 
-						shadow.asPrismObject().dump());
+				LOGGER.trace("Modifying resource with oid {}, object:\n{}", resource.getOid(), shadow
+						.asPrismObject().dump());
 			}
 
 			Set<Operation> changes = new HashSet<Operation>();
-//			if (shadow instanceof AccountShadowType) {
-//
-//				// Look for password change
-//				PasswordChangeOperation passwordChangeOp = determinePasswordChange(modifications, shadow);
-//				if (passwordChangeOp != null) {
-//					changes.add(passwordChangeOp);
-//				}
-//				
-//				// look for activation change
-//				Operation activationOperation = determineActivationChange(modifications, resource, objectClassDefinition);
-//				if (activationOperation != null) {
-//					changes.add(activationOperation);
-//				}
-//			}
+			// if (shadow instanceof AccountShadowType) {
+			//
+			// // Look for password change
+			// PasswordChangeOperation passwordChangeOp =
+			// determinePasswordChange(modifications, shadow);
+			// if (passwordChangeOp != null) {
+			// changes.add(passwordChangeOp);
+			// }
+			//
+			// // look for activation change
+			// Operation activationOperation =
+			// determineActivationChange(modifications, resource,
+			// objectClassDefinition);
+			// if (activationOperation != null) {
+			// changes.add(activationOperation);
+			// }
+			// }
 
 			addExecuteScriptOperation(changes, OperationTypeType.MODIFY, scripts, parentResult);
 
@@ -423,8 +428,8 @@ public class ShadowCache {
 
 			Set<PropertyModificationOperation> sideEffectChanges = null;
 			try {
-				sideEffectChanges = shadowConverter.modifyShadow(resource, shadow, changes, oid, modifications,
-						parentResult);
+				sideEffectChanges = shadowConverter.modifyShadow(resource, shadow, changes, oid,
+						modifications, parentResult);
 			} catch (Exception ex) {
 				ErrorHandler handler = errorHandlerFactory.createErrorHandler(ex);
 				shadow.setFailedOperationType(FailedOperationTypeType.MODIFY);
@@ -433,10 +438,11 @@ public class ShadowCache {
 				ObjectChangeModificationType objectChangeType = new ObjectChangeModificationType();
 				ObjectModificationType omt = new ObjectModificationType();
 				omt.setOid(shadow.getOid());
-				for (ItemDelta itemDelta : modifications){
-					omt.getPropertyModification().addAll(DeltaConvertor.toPropertyModificationTypes(itemDelta));
+				for (ItemDelta itemDelta : modifications) {
+					omt.getPropertyModification().addAll(
+							DeltaConvertor.toPropertyModificationTypes(itemDelta));
 				}
-				objectChangeType.setObjectModification(omt);	
+				objectChangeType.setObjectModification(omt);
 				shadow.setObjectChange(objectChangeType);
 				try {
 					handler.handleError(shadow, ex);
@@ -494,6 +500,8 @@ public class ShadowCache {
 
 			changes = shadowConverter.fetchChanges(resourceType, lastToken, parentResult);
 
+			LOGGER.trace("Found {} change(s). Start processing it (them).", changes.size());
+
 			for (Iterator<Change> i = changes.iterator(); i.hasNext();) {
 				// search objects in repository
 				Change change = i.next();
@@ -502,28 +510,33 @@ public class ShadowCache {
 				ResourceObjectShadowType newShadow = findOrCreateShadowFromChange(resourceType, change,
 						parentResult);
 
+				LOGGER.trace("Old shadow: {}", ObjectTypeUtil.toShortString(newShadow));
+
 				// if (change.getObjectDelta() != null &&
 				// change.getObjectDelta().getChangeType()==ChangeType.DELETE &&
 				// newShadow == null){
 				//
 
-				change.setOldShadow(newShadow.asPrismObject());
-
 				// skip setting other attribute when shadow is null
 				if (newShadow == null) {
+					change.setOldShadow(null);
 					continue;
 				}
 
+				change.setOldShadow(newShadow.asPrismObject());
+
 				// FIXME: hack. make sure that the current shadow has OID
 				// and resource ref, also the account type should be set
-				ResourceObjectShadowType currentShadowType = change.getCurrentShadow().asObjectable();
-				if (currentShadowType != null) {
-					currentShadowType.setOid(newShadow.getOid());
-					currentShadowType.setResourceRef(newShadow.getResourceRef());
-					if (currentShadowType instanceof AccountShadowType
-							&& newShadow instanceof AccountShadowType) {
-						((AccountShadowType) currentShadowType)
-								.setAccountType(((AccountShadowType) newShadow).getAccountType());
+				if (change.getCurrentShadow() != null) {
+					ResourceObjectShadowType currentShadowType = change.getCurrentShadow().asObjectable();
+					if (currentShadowType != null) {
+						currentShadowType.setOid(newShadow.getOid());
+						currentShadowType.setResourceRef(newShadow.getResourceRef());
+						if (currentShadowType instanceof AccountShadowType
+								&& newShadow instanceof AccountShadowType) {
+							((AccountShadowType) currentShadowType)
+									.setAccountType(((AccountShadowType) newShadow).getAccountType());
+						}
 					}
 				}
 				// FIXME: hack. the object delta must have oid specified.
@@ -600,117 +613,140 @@ public class ShadowCache {
 		}
 	}
 
-//	private PropertyModificationOperation convertToActivationAttribute(ResourceType resource, Boolean enabled, 
-//			ResourceAttributeContainerDefinition objectClassDefinition) throws SchemaException {
-//		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
-//				ActivationCapabilityType.class);
-//		if (activationCapability == null) {
-//			throw new SchemaException("Resource " + ObjectTypeUtil.toShortString(resource)
-//					+ " does not have native or simulated activation capability");
-//		}
-//		
-//		EnableDisable enableDisable = activationCapability.getEnableDisable();
-//		if (enableDisable == null) {
-//			throw new SchemaException("Resource " + ObjectTypeUtil.toShortString(resource)
-//					+ " does not have native or simulated activation/enableDisable capability");
-//		}
-//
-//		QName enableAttributeName = enableDisable.getAttribute();
-//		if (enableAttributeName == null) {
-//			throw new SchemaException(
-//					"Resource " + ObjectTypeUtil.toShortString(resource)
-//							+ " does not have attribute specification for simulated activation/enableDisable capability");
-//		}
-//		
-//		ResourceAttributeDefinition enableAttributeDefinition = objectClassDefinition.findAttributeDefinition(enableAttributeName);
-//		if (enableAttributeDefinition == null) {
-//			throw new SchemaException(
-//					"Resource " + ObjectTypeUtil.toShortString(resource)
-//							+ "  attribute for simulated activation/enableDisable capability" + enableAttributeName +
-//							" in not present in the schema for objeclass " + objectClassDefinition);
-//		}
-//		
-//		PropertyDelta enableAttributeDelta 
-//			= new PropertyDelta(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, enableAttributeName),
-//					enableAttributeDefinition);
-//		
-//		List<String> enableValues = enableDisable.getEnableValue();
-//
-//		Iterator<String> i = enableValues.iterator();
-//		String enableValue = i.next();
-//		if ("".equals(enableValue)) {
-//			if (enableValues.size() < 2) {
-//				enableValue = "false";
-//			} else {
-//				enableValue = i.next();
-//			}
-//		}
-//		String disableValue = enableDisable.getDisableValue().iterator().next();
-//		if (enabled) {
-//			enableAttributeDelta.setValueToReplace(new PrismPropertyValue(enableValue));
-//		} else {
-//			enableAttributeDelta.setValueToReplace(new PrismPropertyValue(disableValue));
-//		}
-//		
-//		PropertyModificationOperation attributeChange = new PropertyModificationOperation(enableAttributeDelta);
-//		return attributeChange;
-//	}
+	// private PropertyModificationOperation
+	// convertToActivationAttribute(ResourceType resource, Boolean enabled,
+	// ResourceAttributeContainerDefinition objectClassDefinition) throws
+	// SchemaException {
+	// ActivationCapabilityType activationCapability =
+	// ResourceTypeUtil.getEffectiveCapability(resource,
+	// ActivationCapabilityType.class);
+	// if (activationCapability == null) {
+	// throw new SchemaException("Resource " +
+	// ObjectTypeUtil.toShortString(resource)
+	// + " does not have native or simulated activation capability");
+	// }
+	//
+	// EnableDisable enableDisable = activationCapability.getEnableDisable();
+	// if (enableDisable == null) {
+	// throw new SchemaException("Resource " +
+	// ObjectTypeUtil.toShortString(resource)
+	// +
+	// " does not have native or simulated activation/enableDisable capability");
+	// }
+	//
+	// QName enableAttributeName = enableDisable.getAttribute();
+	// if (enableAttributeName == null) {
+	// throw new SchemaException(
+	// "Resource " + ObjectTypeUtil.toShortString(resource)
+	// +
+	// " does not have attribute specification for simulated activation/enableDisable capability");
+	// }
+	//
+	// ResourceAttributeDefinition enableAttributeDefinition =
+	// objectClassDefinition.findAttributeDefinition(enableAttributeName);
+	// if (enableAttributeDefinition == null) {
+	// throw new SchemaException(
+	// "Resource " + ObjectTypeUtil.toShortString(resource)
+	// + "  attribute for simulated activation/enableDisable capability" +
+	// enableAttributeName +
+	// " in not present in the schema for objeclass " + objectClassDefinition);
+	// }
+	//
+	// PropertyDelta enableAttributeDelta
+	// = new PropertyDelta(new
+	// PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, enableAttributeName),
+	// enableAttributeDefinition);
+	//
+	// List<String> enableValues = enableDisable.getEnableValue();
+	//
+	// Iterator<String> i = enableValues.iterator();
+	// String enableValue = i.next();
+	// if ("".equals(enableValue)) {
+	// if (enableValues.size() < 2) {
+	// enableValue = "false";
+	// } else {
+	// enableValue = i.next();
+	// }
+	// }
+	// String disableValue = enableDisable.getDisableValue().iterator().next();
+	// if (enabled) {
+	// enableAttributeDelta.setValueToReplace(new
+	// PrismPropertyValue(enableValue));
+	// } else {
+	// enableAttributeDelta.setValueToReplace(new
+	// PrismPropertyValue(disableValue));
+	// }
+	//
+	// PropertyModificationOperation attributeChange = new
+	// PropertyModificationOperation(enableAttributeDelta);
+	// return attributeChange;
+	// }
 
-//	private Operation determineActivationChange(Collection<? extends ItemDelta> objectChange, ResourceType resource,
-//			ResourceAttributeContainerDefinition objectClassDefinition) throws SchemaException {
-//		
-//		PropertyDelta<Boolean> enabledPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
-//				new PropertyPath(ResourceObjectShadowType.F_ACTIVATION, ActivationType.F_ENABLED));
-//		if (enabledPropertyDelta == null) {
-//			return null;
-//		}
-//		Boolean enabled = enabledPropertyDelta.getPropertyNew().getRealValue();
-//		LOGGER.trace("Find activation change to: {}", enabled);
-//
-//		if (enabled != null) {
-//
-//			LOGGER.trace("enabled not null.");
-//			if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
-//				// if resource cannot do activation, resource should
-//				// have specified policies to do that
-//				PropertyModificationOperation activationAttribute = convertToActivationAttribute(resource,
-//						enabled, objectClassDefinition);
-//				// changes.add(activationAttribute);
-//				return activationAttribute;
-//			} else {
-//				// Navive activation, nothing special to do
-//				return new PropertyModificationOperation(enabledPropertyDelta);
-//			}
-//
-//		}
-//		return null;
-//	}
-//
-//	private PasswordChangeOperation determinePasswordChange(Collection<? extends ItemDelta> objectChange,
-//			ResourceObjectShadowType objectType) throws SchemaException {
-//		// Look for password change
-//		
-//		PropertyDelta<PasswordType> passwordPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
-//				new PropertyPath(AccountShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD));
-//		if (passwordPropertyDelta == null) {
-//			return null;
-//		}
-//		PasswordType newPasswordStructure = passwordPropertyDelta.getPropertyNew().getRealValue();
-//		
-//		PasswordChangeOperation passwordChangeOp = null;
-//		if (newPasswordStructure != null) {
-//			ProtectedStringType newPasswordPS = newPasswordStructure.getProtectedString();
-//			if (MiscSchemaUtil.isNullOrEmpty(newPasswordPS)) {
-//				throw new IllegalArgumentException(
-//						"ProtectedString is empty in an attempt to change password of "
-//								+ ObjectTypeUtil.toShortString(objectType));
-//			}
-//			passwordChangeOp = new PasswordChangeOperation(newPasswordPS);
-//			// TODO: other things from the structure
-//			// changes.add(passwordChangeOp);
-//		}
-//		return passwordChangeOp;
-//	}
+	// private Operation determineActivationChange(Collection<? extends
+	// ItemDelta> objectChange, ResourceType resource,
+	// ResourceAttributeContainerDefinition objectClassDefinition) throws
+	// SchemaException {
+	//
+	// PropertyDelta<Boolean> enabledPropertyDelta =
+	// PropertyDelta.findPropertyDelta(objectChange,
+	// new PropertyPath(ResourceObjectShadowType.F_ACTIVATION,
+	// ActivationType.F_ENABLED));
+	// if (enabledPropertyDelta == null) {
+	// return null;
+	// }
+	// Boolean enabled = enabledPropertyDelta.getPropertyNew().getRealValue();
+	// LOGGER.trace("Find activation change to: {}", enabled);
+	//
+	// if (enabled != null) {
+	//
+	// LOGGER.trace("enabled not null.");
+	// if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
+	// // if resource cannot do activation, resource should
+	// // have specified policies to do that
+	// PropertyModificationOperation activationAttribute =
+	// convertToActivationAttribute(resource,
+	// enabled, objectClassDefinition);
+	// // changes.add(activationAttribute);
+	// return activationAttribute;
+	// } else {
+	// // Navive activation, nothing special to do
+	// return new PropertyModificationOperation(enabledPropertyDelta);
+	// }
+	//
+	// }
+	// return null;
+	// }
+	//
+	// private PasswordChangeOperation determinePasswordChange(Collection<?
+	// extends ItemDelta> objectChange,
+	// ResourceObjectShadowType objectType) throws SchemaException {
+	// // Look for password change
+	//
+	// PropertyDelta<PasswordType> passwordPropertyDelta =
+	// PropertyDelta.findPropertyDelta(objectChange,
+	// new PropertyPath(AccountShadowType.F_CREDENTIALS,
+	// CredentialsType.F_PASSWORD));
+	// if (passwordPropertyDelta == null) {
+	// return null;
+	// }
+	// PasswordType newPasswordStructure =
+	// passwordPropertyDelta.getPropertyNew().getRealValue();
+	//
+	// PasswordChangeOperation passwordChangeOp = null;
+	// if (newPasswordStructure != null) {
+	// ProtectedStringType newPasswordPS =
+	// newPasswordStructure.getProtectedString();
+	// if (MiscSchemaUtil.isNullOrEmpty(newPasswordPS)) {
+	// throw new IllegalArgumentException(
+	// "ProtectedString is empty in an attempt to change password of "
+	// + ObjectTypeUtil.toShortString(objectType));
+	// }
+	// passwordChangeOp = new PasswordChangeOperation(newPasswordPS);
+	// // TODO: other things from the structure
+	// // changes.add(passwordChangeOp);
+	// }
+	// return passwordChangeOp;
+	// }
 
 	private ResourceObjectShadowType findOrCreateShadowFromChange(ResourceType resource, Change change,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
@@ -743,8 +779,9 @@ public class ShadowCache {
 				try {
 					addShadowToRepository(newShadow, parentResult);
 				} catch (ObjectAlreadyExistsException e) {
-					parentResult.recordFatalError("Can't add account " + SchemaDebugUtil.prettyPrint(newShadow)
-							+ " to the repository. Reason: " + e.getMessage(), e);
+					parentResult.recordFatalError(
+							"Can't add account " + SchemaDebugUtil.prettyPrint(newShadow)
+									+ " to the repository. Reason: " + e.getMessage(), e);
 					throw new IllegalStateException(e.getMessage(), e);
 				}
 				LOGGER.trace("Created account shadow object: {}", ObjectTypeUtil.toShortString(newShadow));
@@ -777,8 +814,8 @@ public class ShadowCache {
 		return newShadow;
 	}
 
-	private List<PrismObject<AccountShadowType>> searchAccountByIdenifiers(Change change, OperationResult parentResult)
-			throws SchemaException {
+	private List<PrismObject<AccountShadowType>> searchAccountByIdenifiers(Change change,
+			OperationResult parentResult) throws SchemaException {
 
 		QueryType query = ShadowCacheUtil.createSearchShadowQuery(change.getIdentifiers(), parentResult);
 
@@ -802,7 +839,8 @@ public class ShadowCache {
 			throw new IllegalArgumentException("Cannot get resource with an empty OID");
 		}
 		// TODO: add some caching
-		PrismObject<ResourceType> resource = getRepositoryService().getObject(ResourceType.class, oid, null, parentResult);
+		PrismObject<ResourceType> resource = getRepositoryService().getObject(ResourceType.class, oid, null,
+				parentResult);
 		// return resource;
 		return shadowConverter.completeResource(resource.asObjectable(), parentResult);
 	}
