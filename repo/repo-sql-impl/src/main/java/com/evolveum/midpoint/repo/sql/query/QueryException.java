@@ -24,13 +24,13 @@ package com.evolveum.midpoint.repo.sql.query;
 /**
  * @author lazyman
  */
-public class QueryInterpreterException extends Exception {
+public class QueryException extends Exception {
 
-    public QueryInterpreterException(String s) {
+    public QueryException(String s) {
         super(s);
     }
 
-    public QueryInterpreterException(String s, Throwable throwable) {
+    public QueryException(String s, Throwable throwable) {
         super(s, throwable);
     }
 }

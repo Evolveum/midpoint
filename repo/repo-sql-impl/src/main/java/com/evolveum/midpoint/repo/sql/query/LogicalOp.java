@@ -44,14 +44,14 @@ public class LogicalOp extends Op {
     }
 
     @Override
-    public Criterion interpret(Element filterPart, boolean pushNot) throws QueryInterpreterException {
+    public Criterion interpret(Element filterPart, boolean pushNot) throws QueryException {
         validate(filterPart);
 
         Operation operation = getOperationType(filterPart);
         List<Element> elements = DOMUtil.listChildElements(filterPart);
         switch (elements.size()) {
             case 0:
-                throw new QueryInterpreterException("Can't have logical filter '"
+                throw new QueryException("Can't have logical filter '"
                         + DOMUtil.getQNameWithoutPrefix(filterPart) + "' without filter children.");
             case 1:
                 boolean newPushNot = pushNot;
@@ -62,7 +62,7 @@ public class LogicalOp extends Op {
             default:
                 switch (operation) {
                     case NOT:
-                        throw new QueryInterpreterException("Can't create filter NOT (unary) with more than one element.");
+                        throw new QueryException("Can't create filter NOT (unary) with more than one element.");
                     case AND:
                         Conjunction conjunction = Restrictions.conjunction();
                         for (Element element : elements) {
@@ -80,10 +80,10 @@ public class LogicalOp extends Op {
                 }
         }
 
-        throw new QueryInterpreterException("bla bla");//todo message
+        throw new QueryException("bla bla");//todo message
     }
 
-    private Operation getOperationType(Element filterPart) throws QueryInterpreterException {
+    private Operation getOperationType(Element filterPart) throws QueryException {
         if (DOMUtil.isElementName(filterPart, SchemaConstants.C_AND)) {
             return Operation.AND;
         } else if (DOMUtil.isElementName(filterPart, SchemaConstants.C_OR)) {
@@ -92,7 +92,7 @@ public class LogicalOp extends Op {
             return Operation.NOT;
         }
 
-        throw new QueryInterpreterException("Unknown filter type '" + DOMUtil.getQNameWithoutPrefix(filterPart) + "'.");
+        throw new QueryException("Unknown filter type '" + DOMUtil.getQNameWithoutPrefix(filterPart) + "'.");
     }
 
     @Override

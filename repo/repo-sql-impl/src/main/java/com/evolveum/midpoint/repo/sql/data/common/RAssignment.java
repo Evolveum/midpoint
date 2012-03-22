@@ -50,7 +50,7 @@ public class RAssignment extends RContainer implements ROwnable {
     private String ownerOid;
     private Long ownerId;
     //extension
-    @QueryEntity(extension = true)
+    @QueryEntity(any = true)
     private RAnyContainer extension;
     //assignment fields
     @QueryEntity(embedded = true)

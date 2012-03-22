@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
@@ -59,7 +60,7 @@ public class SimpleOp extends Op {
 //        </c:equal>
 
     @Override
-    public Criterion interpret(Element filter, boolean pushNot) throws QueryInterpreterException {
+    public Criterion interpret(Element filter, boolean pushNot) throws QueryException {
         validate(filter);
 
         Element path = DOMUtil.getChildElement(filter, SchemaConstants.C_PATH);
@@ -69,7 +70,7 @@ public class SimpleOp extends Op {
 
         Element value = DOMUtil.getChildElement(filter, SchemaConstants.C_VALUE);
         if (value == null || DOMUtil.listChildElements(value).isEmpty()) {
-            throw new QueryInterpreterException("Equal without value element, or without element in <value> not supported now.");
+            throw new QueryException("Equal without value element, or without element in <value> not supported now.");
         }
 
         Element condition = DOMUtil.listChildElements(value).get(0);
@@ -87,60 +88,106 @@ public class SimpleOp extends Op {
         return equal;
     }
 
-    private String updateConditionItem(QName conditionItem, Element path) {
-        //todo fix with mapping
-        StringBuilder item = new StringBuilder();
-
+    private String updateConditionItem(QName conditionItem, Element path) throws QueryException {
+        PropertyPath propertyPath = null;
         if (path != null && StringUtils.isNotEmpty(path.getTextContent())) {
-            XPathHolder holder = new XPathHolder(path);
-            PropertyPath propertyPath = holder.toPropertyPath();
+            propertyPath = new XPathHolder(path).toPropertyPath();
+        }
 
-            // todo check if propPath is extension (RAnyContainer association) and than we have to create one more
-            // criteria based on definition to string/long/date (clob throws exception). and if it is extension
-            // look for that path alias and user "value" as conditionItem
+        EntityDefinition definition = findDefinition(getInterpreter().getType(), propertyPath);
 
-            String alias = getContext().getAlias(propertyPath);
-            if (StringUtils.isNotEmpty(alias)) {
-                item.append(alias);
+        StringBuilder item = new StringBuilder();
+        if (propertyPath != null) {
+            if (definition.isAny()) {
+                String anyTypeName = "";
+                addNewCriteriaToContext(propertyPath, anyTypeName);
+            } else {
+                String alias = getContext().getAlias(propertyPath);
+                if (StringUtils.isNotEmpty(alias)) {
+                    item.append(alias);
+                }
             }
         }
 
         if (item.length() != 0) {
             item.append(".");
         }
-        item.append(conditionItem.getLocalPart());
+
+        if (definition.isAny()) {
+            item.append("value");
+        } else {
+            item.append(definition.findDefinition(conditionItem));
+        }
 
         return item.toString();
     }
 
-    //todo createCriteria for path items with aliases, also save these in some map as <path, prefix>
-    //check path with some schema stuff as well as check it against query annotations in data.common package
-    //add this mappings to query context...
-    private void updateQueryContext(Element path) throws QueryInterpreterException {
-        XPathHolder holder = new XPathHolder(path);
-        List<XPathSegment> segments = holder.toSegments();
+    private EntityDefinition findDefinition(Class<? extends ObjectType> type, PropertyPath path) {
+        //todo implement
+        return null;
+    }
+
+    private void updateQueryContext(Element path) throws QueryException {
+        Class<? extends ObjectType> type = getInterpreter().getType();
+        Definition definition = QueryRegistry.getInstance().findDefinition(type);
+        if (definition == null) {
+            throw new QueryException("Can't query, unknown type '" + type.getSimpleName() + "'.");
+        }
+
+        List<XPathSegment> segments = new XPathHolder(path).toSegments();
 
         List<PropertyPathSegment> propPathSegments = new ArrayList<PropertyPathSegment>();
-        PropertyPath lastPropPath = null;
         PropertyPath propPath;
         for (XPathSegment segment : segments) {
             QName qname = segment.getQName();
+            //create new property path
             propPathSegments.add(new PropertyPathSegment(qname));
-
             propPath = new PropertyPath(propPathSegments);
+            //get entity query definition
+            definition = definition.findDefinition(qname);
+            if (definition == null || !definition.isEntity()) {
+                throw new QueryException("This definition is not entity definition, we can't query attribute " +
+                        "in attribute. Please check your path in query, or query entity/attribute mappings.");
+            }
 
-            //todo check if propPath is extension (RAnyContainer association) and than we have to create one more criteria
-            //based on definition to string/long/date (clob throws exception) . Also add it as new property path to context
+            EntityDefinition entityDefinition = (EntityDefinition) definition;
+            if (entityDefinition.isEmbedded()) {
+                //for embedded relationships we don't have to create new criteria
+                continue;
+            }
 
-            Criteria pCriteria = getContext().getCriteria(lastPropPath);
-            Criteria criteria = pCriteria.createCriteria(qname.getLocalPart(),
-                    Character.toString(qname.getLocalPart().charAt(0)));
-            getContext().setCriteria(propPath, criteria);
-            getContext().setAlias(propPath, createAlias(propPath.last()));
+//            if (entityDefinition.isAny()) {
+            //todo we have to create special criterias...
+//            } else {
+            //todo createCriteria for path items with aliases, also save these in some map as <path, prefix>
+            //check path with some schema stuff as well as check it against query annotations in data.common package
+            //add this mappings to query context...
+
+            // todo check if propPath is extension (RAnyContainer association) and than we have to
+            // create one more criteria based on definition to string/long/date (clob throws exception).
+            // Also add it as new property path to context
+
+            addNewCriteriaToContext(propPath, definition.getRealName());
+//            }
         }
     }
 
-    private String createAlias(PropertyPathSegment segment) throws QueryInterpreterException {
+    private void addNewCriteriaToContext(PropertyPath propPath, String realName) throws QueryException {
+        PropertyPath lastPropPath = propPath.allExceptLast();
+        if (PropertyPath.EMPTY_PATH.equals(lastPropPath)) {
+            lastPropPath = null;
+        }
+        // get parent criteria
+        Criteria pCriteria = getContext().getCriteria(lastPropPath);
+        // create new criteria for this relationship
+        String alias = createAlias(propPath.last());
+        Criteria criteria = pCriteria.createCriteria(realName, alias);
+        //save criteria and alias to our query context
+        getContext().setCriteria(propPath, criteria);
+        getContext().setAlias(propPath, createAlias(propPath.last()));
+    }
+
+    private String createAlias(PropertyPathSegment segment) throws QueryException {
         String prefix = Character.toString(segment.getName().getLocalPart().charAt(0));
         int index = 0;
 
@@ -149,9 +196,9 @@ public class SimpleOp extends Op {
             alias = prefix + Integer.toString(index);
             index++;
 
-            if (index > 40) {
-                throw new QueryInterpreterException("Alias index for segment '" + segment.getName()
-                        + "' is more than 100? Should not happen.");
+            if (index > 20) {
+                throw new QueryException("Alias index for segment '" + segment.getName()
+                        + "' is more than 20? Should not happen.");
             }
         }
 

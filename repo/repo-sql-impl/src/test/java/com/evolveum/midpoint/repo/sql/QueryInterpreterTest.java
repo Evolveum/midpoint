@@ -26,7 +26,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.RAccountShadow;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
-import com.evolveum.midpoint.repo.sql.query.QueryInterpreterException;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -133,7 +133,7 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
     }
 
     private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, File file) throws
-            QueryInterpreterException {
+            QueryException {
 
         QueryInterpreter interpreter = new QueryInterpreter(session, type, prismContext);
 

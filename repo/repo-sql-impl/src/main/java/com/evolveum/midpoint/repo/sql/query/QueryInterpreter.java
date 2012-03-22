@@ -48,7 +48,7 @@ public class QueryInterpreter {
         getContext().setCriteria(null, criteria);
     }
 
-    public Criteria interpret(Element filter) throws QueryInterpreterException {
+    public Criteria interpret(Element filter) throws QueryException {
         Criterion criterion = interpret(filter, false);
 
         Criteria criteria = getContext().getCriteria(null);
@@ -57,7 +57,7 @@ public class QueryInterpreter {
         return criteria;
     }
 
-    public Criterion interpret(Element filter, boolean pushNot) throws QueryInterpreterException {
+    public Criterion interpret(Element filter, boolean pushNot) throws QueryException {
         //todo fix operation choosing and initialization...
         Op operation = new LogicalOp(this);
         if (operation.canHandle(filter)) {
@@ -68,7 +68,7 @@ public class QueryInterpreter {
             return operation.interpret(filter, pushNot);
         }
 
-        throw new QueryInterpreterException("Unsupported query filter '"
+        throw new QueryException("Unsupported query filter '"
                 + DOMUtil.getQNameWithoutPrefix(filter) + "'.");
     }
 

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -105,5 +106,9 @@ public final class ClassMapper {
         }
 
         throw new IllegalArgumentException("Couldn't find qname for hql type " + type);
+    }
+    
+    public static Collection<RContainerType> getKnownTypes() {
+        return types.values();
     }
 }
