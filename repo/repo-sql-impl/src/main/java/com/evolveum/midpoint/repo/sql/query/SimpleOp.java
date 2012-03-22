@@ -21,15 +21,17 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PropertyPathSegment;
+import com.evolveum.midpoint.repo.sql.data.common.RUtil;
+import com.evolveum.midpoint.repo.sql.type.QNameType;
 import com.evolveum.midpoint.schema.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
-import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
+import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.w3c.dom.Element;
@@ -64,8 +66,9 @@ public class SimpleOp extends Op {
         validate(filter);
 
         Element path = DOMUtil.getChildElement(filter, SchemaConstants.C_PATH);
-        if (path != null && StringUtils.isNotEmpty(path.getTextContent())) {
-            updateQueryContext(path);
+        PropertyPath propertyPath = getInterpreter().createPropertyPath(path);
+        if (path != null) {
+            updateQueryContext(propertyPath);
         }
 
         Element value = DOMUtil.getChildElement(filter, SchemaConstants.C_VALUE);
@@ -74,72 +77,115 @@ public class SimpleOp extends Op {
         }
 
         Element condition = DOMUtil.listChildElements(value).get(0);
-        String conditionItem = updateConditionItem(DOMUtil.getQNameWithoutPrefix(condition), path);
+        QName condQName = DOMUtil.getQNameWithoutPrefix(condition);
+        SimpleItem conditionItem = updateConditionItem(condQName, propertyPath);
 
-        //todo if we're querying extension value create conjunction on qname name and type and value also get type right
-
-        Criterion equal;
+        Criterion criterion;
         if (pushNot) {
-            equal = Restrictions.ne(conditionItem, condition.getTextContent());
+            criterion = Restrictions.ne(conditionItem.getQueryableItem(), condition.getTextContent());
         } else {
-            equal = Restrictions.eq(conditionItem, condition.getTextContent());
+            criterion = Restrictions.eq(conditionItem.getQueryableItem(), condition.getTextContent());
         }
 
-        return equal;
+        if (conditionItem.isAny) {
+            ItemDefinition itemDefinition = getInterpreter().findDefinition(path, condQName);
+            QName name = itemDefinition.getName();
+            QName type = itemDefinition.getTypeName();
+
+            Conjunction conjunction = Restrictions.conjunction();
+            conjunction.add(criterion);
+            conjunction.add(Restrictions.eq(conditionItem.alias + ".name", QNameType.optimizeQName(name)));
+            conjunction.add(Restrictions.eq(conditionItem.alias + ".type", QNameType.optimizeQName(type)));
+
+            criterion = conjunction;
+        }
+
+        return criterion;
     }
 
-    private String updateConditionItem(QName conditionItem, Element path) throws QueryException {
-        PropertyPath propertyPath = null;
-        if (path != null && StringUtils.isNotEmpty(path.getTextContent())) {
-            propertyPath = new XPathHolder(path).toPropertyPath();
-        }
-
+    private SimpleItem updateConditionItem(QName conditionItem, PropertyPath propertyPath) throws QueryException {
+        SimpleItem item = new SimpleItem();
         EntityDefinition definition = findDefinition(getInterpreter().getType(), propertyPath);
 
-        StringBuilder item = new StringBuilder();
         if (propertyPath != null) {
             if (definition.isAny()) {
-                String anyTypeName = "";
-                addNewCriteriaToContext(propertyPath, anyTypeName);
-            } else {
-                String alias = getContext().getAlias(propertyPath);
+                item.isAny = true;
+
+                List<PropertyPathSegment> segments = propertyPath.getSegments();
+                //todo get from somewhere - from RAnyConverter, somehow
+                //strings | longs | dates | clobs
+                String anyTypeName = "strings";
+                segments.add(new PropertyPathSegment(new QName(RUtil.NS_SQL_REPO, anyTypeName)));
+
+                PropertyPath extPath = new PropertyPath(segments);
+                addNewCriteriaToContext(extPath, anyTypeName);
+
+                String alias = getInterpreter().getAlias(extPath);
                 if (StringUtils.isNotEmpty(alias)) {
-                    item.append(alias);
+                    item.alias = alias;
+                }
+            } else {
+                String alias = getInterpreter().getAlias(propertyPath);
+                if (StringUtils.isNotEmpty(alias)) {
+                    item.alias = alias;
                 }
             }
         }
 
-        if (item.length() != 0) {
-            item.append(".");
-        }
-
         if (definition.isAny()) {
-            item.append("value");
+            item.item = "value";
         } else {
-            item.append(definition.findDefinition(conditionItem));
+            Definition attrDef = definition.findDefinition(conditionItem);
+            if (attrDef == null) {
+                throw new QueryException("Couldn't find query definition for condition item '" + conditionItem + "'.");
+            }
+            if (attrDef.isEntity()) {
+                throw new QueryException("Can't query entity for value, only attribute can be queried for value.");
+            }
+            item.item = attrDef.getRealName();
         }
 
-        return item.toString();
+        return item;
     }
 
-    private EntityDefinition findDefinition(Class<? extends ObjectType> type, PropertyPath path) {
-        //todo implement
-        return null;
+    private EntityDefinition findDefinition(Class<? extends ObjectType> type, PropertyPath path) throws QueryException {
+        EntityDefinition definition = getClassTypeDefinition(type);
+        if (path == null) {
+            return definition;
+        }
+
+        Definition def;
+        for (PropertyPathSegment segment : path.getSegments()) {
+            def = definition.findDefinition(segment.getName());
+            if (!def.isEntity()) {
+                throw new QueryException("Can't query attribute in attribute.");
+            } else {
+                definition = (EntityDefinition) def;
+            }
+        }
+
+        return definition;
     }
 
-    private void updateQueryContext(Element path) throws QueryException {
-        Class<? extends ObjectType> type = getInterpreter().getType();
-        Definition definition = QueryRegistry.getInstance().findDefinition(type);
+    private EntityDefinition getClassTypeDefinition(Class<? extends ObjectType> type) throws QueryException {
+        EntityDefinition definition = QueryRegistry.getInstance().findDefinition(type);
         if (definition == null) {
             throw new QueryException("Can't query, unknown type '" + type.getSimpleName() + "'.");
         }
 
-        List<XPathSegment> segments = new XPathHolder(path).toSegments();
+        return definition;
+    }
+
+    private void updateQueryContext(PropertyPath path) throws QueryException {
+        Class<? extends ObjectType> type = getInterpreter().getType();
+        Definition definition = getClassTypeDefinition(type);
+
+        List<PropertyPathSegment> segments = path.getSegments();
 
         List<PropertyPathSegment> propPathSegments = new ArrayList<PropertyPathSegment>();
         PropertyPath propPath;
-        for (XPathSegment segment : segments) {
-            QName qname = segment.getQName();
+        for (PropertyPathSegment segment : segments) {
+            QName qname = segment.getName();
             //create new property path
             propPathSegments.add(new PropertyPathSegment(qname));
             propPath = new PropertyPath(propPathSegments);
@@ -156,19 +202,7 @@ public class SimpleOp extends Op {
                 continue;
             }
 
-//            if (entityDefinition.isAny()) {
-            //todo we have to create special criterias...
-//            } else {
-            //todo createCriteria for path items with aliases, also save these in some map as <path, prefix>
-            //check path with some schema stuff as well as check it against query annotations in data.common package
-            //add this mappings to query context...
-
-            // todo check if propPath is extension (RAnyContainer association) and than we have to
-            // create one more criteria based on definition to string/long/date (clob throws exception).
-            // Also add it as new property path to context
-
             addNewCriteriaToContext(propPath, definition.getRealName());
-//            }
         }
     }
 
@@ -178,13 +212,13 @@ public class SimpleOp extends Op {
             lastPropPath = null;
         }
         // get parent criteria
-        Criteria pCriteria = getContext().getCriteria(lastPropPath);
+        Criteria pCriteria = getInterpreter().getCriteria(lastPropPath);
         // create new criteria for this relationship
         String alias = createAlias(propPath.last());
         Criteria criteria = pCriteria.createCriteria(realName, alias);
         //save criteria and alias to our query context
-        getContext().setCriteria(propPath, criteria);
-        getContext().setAlias(propPath, createAlias(propPath.last()));
+        getInterpreter().setCriteria(propPath, criteria);
+        getInterpreter().setAlias(propPath, createAlias(propPath.last()));
     }
 
     private String createAlias(PropertyPathSegment segment) throws QueryException {
@@ -192,7 +226,7 @@ public class SimpleOp extends Op {
         int index = 0;
 
         String alias = prefix;
-        while (getContext().hasAlias(alias)) {
+        while (getInterpreter().hasAlias(alias)) {
             alias = prefix + Integer.toString(index);
             index++;
 
@@ -203,5 +237,22 @@ public class SimpleOp extends Op {
         }
 
         return alias;
+    }
+
+    private static class SimpleItem {
+
+        String item;
+        String alias;
+        boolean isAny;
+
+        String getQueryableItem() {
+            StringBuilder builder = new StringBuilder();
+            if (StringUtils.isNotEmpty(alias)) {
+                builder.append(alias);
+                builder.append(".");
+            }
+            builder.append(item);
+            return builder.toString();
+        }
     }
 }

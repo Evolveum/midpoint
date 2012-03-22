@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
+import org.apache.commons.lang.StringUtils;
+
 import javax.xml.namespace.QName;
 
 /**
@@ -50,6 +52,9 @@ public abstract class Definition {
     }
 
     public String getRealName() {
+        if (StringUtils.isEmpty(realName)) {
+            return name.getLocalPart();
+        }
         return realName;
     }
 

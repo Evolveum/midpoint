@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
+import org.apache.commons.lang.Validate;
+
 import javax.xml.namespace.QName;
 import java.util.HashMap;
 import java.util.Map;
@@ -52,16 +54,38 @@ public class EntityDefinition extends Definition {
 
     @Override
     public Definition findDefinition(QName qname) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return findDefinition(qname, Definition.class);
     }
 
     @Override
     public <T extends Definition> T findDefinition(QName qname, Class<T> type) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        Validate.notNull(qname, "QName must not be null.");
+        Validate.notNull(type, "Class type must not be null.");
+
+        Definition definition = definitions.get(qname);
+        if (definition == null) {
+            return null;
+        }
+
+        if (type.isAssignableFrom(definition.getClass())) {
+            return (T) definition;
+        }
+
+        return null;
     }
 
     @Override
     public boolean isEntity() {
         return true;
+    }
+
+    @Deprecated
+    public void addDefinition(QName qname, Definition definition) {
+        definitions.put(qname, definition);
+    }
+
+    @Override
+    public String toString() {
+        return getType().toString();
     }
 }

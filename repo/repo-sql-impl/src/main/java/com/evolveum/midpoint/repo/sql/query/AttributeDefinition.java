@@ -42,4 +42,9 @@ public class AttributeDefinition extends Definition {
     public boolean isEntity() {
         return false;
     }
+
+    @Override
+    public String toString() {
+        return getType().toString();
+    }
 }

@@ -26,8 +26,11 @@ import com.evolveum.midpoint.repo.sql.data.common.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.schema.SchemaConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
 import java.lang.reflect.Field;
@@ -58,7 +61,8 @@ public class QueryRegistry {
     }
 
     public EntityDefinition findDefinition(QName qname) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        Validate.notNull(qname, "QName must not be null.");
+        return definitions.get(qname);
     }
 
     /**
@@ -72,8 +76,28 @@ public class QueryRegistry {
         EntityDefinition account = new EntityDefinition();
         account.setName(SchemaConstants.C_ACCOUNT);
         account.setType(AccountShadowType.COMPLEX_TYPE);
+        definitions.put(SchemaConstants.C_ACCOUNT, account);
 
+        AttributeDefinition accountType = new AttributeDefinition();
+        accountType.setName(AccountShadowType.F_ACCOUNT_TYPE);
+        accountType.setType(DOMUtil.XSD_STRING);
+        account.addDefinition(AccountShadowType.F_ACCOUNT_TYPE, accountType);
 
+        EntityDefinition extension = new EntityDefinition();
+        extension.setAny(true);
+        extension.setName(ObjectType.F_EXTENSION);
+        extension.setType(new QName(SchemaConstants.NS_COMMON, "ExtensionType"));
+        account.addDefinition(ObjectType.F_EXTENSION, extension);
+
+        EntityDefinition attributes = new EntityDefinition();
+        attributes.setAny(true);
+        attributes.setName(ResourceObjectShadowType.F_ATTRIBUTES);
+        attributes.setType(ResourceObjectShadowType.COMPLEX_TYPE);
+        account.addDefinition(ResourceObjectShadowType.F_ATTRIBUTES, attributes);
+
+        if (1 == 1) {
+            return;
+        }
         //todo implement
         for (RContainerType type : types) {
             if (RObject.class.equals(type.getClazz())) {

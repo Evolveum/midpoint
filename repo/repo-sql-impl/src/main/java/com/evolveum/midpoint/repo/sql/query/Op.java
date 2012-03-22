@@ -64,10 +64,6 @@ abstract class Op {
         return interpreter;
     }
 
-    protected QueryContext getContext() {
-        return interpreter.getContext();
-    }
-
     protected abstract QName[] canHandle();
 
     public abstract Criterion interpret(Element filter, boolean pushNot) throws QueryException;

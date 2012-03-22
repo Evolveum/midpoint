@@ -46,8 +46,9 @@ import java.util.*;
  * @author lazyman
  */
 public final class RUtil {
-
-    static final QName CUSTOM_OBJECT = new QName("http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd", "sqlRepoObject");
+    
+    public static final String NS_SQL_REPO = "http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd";
+    static final QName CUSTOM_OBJECT = new QName(NS_SQL_REPO, "sqlRepoObject");
 
     private RUtil() {
     }

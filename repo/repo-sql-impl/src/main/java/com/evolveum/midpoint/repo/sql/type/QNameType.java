@@ -76,29 +76,15 @@ public class QNameType implements UserType {
         String namespaceURI = StringType.INSTANCE.nullSafeGet(rs, names[0], session);
         String localPart = StringType.INSTANCE.nullSafeGet(rs, names[1], session);
 
-        //default namespace is saved as null (we save at least some space)
-        if (namespaceURI == null) {
-            namespaceURI = XMLConstants.W3C_XML_SCHEMA_NS_URI;
-        }
-
-        if (StringUtils.isEmpty(localPart)) {
-            return null;
-        }
-
-        return new QName(namespaceURI, localPart);
+        return recreateQName(namespaceURI, localPart);
     }
 
     @Override
     public void nullSafeSet(PreparedStatement st, Object value, int index, SessionImplementor session) throws
             HibernateException, SQLException {
-        QName qname = (QName) value;
+        QName qname = optimizeQName((QName) value);
         String namespaceURI = qname != null ? qname.getNamespaceURI() : null;
         String localPart = qname != null ? qname.getLocalPart() : null;
-
-        //default namespace will be saved as null (we save at least some space)
-        if (XMLConstants.W3C_XML_SCHEMA_NS_URI.equals(namespaceURI)) {
-            namespaceURI = null;
-        }
 
         StringType.INSTANCE.nullSafeSet(st, namespaceURI, index, session);
         StringType.INSTANCE.nullSafeSet(st, localPart, index + 1, session);
@@ -126,5 +112,37 @@ public class QNameType implements UserType {
     @Override
     public Object replace(Object original, Object target, Object owner) throws HibernateException {
         return deepCopy(original);
+    }
+
+    public static QName optimizeQName(QName qname) {
+        if (qname == null) {
+            return null;
+        }
+
+        return optimizeQName(qname.getNamespaceURI(), qname.getLocalPart());
+    }
+
+    public static QName optimizeQName(String namespaceURI, String localPart) {
+        if (XMLConstants.W3C_XML_SCHEMA_NS_URI.equals(namespaceURI)) {
+            namespaceURI = null;
+        }
+
+        if (StringUtils.isEmpty(localPart)) {
+            return null;
+        }
+
+        return new QName(namespaceURI, localPart);
+    }
+
+    public static QName recreateQName(String namespaceURI, String localPart) {
+        if (namespaceURI == null) {
+            namespaceURI = XMLConstants.W3C_XML_SCHEMA_NS_URI;
+        }
+
+        if (StringUtils.isEmpty(localPart)) {
+            return null;
+        }
+
+        return new QName(namespaceURI, localPart);
     }
 }

@@ -94,18 +94,16 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
         c3.add(Restrictions.eq("s1.name", new QName("http://example.com/p", "stringType")));
         c3.add(Restrictions.eq("s1.type", new QName("http://www.w3.org/2001/XMLSchema", "string")));
         //or
-        Criterion c4 = Restrictions.eq("r.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e");
+//        Criterion c4 = Restrictions.eq("r.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e");
 
         Disjunction disjunction = Restrictions.disjunction();
         disjunction.add(c1);
         disjunction.add(c2);
         disjunction.add(c3);
-        disjunction.add(c4);
+//        disjunction.add(c4);
         main.add(disjunction);
 
         String expected = HibernateToSqlTranslator.toSql(main);
-        LOGGER.info("#### " + expected);
-
         String real = getInterpretedQuery(session, AccountShadowType.class,
                 new File("./src/test/resources/query/query-or-composite.xml"));
 

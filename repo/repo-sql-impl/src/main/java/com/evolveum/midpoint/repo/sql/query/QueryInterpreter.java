@@ -22,14 +22,23 @@
 package com.evolveum.midpoint.repo.sql.query;
 
 
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.sql.ClassMapper;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Criterion;
 import org.w3c.dom.Element;
+
+import javax.xml.namespace.QName;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author lazyman
@@ -37,21 +46,23 @@ import org.w3c.dom.Element;
 public class QueryInterpreter {
 
     private PrismContext prismContext;
-    private QueryContext context;
+    //query context stuff
     private Class<? extends ObjectType> type;
+    private Map<PropertyPath, Criteria> criterions = new HashMap<PropertyPath, Criteria>();
+    private Map<PropertyPath, String> aliases = new HashMap<PropertyPath, String>();
 
     public QueryInterpreter(Session session, Class<? extends ObjectType> type, PrismContext prismContext) {
         this.prismContext = prismContext;
         this.type = type;
 
         Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
-        getContext().setCriteria(null, criteria);
+        setCriteria(null, criteria);
     }
 
     public Criteria interpret(Element filter) throws QueryException {
         Criterion criterion = interpret(filter, false);
 
-        Criteria criteria = getContext().getCriteria(null);
+        Criteria criteria = getCriteria(null);
         criteria.add(criterion);
 
         return criteria;
@@ -80,10 +91,60 @@ public class QueryInterpreter {
         return prismContext;
     }
 
-    public QueryContext getContext() {
-        if (context == null) {
-            context = new QueryContext();
+    public ItemDefinition findDefinition(Element path, QName name) {
+        SchemaRegistry registry = prismContext.getSchemaRegistry();
+        PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(type);
+
+        PropertyPath propertyPath = createPropertyPath(path);
+        if (propertyPath == null) {
+            propertyPath = PropertyPath.EMPTY_PATH;
         }
-        return context;
+        
+        List<PropertyPathSegment> segments = propertyPath.getSegments();
+        segments.add(new PropertyPathSegment(name));
+        propertyPath = new PropertyPath(segments); 
+
+        //todo reimplement...
+
+        return objectDef.findItemDefinition(propertyPath);
+    }
+    
+    public PropertyPath createPropertyPath(Element path) {
+        PropertyPath propertyPath = null;
+        if (path != null && StringUtils.isNotEmpty(path.getTextContent())) {
+            propertyPath = new XPathHolder(path).toPropertyPath();
+        }
+
+        return propertyPath; 
+    }
+
+    public Criteria getCriteria(PropertyPath path) {
+        return criterions.get(path);
+    }
+
+    public void setCriteria(PropertyPath path, Criteria criteria) {
+        Validate.notNull(criteria, "Criteria must not be null.");
+        if (criterions.containsKey(path)) {
+            throw new IllegalArgumentException("Already has criteria with this path '" + path + "'");
+        }
+
+        criterions.put(path, criteria);
+    }
+
+    public String getAlias(PropertyPath path) {
+        return aliases.get(path);
+    }
+
+    public void setAlias(PropertyPath path, String alias) {
+        Validate.notNull(alias, "Alias must not be null.");
+        if (aliases.containsValue(alias)) {
+            throw new IllegalArgumentException("Already has alias '" + alias + "' with this path '" + path + "'.");
+        }
+
+        aliases.put(path, alias);
+    }
+
+    public boolean hasAlias(String alias) {
+        return aliases.containsValue(alias);
     }
 }
