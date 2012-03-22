@@ -21,6 +21,9 @@
 <!--                                                         -->
 <configuration>
 	<midpoint>
+        <global>
+            <extensionDir>./src/test/resources/schema</extensionDir>
+        </global>
 		<repository>
 			<repositoryServiceFactoryClass>com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory</repositoryServiceFactoryClass>
 			<runServer>true</runServer>
