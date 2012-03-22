@@ -618,7 +618,11 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		Package compileTimePackage = compileTimeClass.getPackage();
 		for (SchemaDescription desc: schemaDescriptions) {
 			if (compileTimePackage.equals(desc.getCompileTimeClassesPackage())) {
-				return desc.getSchema();
+				PrismSchema schema = desc.getSchema();
+				if (schema.getNamespace().equals(objectSchemaNamespace)) {
+					return getObjectSchema();
+				}
+				return schema;
 			}
 		}
 		return null;
@@ -646,6 +650,14 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 			return null;
 		}
 		return schema.findObjectDefinitionByType(typeName);
+	}
+	
+	public <T extends Objectable> PrismObjectDefinition<T> findObjectDefinitionByElementName(QName elementName) {
+		PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
+		if (schema == null) {
+			return null;
+		}
+		return schema.findObjectDefinitionByElementName(elementName);
 	}
 	
 	public PrismContainerDefinition findContainerDefinitionByType(QName typeName) {
