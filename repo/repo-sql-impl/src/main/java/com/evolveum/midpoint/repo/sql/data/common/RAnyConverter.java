@@ -284,13 +284,29 @@ class RAnyConverter {
         }
 
         Object value = rValue.getValue();
-        if (value instanceof Date) {
-            value = XMLGregorianCalendarType.asXMLGregorianCalendar((Date) value);
+        if (rValue instanceof RDateValue) {
+            if (value instanceof Date) {
+                return XMLGregorianCalendarType.asXMLGregorianCalendar((Date) value);
+            }
+        } else if (rValue instanceof RLongValue) {
+            if (DOMUtil.XSD_LONG.equals(rValue.getType())) {
+                return value;
+            } else if (DOMUtil.XSD_INTEGER.equals(rValue.getType())) {
+                return ((Long) value).intValue();
+            } else if (DOMUtil.XSD_SHORT.equals(rValue.getType())) {
+                return ((Long) value).shortValue();
+            }
+        } else if (rValue instanceof RStringValue) {
+            if (DOMUtil.XSD_STRING.equals(rValue.getType())) {
+                return value;
+            } else if (DOMUtil.XSD_DOUBLE.equals(rValue.getType())) {
+                return Double.parseDouble((String) value);
+            } else if (DOMUtil.XSD_FLOAT.equals(rValue.getType())) {
+                return Float.parseFloat((String) value);
+            }
         }
-        value = XmlTypeConverter.toXsdElement(value, rValue.getName(), rValue.getType(), DOMUtil.getDocument(), false);
-        if (value instanceof Element) {
-            value = XmlTypeConverter.toJavaValue((Element) value, rValue.getType());
-        }
-        return value;
+
+        throw new IllegalStateException("Can't create real value of type '" + rValue.getType()
+                + "' from value saved in DB as '" + rValue.getClass().getSimpleName() + "'.");
     }
 }

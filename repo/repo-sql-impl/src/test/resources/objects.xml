@@ -126,7 +126,7 @@
                 xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
 
             <!-- Configuration specific for the LDAP connector -->
-            <icfcldap:configurationProperties>
+            <icfc:configurationProperties>
                 <icfcldap:port>1389</icfcldap:port>
                 <icfcldap:host>localhost</icfcldap:host>
 
@@ -141,7 +141,7 @@
 
                 <icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
                 <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
-            </icfcldap:configurationProperties>
+            </icfc:configurationProperties>
 
             <!-- Generic ICF configuration -->
 
