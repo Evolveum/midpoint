@@ -70,7 +70,7 @@ public abstract class TaskRunner implements Runnable {
 
 	public void signalShutdown() {
 		LOGGER.info("Task SHUTDOWN requested for "+task+" ("+this.getClass().getSimpleName()+")");
-		task.signalShutdown();
+		((TaskImpl) task).signalShutdown();
 		// In case that the thread was sleeping ...
 		thread.interrupt();
 	}

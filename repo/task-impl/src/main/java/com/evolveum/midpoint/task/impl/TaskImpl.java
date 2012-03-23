@@ -1103,9 +1103,16 @@ public class TaskImpl implements Task {
 
 	
 	
+
+	/**
+	 * Signal the task to shut down.
+	 * It may not stop immediately, but it should stop eventually.
+	 * 
+	 * BEWARE, this method has to be invoked on the same Task instance that is executing.
+	 * If called e.g. on a Task just retrieved from the repository, it will have no effect whatsoever.
+	 */
+
 	
-	
-	@Override
 	public void signalShutdown() {
 		canRun = false;
 	}

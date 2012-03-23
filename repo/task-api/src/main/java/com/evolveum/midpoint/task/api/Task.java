@@ -415,11 +415,6 @@ public interface Task extends Dumpable {
 	 */
 	public void close(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
-	/**
-	 * Signal the task to shut down.
-	 * It may not stop immediately, but it should stop eventually.
-	 */
-	public void signalShutdown();
 
 	/**
 	 * Returns true if the task can run (was not interrupted).
