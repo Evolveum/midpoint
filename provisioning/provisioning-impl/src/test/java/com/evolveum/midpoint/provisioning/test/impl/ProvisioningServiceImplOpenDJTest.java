@@ -619,7 +619,13 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 //			}
 			
 			String uid = ResourceObjectShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);
-			String changedSn = ResourceObjectShadowUtil.getSingleStringAttributeValue(accountType, new QName(RESOURCE_NS, "sn"));
+			List<Object> snValues = ResourceObjectShadowUtil.getAttributeValues(accountType, new QName(RESOURCE_NS, "sn"));
+			
+			assertNotNull(snValues);
+			assertFalse("Surname attributes must not be empty", snValues.isEmpty());
+			assertEquals(1, snValues.size());
+			
+			String changedSn = (String) snValues.get(0);
 			
 			assertNotNull(uid);
 			
