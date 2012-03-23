@@ -2468,10 +2468,10 @@ public class TestSanity extends AbstractIntegrationTest {
         AccountShadowType account = searchAccountByOid(accountOid);
 
         assertEquals("Name doesn't match", "uid=" + USER_NAME + ",ou=People,dc=example,dc=com", account.getName());
-        List<String> localities = getAttributeValues(account, new QName(IMPORT_OBJECTCLASS.getNamespaceURI(), "l"));
+        Collection<String> localities = getAttributeValues(account, new QName(IMPORT_OBJECTCLASS.getNamespaceURI(), "l"));
         assertNotNull(localities);
         assertEquals(1, localities.size());
-        assertEquals("Locality doesn't match", "middle of nowhere", localities.get(0));
+        assertEquals("Locality doesn't match", "middle of nowhere", localities.iterator().next());
     }
 
     private Object findSyncToken(Task syncCycle) {

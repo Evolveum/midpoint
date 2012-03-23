@@ -40,6 +40,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -181,55 +183,54 @@ public class IntegrationTestTools {
 	}
 
 	public static void assertAttribute(ResourceObjectShadowType repoShadow, QName name, String value) {
-		List<String> values = getAttributeValues(repoShadow, name);
+		Collection<String> values = getAttributeValues(repoShadow, name);
 		if (values == null || values.isEmpty()) {
 			AssertJUnit.fail("Attribute "+name+" is not present in "+ObjectTypeUtil.toShortString(repoShadow));
 		}
 		if (values.size() > 1) {
 			AssertJUnit.fail("Too many values for attribute "+name+" in "+ObjectTypeUtil.toShortString(repoShadow));	
 		}
-		assertEquals("Wrong value for attribute "+name+" in "+ObjectTypeUtil.toShortString(repoShadow), value, values.get(0));
+		assertEquals("Wrong value for attribute "+name+" in "+ObjectTypeUtil.toShortString(repoShadow), value, values.iterator().next());
 	}
 
 	public static void assertAttribute(String message, ResourceObjectShadowType repoShadow, QName name, String value) {
-		List<String> values = getAttributeValues(repoShadow, name);
+		Collection<String> values = getAttributeValues(repoShadow, name);
 		assertEquals(message, 1, values.size());
-		assertEquals(message, value, values.get(0));
+		assertEquals(message, value, values.iterator().next());
 	}
 
 	public static void assertAttributeNotNull(ResourceObjectShadowType repoShadow, QName name) {
-		List<String> values = getAttributeValues(repoShadow, name);
+		Collection<String> values = getAttributeValues(repoShadow, name);
 		assertEquals(1, values.size());
-		assertNotNull(values.get(0));
+		assertNotNull(values.iterator().next());
 	}
 
 	public static void assertAttributeNotNull(String message, ResourceObjectShadowType repoShadow, QName name) {
-		List<String> values = getAttributeValues(repoShadow, name);
+		Collection<String> values = getAttributeValues(repoShadow, name);
 		assertEquals(message, 1, values.size());
-		assertNotNull(message, values.get(0));
+		assertNotNull(message, values.iterator().next());
 	}
 
-	public static List<String> getAttributeValues(ResourceObjectShadowType repoShadow, QName name) {
-		List<String> values = new ArrayList<String>();
-		List<Object> xmlAttributes = repoShadow.getAttributes().getAny();
-		for (Object element : xmlAttributes) {
-			if (name.equals(JAXBUtil.getElementQName(element))) {
-				values.add(((Element)element).getTextContent());
-			}			
+	public static Collection<String> getAttributeValues(ResourceObjectShadowType shadowType, QName name) {
+		PrismObject shadow = shadowType.asPrismObject();
+		PrismContainer attrCont = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		if (attrCont == null) {
+			return null;
 		}
-		return values;
+		PrismProperty attrProp = attrCont.findProperty(name);
+		return attrProp.getRealValues(String.class);
 	}
 
 	public static String getAttributeValue(ResourceObjectShadowType repoShadow, QName name) {
 		
-		List<String> values = getAttributeValues(repoShadow, name);
+		Collection<String> values = getAttributeValues(repoShadow, name);
 		if (values == null || values.isEmpty()) {
 			AssertJUnit.fail("Attribute "+name+" not found in shadow "+ObjectTypeUtil.toShortString(repoShadow));
 		}
 		if (values.size() > 1) {
 			AssertJUnit.fail("Too many values for attribute "+name+" in shadow "+ObjectTypeUtil.toShortString(repoShadow));
 		}
-		return values.get(0);
+		return values.iterator().next();
 	}
 
 	public static void displayTestTile(String title) {
