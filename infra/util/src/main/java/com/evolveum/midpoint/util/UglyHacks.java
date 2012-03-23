@@ -119,6 +119,9 @@ public class UglyHacks {
 
 	public static void unfortifyNamespaceDeclarationsSingleElement(Element element) {
 		String fortifiedXmlnss = element.getAttribute(FORTIFIED_NAMESPACE_DECLARATIONS_ELEMENT_NAME);
+		if (element.hasAttribute(FORTIFIED_NAMESPACE_DECLARATIONS_ELEMENT_NAME)) {
+			element.removeAttribute(FORTIFIED_NAMESPACE_DECLARATIONS_ELEMENT_NAME);
+		}
 		if (StringUtils.isBlank(fortifiedXmlnss)) {
 			return;
 		}
@@ -131,6 +134,5 @@ public class UglyHacks {
 				DOMUtil.setNamespaceDeclaration(element, prefix, url);
 			}
 		}
-		element.removeAttribute(FORTIFIED_NAMESPACE_DECLARATIONS_ELEMENT_NAME);
 	}
 }
