@@ -103,7 +103,7 @@ public class ChangeExecutor {
 
         for (AccountSyncContext accCtx : syncContext.getAccountContexts()) {
             ObjectDelta<AccountShadowType> accDelta = accCtx.getAccountDelta();
-            if (accDelta == null) {
+            if (accDelta == null || accDelta.isEmpty()) {
                 LOGGER.trace("No change for account " + accCtx.getResourceAccountType());
                 accCtx.setOid(getOidFromContext(accCtx));
                 updateAccountLinks(syncContext.getUserNew(), accCtx, result);
@@ -162,7 +162,7 @@ public class ChangeExecutor {
         } else {
             // Link should exist
             for (ObjectReferenceType accountRef : userTypeNew.getAccountRef()) {
-                if (accountRef.getOid().equals(accountOid)) {
+                if (accountOid.equals(accountRef.getOid())) {
                     // Already linked, nothing to do
                     return;
                 }
@@ -240,9 +240,15 @@ public class ChangeExecutor {
         if (objectTypeToAdd instanceof TaskType) {
             oid = addTask((TaskType) objectTypeToAdd, result);
         } else if (ObjectTypes.isManagedByProvisioning(objectTypeToAdd)) {
-            oid = addProvisioningObject(objectTypeToAdd, result);
+            oid = addProvisioningObject(objectToAdd, result);
+            if (oid == null) {
+            	throw new SystemException("Provisioning addObject returned null OID while adding " + objectToAdd);
+            }
         } else {
             oid = cacheRepositoryService.addObject(objectToAdd, result);
+            if (oid == null) {
+            	throw new SystemException("Repository addObject returned null OID while adding " + objectToAdd);
+            }
         }
         change.setOid(oid);
 
@@ -293,12 +299,12 @@ public class ChangeExecutor {
         }
     }
 
-    private String addProvisioningObject(ObjectType object, OperationResult result)
+    private String addProvisioningObject(PrismObject<? extends ObjectType> object, OperationResult result)
             throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException,
             CommunicationException, ConfigurationException {
 
-        if (object instanceof ResourceObjectShadowType) {
-            ResourceObjectShadowType shadow = (ResourceObjectShadowType) object;
+        if (object.canRepresent(ResourceObjectShadowType.class)) {
+            ResourceObjectShadowType shadow = (ResourceObjectShadowType) object.asObjectable();
             String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
             if (resourceOid == null) {
                 throw new IllegalArgumentException("Resource OID is null in shadow");
@@ -306,8 +312,8 @@ public class ChangeExecutor {
         }
 
         try {
-            ScriptsType scripts = getScripts(object, result);
-            return provisioning.addObject(object.asPrismObject(), scripts, result);
+            ScriptsType scripts = getScripts(object.asObjectable(), result);
+            return provisioning.addObject(object, scripts, result);
         } catch (ObjectNotFoundException ex) {
             throw ex;
         } catch (ObjectAlreadyExistsException ex) {

@@ -265,6 +265,37 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 					"The delta cannot be both 'replace' and 'add/delete' at the same time");
 		}
 	}
+	
+	/**
+	 * Distributes the replace values of this delta to add and delete with respect to provided existing values.
+	 */
+	public void distributeReplace(Collection<V> existingValues) {
+		if (existingValues != null) {
+			for (V existingVal: existingValues) {
+				if (!isIn(getValuesToReplace(), existingVal)) {
+					addValueToDelete((V)existingVal.clone());
+				}
+			}
+		}
+		for (V replaceVal: getValuesToReplace()) {
+			if (!isIn(existingValues,replaceVal) && !isIn(getValuesToAdd(), replaceVal)) {
+				getValuesToAdd().add(replaceVal);
+			}
+		}
+		getValuesToReplace().clear();
+	}
+
+	private boolean isIn(Collection<V> values, V val) {
+		if (values == null) {
+			return false;
+		}
+		for (V v: values) {
+			if (v.equalsRealValue(val)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * Merge specified delta to this delta. This delta is assumed to be
@@ -336,6 +367,31 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		}
 		item.getValues().addAll((Collection) valuesToReplace);
 		return item;
+	}
+	
+	public abstract ItemDelta clone();
+	
+	protected void copyValues(ItemDelta clone) {
+		clone.definition = this.definition;
+		clone.name = this.name;
+		clone.parentPath = this.parentPath;
+		clone.prismContext = this.prismContext;
+		clone.valuesToAdd = cloneSet(this.valuesToAdd);
+		clone.valuesToDelete = cloneSet(this.valuesToDelete);
+		clone.valuesToReplace = cloneSet(this.valuesToReplace);
+	}
+
+	private Collection<V> cloneSet(Collection<V> thisSet) {
+		if (thisSet == null) {
+			return null;
+		}
+		Collection<V> clonedSet = newValueCollection();
+		for (V thisVal: thisSet) {
+			V clonedVal = (V)thisVal.clone();
+			clonedVal.setParent(this);
+			clonedSet.add(clonedVal);
+		}
+		return clonedSet;
 	}
 
 	@Override

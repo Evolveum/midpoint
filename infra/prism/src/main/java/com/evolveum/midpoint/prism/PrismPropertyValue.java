@@ -273,9 +273,6 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
         if (thisValue.rawElement != null && otherValue.rawElement != null) {
         	return equalsRawElements(otherValue);
         }
-        if (thisValue.rawElement != null || otherValue.rawElement != null) {
-        	throw new IllegalStateException("Attempt to comapre property values with mis-matching parse states (probably a prism bug)");
-        }
         
         T otherRealValue = otherValue.getValue();
         if (otherRealValue == null && getValue() == null) {

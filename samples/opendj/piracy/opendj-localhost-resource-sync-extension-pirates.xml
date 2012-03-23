@@ -30,6 +30,7 @@ This resource definition contains also definition to enable synchronization.
 
 -->
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+		 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
@@ -44,14 +45,13 @@ This resource definition contains also definition to enable synchronization.
 
         <!-- Reference to the ICF LDAP connector. OID is "virtual" for now. -->
         <connectorRef type="ConnectorType">
-            <and>
-                <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
+            <filter>
                 <equal>
                     <value>
                         <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
                     </value>
                 </equal>
-            </and>
+            </filter>
         </connectorRef>
         <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
         <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
@@ -64,7 +64,7 @@ This resource definition contains also definition to enable synchronization.
             <!-- Propeties of ICF connector bundle. The applicable element
    names can be found in the ICF connector documentation -->
             <!-- Configuration specific for the LDAP connector -->
-            <icfcldap:configurationProperties>
+            <icfc:configurationProperties>
                 <icfcldap:port>1389</icfcldap:port>
                 <icfcldap:host>localhost</icfcldap:host>
                 <icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
@@ -81,7 +81,7 @@ This resource definition contains also definition to enable synchronization.
                 <icfcldap:accountObjectClasses>organizationalPerson</icfcldap:accountObjectClasses>
                 <icfcldap:accountObjectClasses>inetOrgPerson</icfcldap:accountObjectClasses>
                 <icfcldap:accountObjectClasses>piracyPerson</icfcldap:accountObjectClasses>
-            </icfcldap:configurationProperties>
+            </icfc:configurationProperties>
 
         </configuration>
 
@@ -518,7 +518,7 @@ This resource definition contains also definition to enable synchronization.
              See https://wikis.forgerock.org/confluence/display/openidm/Synchronization
              -->
         <accountConstruction>
-            <resourceRef oid="c0c010c0-d34d-b33f-f00d-333111111112" type="ResourceType"/>
+            <resourceRef oid="c0c010c0-d34d-b33f-f00d-333111111112" type="c:ResourceType"/>
             <type>default</type>
         </accountConstruction>
     </userTemplate>

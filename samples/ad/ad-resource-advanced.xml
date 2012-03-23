@@ -44,14 +44,13 @@ This resource definition contains only the very basic definitions for midPoint t
      
      	<!-- Reference to the ICF AD connector. OID is "virtual" for now. -->
 		<connectorRef type="ConnectorType">
-			<and>
-				<type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType" />
+			<filter>
 				<equal>
 					<value>
 						<connectorType>Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector</connectorType>
 					</value>
 				</equal>
-			</and>
+			</filter>
 		</connectorRef>
 
         <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
@@ -64,7 +63,7 @@ This resource definition contains only the very basic definitions for midPoint t
 			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
 
             <!-- Configuration specific for the LDAP connector -->
-			<icfcad:configurationProperties>
+			<icfc:configurationProperties>
 				<icfcad:DirectoryAdminName>administrator</icfcad:DirectoryAdminName>
 				<icfcad:DirectoryAdminPassword>
 					<clearValue>secret</clearValue>
@@ -75,7 +74,7 @@ This resource definition contains only the very basic definitions for midPoint t
 				<icfcad:LDAPHostName>localhost</icfcad:LDAPHostName>
 				<icfcad:SearchChildDomains>false</icfcad:SearchChildDomains>
 				<icfcad:DomainName>example.com</icfcad:DomainName>
-			</icfcad:configurationProperties>
+			</icfc:configurationProperties>
 
 		</configuration>
 

@@ -22,6 +22,8 @@
 
 package com.evolveum.midpoint.repo.test;
 
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import org.testng.annotations.AfterClass;
@@ -61,7 +63,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationTy
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
 
 /**
  * 
@@ -71,6 +75,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
         "classpath:application-context-repo-cache.xml",
 		"classpath:application-context-configuration-test.xml" })
 public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
+	
+	private final String RESOURCE_OID = "aae7be60-df56-11df-8608-0002a5d5c51b";
 
 	org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(RepositoryResourceTest.class);
 
@@ -114,41 +120,65 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testResource() throws Exception {
-		final String resourceOid = "aae7be60-df56-11df-8608-0002a5d5c51b";
 		try {
-			// add resource
+			
 			PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(
 					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"));
+			
+			checkResource(resource, "before add");
+			
+			// ADD resource
 			repositoryService.addObject(resource, new OperationResult("test"));
 
-			// get resource
-			PrismObject<ResourceType> retrievedObject = repositoryService.getObject(ResourceType.class, resourceOid,
+			checkResource(resource, "after add");
+			
+			// GET resource
+			PrismObject<ResourceType> retrievedObject = repositoryService.getObject(ResourceType.class, RESOURCE_OID,
 					new PropertyReferenceListType(), new OperationResult("test"));
+			
+			checkResource(retrievedObject, "after get");
 			
 			PrismAsserts.assertEquivalent("add/get cycle: not equivalent", resource, retrievedObject);
 
-			// list objects
+			// LIST objects
 			List<PrismObject<ResourceType>> objects = repositoryService.listObjects(
 					ResourceType.class, new PagingType(), new OperationResult("test"));
 			assertNotNull(objects);
 			assertEquals(1, objects.size());
+			checkResource(objects.get(0), "after list");
 			PrismAsserts.assertEquals(resource, objects.get(0));
 
 			// delete resource
-			repositoryService.deleteObject(ResourceType.class, resourceOid, new OperationResult("test"));
+			repositoryService.deleteObject(ResourceType.class, RESOURCE_OID, new OperationResult("test"));
 			try {
-				repositoryService.getObject(ObjectType.class, resourceOid, new PropertyReferenceListType(), new OperationResult("test"));
-				Assert.fail("Object with oid " + resourceOid + " was not deleted");
+				repositoryService.getObject(ObjectType.class, RESOURCE_OID, new PropertyReferenceListType(), new OperationResult("test"));
+				Assert.fail("Object with oid " + RESOURCE_OID + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				//ignore
 			}
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(ResourceType.class, resourceOid, new OperationResult("test"));
+				repositoryService.deleteObject(ResourceType.class, RESOURCE_OID, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
+		}
+	}
+
+	private void checkResource(PrismObject<ResourceType> resource, String desc) {
+		assertEquals("Wrong OID (prism) "+desc, RESOURCE_OID, resource.getOid());
+		
+		ResourceType resourceType = resource.asObjectable();
+		assertEquals("Wrong OID (jaxb) "+desc, RESOURCE_OID, resourceType.getOid());
+		
+		SchemaHandlingType schemaHandling = resourceType.getSchemaHandling();
+		assertNotNull("No schema handling (JAXB) "+desc, schemaHandling);
+		assertFalse("No account types "+desc, schemaHandling.getAccountType().isEmpty());
+		for(ResourceAccountTypeDefinitionType accountType: schemaHandling.getAccountType()) {
+			String name = accountType.getName();
+			assertNotNull("Account type without a name "+desc, name);
+			assertNotNull("Account type "+name+" does not have an objectClass "+desc, accountType.getObjectClass());
 		}
 	}
 

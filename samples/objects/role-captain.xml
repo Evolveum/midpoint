@@ -19,11 +19,13 @@
 <!-- Portions Copyrighted 2011 lazyman                       -->
 <!--                                                         -->
 <role oid="12345678-d34d-b33f-f00d-987987cccccc"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
     <name>Captain Role</name>
     <assignment>
         <accountConstruction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
-            <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
+        	<!-- The c: prefix in type must be there due to a JAXB bug -->
+            <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
             <attribute>
                 <ref>ri:title</ref>
                 <value>Honorable Captain</value>

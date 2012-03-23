@@ -19,7 +19,9 @@
  */
 package com.evolveum.midpoint.prism;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.w3c.dom.Element;
 
@@ -138,6 +140,14 @@ public abstract class PrismValue implements Visitable {
 	}
 	
 	public abstract boolean equalsRealValue(PrismValue thisValue, PrismValue otherValue);
+
+	public static <X extends PrismValue> Collection<X> cloneValues(Collection<X> values) {
+		Collection<X> clonedCollection = new ArrayList<X>(values.size());
+		for (X val: values) {
+			clonedCollection.add((X) val.clone());
+		}
+		return clonedCollection;
+	}
 	
 	public abstract PrismValue clone();
 	

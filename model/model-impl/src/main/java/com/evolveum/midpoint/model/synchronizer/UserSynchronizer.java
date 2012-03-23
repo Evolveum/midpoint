@@ -21,6 +21,9 @@
 
 package com.evolveum.midpoint.model.synchronizer;
 
+import java.util.Collection;
+import java.util.Iterator;
+
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceAccountType;
 import com.evolveum.midpoint.model.AccountSyncContext;
@@ -30,8 +33,13 @@ import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -228,62 +236,198 @@ public class UserSynchronizer {
             policyDecision = PolicyDecision.DELETE;
         }
 
-        PrismObject<UserType> userNew = context.getUserNew();
-        if (userNew != null) {
-            UserType userTypeNew = userNew.asObjectable();
-            loadAccountRefsFromUser(context, userTypeNew, policyDecision, result);
-        }
-
         PrismObject<UserType> userOld = context.getUserOld();
         if (userOld != null) {
-            // Accounts that are not in userNew but are in userOld are to be unlinked
-            if (policyDecision == null) {
-                policyDecision = PolicyDecision.UNLINK;
-            }
-            loadAccountRefsFromUser(context, userOld.asObjectable(), policyDecision, result);
+            loadAccountRefsFromUser(context, userOld, policyDecision, result);
         }
 
+       loadAccountRefsFromDelta(context, userOld, context.getUserPrimaryDelta(), result);
     }
 
-    /**
+	/**
      * Does not overwrite existing account contexts, just adds new ones.
-     * @throws ConfigurationException 
      */
-    private void loadAccountRefsFromUser(SyncContext context, UserType userType, PolicyDecision policyDecision,
+    private void loadAccountRefsFromUser(SyncContext context, PrismObject<UserType> user, PolicyDecision policyDecision,
             OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
-        for (ObjectReferenceType accountRef : userType.getAccountRef()) {
-            String oid = accountRef.getOid();
-            if (StringUtils.isBlank(oid)) {
-            	throw new SchemaException("Null or empty oid in account reference in "+userType);
+    	PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
+    	if (accountRef == null) {
+    		return;
+    	}
+    	for (PrismReferenceValue accountRefVal: accountRef.getValues()) {
+        	String oid = accountRefVal.getOid();
+        	if (StringUtils.isBlank(oid)) {
+            	LOGGER.trace("Null or empty OID in account reference {} in user:\n{}", accountRef, user.dump());
+            	throw new SchemaException("Null or empty OID in account reference in "+user);
             }
             if (accountContextAlreadyExists(oid, context)) {
                 continue;
             }
-            // Fetching from repository instead of provisioning so we avoid reading in a full account
-            AccountShadowType accountType = cacheRepositoryService.getObject(AccountShadowType.class, oid, null, result).asObjectable();
-            String resourceOid = ResourceObjectShadowUtil.getResourceOid(accountType);
-            ResourceAccountType rat = new ResourceAccountType(resourceOid, accountType.getAccountType());
-            AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
-            if (accountSyncContext == null) {
-                ResourceType resource = context.getResource(rat);
-                if (resource == null) {
-                    // Fetching from provisioning to take advantage of caching and pre-parsed schema
-                    resource = provisioningService.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
-                    context.rememberResource(resource);
-                }
-                accountSyncContext = context.createAccountSyncContext(rat);
-                if (accountSyncContext.getPolicyDecision() == null) {
-                    accountSyncContext.setPolicyDecision(policyDecision);
-                }
+        	PrismObject<AccountShadowType> account = accountRefVal.getObject();
+        	if (account == null) {
+	            // Fetching from repository instead of provisioning so we avoid reading in a full account
+	            account = cacheRepositoryService.getObject(AccountShadowType.class, oid, null, result);
+        	}
+        	AccountSyncContext accountSyncContext = getOrCreateAccountContext(context, account, result);        	
+            if (accountSyncContext.getPolicyDecision() == null) {
+                accountSyncContext.setPolicyDecision(policyDecision);
             }
-            accountSyncContext.setOid(oid);
             if (context.isDoReconciliationForAllAccounts()) {
                 accountSyncContext.setDoReconciliation(true);
             }
         }
     }
 
-    private boolean accountContextAlreadyExists(String oid, SyncContext context) {
+	private void loadAccountRefsFromDelta(SyncContext context, PrismObject<UserType> user, 
+			ObjectDelta<UserType> userPrimaryDelta, OperationResult result) throws SchemaException, 
+			ObjectNotFoundException, CommunicationException, ConfigurationException {
+		if (userPrimaryDelta == null) {
+			return;
+		}
+
+		ReferenceDelta accountRefDelta;
+		if (userPrimaryDelta.getChangeType() == ChangeType.ADD) {
+			PrismReference accountRef = userPrimaryDelta.getObjectToAdd().findReference(UserType.F_ACCOUNT_REF);
+			if (accountRef == null) {
+				// Adding new user with no accountRef -> nothing to do
+				return;
+			}
+			accountRefDelta = accountRef.createDelta(new PropertyPath(UserType.F_ACCOUNT_REF));
+			accountRefDelta.addValuesToAdd(PrismValue.cloneValues(accountRef.getValues()));
+		} else if (userPrimaryDelta.getChangeType() == ChangeType.MODIFY) {
+			accountRefDelta = userPrimaryDelta.findReferenceModification(UserType.F_ACCOUNT_REF);
+			if (accountRefDelta == null) {
+				return;
+			}
+		} else {
+			// delete, all existing account are already marked for delete
+			return;
+		}
+		
+		if (accountRefDelta.isReplace()) {
+			// process "replace" by distributing values to delete and add
+			accountRefDelta = (ReferenceDelta)accountRefDelta.clone();
+			PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
+			accountRefDelta.distributeReplace(accountRef == null? null : accountRef.getValues());
+		}
+		
+		if (accountRefDelta.getValuesToAdd() != null) {
+			for (PrismReferenceValue refVal: accountRefDelta.getValuesToAdd()) {
+				String oid = refVal.getOid();
+				AccountSyncContext accountSyncContext = null;
+				PrismObject<AccountShadowType> account = null;
+				if (oid == null) {
+					// Adding new account
+					account = refVal.getObject();
+					if (account == null) {
+		            	throw new SchemaException("Null or empty OID in account reference "+refVal+" in " + user);
+					}
+					// Create account context from embedded object
+					accountSyncContext = getOrCreateAccountContext(context, account, result);
+					// This is a new account that is to be added. So it should go to account primary delta
+					ObjectDelta<AccountShadowType> accountPrimaryDelta = account.createAddDelta();
+					accountSyncContext.setAccountPrimaryDelta(accountPrimaryDelta);
+				} else {
+					// We have OID. This is either linking of exising account or add of new account
+					// therefore check for account existence to decide
+					try {
+						account = cacheRepositoryService.getObject(AccountShadowType.class, oid, null, result);
+						// Create account context from retrieved object
+						accountSyncContext = getOrCreateAccountContext(context, account, result);
+					} catch (ObjectNotFoundException e) {
+						if (refVal.getObject() == null) {
+							// account does not exist, no compisite account in ref -> this is really an error
+							throw e;
+						} else {
+							// New account (with OID)
+							account = refVal.getObject();
+							// Create account context from embedded object
+							accountSyncContext = getOrCreateAccountContext(context, account, result);
+							ObjectDelta<AccountShadowType> accountPrimaryDelta = account.createAddDelta();
+							accountSyncContext.setAccountPrimaryDelta(accountPrimaryDelta);
+						}
+					}				
+				}
+				if (context.isDoReconciliationForAllAccounts()) {
+	                accountSyncContext.setDoReconciliation(true);
+	            }
+			}			
+		}
+		
+		if (accountRefDelta.getValuesToDelete() != null) {
+			for (PrismReferenceValue refVal: accountRefDelta.getValuesToDelete()) {
+				String oid = refVal.getOid();
+				AccountSyncContext accountSyncContext = null;
+				PrismObject<AccountShadowType> account = null;
+				if (oid == null) {
+					throw new SchemaException("Cannot delete account ref withot an oid in " + user);
+				} else {
+					try {
+						account = cacheRepositoryService.getObject(AccountShadowType.class, oid, null, result);
+						// Create account context from retrieved object
+						accountSyncContext = getOrCreateAccountContext(context, account, result);
+					} catch (ObjectNotFoundException e) {
+						// This is still OK. It means deleting an accountRef that points to non-existing object
+						// just log a warning
+						LOGGER.warn("Deleting accountRef of " + user + " that points to non-existing OID " + oid);
+					}				
+				}
+				if (context.isDoReconciliationForAllAccounts()) {
+					if (accountSyncContext != null) {
+						accountSyncContext.setDoReconciliation(true);
+					}
+	            }
+			}
+		}
+		
+		// remove the accountRefs without oid. There will get into the way now. The accounts 
+		// are in the context now and will be linked at the end of the process (it they survive the policy)
+		// We need to make sure this happens on the real primary user delta
+		
+		if (userPrimaryDelta.getChangeType() == ChangeType.ADD) {
+			PrismReference accountRef = userPrimaryDelta.getObjectToAdd().findReference(UserType.F_ACCOUNT_REF);
+			pruneOidlessReferences(accountRef.getValues());
+		} else if (userPrimaryDelta.getChangeType() == ChangeType.MODIFY) {
+			accountRefDelta = userPrimaryDelta.findReferenceModification(UserType.F_ACCOUNT_REF);
+			pruneOidlessReferences(accountRefDelta.getValuesToAdd());
+			pruneOidlessReferences(accountRefDelta.getValuesToReplace());
+			pruneOidlessReferences(accountRefDelta.getValuesToDelete());
+		}
+		
+	}
+	
+	private void pruneOidlessReferences(Collection<PrismReferenceValue> refVals) {
+		if (refVals == null) {
+			return;
+		}
+		Iterator<PrismReferenceValue> iterator = refVals.iterator();
+		while (iterator.hasNext()) {
+			PrismReferenceValue referenceValue = iterator.next();
+			if (referenceValue.getOid() == null) {
+				iterator.remove();
+			}
+		}
+	}
+	
+	private AccountSyncContext getOrCreateAccountContext(SyncContext context, PrismObject<AccountShadowType> account, 
+			OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
+		AccountShadowType accountType = account.asObjectable();
+        String resourceOid = ResourceObjectShadowUtil.getResourceOid(accountType);
+        ResourceAccountType rat = new ResourceAccountType(resourceOid, accountType.getAccountType());
+        AccountSyncContext accountSyncContext = context.getAccountSyncContext(rat);
+        if (accountSyncContext == null) {
+            ResourceType resource = context.getResource(rat);
+            if (resource == null) {
+                // Fetching from provisioning to take advantage of caching and pre-parsed schema
+                resource = provisioningService.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
+                context.rememberResource(resource);
+            }
+            accountSyncContext = context.createAccountSyncContext(rat);
+        }
+        accountSyncContext.setOid(account.getOid());
+        return accountSyncContext;
+	}
+
+	private boolean accountContextAlreadyExists(String oid, SyncContext context) {
         for (AccountSyncContext accContext : context.getAccountContexts()) {
             if (oid.equals(accContext.getOid())) {
                 return true;

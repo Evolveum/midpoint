@@ -85,6 +85,17 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		}
 		super.applyTo(item);
 	}
+	
+	@Override
+	public ContainerDelta<V> clone() {
+		ContainerDelta<V> clone = new ContainerDelta<V>(getName(), getDefinition());
+		copyValues(clone);
+		return clone;
+	}
+	
+	protected void copyValues(ContainerDelta<V> clone) {
+		super.copyValues(clone);
+	}
 
 	public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createDelta(PrismContext prismContext, Class<O> type,
 			QName containerName) {

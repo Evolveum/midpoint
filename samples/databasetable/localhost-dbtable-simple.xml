@@ -47,14 +47,13 @@ See the content of the SQL files in this directory to see the table strucutre.
      
      	<!-- Reference to the ICF DatabaseTable connector. OID is "virtual" for now. -->
 		<connectorRef type="ConnectorType">
-			<and>
-		        <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
+			<filter>
 		        <equal>
 		          <value>
 		              <connectorType>org.identityconnectors.databasetable.DatabaseTableConnector</connectorType>
 		          </value>
 		        </equal>
-		      </and>
+		      </filter>
 		</connectorRef>
 
         <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
@@ -67,7 +66,7 @@ See the content of the SQL files in this directory to see the table strucutre.
 			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/resource/icf-1/connector-schema-1.xsd">
 
             <!-- Configuration specific for the DBTable connector -->
-			<icscdbtable:configurationProperties>
+			<icfc:configurationProperties>
 				<icscdbtable:port>3306</icscdbtable:port>
 				<icscdbtable:quoting></icscdbtable:quoting>
 				<icscdbtable:host>localhost</icscdbtable:host>
@@ -85,7 +84,7 @@ See the content of the SQL files in this directory to see the table strucutre.
 				<icscdbtable:allNative>false</icscdbtable:allNative>
 				<icscdbtable:changeLogColumn></icscdbtable:changeLogColumn>
 				<icscdbtable:datasource></icscdbtable:datasource>
-			</icscdbtable:configurationProperties>
+			</icfc:configurationProperties>
 
 		</c:configuration>
 

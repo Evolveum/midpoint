@@ -138,7 +138,7 @@ public class TestAssignment extends AbstractTestNGSpringContextTests {
                     public String answer(InvocationOnMock invocation) throws Throwable {
                         PrismObject<UserType> user = (PrismObject<UserType>) invocation.getArguments()[0];
                         PrismAsserts.assertEquivalent("Unexpected user as argument in repository.addObject", new File(TEST_FOLDER, "user-expected.xml"), user);
-                        return "12345678-d34d-b33f-f00d-987987987988";
+                        return "12345678-d34d-b33f-f00d-987987987987";
                     }
                 });
 

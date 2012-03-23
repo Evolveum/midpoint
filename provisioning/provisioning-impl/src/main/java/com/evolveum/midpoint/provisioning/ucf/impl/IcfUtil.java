@@ -81,8 +81,21 @@ class IcfUtil {
 		
 		LOGGER.error("ICF Exception {}: {}",new Object[]{ex.getClass().getName(),ex.getMessage(),ex});
 		
+		if (ex instanceof NullPointerException && ex.getMessage() != null) {
+			// NPE with a message text is in fact not a NPE but an application exception
+			// this usually means that some parameter is missing
+			Exception newEx = new SchemaException(createMessageFromAllExceptions("Required attribute is missing",ex));  
+			parentResult.recordFatalError("Required attribute is missing: "+ex.getMessage(),newEx);
+			return newEx;
+		} else if (ex instanceof IllegalArgumentException) {
+			// Let's assume this must be a configuration problem
+			Exception newEx = new com.evolveum.midpoint.util.exception.ConfigurationException(createMessageFromInnermostException("Configuration error", ex));
+			parentResult.recordFatalError("Configuration error: "+ex.getMessage(), newEx);
+			return newEx;
+		}
+		
 		if (ex.getClass().getPackage().equals(NullPointerException.class.getPackage())) {
-			// There are java.lang exceptions, they are safe to pass throug
+			// There are java.lang exceptions, they are safe to pass through
 			return ex;
 		}
 		
@@ -164,12 +177,6 @@ class IcfUtil {
 					"Security violation: " + ex.getMessage(), newEx);
 			return newEx;
 			
-		} else if (ex instanceof NullPointerException && ex.getMessage() != null) {
-			// NPE with a message text is in fact not a NPE but an application exception
-			// this usually means that some parameter is missing
-			Exception newEx = new SchemaException(createMessageFromAllExceptions("Required attribute is missing",ex));  
-			parentResult.recordFatalError("Required attribute is missing: "+ex.getMessage(),newEx);
-			return newEx;
 		}
 		
 		// Fallback

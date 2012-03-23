@@ -48,14 +48,13 @@ object.
 
         <!-- Reference to the ICF Flatfile connector. OID is "virtual" for now. -->
         <connectorRef type="ConnectorType">
-            <and>
-                <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
+            <filter>
                 <equal>
                     <value>
                         <connectorType>org.forgerock.openicf.csvfile.CSVFileConnector</connectorType>
                     </value>
                 </equal>
-            </and>
+            </filter>
         </connectorRef>
 
         <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
@@ -68,7 +67,7 @@ object.
                 xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
 
             <!-- Configuration specific for the CSVfile connector -->
-            <icfccsvfile:configurationProperties>
+            <icfc:configurationProperties>
                 <icfccsvfile:filePath>/var/tmp/midpoint-flatfile.csv</icfccsvfile:filePath>
                 <icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
                 <icfccsvfile:valueQualifier>"</icfccsvfile:valueQualifier>
@@ -78,7 +77,7 @@ object.
                 <icfccsvfile:uniqueAttribute>id</icfccsvfile:uniqueAttribute>
                 <!--			<icfccsvfile:nameAttribute>id</icfccsvfile:nameAttribute> -->
                 <icfccsvfile:passwordAttribute>password</icfccsvfile:passwordAttribute>
-            </icfccsvfile:configurationProperties>
+            </icfc:configurationProperties>
 
             <!-- Generic ICF configuration -->
 

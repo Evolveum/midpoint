@@ -574,7 +574,7 @@ public class DOMUtil {
 			setNamespaceDeclaration(element, entry.getKey(), entry.getValue());
 		}
 	}
-
+	
 	/**
 	 * Take all the namespace declaration of parent elements and put them to this element.
 	 */
@@ -607,7 +607,7 @@ public class DOMUtil {
 		}
 	}
 
-	private static boolean isPrefixUsed(Element targetElement, String prefix) {
+	public static boolean isPrefixUsed(Element targetElement, String prefix) {
 		if (comparePrefix(prefix, targetElement.getPrefix())) {
 			return true;
 		}
@@ -819,6 +819,10 @@ public class DOMUtil {
 			if (!considerNamespacePrefixes && isNamespaceDefinition(aAttr)) {
 				continue;
 			}
+			if (StringUtils.isBlank(aAttr.getLocalName())) {
+				// this is strange, but it can obviously happen
+				continue;
+			}
 			QName aQname = new QName(aAttr.getNamespaceURI(),aAttr.getLocalName());
 			Attr bAttr = findAttributeByQName(superset,aQname);
 			if (bAttr == null) {
@@ -835,7 +839,10 @@ public class DOMUtil {
 		for (int i = 0; i < attrs.getLength(); i++) {
 			Node aItem = attrs.item(i);
 			Attr aAttr = (Attr) aItem;
-			QName aQname = new QName(aAttr.getNamespaceURI(),aAttr.getLocalName());
+			if (aAttr.getLocalName() == null) {
+				continue;
+			}
+			QName aQname = new QName(aAttr.getNamespaceURI(), aAttr.getLocalName());
 			if (aQname.equals(qname)) {
 				return aAttr;
 			}

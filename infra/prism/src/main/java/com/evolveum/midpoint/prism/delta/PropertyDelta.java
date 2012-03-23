@@ -118,6 +118,17 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 		}
 		super.applyTo(item);
 	}
+    
+	@Override
+	public PropertyDelta<T> clone() {
+		PropertyDelta<T> clone = new PropertyDelta<T>(getName(), getPropertyDefinition());
+		copyValues(clone);
+		return clone;
+	}
+	
+	protected void copyValues(PropertyDelta<T> clone) {
+		super.copyValues(clone);
+	}
 
 	// TODO: the same as createModificationReplaceProperty?
     // btw, why was here 'PrismObjectDefinition'?

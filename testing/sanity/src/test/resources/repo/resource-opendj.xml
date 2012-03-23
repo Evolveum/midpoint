@@ -66,7 +66,6 @@
             <icfcldap:principal>cn=directory manager</icfcldap:principal>
             <icfcldap:credentials>
                 <clearValue>secret</clearValue>
-
             </icfcldap:credentials>
             <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
             <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
@@ -416,7 +415,7 @@ This is now the only account type that midPoint can work with. -->
                              object stored by OID c0c010c0-d34d-b33f-f00d-999111111111. -->
                         <variable>
                             <name>my:config</name>
-                            <objectRef oid="c0c010c0-d34d-b33f-f00d-999111111111"/>
+                            <objectRef oid="c0c010c0-d34d-b33f-f00d-999111111111" type="c:GenericObjectType"/>
                         </variable>
                         <!-- Example of setting a variable to a string value. -->
                         <variable>

@@ -40,6 +40,7 @@ import org.basex.core.BaseXException;
 import org.basex.server.ClientQuery;
 import org.basex.server.ClientSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -153,11 +154,8 @@ public class XmlRepositoryService implements RepositoryService {
 			oid = (StringUtils.isNotEmpty(object.getOid()) ? object.getOid() : UUID.randomUUID().toString());
 			object.setOid(oid);
 
-			// Map<String, Object> properties = new HashMap<String, Object>();
-			// properties.put(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
-			String serializedObject = prismContext.getPrismDomProcessor().serializeObjectToString(object);
-			// String serializedObject = JAXBUtil.marshalWrap(properties,
-			// object, SchemaConstants.C_OBJECT);
+			String serializedObject = convertToString(object);
+
 			if (serializedObject == null) {
 				throw new IllegalArgumentException("Serialized object is null.");
 			}
@@ -263,15 +261,7 @@ public class XmlRepositoryService implements RepositoryService {
 						throw new SystemException("More than one object with oid " + oid + " found");
 					}
 
-					// BaseX sometimes forgets xmlns:xsi declaration. This is an ugly and brutal way how to
-					// make it remember
-					object = prismContext.getPrismDomProcessor().parseObject(UglyHacks.forceXsiNsDeclaration(c), type);
-
-					// JAXBElement<T> o = (JAXBElement<T>)
-					// JAXBUtil.unmarshal(type, c);
-					// if (o != null) {
-					// object = o.getValue();
-					// }
+					object = convertToObject(c, type);					
 				}
 			}
 		} catch (SchemaException ex) {
@@ -432,7 +422,7 @@ public class XmlRepositoryService implements RepositoryService {
 			LOGGER.trace("OBJECT after:\n{}", object.dump());
 		}
 
-		String serializedObject = prismContext.getPrismDomProcessor().serializeObjectToString(object);
+		String serializedObject = convertToString(object);
 
 		String containerName = prismContext.getSchemaRegistry().determineDefinitionFromClass(type).getName()
 				.getLocalPart();
@@ -725,7 +715,7 @@ public class XmlRepositoryService implements RepositoryService {
 				while (cq.more()) {
 					String c = cq.next();
 
-					PrismObject<T> object = prismContext.getPrismDomProcessor().parseObject(UglyHacks.forceXsiNsDeclaration(c), clazz);
+					PrismObject<T> object = convertToObject(c, clazz);
 					if (object != null) {
 						objectList.add(object);
 					}
@@ -906,6 +896,23 @@ public class XmlRepositoryService implements RepositoryService {
 				}
 			}
 		}
+	}
+	
+	private <T extends ObjectType> PrismObject<T> convertToObject(String stringXml, Class<T> type) throws SchemaException {
+		// BaseX sometimes forgets xmlns:xsi declaration. This is an ugly and brutal way how to
+		// make it remember. This must be done before DOM parsing, otherwise the parser itself dies.
+		String fixedStringXml = UglyHacks.forceXsiNsDeclaration(stringXml);
+		Document parsedObjectDom = DOMUtil.parseDocument(fixedStringXml);
+		// BaseX also forgets other xmlns declarations. So make it remember.
+		UglyHacks.unfortifyNamespaceDeclarations(parsedObjectDom);
+		PrismObject<T> object = prismContext.getPrismDomProcessor().parseObject(parsedObjectDom);
+		return object;
+	}
+	
+	private <T extends ObjectType> String convertToString(PrismObject<T> object) throws SchemaException {
+		Element serializedObjectDom = prismContext.getPrismDomProcessor().serializeToDom(object);
+		UglyHacks.fortifyNamespaceDeclarations(serializedObjectDom);
+		return DOMUtil.serializeDOMToString(serializedObjectDom);
 	}
 
 }

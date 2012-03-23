@@ -76,6 +76,17 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue> {
 		}
 		super.applyTo(item);
 	}
+	
+	@Override
+	public ReferenceDelta clone() {
+		ReferenceDelta clone = new ReferenceDelta(getPath(), (PrismReferenceDefinition)getDefinition());
+		copyValues(clone);
+		return clone;
+	}
+	
+	protected void copyValues(ReferenceDelta clone) {
+		super.copyValues(clone);
+	}
 
 	/**
      * Convenience method for quick creation of object deltas that replace a single object property. This is used quite often

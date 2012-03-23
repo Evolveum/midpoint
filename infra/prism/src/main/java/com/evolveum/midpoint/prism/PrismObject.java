@@ -229,7 +229,17 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 		return objectDelta;
 	}
 
-
+	public ObjectDelta<T> createDelta(ChangeType changeType) {
+		ObjectDelta<T> delta = new ObjectDelta<T>(getCompileTimeClass(), changeType);
+		delta.setOid(getOid());
+		return delta;
+	}
+	
+	public ObjectDelta<T> createAddDelta() {
+		ObjectDelta<T> delta = createDelta(ChangeType.ADD);
+		delta.setObjectToAdd(this);
+		return delta;
+	}
 
 	@Override
 	public void setParent(PrismValue parentValue) {
