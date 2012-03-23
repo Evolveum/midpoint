@@ -25,6 +25,7 @@ package com.evolveum.midpoint.repo.sql.query;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.sql.ClassMapper;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -58,8 +59,10 @@ public class QueryInterpreter {
         this.prismContext = prismContext;
         this.type = type;
 
-        Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
+        String alias = createAlias(ObjectTypes.getObjectType(type).getQName());
+        Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type), alias);
         setCriteria(null, criteria);
+        setAlias(null, alias);
     }
 
     public Criteria interpret(Element filter) throws QueryException {
@@ -131,6 +134,24 @@ public class QueryInterpreter {
         }
 
         return propertyPath;
+    }
+
+    public String createAlias(QName qname) {
+        String prefix = Character.toString(qname.getLocalPart().charAt(0)).toLowerCase();
+        int index = 1;
+
+        String alias = prefix;
+        while (hasAlias(alias)) {
+            alias = prefix + Integer.toString(index);
+            index++;
+
+            if (index > 20) {
+                throw new IllegalStateException("Alias index for segment '" + qname
+                        + "' is more than 20? Should not happen.");
+            }
+        }
+
+        return alias;
     }
 
     public Criteria getCriteria(PropertyPath path) {

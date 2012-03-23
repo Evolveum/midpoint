@@ -28,6 +28,16 @@ import javax.xml.namespace.QName;
  */
 public class AttributeDefinition extends Definition {
 
+    private boolean indexed;
+
+    public boolean isIndexed() {
+        return indexed;
+    }
+
+    public void setIndexed(boolean indexed) {
+        this.indexed = indexed;
+    }
+
     @Override
     public Definition findDefinition(QName qname) {
         return null;

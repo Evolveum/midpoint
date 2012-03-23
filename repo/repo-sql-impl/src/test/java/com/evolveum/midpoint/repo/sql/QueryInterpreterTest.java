@@ -78,10 +78,10 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
         Session session = open();
         Criteria main = session.createCriteria(RAccountShadow.class, "a");
 
-        Criteria attributes = main.createCriteria("attributes", "at");
+        Criteria attributes = main.createCriteria("attributes", "a1");
         Criteria stringAttr = attributes.createCriteria("strings", "s");
 
-        Criteria resourceRef = main.createCriteria("resourceRef", "r");
+//        Criteria resourceRef = main.createCriteria("resourceRef", "r");
 
         Criteria extension = main.createCriteria("extension", "e");
         Criteria stringExt = extension.createCriteria("strings", "s1");

@@ -224,7 +224,7 @@ public class SimpleOp extends Op {
         }
     }
 
-    private void addNewCriteriaToContext(PropertyPath propPath, String realName) throws QueryException {
+    private void addNewCriteriaToContext(PropertyPath propPath, String realName) {
         PropertyPath lastPropPath = propPath.allExceptLast();
         if (PropertyPath.EMPTY_PATH.equals(lastPropPath)) {
             lastPropPath = null;
@@ -232,29 +232,12 @@ public class SimpleOp extends Op {
         // get parent criteria
         Criteria pCriteria = getInterpreter().getCriteria(lastPropPath);
         // create new criteria for this relationship
-        String alias = createAlias(propPath.last());
+        String alias = getInterpreter().createAlias(propPath.last().getName());
+        LOGGER.trace(">>>> create '{}', alias '{}'", new Object[]{realName, alias});
         Criteria criteria = pCriteria.createCriteria(realName, alias);
         //save criteria and alias to our query context
         getInterpreter().setCriteria(propPath, criteria);
-        getInterpreter().setAlias(propPath, createAlias(propPath.last()));
-    }
-
-    private String createAlias(PropertyPathSegment segment) throws QueryException {
-        String prefix = Character.toString(segment.getName().getLocalPart().charAt(0));
-        int index = 1;
-
-        String alias = prefix;
-        while (getInterpreter().hasAlias(alias)) {
-            alias = prefix + Integer.toString(index);
-            index++;
-
-            if (index > 20) {
-                throw new QueryException("Alias index for segment '" + segment.getName()
-                        + "' is more than 20? Should not happen.");
-            }
-        }
-
-        return alias;
+        getInterpreter().setAlias(propPath, alias);
     }
 
     private static class SimpleItem {
