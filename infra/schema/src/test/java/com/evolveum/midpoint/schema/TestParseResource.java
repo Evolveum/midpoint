@@ -30,8 +30,10 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
 import org.testng.annotations.BeforeSuite;
@@ -58,6 +60,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 public class TestParseResource {
 	
 	public static final File RESOURCE_FILE = new File("src/test/resources/common/resource-opendj.xml");
+	private static final String RESOURCE_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+	private static final String RESOURCE_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -225,8 +229,12 @@ public class TestParseResource {
 	}
 	
 	private void assertResource(PrismObject<ResourceType> resource) {
+		assertResourcePrism(resource);
+		assertResourceJaxb(resource.asObjectable());
+	}
 		
-		assertEquals("Wrong oid", "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff", resource.getOid());
+	private void assertResourcePrism(PrismObject<ResourceType> resource) {
+		assertEquals("Wrong oid (prism)", RESOURCE_OID, resource.getOid());
 //		assertEquals("Wrong version", "42", resource.getVersion());
 		PrismObjectDefinition<ResourceType> resourceDefinition = resource.getDefinition();
 		assertNotNull("No resource definition", resourceDefinition);
@@ -238,7 +246,7 @@ public class TestParseResource {
 
 		assertPropertyValue(resource, "name", "Embedded Test OpenDJ");
 		assertPropertyDefinition(resource, "name", DOMUtil.XSD_STRING, 0, 1);		
-		assertPropertyValue(resource, "namespace", "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff");
+		assertPropertyValue(resource, "namespace", RESOURCE_NAMESPACE);
 		assertPropertyDefinition(resource, "namespace", DOMUtil.XSD_ANYURI, 1, 1);
 				
 		PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
@@ -250,9 +258,23 @@ public class TestParseResource {
 		PrismContainer<?> ldapConfigPropertiesContainer = configurationContainer.findContainer(ICFC_CONFIGURATION_PROPERTIES);
 		assertNotNull("No icfcldap:configurationProperties container", ldapConfigPropertiesContainer);
 		List<Item<?>> ldapConfigPropItems = ldapConfigPropertiesContainer.getValue().getItems();
-		assertEquals("Wrong number of ldapConfigPropItems items", 6, ldapConfigPropItems.size());
-						
+		assertEquals("Wrong number of ldapConfigPropItems items", 7, ldapConfigPropItems.size());				
 	}
+	
+	private void assertResourceJaxb(ResourceType resourceType) {
+		assertEquals("Wrong oid (JAXB)", RESOURCE_OID, resourceType.getOid());
+		assertEquals("Wrong name (JAXB)", "Embedded Test OpenDJ", resourceType.getName());
+		assertEquals("Wrong namespace (JAXB)", RESOURCE_NAMESPACE, resourceType.getNamespace());
+		
+		SchemaHandlingType schemaHandling = resourceType.getSchemaHandling();
+		assertNotNull("No schema handling (JAXB)", schemaHandling);
+		for(ResourceAccountTypeDefinitionType accountType: schemaHandling.getAccountType()) {
+			String name = accountType.getName();
+			assertNotNull("Account type without a name", name);
+			assertNotNull("Account type "+name+" does not have an objectClass", accountType.getObjectClass());
+		}
+	}
+
 	
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
 			int maxOccurs) {
