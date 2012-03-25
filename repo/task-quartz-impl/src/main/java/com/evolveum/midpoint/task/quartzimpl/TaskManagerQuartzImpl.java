@@ -1,0 +1,579 @@
+/**
+ * Copyright (c) 2011 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted 2011 [name of copyright owner]"
+ * 
+ */
+package com.evolveum.midpoint.task.quartzimpl;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
+import org.quartz.JobExecutionContext;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.UnableToInterruptJobException;
+import org.quartz.impl.StdSchedulerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.stereotype.Service;
+
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.LightweightIdentifier;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.task.api.TaskHandler;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
+import com.evolveum.midpoint.task.quartzimpl.jobstore.RepoJobStore;
+import com.evolveum.midpoint.task.quartzimpl.jobstore.RepoJobStoreUtil;
+import com.evolveum.midpoint.util.exception.ConcurrencyException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+
+/**
+ * Task Manager implementation using quartz scheduler.
+ * 
+ * @author Pavol Mederly
+ *
+ */
+@Service(value = "taskManager")
+@DependsOn(value="repositoryService")
+public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
+	
+	private Map<String,TaskHandler> handlers = new HashMap<String, TaskHandler>();
+	private PrismObjectDefinition<TaskType> taskPrismDefinition;
+
+	private BeanFactory beanFactory;	
+	
+	@Autowired(required=true)
+	private RepositoryService repositoryService;
+	
+	@Autowired(required=true)
+	private LightweightIdentifierGenerator lightweightIdentifierGenerator;
+	
+	@Autowired(required=true)
+	private PrismContext prismContext;
+	
+	private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerQuartzImpl.class);
+	private static final long WAIT_FOR_COMPLETION_INITIAL = 100;			// initial waiting time (for task or tasks to be finished); it is doubled at each step 
+	private static final long WAIT_FOR_COMPLETION_MAX = 1600;				// max waiting time (in one step) for task(s) to be finished
+	
+	public PrismContext getPrismContext() {
+		return prismContext;
+	}
+	
+	public RepositoryService getRepositoryService() {
+		return repositoryService;
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		 this.beanFactory = beanFactory;
+	}
+	
+	private Scheduler quartzScheduler;
+	
+	@PostConstruct
+	public void init() {
+		LOGGER.info("Task Manager initialization");
+		NoOpTaskHandler.instantiateAndRegister(this);
+		
+		// hacks...
+		RepoJobStore.setTaskManagerQuartzImpl(this);
+		JobExecutor.setTaskManagerQuartzImpl(this);
+		
+		StdSchedulerFactory sf = new StdSchedulerFactory();
+		
+		Properties qprops = new Properties();
+		qprops.put("org.quartz.jobStore.class", RepoJobStore.class.getName());
+		qprops.put("org.quartz.scheduler.instanceName", "midPointScheduler");
+		qprops.put("org.quartz.scheduler.instanceId", "AUTO");
+		qprops.put("org.quartz.scheduler.skipUpdateCheck", "true");
+		qprops.put("org.quartz.threadPool.threadCount", "5");
+		qprops.put("org.quartz.scheduler.idleWaitTime", "10000");
+		
+		try {
+			sf.initialize(qprops);
+			quartzScheduler = sf.getScheduler();
+			
+			quartzScheduler.start();
+		} catch (SchedulerException e) {
+			LoggingUtils.logException(LOGGER, "Cannot get or start Quartz scheduler", e);
+			throw new SystemException("Cannot get or start Quartz scheduler", e);
+		}
+		
+		LOGGER.trace("Quartz scheduler initialized and started; it is " + quartzScheduler);
+		
+		LOGGER.info("Task Manager initialized");
+	}
+	
+	@PreDestroy
+	public void shutdown() {
+		LOGGER.info("Task Manager shutdown");
+		
+		if (quartzScheduler != null) {
+			
+			LOGGER.trace("Putting Quartz scheduler into standby mode");
+			try {
+				quartzScheduler.standby();
+			} catch (SchedulerException e1) {
+				LoggingUtils.logException(LOGGER, "Cannot put Quartz scheduler into standby mode", e1);
+			}
+			
+			LOGGER.trace("Interrupting all tasks");
+			try {
+				shutdownTasksAndWait(getRunningTasks(), 0);
+			} catch(Exception e) {		// FIXME
+				LoggingUtils.logException(LOGGER, "Cannot shutdown tasks", e);
+			}
+			
+			LOGGER.trace("Shutting down Quartz scheduler");
+			try {
+				quartzScheduler.shutdown(true);
+			} catch (SchedulerException e) {
+				LoggingUtils.logException(LOGGER, "Cannot shutdown Quartz scheduler", e);
+			}
+		}
+		LOGGER.info("Task Manager shutdown finished");
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.task.api.TaskManager#createTaskInstance()
+	 */
+	@Override
+	public Task createTaskInstance() {
+		LightweightIdentifier taskIdentifier = generateTaskIdentifier();
+		return new TaskQuartzImpl(this, taskIdentifier);
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.task.api.TaskManager#createTaskInstance(java.lang.String)
+	 */
+	@Override
+	public Task createTaskInstance(String operationName) {
+		LightweightIdentifier taskIdentifier = generateTaskIdentifier();
+		TaskQuartzImpl taskImpl = new TaskQuartzImpl(this, taskIdentifier);
+		taskImpl.setResult(new OperationResult(operationName));
+		return taskImpl;
+	}
+	
+	private LightweightIdentifier generateTaskIdentifier() {
+		return lightweightIdentifierGenerator.generate();
+	}
+
+	@Override
+	public Task createTaskInstance(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws SchemaException {
+		//Note: we need to be Spring Bean Factory Aware, because some repo implementations are in scope prototype
+		RepositoryService repoService = (RepositoryService) this.beanFactory.getBean("repositoryService");
+		TaskQuartzImpl task = new TaskQuartzImpl(this, taskPrism, repoService);
+		task.initialize(parentResult);
+		return task;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.task.api.TaskManager#createTaskInstance(com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType, java.lang.String)
+	 */
+	@Override
+	public Task createTaskInstance(PrismObject<TaskType> taskPrism, String operationName, OperationResult parentResult) throws SchemaException {
+		TaskQuartzImpl taskImpl = (TaskQuartzImpl) createTaskInstance(taskPrism, parentResult);
+		if (taskImpl.getResult()==null) {
+			taskImpl.setResultTransient(new OperationResult(operationName));
+		}
+		return taskImpl;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.task.api.TaskManager#getTask(java.lang.String)
+	 */
+	@Override
+	public Task getTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = parentResult.createSubresult(TaskManager.class.getName()+".getTask");
+		result.addParam(OperationResult.PARAM_OID, taskOid);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
+		
+		Task task;
+		try {
+			
+			task = fetchTaskFromRepository(taskOid, result);
+			
+		} catch (ObjectNotFoundException e) {
+			result.recordFatalError("Task not found", e);
+			throw e;
+		} catch (SchemaException e) {
+			result.recordFatalError("Task schema error: "+e.getMessage(), e);
+			throw e;
+		}
+		
+		result.recordSuccess();
+		return task;
+	}
+
+	private Task fetchTaskFromRepository(String taskOid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		
+		PropertyReferenceListType resolve = new PropertyReferenceListType();
+		PrismObject<TaskType> task = repositoryService.getObject(TaskType.class, taskOid, resolve, result);
+		return createTaskInstance(task, result);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.task.api.TaskManager#switchToBackground(com.evolveum.midpoint.task.api.Task)
+	 */
+	@Override
+	public void switchToBackground(final Task task, OperationResult parentResult) {
+		
+		parentResult.recordStatus(OperationResultStatus.IN_PROGRESS, "Task switched to background");
+		OperationResult result = parentResult.createSubresult(TaskManager.class.getName()+".switchToBackground");
+		// Kind of hack. We want success to be persisted. In case that the persist fails, we will switch it back
+		
+		try {
+			
+			result.recordSuccess();
+			task.setExclusivityStatus(TaskExclusivityStatus.RELEASED);
+			persist(task, result);
+			
+		} catch (RuntimeException ex) {
+			result.recordFatalError("Unexpected problem: "+ex.getMessage(),ex);
+			throw ex;
+		}
+	}
+
+	private void persist(Task task,OperationResult parentResult)  {
+		if (task.getPersistenceStatus()==TaskPersistenceStatus.PERSISTENT) {
+			// Task already persistent. Nothing to do.
+			return;
+		}
+		
+		if (task.getOid()!=null) {
+			// We don't support user-specified OIDs
+			throw new IllegalArgumentException("Transient task must not have OID (task:"+task+")");
+		}
+		
+		((TaskQuartzImpl) task).setPersistenceStatusTransient(TaskPersistenceStatus.PERSISTENT);
+		PrismObject<TaskType> taskPrism = task.getTaskPrismObject();
+		try {
+			String oid = repositoryService.addObject(taskPrism, parentResult);
+			((TaskQuartzImpl) task).setOid(oid);
+		} catch (ObjectAlreadyExistsException ex) {
+			// This should not happen. If it does, it is a bug. It is OK to convert to a runtime exception
+			throw new IllegalStateException("Got ObjectAlreadyExistsException while not expecting it (task:"+task+")",ex);
+		} catch (SchemaException ex) {
+			// This should not happen. If it does, it is a bug. It is OK to convert to a runtime exception
+			throw new IllegalStateException("Got SchemaException while not expecting it (task:"+task+")",ex);
+		}
+		
+		// Make sure that the task has repository service instance, so it can fully work as "persistent"
+		if (task instanceof TaskQuartzImpl) {
+			TaskQuartzImpl taskImpl = (TaskQuartzImpl)task;
+			if (taskImpl.getRepositoryService()==null) {
+				RepositoryService repoService = (RepositoryService) this.beanFactory.getBean("repositoryService");
+				taskImpl.setRepositoryService(repoService);
+			}
+		}
+		
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.task.api.TaskManager#registerHandler(java.lang.String, com.evolveum.midpoint.task.api.TaskHandler)
+	 */
+	@Override
+	public void registerHandler(String uri, TaskHandler handler) {
+		handlers.put(uri, handler);
+	}
+	
+	TaskHandler getHandler(String uri) {
+		if (uri != null)
+			return handlers.get(uri);
+		else
+			return null;
+	}
+	
+
+	
+	@Override
+	public Set<Task> getRunningTasks() {
+		Set<Task> retval = new HashSet<Task>();
+		
+		List<JobExecutionContext> jecs;
+		try {
+			jecs = quartzScheduler.getCurrentlyExecutingJobs();
+		} catch (SchedulerException e1) {
+			LoggingUtils.logException(LOGGER, "Cannot get the list of currently executing jobs.", e1);
+			throw new SystemException("Cannot get the list of currently executing jobs.", e1);
+		}
+		
+		for (JobExecutionContext jec : jecs)
+			retval.add(RepoJobStoreUtil.getTaskFromTrigger(jec.getTrigger()));
+		
+		return retval;
+	}
+
+	@Override
+	public String addTask(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
+		String oid = repositoryService.addObject(taskPrism, parentResult);
+		return oid;
+	}
+
+	@Override
+	@Deprecated			// specific task setters should be used instead
+	public void modifyTask(String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws ObjectNotFoundException,
+			SchemaException {
+		repositoryService.modifyObject(TaskType.class, oid, modifications, parentResult);
+	}
+
+	@Override
+	@Deprecated
+	public void deleteTask(String oid, OperationResult parentResult) throws ObjectNotFoundException {
+		repositoryService.deleteObject(TaskType.class, oid, parentResult);
+	}
+
+
+	PrismObjectDefinition<TaskType> getTaskObjectDefinition() {
+		if (taskPrismDefinition == null) {
+			taskPrismDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
+		}
+		return taskPrismDefinition;
+	}
+
+	@Override
+	public void claimTask(Task task, OperationResult parentResult) throws ObjectNotFoundException,
+			ConcurrencyException, SchemaException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void releaseTask(Task task, OperationResult parentResult) throws ObjectNotFoundException,
+			SchemaException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean suspendTask(Task task, long waitTime, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
+
+		LOGGER.info("Suspending task " + task + " (waiting " + waitTime + " msec)");
+
+		if (task.getOid() == null)
+			throw new IllegalArgumentException("Only persistent tasks can be suspended (for now).");
+
+		JobKey jobKey = RepoJobStoreUtil.createJobKeyForTask(task);
+		
+		// TODO: this has to be thought out better....
+		
+		// First, we mark the task as suspended (to prevent it from running again, after stopping it)
+		// a more correct solution here would be to set a 'being suspended' flag ...
+		if (task.getExecutionStatus() != TaskExecutionStatus.CLOSED)
+			task.setExecutionStatusImmediate(TaskExecutionStatus.SUSPENDED, parentResult);
+			
+		// Second, we stop the task
+		boolean isStopped = shutdownTaskAndWait(task, waitTime);
+		
+		// Third, we definitely mark it as suspended (first attempt would be possibly overwritten by task handler, as it executes concurrently with this thread)
+		// this time we use quartz
+		try {
+			quartzScheduler.pauseJob(jobKey);
+		} catch (SchedulerException e) {
+			LoggingUtils.logException(LOGGER, "Unable to pause the task {}", e, task);
+		}
+		
+		
+		return isStopped;
+
+//		task.setExecutionStatus(TaskExecutionStatus.SUSPENDED);
+//		task.savePendingModifications(parentResult);
+//		
+//		TaskRunner runner = findRunner(task.getTaskIdentifier());
+//		LOGGER.trace("Suspending task " + task + ", runner = " + runner);
+//		if (runner != null) {
+//			shutdownRunnerAndWait(runner, waitTime);
+//			LOGGER.trace("Suspending task " + task + ", runner.thread = " + runner.thread + ", isAlive: " + runner.thread.isAlive());
+//		}
+//		
+//		boolean retval = runner == null || !runner.thread.isAlive();
+//		LOGGER.info("Suspending task " + task + ": done (is down = " + retval + ")");
+//		return retval;
+
+	}
+	
+	private boolean shutdownTasksAndWait(Collection<Task> tasks, long waitTime) {
+
+		if (tasks.isEmpty())
+			return true;
+		
+		LOGGER.trace("Stopping tasks " + tasks + " (waiting " + waitTime + " msec)");
+		
+		for (Task task : tasks)
+			signalShutdownToTask(task);
+		
+		return waitForTaskCompletion(tasks, waitTime);
+	}
+	
+	private boolean shutdownTaskAndWait(Task task, long waitTime) {
+		ArrayList<Task> list = new ArrayList<Task>(1);
+		list.add(task);
+		return shutdownTasksAndWait(list, waitTime);
+	}
+
+	
+	private void signalShutdownToTask(Task task) {
+		
+		LOGGER.info("Signalling shutdown to task " + task + " (via quartz)");
+		
+		try {
+			quartzScheduler.interrupt(RepoJobStoreUtil.createJobKeyForTask(task));
+		} catch (UnableToInterruptJobException e) {
+			LoggingUtils.logException(LOGGER, "Unable to interrupt the task {}", e, task);			// however, we continue (to suspend the task)
+		}
+	}
+
+	// returns true if tasks are down
+	private boolean waitForTaskCompletion(Collection<Task> tasks, long maxWaitTime) {
+		
+		LOGGER.trace("Waiting for task(s) " + tasks + " to complete, at most for " + maxWaitTime + " ms.");
+		
+		Set<String> oids = new HashSet<String>();
+		for (Task t : tasks)
+			if (t.getOid() != null)
+				oids.add(t.getOid());
+		
+		long singleWait = WAIT_FOR_COMPLETION_INITIAL;
+		long started = System.currentTimeMillis();
+		
+		for(;;) {
+			
+			List<JobExecutionContext> jecs;
+			try {
+				jecs = quartzScheduler.getCurrentlyExecutingJobs();
+			} catch (SchedulerException e1) {
+				LoggingUtils.logException(LOGGER, "Cannot get the list of currently executing jobs. Finishing waiting for task(s) completion.", e1);
+				return false;
+			}
+
+			boolean isAnythingExecuting = false;
+			for (JobExecutionContext jec : jecs) {
+				if (oids.contains(jec.getJobDetail().getKey().getName())) {
+					isAnythingExecuting = true;
+					break;
+				}
+			}
+			
+			if (!isAnythingExecuting) {
+				LOGGER.trace("The task(s), for which we have been waiting for, have finished.");
+				return true;
+			}
+			
+			if (maxWaitTime > 0 && System.currentTimeMillis() - started >= maxWaitTime) {
+				LOGGER.trace("Wait time has elapsed without (some of) tasks being stopped. Finishing waiting for task(s) completion.");
+				return false;
+			}
+			
+			LOGGER.trace("Tasks have not completed yet, waiting for " + singleWait + " ms (max: " + maxWaitTime + ")");
+			try {
+				Thread.sleep(singleWait);
+			} catch (InterruptedException e) {
+				LOGGER.trace("Waiting interrupted" + e);
+			}
+			
+			if (singleWait < WAIT_FOR_COMPLETION_MAX)
+				singleWait *= 2;
+		}
+	}
+
+
+	@Override
+	public void resumeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException,
+			ConcurrencyException, SchemaException {
+
+		if (task.getExecutionStatus() == TaskExecutionStatus.SUSPENDED)
+			task.setExecutionStatusImmediate(TaskExecutionStatus.RUNNING, parentResult);
+		else
+			LOGGER.warn("Attempting to resume a task that is not in a SUSPENDED state (task = " + task + ", state = " + task.getExecutionStatus());
+	}
+
+	@Override
+	public Set<Task> listTasks() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deactivateServiceThreads() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void reactivateServiceThreads() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean getServiceThreadsActivationState() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Long determineNextRunStartTime(TaskType taskType) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isTaskThreadActive(String taskIdentifier) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	// TEMPORARY!!!
+	public void scan() throws SchedulerException {
+		quartzScheduler.resumeAll();
+	}
+
+
+}
