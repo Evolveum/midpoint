@@ -37,8 +37,12 @@ public interface DynamicNamespacePrefixMapper extends Dumpable {
 	
 	public void registerPrefix(String namespace, String prefix);
 	
+	public void registerPrefixLocal(String namespace, String prefix);
+	
 	public String getPrefix(String namespace);
 	
 	public QName setQNamePrefix(QName qname);
+	
+	public DynamicNamespacePrefixMapper clone();
 
 }

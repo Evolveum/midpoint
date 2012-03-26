@@ -33,6 +33,7 @@ import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.Assert;
+import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import java.io.File;
@@ -40,12 +41,18 @@ import java.io.IOException;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -53,8 +60,11 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.test.util.XmlAsserts;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -63,6 +73,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationTy
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
@@ -76,6 +87,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
 		"classpath:application-context-configuration-test.xml" })
 public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 	
+	private static final File RESOURCE_FILE = new File(
+					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml");
+
+	private static final int NUM_TESTS = 10;
+
 	private final String RESOURCE_OID = "aae7be60-df56-11df-8608-0002a5d5c51b";
 
 	org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(RepositoryResourceTest.class);
@@ -122,8 +138,7 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 	public void testResource() throws Exception {
 		try {
 			
-			PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(
-					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"));
+			PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_FILE);
 			
 			checkResource(resource, "before add");
 			
@@ -165,7 +180,33 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 			}
 		}
 	}
+	
+	@Test
+	public void testResourceLoop() throws Exception {
+		for(int i=0; i<NUM_TESTS; i++) {
+			testResource();
+		}
+	}
 
+	@Test
+	public void testReadLoop() throws Exception {
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_FILE);
+		checkResource(resource, "before add");
+		// ADD resource
+		repositoryService.addObject(resource, new OperationResult("test"));
+		checkResource(resource, "after add");
+
+		for(int i=0; i<NUM_TESTS*2; i++) {			
+			// GET resource
+			PrismObject<ResourceType> retrievedObject = repositoryService.getObject(ResourceType.class, RESOURCE_OID,
+					new PropertyReferenceListType(), new OperationResult("test"));
+			checkResource(retrievedObject, "after get");
+		}
+		
+		repositoryService.deleteObject(ResourceType.class, RESOURCE_OID, new OperationResult("test"));
+	}
+
+	
 	private void checkResource(PrismObject<ResourceType> resource, String desc) {
 		assertEquals("Wrong OID (prism) "+desc, RESOURCE_OID, resource.getOid());
 		
@@ -180,6 +221,28 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 			assertNotNull("Account type without a name "+desc, name);
 			assertNotNull("Account type "+name+" does not have an objectClass "+desc, accountType.getObjectClass());
 		}
+		
+		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
+		assertNotNull("No configuration container", configurationContainer);
+		PrismContainer<Containerable> configPropsContainer = configurationContainer.findContainer(SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES);
+		assertNotNull("No configuration properties container", configPropsContainer);
+		List<Item<?>> configProps = configPropsContainer.getValue().getItems();
+		assertEquals("Wrong number of config properties", 6, configProps.size());
+		PrismProperty<Object> credentialsProp = configPropsContainer.findProperty(new QName(SchemaTestConstants.NS_ICFC_LDAP,"credentials"));
+		assertNotNull("No credentials property", credentialsProp);
+		assertEquals("Wrong number of credentials property value", 1, credentialsProp.getValues().size());
+		PrismPropertyValue<Object> credentialsPropertyValue = credentialsProp.getValues().iterator().next();
+		assertNotNull("No credentials property value", credentialsPropertyValue);
+		Object rawElement = credentialsPropertyValue.getRawElement();
+		assertTrue("Wrong element class "+rawElement.getClass(), rawElement instanceof Element);
+		Element rawDomElement = (Element)rawElement;
+		assertEquals("Wrong credentials element namespace", SchemaTestConstants.NS_ICFC_LDAP, rawDomElement.getNamespaceURI());
+		assertEquals("Wrong credentials element local name", "credentials", rawDomElement.getLocalName());
+		Element clearValueElement = DOMUtil.getChildElement(rawDomElement, ProtectedStringType.F_CLEAR_VALUE);
+		assertNotNull("No clearValue element", clearValueElement);
+		assertEquals("Wrong clearValue element namespace", SchemaConstants.NS_C, clearValueElement.getNamespaceURI());
+		assertEquals("Wrong clearValue element local name", "clearValue", clearValueElement.getLocalName());
+		assertEquals("Wrong clearValue element context", "secret", clearValueElement.getTextContent());
 	}
 
 	@Test
@@ -188,8 +251,7 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 		final String resourceOid = "aae7be60-df56-11df-8608-0002a5d5c51b";
 		try {
 			// add object
-			PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(
-					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"));
+			PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_FILE);
 			repositoryService.addObject(resource, new OperationResult("test"));
 
 			// get object
@@ -202,8 +264,7 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 					"src/test/resources/resource-modified-removed-tags.xml"));
 			modifiedResource.setName(modifiedResource.getDefinition().getName());
 			
-			ObjectDelta<ResourceType> objectModificationType = DiffUtil.diff(new File(
-					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"), new File(
+			ObjectDelta<ResourceType> objectModificationType = DiffUtil.diff(RESOURCE_FILE, new File(
 					"src/test/resources/resource-modified-removed-tags.xml"), 
 					ResourceType.class, PrismTestUtil.getPrismContext());
 			

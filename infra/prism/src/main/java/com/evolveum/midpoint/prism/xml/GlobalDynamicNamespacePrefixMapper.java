@@ -23,7 +23,9 @@ package com.evolveum.midpoint.prism.xml;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -50,7 +52,7 @@ import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper implements DynamicNamespacePrefixMapper, Dumpable {
 
 	private static final Map<String, String> globalNamespacePrefixMap = new HashMap<String, String>();
-	private final Map<String, String> localNamespacePrefixMap = new HashMap<String, String>();
+	private Map<String, String> localNamespacePrefixMap = new HashMap<String, String>();
 	private String defaultNamespace = null;
 	
 	public String getDefaultNamespace() {
@@ -65,6 +67,7 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 		globalNamespacePrefixMap.put(namespace, prefix);
 	}
 	
+	@Override
 	public void registerPrefixLocal(String namespace, String prefix) {
 		localNamespacePrefixMap.put(namespace, prefix);
 	}
@@ -133,6 +136,25 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 
 		return prefix;
 
+	}
+	
+	@Override
+	public GlobalDynamicNamespacePrefixMapper clone() {
+		GlobalDynamicNamespacePrefixMapper clone = new GlobalDynamicNamespacePrefixMapper();
+		clone.defaultNamespace = this.defaultNamespace;
+		clone.localNamespacePrefixMap = clonePrefixMap(this.localNamespacePrefixMap);
+		return clone;
+	}
+
+	private Map<String, String> clonePrefixMap(Map<String, String> map) {
+		if (map == null) {
+			return null;
+		}
+		Map<String, String> clone = new HashMap<String,String>();
+		for (Entry<String, String> entry: map.entrySet()) {
+			clone.put(entry.getKey(), entry.getValue());
+		}
+		return clone;
 	}
 
 	/* (non-Javadoc)

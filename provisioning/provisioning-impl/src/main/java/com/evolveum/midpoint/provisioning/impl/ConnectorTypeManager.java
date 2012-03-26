@@ -103,6 +103,7 @@ public class ConnectorTypeManager {
 							resource.asPrismObject().findContainer(ResourceType.F_CONFIGURATION))) {
 
 				// We found entry that matches
+				LOGGER.trace("HIT in connector cache: returning configured connector {} from cache (referenced from {})", connectorOid, resource);
 				return configuredConnectorInstanceEntry.connectorInstance;
 
 			} else {
@@ -112,6 +113,7 @@ public class ConnectorTypeManager {
 			}
 
 		}
+		LOGGER.debug("MISS in connector cache: creating configured connector {} as referenced from {}", connectorOid, resource);
 
 		// No usable connector in cache. Let's create it.
 		ConnectorInstance configuredConnectorInstance = createConfiguredConnectorInstance(resource, result);

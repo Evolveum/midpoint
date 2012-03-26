@@ -261,6 +261,8 @@ public class XmlRepositoryService implements RepositoryService {
 						throw new SystemException("More than one object with oid " + oid + " found");
 					}
 
+					LOGGER.trace("Object fetched from database:\n{}",c);
+					
 					object = convertToObject(c, type);					
 				}
 			}

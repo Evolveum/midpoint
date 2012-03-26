@@ -563,7 +563,9 @@ public class SchemaToDomProcessor {
 			namespacePrefixMapper = prismContext.getSchemaRegistry().getNamespacePrefixMapper();
 		}
 		
-		namespacePrefixMapper.registerPrefix(getNamespace(), "tns");
+		// We don't want the "tns" prefix to be kept in the mapper
+		namespacePrefixMapper = namespacePrefixMapper.clone();
+		namespacePrefixMapper.registerPrefixLocal(getNamespace(), "tns");
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Using namespace prefix mapper to serialize schema:\n{}",DebugUtil.dump(namespacePrefixMapper));

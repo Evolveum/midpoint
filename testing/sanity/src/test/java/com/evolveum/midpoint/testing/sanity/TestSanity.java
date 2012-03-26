@@ -45,6 +45,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -141,6 +142,9 @@ public class TestSanity extends AbstractIntegrationTest {
     private static final String RESOURCE_BROKEN_FILENAME = "src/test/resources/repo/resource-broken.xml";
     private static final String RESOURCE_BROKEN_OID = "ef2bc95b-76e0-59e2-ffff-ffffffffffff";
 
+    private static final String CONNECTOR_LDAP_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector";
+    private static final String CONNECTOR_DBTABLE_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector";
+    
     private static final String CONNECTOR_BROKEN_FILENAME = "src/test/resources/repo/connector-broken.xml";
     private static final String CONNECTOR_BROKEN_OID = "cccccccc-76e0-59e2-ffff-ffffffffffff";
 
@@ -434,7 +438,25 @@ public class TestSanity extends AbstractIntegrationTest {
 
     }
 
-    /**
+    
+    private void checkRepoOpenDjResource() throws ObjectNotFoundException, SchemaException {
+    	OperationResult result = new OperationResult(TestSanity.class.getName()+".checkRepoOpenDjResource");
+    	PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result);
+    	checkOpenDjResource(resource.asObjectable(), "repository");
+    }
+
+    private void checkRepoDerbyResource() throws ObjectNotFoundException, SchemaException {
+    	OperationResult result = new OperationResult(TestSanity.class.getName()+".checkRepoDerbyResource");
+    	PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result);
+    	checkDerbyResource(resource, "repository");
+    }
+
+    
+	private void checkDerbyResource(PrismObject<ResourceType> resource, String source) {
+		checkDerbyConfiguration(resource, source);
+	}
+
+	/**
      * Checks if the resource is internally consistent, if it has everything it should have.
      *
      * @throws SchemaException
@@ -454,6 +476,7 @@ public class TestSanity extends AbstractIntegrationTest {
         assertNotNull("Resource from " + source + " has null capabilities", resource.getCapabilities());
         assertFalse("Resource from " + source + " has empty capabilities", resource.getCapabilities().getAny().isEmpty());
         assertNotNull("Resource from " + source + " has null synchronization", resource.getSynchronization());
+        checkOpenDjConfiguration(resource.asPrismObject(), source);
     }
 
     private void checkOpenDjSchema(ResourceType resource, String source) throws SchemaException {
@@ -483,6 +506,43 @@ public class TestSanity extends AbstractIntegrationTest {
 			assertNotNull("Account type "+name+" in "+resource+" from "+source+" does not have object class", accountType.getObjectClass());
 		}
 	}
+	
+	private void checkOpenDjConfiguration(PrismObject<ResourceType> resource, String source) {
+		checkOpenResourceConfiguration(resource, CONNECTOR_LDAP_NAMESPACE, "credentials", 7, source);
+	}
+	
+	private void checkDerbyConfiguration(PrismObject<ResourceType> resource, String source) {
+		checkOpenResourceConfiguration(resource, CONNECTOR_DBTABLE_NAMESPACE, "password", 10, source);
+	}
+		
+	private void checkOpenResourceConfiguration(PrismObject<ResourceType> resource, String connectorNamespace, String credentialsPropertyName,
+			int numConfigProps, String source) {
+		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
+		assertNotNull("No configuration container in "+resource+" from "+source, configurationContainer);
+		PrismContainer<Containerable> configPropsContainer = configurationContainer.findContainer(SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES);
+		assertNotNull("No configuration properties container in "+resource+" from "+source, configPropsContainer);
+		List<Item<?>> configProps = configPropsContainer.getValue().getItems();
+		assertEquals("Wrong number of config properties in "+resource+" from "+source, numConfigProps, configProps.size());
+		PrismProperty<Object> credentialsProp = configPropsContainer.findProperty(new QName(connectorNamespace,credentialsPropertyName));
+		if (credentialsProp == null) {
+			// The is the heisenbug we are looking for. Just dump the entire damn thing.
+			display("Configuration with the heisenbug", configurationContainer.dump());
+		}
+		assertNotNull("No credentials property in "+resource+" from "+source, credentialsProp);
+		assertEquals("Wrong number of credentials property value in "+resource+" from "+source, 1, credentialsProp.getValues().size());
+		PrismPropertyValue<Object> credentialsPropertyValue = credentialsProp.getValues().iterator().next();
+		assertNotNull("No credentials property value in "+resource+" from "+source, credentialsPropertyValue);
+		Object rawElement = credentialsPropertyValue.getRawElement();
+		assertTrue("Wrong element class "+rawElement.getClass()+" in "+resource+" from "+source, rawElement instanceof Element);
+		Element rawDomElement = (Element)rawElement;
+//		display("LDAP credentials raw element", DOMUtil.serializeDOMToString(rawDomElement));
+		assertEquals("Wrong credentials element namespace in "+resource+" from "+source, connectorNamespace, rawDomElement.getNamespaceURI());
+		assertEquals("Wrong credentials element local name in "+resource+" from "+source, credentialsPropertyName, rawDomElement.getLocalName());
+		Element encryptedDataElement = DOMUtil.getChildElement(rawDomElement, new QName(DOMUtil.NS_XML_ENC, "EncryptedData"));
+		assertNotNull("No EncryptedData element", encryptedDataElement);
+		assertEquals("Wrong EncryptedData element namespace in "+resource+" from "+source, DOMUtil.NS_XML_ENC, encryptedDataElement.getNamespaceURI());
+		assertEquals("Wrong EncryptedData element local name in "+resource+" from "+source, "EncryptedData", encryptedDataElement.getLocalName());
+	}
     
     /**
      * Test the testResource method. Expect a complete success for now.
@@ -494,6 +554,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // GIVEN
 
+        checkRepoDerbyResource();
         assertCache();
 
         // WHEN
@@ -510,6 +571,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         PrismObject<ResourceType> rObject = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, opResult);
         resourceDerby = rObject.asObjectable();
+        checkDerbyResource(rObject, "repository(after test)");
 
         assertCache();
         assertEquals(RESOURCE_DERBY_OID, resourceDerby.getOid());
@@ -541,6 +603,8 @@ public class TestSanity extends AbstractIntegrationTest {
         displayTestTile("test004Capabilities");
 
         // GIVEN
+        
+        checkRepoOpenDjResource();
 
         assertCache();
 
@@ -603,6 +667,7 @@ public class TestSanity extends AbstractIntegrationTest {
         displayTestTile("test012AddUser");
 
         // GIVEN
+        checkRepoOpenDjResource();
         assertCache();
 
         UserType user = unmarshallJaxbFromFile(USER_JACK_FILENAME, UserType.class);
@@ -652,7 +717,7 @@ public class TestSanity extends AbstractIntegrationTest {
         displayTestTile("test013AddOpenDjAccountToUser");
 
         // GIVEN
-
+        checkRepoOpenDjResource();
         assertCache();
 
         // IMPORTANT! SWITCHING OFF ASSIGNMENT ENFORCEMENT HERE!
@@ -791,6 +856,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // GIVEN
 
+        checkRepoDerbyResource();
         assertCache();
 
         ObjectModificationType objectChange = unmarshallJaxbFromFile(
@@ -910,11 +976,11 @@ public class TestSanity extends AbstractIntegrationTest {
     }
 
     @Test
-    public void test015AccountOwner() throws FaultMessage {
+    public void test015AccountOwner() throws FaultMessage, ObjectNotFoundException, SchemaException {
         displayTestTile("test015AccountOwner");
 
         // GIVEN
-
+        checkRepoOpenDjResource();
         assertCache();
 
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
@@ -1017,17 +1083,16 @@ public class TestSanity extends AbstractIntegrationTest {
 
         OperationResult repoResult = new OperationResult("getObject");
         PropertyReferenceListType resolve = new PropertyReferenceListType();
-        PrismObject<ObjectType> object = repositoryService.getObject(ObjectType.class, USER_JACK_OID, resolve, repoResult);
-        ObjectType repoObject = object.asObjectable(); 
-        UserType repoUser = (UserType) repoObject;
-        displayJaxb("repository user", repoUser, new QName("user"));
+        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID, resolve, repoResult);
+        UserType repoUserType = repoUser.asObjectable(); 
+        displayJaxb("repository user", repoUserType, new QName("user"));
 
-        assertEquals("Cpt. Jack Sparrow", repoUser.getFullName());
-        assertEquals("somewhere", repoUser.getLocality());
+        assertEquals("Cpt. Jack Sparrow", repoUserType.getFullName());
+        assertEquals("somewhere", repoUserType.getLocality());
 
         // Check if appropriate accountRef is still there
 
-        List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+        List<ObjectReferenceType> accountRefs = repoUserType.getAccountRef();
         assertEquals(2, accountRefs.size());
         for (ObjectReferenceType accountRef : accountRefs) {
             assertTrue(
@@ -1039,20 +1104,19 @@ public class TestSanity extends AbstractIntegrationTest {
         // Check if shadow is still in the repo and that it is untouched
 
         repoResult = new OperationResult("getObject");
-        object = repositoryService.getObject(ObjectType.class, accountShadowOidOpendj, resolve, repoResult);
-        repoObject = object.asObjectable();
+        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, resolve, repoResult);
         repoResult.computeStatus();
         assertSuccess("getObject(repo) has failed", repoResult);
-        AccountShadowType repoShadow = (AccountShadowType) repoObject;
-        displayJaxb("repository shadow", repoShadow, new QName("shadow"));
+        display("repository shadow", repoShadow);
         AssertJUnit.assertNotNull(repoShadow);
-        AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
+        AccountShadowType repoShadowType = repoShadow.asObjectable();
+        AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
 
         // check attributes in the shadow: should be only identifiers (ICF UID)
 
         String uid = null;
         boolean hasOthers = false;
-        List<Object> xmlAttributes = repoShadow.getAttributes().getAny();
+        List<Object> xmlAttributes = repoShadowType.getAttributes().getAny();
         for (Object element : xmlAttributes) {
             if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
                 if (uid != null) {
@@ -1112,17 +1176,16 @@ public class TestSanity extends AbstractIntegrationTest {
 
         OperationResult repoResult = new OperationResult("getObject");
         PropertyReferenceListType resolve = new PropertyReferenceListType();
-        PrismObject<ObjectType> object = repositoryService.getObject(ObjectType.class, USER_JACK_OID, resolve, repoResult);
-        ObjectType repoObject = object.asObjectable();
-        UserType repoUser = (UserType) repoObject;
-        displayJaxb("repository user", repoUser, new QName("user"));
+        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID, resolve, repoResult);
+        UserType repoUserType = repoUser.asObjectable();
+        displayJaxb("repository user", repoUserType, new QName("user"));
 
         // Check if nothing else was modified
-        AssertJUnit.assertEquals("Cpt. Jack Sparrow", repoUser.getFullName());
-        AssertJUnit.assertEquals("somewhere", repoUser.getLocality());
+        AssertJUnit.assertEquals("Cpt. Jack Sparrow", repoUserType.getFullName());
+        AssertJUnit.assertEquals("somewhere", repoUserType.getLocality());
 
         // Check if appropriate accountRef is still there
-        List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+        List<ObjectReferenceType> accountRefs = repoUserType.getAccountRef();
         assertEquals(2, accountRefs.size());
         for (ObjectReferenceType accountRef : accountRefs) {
             assertTrue(
@@ -1133,19 +1196,18 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // Check if shadow is still in the repo and that it is untouched
         repoResult = new OperationResult("getObject");
-        object = repositoryService.getObject(ObjectType.class, accountShadowOidOpendj, resolve, repoResult);
-        repoObject = object.asObjectable();
+        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, resolve, repoResult);
         repoResult.computeStatus();
         assertSuccess("getObject(repo) has failed", repoResult);
-        AccountShadowType repoShadow = (AccountShadowType) repoObject;
-        displayJaxb("repository shadow", repoShadow, new QName("shadow"));
-        AssertJUnit.assertNotNull(repoShadow);
-        AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
+        AccountShadowType repoShadowType = repoShadow.asObjectable();
+        displayJaxb("repository shadow", repoShadowType, new QName("shadow"));
+        AssertJUnit.assertNotNull(repoShadowType);
+        AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
 
         // check attributes in the shadow: should be only identifiers (ICF UID)
         String uid = null;
         boolean hasOthers = false;
-        List<Object> xmlAttributes = repoShadow.getAttributes().getAny();
+        List<Object> xmlAttributes = repoShadowType.getAttributes().getAny();
         for (Object element : xmlAttributes) {
             if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
                 if (uid != null) {
@@ -2259,7 +2321,7 @@ public class TestSanity extends AbstractIntegrationTest {
         AssertJUnit.assertNotNull(task);
         display("Task after pickup", task);
 
-        PrismObject<ObjectType> o = repositoryService.getObject(ObjectType.class, TASK_OPENDJ_SYNC_OID, null, result);
+        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, TASK_OPENDJ_SYNC_OID, null, result);
         display("Task after pickup in the repository", o.asObjectable());
 
         // .. it should be running
@@ -2862,7 +2924,7 @@ public class TestSanity extends AbstractIntegrationTest {
         display("Task after pickup", task);
         assertFalse(task.getTaskIdentifier().isEmpty());
 
-        PrismObject<ObjectType> o = repositoryService.getObject(ObjectType.class, TASK_USER_RECOMPUTE_OID, null, result);
+        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, TASK_USER_RECOMPUTE_OID, null, result);
         display("Task after pickup in the repository", o.asObjectable());
 
         AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
@@ -3036,7 +3098,7 @@ public class TestSanity extends AbstractIntegrationTest {
         AssertJUnit.assertNotNull(task);
         display("Task after pickup", task);
 
-        PrismObject<ObjectType> o = repositoryService.getObject(ObjectType.class, TASK_OPENDJ_RECON_OID, null, result);
+        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, TASK_OPENDJ_RECON_OID, null, result);
         display("Task after pickup in the repository", o.asObjectable());
 
         // .. it should be running

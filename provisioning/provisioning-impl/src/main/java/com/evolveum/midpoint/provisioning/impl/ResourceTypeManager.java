@@ -142,7 +142,7 @@ public class ResourceTypeManager {
 	 *             cannot fetch resource schema
 	 * @throws ConfigurationException
 	 */
-	public ResourceType completeResource(ResourceType resource, PrismSchema resourceSchema,
+	public ResourceType completeResource(ResourceType resource, ResourceSchema resourceSchema,
 			OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
 			ConfigurationException {
 
@@ -334,7 +334,7 @@ public class ResourceTypeManager {
 		OperationResult schemaResult = parentResult.createSubresult(ConnectorTestOperation.CONNECTOR_SCHEMA
 				.getOperation());
 
-		PrismSchema schema = null;
+		ResourceSchema schema = null;
 		try {
 			// Try to fetch schema from the connector. The UCF will convert it
 			// to Schema Processor
@@ -391,7 +391,7 @@ public class ResourceTypeManager {
 	 * Adjust scheme with respect to capabilities. E.g. disable attributes that
 	 * are used for special purpose (such as account activation simulation).
 	 */
-	private void adjustSchemaForCapabilities(ResourceType resource, PrismSchema resourceSchema) {
+	private void adjustSchemaForCapabilities(ResourceType resource, ResourceSchema resourceSchema) {
 		if (resource.getCapabilities() == null) {
 			return;
 		}
@@ -406,8 +406,8 @@ public class ResourceTypeManager {
 				// same attribute both from
 				// activation/enable and from the attribute using its native
 				// name.
-				for (ResourceAttributeContainerDefinition objectClassDefinition : resourceSchema
-						.getDefinitions(ResourceAttributeContainerDefinition.class)) {
+				for (ObjectClassComplexTypeDefinition objectClassDefinition : resourceSchema
+						.getDefinitions(ObjectClassComplexTypeDefinition.class)) {
 					ResourceAttributeDefinition attributeDefinition = objectClassDefinition
 							.findAttributeDefinition(attributeName);
 					if (attributeDefinition != null) {
